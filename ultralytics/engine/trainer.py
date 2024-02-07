@@ -23,14 +23,31 @@ from torch import nn, optim
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, TQDM, __version__, callbacks, clean_url, colorstr, emojis,
-                               yaml_save)
+from ultralytics.utils import (
+    DEFAULT_CFG,
+    LOGGER,
+    RANK,
+    TQDM,
+    __version__,
+    callbacks,
+    clean_url,
+    colorstr,
+    emojis,
+    yaml_save,
+)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
-from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
-                                           strip_optimizer)
+from ultralytics.utils.torch_utils import (
+    EarlyStopping,
+    ModelEMA,
+    de_parallel,
+    init_seeds,
+    one_cycle,
+    select_device,
+    strip_optimizer,
+)
 
 
 class BaseTrainer:
@@ -171,8 +188,10 @@ class BaseTrainer:
                 LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch == -1:
-                LOGGER.warning("WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
-                               "default 'batch=16'")
+                LOGGER.warning(
+                    "WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                    "default 'batch=16'"
+                )
                 self.args.batch = 16
 
             # Command
@@ -219,8 +238,13 @@ class BaseTrainer:
         self.set_model_attributes()
 
         # Freeze layers
-        freeze_list = (self.args.freeze if isinstance(self.args.freeze, list) else
-                       range(self.args.freeze) if isinstance(self.args.freeze, int) else [])
+        freeze_list = (
+            self.args.freeze
+            if isinstance(self.args.freeze, list)
+            else range(self.args.freeze)
+            if isinstance(self.args.freeze, int)
+            else []
+        )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
         for k, v in self.model.named_parameters():
@@ -229,8 +253,10 @@ class BaseTrainer:
                 LOGGER.info(f"Freezing layer '{k}'")
                 v.requires_grad = False
             elif not v.requires_grad:
-                LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
-                            "See ultralytics.engine.trainer for customization of frozen layers.")
+                LOGGER.info(
+                    f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+                    "See ultralytics.engine.trainer for customization of frozen layers."
+                )
                 v.requires_grad = True
 
         # Check AMP
@@ -260,10 +286,9 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")
         if RANK in (-1, 0):
             # NOTE: When training DOTA dataset, double batch size could get OOM cause some images got more than 2000 objects.
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-                                                   rank=-1,
-                                                   mode="val")
+            self.test_loader = self.get_dataloader(
+                self.testset, batch_size=batch_size if self.args.task == "obb" else batch_size * 2, rank=-1, mode="val"
+            )
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -303,11 +328,12 @@ class BaseTrainer:
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
         self.run_callbacks("on_train_start")
-        LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
-                    f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
-                    f"Logging results to {colorstr('bold', self.save_dir)}\n"
-                    f'Starting training for ' +
-                    (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs..."))
+        LOGGER.info(
+            f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
+            f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+            f"Logging results to {colorstr('bold', self.save_dir)}\n"
+            f'Starting training for ' + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
+        )
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
@@ -339,7 +365,8 @@ class BaseTrainer:
                     for j, x in enumerate(self.optimizer.param_groups):
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = np.interp(
-                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)])
+                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                        )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
@@ -349,8 +376,9 @@ class BaseTrainer:
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size
-                    self.tloss = ((self.tloss * i + self.loss_items) /
-                                  (i + 1) if self.tloss is not None else self.loss_items)
+                    self.tloss = (
+                        (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
+                    )
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
@@ -376,8 +404,9 @@ class BaseTrainer:
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if RANK in (-1, 0):
                     pbar.set_description(
-                        ("%11s" * 2 + "%11.4g" * (2 + loss_len)) %
-                        (f"{epoch + 1}/{self.epochs}", mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
+                        ("%11s" * 2 + "%11.4g" * (2 + loss_len))
+                        % (f"{epoch + 1}/{self.epochs}", mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1])
+                    )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
@@ -429,8 +458,10 @@ class BaseTrainer:
 
         if RANK in (-1, 0):
             # Do final val with best.pt
-            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in "
-                        f"{(time.time() - self.train_time_start) / 3600:.3f} hours.")
+            LOGGER.info(
+                f"\n{epoch - self.start_epoch + 1} epochs completed in "
+                f"{(time.time() - self.train_time_start) / 3600:.3f} hours."
+            )
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
@@ -455,7 +486,8 @@ class BaseTrainer:
             "train_metrics": metrics,
             "train_results": results,
             "date": datetime.now().isoformat(),
-            "version": __version__, }
+            "version": __version__,
+        }
 
         # Save last and best
         torch.save(ckpt, self.last)
@@ -610,8 +642,10 @@ class BaseTrainer:
                         setattr(self.args, k, overrides[k])
 
             except Exception as e:
-                raise FileNotFoundError("Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
-                                        "i.e. 'yolo train resume model=path/to/last.pt'") from e
+                raise FileNotFoundError(
+                    "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
+                    "i.e. 'yolo train resume model=path/to/last.pt'"
+                ) from e
         self.resume = resume
 
     def resume_training(self, ckpt):
@@ -629,12 +663,15 @@ class BaseTrainer:
         if self.resume:
             assert start_epoch > 0, (
                 f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
-                f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'")
+                f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
+            )
             LOGGER.info(
-                f"Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
+                f"Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs"
+            )
         if self.epochs < start_epoch:
             LOGGER.info(
-                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")
+                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
+            )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
@@ -671,9 +708,11 @@ class BaseTrainer:
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
-            LOGGER.info(f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                        f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                        f"determining best 'optimizer', 'lr0' and 'momentum' automatically... ")
+            LOGGER.info(
+                f"{colorstr('optimizer:')} 'optimizer=auto' found, "
+                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
+                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+            )
             nc = getattr(model, "nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
@@ -699,11 +738,13 @@ class BaseTrainer:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers "
                 f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD, auto]."
-                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics.")
+                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
+            )
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)')
+            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
+        )
         return optimizer

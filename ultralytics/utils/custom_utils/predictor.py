@@ -3,12 +3,17 @@ import os
 
 import fiftyone as fo
 import numpy as np
-from config import CLASSES_MAPPING, get_yolo_classes, original_classes, ROOT_DIR
+from ultralytics.config import CLASSES_MAPPING, original_classes
 from fiftyone import ViewField as F
+from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
 
 from ultralytics import YOLO, RTDETR
 
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import seaborn as sns
+import json
 
 def read_yolo_detections_file(filepath):
     detections = []
@@ -98,45 +103,123 @@ def add_detections_to_fiftyone(dataset, model_name, run_number):
     add_yolo_detections(dataset, model_name, detection_filepath, classes)
     print("Finished adding detections")
 
-def run_prediction(export_dir_test: str, dataset: fo.Dataset, model_name='yolov8', filter = F("bbox_area_percentage") < 0.33):
-    run_number = max(glob.glob(os.path.join("./runs/detect/", 'train*/')), key=os.path.getmtime)
-    if model_name == "yolov8":
-        run_number = f'{ROOT_DIR}/runs/detect/yolo/'
-        model = YOLO(f'{run_number}weights/best.pt')
-    else:
-        run_number = f'{ROOT_DIR}/runs/detect/rt_detr/'
-        model = RTDETR(f'{run_number}weights/best.pt')
+def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path, pred=(0,100), pred_name="all"):
+    _classes = lambda dataset: list(dataset.count_values(f'{model_name}.detections.label'))
 
-    results = model.predict(f'{export_dir_test}/images/val', save_txt=True, imgsz=640, conf=0.1, save_conf=True, classes=get_yolo_classes())
-
-    # Extracts the most recently added/changed folder
-    run_number = max(glob.glob(os.path.join("./runs/detect/", '*/')), key=os.path.getmtime)
+    lower_thresh = pred[0]
+    upper_thresh = pred[1]
     
-    dataset_test = dataset.match_tags("test")
-    add_detections_to_fiftyone(dataset_test, model_name, run_number)
+    expr = F("is_yellow") == True
+    view = dataset.match_tags("test").match(expr).clone()
+    clone = view
 
-    print("Evaluating detections")
-    eval_results = fo.evaluate_detections(
-        dataset_test,
+    print("BEFORE:",len(view))
+
+    counts = dataset.count_values("detections.detections.label")
+    # classes_top10 = sorted(counts, key=counts.get, reverse=True)[:10]
+
+    
+    for sample in tqdm(view):
+        detections = sample.detections.detections
+        filtered_detections = []
+        for detection in detections:
+            if (lower_thresh < detection["bbox_area_percentage"] <= upper_thresh):
+                filtered_detections.append(detection)
+        sample.detections.detections = filtered_detections
+        sample.save()
+        predictions = sample[model_name].detections
+        filtered_predictions = []
+        for prediction in predictions:
+            bounding_box = prediction["bounding_box"]
+            bbox_area_percentage = bounding_box[2] * bounding_box[3] * 100
+            if prediction["confidence"] > 0.2 and (lower_thresh < bbox_area_percentage <= upper_thresh):
+                filtered_predictions.append(prediction)
+        sample[model_name].detections = filtered_predictions
+        sample.save()
+
+    if "TVT_svamp" not in _classes(dataset):
+        view = view.map_labels(model_name, CLASSES_MAPPING)
+
+    eval_results: DetectionResults = fo.evaluate_detections(
+        view,
         model_name,
+        classes=classes,
+        compute_mAP=True,
+        classwise=False,
         gt_field="detections",
         eval_key=model_name,
+        method="coco",
+    )
+
+    eval_results_2 = fo.evaluate_detections(
+        view,
+        model_name,
+        classes=classes,
         compute_mAP=True,
-        )
+        classwise=False,
+        gt_field="detections",
+        eval_key=model_name,
+        method="coco",
+        iou_threshs=[0.5]
+    )
 
-    print("mAP@0.5", eval_results.mAP())
+    eval_results_3 = fo.evaluate_detections(
+        view,
+        model_name,
+        classes=classes,
+        compute_mAP=True,
+        classwise=False,
+        gt_field="detections",
+        eval_key=model_name,
+        method="coco",
+        iou_threshs=[0.75]
+    )
+    map_50_95 = eval_results.mAP()
+    map_50 = eval_results_2.mAP()
+    map_75 = eval_results_3.mAP()
+    print("mAP@0.5:0.95", eval_results.mAP())
+    print("mAP@0.5", eval_results_2.mAP())
+    print("mAP@0.75", eval_results_3.mAP())
 
-    counts = dataset_test.count_values("detections.detections.label")
-    classes = sorted(counts, key=counts.get, reverse=True)
+    report = eval_results.report()
+    weighted_avg = report['weighted avg']
 
-    # # Print a classification report for the top-10 classes
-    print("Printing report ++")
+    obj = {
+        "mAP@0.5:0.95": map_50_95,
+        "mAP@0.5": map_50,
+        "mAP@0.75": map_75,
+        "weighted_avg": weighted_avg
+    }
+
+    # test_stats_path = f"{evaluators_path}/results/{model_type}/test_set_stats_{pred_name}.json"
+    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}_gul.json"
+
+    with open(test_stats_path, "w") as file:
+        json.dump(obj, file, indent=2)
+
     eval_results.print_report(classes=classes)
-    plot = eval_results.plot_confusion_matrix(classes=classes)
-    plot.show()
-    plot_PR = eval_results.plot_pr_curves(classes=classes)
-    plot_PR.show()
 
-    session = fo.launch_app(dataset_test)
-    session.plots.attach(plot)
-    session.wait()
+    # if model_type == "retinanet" or model_cat == "ultra":
+    if model_name.split("_", 1)[0] == "ultra":
+        title = f"{model_name.split('_', 1)[0]} {pred_name} objects"
+
+    cm, labels, _ = eval_results._confusion_matrix(
+        classes=classes,
+        include_other=None,
+        include_missing=None,
+        other_label="background",
+        tabulate_ids=True,
+        )
+    
+    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    fig, ax = plt.subplots(figsize=(11,9))
+    sns.heatmap(cmn, annot=False, cmap="Blues", xticklabels=labels, yticklabels=labels)
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.tight_layout()
+    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02_norm_gul.png")
+
+    plot_PR = eval_results.plot_pr_curves(classes=classes, title=f"{model_name} {pred_name} objects")
+    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02_gul.png")
+
+    clone.delete()

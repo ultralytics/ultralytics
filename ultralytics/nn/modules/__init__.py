@@ -38,6 +38,8 @@ from .block import (
     Proto,
     RepC3,
     ResNetLayer,
+    ContrastiveHead,
+    BNContrastiveHead,
 )
 from .conv import (
     CBAM,
@@ -119,4 +121,6 @@ __all__ = (
     "OBB",
     "WorldDetect",
     "ImagePoolingAttn",
+    "ContrastiveHead",
+    "BNContrastiveHead",
 )

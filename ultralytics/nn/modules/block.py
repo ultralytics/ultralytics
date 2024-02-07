@@ -20,6 +20,8 @@ __all__ = (
     "C2f",
     "C2fAttn",
     "ImagePoolingAttn",
+    "ContrastiveHead",
+    "BNContrastiveHead",
     "C3x",
     "C3TR",
     "C3Ghost",
@@ -514,6 +516,30 @@ class ContrastiveHead(nn.Module):
     def forward(self, x, w):
         """Forward function of contrastive learning."""
         x = F.normalize(x, dim=1, p=2)
+        w = F.normalize(w, dim=-1, p=2)
+        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        x = x * self.logit_scale.exp() + self.bias
+        return x
+
+
+class BNContrastiveHead(nn.Module):
+    """Batch Norm Contrastive Head for YOLO-World
+    using batch norm instead of l2-normalization
+    Args:
+        embed_dims (int): embed dim of text and image features
+        norm_cfg (dict): normalization params
+    """
+
+    def __init__(self, embed_dims: int):
+        super().__init__()
+        self.norm = nn.BatchNorm2d(embed_dims)
+        self.bias = nn.Parameter(torch.zeros([]))
+        # use -1.0 is more stable
+        self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
+
+    def forward(self, x, w):
+        """Forward function of contrastive learning."""
+        x = self.norm(x)
         w = F.normalize(w, dim=-1, p=2)
         x = torch.einsum("bchw,bkc->bkhw", x, w)
         x = x * self.logit_scale.exp() + self.bias

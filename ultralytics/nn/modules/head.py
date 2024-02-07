@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
-from .block import DFL, Proto, ContrastiveHead
+from .block import DFL, Proto, ContrastiveHead, BNContrastiveHead
 from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -209,11 +209,11 @@ class Classify(nn.Module):
 
 
 class WorldDetect(Detect):
-    def __init__(self, nc=80, embed=512, ch=()):
+    def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
-        self.cv4 = nn.ModuleList(ContrastiveHead() for _ in ch)
+        self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
     def forward(self, x, text):
         """Concatenates and returns predicted bounding boxes and class probabilities."""

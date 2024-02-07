@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-import argparse
 import importlib
 import os
 from dataclasses import dataclass, field, fields
@@ -105,7 +104,7 @@ class Settings:
         # Can't collect things when collection is disabled
         cases = [
             (self.collection_val_only, 'collect only on val set'),
-            (self.collect_loss, 'collect loss values'),
+            # (self.collect_loss, 'collect loss values'), TODO: Restore when loss is supported.
             (self.image_embeddings_dim > 0, 'collect image embeddings'),
             (self.collection_epoch_start, 'collect metrics during training'), ]
 

@@ -5,8 +5,10 @@ from pathlib import Path
 
 import tlc
 import yaml
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (_TLCPredictedBoundingBox,
-                                                                                        _TLCPredictedBoundingBoxes)
+from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import (
+    _TLCPredictedBoundingBox,
+    _TLCPredictedBoundingBoxes,
+)
 from tlc.core.builtins.constants.paths import _ROW_CACHE_FILE_NAME
 from tlc.core.objects.tables.from_url.utils import get_hash
 
@@ -350,7 +352,7 @@ def write_3lc_yaml(data_file: str, tables: dict[str, tlc.Table]):
     new_yaml_url = tlc.Url(data_file.replace('.yaml', '_3lc.yaml'))
     if new_yaml_url.exists():
         LOGGER.info(f'{TLC_COLORSTR}3LC YAML file already exists: {str(new_yaml_url)}. To use this file,'
-                    f' add a 3LC prefix: --data 3LC://{str(new_yaml_url)}.')
+                    f' add a 3LC prefix: "3LC://{str(new_yaml_url)}".')
         return
 
     # Common path for train, val, test tables:
@@ -369,7 +371,7 @@ def write_3lc_yaml(data_file: str, tables: dict[str, tlc.Table]):
     new_yaml_url.write(yaml.dump(data_config, sort_keys=False, encoding='utf-8'))
 
     LOGGER.info(f'{TLC_COLORSTR}Created 3LC YAML file: {str(new_yaml_url)}. To use this file,'
-                f' add a 3LC prefix: --data 3LC://{str(new_yaml_url)}.')
+                f' add a 3LC prefix: "3LC://{str(new_yaml_url)}".')
 
 
 def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val')) -> dict[str, tlc.Table]:

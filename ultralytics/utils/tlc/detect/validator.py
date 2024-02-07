@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-import copy
 
 import numpy as np
 import tlc
@@ -29,7 +28,7 @@ class TLCDetectionValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, run=None, settings=None):
         LOGGER.info("Using 3LC Validator 🌟")
 
-        self._settings = settings if settings else Settings()
+        self._settings = args.get('settings', Settings())
         self._run = run
         self._seen = 0
         self._final_validation = True

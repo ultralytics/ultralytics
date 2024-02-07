@@ -592,8 +592,10 @@ class WorldModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
-        self.txt_feats = self.txt_feats.to(device=x.device, dtype=x.dtype)
-        txt_feats = self.txt_feats
+        txt_feats = self.txt_feats.to(device=x.device, dtype=x.dtype)
+        if len(txt_feats) != len(x):
+            txt_feats = txt_feats.repeat(len(x), 1, 1)
+        ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -603,7 +605,7 @@ class WorldModel(DetectionModel):
             if isinstance(m, C2fAttn):
                 x = m(x, txt_feats)
             elif isinstance(m, WorldDetect):
-                x = m(x, self.txt_feats)
+                x = m(x, ori_txt_feats)
             elif isinstance(m, ImagePoolingAttn):
                 txt_feats = m(x, txt_feats)
             else:

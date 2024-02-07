@@ -487,7 +487,8 @@ class ImagePoolingAttn(nn.Module):
         k = self.key(x)
         v = self.value(x)
 
-        q = q.reshape(1, text.shape[1], self.nh, self.hc).repeat(bs, 1, 1, 1)
+        # q = q.reshape(1, text.shape[1], self.nh, self.hc).repeat(bs, 1, 1, 1)
+        q = q.reshape(bs, -1, self.nh, self.hc)
         k = k.reshape(bs, -1, self.nh, self.hc)
         v = v.reshape(bs, -1, self.nh, self.hc)
 

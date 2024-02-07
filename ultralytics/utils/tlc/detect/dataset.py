@@ -80,7 +80,7 @@ def build_tlc_dataset(cfg,
 class TLCDataset(YOLODataset):
     """ A 3LC dataset for YOLO training and validation. Populates the dataset with samples from a 3LC table
     and supports sampling weights.
-    
+
     """
 
     def __init__(self,
@@ -106,14 +106,14 @@ class TLCDataset(YOLODataset):
 
     def get_img_files(self, _: Any) -> list[str]:
         """Get the image files, converting possibly aliased 3LC Urls to absolute paths.
-        
+
         :return: A list of absolute paths to the images.
         """
         return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
 
     def get_labels(self) -> list[dict[str, Any]]:
         """Get the labels for the dataset.
-        
+
         :return: A list of YOLOv8 labels.
         """
         return [tlc_table_row_to_yolo_label(row) for row in self.table]

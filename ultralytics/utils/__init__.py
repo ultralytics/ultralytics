@@ -172,12 +172,14 @@ class IterableSimpleNamespace(SimpleNamespace):
     def __getattr__(self, attr):
         """Custom attribute access error message with helpful information."""
         name = self.__class__.__name__
-        raise AttributeError(f"""
+        raise AttributeError(
+            f"""
             '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
             'default.yaml' file.\nPlease update your code with 'pip install -U ultralytics' and if necessary replace
             {DEFAULT_CFG_PATH} with the latest version from
             https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml
-            """)
+            """
+        )
 
     def get(self, key, default=None):
         """Return the value of the specified key if it exists; otherwise, return the default value."""
@@ -247,7 +249,6 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             print(f"Creating custom formatter for non UTF-8 environments due to {e}")
 
             class CustomFormatter(logging.Formatter):
-
                 def format(self, record):
                     """Sets up logging with UTF-8 encoding and configurable verbosity."""
                     return emojis(super().format(record))
@@ -632,8 +633,10 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(path.parent):
-        LOGGER.warning(f"WARNING ⚠️ user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
-                       "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path.")
+        LOGGER.warning(
+            f"WARNING ⚠️ user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
+            "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
+        )
         path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
 
     # Create the subdirectory if it does not exist
@@ -694,7 +697,8 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m", }
+        "underline": "\033[4m",
+    }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -867,11 +871,19 @@ def set_sentry():
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
-            "os": ENVIRONMENT, }
+            "os": ENVIRONMENT,
+        }
         return event
 
-    if (SETTINGS["sync"] and RANK in (-1, 0) and Path(sys.argv[0]).name == "yolo" and not TESTS_RUNNING and ONLINE
-            and is_pip_package() and not is_git_dir()):
+    if (
+        SETTINGS["sync"]
+        and RANK in (-1, 0)
+        and Path(sys.argv[0]).name == "yolo"
+        and not TESTS_RUNNING
+        and ONLINE
+        and is_pip_package()
+        and not is_git_dir()
+    ):
         # If sentry_sdk package is not installed then return and do not use Sentry
         try:
             import sentry_sdk  # noqa
@@ -933,7 +945,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
-            'tlc': True, }
+        }
 
         super().__init__(copy.deepcopy(self.defaults))
 
@@ -950,7 +962,8 @@ class SettingsManager(dict):
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
                     "with your settings or a recent ultralytics package update. "
                     f"\nView settings with 'yolo settings' or at '{self.file}'"
-                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'.")
+                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'."
+                )
                 self.reset()
 
     def load(self):
@@ -977,8 +990,10 @@ def deprecation_warn(arg, new_arg, version=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     if not version:
         version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
-    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
-                   f"Please use '{new_arg}' instead.")
+    LOGGER.warning(
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+        f"Please use '{new_arg}' instead."
+    )
 
 
 def clean_url(url):
@@ -1000,8 +1015,17 @@ SETTINGS = SettingsManager()  # initialize settings
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
-ENVIRONMENT = ("Colab" if is_colab() else "Kaggle"
-               if is_kaggle() else "Jupyter" if is_jupyter() else "Docker" if is_docker() else platform.system())
+ENVIRONMENT = (
+    "Colab"
+    if is_colab()
+    else "Kaggle"
+    if is_kaggle()
+    else "Jupyter"
+    if is_jupyter()
+    else "Docker"
+    if is_docker()
+    else platform.system()
+)
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 

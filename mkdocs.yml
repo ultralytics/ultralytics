@@ -245,6 +245,7 @@ nav:
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
+          - Roboflow 100: datasets/detect/roboflow-100.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md

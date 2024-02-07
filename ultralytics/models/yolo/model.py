@@ -4,6 +4,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
 
+
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
 

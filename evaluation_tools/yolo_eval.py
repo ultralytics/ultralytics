@@ -1,4 +1,4 @@
-import matplotlib
+#import matplotlib
 #matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
@@ -31,11 +31,12 @@ metrics = model.val(
     imgsz=imgsz,
     batch=batch,
     device=device,
+    # iou=0.9,
     save=True,
     save_json=True,
     plots=True,
-    save_txt=True,      # Text files
-    save_conf=True,     # Save confidences
+    save_txt=False,      # Text files
+    save_conf=False,     # Save confidences
     # save results to project/name relative to script directory or absolute path
     project=outputs_root,
     name=experiment_name,

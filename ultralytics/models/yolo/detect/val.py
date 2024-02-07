@@ -295,8 +295,9 @@ class DetectionValidator(BaseValidator):
                 eval = COCOeval(anno, pred, "bbox")
 
                 # Set Custom Area Ranges
-                eval.params.areaRng = [[0 ** 2, 1e5 ** 2],
-                                       [0 ** 2, 16 ** 2],
+                # TODO: should we set 10*15 as the minimum area? before it was 0**2
+                eval.params.areaRng = [[0**2, 1e5 ** 2],
+                                       [0**2, 16 ** 2],
                                        [16 ** 2, 32 ** 2],
                                        [32 ** 2, 96 ** 2],
                                        [96 ** 2, 1e5 ** 2]]
@@ -308,21 +309,31 @@ class DetectionValidator(BaseValidator):
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                # Not updating mAP50-95 and mAP50 given that some images have more than 100 detections
-                #stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
 
-                # Get all metrics in a dictionary
-                self.extract_cocoeval_metrics(eval)
+                # Update metrics
+                stats[self.metrics.keys[-1]] = eval.stats[0]  # update mAP50-95
+                stats[self.metrics.keys[-2]] = eval.stats[5]  # update mAP50
 
                 # Set some metrics in the stats dictionary
+                # Precision
                 stats['metrics/AP(T)'] = eval.stats[1]
                 stats['metrics/AP(S)'] = eval.stats[2]
                 stats['metrics/AP(M)'] = eval.stats[3]
                 stats['metrics/AP(L)'] = eval.stats[4]
-                stats['metrics/AR(T)'] = eval.stats[-4]
-                stats['metrics/AR(S)'] = eval.stats[-3]
-                stats['metrics/AR(M)'] = eval.stats[-2]
-                stats['metrics/AR(L)'] = eval.stats[-1]
+
+                # Recall by IoU
+                stats['metrics/AR(50:95)'] = eval.stats[25]
+                stats['metrics/AR(75)'] = eval.stats[30]
+                stats['metrics/AR(50)'] = eval.stats[31]
+
+                # Recall by Area
+                stats['metrics/AR(T)'] = eval.stats[26]
+                stats['metrics/AR(S)'] = eval.stats[27]
+                stats['metrics/AR(M)'] = eval.stats[28]
+                stats['metrics/AR(L)'] = eval.stats[29]
+
+                # Get all metrics in a dictionary
+                self.extract_cocoeval_metrics(eval)
 
                 # Save results to file
                 results_file = self.save_dir / "evaluation_results.json"
@@ -367,6 +378,10 @@ class DetectionValidator(BaseValidator):
             for j, area in enumerate(areas):
                 idx = num_ap_metrics + j + i * len(areas)  # Adjust index calculation for AR
                 append_metrics(metrics_, 'AR', '0.50:0.95', area, md, eval.stats[idx])
+
+        # Append AR metrics for 0.75 and 0.50 IoU
+        for i, iou in enumerate(['0.75', '0.50']):
+            append_metrics(metrics_, 'AR', iou, 'all', '300', eval.stats[idx + i + 1])
 
         # Convert to DataFrame
         df_metrics = pd.DataFrame(metrics_)

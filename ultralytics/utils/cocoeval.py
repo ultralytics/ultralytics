@@ -424,7 +424,7 @@ class COCOeval:
         Compute and display summary metrics for evaluation results.
         Note this functin can *only* be applied on the default parameter setting
         '''
-        def _summarize( ap=1, iouThr=None, areaRng='all', maxDets=100 ):
+        def _summarize( ap=1, iouThr=None, areaRng='all', maxDets=100, bold=False):
             p = self.params
             iStr = ' {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}'
             titleStr = 'Average Precision' if ap == 1 else 'Average Recall'
@@ -453,7 +453,11 @@ class COCOeval:
                 mean_s = -1
             else:
                 mean_s = np.mean(s[s>-1])
-            print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
+
+            if bold:
+                print("\033[1m"+iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s)+"\033[0m")
+            else:
+                print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
 
         def _summarizeDets():
@@ -463,7 +467,7 @@ class COCOeval:
             num_dets = len(self.params.maxDets)  # Number of max detection thresholds
 
             # Total number of stats to calculate for AP and AR
-            total_stats = num_iou_thrs * num_area_ranges + num_dets * num_area_ranges
+            total_stats = num_iou_thrs * num_area_ranges + num_dets * num_area_ranges + 2
 
             # Initialize the stats array
             stats = np.zeros((total_stats,))
@@ -480,6 +484,12 @@ class COCOeval:
                 for areaLbl in self.params.areaRngLbl:
                     stats[stats_index] = _summarize(0, areaRng=areaLbl, maxDets=maxDet)
                     stats_index += 1
+
+            # Calculate AR stats for IoU thresholds
+            for iouThr in [0.75, 0.5]:
+                stats[stats_index] = _summarize(0, iouThr=iouThr, areaRng='all', maxDets=self.params.maxDets[-1],
+                                                bold=True if iouThr==0.5 else False)
+                stats_index += 1
 
             return stats
 

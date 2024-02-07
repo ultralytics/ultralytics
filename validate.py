@@ -1,11 +1,10 @@
-import comet_ml
 from ultralytics import YOLO
 
-# Initialize COMET logger, first log done in notebook where API key was asked, now seems to be saved in .comet.config
-comet_ml.init()
+
+model_name = '8s-100e-128b-auto'
 
 # Initialize model and load matching weights
-model = YOLO('./evaluation_tools/models/8s.pt')
+model = YOLO('./models/'+model_name+'.pt')
 
 metrics = model.val(
     data='custom_dataset.yaml',
@@ -18,5 +17,5 @@ metrics = model.val(
     plots=True,
     # save results to project/name relative to script directory or absolute path
     project='validations',
-    name='8s-sd',
+    name=model_name,
 )

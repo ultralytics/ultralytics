@@ -90,8 +90,8 @@ class TLCDataset(YOLODataset):
                  table: tlc.Table = None,
                  use_sampling_weights: bool = False,
                  **kwargs) -> None:
-        assert task == "detect"
-        assert isinstance(table, tlc.Table)
+        assert task == "detect", f"Unsupported task: {task} for TLCDataset. Only 'detect' is supported."
+        assert isinstance(table, tlc.Table), f"Expected table to be a tlc.Table, got {type(table)} instead."
         self.table = table
         if use_sampling_weights and kwargs['rect']:
             raise ValueError("Cannot use sampling weights with rect=True.")
@@ -149,6 +149,6 @@ class TLCDataset(YOLODataset):
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         index = self._indices[index]  # Use potentially resampled index
         return super().__getitem__(index)

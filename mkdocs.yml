@@ -245,6 +245,7 @@ nav:
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
+          - Roboflow 100: datasets/detect/roboflow-100.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -338,6 +339,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - ONNX: integrations/onnx.md
       - TensorRT: integrations/tensorrt.md
+      - CoreML: integrations/coreml.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

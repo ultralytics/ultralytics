@@ -11,8 +11,9 @@ def get_git_root():
 
 ROOT_DIR = get_git_root()
 DATASET_NAME = "My_dataset"
-# DATA_PATH = f'{ROOT_DIR}/data'
-DATA_PATH = "/media/vemund-sigurd/aa7e1253-187b-48d4-af32-eb9f050db5dd/vemund-sigurd/data/new_data"
+DATA_PATH = f'{ROOT_DIR}/data'
+# DATA_PATH = "/media/vemund-sigurd/aa7e1253-187b-48d4-af32-eb9f050db5dd/vemund-sigurd/data/new_data"
+# DATA_PATH = "/cluster/home/vemundtl/ultralytics/data"
 LABELS_PATH = f'{DATA_PATH}/labels/labels.json'
 TRAIN_DATA_PATH = f'{DATA_PATH}/train_split'
 TEST_DATA_PATH = f'{DATA_PATH}/test_split'

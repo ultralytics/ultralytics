@@ -46,4 +46,4 @@ head:
   - [-1, 3, C2f, [1024]] # 21 (P5/32-large)
   - [-1, 1, CoordAtt, [1024]] 
 
-  - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)
+  - [[16, 20, 24], 1, Detect, [nc]] # Detect(P3, P4, P5)

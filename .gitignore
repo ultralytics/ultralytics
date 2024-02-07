@@ -165,3 +165,4 @@ pnnx*
 /ultralytics/assets/
 data
 logs
+*.slurm

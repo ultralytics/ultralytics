@@ -880,7 +880,7 @@ class Format:
 
     Attributes:
         bbox_format (str): Format for bounding boxes. Default is 'xywh'.
-        normalize (bool): Whether to normalize bounding boxes. Default is True.
+        normalizeBoundingBoxes (bool): Whether to normalize bounding boxes. Default is True.
         return_mask (bool): Return instance masks for segmentation. Default is False.
         return_keypoint (bool): Return keypoints for pose estimation. Default is False.
         mask_ratio (int): Downsample ratio for masks. Default is 4.

@@ -1,14 +1,10 @@
-import glob
 import os
 
 import fiftyone as fo
 import numpy as np
 from ultralytics.config import CLASSES_MAPPING, original_classes
-from fiftyone import ViewField as F
 from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
-
-from ultralytics import YOLO, RTDETR
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -80,10 +76,10 @@ def add_yolo_detections(
     prediction_filepaths = samples.values(prediction_filepath)
     print("Read yolo detection")
     yolo_detections = [read_yolo_detections_file(pf) for pf in prediction_filepaths]
-    
+
     print("Converting yolo detection to fiftyone")
     detections = [convert_yolo_detections_to_fiftyone(yolo_detections[i], class_list) for i in tqdm(range(len(yolo_detections)))]
-    
+
     print("Setting prediction field")
     samples.set_values(prediction_field, detections)
 
@@ -109,8 +105,7 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     lower_thresh = pred[0]
     upper_thresh = pred[1]
     
-    expr = F("is_yellow") == True
-    view = dataset.match_tags("test").match(expr).clone()
+    view = dataset.match_tags("test").clone()
     clone = view
 
     print("BEFORE:",len(view))
@@ -192,16 +187,12 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     }
 
     # test_stats_path = f"{evaluators_path}/results/{model_type}/test_set_stats_{pred_name}.json"
-    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}_gul.json"
+    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}.json"
 
     with open(test_stats_path, "w") as file:
         json.dump(obj, file, indent=2)
 
     eval_results.print_report(classes=classes)
-
-    # if model_type == "retinanet" or model_cat == "ultra":
-    if model_name.split("_", 1)[0] == "ultra":
-        title = f"{model_name.split('_', 1)[0]} {pred_name} objects"
 
     cm, labels, _ = eval_results._confusion_matrix(
         classes=classes,
@@ -217,9 +208,9 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
     plt.tight_layout()
-    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02_norm_gul.png")
+    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02.png")
 
     plot_PR = eval_results.plot_pr_curves(classes=classes, title=f"{model_name} {pred_name} objects")
-    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02_gul.png")
+    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02.png")
 
     clone.delete()

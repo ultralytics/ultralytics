@@ -77,6 +77,6 @@ if __name__ == "__main__":
     save_dir = args.save_dir
     train(epochs=epochs, model=model, device=device, batch_size=batch_size, save_dir=save_dir)
 
-    dataset = get_fiftyone_dataset(0)
+    dataset, classes = get_fiftyone_dataset(0)
 
     run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])

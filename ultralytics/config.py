@@ -14,6 +14,7 @@ DATASET_NAME = "My_dataset"
 DATA_PATH = f'{ROOT_DIR}/data'
 # DATA_PATH = "/media/vemund-sigurd/aa7e1253-187b-48d4-af32-eb9f050db5dd/vemund-sigurd/data/new_data"
 # DATA_PATH = "/cluster/home/vemundtl/ultralytics/data"
+DATA_PATH = "/Users/vemundlund/Code/Master/specialization_project/data"
 LABELS_PATH = f'{DATA_PATH}/labels/labels.json'
 TRAIN_DATA_PATH = f'{DATA_PATH}/train_split'
 TEST_DATA_PATH = f'{DATA_PATH}/test_split'
@@ -119,8 +120,6 @@ def get_yolo_classes():
             indexes.append(i)
     return indexes
 
-
-# SPONGEBOB = 
 def SPONGEBOB(model_name, word="TRAINING MODEL"):
     return rf"""
             {word} 
@@ -146,20 +145,3 @@ def SPONGEBOB(model_name, word="TRAINING MODEL"):
                 ||_.-.   ||_.-.
                 (_.--__) (_.--__)
     """
-
-
-
-
-
-    # print("Removing irrelevant classes")
-    # label = F("label")
-    # dataset = dataset.filter_labels(
-    #     "detections", 
-    #     (label == 'anemone') | (label == 'sjostjerne') | 
-    #     (label == 'liten piperenser') | (label == 'MRTSPB_svamp') |
-    #     (label == 'blomkalkorall') | (label == 'TVT_svamp') |
-    #     (label == 'vortesvamp') | (label == 'fisk') |
-    #     (label == 'finger_svamp') | (label == 'risengrynkorall') |
-    #     (label == 'tare') | (label == 'sjopolse') |
-    #     (label == 'skorpe') | (label == 'sjofaer') | (label == 'grandiflora')
-    # )

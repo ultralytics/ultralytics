@@ -69,5 +69,14 @@ class YOLOWorld(Model):
         }
 
     def set_classes(self, classes):
-        """Set classes."""
+        """Set classes.
+
+        Args:
+            classes (List(str)): A list of categories i.e ["person"].
+        """
         self.model.set_classes(classes)
+        # Remove background if it's given
+        background = " "
+        if background in classes:
+            classes.remove(background)
+        self.model.names = classes

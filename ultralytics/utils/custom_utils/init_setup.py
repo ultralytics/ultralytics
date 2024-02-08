@@ -5,7 +5,7 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import CLASSES_TO_KEEP, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME
+from ultralytics.config import CLASSES_TO_KEEP, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, LABELS_PATH
 
 
 def delete_all_fiftyone_datasets():
@@ -93,6 +93,7 @@ def setup(rank):
             yaml_path=DATASET_DESCRIPTION,
             split=split,
             tags=split,
+            label_field="detections"
     )
 
     dataset.persistent = True

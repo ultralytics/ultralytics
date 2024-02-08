@@ -42,7 +42,7 @@ head:
   - [-1, 1, CoordAtt, [512]] 
 
   - [19, 1, Conv, [512, 3, 2]]
-  - [[-1, 9], 1, Concat, [1]] # cat head P5
+  - [[-1, 9, 7], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2f, [1024]] # 23 (P5/32-large)
   - [-1, 1, CoordAtt, [1024]] 
 

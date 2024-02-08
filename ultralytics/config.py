@@ -85,7 +85,7 @@ MAX_BATCH = {
 # RTDETR -        30  min per epoch
 # MASK RCNN -     13  min per epoch
 
-original_classes = [
+ORIGINAL_CLASSES = [
     "anemone",
     "Massiv rund, tjukk skalformet, poros bulkeformet_svamp",
     "fisk",
@@ -115,8 +115,8 @@ original_classes = [
 
 def get_yolo_classes():
     indexes = []
-    for i in range(len(original_classes)):
-        if original_classes[i] in CLASSES_TO_KEEP:
+    for i in range(len(ORIGINAL_CLASSES)):
+        if ORIGINAL_CLASSES[i] in CLASSES_TO_KEEP:
             indexes.append(i)
     return indexes
 

@@ -5,8 +5,8 @@ import fiftyone as fo
 import torch
 from fiftyone import ViewField as F
 
-from ultralytics.utils import custom_utils
-
+from ultralytics.utils.custom_utils.init_setup import setup
+from ultralytics.config import DATASET_NAME
 
 def check_cuda():
     print(torch.cuda.is_available())
@@ -18,12 +18,12 @@ def check_cuda():
     torch.cuda.memory_summary(device=None, abbreviated=False)
 
 def get_fiftyone_dataset(rank):
-    dataset_name = f"My_dataset{rank}"
+    dataset_name = f"{DATASET_NAME}{rank}"
     if dataset_name in fo.list_datasets():
         print("Loading dataset")
         dataset: fo.Dataset = fo.load_dataset(dataset_name)
     else:
-        custom_utils.setup(rank)
+        setup(rank)
         dataset: fo.Dataset = fo.load_dataset(dataset_name)
     
     dataset.persistent = True
@@ -32,13 +32,3 @@ def get_fiftyone_dataset(rank):
 
     dataset.persistent = True
     return dataset, classes(dataset)
-    
-def get_run_number(num=None):
-    if num:
-        return f"./runs/detect/train{num}"
-    else:
-        return max(glob.glob(os.path.join("./runs/detect/", 'train*/')), key=os.path.getmtime)
-    
-
-if __name__ == "__main__":
-    print("hei")

@@ -2,7 +2,7 @@ import os
 
 import fiftyone as fo
 import numpy as np
-from ultralytics.config import CLASSES_MAPPING, original_classes
+from ultralytics.config import CLASSES_MAPPING, ORIGINAL_CLASSES
 from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
 
@@ -87,7 +87,7 @@ def add_detections_to_fiftyone(dataset, model_name, run_number):
     filepaths = dataset.values("filepath")
     detection_filepath = "detection_filepath"
     # classes = dataset.default_classes[1:]
-    classes = original_classes
+    classes = ORIGINAL_CLASSES
 
     print("Adding prediction file paths")
     prediction_filepaths = [get_prediction_filepath(fp, run_number=run_number) for fp in filepaths]
@@ -108,11 +108,8 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     view = dataset.match_tags("test").clone()
     clone = view
 
-    print("BEFORE:",len(view))
-
     counts = dataset.count_values("detections.detections.label")
     # classes_top10 = sorted(counts, key=counts.get, reverse=True)[:10]
-
     
     for sample in tqdm(view):
         detections = sample.detections.detections
@@ -135,6 +132,10 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     if "TVT_svamp" not in _classes(dataset):
         view = view.map_labels(model_name, CLASSES_MAPPING)
 
+    # temp_eval_key = model_name.split("-", 1)
+    # eval_key = temp_eval_key[0] + "_" + temp_eval_key[1]
+    eval_key = model_name.replace("-", "_")
+
     eval_results: DetectionResults = fo.evaluate_detections(
         view,
         model_name,
@@ -142,7 +143,7 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         compute_mAP=True,
         classwise=False,
         gt_field="detections",
-        eval_key=model_name,
+        eval_key=eval_key,
         method="coco",
     )
 
@@ -153,7 +154,7 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         compute_mAP=True,
         classwise=False,
         gt_field="detections",
-        eval_key=model_name,
+        eval_key=eval_key,
         method="coco",
         iou_threshs=[0.5]
     )
@@ -165,7 +166,7 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         compute_mAP=True,
         classwise=False,
         gt_field="detections",
-        eval_key=model_name,
+        eval_key=eval_key,
         method="coco",
         iou_threshs=[0.75]
     )
@@ -214,3 +215,37 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02.png")
 
     clone.delete()
+
+def create_result_plots(model_root_path, dataset):
+    # Remapping labels to more compact annotation
+    _classes = lambda dataset: list(dataset.count_values("detections.detections.label"))
+    if "TVT_svamp" not in _classes(dataset):
+        dataset = dataset.map_labels("detections", CLASSES_MAPPING)
+
+    filter_threshold = {
+        "all": (0, 100),
+        "small": (0, 0.33),
+        "medium": (0.33, 3),
+        "large": (3, 100)
+    }
+
+    model_results_path = f"runs/detect/{model_root_path}/results"
+
+    if not os.path.isdir(f"{model_results_path}"):
+        os.mkdir(f"{model_results_path}")
+        os.mkdir(f"{model_results_path}/plots")
+    model_path_save_plots = f"{model_results_path}/plots/"
+
+    for pred in ["all", "small", "medium", "large"]:
+        print("------------------------------------------")
+        print(pred)
+        print("------------------------------------------")
+        plots_and_matrixes(
+            model_name=model_root_path,
+            dataset=dataset,
+            classes=sorted(_classes(dataset)),
+            save_path=model_path_save_plots,
+            pred=filter_threshold[pred],
+            pred_name=pred,
+            evaluators_path=model_results_path
+        )

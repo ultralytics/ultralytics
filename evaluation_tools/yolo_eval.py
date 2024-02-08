@@ -9,7 +9,7 @@ from ultralytics import YOLO
 # SETTING UP PARAMETERS
 # Better not to change these parameters
 dataset_root = './data/client_test/'
-model_path = './models/detector_best.pt'
+model_path = './models/8sp2.pt'
 outputs_root = './outputs'
 experiment_name = time.strftime("%Y%m%d-%H%M%S")
 # Can be changed
@@ -31,7 +31,6 @@ metrics = model.val(
     imgsz=imgsz,
     batch=batch,
     device=device,
-    # iou=0.9,
     save=True,
     save_json=True,
     plots=True,

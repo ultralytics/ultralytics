@@ -240,9 +240,9 @@ class v8DetectionLoss:
         target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss
-        masking = True
+        masking = False
         if masking:
-            bg_mask_threshold = 0.5
+            bg_mask_threshold = 0.3
             bg_mask = (~((target_scores.sum(dim=2, keepdim=True) == 0).repeat(1, 1, self.nc) & (
                         pred_scores > bg_mask_threshold))).to(dtype)
             pred_scores *= bg_mask

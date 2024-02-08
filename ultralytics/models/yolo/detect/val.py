@@ -74,7 +74,8 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
+        # TODO: adjust for an optimistic case
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, iou_thres=0.35)
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[])
@@ -177,7 +178,7 @@ class DetectionValidator(BaseValidator):
         )  # number of targets per class
         return self.metrics.results_dict
 
-    def print_results(self):
+    def print_results(self, stats):
         """Prints training/validation set metrics per class."""
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
@@ -194,6 +195,16 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.plot(
                     save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
                 )
+
+        # Save micro metrics only if not training
+        if not self.training:
+            stats[f'metrics/muAR@{self.confusion_matrix.iou_thres}&{self.confusion_matrix.conf}'] = self.confusion_matrix.micro_recall
+            stats[f'metrics/muAP@{self.confusion_matrix.iou_thres}&{self.confusion_matrix.conf}'] = self.confusion_matrix.micro_precision
+            # Save macro metrics per class
+            for i, c in enumerate(self.metrics.ap_class_index):
+                stats[f"metrics/R_{self.names[c]}"] = self.metrics.class_result(i)[1]
+
+        return stats
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """

@@ -298,13 +298,15 @@ class ConfusionMatrix:
         iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, nc, conf=0.25, iou_thres=0.4, task="detect"):
+    def __init__(self, nc, conf=0.25, iou_thres=0.45, task="detect"):
         """Initialize attributes for the YOLO model."""
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
         self.nc = nc  # number of classes
-        self.conf = 0.25 if conf in (None, 0.001) else conf  # apply 0.25 if default val conf is passed
+        self.conf = conf #0.25 if conf in (None, 0.001) else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
+        self.micro_recall = 0.0
+        self.micro_precision = 0.0
 
     def process_cls_preds(self, preds, targets):
         """
@@ -379,8 +381,13 @@ class ConfusionMatrix:
         """Returns true positives and false positives."""
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
-        # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp[:-1], fp[:-1]) if self.task == "detect" else (tp, fp)  # remove background class if task=detect
+
+    def tp_fn(self):
+        """Returns true positives and false negatives."""
+        tp = self.matrix.diagonal()     # true positives
+        fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
+        return (tp[:-1], fn[:-1]) if self.task == "detect" else (tp, fn)  # remove background class if task=detect
 
     @TryExcept("WARNING ⚠️ ConfusionMatrix plot failure")
     @plt_settings()
@@ -397,32 +404,40 @@ class ConfusionMatrix:
         import seaborn as sn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
-        array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        fig, ax = plt.subplots(1, 1, figsize=(12, 9), tight_layout=True)
+        # Compute micro and macro average recall and precision at fixed IoU and conf thresholds
+        #self.macro_recall = (self.matrix / (self.matrix.sum(0).reshape(1, -1) + 1e-9)).diagonal()[:-1].mean()
+        tp, fn = self.tp_fn()
+        self.micro_recall = tp.sum() / (tp.sum() + fn.sum())
+        tp, fp = self.tp_fp()
+        self.micro_precision = tp.sum() / (tp.sum() + fp.sum())
+
+        array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
         nc, nn = self.nc, len(names)  # number of classes, names
-        sn.set(font_scale=1.0 if nc < 50 else 0.8)  # for label size
+        sn.set(font_scale=1.2 if nc < 50 else 0.8)  # for label size
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
         ticklabels = (list(names) + ["background"]) if labels else "auto"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             sn.heatmap(
-                array,
+                array*100 if normalize else array,
                 ax=ax,
                 annot=nc < 30,
-                annot_kws={"size": 8},
+                annot_kws={"size": 14},
                 cmap="Blues",
                 fmt=".2f" if normalize else ".0f",
                 square=True,
                 vmin=0.0,
+                vmax=100.1 if normalize else None,
                 xticklabels=ticklabels,
                 yticklabels=ticklabels,
             ).set_facecolor((1, 1, 1))
-        title = f"Confusion Matrix @{self.iou_thres}" + " Normalized (Recall)" * (normalize)
+        title = f"Confusion Matrix @{self.iou_thres}&{self.conf}" + " Normalized (Recall {:.2f})".format(round(self.micro_recall*100,2)) * (normalize)
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)
-        plot_fname = Path(save_dir) / f'{title.lower().replace(" ", "_")}.png'
+        plot_fname = str(save_dir) + "/confussion_matrix" + "_normalized"*(normalize) + ".png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:

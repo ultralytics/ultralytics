@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 
 import fiftyone as fo
 import torch

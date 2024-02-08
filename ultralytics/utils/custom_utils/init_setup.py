@@ -117,7 +117,7 @@ def setup(rank):
                     new_detections.append(detection)
             sample.detections.detections = new_detections
             sample.save()
-
+    
     # print("Adding mean color attribute")
     # for sample in tqdm(dataset):
     #     # print(sample)

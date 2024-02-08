@@ -40,6 +40,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11']
         os: [ubuntu-latest]
         python-version: ["3.11"]
     steps:
@@ -152,6 +155,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11']
+
         os: [ubuntu-latest]
         python-version: ["3.11"]
         torch: [latest]
@@ -223,8 +229,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11']
         os: [ubuntu-latest]
         python-version: ["3.11"]
+
     defaults:
       run:
         shell: bash -el {0}

@@ -1,6 +1,4 @@
 # Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
-import tlc
-
 import ultralytics
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel

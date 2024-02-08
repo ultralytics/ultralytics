@@ -1,4 +1,6 @@
 # Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 
@@ -10,18 +12,15 @@ class TLCDetectionModel(DetectionModel):
     activations = None
     """ YOLO (You Only Look Once) object detection model with 3LC integration. """
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def _predict_once(self, x: torch.Tensor, profile: bool = False, visualize: bool = False, embed: list | None = None):
         """
         Perform a forward pass through the network.
 
-        Args:
-            x (torch.Tensor): The input tensor to the model.
-            profile (bool):  Print the computation time of each layer if True, defaults to False.
-            visualize (bool): Save the feature maps of the model if True, defaults to False.
-            embed (list, optional): A list of feature vectors/embeddings to return.
-
-        Returns:
-            (torch.Tensor): The last output of the model.
+        :param x: The input tensor to the model.
+        :param profile: Print the computation time of each layer if True, defaults to False.
+        :param visualize: Save the feature maps of the model if True, defaults to False.
+        :param embed: A list of feature vectors/embeddings to return.
+        :return: The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
         for m in self.model:

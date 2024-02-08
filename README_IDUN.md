@@ -9,4 +9,6 @@ pip install einops
 ssh -L 8888:127.0.0.1:8888 -J vemundtl@idun-login1.hpc.ntnu.no vemundtl@idun-xx-xx
 
 # Kill process
-scancel -u vemundtl
+sbatch idun_config.slurm
+squeue -u <username>
+scancel -u <username>

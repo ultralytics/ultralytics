@@ -1,10 +1,9 @@
-import glob
 import subprocess
 import argparse
-import os
+import shutil
 from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH
 from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
-from predict import run_prediction
+# from predict import run_prediction
 
 def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train"):
 
@@ -60,11 +59,10 @@ if __name__ == "__main__":
         type=int,   # specify the type of elements in the list
         help="List of predictions to perform",
     )
-    args = parser.parse_args()
     parser.add_argument(
         "--save_dir",
         # nargs="+",  # '+' allows one or more values
-        default=args.model[:-5],
+        # default=args.model[:-5],
         type=str,   # specify the type of elements in the list
         help="List of predictions to perform",
     )
@@ -76,7 +74,9 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     save_dir = args.save_dir
     train(epochs=epochs, model=model, device=device, batch_size=batch_size, save_dir=save_dir)
+    
+    shutil.copy(f'ultralytics/cfg/models/v8/{model}', f'./runs/detect/{save_dir}')
 
     dataset, classes = get_fiftyone_dataset(0)
 
-    run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])
+    # run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])

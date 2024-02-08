@@ -117,7 +117,7 @@ class BaseValidator:
             # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
-            model.eval()
+            model.train() # model.eval()
         else:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(model or self.args.model,

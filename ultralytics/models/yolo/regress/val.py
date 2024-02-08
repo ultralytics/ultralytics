@@ -4,6 +4,7 @@ import torch
 
 from ultralytics.data import RegressionDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import RegressMetrics
 from ultralytics.utils.plotting import plot_images
@@ -45,9 +46,8 @@ class RegressionValidator(BaseValidator):
         self.img_names = []
         self.pred = []
         self.targets = []
-        #head_idx = list(model.model._modules.keys())[-1]
-        #self.metrics.max = model.model._modules[head_idx].max
-        #self.metrics.min = model.model._modules[head_idx].min
+        self.max = model.model.yaml['max_value'] if isinstance(model, AutoBackend) else model.yaml['max_value']
+        self.min = model.model.yaml['min_value'] if isinstance(model, AutoBackend) else model.yaml['min_value']
 
     def preprocess(self, batch):
         """Preprocesses input batch and returns it."""
@@ -55,6 +55,12 @@ class RegressionValidator(BaseValidator):
         batch['img'] = batch['img'].half() if self.args.half else batch['img'].float()
         batch['value'] = batch['value'].to(self.device)
         return batch
+    
+    def postprocess(self, preds, img_shape):
+        if not self.training:
+            for i in range(len(preds)):
+                preds[i] = preds[i] * (self.max - self.min) / 6 + self.min
+        return preds
 
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""

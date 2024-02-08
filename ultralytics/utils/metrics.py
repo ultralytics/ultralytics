@@ -1099,8 +1099,6 @@ class RegressMetrics(SimpleClass):
         self.mse = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.task = 'regress'
-        #self.max = 116
-        #self.min = 1
 
     def threshold(self, target):
         return (4. + 0.1 * target)
@@ -1108,9 +1106,8 @@ class RegressMetrics(SimpleClass):
     def process(self, targets, pred, img_names, save_dir):
         """Computes MAE and MSE using target values and predicted values."""
         targets, pred = torch.cat(targets), torch.cat(pred)
-        #pred = pred * (self.max - self.min) / 6 + self.min
         img_names = [im_n for row in img_names for im_n in row]
-        diff_t = torch.sub(targets, pred)
+        diff_t = torch.abs(torch.sub(targets, pred))
         outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > self.threshold(targets[i])]
         outlier_ims = [img_names[i] for i in outlier_ind]
         outlier_pre = [pred[i] for i in outlier_ind]

@@ -39,6 +39,7 @@ class TLCDetectionTrainer(DetectionTrainer):
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
         self.add_callback("on_train_end", _reduce_embeddings)
+        self.add_callback("on_fit_epoch_end", _on_fit_epoch_end)
 
     @property
     def train_validator(self):
@@ -133,6 +134,19 @@ class TLCDetectionTrainer(DetectionTrainer):
 
 ### CALLBACKS ############################################################################################################
 
+def _on_fit_epoch_end(trainer: TLCDetectionTrainer) -> None:
+    """ Get aggregate validation metrics for the current epoch and log them to 3LC.
+
+    :param trainer: The trainer object.
+    
+    """
+    assert isinstance(trainer, TLCDetectionTrainer)
+    if trainer._run:
+        # Format metric names
+        metrics = {
+            metric.strip("(B)").replace("metrics", "val").replace("/", "_"): value
+            for metric, value in trainer.metrics.items()}
+        trainer._run.add_output_value({"epoch": trainer.epoch, **metrics})
 
 def _resample_train_dataset(trainer: TLCDetectionTrainer) -> None:
     """ Callback to be used for resampling the training dataset using 3LC Sample Weights.

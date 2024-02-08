@@ -25,7 +25,7 @@ def check_det_dataset(data: str) -> dict[str, tlc.Table | int | dict[int, str]]:
     :returns: A YOLO-style data dict with 3LC tables instead of paths.
     """
     tables = tlc_check_dataset(data)
-    names = tables["train"].get_value_map_for_column(tlc.BOUNDING_BOXES)
+    names = get_names_from_yolo_table(tables["train"])
     return {
         "train": tables["train"],
         "val": tables["val"],
@@ -391,7 +391,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
             tables[split] = table
 
     # Check that the tables have the same bounding box value maps
-    value_maps = [table.get_value_map_for_column(tlc.BOUNDING_BOXES) for table in tables.values()]
+    value_maps = [get_names_from_yolo_table(table) for table in tables.values()]
     assert all(value_maps[0] == value_maps[i] for i in range(1, len(value_maps)))
 
     return tables
@@ -433,3 +433,12 @@ def training_phase_schema() -> tlc.Schema:
                 float(0): tlc.MapElement(display_name='During'),
                 float(1): tlc.MapElement(display_name='After'), },
         ))
+
+def get_names_from_yolo_table(table: tlc.Table, value_path: str = 'bbs.bb_list.label') -> dict[int, str]:
+    """ Get the category names from a YOLO table.
+
+    :param table: The YOLO table.
+    :returns: The category names for YOLO.
+    """
+    value_map = table.get_value_map(value_path)
+    return {int(k): v['internal_name'] for k, v in value_map.items()}

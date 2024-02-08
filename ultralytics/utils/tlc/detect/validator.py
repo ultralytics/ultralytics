@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-
 import numpy as np
 import tlc
 import torch
@@ -14,9 +13,15 @@ from ultralytics.utils.tlc.constants import TRAINING_PHASE
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
 from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
 from ultralytics.utils.tlc.detect.settings import Settings
-from ultralytics.utils.tlc.detect.utils import (check_det_dataset, construct_bbox_struct, get_metrics_collection_epochs,
-                                                training_phase_schema, yolo_image_embeddings_schema,
-                                                yolo_predicted_bounding_box_schema)
+from ultralytics.utils.tlc.detect.utils import (
+    check_det_dataset,
+    construct_bbox_struct,
+    get_metrics_collection_epochs,
+    get_names_from_yolo_table,
+    training_phase_schema,
+    yolo_image_embeddings_schema,
+    yolo_predicted_bounding_box_schema,
+)
 
 # Patch the check_det_dataset function so 3LC parses the dataset
 ultralytics.engine.validator.check_det_dataset = check_det_dataset
@@ -225,7 +230,7 @@ def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
             validator._run = tlc.active_run() if tlc.active_run() else tlc.init(project_name=project_name)
         dataset_url = validator.data[validator._split].url
         dataset_name = validator.data[validator._split].dataset_name
-        names = validator.data[validator._split].get_value_map_for_column(tlc.BOUNDING_BOXES)
+        names = get_names_from_yolo_table(validator.data[validator._split])
 
     metrics_column_schemas = {
         tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }

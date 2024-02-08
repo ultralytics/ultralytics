@@ -151,6 +151,7 @@ class YOLODataset(BaseDataset):
 
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
+        print('yolo dataset build_transforms called')
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -169,6 +170,9 @@ class YOLODataset(BaseDataset):
                 mask_overlap=hyp.overlap_mask,
             )
         )
+        if self.image_transforms:
+            LOGGER.info(f"Appending custom image transform: {self.image_transforms}")
+            transforms.append(self.image_transforms)
         return transforms
 
     def close_mosaic(self, hyp):

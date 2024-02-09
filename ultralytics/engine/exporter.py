@@ -435,9 +435,8 @@ class Exporter:
                     f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                     f"Using default 'data={self.args.data}'."
                 )
-            check_requirements(["nncf>=2.5.0", "onnx>=1.12.0"])
+            check_requirements("nncf>=2.5.0")
             import nncf
-            import onnx
 
             def transform_fn(data_item):
                 """Quantization transform function."""
@@ -458,19 +457,18 @@ class Exporter:
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
                 # get detection module name in onnx
-                model_onnx = onnx.load(f_onnx)
-                detect_module_name = model_onnx.graph.node[-1].name.split("/")[1]
+                head_module_name = '.'.join(list(self.model.named_modules())[-1][0].split('.')[:2])
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
-                        f"/{detect_module_name}/Add",
-                        f"/{detect_module_name}/Sub",
-                        f"/{detect_module_name}/Mul",
-                        f"/{detect_module_name}/Div",
-                        f"/{detect_module_name}/dfl",
+                        f"/{head_module_name}/Add",
+                        f"/{head_module_name}/Sub",
+                        f"/{head_module_name}/Mul",
+                        f"/{head_module_name}/Div",
+                        f"/{head_module_name}/dfl",
                     ],
                     names=[
-                        f"/{detect_module_name}/Sigmoid",
+                        f"/{head_module_name}/Sigmoid",
                     ],
                 )
             quantized_ov_model = nncf.quantize(

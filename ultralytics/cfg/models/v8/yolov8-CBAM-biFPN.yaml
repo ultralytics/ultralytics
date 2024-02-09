@@ -37,12 +37,12 @@ head:
   - [-1, 1, CBAM, [256]] # 16 (P3/8-large)
 
   - [-1, 1, Conv, [256, 3, 2]]
-  - [[-1, 12], 1, Concat, [1]] # cat head P4
+  - [[-1, 12, 6], 1, Concat, [1]] # cat head P4
   - [-1, 3, C2f, [512]] # 19 (P4/16-medium)
   - [-1, 1, CBAM, [512]] # 20 (P4/16-large)
 
   - [-1, 1, Conv, [512, 3, 2]]
-  - [[-1, 9, 7], 1, Concat, [1]] # cat head P5
+  - [[-1, 9, 8], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2f, [1024]] # 23 (P5/32-large)
   - [-1, 1, CBAM, [1024]] # 24 (P5/32-large)
 

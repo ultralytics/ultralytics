@@ -40,15 +40,15 @@ head:
   - [-1, 3, C2f, [128]] # 18 (P2/4-small)
 
   - [-1, 1, Conv, [128, 3, 2]]
-  - [[-1, 15, 3], 1, Concat, [1]] # cat head P3
+  - [[-1, 15, 4], 1, Concat, [1]] # cat head P3
   - [-1, 3, C2f, [256]] # 21 (P3/8-medium)
 
   - [-1, 1, Conv, [256, 3, 2]]
-  - [[-1, 12, 5], 1, Concat, [1]] # cat head P4
+  - [[-1, 12, 6], 1, Concat, [1]] # cat head P4
   - [-1, 3, C2f, [512]] # 24 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
-  - [[-1, 9, 7], 1, Concat, [1]] # cat head P5 ======> Usikker på om man burde legge til 7 i concat her og, ikke gjort for yolov5
+  - [[-1, 9, 8], 1, Concat, [1]] # cat head P5 ======> Usikker på om man burde legge til 7 i concat her og, ikke gjort for yolov5
   - [-1, 3, C2f, [1024]] # 27 (P5/32-large)
 
   - [[18, 21, 24, 27], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)

@@ -1,0 +1,16 @@
+{
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "eeyore.yapf",
+    "editor.formatOnType": false,
+    "yapf.args": ["--style", "pyproject.toml"],
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "isort.args":["--settings-file", "pyproject.toml"],
+}

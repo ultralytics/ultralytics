@@ -50,7 +50,7 @@ class YOLOWorld(Model):
 
     def __init__(self, model="yolov8s-world.pt") -> None:
         """
-        Initializes the yolov8-world model with the given pre-trained model file. Supports .pt and .yaml formats.
+        Initializes the YOLOv8-World model with the given pre-trained model file. Supports *.pt and *.yaml formats.
 
         Args:
             model (str): Path to the pre-trained model. Defaults to 'yolov8s-world.pt'.

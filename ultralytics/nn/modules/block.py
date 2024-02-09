@@ -522,11 +522,12 @@ class ContrastiveHead(nn.Module):
 
 
 class BNContrastiveHead(nn.Module):
-    """Batch Norm Contrastive Head for YOLO-World
-    using batch norm instead of l2-normalization
+    """
+    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+    
     Args:
-        embed_dims (int): embed dim of text and image features
-        norm_cfg (dict): normalization params
+        embed_dims (int): Embed dimemnsio of text and image features.
+        norm_cfg (dict): Normalization parameters.
     """
 
     def __init__(self, embed_dims: int):

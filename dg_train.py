@@ -24,6 +24,7 @@ def parser_arguments():
 
     parser.add_argument('--lr0', type=float, default=0.01, help='initial learning rate (i.e. SGD=1E-2, Adam=1E-3)')
     parser.add_argument('--lrf', type=float, default=0.01, help='final learning rate (lr0 * lrf)')
+    parser.add_argument('--cos-lr', action='store_true', help='cosine learning rate schedule')    
     # Augmentation
     parser.add_argument('--scale', type=float, default=0.5, help='image scale (+/- gain)')
     parser.add_argument('--mixup', type=float, default=0.00, help='image mixup (probability)')

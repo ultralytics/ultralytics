@@ -375,6 +375,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
+                assert "ignore_kpt" in batch
                 self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch

@@ -554,12 +554,12 @@ def export_optimal_thresholds(save_dir, prefix, names, f1_curve, x):
         name = names[i]
         max_f1 = round(y.max(), 3)
         optimal_threshold = round(x[y.argmax()], 3)
-        thresholds[name] = {"optimal_threshold": optimal_threshold, "max_value": max_f1}
+        thresholds[name] = {"optimal_threshold": optimal_threshold, "max_f1": max_f1}
 
     # For CSV
     df = pd.DataFrame.from_dict(thresholds, orient="index").reset_index()
-    df.columns = ["class", "optimal_threshold", "max_value"]
-    df = df[["class", "max_value", "optimal_threshold"]]  # reorder columns
+    df.columns = ["class", "optimal_threshold", "max_f1"]
+    df = df[["class", "max_f1", "optimal_threshold"]]  # reorder columns
     csv_file_path = save_dir / f"{prefix}optimal_thresholds.csv"
     df.to_csv(csv_file_path, index=False)
 

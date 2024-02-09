@@ -63,7 +63,7 @@ class YOLODataset(BaseDataset):
                                              repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
                                              repeat(ndim)))
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            for im_file, lb, shape, segments, keypoint, ignore_kpt, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 ne += ne_f
@@ -77,6 +77,7 @@ class YOLODataset(BaseDataset):
                             bboxes=lb[:, 1:],  # n, 4
                             segments=segments,
                             keypoints=keypoint,
+                            ignore_kpt=ignore_kpt,
                             normalized=True,
                             bbox_format='xywh'))
                 if msg:
@@ -160,7 +161,7 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
-        """Custom your label format here."""
+        """Custom your label format here."""        
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
@@ -168,6 +169,7 @@ class YOLODataset(BaseDataset):
         keypoints = label.pop('keypoints', None)
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
+
         label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 
@@ -184,6 +186,7 @@ class YOLODataset(BaseDataset):
             if k in ['masks', 'keypoints', 'bboxes', 'cls']:
                 value = torch.cat(value, 0)
             new_batch[k] = value
+
         new_batch['batch_idx'] = list(new_batch['batch_idx'])
         for i in range(len(new_batch['batch_idx'])):
             new_batch['batch_idx'][i] += i  # add target image index for build_targets()

@@ -457,7 +457,7 @@ class Exporter:
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
                 # get detection module name in onnx
-                head_module_name = '.'.join(list(self.model.named_modules())[-1][0].split('.')[:2])
+                head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[

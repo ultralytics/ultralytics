@@ -164,3 +164,11 @@ If a starting metrics collection epoch is provided (optionally with an interval)
 ## What happens if I use early stopping? Does it interfere with 3LC?
 
 Early stopping can be used just like before. Unless metrics collection is disabled, final validation passes are performed over the train and validation sets after training, regardless of whether that is due to early stopping or completing all the epochs.
+
+## Why is embeddings collection disabled by default?
+
+Embeddings collection has an extra dependency for the library used for reduction, and a performance implication (fitting and applying the reducer) at the end of your run. It is therefore disabled by default.
+
+## How do I collect embeddings for each bounding box?
+
+In order to collect embeddings (or other additional metrics) for each bounding box, refer to the [3LC Bounding Box Example Notebooks](https://docs.3lc.ai/3lc/2.2/public-notebooks/bounding-box-notebooks/index.html).

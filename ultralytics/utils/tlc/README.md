@@ -18,7 +18,7 @@ git clone https://github.com/3lc-ai/ultralytics.git
 cd ultralytics
 python -m venv .venv
 source .venv/bin/activate # or .venv/Scripts/activate in Git Bash
-pip install -e .
+pip install -e . # install the local ultralytics fork package
 pip install tlc # your `tlc` install command here
 ```
 

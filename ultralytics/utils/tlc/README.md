@@ -10,6 +10,8 @@ This document outlines how to use the 3LC integration available for YOLOv8 objec
 
 3LC is free for non-commercial use.
 
+<img src="https://docs.3lc.ai/3lc/2.2/_images/run_assign1.jpg">
+
 ## Getting Started
 
 The first step is to clone this fork, change directory into it and install the package and requirements into a virtual environment:

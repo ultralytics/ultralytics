@@ -63,7 +63,7 @@ import torch
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import ClassificationDataset, RegressionDataset, YOLODataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_regress_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
@@ -707,11 +707,12 @@ class Exporter:
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
                 print("***TASK = " + self.model.task + "***")
                 if self.model.task in ('classify', 'regress'):
-                    data = check_cls_dataset(self.args.data)
                     if self.model.task == 'classify':
+                        data = check_cls_dataset(self.args.data)
                         dataset = ClassificationDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
                     else:
-                        dataset = RegressionDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+                        data = check_regress_dataset(self.args.data)
+                        dataset = RegressionDataset(args=self.args, img_path=os.path.join(data['path'], data['val']), augment=False, prefix=self.args.split)
                 else:
                     data = check_det_dataset(self.args.data)
                     dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)

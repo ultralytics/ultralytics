@@ -46,8 +46,8 @@ class RegressionValidator(BaseValidator):
         self.img_names = []
         self.pred = []
         self.targets = []
-        self.max = model.model.yaml['max_value'] if isinstance(model, AutoBackend) else model.yaml['max_value']
-        self.min = model.model.yaml['min_value'] if isinstance(model, AutoBackend) else model.yaml['min_value']
+        self.max = 95 #model.model.yaml['max_value'] if isinstance(model, AutoBackend) else model.yaml['max_value']
+        self.min = 1 #model.model.yaml['min_value'] if isinstance(model, AutoBackend) else model.yaml['min_value']
 
     def preprocess(self, batch):
         """Preprocesses input batch and returns it."""

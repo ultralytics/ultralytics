@@ -180,6 +180,9 @@ class BaseValidator:
             with dt[3]:
                 preds = self.postprocess(preds, batch['img'][0].shape)
 
+            # if abs(preds[0][0] - batch['value'][0]) > 12:
+            # print(batch['name'], preds[0].numpy())
+                
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)

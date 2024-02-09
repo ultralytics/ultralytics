@@ -518,8 +518,7 @@ class ContrastiveHead(nn.Module):
         x = F.normalize(x, dim=1, p=2)
         w = F.normalize(w, dim=-1, p=2)
         x = torch.einsum("bchw,bkc->bkhw", x, w)
-        x = x * self.logit_scale.exp() + self.bias
-        return x
+        return x * self.logit_scale.exp() + self.bias
 
 
 class BNContrastiveHead(nn.Module):
@@ -542,5 +541,4 @@ class BNContrastiveHead(nn.Module):
         x = self.norm(x)
         w = F.normalize(w, dim=-1, p=2)
         x = torch.einsum("bchw,bkc->bkhw", x, w)
-        x = x * self.logit_scale.exp() + self.bias
-        return x
+        return x * self.logit_scale.exp() + self.bias

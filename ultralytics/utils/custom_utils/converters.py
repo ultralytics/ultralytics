@@ -51,9 +51,10 @@ def export_dataset(split, dataset_path, dataset: fo.Dataset, dataset_type=fo.typ
     # Export dataset
 
     dataset.match_tags(split).export(
-        export_dir = f"../data/DUO/{split}",
+        export_dir = f"{dataset_path}/{split}",
         dataset_type = dataset_type,
         label_field = label_field,
+        classes = classes,
     )
 
     # Create yaml file
@@ -84,7 +85,7 @@ def convert_dataset_yolo(dataset_folder="DUO"):
     dataset = load_dataset_fiftyone(data_path, labels_path)
 
     for split in ["train", "test"]:
-        dataset_path = f"{ROOT_DIR}/data/DUO"
+        dataset_path = f"{ROOT_DIR}/data/{dataset_folder}"
         export_dataset(split, dataset_path, dataset)
     
     return dataset

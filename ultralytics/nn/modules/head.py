@@ -219,7 +219,7 @@ class WorldDetect(Detect):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), text)), 1)
-        if self.training:  # Training path
+        if self.training:
             return x
 
         # Inference path

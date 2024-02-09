@@ -24,7 +24,7 @@ YOLO-World is designed to address the limitations of current Open-Vocabulary det
 
 4. **Based on YOLOv8:** YOLO-World is based on [YOLOv8](../tasks/detect.md), a real-time object detector offering cutting-edge performance in terms of accuracy and speed. This allows it to effectively produce open-vocabulary detection in an image.
 
-5. **Competitive Results on Benchmarks:** On the object proposal task on LVIS minival, YOLO-World achieves high scores at a significantly faster speed than other open-vocabulary detectors(i.e MDETR, GLIP series, Grounding DINO models) on a single NVIDIA V100, demonstrating its efficiency and capability.
+5. **Competitive Results on Benchmarks:** On the object proposal task on LVIS minival, YOLO-World achieves high scores at a significantly faster speed than other open-vocabulary detectors (i.e MDETR, GLIP series, Grounding DINO models) on a single NVIDIA V100, demonstrating its efficiency and capability.
 
 6. **Practical Applications:** The proposed approach provides a new, practical solution for a large number of vision tasks at a really high speed, tens or hundreds of times faster than current methods.
 
@@ -151,7 +151,6 @@ Validation of the model on a dataset can be done as follows:
         # Save model with offline vocabulary ["person", "bus"]
         model.save("path/to/model.pt")
         ```
-
 
 ## Citations and Acknowledgements
 

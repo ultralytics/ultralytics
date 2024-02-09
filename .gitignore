@@ -166,3 +166,4 @@ pnnx*
 data
 logs
 *.slurm
+.fiftyone

@@ -1,27 +1,20 @@
-from ultralytics import YOLO
-import torch
 import subprocess
 import argparse
+import os
+import shutil
+from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH
+# from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
+# from predict import run_prediction
 
-# Load a model
-# model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train"):
 
-
-# data_path = "/Users/sigurdbakkerud/Projects/specialization_project/data/data.yaml"
-# model.to(torch.device("cpu"))
-# results = model.train(data=data_path, epochs=1)  # train the model
-
-
-def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30):
-
-    data_path = '/home/vemund-sigurd/Documents/master/specialization_project/data/data.yaml'
     model_path = f'ultralytics/cfg/models/v8/{model}'
-    # Define the command as a list of arguments
+
     command = [
         "yolo",
         "detect",
         "train",
-        f"data={data_path}",
+        f"data={DATASET_DESCRIPTION}",
         f"model={model_path}",
         f"epochs={epochs}",
         f"imgsz={imgsz}",
@@ -29,22 +22,46 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30):
         "save_txt=True",
         f"batch={batch_size}",
         f"patience={patience}",
-        "nms=True"
+        "nms=True", 
+        f"name={save_dir}",
     ]
 
-    # Run the command
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
 
+def copy_model_config(model, save_dir):
+    if model[:6] != "rtdetr":
+        model = model.split('-', 1)
+        if len(model) > 1:
+            path_to_yaml = model[0][:-1]+"-"+model[1]
+        else:
+            temp_path_to_yaml = model[0].split("yolov8")
+            path_to_yaml = "yolov8"+temp_path_to_yaml[1][1:]
+    else:
+        path_to_yaml = model
+    
+    source_dir= f'ultralytics/cfg/models/v8/{path_to_yaml}'
+    dest_dir = f'./runs/detect/{save_dir}/{save_dir}'
+
+    if os.path.exists(f'{dest_dir}.yaml'):
+        for i in range(2, 100):
+            if os.path.exists(f'{dest_dir}_doesnt_belong_here_{i}.yaml'):
+                continue
+            else:
+                dest_dir = f'{dest_dir}_doesnt_belong_here_{i}.yaml'
+                break
+    else:
+        dest_dir = f'{dest_dir}.yaml'
+    print(source_dir)
+    print(dest_dir)
+    shutil.copy(source_dir, dest_dir)
 
 if __name__ == "__main__":
-    # model = YOLO('../ultralytics/cfg/models/v8/yolov8n-sigurd.yaml', "detect")  # build a new model from scratch
 
     parser = argparse.ArgumentParser(description="training parameters")
 
-    # Add a list argument
     parser.add_argument(
         "--model",
         # nargs="+",  # '+' allows one or more values
@@ -54,7 +71,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--device",
         # nargs="+",  # '+' allows one or more values
-        type=int,   # specify the type of elements in the list
+        type=str,   # specify the type of elements in the list
         help="List of predictions to perform",
     )
     parser.add_argument(
@@ -69,11 +86,33 @@ if __name__ == "__main__":
         type=int,   # specify the type of elements in the list
         help="List of predictions to perform",
     )
-
+    parser.add_argument(
+        "--save_dir",
+        # nargs="+",  # '+' allows one or more values
+        # default=args.model[:-5],
+        type=str,   # specify the type of elements in the list
+        help="List of predictions to perform",
+    )
 
     args = parser.parse_args()
     model = args.model
     device = args.device
     epochs = args.epochs
     batch_size = args.batch_size
-    train(epochs=epochs, model=model, device=device, batch_size=batch_size)
+    save_dir = args.save_dir
+
+    if os.path.exists(save_dir):
+        for i in range(2, 100):
+            if os.path.exists(f'{save_dir}{i}'):
+                continue
+            else:
+                save_dir = f'{save_dir}{i}'
+                break
+
+    train(epochs=epochs, model=model, device=device, batch_size=batch_size, save_dir=save_dir)
+
+    copy_model_config(model, save_dir)
+
+    # dataset, classes = get_fiftyone_dataset(0)
+
+    # run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])

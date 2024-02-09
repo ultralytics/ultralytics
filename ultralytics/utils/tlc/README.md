@@ -55,6 +55,7 @@ settings = Settings(
     conf_thres=0.2,
 )
 
+# Run metrics collection on 
 for split in ("train", "val"):
     results = model.val(data="coco128.yaml", split=split, settings=settings)
 ```
@@ -77,12 +78,16 @@ The integration uses only the YAML file name to resolve to the relevant tables i
 
 #### 3LC YAML File
 
-For more flexibility and to explicitly select which tables to use, you should use a 3LC YAML file, like the one written during your first run. It should contain keys for the relevant splits (`train` and `val` in most cases), with values set to the 3LC Urls of the corresponding tables. Once your 3LC YAML is populated with these it will look like the following example:
+For more flexibility and to explicitly select which tables to use, you should use a 3LC YAML file, like the one written during your first run.
+
+The file should simply contain keys for the relevant splits (`train` and `val` in most cases), with values set to the 3LC Urls of the corresponding tables. Once your 3LC YAML is populated with these it will look like the following example:
 
 ```yaml
 train: my_train_table
 val: my_val_table
 ```
+
+In order to use it, prepend a 3LC prefix `3LC://` to the path. If the 3LC YAML file is named `my_dataset.yaml`, you should provide `data="3LC://my_dataset.yaml` to `.train()` and `.val()`. After running your first run with the regular YAML file, a 3LC YAML is written next to it which you can use immediately (just remember to prepend the 3LC prefix).
 
 In order to train on different revisions, simply change the paths in the file to your desired revision.
 

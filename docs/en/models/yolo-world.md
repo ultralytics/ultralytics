@@ -76,7 +76,6 @@ To perform object detection on an image, use the `predict` method as shown below
 
         # Run inference with the YOLOv8s-world model on the 'bus.jpg' image
         results = model('path/to/bus.jpg')
-
         ```
 
     === "CLI"

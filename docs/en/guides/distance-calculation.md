@@ -14,7 +14,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 |                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                
 |:-----------------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/96ae9a71-3170-42d8-887c-d903cba74956) |
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/6b6b735d-3c49-4b84-a022-2bf6e3c72f8b) |
 
 ## Advantages of Distance Calculation?
 

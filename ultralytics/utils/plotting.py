@@ -564,6 +564,7 @@ class Annotator:
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
+
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
         """
         Function for pinpoint human-vision eye mapping and plotting.

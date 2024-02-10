@@ -33,7 +33,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel build twine
-          pip install "git+https://github.com/squidfunk/mkdocs-material@master"
           pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check PyPI version
         shell: python

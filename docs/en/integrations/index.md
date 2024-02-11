@@ -50,7 +50,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure model deployment.
 
-- [Coral TPU](coral-edge-tpu-on-raspberry-pi.md): [Google Coral Edge TPU accelerator](https://coral.ai/products/accelerator) is used to improve inference speeds for embedded devices like a [Raspberry Pi](https://www.raspberrypi.com/) or other single board compute (SBC) devices.
+- [Coral TPU](coral-edge-tpu-on-raspberry-pi.md): The [Google Coral Edge TPU accelerator](https://coral.ai/products/accelerator) is used to improve inference speeds for embedded devices like a [Raspberry Pi](https://www.raspberrypi.com/) or other single board compute (SBC) devices.
 
 ### Export Formats
 

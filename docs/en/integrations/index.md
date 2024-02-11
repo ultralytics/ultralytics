@@ -49,7 +49,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance deep learning inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure model deployment.
-  
+
+- [Coral TPU](coral-edge-tpu-on-raspberry-pi.md): [Google Coral Edge TPU accelerator](https://coral.ai/products/accelerator) is used to improve inference speeds for embedded devices like a [Raspberry Pi](https://www.raspberrypi.com/) or other single board compute (SBC) devices.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:

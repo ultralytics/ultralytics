@@ -89,7 +89,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "mkdocs-material",
+    "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects

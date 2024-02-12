@@ -44,12 +44,12 @@ As you browse the datasets, each one awaits your exploration. Click on any datas
 
 ## Explore the Dataset
 
-The Data Exploration interface allows users to delve into the details of available datasets before initiating model training. By clicking on any dataset, you can access a comprehensive overview, including:
+The Data Exploration interface allows users to delve into the details of available datasets before initiating model training. By clicking on any dataset, you can access a comprehensive overview, including:<br />
 
-**Labels**: Training, validation, and test labels provide essential information about data partitioning for model learning.
-**Class Distribution & Description**: Gain insights into the distribution of classes within the dataset and understand its subject matter through a clear description.
+**Labels**: Training, validation, and test labels provide essential information about data partitioning for model learning.<br />
+**Class Distribution & Description**: Gain insights into the distribution of classes within the dataset and understand its subject matter through a clear description.<br />
 **Dataset Details**: Uncover essential characteristics such as class structure, image dimensions, and other pertinent information.
-This comprehensive exploration empowers users to make informed decisions before selecting a dataset for model training. Simply choose the desired dataset from the interface and proceed to the model training section to begin your journey.
+This comprehensive exploration empowers users to make informed decisions before selecting a dataset for model training. Simply choose the desired dataset from the interface and proceed to the model training section to begin your journey.<br />
 
 ![alt text](/docs/en/hub/screenshots/Dataset%20Centre.png)
 
@@ -68,11 +68,11 @@ Once we reach the Model Training page, we are offered three-way option to train 
 
 ## Training the Model on Google Colab
 
-Training the model on Google colab has the following steps,
-**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.
-**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.
-**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.
-**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.
+Training the model on Google colab has the following steps,<br />
+**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.<br />
+**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.<br />
+**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.<br />
+**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.<br />
 
 ![alt text](/docs/en/hub/screenshots/Google_Colab.png)
 

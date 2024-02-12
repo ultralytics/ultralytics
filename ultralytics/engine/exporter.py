@@ -497,7 +497,7 @@ class Exporter:
         """
         YOLOv8 ncnn export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires ncnn
+        check_requirements("ncnn")
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with ncnn {ncnn.__version__}...")

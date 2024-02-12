@@ -296,6 +296,7 @@ nav:
       - Raspberry Pi: guides/raspberry-pi.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
+      - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -340,7 +341,6 @@ nav:
       - ONNX: integrations/onnx.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
-      - Coral Edge TPU: integrations/coral-edge-tpu-on-raspberry-pi.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

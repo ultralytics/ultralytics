@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Coral, Edge TPU, Raspberry Pi, 
 
 ## What is a Coral Edge TPU?
 
-The Coral USB Accelerator is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inferencing for TensorFlow Lite models. You can read more about it [here](https://coral.ai/products/accelerator).
+The Coral USB Accelerator is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inferencing for TensorFlow Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
 
 ## Why?
 
@@ -48,7 +48,7 @@ First, we need to install the Edge TPU runtime. There are many different version
 | Bookworm 32bit  |         Yes         | libedgetpu1-max_ ... .bookworm_armhf.deb |
 | Bookworm 64bit  |         Yes         | libedgetpu1-max_ ... .bookworm_arm64.deb |
 
-Download the latest version from [here](https://github.com/feranick/libedgetpu/releases).
+[Download the latest version](https://github.com/feranick/libedgetpu/releases).
 
 After downloading the file, you can install it with the following command:
 

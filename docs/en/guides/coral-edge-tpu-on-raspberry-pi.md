@@ -31,7 +31,7 @@ The [current guide](https://coral.ai/docs/accelerator/get-started/) by Coral on 
 
 ## Installation
 
-This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart/) to get setup before continuing here.
+This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart.md) to get setup before continuing here.
 
 ### Installing the Edge TPU runtime
 
@@ -113,7 +113,7 @@ After exporting your model, you can run inference with it using the following co
         model.predict("path/to/source.png")
         ```
 
-For a more detailed guide on how to use the Predict Mode for inference, visit the [Prediction Mode](../modes/predict/) page.
+For a more detailed guide on how to use the Predict Mode for inference, visit the [Prediction Mode](../modes/predict.md) page.
 
 ???+ warning "Important"
 

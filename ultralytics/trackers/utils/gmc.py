@@ -109,7 +109,6 @@ class GMC:
 
         Args:
             raw_frame (np.array): The raw frame to be processed.
-            detections (list): List of detections to be used in the processing.
 
         Returns:
             (np.array): Processed frame.
@@ -298,7 +297,6 @@ class GMC:
 
         Args:
             raw_frame (np.array): The raw frame to be processed.
-            detections (list): List of detections to be used in the processing.
 
         Returns:
             (np.array): Processed frame.

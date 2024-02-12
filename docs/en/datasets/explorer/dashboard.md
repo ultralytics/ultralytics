@@ -41,19 +41,19 @@ Semantic search is a technique for finding similar images to a given image. It i
 For example:
 In this VOC Exploration dashboard, user selects a couple aeroplane images like this:
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/AyushExel/assets/assets/15766192/da5f1b0a-9eb5-4712-919c-7d5512240dd8">
+<img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3becdc1d-45dc-43b7-88ff-84ff0b443894">
 </p>
 
 On performing similarity search, you should see a similar result:
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/AyushExel/assets/assets/15766192/5e4c6445-8e4e-48bb-a15a-9fb6c6994af8">
+<img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/aeea2e16-bc2b-41bb-9aef-4a33bfa1a800">
 </p>
 
 ## Ask AI
 
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
 <p>
-<img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/AyushExel/assets/assets/15766192/e536b0eb-6bce-43fe-b800-3e79510d2e5b">
+<img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/55a67181-3b25-4d2f-b786-2a6a08a0cb6b">
 </p>
 
 Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
@@ -67,7 +67,7 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 ```
 
 <p>
-<img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/AyushExel/assets/assets/15766192/71619e16-4db9-4fdb-b951-0d1fdbf59a6a">
+<img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/14fbb237-0b2d-4b7c-8f62-2fca4e6cc26f">
 </p>
 
 This is a Demo build using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).

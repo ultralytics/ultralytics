@@ -439,6 +439,7 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_utils_downloads():
     """Test file download utilities."""

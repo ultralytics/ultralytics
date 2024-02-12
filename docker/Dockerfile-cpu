@@ -48,10 +48,10 @@ RUN ln -sf /usr/bin/python3 /usr/bin/python
 # t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host --name NAME $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host --name NAME $t
 
 # Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

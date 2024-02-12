@@ -232,14 +232,15 @@ def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
         dataset_name = validator.data[validator._split].dataset_name
         names = get_names_from_yolo_table(validator.data[validator._split])
 
-    metrics_column_schemas = {
-        tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
-    if validator._trainer:
-        metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
-    if validator._settings.image_embeddings_dim > 0:
-        metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
+    if validator._run is not None:
+        metrics_column_schemas = {
+            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
+        if validator._trainer:
+            metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
+        if validator._settings.image_embeddings_dim > 0:
+            metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
 
-    validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
-                                                 dataset_url=dataset_url,
-                                                 dataset_name=dataset_name,
-                                                 override_column_schemas=metrics_column_schemas)
+        validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
+                                                    dataset_url=dataset_url,
+                                                    dataset_name=dataset_name,
+                                                    override_column_schemas=metrics_column_schemas)

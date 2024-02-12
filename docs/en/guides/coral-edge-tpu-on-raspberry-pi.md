@@ -16,7 +16,7 @@ The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your
 
 ## Boost Raspberry Pi Model Performance with Coral Edge TPU
 
-Many people want to run their models on an embedded or mobile device such as a Raspberry Pi, since they are very power efficient and can be used in many different applications. However, the inference performance on these devices is usually poor even when using formats like [onnx](https://docs.ultralytics.com/integrations/onnx/) or [openvino](https://docs.ultralytics.com/integrations/openvino/). The Coral Edge TPU is a great solution to this problem, since it can be used with a Raspberry Pi and accelerate inference performance greatly.
+Many people want to run their models on an embedded or mobile device such as a Raspberry Pi, since they are very power efficient and can be used in many different applications. However, the inference performance on these devices is usually poor even when using formats like [onnx](../integrations/onnx.md) or [openvino](../integrations/openvino.md). The Coral Edge TPU is a great solution to this problem, since it can be used with a Raspberry Pi and accelerate inference performance greatly.
 
 ## Edge TPU on Raspberry Pi with TensorFlow Lite (New)⭐
 

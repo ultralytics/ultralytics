@@ -218,6 +218,11 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
 
+        if keypoints is not None:
+            assert len(keypoints) == len(
+                bboxes
+            ), f"keypoints should have the same length as bboxes. {len(keypoints)} != {len(bboxes)}"
+
         if len(segments) > 0:
             # List[np.array(1000, 2)] * num_samples
             segments = resample_segments(segments)
@@ -298,7 +303,12 @@ class Instances:
             length as the number of instances.
         """
         segments = self.segments[index] if len(self.segments) else self.segments
-        keypoints = self.keypoints[index] if self.keypoints is not None else None
+        keypoints = None
+        if self.keypoints is not None:
+            assert len(self.keypoints) == len(
+                self.bboxes
+            ), f"keypoints should have the same length as bboxes. {len(self.keypoints)} != {len(self.bboxes)}"
+            keypoints = self.keypoints[index]
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
         return Instances(

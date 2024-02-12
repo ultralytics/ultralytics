@@ -85,7 +85,7 @@ def verify_image_label(args):
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
+    nm, nf, ne, nc, msg, segments, keypoints, ignore_kpt = 0, 0, 0, 0, '', [], None, True
     try:
         # Verify images
         im = Image.open(im_file)
@@ -114,8 +114,14 @@ def verify_image_label(args):
             nl = len(lb)
             if nl:
                 if keypoint:
-                    assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
-                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                    # Check if we have keypoints in the label file
+                    if lb.shape[1] > 5:
+                        assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
+                        points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                        ignore_kpt = False
+                    else:
+                        points = lb[:, 1:]
+                        ignore_kpt = True
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     points = lb[:, 1:]
@@ -132,24 +138,34 @@ def verify_image_label(args):
                     lb = lb[i]  # remove duplicates
                     if segments:
                         segments = [segments[x] for x in i]
-                    msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
+                    msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed file {lb_file}'
             else:
                 ne = 1  # label empty
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+                if keypoint:
+                    # This image has no bounding boxes, So we should not ignore the keypoints
+                    # Model should learn to predict no keypoints for this image
+                    ignore_kpt = False
         else:
             nm = 1  # label missing
             lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
+
         if keypoint:
-            keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
-            if ndim == 2:
-                kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
-                keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
+            if ignore_kpt:
+                num_of_boxes = len(lb)
+                keypoints = np.zeros((num_of_boxes, nkpt, ndim), dtype=np.float32)
+            else:
+                keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
+                if ndim == 2:
+                    kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
+                    keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
+
         lb = lb[:, :5]
-        return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
+        return im_file, lb, shape, segments, keypoints, ignore_kpt, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
         msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
-        return [None, None, None, None, None, nm, nf, ne, nc, msg]
+        return [None, None, None, None, None, True, nm, nf, ne, nc, msg]
 
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):

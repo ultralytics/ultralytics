@@ -391,7 +391,7 @@ Visualization arguments:
 
 ## Image and Video Formats
 
-YOLOv8 supports various image and video formats, as specified in [data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
+YOLOv8 supports various image and video formats, as specified in [ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
 ### Images
 
@@ -517,7 +517,7 @@ Here is a table for the `Boxes` class methods and properties, including their na
 | `xyxyn`   | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
 | `xywhn`   | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
-For more details see the `Boxes` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
+For more details see the [`Boxes` class documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
 
 ### Masks
 
@@ -550,7 +550,7 @@ Here is a table for the `Masks` class methods and properties, including their na
 | `xyn`     | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
 | `xy`      | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
 
-For more details see the `Masks` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Masks).
+For more details see the [`Masks` class documentation](../reference/engine/results.md#ultralytics.engine.results.Masks).
 
 ### Keypoints
 
@@ -584,7 +584,7 @@ Here is a table for the `Keypoints` class methods and properties, including thei
 | `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
 | `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
 
-For more details see the `Keypoints` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Keypoints).
+For more details see the [`Keypoints` class documentation](../reference/engine/results.md#ultralytics.engine.results.Keypoints).
 
 ### Probs
 
@@ -619,7 +619,7 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 | `top1conf` | Property (`torch.Tensor`) | Confidence of the top 1 class.                                          |
 | `top5conf` | Property (`torch.Tensor`) | Confidences of the top 5 classes.                                       |
 
-For more details see the `Probs` class [documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
+For more details see the [`Probs` class documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
 
 ### OBB
 
@@ -657,7 +657,7 @@ Here is a table for the `OBB` class methods and properties, including their name
 | `xyxyxyxy`  | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format.                          |
 | `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
 
-For more details see the `OBB` class [documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
+For more details see the [`OBB` class documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
 
 ## Plotting Results
 

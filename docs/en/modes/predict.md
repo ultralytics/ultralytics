@@ -472,8 +472,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `to()`        | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
 | `new()`       | `Results`       | Return a new Results object with the same image, path, and names.                   |
 | `plot()`      | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
-| `show()`      | `None`          | Show annotated results to screen.                          |
-| `save()`      | `None`          | Save annotated results to file.                             |
+| `show()`      | `None`          | Show annotated results to screen.                                                   |
+| `save()`      | `None`          | Save annotated results to file.                                                     |
 | `verbose()`   | `str`           | Return log string for each task.                                                    |
 | `save_txt()`  | `None`          | Save predictions into a txt file.                                                   |
 | `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
@@ -673,38 +673,43 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
     model = YOLO('yolov8n.pt')
 
     # Run inference on 'bus.jpg'
-    results = model('bus.jpg')  # results list
+    results = model(['bus.jpg', 'zidane.jpg'])  # results list
 
     # Show the results
-    for r in results:
-        im_array = r.plot()  # plot a BGR numpy array of predictions
-        im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
-        im.show()  # show image
-        im.save('results.jpg')  # save image
+    for i, r in enumerate(results):
+        # Plot results image
+        im_bgr = r.plot()  # BGR-order numpy array
+        im_rgb = Image.fromarray(im_array[..., ::-1])  # RGB-order PIL image
+        
+        # Show results to screen (in supported environments)
+        r.show()
+
+        # Save results to disk
+        r.save(filename=f'results{i}.jpg')
     ```
 
 ### `plot()` Method Parameters
 
 The `plot()` method supports various arguments to customize the output:
 
-| Argument     | Type            | Description                                                                 | Default       |
-|--------------|-----------------|-----------------------------------------------------------------------------|---------------|
-| `conf`       | `bool`          | Include detection confidence scores.                                        | `True`        |
-| `line_width` | `float`         | Line width of bounding boxes. Scales with image size if `None`.             | `None`        |
-| `font_size`  | `float`         | Text font size. Scales with image size if `None`.                           | `None`        |
-| `font`       | `str`           | Font name for text annotations.                                             | `'Arial.ttf'` |
-| `pil`        | `bool`          | Return image as a PIL Image object.                                         | `False`       |
-| `img`        | `numpy.ndarray` | Alternative image for plotting. Uses the original image if `None`.          | `None`        |
-| `im_gpu`     | `torch.Tensor`  | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).    | `None`        |
-| `kpt_radius` | `int`           | Radius for drawn keypoints.                                                 | `5`           |
-| `kpt_line`   | `bool`          | Connect keypoints with lines.                                               | `True`        |
-| `labels`     | `bool`          | Include class labels in annotations.                                        | `True`        |
-| `boxes`      | `bool`          | Overlay bounding boxes on the image.                                        | `True`        |
-| `masks`      | `bool`          | Overlay masks on the image.                                                 | `True`        |
-| `probs`      | `bool`          | Include classification probabilities.                                       | `True`        |
-| `show`       | `bool`          | Display the annotated image directly using the default image viewer.        | `False`       |
-| `save`       | `bool`          | Save the annotated image to a file specified by `filename`.                 | `False`       |
-| `filename`   | `str`           | Path and name of the file to save the annotated image if `save` is `True`.  | `None`        |
+| Argument     | Type            | Description                                                                | Default       |
+|--------------|-----------------|----------------------------------------------------------------------------|---------------|
+| `conf`       | `bool`          | Include detection confidence scores.                                       | `True`        |
+| `line_width` | `float`         | Line width of bounding boxes. Scales with image size if `None`.            | `None`        |
+| `font_size`  | `float`         | Text font size. Scales with image size if `None`.                          | `None`        |
+| `font`       | `str`           | Font name for text annotations.                                            | `'Arial.ttf'` |
+| `pil`        | `bool`          | Return image as a PIL Image object.                                        | `False`       |
+| `img`        | `numpy.ndarray` | Alternative image for plotting. Uses the original image if `None`.         | `None`        |
+| `im_gpu`     | `torch.Tensor`  | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).   | `None`        |
+| `kpt_radius` | `int`           | Radius for drawn keypoints.                                                | `5`           |
+| `kpt_line`   | `bool`          | Connect keypoints with lines.                                              | `True`        |
+| `labels`     | `bool`          | Include class labels in annotations.                                       | `True`        |
+| `boxes`      | `bool`          | Overlay bounding boxes on the image.                                       | `True`        |
+| `masks`      | `bool`          | Overlay masks on the image.                                                | `True`        |
+| `probs`      | `bool`          | Include classification probabilities.                                      | `True`        |
+| `show`       | `bool`          | Display the annotated image directly using the default image viewer.       | `False`       |
+| `save`       | `bool`          | Save the annotated image to a file specified by `filename`.                | `False`       |
+| `filename`   | `str`           | Path and name of the file to save the annotated image if `save` is `True`. | `None`        |
 
 ## Thread-Safe Inference
 

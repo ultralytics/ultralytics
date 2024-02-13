@@ -111,17 +111,17 @@ Model validation on a dataset is streamlined as follows:
 
 !!! Note
 
-    The YOLO-World models provided by Ultralytics come pre-configured with COCO dataset categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
+    The YOLO-World models provided by Ultralytics come pre-configured with [COCO dataset](../datasets/detect/coco) categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
 
 ### Set prompts
 
 The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the training data. By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
 
+For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
+
 !!! Example
 
     === "Custom Inference Prompts"
-
-        For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
 
         ```python
         from ultralytics import YOLO
@@ -139,11 +139,11 @@ The YOLO-World framework allows for the dynamic specification of classes through
         results[0].show()
         ```
 
+You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLOv8 model:
+
 !!! Example
 
     === "Persisting Models with Custom Vocabulary"
-
-        By setting custom classes and saving the model, you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments.
 
         ```python
         from ultralytics import YOLO

@@ -81,3 +81,8 @@ class YOLOWorld(Model):
         if background in classes:
             classes.remove(background)
         self.model.names = classes
+
+        # Reset method class names
+        # self.predictor = None  # reset predictor otherwise old names remain
+        if self.predictor:
+            self.predictor.model.names = classes

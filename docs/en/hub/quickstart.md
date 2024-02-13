@@ -8,6 +8,17 @@ keywords: Ultralytics HUB, Quickstart, YOLOv5, YOLOv8, model training, quick dep
 
 HUB is designed to be user-friendly and intuitive, with a drag-and-drop interface that allows users to easily upload their data and train new models quickly. It offers a range of pre-trained models and templates to choose from, making it easy for users to get started with training their own models. Once a model is trained, it can be easily deployed and used for real-time object detection, instance segmentation and classification tasks.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
+</p>
+
 ## Creating an Account
 
 [Ultralytics HUB](https://hub.ultralytics.com/) offers multiple and easy account creation options to get started with. A user can user can register and sign-in using `Google`, `Apple` or `Github` account or a `work email` address(preferably for corporate users).

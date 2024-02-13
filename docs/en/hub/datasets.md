@@ -83,9 +83,9 @@ You can view the images in your dataset grouped by splits (Train, Validation, Te
 
     Each image can be enlarged for better visualization.
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_8.jpg)
+    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://github.com/ultralytics/ultralytics/assets/19519529/26f411a0-5153-4805-a8c1-cbd379708e28)
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_9.jpg)
+    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://github.com/ultralytics/ultralytics/assets/19519529/7d5e0d50-85e5-4014-9f5b-464284e5b291)
 
 Also, you can analyze your dataset by click on the **Overview** tab.
 

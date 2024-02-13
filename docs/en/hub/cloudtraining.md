@@ -6,153 +6,68 @@ keywords: Ultralytics, HUB Models, AI model training, model creation, model trai
 
 # Cloud Training
 
-Read more about creating a Model [here](models.md)
+Ultralytics provides a web-based cloud training platform, enabling rapid and streamlined deployment of custom object detection models. Users benefit from a straightforward interface that facilitates the selection of their desired dataset and training method. Ultralytics further streamlines the process by offering a diverse array of pre-built options and architectural configurations.
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
-</p>
+![cloud training cover](https://github.com/ultralytics/ultralytics/assets/19519529/cbfdb3b8-ad35-44a6-afe6-61ec0b8e8b8d)
 
-## Train Model
+Read more about creating and other details of a Model [here](models.md)
 
-Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on the **Models** button in the sidebar.
-Training the Model using HUB is a 4 step process <br />
-**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.<br />
-**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.<br />
-**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.<br />
-**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.<br />
+## Selecting an Instance
 
-![Ultralytics HUB screenshot of the Home page](https://github.com/ultralytics/ultralytics/assets/19519529/61428720-aa93-4689-b209-ead7f06fa488)
+For details on Picking a model, and instances for it, please read [here](models.md)
 
-??? tip "Tip"
+## Steps to train the Model
 
-    You can also train a model directly from the [Home](https://hub.ultralytics.com/home) page.
+Once the instance has been selected, training a model using ultralytics Hub is a three step process, as below: <br />
 
-    ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://github.com/ultralytics/ultralytics/assets/19519529/6f9f06f7-e663-4fa7-800c-98675bf1405b)
-
-Click on the **Train Model** button on the top right of the page. This action will trigger the **Train Model** dialog.
-
-The **Train Model** dialog has three simple steps, explained below.
-
-### 1. Dataset
-
-In this step, you have to select the dataset you want to train your model on. After you selected a dataset, click **Continue**.
-
-![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to a dataset and one to the Continue button](https://github.com/ultralytics/ultralytics/assets/19519529/7ff90f2a-c61e-472f-a573-f725a5bddc1c)
-
-### 2. Model
-
-In this step, you have to choose the project in which you want to create your model, the name of your model and your model's architecture.
-
-!!! Info "Info"
-
-    You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) architectures in our documentation.
-
-When you're happy with your model configuration, click **Continue**.
-
-![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to a model architecture and one to the Continue button](https://github.com/ultralytics/ultralytics/assets/19519529/a7a412b3-3e87-48de-b117-c506338f36fb)
-
-??? note "Note"
-
-    By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset) to reduce training time.
-
-    You can change this behavior by opening the **Advanced Options** accordion.
-
-### 3. Train
-
-In this step, you will start training you model.
+1. Picking a Dataset - Read more about Dataset, steps to add/remove dataset [here](datasets.md) <br />
+2. Picking a Model - Read more about Models, steps to create / share and handle a model [here](models.md) <br />
+3. Training the Model on the chosen Dataset <br />
 
 Ultralytics HUB offers three training options:
 
-- Ultralytics Cloud
-- Google Colab
-- Bring your own agent
+- **Ultralytics Cloud**
+- **Google Colab** - Read more about training via Google Colab [here](models.md)
+- **Bring your own agent** - Read more about training via your own Agent [here](models.md)
 
 In order to start training your model, follow the instructions presented in these steps.
 
 ## Training via Ultralytics Cloud
 
-To start training your model using Ultralytics Cloud, we need to simply select the Training Duration, Available Instances, and Payment options.
+To start training your model using Ultralytics Cloud, we need to simply select the Training Duration, Available Instances, and Payment options.<br />
 
-![Training via Ultralytics Cloud](https://github.com/ultralytics/ultralytics/assets/19519529/4f36136e-eda9-44f7-a990-56214e33dc45)
+**Training Duration** - The Ultralytics offers two kind of training durations <br />
 
-??? note "Note"
+1. Training based on `Epochs` - This option lets you train your model based on number of times your Dataset needs to go through the cycle of Train, Label and Test. The exact pricing based on number of Epochs is hard to determine. Hence, if the credit gets exhausted before intended number of Epochs, the training pauses and we get a prompt to Top-up and resume Training. <br />
+2. Timed Training - The timed training features allows you to fix the time duration of the entire Training process and also determines the estimated amount before the start of Training. <br />
 
-    You can always use Timed training from the options and opt out of Training your model based on Epochs.
-
-    ![Ultralytics HUB screenshot of the Timed Training](https://github.com/ultralytics/ultralytics/assets/19519529/397a8d64-acd8-4fb3-95a7-0c8183c5a48a)
+![Ultralytics cloud screenshot of training Duration options](https://github.com/ultralytics/ultralytics/assets/19519529/47b96f3f-a9ea-441a-b065-cba97edc333f)
 
 When the training starts, you can click **Done** and monitor the training progress on the Model page.
 
-![Ultralytics HUB screenshot of the Model page of a model that is currently training](https://github.com/ultralytics/ultralytics/assets/19519529/897463b9-30ba-44d9-94f8-4d2ef4fa709d)
+## Monitor your training
 
-## Training the Model on Google Colab
+Once the model and mode of the training has been selected, a User can monitor the training procedure on the `Train` section with the link provided in the terminal (on your agent / Google colab) or a button from Ultralytics Cloud.
 
-To start training your model using Google Colab, simply follow the instructions shown above or on the Google Colab notebook.
+![Monitor your Training](https://github.com/ultralytics/ultralytics/assets/19519529/316f8301-0d60-465e-8c99-aa3daf66433c)
 
-<a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
-</a>
+## Stopping and resuming your training
 
-![Google Colab Screenshot](https://github.com/ultralytics/ultralytics/assets/19519529/c957ec1a-254b-4cc1-816a-c1c4814285d4)
+Once the training has started a user can `Stop` the training, which will also correspondingly pause the credit usage for the user. A user can again `Resume` the training from the point as described in the below screenshot.
 
-## Preview Model
+![Pausing and Resuming Training](https://github.com/ultralytics/ultralytics/assets/19519529/b2707a93-fa5c-4ee2-8443-6be9e1c2857d)
 
-Ultralytics HUB offers a variety of ways to preview your trained model.
+## Payments and Billing options
 
-You can preview your model if you click on the **Preview** tab and upload an image in the **Test** card.
+Ultralytics HUB offers `Pay Now` as upfront and/or use `Ultralytics HUB Account` as a wallet to top-up and fulfil the billing. A user can pick from amongst two types of Account namely `Free` and `Pro` user. <br />
+The user can navigate to the profile by clicking the Profile picture in the bottom left corner
+![Clicking profile picture](https://github.com/ultralytics/ultralytics/assets/19519529/53e5410e-06f5-4b40-b29d-ef00b5779163)
 
-![Ultralytics HUB screenshot of the Preview tab (Test card) inside the Model page](https://github.com/ultralytics/ultralytics/assets/19519529/a732d13a-8da9-40a8-9f5e-c766bec3fbe9)
+Click on the Billing tab to know about your current plan and option to upgrade it.
+![Clicking Upgrade button](https://github.com/ultralytics/ultralytics/assets/19519529/361b43c7-a9d4-4d05-b80b-dc1fa8bce829)
 
-You can also use our Ultralytics Cloud API to effortlessly [run inference](inference-api.md) with your custom model.
+User is prompted about different available plans, and can pick from the available plans as stated below.
+![Picking a plan](https://github.com/ultralytics/ultralytics/assets/19519529/4326b01c-0d7d-4850-ac4f-ced2de3339ee)
 
-![Ultralytics HUB screenshot of the Preview tab (Ultralytics Cloud API card) inside the Model page](https://github.com/ultralytics/ultralytics/assets/19519529/77ae0f6c-d89e-433c-b404-77f71c06def5)
-
-Furthermore, you can preview your model in real-time directly on your [iOS](https://apps.apple.com/xk/app/ultralytics/id1583935240) or [Android](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) mobile device by [downloading](https://ultralytics.com/app_install) our [Ultralytics HUB Mobile Application](app/index.md).
-
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with arrow pointing to the Real-Time Preview card](https://github.com/ultralytics/ultralytics/assets/19519529/8d711052-5ab1-43bc-bc25-a8802a24b301)
-
-## Deploy Model
-
-You can export your model to 13 different formats, including ONNX, OpenVINO, CoreML, TensorFlow, Paddle and many others.
-
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with all formats exported](https://github.com/ultralytics/ultralytics/assets/19519529/083a929d-2bbd-45f8-9dec-2767949caaba)
-
-## Share Model
-
-!!! Info "Info"
-
-    Ultralytics HUB's sharing functionality provides a convenient way to share models with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
-
-??? note "Note"
-
-    You have control over the general access of your models.
-
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the model, regardless of whether they have an Ultralytics HUB account or not.
-
-Navigate to the Model page of the model you want to share, open the model actions dropdown and click on the **Share** option. This action will trigger the **Share Model** dialog.
-
-![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Share option](https://github.com/ultralytics/ultralytics/assets/19519529/ac98724e-9267-4557-a792-33073c47bbff)
-
-Set the general access to "Unlisted" and click **Save**.
-
-![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the dropdown and one to the Save button](https://github.com/ultralytics/ultralytics/assets/19519529/65afcd99-1f9e-4be8-b287-096a7c74fc0e)
-
-Now, anyone who has the direct link to your model can view it.
-
-??? tip "Tip"
-
-    You can easily click on the model's link shown in the **Share Model** dialog to copy it.
-
-    ![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the model's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_4.jpg)
-
-## Edit and Delete Model
-
-Navigate to the Model page of the model you want to edit, open the model actions dropdown and click on the **Edit** option. This action will trigger the **Update Model** dialog. Navigate to the Model page of the model you want to delete, open the model actions dropdown and click on the **Delete** option. This action will delete the model.
-![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Edit option](https://github.com/ultralytics/ultralytics/assets/19519529/5c2db731-45dc-4f04-ac0f-9ad600c140a1)
+The user will then Navigate to the Payment page, fill in the details and payment is done.
+![Payment Page](https://github.com/ultralytics/ultralytics/assets/19519529/5deebabe-1d8a-485a-b290-e038729c849f)

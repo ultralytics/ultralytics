@@ -6,13 +6,13 @@ keywords: YOLO-World, YOLOv8, machine learning, CNN-based framework, object dete
 
 # YOLO-World Model
 
-The YOLO-World Model introduces an advanced, real-time YOLOv8-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
+The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ultralytics.com) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
 
 ![YOLO-World Model architecture overview](https://github.com/Laughing-q/assets/assets/61612323/93c8b3cf-baa7-4c32-a405-3744e4ef0f28)
 
 ## Overview
 
-YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome Transformer models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLO framework with open-vocabulary detection capabilities, employing vision-language modeling and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
+YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome Transformer models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-language modeling and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
 
 ## Key Features
 
@@ -22,7 +22,7 @@ YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection
 
 3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, employing an offline vocabulary to enhance efficiency further. This approach enables the use of custom prompts, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
 
-4. **Powered by YOLOv8:** Built upon [YOLOv8](../tasks/detect.md), YOLO-World leverages the latest advancements in real-time object detection to facilitate open-vocabulary detection with unparalleled accuracy and speed.
+4. **Powered by YOLOv8:** Built upon [YOLOv8](yolov8.md), YOLO-World leverages the latest advancements in real-time object detection to facilitate open-vocabulary detection with unparalleled accuracy and speed.
 
 5. **Benchmark Excellence:** YOLO-World outperforms existing open-vocabulary detectors, including MDETR and GLIP series, in terms of speed and efficiency on standard benchmarks, showcasing its superior capability on a single NVIDIA V100 GPU.
 
@@ -65,24 +65,21 @@ Object detection is straightforward with the `predict` method, as illustrated be
         ```python
         from ultralytics import YOLOWorld
 
-        # Specify an image for inference
-        source = 'path/to/bus.jpg'
-
         # Initialize a YOLO-World model
         model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
 
-        # Display model information (optional)
-        model.info()
-
         # Execute inference with the YOLOv8s-world model on the specified image
-        results = model.predict(source)
+        results = model.predict('path/to/image.jpg')
+
+        # Show results
+        results[0].show()
         ```
 
     === "CLI"
 
         ```bash
         # Perform object detection using a YOLO-World model
-        yolo predict model=yolov8s-world.pt source=path/to/bus.jpg imgsz=640
+        yolo predict model=yolov8s-world.pt source=path/to/image.jpg imgsz=640
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
@@ -118,9 +115,13 @@ Model validation on a dataset is streamlined as follows:
 
 ### Set prompts
 
+The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the training data. By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
+
 !!! Example
 
     === "Custom Inference Prompts"
+
+        For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
 
         ```python
         from ultralytics import YOLO
@@ -128,15 +129,21 @@ Model validation on a dataset is streamlined as follows:
         # Initialize a YOLO-World model
         model = YOLO('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
         
-        # Define custom prompts
-        prompts = ["person", "bus"]
-        model.set_classes(prompts)
+        # Define custom classes
+        model.set_classes(["person", "bus"])
 
         # Execute prediction for specified categories on an image
-        results = model.predict('path/to/bus.jpg')
+        results = model.predict('path/to/image.jpg')
+
+        # Show results
+        results[0].show()
         ```
 
+!!! Example
+
     === "Persisting Models with Custom Vocabulary"
+
+        By setting custom classes and saving the model, you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments.
 
         ```python
         from ultralytics import YOLO
@@ -144,13 +151,36 @@ Model validation on a dataset is streamlined as follows:
         # Initialize a YOLO-World model
         model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt
         
-        # Configure custom prompts
-        prompts = ["person", "bus"]
-        model.set_classes(prompts)
+        # Define custom classes
+        model.set_classes(["person", "bus"])
 
         # Save the model with the defined offline vocabulary
-        model.save("path/to/model.pt")
+        model.save("custom_yolov8s.pt")
         ```
+
+        After saving, the custom_yolov8s.pt model behaves like any other pre-trained YOLOv8 model but with a key difference: it is now optimized to detect only the classes you have defined. This customization can significantly improve detection performance and efficiency for your specific application scenarios.
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load your custom model
+        model = YOLO('custom_yolov8s.pt')
+
+        # Run inference to detect your custom classes
+        results = model.predict('path/to/image.jpg')
+
+        # Show results
+        results[0].show()
+        ```
+
+### Benefits of Saving with Custom Vocabulary
+
+- **Efficiency**: Streamlines the detection process by focusing on relevant objects, reducing computational overhead and speeding up inference.
+- **Flexibility**: Allows for easy adaptation of the model to new or niche detection tasks without the need for extensive retraining or data collection.
+- **Simplicity**: Simplifies deployment by eliminating the need to repeatedly specify custom classes at runtime, making the model directly usable with its embedded vocabulary.
+- **Performance**: Enhances detection accuracy for specified classes by focusing the model's attention and resources on recognizing the defined objects.
+
+This approach provides a powerful means of customizing state-of-the-art object detection models for specific tasks, making advanced AI more accessible and applicable to a broader range of practical applications.
 
 ## Citations and Acknowledgements
 

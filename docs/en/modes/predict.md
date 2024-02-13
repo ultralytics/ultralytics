@@ -675,7 +675,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
     # Run inference on 'bus.jpg'
     results = model(['bus.jpg', 'zidane.jpg'])  # results list
 
-    # Show the results
+    # Visualize the results
     for i, r in enumerate(results):
         # Plot results image
         im_bgr = r.plot()  # BGR-order numpy array

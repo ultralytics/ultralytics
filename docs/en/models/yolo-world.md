@@ -1,48 +1,48 @@
 ---
 comments: true
-description: Explore YOLO-World, a CNN-based solution for real-time open-vocabulary object detection in images. Enhanced user interaction, computational efficiency and adaptable across vision tasks.
-keywords: YOLO-World, YOLOv8, machine learning, CNN-based solution, object detection, real-time solution, Ultralytics, vision tasks, image processing, industrial applications, user interaction
+description: Discover YOLO-World, a YOLOv8-based framework for real-time open-vocabulary object detection in images. It enhances user interaction, boosts computational efficiency, and adapts across various vision tasks.
+keywords: YOLO-World, YOLOv8, machine learning, CNN-based framework, object detection, real-time detection, Ultralytics, vision tasks, image processing, industrial applications, user interaction
 ---
 
 # YOLO-World Model
 
-The YOLO-World Model is a novel, real-time CNN-based solution for the Open-Vocabulary Detection task. This task is designed to detect any object within an image based on given texts. YOLO-World significantly reduces computational demands while maintaining competitive performance, making it a practical choice for a variety of vision tasks.
+The YOLO-World Model introduces an advanced, real-time YOLOv8-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
 
 ![YOLO-World Model architecture overview](https://github.com/Laughing-q/assets/assets/61612323/93c8b3cf-baa7-4c32-a405-3744e4ef0f28)
 
 ## Overview
 
-YOLO-World is designed to address the limitations of current Open-Vocabulary detection models, usually with a heavy Transformer model with substantial computational resource requirements. Also their reliance on predefined and trained object categories limits their applicability in open scenarios. The YOLO-World is an innovative approach that enhances YOLO with open-vocabulary detection capabilities through vision-language modeling and pre-training on large-scale datasets, excels in detecting a wide range of objects in a zero-shot manner with high efficiency.
+YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome Transformer models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLO framework with open-vocabulary detection capabilities, employing vision-language modeling and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
 
 ## Key Features
 
-1. **Real-time Solution:** By leveraging the computational efficiency of YOLOv8, YOLO-World provides a real-time solution for the open-vocabulary detection task, making it valuable for industrial applications that require quick results.
+1. **Real-time Solution:** Harnessing the computational prowess of YOLOv8, YOLO-World delivers a swift open-vocabulary detection solution, catering to industries in need of immediate outcomes.
 
-2. **Efficiency and Performance:** YOLO-World offers a significant reduction in computational and resource demands without compromising on performance quality. It achieves comparable performance to SAM but with drastically reduced computational resources, enabling real-time application.
+2. **Efficiency and Performance:** YOLO-World slashes computational and resource requirements without sacrificing performance, offering a robust alternative to models like SAM but at a fraction of the computational cost, enabling real-time applications.
 
-3. **Inference with Offline Vocabulary:** At the inference stage, YOLO-World present a prompt-then-detect strategy with an offline vocabulary for further efficiency. Users can define a series of custom prompts, which might include captions or categories. The model then utilize the text encoder to encode these prompts and obtain offline vocabulary embeddings. The offline vocabulary allows for avoiding computation for each input and provides the flexibility to adjust the vocabulary as needed.
+3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, employing an offline vocabulary to enhance efficiency further. This approach enables the use of custom prompts, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
 
-4. **Based on YOLOv8:** YOLO-World is based on [YOLOv8](../tasks/detect.md), a real-time object detector offering cutting-edge performance in terms of accuracy and speed. This allows it to effectively produce open-vocabulary detection in an image.
+4. **Powered by YOLOv8:** Built upon [YOLOv8](../tasks/detect.md), YOLO-World leverages the latest advancements in real-time object detection to facilitate open-vocabulary detection with unparalleled accuracy and speed.
 
-5. **Competitive Results on Benchmarks:** On the object proposal task on LVIS minival, YOLO-World achieves high scores at a significantly faster speed than other open-vocabulary detectors (i.e MDETR, GLIP series, Grounding DINO models) on a single NVIDIA V100, demonstrating its efficiency and capability.
+5. **Benchmark Excellence:** YOLO-World outperforms existing open-vocabulary detectors, including MDETR and GLIP series, in terms of speed and efficiency on standard benchmarks, showcasing its superior capability on a single NVIDIA V100 GPU.
 
-6. **Practical Applications:** The proposed approach provides a new, practical solution for a large number of vision tasks at a really high speed, tens or hundreds of times faster than current methods.
+6. **Versatile Applications:** YOLO-World's innovative approach unlocks new possibilities for a multitude of vision tasks, delivering speed improvements by orders of magnitude over existing methods.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
+This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
 !!! Note
 
-    Currently all the yolov8-world weights are directly migrated from official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repo. Appreciate their excellent work!
+    All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type | Pre-trained Weights                                                                         | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| yolov8s-world  | [yolov8s-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| yolov8m-world  | [yolov8m-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| yolov8l-world  | [yolov8l-world](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
+| Model Type    | Pre-trained Weights                                                                                | Tasks Supported                        | Inference | Validation | Training | Export |
+|---------------|----------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
+| YOLOv8s-world | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
+| YOLOv8m-world | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
+| YOLOv8l-world | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 
-## Zero-shot transfer on COCO dataset
+## Zero-shot Transfer on COCO Dataset
 
 | Model Type    | mAP  | mAP50 | mAP75 |
 |---------------|------|-------|-------|
@@ -56,7 +56,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
 ### Predict Usage
 
-To perform object detection on an image, use the `predict` method as shown below:
+Object detection is straightforward with the `predict` method, as illustrated below:
 
 !!! Example
 
@@ -65,31 +65,31 @@ To perform object detection on an image, use the `predict` method as shown below
         ```python
         from ultralytics import YOLOWorld
 
-        # Define an inference source
+        # Specify an image for inference
         source = 'path/to/bus.jpg'
 
-        # Create a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or yolov8m/l-world.pt
+        # Initialize a YOLO-World model
+        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
 
         # Display model information (optional)
         model.info()
 
-        # Run inference with the YOLOv8s-world model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        # Execute inference with the YOLOv8s-world model on the specified image
+        results = model.predict(source)
         ```
 
     === "CLI"
 
         ```bash
-        # Load a YOLO-World model and segment everything with it
-        yolo detect predict model=yolov8s-world.pt source=path/to/bus.jpg imgsz=640
+        # Perform object detection using a YOLO-World model
+        yolo predict model=yolov8s-world.pt source=path/to/bus.jpg imgsz=640
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
 ### Val Usage
 
-Validation of the model on a dataset can be done as follows:
+Model validation on a dataset is streamlined as follows:
 
 !!! Example
 
@@ -99,17 +99,17 @@ Validation of the model on a dataset can be done as follows:
         from ultralytics import YOLOWorld
 
         # Create a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or yolov8m/l-world.pt
+        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
 
-        # Validate the model on the COCO8 example dataset for 100 epochs
+        # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data='coco8.yaml')
         ```
 
     === "CLI"
 
         ```bash
-        # Load a YOLO-World model and validate it on the COCO8 example dataset at image size 640
-        yolo detect val model=yolov8s-world.pt data=coco8.yaml imgsz=640
+        # Validate a YOLO-World model on the COCO8 dataset with a specified image size
+        yolo val model=yolov8s-world.pt data=coco8.yaml imgsz=640
         ```
 
 !!! Note
@@ -120,41 +120,41 @@ Validation of the model on a dataset can be done as follows:
 
 !!! Example
 
-    === "Inference with new prompts"
+    === "Custom Inference Prompts"
 
         ```python
         from ultralytics import YOLOWorld
 
-        # Create a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or yolov8m/l-world.pt
+        # Initialize a YOLO-World model
+        model = YOLOWorld('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
         
-        # Setup prompts
+        # Define custom prompts
         prompts = ["person", "bus"]
         model.set_classes(prompts)
 
-        # Predict the categories of person and bus on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        # Execute prediction for specified categories on an image
+        results = model.predict('path/to/bus.jpg')
         ```
 
-    === "Save model with offline vocabulary"
+    === "Persisting Models with Custom Vocabulary"
 
         ```python
         from ultralytics import YOLOWorld
 
-        # Create a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or yolov8m/l-world.pt
+        # Initialize a YOLO-World model
+        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt
         
-        # Setup prompts
+        # Configure custom prompts
         prompts = ["person", "bus"]
         model.set_classes(prompts)
 
-        # Save model with offline vocabulary ["person", "bus"]
+        # Save the model with the defined offline vocabulary
         model.save("path/to/model.pt")
         ```
 
 ## Citations and Acknowledgements
 
-We would like to acknowledge the YOLO-World authors for their significant contributions in the field of real-time open-vocabulary object detection:
+We extend our gratitude to the [Tencent AILab](https://ai.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 
 !!! Quote ""
 
@@ -169,4 +169,4 @@ We would like to acknowledge the YOLO-World authors for their significant contri
       }
       ```
 
-The original YOLO-World paper can be found on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AILab-CVC/YOLO-World). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.

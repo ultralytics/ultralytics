@@ -329,10 +329,18 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    # Object Counting Annotator
+    def show(self, title=None):
+        """Show the annotated image."""
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).show(title)
+
+    def save(self, filename="image.jpg"):
+        """Save the annotated image to 'filename'."""
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).save(filename)
+
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
-        Draw region line
+        Draw region line.
+
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
             color (tuple): Region Color value
@@ -342,7 +350,8 @@ class Annotator:
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
-        Draw centroid point and track trails
+        Draw centroid point and track trails.
+
         Args:
             track (list): object tracking points for trails display
             color (tuple): tracks line color
@@ -354,7 +363,8 @@ class Annotator:
 
     def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
-        Plot counts for object counter
+        Plot counts for object counter.
+
         Args:
             counts (int): objects counts value
             count_txt_size (int): text size for counts display
@@ -383,7 +393,9 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """Calculate the pose angle for object
+        """
+        Calculate the pose angle for object.
+
         Args:
             a (float) : The value of pose point a
             b (float): The value of pose point b

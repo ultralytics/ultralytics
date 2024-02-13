@@ -147,6 +147,8 @@ You can also save a model after setting custom classes. By doing this you create
 
     === "Persisting Models with Custom Vocabulary"
 
+        First load a YOLO-World model, set custom classes for it and save it:
+
         ```python
         from ultralytics import YOLO
 
@@ -186,19 +188,19 @@ This approach provides a powerful means of customizing state-of-the-art object d
 
 ## Citations and Acknowledgements
 
-We extend our gratitude to the [Tencent AILab](https://ai.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
+We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 
 !!! Quote ""
 
     === "BibTeX"
 
-      ```bibtex
-      @article{cheng2024yolow,
+        ```bibtex
+        @article{cheng2024yolow,
         title={YOLO-World: Real-Time Open-Vocabulary Object Detection},
         author={Cheng, Tianheng and Song, Lin and Ge, Yixiao and Liu, Wenyu and Wang, Xinggang and Shan, Ying},
         journal={arXiv preprint arXiv:2401.17270},
         year={2024}
-      }
-      ```
+        }
+        ```
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.

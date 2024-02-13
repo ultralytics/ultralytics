@@ -38,7 +38,7 @@ The latter option allows us to fine tune option likes Pre-trained, Epochs, Image
 
 ## Train the Model
 
-Once we reach the Model Training page, we are offered three-way option to train our model. We can either use Google Colab to simply follow the steps and use the API key provided at the page, or follow the steps to actually train the model locally. The third way is our upcoming Ultralytics Cloud , which enables you to directly train your model over cloud even more efficiently. Read more about Training the model at [Cloud Training Page](cloudtraining.md)
+Once we reach the Model Training page, we are offered three-way option to train our model. We can either use Google Colab to simply follow the steps and use the API key provided at the page, or follow the steps to actually train the model locally. The third way is our upcoming Ultralytics Cloud , which enables you to directly train your model over cloud even more efficiently. Read more about Training the model at [Cloud Training Page](cloud-training.md)
 
 ## Integrating the Model
 

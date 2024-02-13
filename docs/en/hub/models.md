@@ -10,7 +10,7 @@ keywords: Ultralytics, HUB Models, AI model training, model creation, model trai
 
 The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Ultralytics YOLOv8. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, Ultralytics HUB offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
 
-The entire process of training a Model is detailed on our [Cloud Training Page](cloudtraining.md)
+The entire process of training a Model is detailed on our [Cloud Training Page](cloud-training.md)
 
 ![Preview of the Models](https://github.com/ultralytics/ultralytics/assets/19519529/a02e1441-f5f6-4935-ad75-ec18e425d8bd)
 
@@ -79,7 +79,7 @@ Furthermore, you can preview your model in real-time directly on your [iOS](http
 
 Ultralytics HUB offers three training options:
 
-- **Ultralytics Cloud** - Read more about training via Ultralytics Cloud [Cloud Training Page](cloudtraining.md)
+- **Ultralytics Cloud** - Read more about training via the Ultralytics [Cloud Training Page](cloud-training.md)
 - **Google Colab**
 - **Bring your own agent**
 

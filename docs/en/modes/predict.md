@@ -479,7 +479,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
 | `tojson()`    | `str`           | Convert the object to JSON format.                                                  |
 
-For more details see the `Results` class [documentation](../reference/engine/results.md).
+For more details see the [`Results` class documentation](../reference/engine/results.md).
 
 ### Boxes
 

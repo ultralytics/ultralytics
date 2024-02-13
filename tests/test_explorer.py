@@ -6,10 +6,6 @@ from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
 
-@pytest.mark.skipif(
-    True,
-    reason="duckdb==0.10.0 bug https://github.com/ultralytics/ultralytics/actions/runs/7890117256/",
-)
 def test_similarity():
     """Test similarity calculations and SQL queries for correctness and response length."""
     exp = Explorer()

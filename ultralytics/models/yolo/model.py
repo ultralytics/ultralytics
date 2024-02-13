@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from pathlib import Path
+
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
@@ -7,6 +9,17 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, 
 
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
+
+    def __init__(self, model="yolov8n.pt", task=None, verbose=False):
+        """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""
+        stem = Path(model).stem  # filename stem without suffix, i.e. "yolov8n"
+        if "-world" in stem:
+            new_instance = YOLOWorld(model)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
+        else:
+            # Continue with default YOLO initialization
+            super().__init__(model=model, task=task, verbose=verbose)
 
     @property
     def task_map(self):

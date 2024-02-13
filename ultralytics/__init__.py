@@ -14,6 +14,7 @@ __all__ = (
     "__version__",
     "ASSETS",
     "YOLO",
+    "YOLOWorld",
     "NAS",
     "SAM",
     "FastSAM",

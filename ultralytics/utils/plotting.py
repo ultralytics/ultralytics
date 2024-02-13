@@ -343,7 +343,7 @@ class Annotator:
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
-        Draw centroid point and track trails
+        Draw centroid point and track trails.
 
         Args:
             track (list): object tracking points for trails display

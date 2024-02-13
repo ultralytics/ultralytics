@@ -79,7 +79,7 @@ You can view the images in your dataset grouped by splits (Train, Validation, Te
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Images tab](https://github.com/ultralytics/ultralytics/assets/19519529/e07468e3-6284-4334-9783-84bfb11130f8)
 
-??? tip "Tip"
+!!! tip "Tip"
 
     Each image can be enlarged for better visualization.
 
@@ -101,7 +101,7 @@ Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on y
 
     Ultralytics HUB's sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
 
-??? note "Note"
+!!! note "Note"
 
     You have control over the general access of your datasets.
 
@@ -111,7 +111,7 @@ Navigate to the Dataset page of the dataset you want to share, open the dataset 
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Share option](https://github.com/ultralytics/ultralytics/assets/19519529/9a0e61e7-2838-42b3-8abe-a22980e6c680)
 
-??? tip "Tip"
+!!! tip "Tip"
 
     You can also share a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
@@ -123,7 +123,7 @@ Set the general access to "Unlisted" and click **Save**.
 
 Now, anyone who has the direct link to your dataset can view it.
 
-??? tip "Tip"
+!!! tip "Tip"
 
     You can easily click on the dataset's link shown in the **Share Dataset** dialog to copy it.
 
@@ -139,7 +139,7 @@ Apply the desired modifications to your dataset and then confirm the changes by 
 
 Navigate to the Dataset page of the dataset you want to delete, open the dataset actions dropdown and click on the **Delete** option. This action will delete the dataset.
 
-??? note "Note"
+!!! note "Note"
 
     If you change your mind, you can restore the dataset from the [Trash](https://hub.ultralytics.com/trash) page.
 

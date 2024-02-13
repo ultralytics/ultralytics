@@ -759,12 +759,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
     # Module updates
     for m in ensemble.modules():
-        t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect):
-            # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if hasattr(m, "inplace"):
             m.inplace = inplace
-        elif t is nn.Upsample and not hasattr(m, "recompute_scale_factor"):
-            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model
     if len(ensemble) == 1:
@@ -796,12 +792,8 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
     # Module updates
     for m in model.modules():
-        t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect):
-            # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if hasattr(m, "inplace"):
             m.inplace = inplace
-        elif t is nn.Upsample and not hasattr(m, "recompute_scale_factor"):
-            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model and ckpt
     return model, ckpt
@@ -890,7 +882,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, ImagePoolingAttn):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        elif isinstance(m, (Detect, ImagePoolingAttn)):  # includes Detect subclasses like Segment, Pose, OBB, etc.
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)

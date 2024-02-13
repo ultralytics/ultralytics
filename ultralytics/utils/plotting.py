@@ -393,7 +393,8 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """Calculate the pose angle for object.
+        """
+        Calculate the pose angle for object.
 
         Args:
             a (float) : The value of pose point a

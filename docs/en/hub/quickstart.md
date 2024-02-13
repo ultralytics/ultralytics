@@ -34,19 +34,19 @@ After completing the registration and login process on the HUB, users are direct
 ## Select the Model
 
 Once we have decided on a Dataset, it's time to train the model. We first pick the Project name and Model name (or leave it to default, if they are not label specific), then pick an Architecture. Ultralytics provide a wide range of YOLOv8, YOLOv5 and YOLOv5u6 Architectures. You can also pick from previously trained or custom model.
-The latter option allows us to fine tune option likes Pre-trained, Epochs, Image Size, Caching Strategy, Type of Device, Number of GPUs, Batch Size, AMP status and Freeze option. Read more about Models [here](models.md).
+The latter option allows us to fine tune option likes Pre-trained, Epochs, Image Size, Caching Strategy, Type of Device, Number of GPUs, Batch Size, AMP status and Freeze option. Read more about Models [HUB Models page](models.md).
 
 ## Train the Model
 
-Once we reach the Model Training page, we are offered three-way option to train our model. We can either use Google Colab to simply follow the steps and use the API key provided at the page, or follow the steps to actually train the model locally. The third way is our upcoming Ultralytics Cloud , which enables you to directly train your model over cloud even more efficiently. Read more about Training the model [here](cloudtraining.md)
+Once we reach the Model Training page, we are offered three-way option to train our model. We can either use Google Colab to simply follow the steps and use the API key provided at the page, or follow the steps to actually train the model locally. The third way is our upcoming Ultralytics Cloud , which enables you to directly train your model over cloud even more efficiently. Read more about Training the model at [Cloud Training Page](cloudtraining.md)
 
 ## Integrating the Model
 
-`Ultralytics Hub` supports integrating the model with other third-party applications or to connect HUB from an external agent. Currently we support `Roboflow`, with very simple one click API Integration. Read more about Integrating the model [here](integrations.md)
+`Ultralytics Hub` supports integrating the model with other third-party applications or to connect HUB from an external agent. Currently we support `Roboflow`, with very simple one click API Integration. Read more about Integrating the model at [Integration Page](integrations.md)
 
 ## Stuck? We got you!
 
-Here at Ultralytics we have a strong faith in user feedbacks and complaints. You can `Report a bug`, `Request a Feature` and/or `Ask question`.
+We at Ultralytics we have a strong faith in user feedbacks and complaints. You can `Report a bug`, `Request a Feature` and/or `Ask question`.
 
 ![Support Page](https://github.com/ultralytics/ultralytics/assets/19519529/c29bf5c5-72d8-4be4-9f3f-b504968d0bef)
 

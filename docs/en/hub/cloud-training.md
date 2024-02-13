@@ -10,25 +10,25 @@ Ultralytics provides a web-based cloud training platform, enabling rapid and str
 
 ![cloud training cover](https://github.com/ultralytics/ultralytics/assets/19519529/cbfdb3b8-ad35-44a6-afe6-61ec0b8e8b8d)
 
-Read more about creating and other details of a Model [here](models.md)
+Read more about creating and other details of a Model at our [HUB Models page](models.md)
 
 ## Selecting an Instance
 
-For details on Picking a model, and instances for it, please read [here](models.md)
+For details on Picking a model, and instances for it, please read [Instances guide Page](models.md)
 
 ## Steps to train the Model
 
 Once the instance has been selected, training a model using ultralytics Hub is a three step process, as below: <br />
 
-1. Picking a Dataset - Read more about Dataset, steps to add/remove dataset [here](datasets.md) <br />
-2. Picking a Model - Read more about Models, steps to create / share and handle a model [here](models.md) <br />
+1. Picking a Dataset - Read more about Dataset, steps to add/remove dataset from [Dataset page](datasets.md) <br />
+2. Picking a Model - Read more about Models, steps to create / share and handle a model [HUB Models page](models.md) <br />
 3. Training the Model on the chosen Dataset <br />
 
 Ultralytics HUB offers three training options:
 
 - **Ultralytics Cloud**
-- **Google Colab** - Read more about training via Google Colab [here](models.md)
-- **Bring your own agent** - Read more about training via your own Agent [here](models.md)
+- **Google Colab** - Read more about training via Google Colab [HUB Models page](models.md)
+- **Bring your own agent** - Read more about training via your own Agent [HUB Models page](models.md)
 
 In order to start training your model, follow the instructions presented in these steps.
 

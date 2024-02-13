@@ -8,7 +8,7 @@ keywords: YOLO-World, YOLOv8, machine learning, CNN-based framework, object dete
 
 The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ultralytics.com) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
 
-![YOLO-World Model architecture overview](https://github.com/Laughing-q/assets/assets/61612323/93c8b3cf-baa7-4c32-a405-3744e4ef0f28)
+![YOLO-World Model architecture overview](https://github.com/ultralytics/ultralytics/assets/26833433/e8c9279c-5185-44cb-acb5-9cdf8d371fe0)
 
 ## Overview
 

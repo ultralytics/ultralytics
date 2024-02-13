@@ -57,17 +57,11 @@ check_dataset('path/to/coco8.zip')
 
 Once your dataset ZIP is ready, navigate to the [Datasets](https://hub.ultralytics.com/datasets) page by clicking on the **Datasets** button in the sidebar.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Datasets button in the sidebar](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_2.jpg)
-
-??? tip "Tip"
-
-    You can also upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
-
-    ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_3.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Datasets button in the sidebar](https://github.com/ultralytics/ultralytics/assets/19519529/2d9f774c-100d-4ff4-a82b-2a38ced33c21)
 
 Click on the **Upload Dataset** button on the top right of the page. This action will trigger the **Upload Dataset** dialog.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Upload Dataset button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_4.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Upload Dataset button](https://github.com/ultralytics/ultralytics/assets/19519529/52ac10f5-ce42-483a-ac02-1d37d2cba3de)
 
 Upload your dataset in the _Dataset .zip file_ field.
 
@@ -75,31 +69,31 @@ You have the additional option to set a custom name and description for your Ult
 
 When you're happy with your dataset configuration, click **Upload**.
 
-![Ultralytics HUB screenshot of the Upload Dataset dialog with an arrow pointing to the Upload button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_5.jpg)
+![Ultralytics HUB screenshot of the Upload Dataset dialog with an arrow pointing to the Upload button](https://github.com/ultralytics/ultralytics/assets/19519529/7d210ff6-bdb2-4535-a661-0470274bd7d6)
 
 After your dataset is uploaded and processed, you will be able to access it from the Datasets page.
 
-![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_6.jpg)
+![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to one of the datasets](https://github.com/ultralytics/ultralytics/assets/19519529/a05d9b66-f8ba-4474-b8ac-ebe0dd143831)
 
 You can view the images in your dataset grouped by splits (Train, Validation, Test).
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Images tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_7.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Images tab](https://github.com/ultralytics/ultralytics/assets/19519529/e07468e3-6284-4334-9783-84bfb11130f8)
 
 ??? tip "Tip"
 
     Each image can be enlarged for better visualization.
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_8.jpg)
+    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with an arrow pointing to the expand icon](https://github.com/ultralytics/ultralytics/assets/19519529/26f411a0-5153-4805-a8c1-cbd379708e28)
 
-    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_9.jpg)
+    ![Ultralytics HUB screenshot of the Images tab inside the Dataset page with one of the images expanded](https://github.com/ultralytics/ultralytics/assets/19519529/7d5e0d50-85e5-4014-9f5b-464284e5b291)
 
 Also, you can analyze your dataset by click on the **Overview** tab.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Overview tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_10.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Overview tab](https://github.com/ultralytics/ultralytics/assets/19519529/5eaacd5d-fedf-4332-9091-1418c9f333cb)
 
 Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on your dataset.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_11.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://github.com/ultralytics/ultralytics/assets/19519529/cb709e5f-a10b-478f-a81d-a48f61c193fe)
 
 ## Share Dataset
 
@@ -115,7 +109,7 @@ Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on y
 
 Navigate to the Dataset page of the dataset you want to share, open the dataset actions dropdown and click on the **Share** option. This action will trigger the **Share Dataset** dialog.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Share option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_1.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Share option](https://github.com/ultralytics/ultralytics/assets/19519529/9a0e61e7-2838-42b3-8abe-a22980e6c680)
 
 ??? tip "Tip"
 
@@ -125,7 +119,7 @@ Navigate to the Dataset page of the dataset you want to share, open the dataset 
 
 Set the general access to "Unlisted" and click **Save**.
 
-![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dropdown and one to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_3.jpg)
+![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dropdown and one to the Save button](https://github.com/ultralytics/ultralytics/assets/19519529/5818b928-19a3-48a8-892d-27ac1dc684dd)
 
 Now, anyone who has the direct link to your dataset can view it.
 
@@ -133,38 +127,20 @@ Now, anyone who has the direct link to your dataset can view it.
 
     You can easily click on the dataset's link shown in the **Share Dataset** dialog to copy it.
 
-    ![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dataset's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_share_dataset_4.jpg)
+    ![Ultralytics HUB screenshot of the Share Dataset dialog with an arrow pointing to the dataset's link](https://github.com/ultralytics/ultralytics/assets/19519529/8ede7d20-2a68-411d-9de5-3175b5ba7038)
 
-## Edit Dataset
+## Edit / Delete Dataset
 
 Navigate to the Dataset page of the dataset you want to edit, open the dataset actions dropdown and click on the **Edit** option. This action will trigger the **Update Dataset** dialog.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Edit option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_edit_dataset_1.jpg)
-
-??? tip "Tip"
-
-    You can also edit a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
-
-    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Edit option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_edit_dataset_2.jpg)
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Edit and Delete option](https://github.com/ultralytics/ultralytics/assets/19519529/6c248c8c-29cd-4bd5-b33d-43e90aa1d000)
 
 Apply the desired modifications to your dataset and then confirm the changes by clicking **Save**.
 
-![Ultralytics HUB screenshot of the Update Dataset dialog with an arrow pointing to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_edit_dataset_3.jpg)
-
-## Delete Dataset
-
 Navigate to the Dataset page of the dataset you want to delete, open the dataset actions dropdown and click on the **Delete** option. This action will delete the dataset.
-
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Delete option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_1.jpg)
-
-??? tip "Tip"
-
-    You can also delete a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
-
-    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Delete option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_2.jpg)
 
 ??? note "Note"
 
     If you change your mind, you can restore the dataset from the [Trash](https://hub.ultralytics.com/trash) page.
 
-    ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_delete_dataset_3.jpg)
+    ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the datasets](https://github.com/ultralytics/ultralytics/assets/19519529/56a9460c-0e06-4659-989d-715211b9d7ce)

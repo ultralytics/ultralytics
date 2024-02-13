@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths-ignore:
       - "docs/**"
+      - "mkdocs.yml"
   workflow_dispatch:
     inputs:
       Dockerfile:

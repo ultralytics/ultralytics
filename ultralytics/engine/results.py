@@ -86,6 +86,8 @@ class Results(SimpleClass):
         to(*args, **kwargs): Returns a copy of the Results object with tensors on a specified device and dtype.
         new(): Returns a new Results object with the same image, path, and names.
         plot(...): Plots detection results on an input image, returning an annotated image.
+        show(): Show annotated results to screen.
+        save(filename): Save annotated results to file.
         verbose(): Returns a log string for each task, detailing detections and classifications.
         save_txt(txt_file, save_conf=False): Saves detection results to a text file.
         save_crop(save_dir, file_name=Path("im.jpg")): Saves cropped detection images.

@@ -181,6 +181,9 @@ class Results(SimpleClass):
         boxes=True,
         masks=True,
         probs=True,
+        show=False,
+        save=False,
+        filename=None,
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
@@ -199,6 +202,9 @@ class Results(SimpleClass):
             boxes (bool): Whether to plot the bounding boxes.
             masks (bool): Whether to plot the masks.
             probs (bool): Whether to plot classification probability
+            show (bool): Whether to display the annotated image directly.
+            save (bool): Whether to save the annotated image to `filename`.
+            filename (str): Filename to save image to if save is True.
 
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
@@ -268,7 +274,26 @@ class Results(SimpleClass):
             for k in reversed(self.keypoints.data):
                 annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
 
+        # Show results
+        if show:
+            annotator.show(self.path)
+
+        # Save results
+        if save:
+            annotator.save(filename)
+
         return annotator.result()
+
+    def show(self, *args, **kwargs):
+        """Show annotated results image."""
+        self.plot(show=True, *args, **kwargs)
+
+    def save(self, filename=None, *args, **kwargs):
+        """Save annotated results image."""
+        if not filename:
+            filename = f"results_{Path(self.path).name}"
+        self.plot(save=True, filename=filename, *args, **kwargs)
+        return filename
 
     def verbose(self):
         """Return log string for each task."""

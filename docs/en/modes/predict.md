@@ -65,10 +65,12 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 
         # Process results list
         for result in results:
-            boxes = result.boxes  # Boxes object for bbox outputs
+            boxes = result.boxes  # Boxes object for bounding box outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs
+            result.show()  # display to screen
+            result.save(filename='result.jpg')  # save to disk
         ```
 
     === "Return a generator with `stream=True`"
@@ -84,10 +86,12 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
 
         # Process results generator
         for result in results:
-            boxes = result.boxes  # Boxes object for bbox outputs
+            boxes = result.boxes  # Boxes object for bounding box outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs
+            result.show()  # display to screen
+            result.save(filename='result.jpg')  # save to disk
         ```
 
 ## Inference Sources

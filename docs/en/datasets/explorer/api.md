@@ -13,7 +13,7 @@ The Explorer API is a Python API for exploring your datasets. It supports filter
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/3VryynorQeo?start=279"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/3VryynorQeo?start=279"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -192,8 +192,8 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()
 
-    df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
-    print(df.head())
+    # plot the SQL Query
+    exp.plot_sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%' LIMIT 10")
     ```
 
 ## 4. Advanced - Working with Embeddings Table

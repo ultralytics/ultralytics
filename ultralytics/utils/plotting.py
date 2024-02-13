@@ -329,10 +329,18 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    # Object Counting Annotator
+    def show(self, title=None):
+        """Show the annotated image."""
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).show(title)
+
+    def save(self, filename="image.jpg"):
+        """Save the annotated image to 'filename'."""
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).save(filename)
+
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
-        Draw region line
+        Draw region line.
+
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
             color (tuple): Region Color value
@@ -342,7 +350,8 @@ class Annotator:
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
-        Draw centroid point and track trails
+        Draw centroid point and track trails.
+
         Args:
             track (list): object tracking points for trails display
             color (tuple): tracks line color
@@ -354,7 +363,8 @@ class Annotator:
 
     def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
-        Plot counts for object counter
+        Plot counts for object counter.
+
         Args:
             counts (int): objects counts value
             count_txt_size (int): text size for counts display
@@ -383,7 +393,9 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """Calculate the pose angle for object
+        """
+        Calculate the pose angle for object.
+
         Args:
             a (float) : The value of pose point a
             b (float): The value of pose point b
@@ -518,6 +530,51 @@ class Annotator:
         cv2.putText(
             self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255), 2
         )
+
+    def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
+        """
+        Plot the distance and line on frame.
+
+        Args:
+            distance_m (float): Distance between two bbox centroids in meters.
+            distance_mm (float): Distance between two bbox centroids in millimeters.
+            centroids (list): Bounding box centroids data.
+            line_color (RGB): Distance line color.
+            centroid_color (RGB): Bounding box centroid color.
+        """
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Distance M: {distance_m:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
+        )
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
+        cv2.putText(
+            self.im,
+            f"Distance M: {distance_m:.2f}m",
+            (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
+
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(
+            f"Distance MM: {distance_mm:.2f}mm", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
+        )
+        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
+        cv2.putText(
+            self.im,
+            f"Distance MM: {distance_mm:.2f}mm",
+            (20, 100),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
+
+        cv2.line(self.im, centroids[0], centroids[1], line_color, 3)
+        cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
+        cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
         """

@@ -22,6 +22,11 @@ Read more about creating a Model [here](models.md)
 ## Train Model
 
 Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on the **Models** button in the sidebar.
+Training the Model using HUB is a 4 step process <br />
+**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.<br />
+**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.<br />
+**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.<br />
+**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.<br />
 
 ![Ultralytics HUB screenshot of the Home page](https://github.com/ultralytics/ultralytics/assets/19519529/61428720-aa93-4689-b209-ead7f06fa488)
 
@@ -83,25 +88,19 @@ To start training your model using Ultralytics Cloud, we need to simply select t
 
     ![Ultralytics HUB screenshot of the Timed Training](https://github.com/ultralytics/ultralytics/assets/19519529/397a8d64-acd8-4fb3-95a7-0c8183c5a48a)
 
-To start training your model using Google Colab, simply follow the instructions shown above or on the Google Colab notebook.
-
-<a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
-</a>
-
 When the training starts, you can click **Done** and monitor the training progress on the Model page.
 
 ![Ultralytics HUB screenshot of the Model page of a model that is currently training](https://github.com/ultralytics/ultralytics/assets/19519529/897463b9-30ba-44d9-94f8-4d2ef4fa709d)
 
 ## Training the Model on Google Colab
 
-Training the model on Google colab has the following steps,<br />
-**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.<br />
-**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.<br />
-**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.<br />
-**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.<br />
+To start training your model using Google Colab, simply follow the instructions shown above or on the Google Colab notebook.
 
-![Training Models](https://github.com/ultralytics/ultralytics/assets/19519529/d903350a-87d0-4e10-8754-ab6c647254ee)
+<a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
+</a>
+
+![Google Colab Screenshot](https://github.com/ultralytics/ultralytics/assets/19519529/c957ec1a-254b-4cc1-816a-c1c4814285d4)
 
 ## Preview Model
 

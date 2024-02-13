@@ -331,11 +331,11 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
-        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[...,::-1])).show(title)
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).show(title)
 
-    def save(self, filename='image.jpg'):
+    def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
-        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[...,::-1])).save(filename)
+        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).save(filename)
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import PIL
-import pytest
 
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS

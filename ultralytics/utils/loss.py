@@ -3,7 +3,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.ops import sigmoid_focal_loss
 
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -37,15 +36,15 @@ class VarifocalLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=2.0)."""
+    """Implements variation of BCE loss used in RetinaNet: https://arxiv.org/abs/1708.02002"""
 
     def __init__(self, pos_weight=None):
-        """Initializer for FocalLoss class with no parameters."""
+        """Initializer for FocalLoss class."""
         super().__init__()
         self.pos_weight = pos_weight
 
     def forward(self, pred, label, gamma=2.0, alpha=0.25):
-        """Compute focal loss."""
+        """Computes focal loss."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none", pos_weight=self.pos_weight)
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
@@ -234,7 +233,6 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        # loss[1] = sigmoid_focal_loss(pred_scores, target_scores.to(dtype), reduction="none").sum() / target_scores_sum  # FL way
         loss[1] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         # Bbox loss
@@ -309,7 +307,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[2] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[2] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         if fg_mask.sum():
             # Bbox loss
@@ -489,7 +487,7 @@ class v8PoseLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[3] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[3] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         # Bbox loss
         if fg_mask.sum():
@@ -679,7 +677,7 @@ class v8OBBLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self.class_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE or FL
 
         # Bbox loss
         if fg_mask.sum():

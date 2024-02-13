@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Pyt
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
 
-![Inference API Screenshot](https://github.com/ultralytics/ultralytics/assets/26833433/c0109ec0-7bb0-46e1-b0d2-bae687960a01) Screenshot of the Inference API section in the trained model Preview tab.
+![Inference API Screenshot](https://github.com/ultralytics/ultralytics/assets/19519529/a8c00e55-1590-403b-bdee-ed456c60af4d) Screenshot of the Inference API section in the trained model Preview tab.
 
 ## API URL
 
@@ -88,7 +88,7 @@ In this example, the `data` dictionary contains the query arguments `size`, `con
 This will send the query parameters along with the file in the POST request. See the table below for a full list of available inference arguments.
 
 | Inference Argument | Default | Type    | Notes                                          |
-|--------------------|---------|---------|------------------------------------------------|
+| ------------------ | ------- | ------- | ---------------------------------------------- |
 | `size`             | `640`   | `int`   | valid range is `32` - `1280` pixels            |
 | `confidence`       | `0.25`  | `float` | valid range is `0.01` - `1.0`                  |
 | `iou`              | `0.45`  | `float` | valid range is `0.0` - `0.95`                  |

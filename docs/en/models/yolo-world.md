@@ -115,6 +115,8 @@ Model validation on a dataset is streamlined as follows:
 
 ### Set prompts
 
+![YOLO-World prompt class names overview](https://github.com/ultralytics/ultralytics/assets/26833433/4f609ec0-ae6d-4a85-a034-c1c1c30968ff)
+
 The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the training data. By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
 
 For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:

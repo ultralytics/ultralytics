@@ -60,7 +60,7 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
-    - navigation.sections  # navigation.expand or navigation.sections
+    - navigation.sections # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
@@ -358,6 +358,7 @@ nav:
           - Datasets: hub/datasets.md
           - Projects: hub/projects.md
           - Models: hub/models.md
+          - Cloud Training: hub/cloud-training.md
           - Integrations: hub/integrations.md
           - Inference API: hub/inference-api.md
       - On-Premise:

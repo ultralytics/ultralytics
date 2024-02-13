@@ -561,8 +561,6 @@ class WorldModel(DetectionModel):
         try:
             import clip
         except ImportError:
-            from ultralytics.utils.checks import check_requirements
-
             check_requirements("git+https://github.com/openai/CLIP.git")
             import clip
 

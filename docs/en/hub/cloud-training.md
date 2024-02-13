@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB Models, AI model training, model creation, model trai
 
 # Cloud Training
 
-[Ultralytics HUB](https://hub.ultralytics.com/) provides a web-based cloud training platform, enabling rapid and streamlined deployment of custom object detection models. Users benefit from a straightforward interface that facilitates the selection of datasets and training methods. Ultralytics further streamlines the process by offering a diverse array of pre-trained models to start training from.
+[Ultralytics HUB](https://hub.ultralytics.com/) provides a powerful and user-friendly cloud platform to train custom object detection models. Easily select your dataset and the desired training method, then kick off the process with just a few clicks.  Ultralytics HUB offers pre-built options and various model architectures to streamline your workflow.
 
 ![cloud training cover](https://github.com/ultralytics/ultralytics/assets/19519529/cbfdb3b8-ad35-44a6-afe6-61ec0b8e8b8d)
 

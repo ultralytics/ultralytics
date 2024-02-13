@@ -135,7 +135,7 @@ Navigate to the Project page of the project where the models you want to compare
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Charts tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_1.jpg)
 
-This will display all the relevant charts. Each chart corresponds to a different metric and contains the performance of each model for that metric. The models are represented by different colors and you can hover over each data point to get more information.
+This will display all the relevant charts. Each chart corresponds to a different metric and contains the performance of each model for that metric. The models are represented by different colors, and you can hover over each data point to get more information.
 
 ![Ultralytics HUB screenshot of the Charts tab inside the Project page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_2.jpg)
 

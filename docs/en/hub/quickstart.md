@@ -42,7 +42,7 @@ Once we reach the Model Training page, we are offered three-way option to train 
 
 ## Integrating the Model
 
-`Ultralytics Hub` supports integrating the model with other third-party applications or to connect HUB from an external agent. Currently we support `Roboflow`, with very simple one click API Integration. Read more about Integrating the model at [Integration Page](integrations.md)
+Ultralytics HUB supports integrating the model with other third-party applications or to connect HUB from an external agent. We currently support Roboflow, with very simple one click API Integration. Read more about Integrating the model at [Integration Page](integrations.md)
 
 ## Stuck? We got you!
 

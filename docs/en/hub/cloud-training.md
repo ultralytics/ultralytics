@@ -18,11 +18,11 @@ For details on Picking a model, and instances for it, please read [Instances gui
 
 ## Steps to train the Model
 
-Once the instance has been selected, training a model using ultralytics Hub is a three-step process, as below: <br />
+Once the instance has been selected, training a model using Ultralytics HUB is a three-step process, as below:
 
-1. Picking a Dataset - Read more about Dataset, steps to add/remove dataset from [Dataset page](datasets.md) <br />
-2. Picking a Model - Read more about Models, steps to create / share and handle a model [HUB Models page](models.md) <br />
-3. Training the Model on the chosen Dataset <br />
+1. Picking a Dataset - Read more about Dataset, steps to add/remove dataset from [Dataset page](datasets.md)
+2. Picking a Model - Read more about Models, steps to create / share and handle a model [HUB Models page](models.md)
+3. Training the Model on the chosen Dataset
 
 Ultralytics HUB offers three training options:
 
@@ -34,12 +34,12 @@ In order to start training your model, follow the instructions presented in thes
 
 ## Training via Ultralytics Cloud
 
-To start training your model using Ultralytics Cloud, we need to simply select the Training Duration, Available Instances, and Payment options.<br />
+To start training your model using Ultralytics Cloud, we need to simply select the Training Duration, Available Instances, and Payment options.
 
-**Training Duration** - The Ultralytics offers two kind of training durations <br />
+**Training Duration** - The Ultralytics offers two kind of training durations
 
-1. Training based on `Epochs` - This option lets you train your model based on number of times your Dataset needs to go through the cycle of Train, Label and Test. The exact pricing based on number of Epochs is hard to determine. Hence, if the credit gets exhausted before intended number of Epochs, the training pauses, and we get a prompt to Top-up and resume Training. <br />
-2. Timed Training - The timed training features allows you to fix the time duration of the entire Training process and also determines the estimated amount before the start of Training. <br />
+1. Training based on `Epochs` - This option lets you train your model based on number of times your Dataset needs to go through the cycle of Train, Label and Test. The exact pricing based on number of Epochs is hard to determine. Hence, if the credit gets exhausted before intended number of Epochs, the training pauses, and we get a prompt to Top-up and resume Training.
+2. Timed Training - The timed training features allows you to fix the time duration of the entire Training process and also determines the estimated amount before the start of Training.
 
 ![Ultralytics cloud screenshot of training Duration options](https://github.com/ultralytics/ultralytics/assets/19519529/47b96f3f-a9ea-441a-b065-cba97edc333f)
 

@@ -17,11 +17,13 @@ The entire process of training a Model is detailed on our [Cloud Training Page](
 ## Train Model
 
 Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on the **Models** button in the sidebar.
-Training the Model using HUB is a 4 step process <br />
-**Execute the pre-requisites script** - Run the already mention scripts to prepare the virtual Environment.<br />
-**Provide the API and start Training** - Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.<br />
-**Check the results and Metrics** - Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the deploy tab offers access to the trained model's documentation and license details.<br />
-**Test your model** - Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.<br />
+
+Training the Model using HUB is a 4-step process:
+
+- **Execute the pre-requisites script**: Run the already mentioned scripts to prepare the virtual Environment.
+- **Provide the API and start Training**: Once the model has been prepared, we can provide the API key as provided in the previous model (by simple copying and pasting the code block) and executing it.
+- **Check the results and Metrics**: Upon successful code execution, a link is presented that directs the user to the Metrics Page. This page provides comprehensive details regarding the trained model, including model specifications, box loss, class loss, object loss, dataset information, and image distributions. Additionally, the 'Deploy' tab offers access to the trained model's documentation and license details.
+- **Test your model**: Ultralytics HUB offers testing the model using custom Image, device camera or even links to test it using your `iPhone` or `Android` device.
 
 ![Ultralytics HUB screenshot of the Home page](https://github.com/ultralytics/ultralytics/assets/19519529/61428720-aa93-4689-b209-ead7f06fa488)
 
@@ -95,7 +97,7 @@ To start training your model using Google Colab, simply follow the instructions 
 
 ## Bring your own Agent
 
-A user can create API end point through Ultralytics HUB and use their own agent to train the Model locally. Simply follow the steps on the section and then we can see the details of the training by a link generated on the terminal on the Agent. <br />
+A user can create API end point through Ultralytics HUB and use their own agent to train the Model locally. Simply follow the steps on the section, and then we can see the details of the training by a link generated on the terminal on the Agent.
 The link takes us to the Metrics Information and Deployment completion page to know more about the model and deploy / share it.
 
 ![Bring your own agent screenshot](https://github.com/ultralytics/ultralytics/assets/19519529/7d8dcd7a-19ec-4ada-87bf-1a1ba1d01ceb)

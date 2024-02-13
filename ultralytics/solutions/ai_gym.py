@@ -46,7 +46,7 @@ class AIGym:
         pose_type="pullup",
     ):
         """
-        Configures the AIGym line_thickness, save image and view image parameters
+        Configures the AIGym line_thickness, save image and view image parameters.
 
         Args:
             kpts_to_check (list): 3 keypoints for counting
@@ -65,7 +65,7 @@ class AIGym:
 
     def start_counting(self, im0, results, frame_count):
         """
-        Function used to count the gym steps
+        Function used to count the gym steps.
 
         Args:
             im0 (ndarray): Current frame from the video stream.

@@ -107,7 +107,7 @@ class DistanceCalculation:
 
     def calculate_centroid(self, box):
         """
-        Calculate the centroid of bounding box
+        Calculate the centroid of bounding box.
 
         Args:
             box (list): Bounding box data
@@ -116,7 +116,7 @@ class DistanceCalculation:
 
     def calculate_distance(self, centroid1, centroid2):
         """
-        Calculate distance between two centroids
+        Calculate distance between two centroids.
 
         Args:
             centroid1 (point): First bounding box data
@@ -127,7 +127,7 @@ class DistanceCalculation:
 
     def start_process(self, im0, tracks):
         """
-        Calculate distance between two bounding boxes based on tracking data
+        Calculate distance between two bounding boxes based on tracking data.
 
         Args:
             im0 (nd array): Image

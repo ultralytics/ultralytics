@@ -47,13 +47,14 @@ class AIGym:
     ):
         """
         Configures the AIGym line_thickness, save image and view image parameters
+
         Args:
             kpts_to_check (list): 3 keypoints for counting
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): display the im0
             pose_up_angle (float): Angle to set pose position up
             pose_down_angle (float): Angle to set pose position down
-            pose_type: "pushup", "pullup" or "abworkout"
+            pose_type (str): "pushup", "pullup" or "abworkout"
         """
         self.kpts_to_check = kpts_to_check
         self.tf = line_thickness
@@ -65,10 +66,11 @@ class AIGym:
     def start_counting(self, im0, results, frame_count):
         """
         Function used to count the gym steps
+
         Args:
             im0 (ndarray): Current frame from the video stream.
-            results: Pose estimation data
-            frame_count: store current frame count
+            results (list): Pose estimation data
+            frame_count (int): store current frame count
         """
         self.im0 = im0
         if frame_count == 1:

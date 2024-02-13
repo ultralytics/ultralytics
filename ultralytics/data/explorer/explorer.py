@@ -59,7 +59,7 @@ class Explorer:
         model: str = "yolov8n.pt",
         uri: str = USER_CONFIG_DIR / "explorer",
     ) -> None:
-        checks.check_requirements(["lancedb>=0.4.3", "duckdb"])
+        checks.check_requirements(["lancedb>=0.4.3", "duckdb==0.9.2"])
         import lancedb
 
         self.connection = lancedb.connect(uri)

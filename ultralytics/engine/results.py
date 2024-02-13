@@ -710,7 +710,7 @@ class OBB(BaseTensor):
     def xyxyxyxyn(self):
         """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
         xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
-        xyxyxyxyn[..., 0] /= self.orig_shape[1]
+        xyxyxyxyn[..., 0] /= self.orig_shape[0]
         xyxyxyxyn[..., 1] /= self.orig_shape[1]
         return xyxyxyxyn
 

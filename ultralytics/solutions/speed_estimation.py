@@ -124,7 +124,8 @@ class SpeedEstimator:
 
     def calculate_speed(self, trk_id, track):
         """
-        Calculation of object speed
+        Calculation of object speed.
+
         Args:
             trk_id (int): object track id.
             track (list): tracking history for tracks path drawing
@@ -155,7 +156,8 @@ class SpeedEstimator:
 
     def estimate_speed(self, im0, tracks):
         """
-        Calculate object based on tracking data
+        Calculate object based on tracking data.
+
         Args:
             im0 (nd array): Image
             tracks (list): List of tracks obtained from the object tracking process.

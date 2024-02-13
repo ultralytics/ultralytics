@@ -337,8 +337,8 @@ class BaseTrainer:
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
-        epoch = self.epochs  # predefine for resume fully trained model edge cases
-        for epoch in range(self.start_epoch, self.epochs):
+        epoch = self.start_epoch
+        while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
             self.model.train()
@@ -423,7 +423,7 @@ class BaseTrainer:
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop |= self.stopper(epoch + 1, self.fitness)
+                self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
@@ -455,6 +455,7 @@ class BaseTrainer:
                 self.stop = broadcast_list[0]
             if self.stop:
                 break  # must break all DDP ranks
+            epoch += 1
 
         if RANK in (-1, 0):
             # Do final val with best.pt

@@ -392,9 +392,9 @@ class Results(SimpleClass):
 
 class Boxes(BaseTensor):
     """
-    Manages detection boxes, providing easy access and manipulation of box coordinates, confidence scores,
-    class identifiers, and optional tracking IDs. Supports multiple formats for box coordinates, including
-    both absolute and normalized forms.
+    Manages detection boxes, providing easy access and manipulation of box coordinates, confidence scores, class
+    identifiers, and optional tracking IDs. Supports multiple formats for box coordinates, including both absolute and
+    normalized forms.
 
     Attributes:
         data (torch.Tensor): The raw tensor containing detection boxes and their associated data.

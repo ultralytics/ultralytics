@@ -35,7 +35,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 
-def build_docs(use_languages=False, clone_repos=True):
+def build_docs(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -56,50 +56,8 @@ def build_docs(use_languages=False, clone_repos=True):
 
     # Build the main documentation
     print(f"Building docs from {DOCS}")
-    subprocess.run(f"mkdocs build -f {DOCS}/mkdocs.yml", check=True, shell=True)
-
-    # Build other localized documentations
-    if use_languages:
-        for file in DOCS.glob("mkdocs_*.yml"):
-            print(f"Building MkDocs site with configuration file: {file}")
-            subprocess.run(f"mkdocs build -f {file}", check=True, shell=True)
-        update_html_links()  # update .md in href links
+    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml", check=True, shell=True)
     print(f"Site built at {SITE}")
-
-
-def update_html_links():
-    """Update href links in HTML files to remove '.md' and '/index.md', excluding links starting with 'https://'."""
-    html_files = SITE.rglob("*.html")
-    total_updated_links = 0
-
-    for html_file in html_files:
-        with open(html_file, "r+", encoding="utf-8") as file:
-            content = file.read()
-            # Find all links to be updated, excluding those starting with 'https://'
-            links_to_update = re.findall(r'href="(?!https://)([^"]+?)(/index)?\.md"', content)
-
-            # Update the content and count the number of links updated
-            updated_content, number_of_links_updated = re.subn(
-                r'href="(?!https://)([^"]+?)(/index)?\.md"', r'href="\1"', content
-            )
-            total_updated_links += number_of_links_updated
-
-            # Special handling for '/index' links
-            updated_content, number_of_index_links_updated = re.subn(
-                r'href="([^"]+)/index"', r'href="\1/"', updated_content
-            )
-            total_updated_links += number_of_index_links_updated
-
-            # Write the updated content back to the file
-            file.seek(0)
-            file.write(updated_content)
-            file.truncate()
-
-            # Print updated links for this file
-            for link in links_to_update:
-                print(f"Updated link in {html_file}: {link[0]}")
-
-    print(f"Total number of links updated: {total_updated_links}")
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -170,7 +128,9 @@ def main():
     )
 
     # Update HTML file head section
-    # update_html_head("")
+    script = ""
+    if any(script):
+        update_html_head(script)
 
     # Show command to serve built website
     print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')

@@ -40,9 +40,15 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
 
+- [Gradio](../integrations/gradio.md) 🚀 NEW: Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
+
 - [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel CPU and GPU platforms.
 
 - [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
+
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance deep learning inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+
+- [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure model deployment.
 
 ### Export Formats
 

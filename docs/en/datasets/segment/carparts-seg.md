@@ -4,9 +4,9 @@ description: Explore the Carparts Segmentation using Ultralytics YOLOv8 Dataset,
 keywords: CarParts Segmentation Dataset, Ultralytics, Vehicle Analytics, Spare parts Detection, YOLO model, object detection, object tracking
 ---
 
-# Carparts Segmentation Dataset
+# Roboflow Universe Carparts Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Carparts Segmentation Dataset is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models.
+The [Roboflow](https://roboflow.com/?ref=ultralytics) [Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm) is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models.
 
 Whether you're working on automotive research, developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing accuracy and efficiency in your projects.
 

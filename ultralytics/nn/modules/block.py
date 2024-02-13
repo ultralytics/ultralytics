@@ -19,7 +19,41 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
            'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 
            'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 
            'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f', 
-           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f')
+           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f', 'ConvSelfAttention')
+
+class ConvSelfAttention(nn.Module):
+    def __init__(self, in_channels, out_channels, heads=8):
+        super(ConvSelfAttention, self).__init__()
+        assert out_channels % heads == 0, "num heads should be factorized by out channels"
+        self.heads = heads
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
+        # Convolutional layers for Q, K, V
+        self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.key_conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.value_conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.output_conv = nn.Conv2d(out_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        B, C, H, W = x.size()
+        q = self.query_conv(x).view(B, self.heads, self.out_channels // self.heads, H * W)
+        k = self.key_conv(x).view(B, self.heads, self.out_channels // self.heads, H * W)
+        v = self.value_conv(x).view(B, self.heads, self.out_channels // self.heads, H * W)
+
+        # Compute attention scores
+        q = q.transpose(2, 3)  # (B, heads, H*W, C//heads)
+        attn = torch.matmul(q, k) / (self.out_channels // self.heads) ** 0.5
+        attn = F.softmax(attn, dim=-1)
+
+        # Apply attention to values
+        out = torch.matmul(attn, v.transpose(2, 3)).transpose(2, 3)  # (B, heads, C//heads, H*W)
+        out = out.contiguous().view(B, -1, H, W)  # Merge heads
+
+        # Apply final convolution
+        out = self.output_conv(out)
+
+        return out
 
 class sa_layer(nn.Module):
     """Constructs a Channel Spatial Group module.

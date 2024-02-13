@@ -36,8 +36,8 @@ This section details the models available with their specific pre-trained weight
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type    | Pre-trained Weights                                                                                | Tasks Supported                        | Inference | Validation | Training | Export |
-|---------------|----------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
+| Model Type    | Pre-trained Weights                                                                                 | Tasks Supported                        | Inference | Validation | Training | Export |
+|---------------|-----------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
 | YOLOv8s-world | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 | YOLOv8m-world | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 | YOLOv8l-world | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
@@ -96,10 +96,10 @@ Model validation on a dataset is streamlined as follows:
     === "Python"
 
         ```python
-        from ultralytics import YOLOWorld
+        from ultralytics import YOLO
 
         # Create a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data='coco8.yaml')
@@ -114,7 +114,7 @@ Model validation on a dataset is streamlined as follows:
 
 !!! Note
 
-    The YOLO-World weights in Ultralytics has already embedded COCO categories as offline vocabulary for further efficiency, which means yolov8-world models can be used directly to predict 80 categories of COCO.
+    The YOLO-World models provided by Ultralytics come pre-configured with COCO dataset categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
 
 ### Set prompts
 
@@ -123,10 +123,10 @@ Model validation on a dataset is streamlined as follows:
     === "Custom Inference Prompts"
 
         ```python
-        from ultralytics import YOLOWorld
+        from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
+        model = YOLO('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
         
         # Define custom prompts
         prompts = ["person", "bus"]
@@ -139,10 +139,10 @@ Model validation on a dataset is streamlined as follows:
     === "Persisting Models with Custom Vocabulary"
 
         ```python
-        from ultralytics import YOLOWorld
+        from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt
+        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt
         
         # Configure custom prompts
         prompts = ["person", "bus"]

@@ -558,6 +558,7 @@ class WorldModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):
+        """Perform a forward pass with optional profiling, visualization, and embedding extraction."""
         try:
             import clip
         except ImportError:

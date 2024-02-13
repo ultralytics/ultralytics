@@ -400,6 +400,7 @@ class MaxSigmoidAttnBlock(nn.Module):
     """Max Sigmoid attention block."""
 
     def __init__(self, c1, c2, nh=1, ec=128, gc=512, scale=False):
+        """Initializes MaxSigmoidAttnBlock with specified arguments."""
         super().__init__()
         self.nh = nh
         self.hc = c2 // nh
@@ -463,6 +464,7 @@ class ImagePoolingAttn(nn.Module):
     """ImagePoolingAttn: Enhance the text embeddings with image-aware information."""
 
     def __init__(self, ec=256, ch=(), ct=512, nh=8, k=3, scale=False):
+        """Initializes ImagePoolingAttn with specified arguments."""
         super().__init__()
 
         nf = len(ch)
@@ -480,6 +482,7 @@ class ImagePoolingAttn(nn.Module):
         self.k = k
 
     def forward(self, x, text):
+        """Executes attention mechanism on input tensor x and guide tensor."""
         bs = x[0].shape[0]
         assert len(x) == self.nf
         num_patches = self.k**2
@@ -509,6 +512,7 @@ class ContrastiveHead(nn.Module):
     """
 
     def __init__(self):
+        """Initializes ContrastiveHead with specified region-text similarity parameters."""
         super().__init__()
         self.bias = nn.Parameter(torch.zeros([]))
         self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
@@ -531,6 +535,7 @@ class BNContrastiveHead(nn.Module):
     """
 
     def __init__(self, embed_dims: int):
+        """Initialize ContrastiveHead with region-text similarity parameters."""
         super().__init__()
         self.norm = nn.BatchNorm2d(embed_dims)
         self.bias = nn.Parameter(torch.zeros([]))

@@ -210,6 +210,7 @@ class Classify(nn.Module):
 
 class WorldDetect(Detect):
     def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
+        """Initialize YOLOv8 detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)

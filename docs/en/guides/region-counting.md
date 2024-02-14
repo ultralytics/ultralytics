@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/okItf1iHlV8"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/okItf1iHlV8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

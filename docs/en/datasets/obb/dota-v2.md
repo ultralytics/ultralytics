@@ -119,7 +119,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
         ```bash
         # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations

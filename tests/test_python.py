@@ -3,8 +3,6 @@
 import contextlib
 from copy import copy
 from pathlib import Path
-import platform
-
 import cv2
 import numpy as np
 import pytest
@@ -22,6 +20,7 @@ from ultralytics.utils import (
     LINUX,
     MACOS,
     ONLINE,
+    PYTHON_VERSION,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
@@ -37,7 +36,7 @@ CFG = "yolov8n.yaml"
 SOURCE = ASSETS / "bus.jpg"
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
-IS_PYTHON_312 = checks.check_version(platform.python_version(), ">=3.12", name="Python ", hard=False)
+IS_PYTHON_312 = checks.check_version(PYTHON_VERSION, ">=3.12", name="Python ", hard=False)
 
 
 def test_model_forward():

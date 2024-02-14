@@ -9,7 +9,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import time
 from importlib import metadata
 from pathlib import Path
@@ -580,7 +579,6 @@ def collect_system_info():
     LOGGER.info(
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
-        f"{'Python':<20}{sys.version.split()[0]}\n"
         f"{'Python':<20}{platform.python_version()}\n"
         f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
         f"{'RAM':<20}{ram_info:.2f} GB\n"

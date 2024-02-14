@@ -284,7 +284,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+        return {"img": sample, "cls": j, 'name': f}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
@@ -393,10 +393,9 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR
-        if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-        else:
-            sample = self.torch_transforms(im)
+        # Convert NumPy array to PIL image
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        sample = self.torch_transforms(im)
         return {'img': sample, 'value': j, 'name': f}
 
     def __len__(self) -> int:

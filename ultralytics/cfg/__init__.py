@@ -30,17 +30,15 @@ from ultralytics.utils import (
 )
 
 # Define valid tasks and modes
-MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify', 'pose', 'regress'
-TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet10', 'pose': 'coco8-pose.yaml', 'regress': 'imagenet10'}
 MODES = "train", "val", "predict", "export", "track", "benchmark"
-TASKS = "detect", "segment", "classify", "pose", "obb"
+TASKS = "detect", "segment", "classify", "pose", "obb", "regress"
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "regress": "imdb-age.yaml"
 }
 TASK2MODEL = {
     "detect": "yolov8n.pt",

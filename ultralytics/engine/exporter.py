@@ -216,7 +216,7 @@ class Exporter:
         model.float()
         model = model.fuse()
         for m in model.modules():
-            if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
+            if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
@@ -455,8 +455,8 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = None
-            if isinstance(self.model.model[-1], (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
-                # get detection module name in onnx
+            if isinstance(self.model.model[-1], (Detect, RTDETRDecoder)):
+                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations

@@ -3,7 +3,7 @@
 import contextlib
 from copy import copy
 from pathlib import Path
-from sys import platform
+import platform
 
 import cv2
 import numpy as np

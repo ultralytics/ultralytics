@@ -704,6 +704,7 @@ class v8OBBLoss(v8DetectionLoss):
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
 
+
 class v8RegressionLoss:
     """Criterion class for computing regression training losses."""
 

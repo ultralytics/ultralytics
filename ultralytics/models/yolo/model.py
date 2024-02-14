@@ -43,8 +43,8 @@ class YOLO(Model):
                 "predictor": yolo.obb.OBBPredictor,
             },
             "regress": {
-                'model': RegressionModel,
-                'trainer': yolo.regress.RegressionTrainer,
-                'validator': yolo.regress.RegressionValidator,
-                'predictor': yolo.regress.RegressionPredictor, },
+                "model": RegressionModel,
+                "trainer": yolo.regress.RegressionTrainer,
+                "validator": yolo.regress.RegressionValidator,
+                "predictor": yolo.regress.RegressionPredictor, },
         }

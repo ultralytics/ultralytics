@@ -365,19 +365,22 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         self.cache_disk = cache == "disk"
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, value, npy, im
-        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect, mean=args.mean, std=args.std)
-        self.album_transforms = classify_albumentations(
-            augment=augment,
-            size=args.imgsz,
-            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-            hflip=args.fliplr,
-            vflip=args.flipud,
-            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-            mean=args.mean,  # IMAGENET_MEAN
-            std=args.std,  # IMAGENET_STD
-            auto_aug=False) if augment else None
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = (
+            classify_augmentations(
+                size=args.imgsz,
+                scale=scale,
+                hflip=args.fliplr,
+                vflip=args.flipud,
+                erasing=args.erasing,
+                auto_augment=args.auto_augment,
+                hsv_h=args.hsv_h,
+                hsv_s=args.hsv_s,
+                hsv_v=args.hsv_v,
+            )
+            if augment
+            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+        )
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
@@ -394,7 +397,6 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)
-        #np.savetxt('inp_tensor.txt', sample.flatten().numpy())
         return {'img': sample, 'value': j, 'name': f}
 
     def __len__(self) -> int:
@@ -497,19 +499,22 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
 #        self.cache_disk = cache == 'disk'
 #        self.samples = self.verify_images()  # filter out bad images
 #        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-#        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect, mean=args.mean, std=args.std)
-#        self.album_transforms = classify_albumentations(
-#            augment=augment,
-#            size=args.imgsz,
-#            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-#            hflip=args.fliplr,
-#            vflip=args.flipud,
-#            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-#            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-#            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-#            mean=args.mean,  # IMAGENET_MEAN
-#            std=args.std,  # IMAGENET_STD
-#            auto_aug=False) if augment else None
+#        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+#        self.torch_transforms = (
+#            classify_augmentations(
+#                size=args.imgsz,
+#                scale=scale,
+#                hflip=args.fliplr,
+#                vflip=args.flipud,
+#                erasing=args.erasing,
+#                auto_augment=args.auto_augment,
+#                hsv_h=args.hsv_h,
+#                hsv_s=args.hsv_s,
+#                hsv_v=args.hsv_v,
+#            )
+#            if augment
+#            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+#        )
 #
 #    def __getitem__(self, i):
 #        """Returns subset of data and targets corresponding to given indices."""

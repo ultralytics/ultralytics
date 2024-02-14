@@ -723,4 +723,3 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
-

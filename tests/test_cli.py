@@ -4,11 +4,10 @@ import subprocess
 
 import pytest
 
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from ultralytics.utils.checks import cuda_device_count, cuda_is_available
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, PYTHON_VERSION, checks
 
-CUDA_IS_AVAILABLE = cuda_is_available()
-CUDA_DEVICE_COUNT = cuda_device_count()
+CUDA_IS_AVAILABLE = checks.cuda_is_available()
+CUDA_DEVICE_COUNT = checks.cuda_device_count()
 TASK_ARGS = [
     ("detect", "yolov8n", "coco8.yaml"),
     ("segment", "yolov8n-seg", "coco8-seg.yaml"),
@@ -23,6 +22,8 @@ EXPORT_ARGS = [
     ("yolov8n-pose", "torchscript"),
     ("yolov8n-obb", "torchscript"),
 ]  # (model, format)
+
+IS_PYTHON_312 = checks.check_version(PYTHON_VERSION, ">=3.12", name="Python ", hard=False)
 
 
 def run(cmd):
@@ -107,6 +108,7 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
     prompt_process.plot(annotations=ann, output="./")
 
 
+@pytest.mark.skipif(IS_PYTHON_312, reason="MobileSAM Clip is not supported in Python 3.12")
 def test_mobilesam():
     """Test MobileSAM segmentation functionality using Ultralytics."""
     from ultralytics import SAM

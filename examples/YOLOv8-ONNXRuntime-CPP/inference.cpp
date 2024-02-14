@@ -127,7 +127,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         wide_cstr[ModelPathSize] = L'\0';
         const wchar_t* modelPath = wide_cstr;
 #else
-        const char* modelPath = iParams.ModelPath.c_str();
+        const char* modelPath = iParams.modelPath.c_str();
 #endif // _WIN32
 
         session = new Ort::Session(env, modelPath, sessionOption);
@@ -215,7 +215,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
     auto tensor_info = typeInfo.GetTensorTypeAndShapeInfo();
     std::vector<int64_t> outputNodeDims = tensor_info.GetShape();
     auto output = outputTensor.front().GetTensorMutableData<typename std::remove_pointer<N>::type>();
-    delete blob;
+    delete[] blob;
     switch (modelType)
     {
     case YOLO_DETECT_V8:
@@ -240,7 +240,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         }
         //Note:
         //ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
-        //https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
+        //https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt
         //rowData = rowData.t();
 
         float* data = (float*)rawData.data;

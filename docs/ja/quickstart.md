@@ -76,7 +76,7 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
         pip install -e .
         ```
 
-必要な依存関係のリストについては、`ultralytics`の[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)ファイルを参照してください。上記の全ての例では、必要な依存関係を全てインストールします。
+必要な依存関係のリストについては、`ultralytics`の[requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml)ファイルを参照してください。上記の全ての例では、必要な依存関係を全てインストールします。
 
 <p align="center">
   <br>

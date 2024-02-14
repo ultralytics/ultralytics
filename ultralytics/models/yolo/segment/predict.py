@@ -5,7 +5,7 @@ import torch
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.utils.postprocess_utils import decode_bbox
+from ultralytics.utils.postprocess_utils import decode_bbox, separate_outputs_decode
 
 
 class SegmentationPredictor(DetectionPredictor):
@@ -26,42 +26,34 @@ class SegmentationPredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initializes the SegmentationPredictor with the provided configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = 'segment'
+        self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
         """Applies non-max suppression and processes detections for each image in an input batch."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            mcv = float('-inf')
-            lci = -1
-            for idx, s in enumerate(preds):
-                dim_1 = s.shape[1]
-                if dim_1 > mcv:
-                    mcv = dim_1
-                    lci = idx
-                if len(s.shape) == 4:
-                    proto = s
-                    pidx = idx
-            mask = preds[lci]
-            proto = proto.permute(0, 3, 1, 2)
-            pred_order = [item for index, item in enumerate(preds) if index not in [pidx, lci]]
+            pred_order, mask, proto = separate_outputs_decode(preds, self.args.task)
             preds_decoded = decode_bbox(pred_order, img.shape, self.device)
             nc = preds_decoded.shape[1] - 4
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
-            p = ops.non_max_suppression(preds_decoded,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det,
-                                        nc=nc,
-                                        classes=self.args.classes)
+            p = ops.non_max_suppression(
+                preds_decoded,
+                self.args.conf,
+                self.args.iou,
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                nc=nc,
+                classes=self.args.classes
+            )
         else:
-            p = ops.non_max_suppression(preds[0],
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det,
-                                        nc=len(self.model.names),
-                                        classes=self.args.classes)
+            p = ops.non_max_suppression(
+                preds[0],
+                self.args.conf,
+                self.args.iou,
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                nc=len(self.model.names),
+                classes=self.args.classes,
+            )
             proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list

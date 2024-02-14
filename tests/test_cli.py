@@ -13,12 +13,14 @@ TASK_ARGS = [
     ('detect', 'yolov8n', 'coco8.yaml'),
     ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
     ('classify', 'yolov8n-cls', 'imagenet10'),
-    ('pose', 'yolov8n-pose', 'coco8-pose.yaml'), ]  # (task, model, data)
+    ('pose', 'yolov8n-pose', 'coco8-pose.yaml'),
+    ('obb', 'yolov8n-obb', 'dota8.yaml'), ]  # (task, model, data)
 EXPORT_ARGS = [
     ('yolov8n', 'torchscript'),
     ('yolov8n-seg', 'torchscript'),
     ('yolov8n-cls', 'torchscript'),
-    ('yolov8n-pose', 'torchscript'), ]  # (model, format)
+    ('yolov8n-pose', 'torchscript'),
+    ('yolov8n-obb', 'torchscript'), ]  # (model, format)
 
 
 def run(cmd):

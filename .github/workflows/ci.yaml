@@ -9,27 +9,27 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
     inputs:
       hub:
-        description: 'Run HUB'
+        description: "Run HUB"
         default: false
         type: boolean
       benchmarks:
-        description: 'Run Benchmarks'
+        description: "Run Benchmarks"
         default: false
         type: boolean
       tests:
-        description: 'Run Tests'
+        description: "Run Tests"
         default: false
         type: boolean
       gpu:
-        description: 'Run GPU'
+        description: "Run GPU"
         default: false
         type: boolean
       conda:
-        description: 'Run Conda'
+        description: "Run Conda"
         default: false
         type: boolean
 
@@ -41,15 +41,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
@@ -95,19 +95,19 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
+        python-version: ["3.11"]
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" coverage --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
           # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
           # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
           yolo export format=tflite imgsz=32 || true
@@ -141,7 +141,10 @@ jobs:
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
-      # Benchmarks for separate_outputs=True
+      - name: Benchmark OBBModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.360
+      # Benchmarks for separate_outputs=True --v
       - name: Benchmark DetectionModel with separate outputs
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 separate_outputs=True verbose=0.318
@@ -154,7 +157,7 @@ jobs:
       - name: Benchmark PoseModel with separate outputs
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 separate_outputs=True verbose=0.185
-      
+      # Benchmarks for separate_outputs=True --^
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -178,21 +181,22 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
-            torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
+            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
+            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
-        run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
+        shell: bash # for Windows compatibility
+        run: |
+          # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
@@ -204,7 +208,7 @@ jobs:
           yolo checks
           pip list
       - name: Pytest tests
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -248,7 +252,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
     defaults:
       run:
         shell: bash -el {0}

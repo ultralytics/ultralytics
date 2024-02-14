@@ -58,8 +58,7 @@ To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of
     === "CLI"
 
         ```bash
-        # Start training from
-        a pretrained *.pt model
+        # Start training from a pretrained *.pt model
         yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 

@@ -18,3 +18,7 @@ keywords: Ultralytics, AutoBackend, check_class_names, YOLO, YOLO models, optimi
 ## ::: ultralytics.nn.autobackend.check_class_names
 
 <br><br>
+
+## ::: ultralytics.nn.autobackend.default_class_names
+
+<br><br>

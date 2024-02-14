@@ -92,9 +92,9 @@ YOLO-NAS 모델은 Small (s), Medium (m) 및 Large (l) 세 가지 변형이 있�
 
 | 모델 유형      | 사전 훈련된 가중치                                                                                    | 지원되는 작업                     | 추론 | 유효성 검사 | 훈련 | 내보내기 |
 |------------|-----------------------------------------------------------------------------------------------|-----------------------------|----|--------|----|------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_s.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_m.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolo_nas_l.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
 
 ## 인용 및 감사의 말씀
 

@@ -14,7 +14,7 @@ Validation is a critical step in the machine learning pipeline, allowing you to 
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=47"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=47"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -67,6 +67,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
         metrics.box.map75  # map75
         metrics.box.maps   # a list contains map50-95 of each category
         ```
+
     === "CLI"
 
         ```bash

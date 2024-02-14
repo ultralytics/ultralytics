@@ -216,7 +216,7 @@ class Exporter:
         model.float()
         model = model.fuse()
         for m in model.modules():
-            if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
+            if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
@@ -227,7 +227,7 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
-        if self.args.half and (engine or onnx) and self.device.type != "cpu":
+        if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings
@@ -454,7 +454,21 @@ class Exporter:
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
-            ignored_scope = nncf.IgnoredScope(types=["Multiply", "Subtract", "Sigmoid"])  # ignore operation
+            ignored_scope = None
+            if isinstance(self.model.model[-1], (Detect, RTDETRDecoder)):
+                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+                head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
+
+                ignored_scope = nncf.IgnoredScope(  # ignore operations
+                    patterns=[
+                        f"/{head_module_name}/Add",
+                        f"/{head_module_name}/Sub",
+                        f"/{head_module_name}/Mul",
+                        f"/{head_module_name}/Div",
+                        f"/{head_module_name}/dfl",
+                    ],
+                    names=[f"/{head_module_name}/Sigmoid"],
+                )
             quantized_ov_model = nncf.quantize(
                 ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope
             )
@@ -483,7 +497,7 @@ class Exporter:
         """
         YOLOv8 ncnn export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires ncnn
+        check_requirements("ncnn")
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with ncnn {ncnn.__version__}...")
@@ -555,6 +569,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
+        assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)

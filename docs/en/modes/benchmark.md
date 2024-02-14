@@ -14,7 +14,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=105"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=105"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -62,6 +62,7 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
         # Benchmark on GPU
         benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
         ```
+
     === "CLI"
 
         ```bash

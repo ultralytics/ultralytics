@@ -254,6 +254,9 @@ class Exporter:
             'names': model.names}  # model metadata
         if model.task == 'pose':
             self.metadata['kpt_shape'] = model.model[-1].kpt_shape
+        if model.task == 'regress':
+            self.metadata['min_value'] = model.model[-1].min
+            self.metadata['max_value'] = model.model[-1].max
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
@@ -400,7 +403,8 @@ class Exporter:
             ov_model.set_rt_info(114, ['model_info', 'pad_value'])
             ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
             ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
-            ov_model.set_rt_info([v.replace(' ', '_') for v in self.model.names.values()], ['model_info', 'labels'])
+            if self.model.task != 'regress':
+                ov_model.set_rt_info([v.replace(' ', '_') for v in self.model.names.values()], ['model_info', 'labels'])
             if self.model.task not in ('classify', 'regress'):
                 ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
 
@@ -425,11 +429,12 @@ class Exporter:
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             if self.model.task in ('classify', 'regress'):
-                data = check_cls_dataset(self.args.data)
                 if self.model.task == 'classify':
+                    data = check_cls_dataset(self.args.data)
                     dataset = ClassificationDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
                 else:
-                    dataset = RegressionDataset(root=data['val'], args=self.args, augment=False, prefix=self.args.split)
+                    data = check_regress_dataset(self.args.data)
+                    dataset = RegressionDataset(args=self.args, img_path=os.path.join(data['path'], data['val']), augment=False, prefix=self.args.split)
             else:
                 data = check_det_dataset(self.args.data)
                 dataset = YOLODataset(data['val'], data=data, imgsz=self.imgsz[0], augment=False)

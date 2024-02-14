@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import itertools
-import os
 from glob import glob
 from math import ceil
 from pathlib import Path
@@ -73,9 +72,9 @@ def load_yolo_dota(data_root, split="train"):
                     - val
     """
     assert split in ["train", "val"]
-    im_dir = os.path.join(data_root, f"images/{split}")
-    assert Path(im_dir).exists(), f"Can't find {im_dir}, please check your data root."
-    im_files = glob(os.path.join(data_root, f"images/{split}/*"))
+    im_dir = Path(data_root) / "images" / split
+    assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
+    im_files = glob(str(Path(data_root) / "images" / split / "*"))
     lb_files = img2label_paths(im_files)
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
@@ -94,7 +93,7 @@ def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.0
     Args:
         im_size (tuple): Original image size, (h, w).
         crop_sizes (List(int)): Crop size of windows.
-        gaps (List(int)): Gap between each crops.
+        gaps (List(int)): Gap between crops.
         im_rate_thr (float): Threshold of windows areas divided by image ares.
     """
     h, w = im_size
@@ -139,10 +138,9 @@ def get_window_obj(anno, windows, iof_thr=0.7):
         label[:, 2::2] *= h
         iofs = bbox_iof(label[:, 1:], windows)
         # Unnormalized and misaligned coordinates
-        window_anns = [(label[iofs[:, i] >= iof_thr]) for i in range(len(windows))]
+        return [(label[iofs[:, i] >= iof_thr]) for i in range(len(windows))]  # window_anns
     else:
-        window_anns = [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]
-    return window_anns
+        return [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]  # window_anns
 
 
 def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
@@ -170,11 +168,11 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
-        new_name = name + "__" + str(x_stop - x_start) + "__" + str(x_start) + "___" + str(y_start)
+        new_name = f"{name}__{x_stop - x_start}__{x_start}___{y_start}"
         patch_im = im[y_start:y_stop, x_start:x_stop]
         ph, pw = patch_im.shape[:2]
 
-        cv2.imwrite(os.path.join(im_dir, f"{new_name}.jpg"), patch_im)
+        cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im)
         label = window_objs[i]
         if len(label) == 0:
             continue
@@ -183,7 +181,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
         label[:, 1::2] /= pw
         label[:, 2::2] /= ph
 
-        with open(os.path.join(lb_dir, f"{new_name}.txt"), "w") as f:
+        with open(Path(lb_dir) / f"{new_name}.txt", "w") as f:
             for lb in label:
                 formatted_coords = ["{:.6g}".format(coord) for coord in lb[1:]]
                 f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
@@ -270,8 +268,8 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
     save_dir = Path(save_dir) / "images" / "test"
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    im_dir = Path(os.path.join(data_root, "images/test"))
-    assert im_dir.exists(), f"Can't find {str(im_dir)}, please check your data root."
+    im_dir = Path(data_root) / "images" / "test"
+    assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in tqdm(im_files, total=len(im_files), desc="test"):
         w, h = exif_size(Image.open(im_file))
@@ -280,17 +278,11 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()
-            new_name = name + "__" + str(x_stop - x_start) + "__" + str(x_start) + "___" + str(y_start)
+            new_name = f"{name}__{x_stop - x_start}__{x_start}___{y_start}"
             patch_im = im[y_start:y_stop, x_start:x_stop]
-            cv2.imwrite(os.path.join(str(save_dir), f"{new_name}.jpg"), patch_im)
+            cv2.imwrite(str(save_dir / f"{new_name}.jpg"), patch_im)
 
 
 if __name__ == "__main__":
-    split_trainval(
-        data_root="DOTAv2",
-        save_dir="DOTAv2-split",
-    )
-    split_test(
-        data_root="DOTAv2",
-        save_dir="DOTAv2-split",
-    )
+    split_trainval(data_root="DOTAv2", save_dir="DOTAv2-split")
+    split_test(data_root="DOTAv2", save_dir="DOTAv2-split")

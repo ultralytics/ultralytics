@@ -22,7 +22,6 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-
 from .dataset import YOLODataset
 from .utils import PIN_MEMORY
 
@@ -108,7 +107,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min([os.cpu_count() // max(nd, 1), batch, workers])  # number of workers
+    nw = min([os.cpu_count() // max(nd, 1), workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
@@ -151,13 +150,12 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, imgsz=640, vid_stride=1, buffer=False):
+def load_inference_source(source=None, vid_stride=1, buffer=False):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
     Args:
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
-        imgsz (int, optional): The size of the image for inference. Default is 640.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
         buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
 
@@ -173,13 +171,13 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1, buffer=False):
     elif in_memory:
         dataset = source
     elif webcam:
-        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride, buffer=buffer)
+        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
     elif screenshot:
-        dataset = LoadScreenshots(source, imgsz=imgsz)
+        dataset = LoadScreenshots(source)
     elif from_img:
-        dataset = LoadPilAndNumpy(source, imgsz=imgsz)
+        dataset = LoadPilAndNumpy(source)
     else:
-        dataset = LoadImages(source, imgsz=imgsz, vid_stride=vid_stride)
+        dataset = LoadImages(source, vid_stride=vid_stride)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

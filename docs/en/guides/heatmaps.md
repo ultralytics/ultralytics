@@ -12,7 +12,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -42,6 +42,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 !!! Example "Heatmaps using Ultralytics YOLOv8 Example"
 
     === "Heatmap"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -83,6 +84,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Line Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -126,6 +128,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Region Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -170,6 +173,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Im0"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -178,15 +182,15 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
 
         im0 = cv2.imread("path/to/image.png")  # path to image file
-
+        h, w = im0.shape[:2]  # image height and width
+        
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
         heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
-                                     imw=im0.shape[0],  # should same as im0 width
-                                     imh=im0.shape[1],  # should same as im0 height
-                                     view_img=True,
-                                     shape="circle")
-
+                             imw=w,
+                             imh=h,
+                             view_img=True,
+                             shape="circle")
 
         results = model.track(im0, persist=True)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -194,6 +198,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Specific Classes"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -238,22 +243,22 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `set_args`
 
-| Name                | Type           | Default           | Description                                               |
-|---------------------|----------------|-------------------|-----------------------------------------------------------|
-| view_img            | `bool`         | `False`           | Display the frame with heatmap                            |
-| colormap            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
-| imw                 | `int`          | `None`            | Width of Heatmap                                          |
-| imh                 | `int`          | `None`            | Height of Heatmap                                         |
-| heatmap_alpha       | `float`        | `0.5`             | Heatmap alpha value                                       |
-| count_reg_pts       | `list`         | `None`            | Object counting region points                             |
-| count_txt_thickness | `int`          | `2`               | Count values text size                                    |
-| count_txt_color     | `RGB Color`    | `(0, 0, 0)`       | Foreground color for Object counts text                   |
-| count_color         | `RGB Color`    | `(255, 255, 255)` | Background color for Object counts text                   |
-| count_reg_color     | `RGB Color`    | `(255, 0, 255)`   | Counting region color                                     |
-| region_thickness    | `int`          | `5`               | Counting region thickness value                           |
-| decay_factor        | `float`        | `0.99`            | Decay factor for heatmap area removal after specific time |
-| shape               | `str`          | `circle`          | Heatmap shape for display "rect" or "circle" supported    |
-| line_dist_thresh    | `int`          | `15`              | Euclidean Distance threshold for line counter             |
+| Name                  | Type           | Default           | Description                                               |
+|-----------------------|----------------|-------------------|-----------------------------------------------------------|
+| `view_img`            | `bool`         | `False`           | Display the frame with heatmap                            |
+| `colormap`            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
+| `imw`                 | `int`          | `None`            | Width of Heatmap                                          |
+| `imh`                 | `int`          | `None`            | Height of Heatmap                                         |
+| `heatmap_alpha`       | `float`        | `0.5`             | Heatmap alpha value                                       |
+| `count_reg_pts`       | `list`         | `None`            | Object counting region points                             |
+| `count_txt_thickness` | `int`          | `2`               | Count values text size                                    |
+| `count_txt_color`     | `RGB Color`    | `(0, 0, 0)`       | Foreground color for Object counts text                   |
+| `count_color`         | `RGB Color`    | `(255, 255, 255)` | Background color for Object counts text                   |
+| `count_reg_color`     | `RGB Color`    | `(255, 0, 255)`   | Counting region color                                     |
+| `region_thickness`    | `int`          | `5`               | Counting region thickness value                           |
+| `decay_factor`        | `float`        | `0.99`            | Decay factor for heatmap area removal after specific time |
+| `shape`               | `str`          | `circle`          | Heatmap shape for display "rect" or "circle" supported    |
+| `line_dist_thresh`    | `int`          | `15`              | Euclidean Distance threshold for line counter             |
 
 ### Arguments `model.track`
 

@@ -332,16 +332,13 @@ class BaseTrainer:
             f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
             f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
-            f'Starting training for '
-            f'{self.args.time} hours...'
-            if self.args.time
-            else f"{self.epochs} epochs..."
+            f'Starting training for ' + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
-        epoch = self.epochs  # predefine for resume fully trained model edge cases
-        for epoch in range(self.start_epoch, self.epochs):
+        epoch = self.start_epoch
+        while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
             self.model.train()
@@ -403,7 +400,7 @@ class BaseTrainer:
 
                 # Log
                 mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
-                loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
+                loss_len = self.tloss.shape[0] if len(self.tloss.shape) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if RANK in (-1, 0):
                     pbar.set_description(
@@ -426,7 +423,7 @@ class BaseTrainer:
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop |= self.stopper(epoch + 1, self.fitness)
+                self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
@@ -458,6 +455,7 @@ class BaseTrainer:
                 self.stop = broadcast_list[0]
             if self.stop:
                 break  # must break all DDP ranks
+            epoch += 1
 
         if RANK in (-1, 0):
             # Do final val with best.pt
@@ -566,8 +564,12 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Returns a loss dict with labelled training loss items tensor."""
-        # Not needed for classification but necessary for segmentation & detection
+        """
+        Returns a loss dict with labelled training loss items tensor.
+
+        Note:
+            This is not needed for classification but necessary for segmentation & detection
+        """
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
     def set_model_attributes(self):

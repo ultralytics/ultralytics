@@ -12,7 +12,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -37,6 +37,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 !!! Example "Object Counting using YOLOv8 Example"
 
     === "Region"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
@@ -76,10 +77,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
     === "Line"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
@@ -122,6 +123,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         ```
 
     === "Specific Classes"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import object_counter
@@ -170,23 +172,23 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name                | Type        | Default                    | Description                                   |
-|---------------------|-------------|----------------------------|-----------------------------------------------|
-| view_img            | `bool`      | `False`                    | Display frames with counts                    |
-| view_in_counts      | `bool`      | `True`                     | Display incounts only on video frame          |
-| view_out_counts     | `bool`      | `True`                     | Display outcounts only on video frame         |
-| line_thickness      | `int`       | `2`                        | Increase bounding boxes thickness             |
-| reg_pts             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area               |
-| classes_names       | `dict`      | `model.model.names`        | Dictionary of Class Names                     |
-| region_color        | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line   |
-| track_thickness     | `int`       | `2`                        | Thickness of Tracking Lines                   |
-| draw_tracks         | `bool`      | `False`                    | Enable drawing Track lines                    |
-| track_color         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                     |
-| line_dist_thresh    | `int`       | `15`                       | Euclidean Distance threshold for line counter |
-| count_txt_thickness | `int`       | `2`                        | Thickness of Object counts text               |
-| count_txt_color     | `RGB Color` | `(0, 0, 0)`                | Foreground color for Object counts text       |
-| count_color         | `RGB Color` | `(255, 255, 255)`          | Background color for Object counts text       |
-| region_thickness    | `int`       | `5`                        | Thickness for object counter region or line   |
+| Name                  | Type        | Default                    | Description                                   |
+|-----------------------|-------------|----------------------------|-----------------------------------------------|
+| `view_img`            | `bool`      | `False`                    | Display frames with counts                    |
+| `view_in_counts`      | `bool`      | `True`                     | Display incounts only on video frame          |
+| `view_out_counts`     | `bool`      | `True`                     | Display outcounts only on video frame         |
+| `line_thickness`      | `int`       | `2`                        | Increase bounding boxes thickness             |
+| `reg_pts`             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area               |
+| `classes_names`       | `dict`      | `model.model.names`        | Dictionary of Class Names                     |
+| `region_color`        | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line   |
+| `track_thickness`     | `int`       | `2`                        | Thickness of Tracking Lines                   |
+| `draw_tracks`         | `bool`      | `False`                    | Enable drawing Track lines                    |
+| `track_color`         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                     |
+| `line_dist_thresh`    | `int`       | `15`                       | Euclidean Distance threshold for line counter |
+| `count_txt_thickness` | `int`       | `2`                        | Thickness of Object counts text               |
+| `count_txt_color`     | `RGB Color` | `(0, 0, 0)`                | Foreground color for Object counts text       |
+| `count_color`         | `RGB Color` | `(255, 255, 255)`          | Background color for Object counts text       |
+| `region_thickness`    | `int`       | `5`                        | Thickness for object counter region or line   |
 
 ### Arguments `model.track`
 

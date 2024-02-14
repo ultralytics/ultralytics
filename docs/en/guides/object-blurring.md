@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protec
 
 ## What is Object Blurring?
 
-Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/)  involves applying a blurring effect to specific detected objects in an image or video. This can be achieved using the YOLOv8 model capabilities to identify and manipulate objects within a given scene.
+Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves applying a blurring effect to specific detected objects in an image or video. This can be achieved using the YOLOv8 model capabilities to identify and manipulate objects within a given scene.
 
 ## Advantages of Object Blurring?
 
@@ -19,6 +19,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 !!! Example "Object Blurring using YOLOv8 Example"
 
     === "Object Blurring"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors

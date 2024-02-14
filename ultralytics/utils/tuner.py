@@ -94,7 +94,7 @@ def run_ray_tune(
             config (dict): A dictionary of hyperparameters to use for training.
 
         Returns:
-            None.
+            None
         """
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()

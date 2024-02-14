@@ -5,7 +5,7 @@
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit suggestions"
   autoupdate_schedule: monthly
   submodules: true
 
@@ -55,7 +55,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: 'docs/de|docs/fr|docs/pt|docs/es|docs/mkdocs_de.yml'
+        exclude: "docs/de|docs/fr|docs/pt|docs/es|docs/mkdocs_de.yml"
         args:
           - --ignore-words-list=crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall
 
@@ -64,7 +64,7 @@ repos:
     hooks:
       - id: pycln
         args: [--all]
-
+#
 #  - repo: https://github.com/PyCQA/docformatter
 #    rev: v1.7.5
 #    hooks:

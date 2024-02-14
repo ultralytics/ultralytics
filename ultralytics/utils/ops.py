@@ -40,7 +40,7 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        self.cuda = True if (device and str(device)[:4] == "cuda") else False
+        self.cuda = bool(device and str(device).startswith("cuda"))
 
     def __enter__(self):
         """Start timing."""
@@ -75,7 +75,6 @@ def segment2box(segment, width=640, height=640):
     Returns:
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
-    # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
@@ -220,7 +219,7 @@ def non_max_suppression(
 
     # Settings
     # min_wh = 2  # (pixels) minimum box width and height
-    time_limit = 0.5 + max_time_img * bs  # seconds to quit after
+    time_limit = 2.0 + max_time_img * bs  # seconds to quit after
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
@@ -362,8 +361,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         # gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
-    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
+    top, left = int(pad[1]), int(pad[0])  # y, x
+    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -534,30 +533,29 @@ def xyxyxyxy2xywhr(corners):
         # especially some objects are cut off by augmentations in dataloader.
         (x, y), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([x, y, w, h, angle / 180 * np.pi])
-    rboxes = (
+    return (
         torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
         if is_torch
         else np.asarray(rboxes, dtype=points.dtype)
-    )
-    return rboxes
+    )  # rboxes
 
 
-def xywhr2xyxyxyxy(center):
+def xywhr2xyxyxyxy(rboxes):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
     be in degrees from 0 to 90.
 
     Args:
-        center (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
+        rboxes (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
 
     Returns:
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
     """
-    is_numpy = isinstance(center, np.ndarray)
+    is_numpy = isinstance(rboxes, np.ndarray)
     cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
-    ctr = center[..., :2]
-    w, h, angle = (center[..., i : i + 1] for i in range(2, 5))
+    ctr = rboxes[..., :2]
+    w, h, angle = (rboxes[..., i : i + 1] for i in range(2, 5))
     cos_value, sin_value = cos(angle), sin(angle)
     vec1 = [w / 2 * cos_value, w / 2 * sin_value]
     vec2 = [-h / 2 * sin_value, h / 2 * cos_value]
@@ -732,8 +730,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
-    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
+    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
+    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW
@@ -773,6 +771,24 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         coords[..., 0] /= img0_shape[1]  # width
         coords[..., 1] /= img0_shape[0]  # height
     return coords
+
+
+def regularize_rboxes(rboxes):
+    """
+    Regularize rotated boxes in range [0, pi/2].
+
+    Args:
+        rboxes (torch.Tensor): (N, 5), xywhr.
+
+    Returns:
+        (torch.Tensor): The regularized boxes.
+    """
+    x, y, w, h, t = rboxes.unbind(dim=-1)
+    # Swap edge and angle if h >= w
+    w_ = torch.where(w > h, w, h)
+    h_ = torch.where(w > h, h, w)
+    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
 def masks2segments(masks, strategy="largest"):

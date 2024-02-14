@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = "8.1.13"
+__version__ = "8.1.14"
 
 from ultralytics.data.explorer.explorer import Explorer
-from ultralytics.models import RTDETR, SAM, YOLO
+from ultralytics.models import RTDETR, SAM, YOLO, YOLOWorld
 from ultralytics.models.fastsam import FastSAM
 from ultralytics.models.nas import NAS
 from ultralytics.utils import ASSETS, SETTINGS as settings
@@ -14,6 +14,7 @@ __all__ = (
     "__version__",
     "ASSETS",
     "YOLO",
+    "YOLOWorld",
     "NAS",
     "SAM",
     "FastSAM",

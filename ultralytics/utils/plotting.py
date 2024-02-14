@@ -250,7 +250,8 @@ class Annotator:
             kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
                                        for human pose. Default is True.
 
-        Note: `kpt_line=True` currently only supports human pose plotting.
+        Note:
+            `kpt_line=True` currently only supports human pose plotting.
         """
         if self.pil:
             # Convert to numpy first

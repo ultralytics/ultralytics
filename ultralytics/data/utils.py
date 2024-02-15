@@ -7,6 +7,7 @@ import os
 import random
 import subprocess
 import time
+import traceback
 import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -14,6 +15,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
+import rasterio
 from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
@@ -38,6 +40,11 @@ HELP_URL = "See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # image suffixes
 VID_FORMATS = "asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
+
+def imread(im_file):
+    im = cv2.imread(im_file, cv2.IMREAD_UNCHANGED)
+    im = cv2.cvtColor(im, cv2.COLOR_RGBA2BGRA)
+    return im
 
 
 def img2label_paths(img_paths):
@@ -73,45 +80,49 @@ def verify_image(args):
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
+        im_big = imread(im_file)
+        im = Image.fromarray(im_big[..., :3])
+        #im.verify()  # PIL verify
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
-        if im.format.lower() in ("jpg", "jpeg"):
+        #assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        """if im.format.lower() in ("jpg", "jpeg"):
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
                     msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
-        nf = 1
+        nf = 1 """
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}WARNING Test⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        pass
     return (im_file, cls), nf, nc, msg
-
 
 def verify_image_label(args):
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+
     try:
         # Verify images
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
+        im_big = imread(im_file)
+        im = Image.fromarray(im_big[...,:3])
+
+        #im.verify() # PIL verify
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
-        if im.format.lower() in ("jpg", "jpeg"):
+        #assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        """if im.format.lower() in ("jpg", "jpeg"):
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
                     msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
-
+        """
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
@@ -159,8 +170,9 @@ def verify_image_label(args):
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
+        traceback.print_exc()
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}WARNING TEST ⚠️ {im_file}: ignoring corrupt image/label: {e}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
@@ -603,13 +615,16 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             im = im.resize((int(im.width * r), int(im.height * r)))
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
-        LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
-        im = cv2.imread(f)
-        im_height, im_width = im.shape[:2]
-        r = max_dim / max(im_height, im_width)  # ratio
-        if r < 1.0:  # image too large
-            im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
-        cv2.imwrite(str(f_new or f), im)
+        try:
+            LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
+            im = imread(f)
+            im_height, im_width = im.shape[:2]
+            r = max_dim / max(im_height, im_width)  # ratio
+            if r < 1.0:  # image too large
+                im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
+            cv2.imwrite(str(f_new or f), im)
+        except:
+            pass
 
 
 def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):

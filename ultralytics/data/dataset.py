@@ -101,7 +101,7 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ No labels found in {path}. {HELP_URL}")
+            LOGGER.warning(f"{self.prefix}WARNING TEST ⚠ No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
@@ -296,7 +296,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
 
     def verify_images(self):
         """Verify all images in dataset."""
-        desc = f"{self.prefix}Scanning {self.root}..."
+        desc = f"{self.prefix} Scanning {self.root}..."
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):

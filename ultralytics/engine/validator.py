@@ -117,7 +117,9 @@ class BaseValidator:
             # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
-            model.train() # model.eval()
+            model.eval()
+            if self.args.task == "regress":
+                model.train()
         else:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
@@ -187,9 +189,6 @@ class BaseValidator:
             with dt[3]:
                 preds = self.postprocess(preds, batch['img'][0].shape)
 
-            # if abs(preds[0][0] - batch['value'][0]) > 12:
-            # print(batch['name'], preds[0].numpy())
-                
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)

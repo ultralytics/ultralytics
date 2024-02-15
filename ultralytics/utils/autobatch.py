@@ -27,7 +27,7 @@ def check_train_batch_size(model, imgsz=640, amp=True):
         return autobatch(deepcopy(model).train(), imgsz)  # compute optimal batch size
 
 
-def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
+def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch,channel=DEFAULT_CFG.channel):
     """
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
@@ -65,7 +65,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16]
     try:
-        img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
+        img = [torch.empty(b, channel, imgsz, imgsz) for b in batch_sizes]
         results = profile(img, model, n=3, device=device)
 
         # Fit a solution

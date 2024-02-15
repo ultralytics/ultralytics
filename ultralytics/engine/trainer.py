@@ -239,13 +239,13 @@ class BaseTrainer:
             LOGGER.info("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
-        elif cls_weights == "micc":  # median inverse class count
+        elif cls_weights == "micc":
             cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
-        elif cls_weights == "icc":  # inverse class count
+        elif cls_weights == "icc":
             cls_weights = self.get_inverse_class_frequency_weights(nc)
-        elif cls_weights == "miscc":  # median inverse square root class count (good default)
+        elif cls_weights == "miscc":
             cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True, sqrt=True)
-        elif cls_weights == "iscc":  # inverse square root class count
+        elif cls_weights == "iscc":
             cls_weights = self.get_inverse_class_frequency_weights(nc, sqrt=True)
         elif cls_weights == "effective":
             cls_weights = self.get_inverse_class_frequency_weights(nc, effective=True)
@@ -253,10 +253,10 @@ class BaseTrainer:
             raise ValueError(
                 f"Invalid value for cls_weights: {cls_weights}"
                 "Please use None, a list of length num_classes, or one of the following strings:"
-                " 'micc' - median inverse class count"
-                " 'icc' - inverse class count"
-                " 'miscc' - median inverse square root class count (good default)"
-                " 'iscc' - inverse square root class count"
+                " 'iscc' - inverse square root class count (good default - preserves cls gain)"
+                " 'icc' - inverse class count (preserves cls gain)"
+                " 'miscc' - median inverse square root class count (modulates cls gain up/down for left/right skew)"
+                " 'micc' - median inverse class count (modulates cls gain too)"
                 " 'effective' - inverse effective class count"
             )
         return cls_weights

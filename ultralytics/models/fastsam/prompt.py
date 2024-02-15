@@ -31,7 +31,7 @@ class FastSAMPrompt:
 
         # Import and assign clip
         try:
-            import clip
+            import clip  # for linear_assignment
         except ImportError:
             from ultralytics.utils.checks import check_requirements
 

@@ -6,7 +6,6 @@ from copy import copy
 
 import numpy as np
 import torch.nn as nn
-import torch
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -84,45 +83,11 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
-    def modify_input_channels(self, model, new_channels):
-        # Access the Conv module which contains the convolutional layer, batch normalization, and activation
-        conv_module = model.model[0]
-
-        # Access the actual Conv2d layer
-        conv1 = conv_module.conv
-
-        # Create a new Conv2d layer with the desired number of input channels
-        new_conv = nn.Conv2d(new_channels, conv1.out_channels,
-                             kernel_size=conv1.kernel_size,
-                             stride=conv1.stride,
-                             padding=conv1.padding,
-                             bias=conv1.bias is not None)
-
-        # Transfer the weights from the old conv layer to the new one
-        with torch.no_grad():
-            # Copy the weights for the first 3 channels
-            new_conv.weight[:, :3, :, :].copy_(conv1.weight)
-            # If there are more channels, initialize them
-            if new_channels > 3:
-                nn.init.xavier_uniform_(new_conv.weight[:, 3:, :, :])
-            # If the original convolutional layer had a bias, copy it
-            if conv1.bias is not None:
-                new_conv.bias.copy_(conv1.bias)
-
-        # Replace the convolutional layer within the Conv module
-        conv_module.conv = new_conv
-
-        return model
-
-
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
         model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
-
         if weights:
             model.load(weights)
-
-        model = self.modify_input_channels(model, 4)
         return model
 
     def get_validator(self):

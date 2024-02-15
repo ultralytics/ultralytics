@@ -15,12 +15,7 @@ import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-from .utils import HELP_URL, IMG_FORMATS, imread
-
-import rasterio
-
-
-
+from .utils import HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
@@ -128,26 +123,6 @@ class BaseDataset(Dataset):
             im_files = im_files[: round(len(im_files) * self.fraction)]
         return im_files
 
-    def resize_multiband(self, image, size):
-        """
-        Resize a multi-band image to a new size.
-
-        Args:
-            image (numpy.ndarray): The multi-band image to resize, shape (height, width, bands).
-            size (tuple): The target size (width, height) as a tuple.
-
-        Returns:
-            numpy.ndarray: The resized multi-band image.
-        """
-        h, w, bands = image.shape
-        resized = np.empty((size[1], size[0], bands), dtype=image.dtype)  # New size with same number of bands
-
-        for band in range(bands):
-            # Resize each band individually
-            resized[:, :, band] = cv2.resize(image[:, :, band], size, interpolation=cv2.INTER_LINEAR)
-
-        return resized
-
     def update_labels(self, include_class: Optional[list]):
         """Update labels to include only these classes (optional)."""
         include_class_array = np.array(include_class).reshape(1, -1)
@@ -179,8 +154,7 @@ class BaseDataset(Dataset):
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
-                im = cv2.imread(f,cv2.IMREAD_UNCHANGED)
-                im = cv2.cvtColor(im, cv2.COLOR_RGBA2BGRA)
+                im = cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -225,14 +199,14 @@ class BaseDataset(Dataset):
         """Saves an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            np.save(f.as_posix(), imread(self.im_files[i]), allow_pickle=False)
+            np.save(f.as_posix(), cv2.imread(self.im_files[i]), allow_pickle=False)
 
     def check_cache_ram(self, safety_margin=0.5):
         """Check image caching requirements vs available memory."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
-            im = imread(random.choice(self.im_files))  # sample image
+            im = cv2.imread(random.choice(self.im_files))  # sample image
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM

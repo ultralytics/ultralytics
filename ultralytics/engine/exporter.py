@@ -455,7 +455,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = None
-            if isinstance(self.model.model[-1], (Detect, RTDETRDecoder)):
+            if isinstance(self.model.model[-1], Detect):
                 # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
 

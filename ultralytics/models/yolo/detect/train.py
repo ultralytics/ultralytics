@@ -91,6 +91,10 @@ class DetectionTrainer(BaseTrainer):
         # Access the actual Conv2d layer
         conv1 = conv_module.conv
 
+        old_channels = conv1.in_channels
+        if new_channels == old_channels:
+            return model
+
         # Create a new Conv2d layer with the desired number of input channels
         new_conv = nn.Conv2d(new_channels, conv1.out_channels,
                              kernel_size=conv1.kernel_size,

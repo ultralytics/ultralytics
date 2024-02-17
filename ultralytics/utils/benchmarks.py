@@ -149,8 +149,7 @@ class ProfileModels:
     """
     ProfileModels class for profiling different models on ONNX and TensorRT.
 
-    This class profiles the performance of different models, provided their paths. The profiling includes parameters such as
-    model speed and FLOPs.
+    This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
     Attributes:
         paths (list): Paths of the models to profile.
@@ -190,9 +189,9 @@ class ProfileModels:
             num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
             min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
             imgsz (int, optional): Size of the image used during profiling. Default is 640.
-            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling. Default is True.
+            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
-            device (torch.device, optional): Device used for profiling. If None, it is determined automatically. Default is None.
+            device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs

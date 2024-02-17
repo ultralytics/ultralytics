@@ -41,16 +41,16 @@ def test_triton():
 
     # Create variables
     model_name = "yolo"
-    triton_repo_path = TMP / "triton_repo"
-    triton_model_path = triton_repo_path / model_name
+    triton_repo = TMP / "triton_repo"  # Triton repo path
+    triton_model = triton_repo / model_name  # Triton model path
 
     # Export model to ONNX
     f = YOLO(MODEL).export(format="onnx", dynamic=True)
 
     # Prepare Triton repo
-    (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
-    Path(f).rename(triton_model_path / "1" / "model.onnx")
-    (triton_model_path / "config.pbtxt").touch()
+    (triton_model / "1").mkdir(parents=True, exist_ok=True)
+    Path(f).rename(triton_model / "1" / "model.onnx")
+    (triton_model / "config.pbtxt").touch()
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
     tag = "nvcr.io/nvidia/tritonserver:23.09-py3"  # 6.4 GB
@@ -61,7 +61,7 @@ def test_triton():
     # Run the Triton server and capture the container ID
     container_id = (
         subprocess.check_output(
-            f"docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            f"docker run -d --rm -v {triton_repo}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
             shell=True,
         )
         .decode("utf-8")

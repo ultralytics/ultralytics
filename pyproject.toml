@@ -52,6 +52,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -64,7 +65,6 @@ classifiers = [
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
     "matplotlib>=3.3.0",
-    "numpy>=1.22.2",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
@@ -97,10 +97,10 @@ dev = [
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
-    "coremltools>=7.0; platform_system != 'Windows'", # CoreML only supported on macOS and Linux
-    "openvino-dev>=2023.0", # OpenVINO export
-    "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
+    "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
+    "openvino-dev>=2023.0; python_version <= '3.11'", # OpenVINO export
+    "tensorflow<=2.13.1; python_version <= '3.11'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tensorflowjs>=3.9.0; python_version <= '3.11'", # TF.js export, automatically installs tensorflow
 ]
 explorer = [
     "lancedb", # vector search
@@ -120,7 +120,7 @@ extra = [
     "hub-sdk>=0.0.2", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.0.3", # training augmentations
-    "pycocotools>=2.0.6", # COCO mAP
+    "pycocotools>=2.0.7", # COCO mAP
 ]
 
 [project.urls]

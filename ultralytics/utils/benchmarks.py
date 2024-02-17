@@ -91,7 +91,7 @@ def benchmark(
             elif i in {5, 10}:  # CoreML and TF.js
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if i in {3, 5}:  # CoreML and OpenVINO
-                assert not IS_PYTHON_312, "CoreML and OpenVINO not supported on Python 3.12"
+                assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

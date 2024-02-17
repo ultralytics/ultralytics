@@ -36,7 +36,7 @@ CFG = "yolov8n.yaml"
 SOURCE = ASSETS / "bus.jpg"
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
-IS_PYTHON_312 = checks.check_version(PYTHON_VERSION, ">=3.12", name="Python ", hard=False)
+IS_PYTHON_3_12 = checks.check_version(PYTHON_VERSION, ">=3.12", name="Python ", hard=False)
 
 
 def test_model_forward():
@@ -219,14 +219,14 @@ def test_export_onnx():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-@pytest.mark.skipif(IS_PYTHON_312, reason="OpenVINO not supported in Python 3.12")
+@pytest.mark.skipif(IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 def test_export_openvino():
     """Test exporting the YOLO model to OpenVINO format."""
     f = YOLO(MODEL).export(format="openvino")
     YOLO(f)(SOURCE)  # exported model inference
 
 
-@pytest.mark.skipif(IS_PYTHON_312, reason="CoreML not supported in Python 3.12")
+@pytest.mark.skipif(IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
     if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows

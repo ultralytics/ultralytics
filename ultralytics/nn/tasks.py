@@ -287,7 +287,8 @@ class DetectionModel(BaseModel):
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
+            def forward(x):
+                return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -575,7 +576,9 @@ class WorldModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        raise NotImplementedError
+        from ultralytics.models.utils.loss import CoVMSELoss
+
+        return CoVMSELoss()
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
         """

@@ -708,3 +708,51 @@ class v8OBBLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
+
+# https://mmdetection.readthedocs.io/en/v2.19.0/_modules/mmdet/models/losses/mse_loss.html
+def mse_loss(pred, target):
+    """Wrapper of mse loss."""
+    return F.mse_loss(pred, target, reduction='none')
+
+class MSELoss(nn.Module):
+    """MSELoss.
+
+    Args:
+        reduction (str, optional): The method that reduces the loss to a
+            scalar. Options are "none", "mean" and "sum".
+        loss_weight (float, optional): The weight of the loss. Defaults to 1.0
+    """
+
+    def __init__(self, reduction='mean', loss_weight=1.0):
+        super().__init__()
+        self.reduction = reduction
+        self.loss_weight = loss_weight
+
+    def forward(self,
+                pred,
+                target,
+                weight=None,
+                avg_factor=None,
+                reduction_override=None):
+        """Forward function of loss.
+
+        Args:
+            pred (torch.Tensor): The prediction.
+            target (torch.Tensor): The learning target of the prediction.
+            weight (torch.Tensor, optional): Weight of the loss for each
+                prediction. Defaults to None.
+            avg_factor (int, optional): Average factor that is used to average
+                the loss. Defaults to None.
+            reduction_override (str, optional): The reduction method used to
+                override the original reduction method of the loss.
+                Defaults to None.
+
+        Returns:
+            torch.Tensor: The calculated loss
+        """
+        assert reduction_override in (None, 'none', 'mean', 'sum')
+        reduction = (
+            reduction_override if reduction_override else self.reduction)
+        loss = self.loss_weight * mse_loss(
+            pred, target, weight, reduction=reduction, avg_factor=avg_factor)
+        return loss

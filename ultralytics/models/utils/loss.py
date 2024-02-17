@@ -4,9 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.loss import FocalLoss, VarifocalLoss
+from ultralytics.utils.loss import FocalLoss, VarifocalLoss, MSELoss
 from ultralytics.utils.metrics import bbox_iou
 from .ops import HungarianMatcher
+from typing import Optional
 
 
 class DETRLoss(nn.Module):
@@ -343,3 +344,31 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.long), torch.zeros([0], dtype=torch.long)))
         return dn_match_indices
+
+# https://github.com/AILab-CVC/YOLO-World/blob/master/yolo_world/models/losses/dynamic_loss.py#L7
+class CoVMSELoss(nn.Module):
+    def __init__(self,
+                 dim: int = 0,
+                 reduction: str = 'mean',
+                 loss_weight: float = 1.0,
+                 eps: float = 1e-6) -> None:
+        super().__init__()
+        self.dim = dim
+        self.reduction = reduction
+        self.loss_weight = loss_weight
+        self.eps = eps
+
+    def forward(self,
+                pred: torch.Tensor,
+                weight: Optional[torch.Tensor] = None,
+                avg_factor: Optional[int] = None,
+                reduction_override: Optional[str] = None) -> torch.Tensor:
+        """Forward function of loss."""
+        assert reduction_override in (None, 'none', 'mean', 'sum')
+        reduction = (
+            reduction_override if reduction_override else self.reduction)
+        cov = pred.std(self.dim) / pred.mean(self.dim).clamp(min=self.eps)
+        target = torch.zeros_like(cov)
+        loss = self.loss_weight * MSELoss(
+            cov, target, weight, reduction=reduction, avg_factor=avg_factor)
+        return loss

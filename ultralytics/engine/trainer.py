@@ -285,7 +285,7 @@ class BaseTrainer:
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")
         if RANK in (-1, 0):
-            # NOTE: When training DOTA dataset, double batch size could get OOM cause some images got more than 2000 objects.
+            # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
             self.test_loader = self.get_dataloader(
                 self.testset, batch_size=batch_size if self.args.task == "obb" else batch_size * 2, rank=-1, mode="val"
             )

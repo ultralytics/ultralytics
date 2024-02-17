@@ -35,12 +35,10 @@ import torch.cuda
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, PYTHON_VERSION, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import check_requirements, check_yolo, check_version
+from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
-
-IS_PYTHON_312 = check_version(PYTHON_VERSION, ">=3.12", name="Python ", hard=False)
 
 
 def benchmark(

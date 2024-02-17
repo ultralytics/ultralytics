@@ -72,21 +72,23 @@ Export a YOLOv8n model to a different format like ONNX or TensorRT. See Argument
 
 ## Arguments
 
-Export settings for YOLO models refer to the various configurations and options used to save or export the model for use in other environments or platforms. These settings can affect the model's performance, size, and compatibility with different systems. Some common YOLO export settings include the format of the exported model file (e.g. ONNX, TensorFlow SavedModel), the device on which the model will be run (e.g. CPU, GPU), and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the export process include the specific task the model is being used for and the requirements or constraints of the target environment or platform. It is important to carefully consider and configure these settings to ensure that the exported model is optimized for the intended use case and can be used effectively in the target environment.
+This table details the configurations and options available for exporting YOLO models to different formats. These settings are critical for optimizing the exported model's performance, size, and compatibility across various platforms and environments. Proper configuration ensures that the model is ready for deployment in the intended application with optimal efficiency.
 
-| Key         | Value           | Description                                          |
-|-------------|-----------------|------------------------------------------------------|
-| `format`    | `'torchscript'` | format to export to                                  |
-| `imgsz`     | `640`           | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `keras`     | `False`         | use Keras for TF SavedModel export                   |
-| `optimize`  | `False`         | TorchScript: optimize for mobile                     |
-| `half`      | `False`         | FP16 quantization                                    |
-| `int8`      | `False`         | INT8 quantization                                    |
-| `dynamic`   | `False`         | ONNX/TensorRT: dynamic axes                          |
-| `simplify`  | `False`         | ONNX/TensorRT: simplify model                        |
-| `opset`     | `None`          | ONNX: opset version (optional, defaults to latest)   |
-| `workspace` | `4`             | TensorRT: workspace size (GB)                        |
-| `nms`       | `False`         | CoreML: add NMS                                      |
+| Key         | Default Value   | Description                                                                                                                                                       |
+|-------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `format`    | `'torchscript'` | Specifies the export format. Supported values include `'torchscript'`, `'onnx'`, `'coreml'`, `'engine'` (TensorRT), `'saved_model'` (TensorFlow SavedModel), etc. |
+| `imgsz`     | `640`           | Defines the image size for export. Accepts an integer for square images or a tuple `(height, width)` for non-square images.                                       |
+| `keras`     | `False`         | When exporting to TensorFlow SavedModel, setting this to `True` utilizes Keras for the export process.                                                            |
+| `optimize`  | `False`         | Applies to TorchScript exports, enabling optimization for mobile deployments.                                                                                     |
+| `half`      | `False`         | Enables half-precision (FP16) quantization for the exported model, reducing size and potentially increasing inference speed on compatible hardware.               |
+| `int8`      | `False`         | Activates INT8 quantization, further reducing model size and increasing inference speed at the cost of precision. Useful for edge devices.                        |
+| `dynamic`   | `False`         | For ONNX and TensorRT formats, enables dynamic axes, allowing variable input sizes for inference.                                                                 |
+| `simplify`  | `False`         | Simplifies the model structure for ONNX and TensorRT formats, potentially improving efficiency and compatibility.                                                 |
+| `opset`     | `None`          | Specifies the ONNX opset version for export. If not set, uses the latest supported version. Useful for ensuring compatibility with older ONNX parsers.            |
+| `workspace` | `4`             | Defines the maximum workspace size in GB for TensorRT exports, affecting the optimization process and memory usage.                                               |
+| `nms`       | `False`         | When exporting to CoreML, adds a Non-Maximum Suppression (NMS) layer to the model, useful for filtering overlapping detections.                                   |
+
+Adjusting these parameters allows for customization of the export process to fit specific requirements, such as deployment environment, hardware constraints, and performance targets. Selecting the appropriate format and settings is essential for achieving the best balance between model size, speed, and accuracy.
 
 ## Export Formats
 

@@ -81,7 +81,7 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
-from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
+from ultralytics.utils.checks import PYTHON_VERSION, check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -216,7 +216,7 @@ class Exporter:
         model.float()
         model = model.fuse()
         for m in model.modules():
-            if isinstance(m, (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
+            if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
@@ -455,8 +455,8 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
             ignored_scope = None
-            if isinstance(self.model.model[-1], (Detect, RTDETRDecoder)):  # Segment and Pose use Detect base class
-                # get detection module name in onnx
+            if isinstance(self.model.model[-1], Detect):
+                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
@@ -609,10 +609,8 @@ class Exporter:
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == "detect":
             if mlmodel:
-                import platform
-
                 # coremltools<=6.2 NMS export requires Python<3.11
-                check_version(platform.python_version(), "<3.11", name="Python ", hard=True)
+                check_version(PYTHON_VERSION, "<3.11", name="Python ", hard=True)
                 weights_dir = None
             else:
                 ct_model.save(str(f))  # save otherwise weights_dir does not exist

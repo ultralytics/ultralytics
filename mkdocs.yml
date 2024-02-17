@@ -60,7 +60,7 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
-    - navigation.sections  # navigation.expand or navigation.sections
+    - navigation.sections # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
@@ -226,6 +226,7 @@ nav:
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
+      - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
   - Datasets:
       - datasets/index.md
       - NEW 🚀 Explorer:
@@ -358,6 +359,7 @@ nav:
           - Datasets: hub/datasets.md
           - Projects: hub/projects.md
           - Models: hub/models.md
+          - Cloud Training: hub/cloud-training.md
           - Integrations: hub/integrations.md
           - Inference API: hub/inference-api.md
       - On-Premise:

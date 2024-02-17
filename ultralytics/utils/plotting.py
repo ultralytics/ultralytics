@@ -250,7 +250,8 @@ class Annotator:
             kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
                                        for human pose. Default is True.
 
-        Note: `kpt_line=True` currently only supports human pose plotting.
+        Note:
+            `kpt_line=True` currently only supports human pose plotting.
         """
         if self.pil:
             # Convert to numpy first
@@ -331,11 +332,11 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
-        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).show(title)
+        Image.fromarray(np.asarray(self.im)[..., ::-1]).show(title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
-        (self.im if isinstance(self.im, Image.Image) else Image.fromarray(self.im[..., ::-1])).save(filename)
+        cv2.imwrite(filename, np.asarray(self.im))
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
@@ -421,8 +422,6 @@ class Annotator:
             shape (tuple): imgsz for model inference
             radius (int): Keypoint radius value
         """
-        nkpts, ndim = keypoints.shape
-        nkpts == 17 and ndim == 3
         for i, k in enumerate(keypoints):
             if i in indices:
                 x_coord, y_coord = k[0], k[1]

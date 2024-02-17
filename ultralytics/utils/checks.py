@@ -9,7 +9,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import time
 from importlib import metadata
 from pathlib import Path
@@ -45,6 +44,8 @@ from ultralytics.utils import (
     is_pip_package,
     url2file,
 )
+
+PYTHON_VERSION = platform.python_version()
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -329,7 +330,7 @@ def check_python(minimum: str = "3.8.0") -> bool:
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(platform.python_version(), minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
 
 
 @TryExcept()
@@ -580,7 +581,7 @@ def collect_system_info():
     LOGGER.info(
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
-        f"{'Python':<20}{sys.version.split()[0]}\n"
+        f"{'Python':<20}{PYTHON_VERSION}\n"
         f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
         f"{'RAM':<20}{ram_info:.2f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
@@ -722,3 +723,7 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
+
+
+# Define constants
+IS_PYTHON_3_12 = check_version(PYTHON_VERSION, "==3.12", name="Python ", hard=False)

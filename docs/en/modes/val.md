@@ -100,6 +100,8 @@ Each of these settings plays a vital role in the validation process, allowing fo
 
 ### Example Validation with Arguments
 
+The below examples showcase YOLO model validation with custom arguments in Python and CLI.
+
 !!! Example
 
     === "Python"
@@ -122,5 +124,5 @@ Each of these settings plays a vital role in the validation process, allowing fo
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+        yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```

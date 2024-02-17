@@ -77,21 +77,23 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 
 ## Arguments
 
-Validation settings for YOLO models refer to the various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO validation settings include the batch size, the frequency with which validation is performed during training, and the metrics used to evaluate the model's performance. Other factors that may affect the validation process include the size and composition of the validation dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the model is performing well on the validation dataset and to detect and prevent overfitting.
+The table below outlines the various settings and hyperparameters you can adjust to evaluate the performance of YOLO models. These settings influence aspects such as model accuracy, detection speed, and resource allocation during the validation phase. Understanding and fine-tuning these parameters is crucial for optimizing model performance on your specific dataset.
 
-| Key           | Value   | Description                                                        |
-|---------------|---------|--------------------------------------------------------------------|
-| `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
-| `imgsz`       | `640`   | size of input images as integer                                    |
-| `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
-| `save_json`   | `False` | save results to JSON file                                          |
-| `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |
-| `conf`        | `0.001` | object confidence threshold for detection                          |
-| `iou`         | `0.6`   | intersection over union (IoU) threshold for NMS                    |
-| `max_det`     | `300`   | maximum number of detections per image                             |
-| `half`        | `True`  | use half precision (FP16)                                          |
-| `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
-| `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | save plots and images during train/val                             |
-| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
-| `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
+| Key           | Default Value | Description                                                                                                                                                                                                                                   |
+|---------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `data`        | `None`        | Specifies the path to the data configuration file (e.g., `coco128.yaml`). This file contains information about the dataset, including paths to validation images and class labels.                                                            |
+| `imgsz`       | `640`         | Sets the input image size in pixels (`height`=`width`) for validation. Resizing images to a standard size can impact both the speed and accuracy of the model.                                                                                |
+| `batch`       | `16`          | Determines the number of images processed in a single batch. A larger batch size can speed up the validation process but requires more memory. The special value `-1` triggers AutoBatch, optimizing batch size based on available resources. |
+| `save_json`   | `False`       | If set to `True`, saves the validation results in a JSON file for further analysis or external use. Useful for benchmarking or sharing results.                                                                                               |
+| `save_hybrid` | `False`       | When set to `True`, saves a hybrid format of labels combining original dataset labels with additional predictions made by the model. This can be helpful for analyzing model performance in detail.                                           |
+| `conf`        | `0.001`       | Sets the minimum confidence threshold for detections to be considered valid. Detections with confidence scores below this threshold are discarded. Adjusting this value can affect the precision and recall of the model.                     |
+| `iou`         | `0.6`         | Specifies the Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). NMS is a technique to eliminate redundant detections, keeping only the most confident ones.                                                          |
+| `max_det`     | `300`         | Limits the maximum number of detections allowed per image. This constraint can prevent the model from generating too many predictions on dense scenes.                                                                                        |
+| `half`        | `True`        | Enables half-precision (FP16) computation, which can significantly speed up validation on compatible hardware (e.g., recent NVIDIA GPUs) with minimal impact on accuracy.                                                                     |
+| `device`      | `None`        | Selects the computational device for validation (`cpu` or `cuda` along with device number like `0`, `1`, etc.). If not specified, automatically uses the best available device.                                                               |
+| `dnn`         | `False`       | When enabled, uses OpenCV's Deep Neural Network (DNN) module for inference with ONNX models. This can be a fallback option for environments where CUDA is not available.                                                                      |
+| `plots`       | `False`       | If set to `True`, generates and saves plots and images during validation. This visual feedback can be invaluable for understanding model performance and issues.                                                                              |
+| `rect`        | `False`       | Enables rectangular validation, which adjusts input images to a rectangular shape that fits the original aspect ratio with minimal padding. This can improve speed and accuracy by reducing unnecessary computations.                         |
+| `split`       | `val`         | Defines the dataset split to use for validation (`val`, `test`, or `train`). This allows flexibility in choosing different parts of the dataset to evaluate model performance.                                                                |
+
+Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.

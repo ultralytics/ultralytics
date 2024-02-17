@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the diverse range of YOLO family, SAM, MobileSAM, FastSAM, YOLO-NAS, and RT-DETR models supported by Ultralytics. Get started with examples for both CLI and Python usage.
-keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, models, architectures, Python, CLI
+description: Explore the diverse range of YOLO family, SAM, MobileSAM, FastSAM, YOLO-NAS, YOLO-World and RT-DETR models supported by Ultralytics. Get started with examples for both CLI and Python usage.
+keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, models, architectures, Python, CLI
 ---
 
 # Models Supported by Ultralytics
@@ -23,6 +23,7 @@ Here are some of the key models supported:
 9. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
 10. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Models.
 11. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
+12. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
 
 <p align="center">
   <br>

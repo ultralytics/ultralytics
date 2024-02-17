@@ -2,7 +2,6 @@
 
 import math
 import os
-import platform
 import random
 import time
 from contextlib import contextmanager
@@ -18,7 +17,7 @@ import torch.nn.functional as F
 import torchvision
 
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import PYTHON_VERSION, check_version
 
 try:
     import thop
@@ -103,7 +102,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device):
         return device
 
-    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
+    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'

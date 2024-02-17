@@ -783,6 +783,7 @@ class Retry(contextlib.ContextDecorator):
         """Decorator implementation for Retry with exponential backoff."""
 
         def wrapped_func(*args, **kwargs):
+            """Applies retries to the decorated function or method."""
             self._attempts = 0
             while self._attempts < self.times:
                 try:

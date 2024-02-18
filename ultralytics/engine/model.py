@@ -178,7 +178,7 @@ class Model(nn.Module):
         return session if session.client.authenticated else None
 
     @staticmethod
-    def is_triton_model(model: str):
+    def is_triton_model(model: str) -> bool:
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
 
@@ -186,7 +186,7 @@ class Model(nn.Module):
         return url.netloc and url.path and url.scheme in {"http", "grpc"}
 
     @staticmethod
-    def is_hub_model(model: str):
+    def is_hub_model(model: str) -> bool:
         """Check if the provided model is a HUB model."""
         return any(
             (
@@ -252,7 +252,7 @@ class Model(nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
-    def reset_weights(self):
+    def reset_weights(self) -> "Model":
         """
         Resets the model parameters to randomly initialized values, effectively discarding all training information.
 
@@ -274,7 +274,7 @@ class Model(nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: Union[str, Path] = "yolov8n.pt"):
+    def load(self, weights: Union[str, Path] = "yolov8n.pt") -> "Model":
         """
         Loads parameters from the specified weights file into the model.
 
@@ -690,7 +690,7 @@ class Model(nn.Module):
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
 
-    def _apply(self, fn):
+    def _apply(self, fn) -> "Model":
         """Apply to(), cpu(), cuda(), half(), float() to model tensors that are not parameters or registered buffers."""
         self._check_is_pytorch_model()
         self = super()._apply(fn)  # noqa

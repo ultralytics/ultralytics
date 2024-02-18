@@ -78,7 +78,7 @@ class Model(nn.Module):
         NotImplementedError: If a specific model task or mode is not supported.
     """
 
-    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None, verbose=False) -> None:
+    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task: str = None, verbose: bool = False) -> None:
         """
         Initializes a new instance of the YOLO model class.
 
@@ -135,7 +135,7 @@ class Model(nn.Module):
 
         self.model_name = model
 
-    def __call__(self, source=None, stream=False, **kwargs):
+    def __call__(self, source: Union[str, Path, int] = None, stream: bool = False, **kwargs) -> list:
         """
         An alias for the predict method, enabling the model instance to be callable.
 
@@ -143,8 +143,9 @@ class Model(nn.Module):
         with the required arguments for prediction.
 
         Args:
-            source (str | int | PIL.Image | np.ndarray, optional): The source of the image for making predictions.
-                Accepts various types, including file paths, URLs, PIL images, and numpy arrays. Defaults to None.
+            source (str | Path | int | PIL.Image | np.ndarray, optional): The source of the image for making
+                predictions. Accepts various types, including file paths, URLs, PIL images, and numpy arrays.
+                Defaults to None.
             stream (bool, optional): If True, treats the input source as a continuous stream for predictions.
                 Defaults to False.
             **kwargs (dict): Additional keyword arguments for configuring the prediction process.
@@ -163,7 +164,7 @@ class Model(nn.Module):
         return session if session.client.authenticated else None
 
     @staticmethod
-    def is_triton_model(model):
+    def is_triton_model(model: str):
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
 
@@ -171,7 +172,7 @@ class Model(nn.Module):
         return url.netloc and url.path and url.scheme in {"http", "grpc"}
 
     @staticmethod
-    def is_hub_model(model):
+    def is_hub_model(model: str):
         """Check if the provided model is a HUB model."""
         return any(
             (
@@ -259,7 +260,7 @@ class Model(nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights="yolov8n.pt"):
+    def load(self, weights: Union[str, Path] = "yolov8n.pt"):
         """
         Loads parameters from the specified weights file into the model.
 
@@ -281,14 +282,14 @@ class Model(nn.Module):
         self.model.load(weights)
         return self
 
-    def save(self, filename="model.pt"):
+    def save(self, filename: Union[str, Path] = "saved_model.pt"):
         """
         Saves the current model state to a file.
 
         This method exports the model's checkpoint (ckpt) to the specified filename.
 
         Args:
-            filename (str): The name of the file to save the model to. Defaults to 'model.pt'.
+            filename (str | Path): The name of the file to save the model to. Defaults to 'saved_model.pt'.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -298,7 +299,7 @@ class Model(nn.Module):
 
         torch.save(self.ckpt, filename)
 
-    def info(self, detailed=False, verbose=True):
+    def info(self, detailed: bool = False, verbose: bool = True):
         """
         Logs or returns model information.
 
@@ -330,7 +331,7 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self.model.fuse()
 
-    def embed(self, source=None, stream=False, **kwargs):
+    def embed(self, source=None, stream: bool = False, **kwargs):
         """
         Generates image embeddings based on the provided source.
 
@@ -729,7 +730,7 @@ class Model(nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args):
+    def _reset_ckpt_args(args: dict):
         """Reset arguments when loading a PyTorch model."""
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
@@ -739,7 +740,7 @@ class Model(nn.Module):
     #    name = self.__class__.__name__
     #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def _smart_load(self, key):
+    def _smart_load(self, key: str):
         """Load model/trainer/validator/predictor."""
         try:
             return self.task_map[self.task][key]

@@ -345,7 +345,7 @@ class Model(nn.Module):
 
     def embed(
         self,
-        source=None,
+        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -373,8 +373,8 @@ class Model(nn.Module):
 
     def predict(
         self,
-        source=None,
-        stream=False,
+        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        stream: bool = False,
         predictor=None,
         **kwargs,
     ) -> list:
@@ -431,9 +431,9 @@ class Model(nn.Module):
 
     def track(
         self,
-        source=None,
-        stream=False,
-        persist=False,
+        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        stream: bool = False,
+        persist: bool = False,
         **kwargs,
     ) -> list:
         """

@@ -196,7 +196,7 @@ class Model(nn.Module):
             )
         )
 
-    def _new(self, cfg: str, task=None, model=None, verbose=False):
+    def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
         """
         Initializes a new model and infers the task type from the model definitions.
 
@@ -217,7 +217,7 @@ class Model(nn.Module):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
         self.model.task = self.task
 
-    def _load(self, weights: str, task=None):
+    def _load(self, weights: str, task=None) -> None:
         """
         Initializes a new model and infers the task type from the model head.
 
@@ -239,7 +239,7 @@ class Model(nn.Module):
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
 
-    def _check_is_pytorch_model(self):
+    def _check_is_pytorch_model(self) -> None:
         """Raises TypeError is model is not a PyTorch model."""
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
         pt_module = isinstance(self.model, nn.Module)
@@ -296,7 +296,7 @@ class Model(nn.Module):
         self.model.load(weights)
         return self
 
-    def save(self, filename: Union[str, Path] = "saved_model.pt"):
+    def save(self, filename: Union[str, Path] = "saved_model.pt") -> None:
         """
         Saves the current model state to a file.
 
@@ -309,8 +309,6 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        import torch
-
         torch.save(self.ckpt, filename)
 
     def info(self, detailed: bool = False, verbose: bool = True):
@@ -350,7 +348,7 @@ class Model(nn.Module):
         source=None,
         stream: bool = False,
         **kwargs,
-    ):
+    ) -> list:
         """
         Generates image embeddings based on the provided source.
 
@@ -379,7 +377,7 @@ class Model(nn.Module):
         stream=False,
         predictor=None,
         **kwargs,
-    ):
+    ) -> list:
         """
         Performs predictions on the given image source using the YOLO model.
 
@@ -437,7 +435,7 @@ class Model(nn.Module):
         stream=False,
         persist=False,
         **kwargs,
-    ):
+    ) -> list:
         """
         Conducts object tracking on the specified input source using the registered trackers.
 
@@ -740,7 +738,7 @@ class Model(nn.Module):
         """
         return self.model.transforms if hasattr(self.model, "transforms") else None
 
-    def add_callback(self, event: str, func):
+    def add_callback(self, event: str, func) -> None:
         """
         Adds a callback function for a specified event.
 
@@ -756,7 +754,7 @@ class Model(nn.Module):
         """
         self.callbacks[event].append(func)
 
-    def clear_callback(self, event: str):
+    def clear_callback(self, event: str) -> None:
         """
         Clears all callback functions registered for a specified event.
 
@@ -770,7 +768,7 @@ class Model(nn.Module):
         """
         self.callbacks[event] = []
 
-    def reset_callbacks(self):
+    def reset_callbacks(self) -> None:
         """
         Resets all callbacks to their default functions.
 
@@ -781,7 +779,7 @@ class Model(nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args: dict):
+    def _reset_ckpt_args(args: dict) -> dict:
         """Reset arguments when loading a PyTorch model."""
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}

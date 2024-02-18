@@ -699,7 +699,7 @@ class Model(nn.Module):
         return self
 
     @property
-    def names(self):
+    def names(self) -> list:
         """
         Retrieves the class names associated with the loaded model.
 
@@ -714,7 +714,7 @@ class Model(nn.Module):
         return check_class_names(self.model.names) if hasattr(self.model, "names") else None
 
     @property
-    def device(self):
+    def device(self) -> torch.device:
         """
         Retrieves the device on which the model's parameters are allocated.
 
@@ -801,7 +801,7 @@ class Model(nn.Module):
             ) from e
 
     @property
-    def task_map(self):
+    def task_map(self) -> dict:
         """
         Map head to model, trainer, validator, and predictor classes.
 

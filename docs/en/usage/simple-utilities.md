@@ -4,6 +4,8 @@ description: Discover how to extend the utility of the Ultralytics package to su
 keywords: Ultralytics, YOLO, custom, function, workflow, utility, support, 
 ---
 
+# Simple Utilities
+
 <p align="center">
   <img src="https://github.com/ultralytics/ultralytics/assets/62214284/516112de-4567-49f8-b93f-b55a10b79dd7" alt="code with perspective">
 </p>

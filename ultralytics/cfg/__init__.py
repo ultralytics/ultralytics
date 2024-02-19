@@ -410,24 +410,28 @@ def parse_key_value_pair(pair):
 
 
 def guess_architecture(model_path):
-    """Guess the architecture from model path"""
+    """Guess the architecture from model path."""
     stem = Path(model_path).stem.lower()
     if "rtdetr" in stem:
         from ultralytics import RTDETR
+
         return RTDETR
     elif "fastsam" in stem:
         from ultralytics import FastSAM
+
         return FastSAM
     elif "sam" in stem:
         from ultralytics import SAM
+
         return SAM
     else:
         from ultralytics import YOLO
+
         return YOLO
 
 
 def init_model(model_path, arch=None, **kwargs):
-    """Initialize model"""
+    """Initialize model."""
     arch = guess_architecture(model_path) if not arch else arch
     # pass param from kwargs only if param exists in constructor signature
     # TODO: adding kwargs to all architectures will make the param filtering unnecessary

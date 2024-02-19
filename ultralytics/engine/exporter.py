@@ -716,7 +716,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "onnx",
+                "onnx>=1.12.0",
                 "onnx2tf>=1.15.4,<=1.17.5",
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",

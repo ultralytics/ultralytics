@@ -5,14 +5,22 @@ import sys
 from pathlib import Path
 from typing import Union
 
-import PIL
-import numpy as np
-import torch
-
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
+from ultralytics.utils import (
+    ASSETS,
+    DEFAULT_CFG_DICT,
+    LOGGER,
+    RANK,
+    SETTINGS,
+    callbacks,
+    checks,
+    emojis,
+    yaml_load,
+    np,
+    torch,
+)
 
 
 class Model(nn.Module):
@@ -146,7 +154,7 @@ class Model(nn.Module):
 
     def __call__(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -345,7 +353,7 @@ class Model(nn.Module):
 
     def embed(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -373,7 +381,7 @@ class Model(nn.Module):
 
     def predict(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         predictor=None,
         **kwargs,

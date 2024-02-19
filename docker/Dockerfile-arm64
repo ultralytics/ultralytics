@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is aarch64-compatible for Apple M1, M2, M3, Rapsberry Pi and any other ARM architectures
+# Image is aarch64-compatible for Apple M1, M2, M3, Raspberry Pi and any other ARM architectures
 
 # Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian
 FROM arm64v8/debian:bookworm-slim

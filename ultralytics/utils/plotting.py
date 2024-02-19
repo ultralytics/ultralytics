@@ -123,7 +123,6 @@ class Annotator:
                 LOGGER.info(f" shape for validation plotting PIL: {im.size}")
 
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
-            self.im = self.im.convert("RGB")
             self.draw = ImageDraw.Draw(self.im)
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)

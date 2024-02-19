@@ -439,7 +439,7 @@ class Model(nn.Module):
 
     def track(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs,

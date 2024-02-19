@@ -113,7 +113,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          yolo export format=tflite imgsz=32 || true
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks

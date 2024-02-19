@@ -332,7 +332,6 @@ class ConfusionMatrix:
             gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
             gt_cls (Array[M]): The class labels.
         """
-        is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
@@ -349,6 +348,7 @@ class ConfusionMatrix:
         detections = detections[detections[:, 4] > self.conf]
         gt_classes = gt_cls.int()
         detection_classes = detections[:, 5].int()
+        is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
         iou = (
             batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
             if is_obb

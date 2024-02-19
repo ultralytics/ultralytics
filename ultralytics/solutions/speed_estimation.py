@@ -154,7 +154,7 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks,colors=(255,0,255)):
+    def estimate_speed(self, im0, tracks, colors=(255, 0, 255)):
         """
         Calculate object based on tracking data.
 

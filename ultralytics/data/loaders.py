@@ -448,11 +448,11 @@ class LoadTensor:
             f"WARNING ⚠️ torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
             f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
         )
-        if len(im.shape) != 4:
+        """if len(im.shape) != 4:
             if len(im.shape) != 3:
                 raise ValueError(s)
             LOGGER.warning(s)
-            im = im.unsqueeze(0)
+            im = im.unsqueeze(0)"""
         if im.shape[2] % stride or im.shape[3] % stride:
             raise ValueError(s)
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
@@ -461,7 +461,6 @@ class LoadTensor:
                 f"Dividing input by 255."
             )
             im = im.float() / 255.0
-
         return im
 
     def __iter__(self):

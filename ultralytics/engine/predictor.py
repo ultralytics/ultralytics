@@ -121,6 +121,8 @@ class BasePredictor:
         if not_tensor:
             im = np.stack(self.pre_transform(im))
             LOGGER.info(f"Preprocessing: {im.shape}, {im.ndim}")
+            if im.ndim == 4 and im.shape[0] == 1:
+                im = im[0]
             if im.ndim == 4:
                 im = im[:, :, :,[2, 1, 0, 3]] # BGRA to RGB
                 im = im.transpose((0, 3, 1, 2))

@@ -327,7 +327,7 @@ class ConfusionMatrix:
 
         Args:
             detections (Array[N, 6] | Array[N, 7]): Detected bounding boxes and their associated information.
-                                      Each row should contain (x1, y1, x2, y2, conf, class) 
+                                      Each row should contain (x1, y1, x2, y2, conf, class)
                                       or with an additional element `angle` when it's obb.
             gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
             gt_cls (Array[M]): The class labels.

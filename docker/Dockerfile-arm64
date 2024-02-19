@@ -2,7 +2,8 @@
 # Builds ultralytics/ultralytics:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is aarch64-compatible for Apple M1, M2, M3, Raspberry Pi and any other ARM architectures
 
-# Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian
+# Start FROM Ubuntu image https://hub.docker.com/_/ubuntu with "FROM arm64v8/ubuntu:22.04" (deprecated)
+# Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian (new)
 FROM arm64v8/debian:bookworm-slim
 
 # Downloads to user config dir

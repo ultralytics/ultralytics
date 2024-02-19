@@ -154,14 +154,14 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks, colors=(255, 0, 255)):
+    def estimate_speed(self, im0, tracks, region_color=(255, 0, 0)):
         """
         Calculate object based on tracking data.
 
         Args:
             im0 (nd array): Image
             tracks (list): List of tracks obtained from the object tracking process.
-            colors (tuple): It's represent as color into the origin.
+            region_color (tuple): Color to use when drawing regions.
         """
         self.im0 = im0
         if tracks[0].boxes.id is None:
@@ -171,7 +171,7 @@ class SpeedEstimator:
         self.extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=colors, thickness=self.region_thickness)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.region_thickness)
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)

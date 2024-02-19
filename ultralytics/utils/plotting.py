@@ -27,7 +27,7 @@ class Colors:
     Attributes:
         palette (list of tuple): List of RGB color values.
         n (int): The number of colors in the palette.
-        pose_palette (np.array): A specific color palette array with dtype np.uint8.
+        pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
     """
 
     def __init__(self):

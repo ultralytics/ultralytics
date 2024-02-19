@@ -100,7 +100,6 @@ export = [
     "onnxsim>=0.4.33", # ONNX Simplifier
     "onnx2tf>=1.15.4,<=1.17.5",
     "sng4onnx>=1.0.1",
-    "onnx_graphsurgeon>=0.3.26",
     "tflite_support",
     "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
     "openvino-dev>=2023.0; python_version <= '3.11'", # OpenVINO export

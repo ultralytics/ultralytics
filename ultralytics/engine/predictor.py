@@ -120,7 +120,16 @@ class BasePredictor:
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
             im = np.stack(self.pre_transform(im))
-            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+            LOGGER.info(f"Preprocessing: {im.shape}, {im.ndim}")
+            if im.ndim == 4:
+                im = im[:, :, :,[2, 1, 0, 3]] # BGRA to RGB
+                im = im.transpose((0, 3, 1, 2))
+            elif im.ndim == 3:
+                im = im[:, :,[2, 1, 0, 3]]
+                im = im.transpose(2,0, 1)  # HWC to CHW
+            else:
+                raise ValueError("Invalid input shape for image. Expected 3 or 4 dimensions. Got {im.ndim} dimensions.")
+            #im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 

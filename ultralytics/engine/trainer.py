@@ -101,6 +101,7 @@ class BaseTrainer:
         self.validator = None
         self.metrics = None
         self.plots = {}
+        self.save_batch = True
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -372,7 +373,20 @@ class BaseTrainer:
 
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
+                    if self.save_batch:
+                        self.save_batch = False
+                        #LOGGER.info("batch_info",batch["img"].shape, batch["img"].dtype, batch["img"].device)
+
+
+                        path = "/home/clanger/Desktop/machinelearning/ultralytics_multiband_support/notebooks/test_batch"
+                        arr = batch["img"].cpu().numpy()
+                        np.save(os.path.join(path,f"test.npy",), arr)
+                        LOGGER.info("saved batch")
+
+
                     batch = self.preprocess_batch(batch)
+
+
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size

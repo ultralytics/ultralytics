@@ -180,7 +180,6 @@ class BaseDataset(Dataset):
                     im = cv2.imread(f)  # BGR
             else:  # read image
                 im = cv2.imread(f,cv2.IMREAD_UNCHANGED)
-                im = cv2.cvtColor(im, cv2.COLOR_RGBA2BGRA)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

@@ -161,7 +161,7 @@ class YOLODataset(BaseDataset):
         transforms.append(
             Format(
                 bbox_format="xywh",
-                   normalizeBoundingBoxes=True,
+                normalizeBoundingBoxes=True,
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
                 return_obb=self.use_obb,
@@ -173,6 +173,7 @@ class YOLODataset(BaseDataset):
         if self.image_transforms:
             LOGGER.info(f"Appending custom image transform: {self.image_transforms}")
             transforms.append(self.image_transforms)
+        LOGGER.info(f'Complete list of transforms to be applied:\n{transforms}')
         return transforms
 
     def close_mosaic(self, hyp):

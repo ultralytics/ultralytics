@@ -25,7 +25,7 @@ WORKDIR /usr/src/ultralytics
 
 # Copy contents
 # COPY . /usr/src/ultralytics  # git permission issues inside container
-RUN git clone https://github.com/ultralytics/ultralytics -b update-typehints /usr/src/ultralytics
+RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
@@ -33,6 +33,7 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e ".[export]" albumentations comet pycocotools
 
 # Run exports to AutoInstall packages
+# Edge TPU export fails the first time so is run twice here
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991

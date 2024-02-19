@@ -22,13 +22,13 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
 
     Args:
-        box1 (np.array): A numpy array of shape (n, 4) representing n bounding boxes.
-        box2 (np.array): A numpy array of shape (m, 4) representing m bounding boxes.
+        box1 (np.ndarray): A numpy array of shape (n, 4) representing n bounding boxes.
+        box2 (np.ndarray): A numpy array of shape (m, 4) representing m bounding boxes.
         iou (bool): Calculate the standard iou if True else return inter_area/box2_area.
         eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
-        (np.array): A numpy array of shape (n, m) representing the intersection over box2 area.
+        (np.ndarray): A numpy array of shape (n, m) representing the intersection over box2 area.
     """
 
     # Get the coordinates of bounding boxes
@@ -295,7 +295,7 @@ class ConfusionMatrix:
 
     Attributes:
         task (str): The type of task, either 'detect' or 'classify'.
-        matrix (np.array): The confusion matrix, with dimensions depending on the task.
+        matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of classes.
         conf (float): The confidence threshold for detections.
         iou_thres (float): The Intersection over Union threshold.
@@ -326,9 +326,10 @@ class ConfusionMatrix:
         Update confusion matrix for object detection task.
 
         Args:
-            detections (Array[N, 6]): Detected bounding boxes and their associated information.
-                                      Each row should contain (x1, y1, x2, y2, conf, class).
-            gt_bboxes (Array[M, 4]): Ground truth bounding boxes with xyxy format.
+            detections (Array[N, 6] | Array[N, 7]): Detected bounding boxes and their associated information.
+                                      Each row should contain (x1, y1, x2, y2, conf, class)
+                                      or with an additional element `angle` when it's obb.
+            gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
             gt_cls (Array[M]): The class labels.
         """
         if gt_cls.shape[0] == 0:  # Check if labels is empty
@@ -347,7 +348,12 @@ class ConfusionMatrix:
         detections = detections[detections[:, 4] > self.conf]
         gt_classes = gt_cls.int()
         detection_classes = detections[:, 5].int()
-        iou = box_iou(gt_bboxes, detections[:, :4])
+        is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
+        iou = (
+            batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
+            if is_obb
+            else box_iou(gt_bboxes, detections[:, :4])
+        )
 
         x = torch.where(iou > self.iou_thres)
         if x[0].shape[0]:

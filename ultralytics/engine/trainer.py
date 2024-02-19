@@ -101,7 +101,7 @@ class BaseTrainer:
         self.validator = None
         self.metrics = None
         self.plots = {}
-        self.save_batch = True
+        self.save_batch = False
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs

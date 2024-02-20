@@ -563,6 +563,8 @@ plugins:
   - ultralytics:
       add_desc: False
       add_image: True
+      add_authors: True
+      add_json_ld: True
       add_share_buttons: True
       default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter

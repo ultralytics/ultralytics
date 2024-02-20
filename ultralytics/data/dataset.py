@@ -12,7 +12,7 @@ from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
-from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
+from .augment import Compose, Format, Instances, LetterBox, RandomLoadText, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import (
     HELP_URL,
@@ -341,6 +341,33 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         x["msgs"] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return samples
+
+
+
+class YOLOMultiModalDataset(YOLODataset):
+    """
+    Dataset class for loading object detection and/or segmentation labels in YOLO format.
+
+    Args:
+        data (dict, optional): A dataset YAML dictionary. Defaults to None.
+        task (str): An explicit arg to point current task, Defaults to 'detect'.
+
+    Returns:
+        (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
+    """
+    def __init__(self, *args, data=None, task="detect", **kwargs):
+        super().__init__(*args, data=data, task=task, **kwargs)
+
+    def update_labels_info(self, label):
+        """Add texts information for multi modal model training."""
+        labels = super().update_labels_info(label)
+        labels["texts"] = self.data["names"]
+        return labels
+
+    def build_transforms(self, hyp=None):
+        transforms = super().build_transforms(hyp)
+        # NOTE: hard-coded the args for now.
+        transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
 
 
 # TODO: support semantic segmentation

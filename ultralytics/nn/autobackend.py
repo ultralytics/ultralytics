@@ -415,7 +415,7 @@ class AutoBackend(nn.Module):
                     results.append(request.results)  # directly append the inference result to 'results'
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = AsyncInferQueue(self.ov_compiled_model, 0)  # adjust the queue size as needed
+                async_queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
                 async_queue.set_callback(callback)
                 for image in im:
                     async_queue.start_async(inputs={self.input_name: image[None]})  # expand batch dim

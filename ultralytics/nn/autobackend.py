@@ -392,10 +392,31 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
         elif self.xml:  # OpenVINO
-            # Add throughput mode logic here
-
             im = im.cpu().numpy()  # FP32
-            y = list(self.ov_compiled_model(im).values())
+
+            inference_mode = "default"
+            if inference_mode == "default":
+                y = list(self.ov_compiled_model(im).values())
+
+            # Throughput optimized inference using OpenVINO AsyncInferQueue
+            elif inference_mode == "throughput":
+                from openvino import AsyncInferQueue
+
+                def callback(request, userdata):
+                    """Process completed requests."""
+                    userdata.append(request.results)
+
+                results = []
+                queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
+                for img in im:
+                    queue.start_async(
+                        inputs={self.ov_compiled_model.input().get_any_name(): img}, userdata=results, callback=callback
+                    )
+                queue.wait_all()  # Wait for all inference requests to complete
+
+                # Assuming y needs to be a list of output tensors
+                y = [result[queue.model.output().get_any_name()] for result in results]
+
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings["images"].shape:
                 i = self.model.get_binding_index("images")

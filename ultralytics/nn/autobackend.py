@@ -198,6 +198,7 @@ class AutoBackend(nn.Module):
                 device_name="AUTO",  # AUTO selects best available device
                 config={"PERFORMANCE_HINT": "THROUGHPUT"},
             )
+            input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
         elif engine:  # TensorRT
             LOGGER.info(f"Loading {w} for TensorRT inference...")
@@ -398,29 +399,26 @@ class AutoBackend(nn.Module):
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
 
-            inference_mode = "throughput"
-            if inference_mode == "default":
+            inference_mode = "latency"
+            # Latency optimized inference at batch-size 1
+            if inference_mode == "latency":
                 y = list(self.ov_compiled_model(im).values())
 
             # Throughput optimized inference using OpenVINO AsyncInferQueue
             elif inference_mode == "throughput":
                 from openvino.runtime import AsyncInferQueue
 
-                results = []  # This list will be filled by the callback function
+                results = []  # this list will be filled by the callback function
 
                 def callback(request, userdata):
                     """Callback function to handle the completion of an async inference request."""
                     results.append(request.results)  # directly append the inference result to 'results'
 
-                # Create AsyncInferQueue and set the callback
+                # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
                 async_queue = AsyncInferQueue(self.ov_compiled_model, 0)  # adjust the queue size as needed
                 async_queue.set_callback(callback)
-
-                # Start asynchronous inference for each input image
                 for image in im:
-                    async_queue.start_async(
-                        inputs={self.ov_compiled_model.input().get_any_name(): image[None]},  # expand batch dim
-                    )
+                    async_queue.start_async(inputs={self.input_name: image[None]})  # expand batch dim
                 async_queue.wait_all()  # wait for all inference requests to complete
                 y = [list(r.values()) for r in results][0]
 

@@ -408,9 +408,11 @@ class AutoBackend(nn.Module):
 
                 results = []
                 queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
-                for img in im:
+                for image in im:
                     queue.start_async(
-                        inputs={self.ov_compiled_model.input().get_any_name(): img}, userdata=results, callback=callback
+                        inputs={self.ov_compiled_model.input().get_any_name(): image},
+                        userdata=results,
+                        callback=callback,
                     )
                 queue.wait_all()  # Wait for all inference requests to complete
 

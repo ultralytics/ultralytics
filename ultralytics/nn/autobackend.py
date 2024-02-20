@@ -398,7 +398,7 @@ class AutoBackend(nn.Module):
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
 
-            inference_mode = "default"
+            inference_mode = "throughput"
             if inference_mode == "default":
                 y = list(self.ov_compiled_model(im).values())
 
@@ -406,22 +406,17 @@ class AutoBackend(nn.Module):
             elif inference_mode == "throughput":
                 from openvino import AsyncInferQueue
 
-                def callback(request, userdata):
-                    """Process completed requests."""
-                    userdata.append(request.results)
-
                 results = []
-                queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
-                for image in im:
-                    queue.start_async(
-                        inputs={self.ov_compiled_model.input().get_any_name(): image},
+                async_queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
+                for j in range(len(im)):
+                    async_queue.start_async(
+                        inputs={self.ov_compiled_model.input().get_any_name(): im[j : j + 1]},
                         userdata=results,
-                        callback=callback,
                     )
-                queue.wait_all()  # Wait for all inference requests to complete
+                async_queue.wait_all()  # wait for all inference requests to complete
 
                 # Assuming y needs to be a list of output tensors
-                y = [result[queue.model.output().get_any_name()] for result in results]
+                y = [result[async_queue.model.output().get_any_name()] for result in results]
 
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings["images"].shape:

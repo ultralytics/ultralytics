@@ -716,12 +716,13 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "onnx",
+                "onnx>=1.12.0",
                 "onnx2tf>=1.15.4,<=1.17.5",
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support",
+                "flatbuffers>=23.5.26",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",
@@ -860,8 +861,7 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLOv8 TensorFlow.js export."""
-        # JAX bug requiring install constraints in https://github.com/google/jax/issues/18978
-        check_requirements(["jax<=0.4.21", "jaxlib<=0.4.21", "tensorflowjs"])
+        check_requirements("tensorflowjs")
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 

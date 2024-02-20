@@ -404,19 +404,25 @@ class AutoBackend(nn.Module):
 
             # Throughput optimized inference using OpenVINO AsyncInferQueue
             elif inference_mode == "throughput":
-                from openvino import AsyncInferQueue
+                from openvino.runtime import AsyncInferQueue
 
-                results = []
-                async_queue = AsyncInferQueue(self.ov_compiled_model, 8)  # adjust the queue size as needed
+                results = []  # This list will be filled by the callback function
+
+                def callback(request, userdata):
+                    """Callback function to handle the completion of an async inference request."""
+                    results.append(request.results)  # directly append the inference result to 'results'
+
+                # Create AsyncInferQueue and set the callback
+                async_queue = AsyncInferQueue(self.ov_compiled_model, 0)  # adjust the queue size as needed
+                async_queue.set_callback(callback)
+
+                # Start asynchronous inference for each input image
                 for j in range(len(im)):
                     async_queue.start_async(
                         inputs={self.ov_compiled_model.input().get_any_name(): im[j : j + 1]},
-                        userdata=results,
                     )
                 async_queue.wait_all()  # wait for all inference requests to complete
-
-                # Assuming y needs to be a list of output tensors
-                y = [result[async_queue.model.output().get_any_name()] for result in results]
+                y = [list(r.values()) for r in results][0]
 
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings["images"].shape:

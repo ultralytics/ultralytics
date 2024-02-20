@@ -197,6 +197,7 @@ nav:
           - Python: usage/python.md
           - Callbacks: usage/callbacks.md
           - Configuration: usage/cfg.md
+          - Simple-Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
   - Modes:
       - modes/index.md

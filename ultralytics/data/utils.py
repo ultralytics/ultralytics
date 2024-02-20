@@ -550,6 +550,7 @@ class HUBDatasetStats:
 
         # Save, print and return
         if save:
+            self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
             with open(stats_path, "w") as f:
@@ -562,7 +563,7 @@ class HUBDatasetStats:
         """Compress images for Ultralytics HUB."""
         from ultralytics.data import YOLODataset  # ClassificationDataset
 
-        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images
+        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue

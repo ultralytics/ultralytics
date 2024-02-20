@@ -1,9 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is aarch64-compatible for Apple M1 and other ARM architectures i.e. Jetson Nano and Raspberry Pi
+# Image is aarch64-compatible for Apple M1, M2, M3, Raspberry Pi and other ARM architectures
 
-# Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM arm64v8/ubuntu:22.04
+# Start FROM Ubuntu image https://hub.docker.com/_/ubuntu with "FROM arm64v8/ubuntu:22.04" (deprecated)
+# Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian (new)
+FROM arm64v8/debian:bookworm-slim
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -12,8 +13,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# cmake and build-essential is needed to build onnxsim when exporting to tflite
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 cmake build-essential
 
 # Create working directory
 WORKDIR /usr/src/ultralytics
@@ -22,6 +24,9 @@ WORKDIR /usr/src/ultralytics
 # COPY . /usr/src/ultralytics  # git permission issues inside container
 RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
+
+# Remove python3.11/EXTERNALLY-MANAGED to avoid 'externally-managed-environment' issue, Debian 12 Bookworm error
+RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

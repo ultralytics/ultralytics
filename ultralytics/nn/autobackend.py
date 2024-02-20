@@ -417,9 +417,9 @@ class AutoBackend(nn.Module):
                 async_queue.set_callback(callback)
 
                 # Start asynchronous inference for each input image
-                for j in range(len(im)):
+                for image in im:
                     async_queue.start_async(
-                        inputs={self.ov_compiled_model.input().get_any_name(): im[j : j + 1]},
+                        inputs={self.ov_compiled_model.input().get_any_name(): image[None]},  # expand batch dim
                     )
                 async_queue.wait_all()  # wait for all inference requests to complete
                 y = [list(r.values()) for r in results][0]

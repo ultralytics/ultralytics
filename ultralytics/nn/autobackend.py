@@ -399,7 +399,7 @@ class AutoBackend(nn.Module):
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
 
-            inference_mode = "latency"
+            inference_mode = "throughput"  # either 'latency' or 'throughput'
             # Latency optimized inference at batch-size 1
             if inference_mode == "latency":
                 y = list(self.ov_compiled_model(im).values())

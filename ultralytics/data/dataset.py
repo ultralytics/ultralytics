@@ -10,11 +10,20 @@ import torch
 import torchvision
 from PIL import Image
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr, is_dir_writeable
+from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
 from .augment import Compose, Format, Instances, LetterBox, classify_augmentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image, verify_image_label
+from .utils import (
+    HELP_URL,
+    LOGGER,
+    get_hash,
+    img2label_paths,
+    verify_image,
+    verify_image_label,
+    load_dataset_cache_file,
+    save_dataset_cache_file,
+)
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"
@@ -330,31 +339,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         x["hash"] = get_hash([x[0] for x in self.samples])
         x["results"] = nf, nc, len(samples), samples
         x["msgs"] = msgs  # warnings
-        save_dataset_cache_file(self.prefix, path, x)
+        save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return samples
-
-
-def load_dataset_cache_file(path):
-    """Load an Ultralytics *.cache dictionary from path."""
-    import gc
-
-    gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
-    cache = np.load(str(path), allow_pickle=True).item()  # load dict
-    gc.enable()
-    return cache
-
-
-def save_dataset_cache_file(prefix, path, x):
-    """Save an Ultralytics dataset *.cache dictionary x to path."""
-    x["version"] = DATASET_CACHE_VERSION  # add cache version
-    if is_dir_writeable(path.parent):
-        if path.exists():
-            path.unlink()  # remove *.cache file if exists
-        np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
-        LOGGER.info(f"{prefix}New cache created: {path}")
-    else:
-        LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
 
 
 # TODO: support semantic segmentation

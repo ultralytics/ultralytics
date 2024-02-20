@@ -467,7 +467,6 @@ class HUBDatasetStats:
 
         self.hub_dir = Path(f'{data["path"]}-hub')
         self.im_dir = self.hub_dir / "images"
-        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
 
@@ -563,6 +562,7 @@ class HUBDatasetStats:
         """Compress images for Ultralytics HUB."""
         from ultralytics.data import YOLODataset  # ClassificationDataset
 
+        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue

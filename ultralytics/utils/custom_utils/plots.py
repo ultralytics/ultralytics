@@ -1,17 +1,16 @@
 import json
 import os
-import pickle
 import re
 
 import fiftyone as fo
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from config import CLASSES_MAPPING, PLOTS_PATH
-from custom_utils.helpers import get_fiftyone_dataset
+from ultralytics.config import PLOTS_PATH, CLASSES_TO_KEEP
 from fiftyone import ViewField as F
 from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
+from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
 
 
 def get_order_func(dataset, split):
@@ -73,75 +72,17 @@ def sort_key(filename):
     match = re.search(r'evaluator_epoch(\d+)', filename)
     return int(match.group(1))
 
-def create_result_plots(model_type, model_path):
-    evaluators_path = f"{model_path}/evaluators"
-    evaluators = []
-    evaluator_paths = sorted(os.listdir(evaluators_path), key=sort_key)
-
-    for eval_path in evaluator_paths:
-        with open(f"{evaluators_path}/{eval_path}", "rb") as file:
-            evaluator = pickle.load(file)
-            evaluators.append(evaluator)
-
-    metrics = {"AP_0.5_0.95": [], "AP_0.5": [], "AP_0.75": [], "loss_box_reg": []}
-
-    for i, e in enumerate(evaluators):
-        AP_05_95, AP_05, AP_075 = e["stats"][0], e["stats"][1], e["stats"][2]
-        metrics["AP_0.5_0.95"].append(AP_05_95)
-        metrics["AP_0.5"].append(AP_05)
-        metrics["AP_0.75"].append(AP_075)
-
-        # sums = {key: 0.0 for key in e[0]}
-
-        # for entry in e:
-        #     for key, value in entry.items():
-        #         sums[key] += value
-
-        # num_entries = len(e)
-        # e = {key: total / num_entries for key, total in sums.items()}
-        
-        for key, value in e["loss_dict_reduced"].items():
-            if key in metrics.keys():
-                metrics[key].append(value.item())
-            else:
-                metrics[key] = [value.item()]
-
-    for l in metrics: 
-        epochs = list(range(0, len(metrics[l])))
-        plt.figure()
-        plt.plot(epochs, metrics[l], marker='o', linestyle='-', color='tab:blue')
-        plt.xlabel("Epochs")
-        plt.ylabel(l)
-        plt.title(f"{l} for {model_type}")
-        plt.savefig(f"{model_path}/plots/{l}.png")
-
-
-
-
 def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path, pred=(0,100), pred_name="all"):
-    if model_name.split("_", 1)[0] != "ultra":
-        create_result_plots(model_type=model_name, model_path=evaluators_path) 
-    else:
-        model_name = model_name.split("_", 1)[1]
-
-    _classes = lambda dataset: list(dataset.count_values(f'{model_name}.detections.label'))
- 
-    label = F("bbox_area_percentage")
-    conf = F("confidence")
     lower_thresh = pred[0]
     upper_thresh = pred[1]
-
-    print(dataset)
     
-    expr = F("is_yellow") == True
-    view = dataset.match_tags("test").match(expr).clone()
+    view = dataset.match_tags("test").clone()
     clone = view
 
-    print("BEFORE:",len(view))
-
-    # counts = dataset.count_values("detections.detections.label")
+    counts = dataset.count_values("detections.detections.label")
     # classes_top10 = sorted(counts, key=counts.get, reverse=True)[:10]
 
+    count = 0
     for sample in tqdm(view):
         detections = sample.detections.detections
         filtered_detections = []
@@ -155,15 +96,14 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         for prediction in predictions:
             bounding_box = prediction["bounding_box"]
             bbox_area_percentage = bounding_box[2] * bounding_box[3] * 100
+            prediction["confidence"]
             if prediction["confidence"] > 0.2 and (lower_thresh < bbox_area_percentage <= upper_thresh):
+                count += 1
                 filtered_predictions.append(prediction)
         sample[model_name].detections = filtered_predictions
         sample.save()
 
-    print("AFTER:",len(view))
-
-    if "TVT_svamp" not in _classes(dataset):
-        view = view.map_labels(model_name, CLASSES_MAPPING)
+    eval_key = model_name.replace("-", "_")
 
     eval_results: DetectionResults = fo.evaluate_detections(
         view,
@@ -172,48 +112,42 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         compute_mAP=True,
         classwise=False,
         gt_field="detections",
-        eval_key=model_name,
+        eval_key=eval_key,
         method="coco",
     )
 
-    if pred_name == "all":
-        eval_results_2 = fo.evaluate_detections(
-            view,
-            model_name,
-            classes=classes,
-            compute_mAP=True,
-            classwise=False,
-            gt_field="detections",
-            eval_key=model_name,
-            method="coco",
-            iou_threshs=[0.5]
-        )
+    eval_results_2 = fo.evaluate_detections(
+        view,
+        model_name,
+        classes=classes,
+        compute_mAP=True,
+        classwise=False,
+        gt_field="detections",
+        eval_key=eval_key,
+        method="coco",
+        iou_threshs=[0.5]
+    )
 
-        eval_results_3 = fo.evaluate_detections(
-            view,
-            model_name,
-            classes=classes,
-            compute_mAP=True,
-            classwise=False,
-            gt_field="detections",
-            eval_key=model_name,
-            method="coco",
-            iou_threshs=[0.75]
-        )
-        map_50 = eval_results_2.mAP()
-        map_75 = eval_results_3.mAP()
-        print("mAP@0.5", eval_results_2.mAP())
-        print("mAP@0.75", eval_results_3.mAP())
-    else:
-        map_50 = 0
-        map_75 = 0
-
-
+    eval_results_3 = fo.evaluate_detections(
+        view,
+        model_name,
+        classes=classes,
+        compute_mAP=True,
+        classwise=False,
+        gt_field="detections",
+        eval_key=eval_key,
+        method="coco",
+        iou_threshs=[0.75]
+    )
+    map_50_95 = eval_results.mAP()
+    map_50 = eval_results_2.mAP()
+    map_75 = eval_results_3.mAP()
     print("mAP@0.5:0.95", eval_results.mAP())
-    
+    print("mAP@0.5", eval_results_2.mAP())
+    print("mAP@0.75", eval_results_3.mAP())
+
     report = eval_results.report()
     weighted_avg = report['weighted avg']
-    map_50_95 = eval_results.mAP()
 
     obj = {
         "mAP@0.5:0.95": map_50_95,
@@ -223,19 +157,12 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     }
 
     # test_stats_path = f"{evaluators_path}/results/{model_type}/test_set_stats_{pred_name}.json"
-    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}_gul.json"
+    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}.json"
 
     with open(test_stats_path, "w") as file:
         json.dump(obj, file, indent=2)
 
     eval_results.print_report(classes=classes)
-
-
-    # if model_type == "retinanet" or model_cat == "ultra":
-    if model_name.split("_", 1)[0] == "ultra":
-        title = f"{model_name.split('_', 1)[0]} {pred_name} objects"
-    else:
-        title = f"{model_name} {pred_name} objects"
 
     cm, labels, _ = eval_results._confusion_matrix(
         classes=classes,
@@ -251,33 +178,49 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
     plt.tight_layout()
-    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02_norm_gul.png")
+    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02.png")
 
-    # plot_matrix = eval_results.plot_confusion_matrix(classes=classes, title=title, log_colorscale=True, colorscale="matter")
-    # plot_matrix.update_layout(
-    #     xaxis_title=dict(text='Predicted'),
-    #     yaxis_title=dict(text='Truth'),
-    # )
-    # plot_matrix.save(f"{save_path}confusion_matrix_{pred_name}_conf02_testing_again.png")
-    # plot_matrix.show()
-    # plot_matrix.savefig(f"{save_path}confusion_matrix.png")
-    
     plot_PR = eval_results.plot_pr_curves(classes=classes, title=f"{model_name} {pred_name} objects")
-    # plot_PR.show()
-    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02_gul.png")
-    # plot_PR.save(f"{save_path}pr_curve.png")
+    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02.png")
 
     clone.delete()
 
+def create_result_plots(model_root_path, dataset):
+    classes = CLASSES_TO_KEEP
 
+    filter_threshold = {
+        "all": (0, 100),
+        "small": (0, 0.33),
+        "medium": (0.33, 3),
+        "large": (3, 100)
+    }
 
+    model_results_path = f"runs/detect/{model_root_path}/results"
 
+    if not os.path.isdir(f"{model_results_path}"):
+        os.mkdir(f"{model_results_path}")
+        os.mkdir(f"{model_results_path}/plots")
+    model_path_save_plots = f"{model_results_path}/plots/"
+
+    for pred in ["all", "small", "medium", "large"]:
+        print("------------------------------------------")
+        print(pred)
+        print("------------------------------------------")
+        plots_and_matrixes(
+            model_name=model_root_path,
+            dataset=dataset,
+            classes=classes,
+            save_path=model_path_save_plots,
+            pred=filter_threshold[pred],
+            pred_name=pred,
+            evaluators_path=model_results_path
+        )
 
 if __name__ == "__main__":
     dataset, classes = get_fiftyone_dataset(0)
-    # for split in ["full", "train", "test", "val"]:
-    #     # save_distribution_plot(dataset, split)
-    #     save_bounding_box_plots(dataset, split)
-    create_color_distribution_plot(dataset)
+    for split in ["full", "train", "test", "val"]:
+        save_distribution_plot(dataset, split)
+        save_bounding_box_plots(dataset, split)
+    # create_color_distribution_plot(dataset)
     # session = fo.launch_app(dataset)
     # session.wait()

@@ -167,4 +167,4 @@ data
 data_new
 logs
 *.slurm
-.fiftyone
+plots

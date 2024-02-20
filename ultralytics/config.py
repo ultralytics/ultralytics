@@ -10,54 +10,50 @@ def get_git_root():
         return None
 
 ROOT_DIR = get_git_root()
-# DATASET_NAME = "My_dataset"
-DATASET_NAME = "My_dataset_new"
-DATA_PATH = f'{ROOT_DIR}/data_new'
-LABELS_PATH = f'{DATA_PATH}/labels/labels.json'
-TEST_DATA_PATH = f'{DATA_PATH}/test_split'
-TEST_SET_DESCRIPTION = f'{ROOT_DIR}/test.yaml'
+DATASET_NAME = "My_dataset"
+DATA_PATH = f'{ROOT_DIR}/data/new_split'
+TEST_DATA_PATH = f'{DATA_PATH}/test'
 DATASET_DESCRIPTION = f'{DATA_PATH}/data.yaml'
 PLOTS_PATH = f'{ROOT_DIR}/plots'
 OS = sys.platform
-
 
 DATASET_MEAN = (0.5227, 0.5336, 0.3736)
 DATASET_STD = (0.2749, 0.2483, 0.1730)
 
 ORIGINAL_CLASSES = [
     'anemone',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
     'fisk',
-    'blomkalkorall',
+    'bambuskorall',
     'vortesvamp',
     'sjostjerne',
-    'finger_svamp',
     'risengrynkorall',
-    'Tynn vifteformet, traktformet_svamp',
     'steinbit',
     'flyndre',
     'krabbe',
     'liten piperenser',
     'sjofaer',
     'skorpe',
-    'mysterie',
+    'Skate',
     'sjopolse',
     'krepsdyr',
-    'stor piperenser',
-    'tare',
-    'krakebolle',
-    'snegle',
-    'soppel',
-    'fjarsjolilje',
-    'grandiflora',
-    'bambuskorall',
-    'Skate',
     'Sjøtre',
     'stylocordyla',
     'sjobusk',
+    'stor piperenser',
+    'tare',
+    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
+    'Tynn vifteformet, traktformet_svamp',
+    'finger_svamp',
+    'blomkalkorall',
+    'krakebolle',
+    'snegle',
     'reirskjell',
     'Ukjent korall',
-    'oyekorall'
+    'oyekorall',
+    'soppel',
+    'mysterie',
+    'fjarsjolilje',
+    'grandiflora'
     ]
 
 CLASSES_MAPPING = {
@@ -65,31 +61,23 @@ CLASSES_MAPPING = {
     "Tynn vifteformet, traktformet_svamp": "TVT_svamp",
 }
 
+# OPPDATERT FOR NYTT DATASETT
 CLASSES_TO_KEEP = [
-    'anemone',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
-    'fisk',
-    'blomkalkorall',
     'vortesvamp',
-    'sjostjerne',
-    'finger_svamp',
     'risengrynkorall',
-    'Tynn vifteformet, traktformet_svamp',
-    'flyndre',
     'liten piperenser',
     'sjofaer',
     'skorpe',
-    'sjopolse',
-    'krepsdyr',
-    'stor piperenser',
-    'tare',
-    'krakebolle',
-    'grandiflora',
-    'bambuskorall',
     'Sjøtre',
     'stylocordyla',
     'sjobusk',
-    'oyekorall'
+    'tare',
+    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
+    'Tynn vifteformet, traktformet_svamp',
+    'finger_svamp',
+    'blomkalkorall',
+    'oyekorall',
+    'grandiflora'
 ]
 
 def get_yolo_classes():

@@ -170,8 +170,8 @@ class BaseMixTransform:
         text2id = {text: i for i, text in enumerate(mix_texts)}
 
         for label in [labels] + labels["mix_labels"]:
-            for i, l in enumerate(label["cls"]):
-                text = label["texts"][l]
+            for i, l in enumerate(label["cls"].squeeze(-1).tolist()):
+                text = label["texts"][int(l)]
                 label["cls"][i] = text2id[tuple(text)]
             label["texts"] = mix_texts
         return labels
@@ -365,6 +365,7 @@ class Mosaic(BaseMixTransform):
         final_labels["instances"].clip(imgsz, imgsz)
         good = final_labels["instances"].remove_zero_area_boxes()
         final_labels["cls"] = final_labels["cls"][good]
+        final_labels["texts"] = mosaic_labels[0]["texts"]
         return final_labels
 
 
@@ -1044,7 +1045,8 @@ class RandomLoadText:
         assert "texts" in labels, "No texts found in labels."
         class_texts = labels["texts"]
         num_classes = len(class_texts)
-        pos_labels = np.unique(labels["cls"]).tolist()
+        cls = np.asarray(labels.pop("cls"), dtype=int)
+        pos_labels = np.unique(cls).tolist()
 
         if len(pos_labels) > self.max_samples:
             pos_labels = set(random.sample(pos_labels, k=self.max_samples))
@@ -1062,13 +1064,13 @@ class RandomLoadText:
         label2ids = {label: i for i, label in enumerate(sampled_labels)}
         valid_idx = np.zeros(len(labels["instances"]), dtype=bool)
         new_cls = []
-        for i, label in enumerate(labels["cls"]):
+        for i, label in enumerate(cls.squeeze(-1).tolist()):
             if label not in label2ids:
                 continue
             valid_idx[i] = True
             new_cls.append([label2ids[label]])
         labels["instances"] = labels["instances"][valid_idx]
-        labels["cls"] = np.array(new_cls, dtype=labels["cls"].dtype)
+        labels["cls"] = np.array(new_cls)
 
         # Randomly select one prompt when there's more than one prompts
         texts = []
@@ -1077,6 +1079,7 @@ class RandomLoadText:
             assert len(prompts) > 0
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
+        print(texts, len(sampled_labels))
 
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)

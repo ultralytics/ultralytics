@@ -361,13 +361,14 @@ class YOLOMultiModalDataset(YOLODataset):
     def update_labels_info(self, label):
         """Add texts information for multi modal model training."""
         labels = super().update_labels_info(label)
-        labels["texts"] = self.data["names"]
+        labels["texts"] = [[v] for _, v in self.data["names"].items()]
         return labels
 
     def build_transforms(self, hyp=None):
         transforms = super().build_transforms(hyp)
         # NOTE: hard-coded the args for now.
         transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
+        return transforms
 
 
 # TODO: support semantic segmentation

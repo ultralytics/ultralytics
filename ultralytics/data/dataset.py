@@ -242,7 +242,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix=""):
+    def __init__(self, root, args, augment=False, prefix=""):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -250,11 +250,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
             args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
                 parameters, and cache settings. It includes attributes like `imgsz` (image size), `fraction` (fraction
-                of data to use), `scale`, `fliplr`, `flipud`, `erasing`, `auto_augment`, `hsv_h`, `hsv_s`, `hsv_v`,
-                and `crop_fraction`.
+                of data to use), `scale`, `fliplr`, `flipud`, `cache` (disk or RAM caching for faster training),
+                `auto_augment`, `hsv_h`, `hsv_s`, `hsv_v`, and `crop_fraction`.
             augment (bool, optional): Whether to apply augmentations to the dataset. Default is False.
-            cache (bool | str, optional): Caching strategy. If True or 'ram', caches images in RAM. If 'disk', caches
-                images on disk. Otherwise, no caching is performed. Default is False.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification and
                 debugging. Default is an empty string.
         """
@@ -262,8 +260,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
-        self.cache_ram = cache is True or cache == "ram"
-        self.cache_disk = cache == "disk"
+        self.cache_ram = args.cache is True or args.cache == "ram"  # cache images into RAM
+        self.cache_disk = args.cache == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)

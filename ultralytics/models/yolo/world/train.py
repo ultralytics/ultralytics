@@ -21,6 +21,9 @@ def on_pretrain_routine_end(trainer):
         # NOTE: for evaluation
         names = list(trainer.test_loader.dataset.data["names"].values())
         trainer.model.set_classes(names)
+        # NOTE: update ema model
+        if trainer.ema:
+            trainer.ema.ema.txt_feats = trainer.model.txt_feats
     device = next(trainer.model.parameters()).device
     text_model, _ = clip.load("ViT-B/32", device=device)
     for p in text_model.parameters():

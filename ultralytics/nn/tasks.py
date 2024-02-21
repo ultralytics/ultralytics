@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import itertools
 from copy import deepcopy
 from pathlib import Path
 
@@ -558,7 +559,7 @@ class WorldModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):
-        """Perform a forward pass with optional profiling, visualization, and embedding extraction."""
+        """Set classes in advance so that model could do offline-inference without clip model."""
         try:
             import clip
         except ImportError:
@@ -573,11 +574,30 @@ class WorldModel(DetectionModel):
         self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
         self.model[-1].nc = len(text)
 
-    def init_criterion(self):
-        """Initialize the loss criterion for the model."""
-        raise NotImplementedError
+    def get_text_feats(self, texts: list[list[str]]):
+        """
+        Get text features.
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
+        Args
+            texts(List[List[str]]):
+        """
+        batch = len(texts)
+        try:
+            import clip
+        except ImportError:
+            check_requirements("git+https://github.com/openai/CLIP.git")
+            import clip
+
+        device = next(self.model.parameters()).device
+        if not hasattr(self, "text_model"):
+            self.text_model, _ = clip.load("ViT-B/32", device=device)
+        texts = list(itertools.chain(*texts))
+        text_token = clip.tokenize(texts).to(device)
+        txt_feats = self.text_model.encode_text(text_token).to(dtype=torch.float32)
+        txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
+        return txt_feats.reshape(batch, -1, txt_feats.shape[-1])
+
+    def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """
         Perform a forward pass through the model.
 
@@ -585,13 +605,14 @@ class WorldModel(DetectionModel):
             x (torch.Tensor): The input tensor.
             profile (bool, optional): If True, profile the computation time for each layer. Defaults to False.
             visualize (bool, optional): If True, save feature maps for visualization. Defaults to False.
+            txt_feats (torch.Tensor): The text features, use it if it's given. Defaults to None.
             augment (bool, optional): If True, perform data augmentation during inference. Defaults to False.
             embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor): Model's output tensor.
         """
-        txt_feats = self.txt_feats.to(device=x.device, dtype=x.dtype)
+        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
         if len(txt_feats) != len(x):
             txt_feats = txt_feats.repeat(len(x), 1, 1)
         ori_txt_feats = txt_feats.clone()
@@ -618,6 +639,22 @@ class WorldModel(DetectionModel):
                 if m.i == max(embed):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor]): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            self.criterion = self.init_criterion()
+
+        if preds is None:
+            txt_feats = self.get_text_feats(batch["texts"])
+            preds = self.forward(batch["img"], txt_feats=txt_feats)
+        return self.criterion(preds, batch)
 
 
 class Ensemble(nn.ModuleList):

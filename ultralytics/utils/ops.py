@@ -224,7 +224,7 @@ def non_max_suppression(
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     if not rotated:
-        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs

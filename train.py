@@ -1,6 +1,8 @@
 import subprocess
 import argparse
 import os
+import glob
+import shutil
 import warnings
 from ultralytics import YOLO
 from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH, ROOT_DIR
@@ -48,6 +50,10 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
     
+    if data != "data" and match:
+        results_path = max(glob.glob(os.path.join(f"{ROOT_DIR}/runs/detect/", '*/')), key=os.path.getmtime)
+        weights_path = f"{results_path}/weights/last.pt"
+        shutil.copy(weights_path, f"{ROOT_DIR}/{model_prefixes[prefix]}weights/{model.split('.')[0]}.pt")
     # return model_path
 
 if __name__ == "__main__":

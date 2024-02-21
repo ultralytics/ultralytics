@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 from typing import Union
 
-import PIL
 import numpy as np
 import torch
 
@@ -146,7 +145,7 @@ class Model(nn.Module):
 
     def __call__(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -345,7 +344,7 @@ class Model(nn.Module):
 
     def embed(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -373,7 +372,7 @@ class Model(nn.Module):
 
     def predict(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         predictor=None,
         **kwargs,
@@ -431,7 +430,7 @@ class Model(nn.Module):
 
     def track(
         self,
-        source: Union[str, Path, int, list, tuple, PIL.Image.Image, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs,

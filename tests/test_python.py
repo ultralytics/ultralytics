@@ -555,7 +555,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
-    """Define tests 'image' argument."""
+    """Loads an image from a predefined source using OpenCV."""
     return cv2.imread(str(SOURCE))
 
 

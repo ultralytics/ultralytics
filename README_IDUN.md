@@ -1,7 +1,8 @@
 # Must do to start 
 module load Python/3.10.4-GCCcore-11.3.0
+module load Python/3.10.8-GCCcore-12.2.0
 
-pip install ultralytics 
+pip install ultralytics
 pip install -e '.[dev]'
 pip install einops
 

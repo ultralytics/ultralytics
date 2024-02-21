@@ -3,10 +3,12 @@ import argparse
 import os
 import re
 import shutil
+import warnings
 from ultralytics import YOLO
-from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH, ROOT_DIR
+from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH
 # from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
 # from predict import run_prediction
+from ultralytics.utils.custom_utils.helpers import copy_model_config
 
 def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train", data=DATASET_DESCRIPTION):
     import re
@@ -52,33 +54,6 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
         print(f"Error: {e}")
     
     # return model_path
-
-def copy_model_config(model, save_dir):
-    if model[:6] != "rtdetr":
-        model = model.split('-', 1)
-        if len(model) > 1:
-            path_to_yaml = model[0][:-1]+"-"+model[1]
-        else:
-            temp_path_to_yaml = model[0].split("yolov8")
-            path_to_yaml = "yolov8"+temp_path_to_yaml[1][1:]
-    else:
-        path_to_yaml = model
-    
-    source_dir= f'ultralytics/cfg/models/v8/{path_to_yaml}'
-    dest_dir = f'./runs/detect/{save_dir}/{save_dir}'
-
-    if os.path.exists(f'{dest_dir}.yaml'):
-        for i in range(2, 100):
-            if os.path.exists(f'{dest_dir}_doesnt_belong_here_{i}.yaml'):
-                continue
-            else:
-                dest_dir = f'{dest_dir}_doesnt_belong_here_{i}.yaml'
-                break
-    else:
-        dest_dir = f'{dest_dir}.yaml'
-    print(source_dir)
-    print(dest_dir)
-    shutil.copy(source_dir, dest_dir)
 
 if __name__ == "__main__":
 
@@ -132,11 +107,13 @@ if __name__ == "__main__":
             else:
                 save_dir = f'{save_dir}{i}'
                 break
+    
+    warnings.filterwarnings("ignore", message="Variable._execution_engine.run_backward")
+    warnings.filterwarnings("ignore", message="(Triggered internally at ../aten/src/ATen/Context.cpp:79.)")
 
     train(epochs=args.epochs, model=args.model, device=args.device, batch_size=args.batch_size, save_dir=save_dir, data=args.data_dir)
 
     # copy_model_config(args.model, save_dir)
 
     # dataset, classes = get_fiftyone_dataset(0)
-
     # run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])

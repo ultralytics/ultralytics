@@ -5,7 +5,7 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import CLASSES_TO_KEEP, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, LABELS_PATH
+from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_MAPPING
 
 
 def delete_all_fiftyone_datasets():
@@ -33,6 +33,7 @@ def get_date_and_transect(filename):
     # Search for the pattern in the filename
     match = pattern.search(filename)
 
+    time = None
     if match:
         date_str, transect_match = match.groups()
         
@@ -49,8 +50,10 @@ def get_date_and_transect(filename):
     else:
         date = None
         transect = filename.split("_")[0].strip("_-")
+        if transect[0] != "t":
+            time = filename.split("_")[1].strip("_-")
 
-    return date, transect
+    return date, transect, time
 
 def calculate_mean_cv2(image_path):
     # Read the image using OpenCV
@@ -98,11 +101,11 @@ def setup(rank):
 
     dataset.persistent = True
     
-    # print("Adding transects")
-    # for sample in tqdm(dataset.iter_samples(autosave=True)):
-    #     filename = sample.filepath.split("/")[-1]
-    #     date, transect = get_date_and_transect(filename)
-    #     sample["transect"] = transect
+    print("Adding transects")
+    for sample in tqdm(dataset.iter_samples(autosave=True)):
+        filename = sample.filepath.split("/")[-1]
+        date, transect, time = get_date_and_transect(filename)
+        sample["transect"] = transect
 
     print("Adding dataset attributes")
     for sample in tqdm(dataset):
@@ -110,10 +113,15 @@ def setup(rank):
             detections = sample.detections.detections
             new_detections = []
             for detection in detections:
-                if detection["label"] in CLASSES_TO_KEEP:
+                if detection["label"] in ORIGINAL_CLASSES:
+                    detection["label"] = detection["label"]
                     bounding_box = detection["bounding_box"]
                     detection["bbox_area_percentage"] = bounding_box[2] * bounding_box[3] * 100
                     detection["bbox_aspect_ratio"] = bounding_box[2] / bounding_box[3]
+                    if detection["bbox_area_percentage"] > 5: 
+                        detection["bbox_area_percentage"] = 5
+                    if detection["bbox_aspect_ratio"] > 2:
+                        detection["bbox_aspect_ratio"] = 2
                     new_detections.append(detection)
             sample.detections.detections = new_detections
             sample.save()

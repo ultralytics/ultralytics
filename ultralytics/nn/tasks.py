@@ -571,31 +571,8 @@ class WorldModel(DetectionModel):
         text_token = clip.tokenize(text).to(device)
         txt_feats = model.encode_text(text_token).to(dtype=torch.float32)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).detach()
         self.model[-1].nc = len(text)
-
-    def get_text_feats(self, texts: list[list[str]]):
-        """
-        Get text features.
-
-        Args
-            texts(List[List[str]]):
-        """
-        batch = len(texts)
-        try:
-            import clip
-        except ImportError:
-            check_requirements("git+https://github.com/openai/CLIP.git")
-            import clip
-
-        device = next(self.model.parameters()).device
-        if not hasattr(self, "text_model"):
-            self.text_model, _ = clip.load("ViT-B/32", device=device)
-        texts = list(itertools.chain(*texts))
-        text_token = clip.tokenize(texts).to(device)
-        txt_feats = self.text_model.encode_text(text_token).to(dtype=torch.float32)
-        txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        return txt_feats.reshape(batch, -1, txt_feats.shape[-1])
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """
@@ -652,8 +629,7 @@ class WorldModel(DetectionModel):
             self.criterion = self.init_criterion()
 
         if preds is None:
-            txt_feats = self.get_text_feats(batch["texts"])
-            preds = self.forward(batch["img"], txt_feats=txt_feats)
+            preds = self.forward(batch["img"], txt_feats=batch["txt_feats"])
         return self.criterion(preds, batch)
 
 

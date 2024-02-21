@@ -1,16 +1,12 @@
 import subprocess
 import argparse
 import os
-import re
-import shutil
 import warnings
 from ultralytics import YOLO
-from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH
-# from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
-# from predict import run_prediction
+from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH, ROOT_DIR
 from ultralytics.utils.custom_utils.helpers import copy_model_config
 
-def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train", data=DATASET_DESCRIPTION):
+def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train", data="data"):
     import re
 
     model_prefixes = {
@@ -35,7 +31,8 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
         "yolo",
         "detect",
         "train",
-        f"data={data}",
+        # f"cfg=./model_args.yaml",
+        f"data={ROOT_DIR}/data/{data}/data.yaml",
         f"model={model_path}",
         f"epochs={epochs}",
         f"imgsz={imgsz}",
@@ -45,7 +42,6 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
         f"patience={patience}",
         "nms=True",
         f"name={save_dir}",
-        f"cfg=./model_args.yaml"
     ]
 
     try:
@@ -92,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_dir",
         # nargs="+",  # '+' allows one or more values
-        default=DATASET_DESCRIPTION,
+        default="data",
         type=str,   # specify the type of elements in the list
         help="Path to data.yaml file for dataset",
     )

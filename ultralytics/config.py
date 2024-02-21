@@ -11,7 +11,7 @@ def get_git_root():
 
 ROOT_DIR = get_git_root()
 DATASET_NAME = "My_dataset"
-DATA_PATH = f'{ROOT_DIR}/data/new_split'
+DATA_PATH = f'{ROOT_DIR}/data/data'
 TEST_DATA_PATH = f'{DATA_PATH}/test'
 DATASET_DESCRIPTION = f'{DATA_PATH}/data.yaml'
 PLOTS_PATH = f'{ROOT_DIR}/plots'
@@ -41,8 +41,8 @@ ORIGINAL_CLASSES = [
     'sjobusk',
     'stor piperenser',
     'tare',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
-    'Tynn vifteformet, traktformet_svamp',
+    'MRTSPB_svamp',
+    'TVT_svamp',
     'finger_svamp',
     'blomkalkorall',
     'krakebolle',
@@ -56,11 +56,6 @@ ORIGINAL_CLASSES = [
     'grandiflora'
     ]
 
-CLASSES_MAPPING = {
-    "Massiv rund, tjukk skalformet, poros bulkeformet_svamp": "MRTSPB_svamp",
-    "Tynn vifteformet, traktformet_svamp": "TVT_svamp",
-}
-
 # OPPDATERT FOR NYTT DATASETT
 CLASSES_TO_KEEP = [
     'vortesvamp',
@@ -72,12 +67,15 @@ CLASSES_TO_KEEP = [
     'stylocordyla',
     'sjobusk',
     'tare',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
-    'Tynn vifteformet, traktformet_svamp',
+    'MRTSPB_svamp',
+    'TVT_svamp',
     'finger_svamp',
     'blomkalkorall',
     'oyekorall',
-    'grandiflora'
+    'grandiflora',
+    'anemone', 
+    'fisk',
+    'sjostjerne'
 ]
 
 def get_yolo_classes():

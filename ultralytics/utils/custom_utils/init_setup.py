@@ -5,7 +5,7 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_MAPPING
+from ultralytics.config import DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME
 
 
 def delete_all_fiftyone_datasets():
@@ -113,16 +113,15 @@ def setup(rank):
             detections = sample.detections.detections
             new_detections = []
             for detection in detections:
-                if detection["label"] in ORIGINAL_CLASSES:
-                    detection["label"] = detection["label"]
-                    bounding_box = detection["bounding_box"]
-                    detection["bbox_area_percentage"] = bounding_box[2] * bounding_box[3] * 100
-                    detection["bbox_aspect_ratio"] = bounding_box[2] / bounding_box[3]
-                    if detection["bbox_area_percentage"] > 5: 
-                        detection["bbox_area_percentage"] = 5
-                    if detection["bbox_aspect_ratio"] > 2:
-                        detection["bbox_aspect_ratio"] = 2
-                    new_detections.append(detection)
+                detection["label"] = detection["label"]
+                bounding_box = detection["bounding_box"]
+                detection["bbox_area_percentage"] = bounding_box[2] * bounding_box[3] * 100
+                detection["bbox_aspect_ratio"] = bounding_box[2] / bounding_box[3]
+                if detection["bbox_area_percentage"] > 5: 
+                    detection["bbox_area_percentage"] = 5
+                if detection["bbox_aspect_ratio"] > 2:
+                    detection["bbox_aspect_ratio"] = 2
+                new_detections.append(detection)
             sample.detections.detections = new_detections
             sample.save()
     

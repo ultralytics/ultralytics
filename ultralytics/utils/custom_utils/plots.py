@@ -82,7 +82,6 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     counts = dataset.count_values("detections.detections.label")
     # classes_top10 = sorted(counts, key=counts.get, reverse=True)[:10]
 
-    count = 0
     for sample in tqdm(view):
         detections = sample.detections.detections
         filtered_detections = []
@@ -98,7 +97,6 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
             bbox_area_percentage = bounding_box[2] * bounding_box[3] * 100
             prediction["confidence"]
             if prediction["confidence"] > 0.2 and (lower_thresh < bbox_area_percentage <= upper_thresh):
-                count += 1
                 filtered_predictions.append(prediction)
         sample[model_name].detections = filtered_predictions
         sample.save()

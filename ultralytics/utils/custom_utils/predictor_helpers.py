@@ -4,8 +4,6 @@ import fiftyone as fo
 import numpy as np
 from tqdm import tqdm
 
-from ultralytics.config import CLASSES_TO_KEEP
-
 def read_yolo_detections_file(filepath):
     detections = []
     if not os.path.exists(filepath):
@@ -49,7 +47,6 @@ def convert_yolo_detections_to_fiftyone(
         detections.append(
             fo.Detection(
                 label=label,
-                # label=CLASSES_MAPPING[label],
                 bounding_box=box.tolist(),
                 confidence=conf
             )
@@ -82,7 +79,6 @@ def add_detections_to_fiftyone(dataset, model_name, run_number):
     filepaths = dataset.values("filepath")
     detection_filepath = "detection_filepath"
     classes = dataset.default_classes
-    classes = CLASSES_TO_KEEP
 
     print("Adding prediction file paths")
     prediction_filepaths = [get_prediction_filepath(fp, run_number=run_number) for fp in filepaths]

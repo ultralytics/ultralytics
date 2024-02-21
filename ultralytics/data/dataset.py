@@ -114,7 +114,7 @@ class YOLODataset(BaseDataset):
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
-        save_dataset_cache_file(self.prefix, path, x)
+        save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
     def get_labels(self):

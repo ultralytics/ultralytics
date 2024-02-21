@@ -1079,7 +1079,6 @@ class RandomLoadText:
             assert len(prompts) > 0
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
-        print(texts, len(sampled_labels))
 
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)

@@ -21,7 +21,6 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
         extension = match.group(3)
         model_path = f"{model_prefixes[prefix]}{'weights/' if extension == '.pt' else ''}{model}"
 
-    print(model_path)
     try:
         test_model = YOLO(model_path, "detect")
     except FileNotFoundError:

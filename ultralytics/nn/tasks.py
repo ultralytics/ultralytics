@@ -794,7 +794,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x, RepC3, CSPStage):
                 args.insert(2, n)  # number of repeats
                 n = 1
-        elif m in (se_block,cbam_block, CBAM, eca_block,CA_Block):
+        elif m in (se_block, cbam_block, eca_block, CA_Block):
             args = [args[0]]
         elif m is CBAM:
             args = [ch[f], *args[0:]]

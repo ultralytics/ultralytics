@@ -5,7 +5,7 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import CLASSES_TO_KEEP, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_MAPPING
+from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_MAPPING
 
 
 def delete_all_fiftyone_datasets():
@@ -105,16 +105,7 @@ def setup(rank):
     for sample in tqdm(dataset.iter_samples(autosave=True)):
         filename = sample.filepath.split("/")[-1]
         date, transect, time = get_date_and_transect(filename)
-
-        # ONLY FOR SPLITTING DATASET FIRST TIME
-        if transect == "2022-09-04":
-            # if (time.split("-")[0] == "11" and int(time.split("-")[1]) > 50) or time.split("-")[0] == "12":
-            if (time.split("-")[0] == "12" and int(time.split("-")[1]) >= 3):
-                sample["transect"] = "new"
-            else:
-                sample["transect"] = transect
-        else:
-            sample["transect"] = transect
+        sample["transect"] = transect
 
     print("Adding dataset attributes")
     for sample in tqdm(dataset):
@@ -122,11 +113,15 @@ def setup(rank):
             detections = sample.detections.detections
             new_detections = []
             for detection in detections:
-                if detection["label"] in CLASSES_TO_KEEP:
-                    detection["label"] = CLASSES_MAPPING[detection["label"]] if detection["label"] in CLASSES_MAPPING else detection["label"]
+                if detection["label"] in ORIGINAL_CLASSES:
+                    detection["label"] = detection["label"]
                     bounding_box = detection["bounding_box"]
                     detection["bbox_area_percentage"] = bounding_box[2] * bounding_box[3] * 100
                     detection["bbox_aspect_ratio"] = bounding_box[2] / bounding_box[3]
+                    if detection["bbox_area_percentage"] > 5: 
+                        detection["bbox_area_percentage"] = 5
+                    if detection["bbox_aspect_ratio"] > 2:
+                        detection["bbox_aspect_ratio"] = 2
                     new_detections.append(detection)
             sample.detections.detections = new_detections
             sample.save()

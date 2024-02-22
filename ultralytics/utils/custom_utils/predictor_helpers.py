@@ -2,14 +2,9 @@ import os
 
 import fiftyone as fo
 import numpy as np
-from ultralytics.config import CLASSES_MAPPING, ORIGINAL_CLASSES
-from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
 
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-import seaborn as sns
-import json
+from ultralytics.config import CLASSES_TO_KEEP
 
 def read_yolo_detections_file(filepath):
     detections = []
@@ -50,11 +45,11 @@ def convert_yolo_detections_to_fiftyone(
     confs = yolo_detections[:, -1]
 
     labels = _get_class_labels(yolo_detections[:, 0], class_list)
-
     for label, conf, box in zip(labels, confs, boxes):
         detections.append(
             fo.Detection(
-                label=CLASSES_MAPPING[label],
+                label=label,
+                # label=CLASSES_MAPPING[label],
                 bounding_box=box.tolist(),
                 confidence=conf
             )
@@ -86,8 +81,8 @@ def add_yolo_detections(
 def add_detections_to_fiftyone(dataset, model_name, run_number):
     filepaths = dataset.values("filepath")
     detection_filepath = "detection_filepath"
-    # classes = dataset.default_classes[1:]
-    classes = ORIGINAL_CLASSES
+    classes = dataset.default_classes
+    classes = CLASSES_TO_KEEP
 
     print("Adding prediction file paths")
     prediction_filepaths = [get_prediction_filepath(fp, run_number=run_number) for fp in filepaths]
@@ -98,154 +93,3 @@ def add_detections_to_fiftyone(dataset, model_name, run_number):
     print("Adding detections ...")
     add_yolo_detections(dataset, model_name, detection_filepath, classes)
     print("Finished adding detections")
-
-def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path, pred=(0,100), pred_name="all"):
-    _classes = lambda dataset: list(dataset.count_values(f'{model_name}.detections.label'))
-
-    lower_thresh = pred[0]
-    upper_thresh = pred[1]
-    
-    view = dataset.match_tags("test").clone()
-    clone = view
-
-    counts = dataset.count_values("detections.detections.label")
-    # classes_top10 = sorted(counts, key=counts.get, reverse=True)[:10]
-    
-    for sample in tqdm(view):
-        detections = sample.detections.detections
-        filtered_detections = []
-        for detection in detections:
-            if (lower_thresh < detection["bbox_area_percentage"] <= upper_thresh):
-                filtered_detections.append(detection)
-        sample.detections.detections = filtered_detections
-        sample.save()
-        predictions = sample[model_name].detections
-        filtered_predictions = []
-        for prediction in predictions:
-            bounding_box = prediction["bounding_box"]
-            bbox_area_percentage = bounding_box[2] * bounding_box[3] * 100
-            if prediction["confidence"] > 0.2 and (lower_thresh < bbox_area_percentage <= upper_thresh):
-                filtered_predictions.append(prediction)
-        sample[model_name].detections = filtered_predictions
-        sample.save()
-
-    if "TVT_svamp" not in _classes(dataset):
-        view = view.map_labels(model_name, CLASSES_MAPPING)
-
-    # temp_eval_key = model_name.split("-", 1)
-    # eval_key = temp_eval_key[0] + "_" + temp_eval_key[1]
-    eval_key = model_name.replace("-", "_")
-
-    eval_results: DetectionResults = fo.evaluate_detections(
-        view,
-        model_name,
-        classes=classes,
-        compute_mAP=True,
-        classwise=False,
-        gt_field="detections",
-        eval_key=eval_key,
-        method="coco",
-    )
-
-    eval_results_2 = fo.evaluate_detections(
-        view,
-        model_name,
-        classes=classes,
-        compute_mAP=True,
-        classwise=False,
-        gt_field="detections",
-        eval_key=eval_key,
-        method="coco",
-        iou_threshs=[0.5]
-    )
-
-    eval_results_3 = fo.evaluate_detections(
-        view,
-        model_name,
-        classes=classes,
-        compute_mAP=True,
-        classwise=False,
-        gt_field="detections",
-        eval_key=eval_key,
-        method="coco",
-        iou_threshs=[0.75]
-    )
-    map_50_95 = eval_results.mAP()
-    map_50 = eval_results_2.mAP()
-    map_75 = eval_results_3.mAP()
-    print("mAP@0.5:0.95", eval_results.mAP())
-    print("mAP@0.5", eval_results_2.mAP())
-    print("mAP@0.75", eval_results_3.mAP())
-
-    report = eval_results.report()
-    weighted_avg = report['weighted avg']
-
-    obj = {
-        "mAP@0.5:0.95": map_50_95,
-        "mAP@0.5": map_50,
-        "mAP@0.75": map_75,
-        "weighted_avg": weighted_avg
-    }
-
-    # test_stats_path = f"{evaluators_path}/results/{model_type}/test_set_stats_{pred_name}.json"
-    test_stats_path = f"{evaluators_path}/test_set_stats_{pred_name}.json"
-
-    with open(test_stats_path, "w") as file:
-        json.dump(obj, file, indent=2)
-
-    eval_results.print_report(classes=classes)
-
-    cm, labels, _ = eval_results._confusion_matrix(
-        classes=classes,
-        include_other=None,
-        include_missing=None,
-        other_label="background",
-        tabulate_ids=True,
-        )
-    
-    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-    fig, ax = plt.subplots(figsize=(11,9))
-    sns.heatmap(cmn, annot=False, cmap="Blues", xticklabels=labels, yticklabels=labels)
-    plt.ylabel('Actual')
-    plt.xlabel('Predicted')
-    plt.tight_layout()
-    plt.savefig(f"{save_path}confusion_matrix_{pred_name}_conf02.png")
-
-    plot_PR = eval_results.plot_pr_curves(classes=classes, title=f"{model_name} {pred_name} objects")
-    plot_PR.write_image(f"{save_path}pr_curve_{pred_name}_conf02.png")
-
-    clone.delete()
-
-def create_result_plots(model_root_path, dataset):
-    # Remapping labels to more compact annotation
-    _classes = lambda dataset: list(dataset.count_values("detections.detections.label"))
-    if "TVT_svamp" not in _classes(dataset):
-        dataset = dataset.map_labels("detections", CLASSES_MAPPING)
-
-    filter_threshold = {
-        "all": (0, 100),
-        "small": (0, 0.33),
-        "medium": (0.33, 3),
-        "large": (3, 100)
-    }
-
-    model_results_path = f"runs/detect/{model_root_path}/results"
-
-    if not os.path.isdir(f"{model_results_path}"):
-        os.mkdir(f"{model_results_path}")
-        os.mkdir(f"{model_results_path}/plots")
-    model_path_save_plots = f"{model_results_path}/plots/"
-
-    for pred in ["all", "small", "medium", "large"]:
-        print("------------------------------------------")
-        print(pred)
-        print("------------------------------------------")
-        plots_and_matrixes(
-            model_name=model_root_path,
-            dataset=dataset,
-            classes=sorted(_classes(dataset)),
-            save_path=model_path_save_plots,
-            pred=filter_threshold[pred],
-            pred_name=pred,
-            evaluators_path=model_results_path
-        )

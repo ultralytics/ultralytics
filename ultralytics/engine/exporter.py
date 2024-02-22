@@ -718,7 +718,8 @@ class Exporter:
             version = "" if ARM64 else "<=12.13.1"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
-        check_requirements("cmake" if ARM64 else "")  # 'cmake' is needed to build onnxsim on aarch64
+        if ARM64:
+            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(
             (
                 "onnx>=1.12.0",

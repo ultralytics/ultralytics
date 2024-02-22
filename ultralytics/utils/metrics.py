@@ -72,6 +72,47 @@ def box_iou(box1, box2, eps=1e-7):
     return inter / ((a2 - a1).prod(2) + (b2 - b1).prod(2) - inter + eps)
 
 
+def bbox_nwd(box1, box2, xywh=True, eps=1e-7, constant=12.8, CIoU=False):
+    """
+    Compute the normalized Wasserstein distance (NWD) between two bounding boxes. Based on https://arxiv.org/pdf/2206.13996.pdf.
+
+    Args:
+        box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
+        box2 (torch.Tensor): A tensor representing n bounding boxes with shape (n, 4).
+        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
+                               (x1, y1, x2, y2) format. Defaults to True.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+        constant (float, optional): A constant value to scale the NWD. Defaults to 12.8. Should be average absolute object size.
+        CIoU (bool, optional): If True, calculate Complete IoU. Defaults to False.
+
+    Returns:
+        (torch.Tensor): NWD values.
+    """
+    if xywh:
+        (cx1, cy1, w1, h1), (cx2, cy2, w2, h2) = box1.chunk(4, -1), box2.chunk(4, -1)
+
+    else:
+        b1_x1, b1_y1, b1_x2, b1_y2 = box1.chunk(4, -1)
+        b2_x1, b2_y1, b2_x2, b2_y2 = box2.chunk(4, -1)
+        w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
+        w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
+        cx1, cy1, cx2, cy2 = (b1_x1 + b1_x2) / 2, (b1_y1 + b1_y2) / 2, (b2_x1 + b2_x2) / 2, (b2_y1 + b2_y2) / 2
+
+    # Wasserstein distance
+    mu_distance = (cx1 - cx2) ** 2 + (cy1 - cy2) ** 2
+    sigma_distance = ((w1 - w2) ** 2 + (h1 - h2) ** 2) / 4
+    wasserstein_distance = torch.sqrt(mu_distance + sigma_distance)
+    normalized_wasserstein_distance = torch.exp(-wasserstein_distance / constant)
+
+    if CIoU:
+        v = (4 / math.pi ** 2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+        with torch.no_grad():
+            alpha = v / (v - normalized_wasserstein_distance + (1 + eps))
+        return normalized_wasserstein_distance - v * alpha  # CIoU
+
+    return normalized_wasserstein_distance
+
+
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     """
     Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).

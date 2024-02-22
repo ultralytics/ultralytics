@@ -115,7 +115,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
 
 
 def main():
-    # Build the docs
+    """Builds docs, updates titles and edit links, and prints local server command."""
     build_docs()
 
     # Update titles

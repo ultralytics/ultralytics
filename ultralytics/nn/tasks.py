@@ -43,6 +43,9 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     Segment,
     WorldDetect,
+    RepNCSPELAN4,
+    ADown,
+    SPPELAN,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -850,6 +853,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C1,
             C2,
             C2f,
+            RepNCSPELAN4,
+            ADown,
+            SPPELAN,
             C2fAttn,
             C3,
             C3TR,

@@ -162,8 +162,8 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
-        self.varifocal_loss = VarifocalLoss()
-        self.focal_loss = FocalLoss()
+        #self.varifocal_loss = VarifocalLoss()
+        #self.focal_loss = FocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -247,7 +247,16 @@ class v8DetectionLoss:
                         pred_scores > bg_mask_threshold))).to(dtype)
             pred_scores *= bg_mask
 
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        class_weights = False
+        if class_weights:
+            bs, num_anchor, num_classes = pred_scores.shape
+            class_weights = torch.tensor([1, 1, 2, 23, 21, 10], device=self.device, dtype=dtype)
+            w = class_weights.repeat(bs, num_anchor, 1)
+        else:
+            w = None
+
+        loss[1] = F.binary_cross_entropy_with_logits(pred_scores, target_scores.to(dtype), pos_weight=w, reduction="none").sum() / target_scores_sum  # BCE
+        #loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
         #loss[1] = self.varifocal_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum # VFL
         #loss[1] = self.focal_loss(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum # FL
 

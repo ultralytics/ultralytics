@@ -343,6 +343,7 @@ class Exporter:
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
             requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
+        check_requirements("cmake" if ARM64 else '') # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -714,6 +715,7 @@ class Exporter:
         except ImportError:
             check_requirements(f"tensorflow{'<=2.13.1' if cuda else '-cpu<=2.13.1' if not ARM64 else ''}")
             import tensorflow as tf  # noqa
+        check_requirements("cmake" if ARM64 else '') # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(
             (
                 "onnx>=1.12.0",

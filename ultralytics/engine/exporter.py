@@ -714,8 +714,8 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            suffix = '-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'
-            version = '' if ARM64 else '<=12.13.1'
+            suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
+            version = "" if ARM64 else "<=12.13.1"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         check_requirements("cmake" if ARM64 else "")  # 'cmake' is needed to build onnxsim on aarch64

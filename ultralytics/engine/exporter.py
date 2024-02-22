@@ -712,7 +712,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements("tensorflow")
+            check_requirements(f"tensorflow{'<=2.13.1' if cuda else '-cpu<=2.13.1' if not ARM64 else ''}")
             import tensorflow as tf  # noqa
         check_requirements(
             (
@@ -722,7 +722,7 @@ class Exporter:
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support",
-                "flatbuffers>=23.5.26",  # update old 'flatbuffers' included inside tensorflow package
+                "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",

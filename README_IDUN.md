@@ -6,7 +6,7 @@ pip install -e '.[dev]'
 pip install einops
 
 # Connect with slurm job (new GPU)
-ssh -L 8888:127.0.0.1:8888 -J vemundtl@idun-login1.hpc.ntnu.no vemundtl@idun-xx-xx
+ssh -L 8888:127.0.0.1:8888 -J <username>@idun-login1.hpc.ntnu.no <username>@idun-xx-xx
 
 # Kill process
 sbatch idun_config.slurm

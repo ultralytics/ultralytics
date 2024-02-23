@@ -64,39 +64,51 @@ class PoseValidator(DetectionValidator):
         )
 
     def postprocess(self, preds, img_shape):
-        """Apply non-maximum suppression and return detections with high confidence scores."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            pred_order, nkpt = separate_outputs_decode(preds, self.args.task)
+            #mcv = float('-inf')
+            #lci = -1
+            kpt_ind = []
+            kpt_list = []
+            for idx, s in enumerate(preds):
+                if s.shape[2] != 64 and s.shape[2] != 1:
+                    kpt_list.append(s)
+                    kpt_ind.append(idx)
+                #dim_1 = s.shape[1]
+                #if dim_1 > mcv:
+                #    mcv = dim_1
+                #    lci = idx
+            kpt_pos = [
+                i for i, _ in sorted(enumerate(kpt_list),
+                key=lambda x: (-x[1].shape[1]))]
+            kpt_t = torch.cat([kpt_list[i] for i in kpt_pos], 1)
+            pred_order = [item for index, item in enumerate(preds) if index not in kpt_ind]#[lci]]
             pred_decoded = decode_bbox(pred_order, img_shape, self.device)
-            kpt_shape = (nkpt.shape[-1] // 3, 3)
+            kpt_shape = (kpt_t.shape[-1] // 3, 3)
+            #kpt_shape = (preds[lci].shape[-1] // 3, 3)
             kpts_decoded = decode_kpts(pred_order,
                                        img_shape,
-                                       torch.permute(nkpt, (0, 2, 1)),
+                                       torch.permute(kpt_t, (0, 2, 1)),
                                        kpt_shape,
                                        self.device,
                                        bs=1)
             pred_order = torch.cat([pred_decoded, kpts_decoded], 1)
-            return ops.non_max_suppression(
-                pred_order,
-                self.args.conf,
-                self.args.iou,
-                labels=self.lb,
-                multi_label=True,
-                agnostic=self.args.single_cls,
-                max_det=self.args.max_det,
-                nc=self.nc
-            )
+            return ops.non_max_suppression(pred_order,
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det,
+                                           nc=self.nc)
         else:
-            return ops.non_max_suppression(
-                preds,
-                self.args.conf,
-                self.args.iou,
-                labels=self.lb,
-                multi_label=True,
-                agnostic=self.args.single_cls,
-                max_det=self.args.max_det,
-                nc=self.nc,
-            )
+            return ops.non_max_suppression(preds,
+                                           self.args.conf,
+                                           self.args.iou,
+                                           labels=self.lb,
+                                           multi_label=True,
+                                           agnostic=self.args.single_cls,
+                                           max_det=self.args.max_det,
+                                           nc=self.nc)
 
     def init_metrics(self, model):
         """Initiate pose estimation metrics for YOLO model."""

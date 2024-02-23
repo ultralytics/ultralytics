@@ -14,14 +14,11 @@ class RegressionValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a regression model.
 
-    Notes:
-        - Torchvision regression models can also be passed to the 'model' argument, i.e. model='resnet18'.
-
     Example:
         ```python
         from ultralytics.models.yolo.regress import RegressionValidator
 
-        args = dict(model='yolov8n-regress.pt', data='imagenet10')
+        args = dict(model='yolov8n-regress.pt', data='imdb-age.yaml')
         validator = RegressionValidator(args=args)
         validator()
         ```
@@ -33,12 +30,12 @@ class RegressionValidator(BaseValidator):
         self.img_names = None
         self.targets = None
         self.pred = None
-        self.args.task = 'regress'
+        self.args.task = "regress"
         self.metrics = RegressMetrics()
 
     def get_desc(self):
         """Returns a formatted string summarizing regression metrics."""
-        return ('%11s' * 2) % ('mae', 'mse')
+        return ("%11s" * 2) % ("mae", "mse")
 
     def init_metrics(self, model):
         """Initialize storages for metrics - mean absolute error and mean squared error."""
@@ -46,27 +43,26 @@ class RegressionValidator(BaseValidator):
         self.img_names = []
         self.pred = []
         self.targets = []
-        self.max = (model.model.yaml['max_value'] if hasattr(model.model, "yaml") else model.metadata['max_value']) if isinstance(model, AutoBackend) else model.yaml['max_value']
-        self.min = (model.model.yaml['min_value'] if hasattr(model.model, "yaml") else model.metadata['min_value']) if isinstance(model, AutoBackend) else model.yaml['min_value']
+        self.max = model.metadata["max_value"] if (isinstance(model, AutoBackend) and not model.pt) else 6
+        self.min = model.metadata["min_value"] if (isinstance(model, AutoBackend) and not model.pt) else 0
 
     def preprocess(self, batch):
         """Preprocesses input batch and returns it."""
-        batch['img'] = batch['img'].to(self.device, non_blocking=True)
-        batch['img'] = batch['img'].half() if self.args.half else batch['img'].float()
-        batch['value'] = batch['value'].to(self.device)
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["value"] = batch["value"].to(self.device)
         return batch
     
     def postprocess(self, preds, img_shape):
-        if not self.training:
-            for i in range(len(preds)):
-                preds[i] = preds[i] * (self.max - self.min) / 6 + self.min
+        for i in range(len(preds)):
+            preds[i] = preds[i] * (self.max - self.min) / 6 + self.min
         return preds
 
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
-        self.img_names.append(batch['name'])
+        self.img_names.append(batch["name"])
         self.pred.append(preds.view(preds.size()[0]))
-        self.targets.append(batch['value'])
+        self.targets.append(batch["value"])
 
     def finalize_metrics(self, *args, **kwargs):
         """Finalizes metrics of the model such as speed."""
@@ -80,7 +76,7 @@ class RegressionValidator(BaseValidator):
 
     def build_dataset(self, img_path):
         """Creates and returns a RegressionDataset instance using given image path and preprocessing parameters."""
-        return RegressionDataset(args=self.args, img_path=img_path, data=self.data, augment=False, prefix=self.args.split)
+        return RegressionDataset(args=self.args, img_path=img_path, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""
@@ -89,23 +85,23 @@ class RegressionValidator(BaseValidator):
 
     def print_results(self):
         """Prints evaluation metrics for YOLO regression model."""
-        pf = '%11.3g' * len(self.metrics.keys)  # print format
+        pf = "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % (self.metrics.mae, self.metrics.mse))
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
         plot_images(
-            images=batch['img'],
-            batch_idx=torch.arange(len(batch['img'])),
-            cls=batch['value'].view(-1),  # warning: use .view(), not .squeeze() for Regress models
-            fname=self.save_dir / f'val_batch{ni}_labels.jpg',
+            images=batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
+            cls=batch["value"].view(-1),  # warning: use .view(), not .squeeze() for Regress models
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
             on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
-        plot_images(batch['img'],
-            batch_idx=torch.arange(len(batch['img'])),
+        plot_images(batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
             cls=preds,
-            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             on_plot=self.on_plot)  # pred

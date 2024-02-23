@@ -284,7 +284,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j, 'name': f}
+        return {"img": sample, "cls": j, "name": f}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
@@ -335,7 +335,7 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
     Regression Dataset.
 
     Args:
-        data (dict): A dataset YAML dictionary. Defaults to None.
+        img_path (str): Dataset annotations path.
 
     Attributes:
         cache_ram (bool): True if images should be cached in RAM, False otherwise.
@@ -345,13 +345,13 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, args, img_path, data=None, augment=False, cache=False, prefix=''):
+    def __init__(self, args, img_path, augment=False, cache=False, prefix=""):
         """
-        Initialize RegressionDataset object with data, image size, augmentations, and cache settings.
+        Initialize RegressionDataset object with image path, image size, augmentations, and cache settings.
 
         Args:
             args (Namespace): Argument parser containing dataset related settings.
-            data (dict): A dataset YAML dictionary.
+            img_path (str): Dataset annotations path.
             augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
             cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
@@ -364,7 +364,7 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         self.cache_ram = cache is True or cache == "ram"
         self.cache_disk = cache == "disk"
         self.samples = self.verify_images()  # filter out bad images
-        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, value, npy, im
+        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, value, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
@@ -384,7 +384,7 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
-        f, j, fn, im = self.samples[i]  # filename, value, filename.with_suffix('.npy'), image
+        f, j, fn, im = self.samples[i]  # filename, value, filename.with_suffix(".npy"), image
         if self.cache_ram and im is None:
             im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
@@ -396,7 +396,7 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
-        return {'img': sample, 'value': j, 'name': f}
+        return {"img": sample, "value": j, "name": f}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
@@ -414,8 +414,8 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
             anno_dict = json.load(af)
         
         parent_path = os.path.split(anno_path)[0]
-        for anno in anno_dict['images']:
-            samples.append([os.path.join(parent_path, anno['file_name']), anno['value']])
+        for anno in anno_dict["images"]:
+            samples.append([os.path.join(parent_path, anno["file_name"]), anno["value"]])
         return samples
     
     def verify_images(self):
@@ -456,136 +456,6 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         x["msgs"] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x)
         return samples
-
-#class RegressionDataset(torchvision.datasets.ImageFolder):
-#    """
-#    Regression Dataset.
-#
-#    Args:
-#        root (str): Dataset path.
-#
-#    Attributes:
-#        cache_ram (bool): True if images should be cached in RAM, False otherwise.
-#        cache_disk (bool): True if images should be cached on disk, False otherwise.
-#        samples (list): List of samples containing file, index, npy, and im.
-#        torch_transforms (callable): torchvision transforms applied to the dataset.
-#        album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
-#    """
-#
-#    def __init__(self, root, args, augment=False, cache=False, prefix=''):
-#        """
-#        Initialize YOLO object with root, image size, augmentations, and cache settings.
-#
-#        Args:
-#            root (str): Dataset path.
-#            args (Namespace): Argument parser containing dataset related settings.
-#            augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
-#            cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
-#        """
-#        super().__init__(root=root)
-#        classes, class_to_val = self.find_classes(self.root)
-#        samples = self.make_dataset(self.root, class_to_val, self.extensions)
-#
-#        self.classes = classes
-#        self.class_to_idx = class_to_val
-#        self.samples = samples
-#        self.targets = [s[1] for s in samples]
-#        
-#        if augment and args.fraction < 1.0:  # reduce training fraction
-#            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
-#        self.prefix = colorstr(f'{prefix}: ') if prefix else ''
-#        self.cache_ram = cache is True or cache == 'ram'
-#        self.cache_disk = cache == 'disk'
-#        self.samples = self.verify_images()  # filter out bad images
-#        self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
-#        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-#        self.torch_transforms = (
-#            classify_augmentations(
-#                size=args.imgsz,
-#                scale=scale,
-#                hflip=args.fliplr,
-#                vflip=args.flipud,
-#                erasing=args.erasing,
-#                auto_augment=args.auto_augment,
-#                hsv_h=args.hsv_h,
-#                hsv_s=args.hsv_s,
-#                hsv_v=args.hsv_v,
-#            )
-#            if augment
-#            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
-#        )
-#
-#    def __getitem__(self, i):
-#        """Returns subset of data and targets corresponding to given indices."""
-#        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
-#        if self.cache_ram and im is None:
-#            im = self.samples[i][3] = cv2.imread(f)
-#        elif self.cache_disk:
-#            if not fn.exists():  # load npy
-#                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
-#            im = np.load(fn)
-#        else:  # read image
-#            im = cv2.imread(f)  # BGR
-#        if self.album_transforms:
-#            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
-#        else:
-#            sample = self.torch_transforms(im)
-#        return {'img': sample, 'value': j, 'name': f}
-#
-#    def __len__(self) -> int:
-#        """Return the total number of samples in the dataset."""
-#        return len(self.samples)
-#
-#    def find_classes(self, directory) :
-#        """Finds the class folders in a dataset, and creates class_to_idx such that key:value is regression_value:regression_value
-#        
-#        Override of method belonging to :class:`~torchvision.datasets.DatasetFolder`
-#        """
-#        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
-#        if not classes:
-#            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
-#
-#        class_to_val = {cls_name: int(cls_name) for cls_name in classes}
-#        return classes, class_to_val
-#    
-#    def verify_images(self):
-#        """Verify all images in dataset."""
-#        desc = f'{self.prefix}Scanning {self.root}...'
-#        path = Path(self.root).with_suffix('.cache')  # *.cache file path
-#
-#        with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):
-#            cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
-#            assert cache['version'] == DATASET_CACHE_VERSION  # matches current version
-#            assert cache['hash'] == get_hash([x[0] for x in self.samples])  # identical hash
-#            nf, nc, n, samples = cache.pop('results')  # found, missing, empty, corrupt, total
-#            if LOCAL_RANK in (-1, 0):
-#                d = f'{desc} {nf} images, {nc} corrupt'
-#                TQDM(None, desc=d, total=n, initial=n)
-#                if cache['msgs']:
-#                    LOGGER.info('\n'.join(cache['msgs']))  # display warnings
-#            return samples
-#
-#        # Run scan if *.cache retrieval failed
-#        nf, nc, msgs, samples, x = 0, 0, [], [], {}
-#        with ThreadPool(NUM_THREADS) as pool:
-#            results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
-#            pbar = TQDM(results, desc=desc, total=len(self.samples))
-#            for sample, nf_f, nc_f, msg in pbar:
-#                if nf_f:
-#                    samples.append(sample)
-#                if msg:
-#                    msgs.append(msg)
-#                nf += nf_f
-#                nc += nc_f
-#                pbar.desc = f'{desc} {nf} images, {nc} corrupt'
-#            pbar.close()
-#        if msgs:
-#            LOGGER.info('\n'.join(msgs))
-#        x['hash'] = get_hash([x[0] for x in self.samples])
-#        x['results'] = nf, nc, len(samples), samples
-#        x['msgs'] = msgs  # warnings
-#        save_dataset_cache_file(self.prefix, path, x)
-#        return samples
 
 def load_dataset_cache_file(path):
     """Load an Ultralytics *.cache dictionary from path."""

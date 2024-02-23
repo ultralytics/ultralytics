@@ -89,7 +89,7 @@ class Results(SimpleClass):
         _keys (tuple): A tuple of attribute names for non-empty attributes.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, regress=None) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -98,11 +98,12 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.regress = Regress(regress) if regress is not None else None
         self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "regress"
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -115,7 +116,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None, obb=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None, regress=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -125,6 +126,8 @@ class Results(SimpleClass):
             self.probs = probs
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
+        if regress is not None:
+            self.regress = regress
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -181,6 +184,7 @@ class Results(SimpleClass):
         boxes=True,
         masks=True,
         probs=True,
+        regress=True,
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
@@ -225,6 +229,7 @@ class Results(SimpleClass):
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
+        pred_regress, show_regress = self.regress, regress
         annotator = Annotator(
             deepcopy(self.orig_img if img is None else img),
             line_width,
@@ -267,6 +272,12 @@ class Results(SimpleClass):
         if self.keypoints is not None:
             for k in reversed(self.keypoints.data):
                 annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
+        
+        # Plot Regress results
+        if pred_regress is not None and show_regress:
+            text = ",\n".join(f"{names[j] if names else j}: {pred_regress.data[j]:.2f}" for j in pred_regress.value)
+            x = round(self.orig_shape[0] * 0.03)
+            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return annotator.result()
 
@@ -275,10 +286,13 @@ class Results(SimpleClass):
         log_string = ""
         probs = self.probs
         boxes = self.boxes
+        regress = self.regress
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
         if probs is not None:
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
+        if regress is not None:
+            log_string += f"{', '.join(f'{self.names[j]} {regress.data[j]:.2f}' for j in regress.value)}, "
         if boxes:
             for c in boxes.cls.unique():
                 n = (boxes.cls == c).sum()  # detections per class
@@ -298,10 +312,14 @@ class Results(SimpleClass):
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
+        regress = self.regress
         texts = []
         if probs is not None:
             # Classify
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+        elif regress is not None:
+            # Regress
+            [texts.append(f"{self.names[j]}: {regress.data[j]:.2f}") for j in regress.value]
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
@@ -331,6 +349,9 @@ class Results(SimpleClass):
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            return
+        if self.regress is not None:
+            LOGGER.warning("WARNING ⚠️ Regress task do not support `save_crop`.")
             return
         if self.obb is not None:
             LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
@@ -675,3 +696,28 @@ class OBB(BaseTensor):
         y2 = self.xyxyxyxy[..., 1].max(1).values
         xyxy = [x1, y1, x2, y2]
         return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)
+
+
+class Regress(BaseTensor):
+    """
+    A class for storing and manipulating regression predictions.
+
+    Attributes:
+        value (int): Regressed value.
+
+    Methods:
+        cpu(): Returns a copy of the probs tensor on CPU memory.
+        numpy(): Returns a copy of the probs tensor as a numpy array.
+        cuda(): Returns a copy of the probs tensor on GPU memory.
+        to(): Returns a copy of the probs tensor with the specified device and dtype.
+    """
+
+    def __init__(self, regress, orig_shape=None) -> None:
+        """Initialize the Regress class with regression values and optional original shape of the image."""
+        super().__init__(regress, orig_shape)
+
+    @property
+    @lru_cache(maxsize=1)
+    def value(self):
+        """Return the index of regressed value."""
+        return [0]

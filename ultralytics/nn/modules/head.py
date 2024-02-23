@@ -13,7 +13,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "Regress", "Regress1", "Regress1_1", "Regress2", "Regress3", "RTDETRDecoder"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "Regress", "Regress6", "RTDETRDecoder"
 
 
 class Detect(nn.Module):
@@ -179,13 +179,14 @@ class Pose(Detect):
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
-        if self.export:
-            kpt = torch.cat([torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)], 1)
-        else:
-            kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+        if self.separate_outputs and self.export:
+            kpt = [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)]
         x = self.detect(self, x)
-        if self.training or (self.separate_outputs and self.export):
+        if self.training:
             return x, kpt
+        if self.separate_outputs and self.export:
+            return x, kpt #torch.permute(kpt, (0, 2, 1))
         pred_kpt = self.kpts_decode(bs, kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
@@ -201,7 +202,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                y[:, 2::3] = y[:, 2::3].sigmoid()  # sigmoid (WARNING: inplace .sigmoid_() Apple MPS bug)
+                y[:, 2::3].sigmoid_()  # inplace sigmoid
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -228,11 +229,12 @@ class Classify(nn.Module):
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x #if self.training else x.softmax(1)
 
-class Regress1(nn.Module):
-    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
-
-    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+class Regress(nn.Module):
+    """YOLOv8 regression head, i.e. x(b,c1,20,20) to x(b,c2)."""
+    export = False
+    
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regression head with specified input and output channels, kernel size, stride,
         padding, and groups.
         """
         super().__init__()
@@ -241,8 +243,8 @@ class Regress1(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
         self.conv2 = Conv(c_, c2, k, s, p, g, act=False) #1 output channel
-        self.min = min
-        self.max = max
+        self.min = 0    # default values for min and max to prevent descaling of exported models' outputs in validator
+        self.max = 6
 
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
@@ -255,107 +257,12 @@ class Regress1(nn.Module):
         x = x.flatten(1)
         return x
     
-class Regress1_1(nn.Module):
-    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
+class Regress6(nn.Module):
+    """YOLOv8 regression head with output values in the range 0-6, i.e. x(b,c1,20,20) to x(b,c2)."""
+    export = False
 
     def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
-        padding, and groups.
-        """
-        super().__init__()
-        c_ = 1280 # 2 * c1 # 128 # Reference design (https://github.com/ahmetozlu/nonlinear_regression_keras)
-        #c_2 = 256
-        self.conv1 = Conv(c1, c_, k, s, p, g) #128 output channels
-        #self.conv2 = Conv(c_, c_, k, s, p, g) #32 output channels
-        #self.conv3 = Conv(c_ // 4, c_ // 16, k, s, p, g) #8 output channels
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
-        #self.fc1 = FullConn(c_, c_)
-        #self.conv1_postpool = Conv(c_, c_, k, s, p, g)
-        #self.conv2_postpool = Conv(c_, c2, k, s, p, g, act=False)
-        self.linear = nn.Linear(c_, c2)  #1 output channel
-        self.output_act = nn.ReLU6()
-        self.min = min
-        self.max = max
-
-    def forward(self, x):
-        """Performs a forward pass of the YOLO model on input image data."""
-        if isinstance(x, list):
-            x = torch.cat(x, 1)
-        x = self.conv1(x)
-        #x = self.conv2(x)
-        #x = self.conv3(x)
-        x = self.pool(x).flatten(1)
-        x = self.drop(x)
-        #x = self.fc1(x)
-        #x = self.conv1_postpool(x)
-        #x = self.conv2_postpool(x)
-        x = self.linear(x)
-        x = self.output_act(x)
-        #x = x * (self.max - self.min) / 6 + self.min
-        return x
-    
-class Regress2(nn.Module):
-    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
-
-    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
-        padding, and groups.
-        """
-        super().__init__()
-        c_ = 1280
-        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
-        self.conv2 = Conv(c_, c_, k, s, p, g) #1280 output channels
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
-        self.linear = nn.Linear(c_, c2)  #1 output channel
-
-    def forward(self, x):
-        """Performs a forward pass of the YOLO model on input image data."""
-        if isinstance(x, list):
-            x = torch.cat(x, 1)
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.pool(x).flatten(1)
-        x = self.drop(x)
-        x = self.linear(x)
-        return x
-    
-class Regress3(nn.Module):
-    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
-
-    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
-        padding, and groups.
-        """
-        super().__init__()
-        c_ = 1280
-        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
-        self.conv2 = Conv(c_, c_ // 2, k, s, p, g) #640 output channels
-        self.conv_relu6 = Conv(c_ // 2, c2, k, s, p, g, act=nn.ReLU6) #1 output channel
-        self.min = min
-        self.max = max
-
-    def forward(self, x):
-        """Performs a forward pass of the YOLO model on input image data."""
-        if isinstance(x, list):
-            x = torch.cat(x, 1)
-        x = self.conv1(x)
-        x = self.pool(x)
-        x = self.drop(x)
-        x = self.conv2(x)
-        x = self.conv_relu6(x)
-        x = x * (self.max - self.min) / 6 + self.min
-        x = x.flatten(1)
-        return x
-    
-class Regress(nn.Module):
-    """YOLOv8 regressor head, i.e. x(b,c1,20,20) to x(b,c2)."""
-
-    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 regressor head with specified input and output channels, kernel size, stride,
+        """Initializes YOLOv8 regression head with specified input and output channels, kernel size, stride,
         padding, and groups.
         """
         super().__init__()
@@ -377,7 +284,7 @@ class Regress(nn.Module):
         x = self.drop(x)
         x = self.conv_relu6(x)
         x = x.flatten(1)
-        if self.training:
+        if not self.export:
             x = x * (self.max - self.min) / 6 + self.min
         return x
 

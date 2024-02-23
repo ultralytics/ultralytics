@@ -223,7 +223,7 @@ class BasePredictor:
                 "transforms",
                 classify_transforms(self.imgsz[0], crop_fraction=self.args.crop_fraction),
             )
-            if self.args.task in ("classify", 'regress')
+            if self.args.task in ("classify", "regress")
             else None
         )
         self.dataset = load_inference_source(

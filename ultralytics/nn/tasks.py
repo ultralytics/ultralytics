@@ -35,7 +35,8 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     Pose,
-    Regress, Regress1, Regress1_1, Regress2, Regress3,
+    Regress,
+    Regress6,
     RepC3,
     RepConv,
     ResNetLayer,
@@ -432,7 +433,7 @@ class ClassificationModel(BaseModel):
 class RegressionModel(BaseModel):
     """YOLOv8 regression model."""
 
-    def __init__(self, cfg='yolov8n-regress.yaml', ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolov8n-regress.yaml", ch=3, nc=None, verbose=True):
         """Init RegressionModel with YAML, channels, number of classes, verbose flag."""
         super().__init__()
         self._from_yaml(cfg, ch, nc, verbose)
@@ -442,31 +443,11 @@ class RegressionModel(BaseModel):
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
-        ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
+        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.stride = torch.Tensor([1])  # no stride constraints
         self.info()
-
-    #@staticmethod
-    #def reshape_outputs(model, nc):
-    #    """Update a TorchVision classification model to class count 'n' if required."""
-    #    name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
-    #    if isinstance(m, Classify):  # YOLO Classify() head
-    #        if m.linear.out_features != nc:
-    #            m.linear = nn.Linear(m.linear.in_features, nc)
-    #    elif isinstance(m, nn.Linear):  # ResNet, EfficientNet
-    #        if m.out_features != nc:
-    #            setattr(model, name, nn.Linear(m.in_features, nc))
-    #    elif isinstance(m, nn.Sequential):
-    #        types = [type(x) for x in m]
-    #        if nn.Linear in types:
-    #            i = types.index(nn.Linear)  # nn.Linear index
-    #            if m[i].out_features != nc:
-    #                m[i] = nn.Linear(m[i].in_features, nc)
-    #        elif nn.Conv2d in types:
-    #            i = types.index(nn.Conv2d)  # nn.Conv2d index
-    #            if m[i].out_channels != nc:
-    #                m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
     def init_criterion(self):
         """Initialize the loss criterion for the RegressionModel."""
@@ -848,9 +829,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
-        elif m in (Regress, Regress1, Regress1_1, Regress2, Regress3):
+        elif m in (Regress, Regress6):
             c1, c2 = ch[f], args[0]
-            args = [c1, c2, d.get('min_value'), d.get('max_value')]
+            args = [c1, c2]
+            if m is Regress6:
+                args += [d.get("min_value"), d.get("max_value")]
         else:
             c2 = ch[f]
 
@@ -960,8 +943,8 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            #elif isinstance(m, Regress):
-            #    return 'regress'
+            elif isinstance(m, Regress) or isinstance(m, Regress6):
+                return "regress"
 
     # Guess from model filename
     if isinstance(model, (str, Path)):

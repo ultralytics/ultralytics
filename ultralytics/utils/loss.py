@@ -710,6 +710,6 @@ class v8RegressionLoss:
 
     def __call__(self, preds, batch):
         """Compute the regression loss between predictions and true labels."""
-        loss = torch.nn.functional.l1_loss(preds.view(preds.size()[0]), batch['value'].float(), reduction='mean')
+        loss = torch.nn.functional.l1_loss(preds.view(preds.size()[0]), batch["value"].float(), reduction="mean")
         loss_items = loss.detach()
         return loss, loss_items

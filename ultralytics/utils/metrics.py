@@ -4,7 +4,7 @@
 import math
 import warnings
 from pathlib import Path
-import os
+# import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1319,8 +1319,8 @@ class RegressMetrics(SimpleClass):
         """Initialize a RegressMetrics instance."""
         self.mae = 0
         self.mse = 0
-        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-        self.task = 'regress'
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "regress"
 
     def threshold(self, target):
         return (4. + 0.1 * target)
@@ -1328,18 +1328,18 @@ class RegressMetrics(SimpleClass):
     def process(self, targets, pred, img_names, save_dir):
         """Computes MAE and MSE using target values and predicted values."""
         targets, pred = torch.cat(targets), torch.cat(pred)
-        img_names = [im_n for row in img_names for im_n in row]
-        diff_t = torch.abs(torch.sub(targets, pred))
-        outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > self.threshold(targets[i])]
-        outlier_ims = [img_names[i] for i in outlier_ind]
-        outlier_pre = [pred[i] for i in outlier_ind]
-        outlier_gt = [targets[i] for i in outlier_ind]
-        outlier_ims_path = os.path.join(save_dir, "outlier_ims.txt")
-        with open(outlier_ims_path, "w") as fo:
-            for i in range(len(outlier_ims)):
-                fo.write(outlier_ims[i] + ',' + str(outlier_gt[i].item()) + ',' + str(outlier_pre[i].item()) + "\n")
-        self.mae = torch.nn.functional.l1_loss(pred, targets, reduction='mean').tolist()
-        self.mse = torch.nn.functional.mse_loss(pred, targets, reduction='mean').tolist()
+        # img_names = [im_n for row in img_names for im_n in row]
+        # diff_t = torch.abs(torch.sub(targets, pred))
+        # outlier_ind = [i for i in range(len(diff_t)) if diff_t[i] > 30]
+        # outlier_ims = [img_names[i] for i in outlier_ind]
+        # outlier_pre = [pred[i] for i in outlier_ind]
+        # outlier_gt = [targets[i] for i in outlier_ind]
+        # outlier_ims_path = os.path.join(save_dir, "outlier_ims.txt")
+        # with open(outlier_ims_path, "w") as fo:
+        #     for i in range(len(outlier_ims)):
+        #         fo.write(outlier_ims[i] + "," + str(outlier_gt[i].item()) + "," + str(outlier_pre[i].item()) + "\n")
+        self.mae = torch.nn.functional.l1_loss(pred, targets, reduction="mean").tolist()
+        self.mse = torch.nn.functional.mse_loss(pred, targets, reduction="mean").tolist()
 
     @property
     def results_dict(self):
@@ -1349,7 +1349,7 @@ class RegressMetrics(SimpleClass):
     @property
     def keys(self):
         """Returns a list of keys for the results_dict property."""
-        return ['metrics/mae', 'metrics/mse']
+        return ["metrics/mae", "metrics/mse"]
 
     @property
     def curves(self):

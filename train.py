@@ -114,7 +114,4 @@ if __name__ == "__main__":
 
     train(epochs=args.epochs, model=args.model, device=args.device, batch_size=args.batch_size, save_dir=save_dir, data=args.data_dir)
 
-    # copy_model_config(args.model, save_dir)
-
-    # dataset, classes = get_fiftyone_dataset(0)
-    # run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])
+    copy_model_config(args.model, save_dir)

@@ -4,3 +4,4 @@ if __name__ == "__main__":
 
     dataset, classes = get_fiftyone_dataset(0)
     sesh = fo.launch_app(dataset)
+    sesh.wait()

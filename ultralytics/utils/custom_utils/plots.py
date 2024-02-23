@@ -166,13 +166,15 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
         classes=classes,
         include_other=None,
         include_missing=None,
-        other_label="background",
+        # other_label="background",
         tabulate_ids=True,
         )
     
     cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    cmn[cmn < 0.005] = np.nan
+
     fig, ax = plt.subplots(figsize=(11,9))
-    sns.heatmap(cmn, annot=False, cmap="Blues", xticklabels=labels, yticklabels=labels)
+    sns.heatmap(cmn, annot=False, cmap="Blues", xticklabels=labels, square=True, vmin=0.0, yticklabels=labels).set_facecolor((1, 1, 1))
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
     plt.tight_layout()

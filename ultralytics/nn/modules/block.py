@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -34,6 +34,9 @@ __all__ = (
     "RepNCSPELAN4",
     "ADown",
     "SPPELAN",
+    "CBFuse",
+    "CBLinear",
+    "Silence",
 )
 
 
@@ -618,6 +621,7 @@ class ADown(nn.Module):
         self.cv2 = Conv(c1 // 2, self.c, 1, 1, 0)
 
     def forward(self, x):
+        """Forward pass through ADown layer."""
         x = torch.nn.functional.avg_pool2d(x, 2, 1, 0, False, True)
         x1, x2 = x.chunk(2, 1)
         x1 = self.cv1(x1)
@@ -639,6 +643,47 @@ class SPPELAN(nn.Module):
         self.cv5 = Conv(4 * c3, c2, 1, 1)
 
     def forward(self, x):
+        """Forward pass through SPPELAN layer."""
         y = [self.cv1(x)]
         y.extend(m(y[-1]) for m in [self.cv2, self.cv3, self.cv4])
         return self.cv5(torch.cat(y, 1))
+
+
+class Silence(nn.Module):
+    """Silence."""
+
+    def __init__(self):
+        super(Silence, self).__init__()
+
+    def forward(self, x):
+        """Forward pass through Silence layer."""
+        return x
+
+
+class CBLinear(nn.Module):
+    """CBLinear."""
+
+    def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):  # ch_in, ch_outs, kernel, stride, padding, groups
+        super(CBLinear, self).__init__()
+        self.c2s = c2s
+        self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
+
+    def forward(self, x):
+        """Forward pass through CBLinear layer."""
+        outs = self.conv(x).split(self.c2s, dim=1)
+        return outs
+
+
+class CBFuse(nn.Module):
+    """CBFuse."""
+
+    def __init__(self, idx):
+        super(CBFuse, self).__init__()
+        self.idx = idx
+
+    def forward(self, xs):
+        """Forward pass through CBFuse layer."""
+        target_size = xs[-1].shape[2:]
+        res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
+        out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
+        return out

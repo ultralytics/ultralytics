@@ -43,6 +43,9 @@ from .block import (
     RepNCSPELAN4,
     ADown,
     SPPELAN,
+    CBFuse,
+    CBLinear,
+    Silence,
 )
 from .conv import (
     CBAM,
@@ -129,4 +132,7 @@ __all__ = (
     "RepNCSPELAN4",
     "ADown",
     "SPPELAN",
+    "CBFuse",
+    "CBLinear",
+    "Silence",
 )

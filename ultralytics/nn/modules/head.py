@@ -231,7 +231,6 @@ class Classify(nn.Module):
 
 class Regress(nn.Module):
     """YOLOv8 regression head, i.e. x(b,c1,20,20) to x(b,c2)."""
-    export = False
     
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 regression head with specified input and output channels, kernel size, stride,

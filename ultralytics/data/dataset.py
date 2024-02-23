@@ -12,6 +12,7 @@ import torch
 import torchvision
 from PIL import Image
 
+from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
 from .augment import (
@@ -448,6 +449,18 @@ class GroundingDataset(YOLODataset):
         # NOTE: hard-coded the args for now.
         transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
         return transforms
+
+
+class YOLOConcatDataset(ConcatDataset):
+    """
+    Dataset as a concatenation of multiple datasets.
+    This class is useful to assemble different existing datasets.
+    """
+
+    @staticmethod
+    def collate_fn(batch):
+        """Collates data samples into batches."""
+        return YOLODataset.collate_fn(batch)
 
 
 # TODO: support semantic segmentation

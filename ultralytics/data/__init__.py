@@ -2,7 +2,7 @@
 
 from .base import BaseDataset
 from .build import build_dataloader, build_yolo_dataset, build_yolomultimodal_dataset, load_inference_source
-from .dataset import ClassificationDataset, SemanticDataset, YOLODataset, YOLOMultiModalDataset, GroundingDataset
+from .dataset import ClassificationDataset, SemanticDataset, YOLODataset, YOLOMultiModalDataset, GroundingDataset, YOLOConcatDataset
 
 __all__ = (
     "BaseDataset",
@@ -10,6 +10,7 @@ __all__ = (
     "SemanticDataset",
     "YOLODataset",
     "YOLOMultiModalDataset",
+    "YOLOConcatDataset",
     "GroundingDataset",
     "build_yolo_dataset",
     "build_yolomultimodal_dataset",

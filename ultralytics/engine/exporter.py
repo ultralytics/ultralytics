@@ -273,7 +273,7 @@ class Exporter:
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1], _ = self.export_engine()
-        if onnx or xml:  # OpenVINO requires ONNX
+        if onnx:  # ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
@@ -401,16 +401,16 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLOv8 OpenVINO export."""
-        check_requirements("openvino-dev>=2023.0")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-        import openvino.runtime as ov  # noqa
-        from openvino.tools import mo  # noqa
+        check_requirements("openvino-dev>=2023.3")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        import openvino as ov  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
-        f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
-        fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
-        f_onnx = self.file.with_suffix(".onnx")
-        f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
-        fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
+
+        ov_model = ov.convert_model(
+            self.model.cpu(),
+            input=None if self.args.dynamic else [self.im.shape],
+            example_input=self.im
+        )  # export
 
         def serialize(ov_model, file):
             """Set RT info, serialize and save metadata YAML."""
@@ -423,21 +423,19 @@ class Exporter:
             if self.model.task != "classify":
                 ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
 
-            ov.serialize(ov_model, file)  # save
+            ov.save_model(ov_model, file, compress_to_fp16=self.args.half)  # if fp32, convert to fp16
             yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        ov_model = mo.convert_model(
-            f_onnx, model_name=self.pretty_name, framework="onnx", compress_to_fp16=self.args.half
-        )  # export
-
         if self.args.int8:
+            fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
+            fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             if not self.args.data:
                 self.args.data = DEFAULT_CFG.data or "coco128.yaml"
                 LOGGER.warning(
                     f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                     f"Using default 'data={self.args.data}'."
                 )
-            check_requirements("nncf>=2.5.0")
+            check_requirements("nncf>=2.8.0")
             import nncf
 
             def transform_fn(data_item):
@@ -456,6 +454,7 @@ class Exporter:
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
+
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
                 # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
@@ -463,19 +462,23 @@ class Exporter:
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
-                        f"/{head_module_name}/Add",
-                        f"/{head_module_name}/Sub",
-                        f"/{head_module_name}/Mul",
-                        f"/{head_module_name}/Div",
-                        f"/{head_module_name}/dfl",
+                        f".*{head_module_name}/.*/Add",
+                        f".*{head_module_name}/.*/Sub*",
+                        f".*{head_module_name}/.*/Mul*",
+                        f".*{head_module_name}/.*/Div*",
+                        f".*{head_module_name}\\.dfl/.*",
                     ],
-                    names=[f"/{head_module_name}/Sigmoid"],
+                    types=["Sigmoid"],
                 )
+
             quantized_ov_model = nncf.quantize(
                 ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope
             )
             serialize(quantized_ov_model, fq_ov)
             return fq, None
+
+        f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
+        f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
 
         serialize(ov_model, f_ov)
         return f, None

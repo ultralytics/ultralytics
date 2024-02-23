@@ -6,8 +6,13 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   schedule:
     - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
@@ -94,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         model: [yolov8n]
     steps:
@@ -108,9 +113,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
-          # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          yolo export format=tflite imgsz=32 || true
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks
@@ -120,22 +123,22 @@ jobs:
       #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.286
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
       - name: Benchmark OBBModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.360
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Benchmarks
         env:
@@ -152,7 +155,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         torch: [latest]
         include:
@@ -174,7 +177,7 @@ jobs:
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
-          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
@@ -190,7 +193,7 @@ jobs:
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Tests
         env:
@@ -211,7 +214,7 @@ jobs:
       - name: Pytest tests
         run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: GPU
         env:
@@ -244,7 +247,8 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0'
+          # CoreML must be installed before export due to protobuf error from AutoInstall
+          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
       - name: Check environment
         run: |
           conda list

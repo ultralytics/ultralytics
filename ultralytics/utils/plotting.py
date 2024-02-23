@@ -27,7 +27,7 @@ class Colors:
     Attributes:
         palette (list of tuple): List of RGB color values.
         n (int): The number of colors in the palette.
-        pose_palette (np.array): A specific color palette array with dtype np.uint8.
+        pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
     """
 
     def __init__(self):
@@ -250,7 +250,8 @@ class Annotator:
             kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
                                        for human pose. Default is True.
 
-        Note: `kpt_line=True` currently only supports human pose plotting.
+        Note:
+            `kpt_line=True` currently only supports human pose plotting.
         """
         if self.pil:
             # Convert to numpy first
@@ -329,10 +330,18 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    # Object Counting Annotator
+    def show(self, title=None):
+        """Show the annotated image."""
+        Image.fromarray(np.asarray(self.im)[..., ::-1]).show(title)
+
+    def save(self, filename="image.jpg"):
+        """Save the annotated image to 'filename'."""
+        cv2.imwrite(filename, np.asarray(self.im))
+
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
-        Draw region line
+        Draw region line.
+
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
             color (tuple): Region Color value
@@ -342,7 +351,8 @@ class Annotator:
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
-        Draw centroid point and track trails
+        Draw centroid point and track trails.
+
         Args:
             track (list): object tracking points for trails display
             color (tuple): tracks line color
@@ -354,7 +364,8 @@ class Annotator:
 
     def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
-        Plot counts for object counter
+        Plot counts for object counter.
+
         Args:
             counts (int): objects counts value
             count_txt_size (int): text size for counts display
@@ -383,7 +394,9 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """Calculate the pose angle for object
+        """
+        Calculate the pose angle for object.
+
         Args:
             a (float) : The value of pose point a
             b (float): The value of pose point b
@@ -409,8 +422,6 @@ class Annotator:
             shape (tuple): imgsz for model inference
             radius (int): Keypoint radius value
         """
-        nkpts, ndim = keypoints.shape
-        nkpts == 17 and ndim == 3
         for i, k in enumerate(keypoints):
             if i in indices:
                 x_coord, y_coord = k[0], k[1]

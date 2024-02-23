@@ -28,6 +28,8 @@ from .block import (
     Bottleneck,
     BottleneckCSP,
     C2f,
+    C2fAttn,
+    ImagePoolingAttn,
     C3Ghost,
     C3x,
     GhostBottleneck,
@@ -38,6 +40,8 @@ from .block import (
     ResNetLayer,
     se_block, cbam_block, eca_block, CA_Block, CSPStage, BiLevelRoutingAttention, Involution,
     CoordAtt,
+    ContrastiveHead,
+    BNContrastiveHead,
 )
 
 from .conv import (
@@ -56,7 +60,7 @@ from .conv import (
     SpatialAttention,
     DeformConv2d
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment
+from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect
 from .transformer import (
     AIFI,
     MLP,
@@ -97,6 +101,7 @@ __all__ = (
     "C2",
     "C3",
     "C2f",
+    "C2fAttn",
     "C3x",
     "C3TR",
     "C3Ghost",
@@ -121,5 +126,9 @@ __all__ = (
     'se_block', 'cbam_block', 'eca_block', 'BiLevelRoutingAttention', 'CA_Block', 'CSPStage', 'Involution',
     'CoordAtt',
     'CBAM',
-    "DeformConv2d"
+    "DeformConv2d",
+    "WorldDetect",
+    "ImagePoolingAttn",
+    "ContrastiveHead",
+    "BNContrastiveHead",
 )

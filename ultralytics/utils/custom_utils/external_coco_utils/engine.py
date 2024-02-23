@@ -9,18 +9,19 @@ from .coco_utils import get_coco_api_from_dataset
 from .coco_eval import CocoEvaluator
 from . import utils
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, chpt_path='.', total_epochs=0, rank=0):
+
+def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, chpt_path=".", total_epochs=0, rank=0):
     # if epoch > 0:
     #     model.load_state_dict(torch.load(f'{chpt_path}/last_epoch.pth'))
     model.train()
 
     metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
-    header = 'Epoch: [{} of {}]'.format(epoch+1, total_epochs)
+    metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
+    header = "Epoch: [{} of {}]".format(epoch + 1, total_epochs)
 
     lr_scheduler = None
     if epoch == 0:
-        warmup_factor = 1. / 1000
+        warmup_factor = 1.0 / 1000
         warmup_iters = min(1000, len(data_loader) - 1)
 
         lr_scheduler = utils.warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
@@ -31,7 +32,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, ch
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
         loss_dict = model(images, targets)
-        
+
         losses = sum(loss for loss in loss_dict.values())
 
         loss_dict_reduced = utils.reduce_dict(loss_dict)
@@ -58,12 +59,14 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, ch
             metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
     if rank == 0:
-        checkpoint(model, f'{chpt_path}/last_epoch.pth')
+        checkpoint(model, f"{chpt_path}/last_epoch.pth")
 
     return loss_final
 
+
 def checkpoint(model, filename):
     torch.save(model.state_dict(), filename)
+
 
 def _get_iou_types(model):
     model_without_ddp = model
@@ -76,6 +79,7 @@ def _get_iou_types(model):
         iou_types.append("keypoints")
     return iou_types
 
+
 @torch.no_grad()
 def evaluate(model, data_loader, device):
     n_threads = torch.get_num_threads()
@@ -84,7 +88,7 @@ def evaluate(model, data_loader, device):
     cpu_device = torch.device("cpu")
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
-    header = 'Validation:'
+    header = "Validation:"
 
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
@@ -113,7 +117,7 @@ def evaluate(model, data_loader, device):
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
-    
+
     coco_evaluator.synchronize_between_processes()
     # accumulate predictions from all images
     coco_evaluator.accumulate()

@@ -3,10 +3,11 @@ import sys
 
 def get_git_root():
     try:
-        git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], universal_newlines=True).strip()
+        git_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], universal_newlines=True).strip()
         return git_root
     except subprocess.CalledProcessError:
         return None
+
 
 ROOT_DIR = get_git_root()
 DATASET_NAME = "My_dataset"

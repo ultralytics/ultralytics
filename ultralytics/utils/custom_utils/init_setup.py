@@ -5,25 +5,20 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME
-
+from ultralytics.config import DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_TO_KEEP
 
 def delete_all_fiftyone_datasets():
     for dataset_name in fo.list_datasets():
         dataset = fo.load_dataset(dataset_name)
         dataset.delete()
 
+
 def export_dataset(dataset, export_dir, classes):
     dataset_type = fo.types.YOLOv5Dataset
 
     label_field = "segmentations"
 
-    dataset.export(
-        export_dir = export_dir,
-        dataset_type = dataset_type,
-        label_field = label_field,
-        classes=classes
-    )
+    dataset.export(export_dir=export_dir, dataset_type=dataset_type, label_field=label_field, classes=classes)
 
 
 def get_date_and_transect(filename):
@@ -36,7 +31,7 @@ def get_date_and_transect(filename):
     time = None
     if match:
         date_str, transect_match = match.groups()
-        
+
         if date_str:
             date = datetime.strptime(date_str, "%Y%m%d%H%M%S")
         else:
@@ -54,6 +49,7 @@ def get_date_and_transect(filename):
             time = filename.split("_")[1].strip("_-")
 
     return date, transect, time
+
 
 def calculate_mean_cv2(image_path):
     # Read the image using OpenCV
@@ -77,6 +73,7 @@ def calculate_mean_cv2(image_path):
 
     return mean_red, mean_green, mean_blue
 
+
 def setup(rank):
     name = f"{DATASET_NAME}{rank}"
 
@@ -96,11 +93,11 @@ def setup(rank):
             yaml_path=DATASET_DESCRIPTION,
             split=split,
             tags=split,
-            label_field="detections"
-    )
+            label_field="detections",
+        )
 
     dataset.persistent = True
-    
+
     print("Adding transects")
     for sample in tqdm(dataset.iter_samples(autosave=True)):
         filename = sample.filepath.split("/")[-1]
@@ -113,19 +110,19 @@ def setup(rank):
             detections = sample.detections.detections
             new_detections = []
             for detection in detections:
-                if detection["label"] in ORIGINAL_CLASSES:
+                if detection["label"] in CLASSES_TO_KEEP:
                     detection["label"] = detection["label"]
                     bounding_box = detection["bounding_box"]
                     detection["bbox_area_percentage"] = bounding_box[2] * bounding_box[3] * 100
                     detection["bbox_aspect_ratio"] = bounding_box[2] / bounding_box[3]
-                    if detection["bbox_area_percentage"] > 5: 
+                    if detection["bbox_area_percentage"] > 5:
                         detection["bbox_area_percentage"] = 5
                     if detection["bbox_aspect_ratio"] > 2:
                         detection["bbox_aspect_ratio"] = 2
                     new_detections.append(detection)
             sample.detections.detections = new_detections
             sample.save()
-    
+
     # print("Adding mean color attribute")
     # for sample in tqdm(dataset):
     #     # print(sample)
@@ -137,6 +134,7 @@ def setup(rank):
     #     sample["is_yellow"] = R > 0.6
     #     sample.save()
     dataset.save()
+
 
 if __name__ == "__main__":
     setup(0)

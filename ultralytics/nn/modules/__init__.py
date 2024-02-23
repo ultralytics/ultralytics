@@ -38,7 +38,13 @@ from .block import (
     Proto,
     RepC3,
     ResNetLayer,
-    se_block, cbam_block, eca_block, CA_Block, CSPStage, BiLevelRoutingAttention, Involution,
+    se_block,
+    cbam_block,
+    eca_block,
+    CA_Block,
+    CSPStage,
+    BiLevelRoutingAttention,
+    Involution,
     CoordAtt,
     ContrastiveHead,
     BNContrastiveHead,
@@ -58,7 +64,7 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
-    DeformConv2d
+    DeformConv2d,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect
 from .transformer import (
@@ -123,7 +129,6 @@ __all__ = (
     "MLP",
     "ResNetLayer",
     "OBB",
-    'se_block', 'cbam_block', 'eca_block', 'BiLevelRoutingAttention', 'CA_Block', 'CSPStage', 'Involution',
     'CoordAtt',
     'CBAM',
     "DeformConv2d",
@@ -131,4 +136,14 @@ __all__ = (
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",
+    "se_block",
+    "cbam_block",
+    "eca_block",
+    "BiLevelRoutingAttention",
+    "CA_Block",
+    "CSPStage",
+    "Involution",
+    "CoordAtt",
+    "CBAM",
+    "DeformConv2d",
 )

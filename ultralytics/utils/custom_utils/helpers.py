@@ -65,12 +65,14 @@ def copy_model_config(model, save_dir):
 
     shutil.copy(source_dir, dest_dir)
 
+
 def get_yolo_classes():
     indexes = []
     for i in range(len(ORIGINAL_CLASSES)):
         if ORIGINAL_CLASSES[i] in CLASSES_TO_KEEP:
             indexes.append(i)
     return indexes
+
 
 def SPONGEBOB(model_name, word="TRAINING MODEL"):
     return rf"""

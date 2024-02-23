@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from ultralytics.config import DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_TO_KEEP
 
+
 def delete_all_fiftyone_datasets():
     for dataset_name in fo.list_datasets():
         dataset = fo.load_dataset(dataset_name)

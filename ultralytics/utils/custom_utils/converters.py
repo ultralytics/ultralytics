@@ -91,32 +91,35 @@ def convert_dataset_yolo(dataset_folder="DUO"):
 
 
 def create_missing_label_files(root_dir):
-    """Generate label txt files where there are missing files
+    """
+    Generate label txt files where there are missing files.
 
     Args:
         root_dir (str): root directory of the repo
     """
     # Define the root directory
-    data_dir = os.path.join(root_dir, 'data', 'data')
+    data_dir = os.path.join(root_dir, "data", "data")
 
     # Iterate through train, valid, and test folders
-    for split in ['train', 'valid', 'test']:
+    for split in ["train", "valid", "test"]:
         split_dir = os.path.join(data_dir, split)
 
         # Iterate through images folder in each split
-        images_dir = os.path.join(split_dir, 'images')
+        images_dir = os.path.join(split_dir, "images")
         for image_file in os.listdir(images_dir):
             image_name, image_ext = os.path.splitext(image_file)
-            label_file = image_name + '.txt'
-            label_path = os.path.join(split_dir, 'labels', label_file)
+            label_file = image_name + ".txt"
+            label_path = os.path.join(split_dir, "labels", label_file)
 
             # Check if the label file exists, if not create an empty one
             if not os.path.exists(label_path):
-                with open(label_path, 'w') as f:
+                with open(label_path, "w") as f:
                     pass  # Create an empty file
 
+
 def convert_mask_to_yolo_bbox(yolo_annotation: str):
-    """Converts a file line from mask format to yolo bbox format
+    """
+    Converts a file line from mask format to yolo bbox format.
 
     Args:
         yolo_annotation (str): string on the format `<class-index> <x1> <y1> <x2> <y2> ... <xn> <yn>`
@@ -149,9 +152,10 @@ def convert_mask_to_yolo_bbox(yolo_annotation: str):
 
     return class_id, x_center, y_center, width, height
 
+
 def convert_annotations(folder):
     """
-    Converts label txt files from mask format to yolo bbox format
+    Converts label txt files from mask format to yolo bbox format.
 
     Args:
         folder (str): path to dataset folder
@@ -160,21 +164,20 @@ def convert_annotations(folder):
         for file in files:
             if file.endswith(".txt"):
                 file_path = os.path.join(subdir, file)
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     lines = f.readlines()
-                with open(file_path, 'w') as f:
+                with open(file_path, "w") as f:
                     for line in lines:
-                        if len(line.split()) > 5: # Must be mask if more than 5 numbers in line
+                        if len(line.split()) > 5:  # Must be mask if more than 5 numbers in line
                             class_id, x_center, y_center, width, height = convert_mask_to_yolo_bbox(line)
                             bbox_line = f"{class_id} {x_center} {y_center} {width} {height}\n"
                             f.write(bbox_line)
 
+
 def convert_mask_data_to_yolo_bbox():
-    """
-    Convert dataset labels from mask to yolo bbox format and creates txt files that do not exist
-    """
+    """Convert dataset labels from mask to yolo bbox format and creates txt files that do not exist."""
     # Example usage
     create_missing_label_files(ROOT_DIR)
 
     # Change the directory accordingly
-    convert_annotations(os.path.join(ROOT_DIR, 'data', 'data'))
+    convert_annotations(os.path.join(ROOT_DIR, "data", "data"))

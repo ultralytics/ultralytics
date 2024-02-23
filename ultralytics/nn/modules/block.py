@@ -414,7 +414,9 @@ class ResNetLayer(nn.Module):
         """Forward pass through the ResNet layer."""
         return self.layer(x)
 
+
 ##### NEW MODULES #####
+
 
 class se_block(nn.Module):  # SEnet
     def __init__(self, channel, ratio=16):
@@ -1220,8 +1222,9 @@ class CoordAtt(nn.Module):
         out = identity * a_w * a_h
 
         return out
-    
-# ============================== # 
+
+
+# ============================== #
 class MaxSigmoidAttnBlock(nn.Module):
     """Max Sigmoid attention block."""
 

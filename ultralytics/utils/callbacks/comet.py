@@ -48,7 +48,7 @@ def _scale_confidence_score(score):
 
 
 def _should_log_confusion_matrix():
-    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'false').lower() == 'true'
+    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true'
 
 
 def _should_log_image_predictions():
@@ -208,6 +208,8 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
         max_categories=len(names),
         epoch=curr_epoch,
         step=curr_step,
+        row_label='Predicted Category',
+        column_label='Actual Category',
     )
 
 
@@ -359,6 +361,11 @@ def on_train_end(trainer):
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
+    experiment.log_metrics(trainer.metrics, step=curr_step, epoch=curr_epoch)
+    experiment.log_table(
+        filename=str(trainer.save_dir / 'cocoeval_results.csv'),
+        tabular_data=trainer.validator.metrics.cocoeval_df,
+    )
     experiment.end()
 
     global _comet_image_prediction_count

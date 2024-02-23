@@ -12,7 +12,16 @@ from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
-from .augment import Compose, Format, Instances, LetterBox, RandomLoadText, classify_augmentations, classify_transforms, v8_transforms
+from .augment import (
+    Compose,
+    Format,
+    Instances,
+    LetterBox,
+    RandomLoadText,
+    classify_augmentations,
+    classify_transforms,
+    v8_transforms,
+)
 from .base import BaseDataset
 from .utils import (
     HELP_URL,
@@ -343,7 +352,6 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return samples
 
 
-
 class YOLOMultiModalDataset(YOLODataset):
     """
     Dataset class for loading object detection and/or segmentation labels in YOLO format.
@@ -355,6 +363,7 @@ class YOLOMultiModalDataset(YOLODataset):
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
+
     def __init__(self, *args, data=None, task="detect", **kwargs):
         super().__init__(*args, data=data, task=task, **kwargs)
 
@@ -369,6 +378,17 @@ class YOLOMultiModalDataset(YOLODataset):
         # NOTE: hard-coded the args for now.
         transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
         return transforms
+
+
+class GroundingDataset(BaseDataset):
+    def __init__(self, *args, data=None, task="detect", json_file, **kwargs):
+        assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
+        self.data = data
+        self.json_file = json_file
+        super().__init__(*args, **kwargs)
+
+    def get_labels(self):
+        pass
 
 
 # TODO: support semantic segmentation

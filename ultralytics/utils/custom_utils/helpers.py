@@ -3,7 +3,7 @@ import shutil
 
 import fiftyone as fo
 import torch
-# from fiftyone import ViewField as F
+from fiftyone import ViewField as F
 
 from ultralytics.utils.custom_utils.init_setup import setup
 from ultralytics.config import DATASET_NAME

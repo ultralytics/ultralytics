@@ -11,7 +11,7 @@ def get_git_root():
 
 ROOT_DIR = get_git_root()
 DATASET_NAME = "My_dataset"
-DATA_PATH = f'{ROOT_DIR}/data/new_split'
+DATA_PATH = f'{ROOT_DIR}/data/data'
 TEST_DATA_PATH = f'{DATA_PATH}/test'
 DATASET_DESCRIPTION = f'{DATA_PATH}/data.yaml'
 PLOTS_PATH = f'{ROOT_DIR}/plots'

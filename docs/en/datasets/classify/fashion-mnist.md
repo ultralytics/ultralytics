@@ -26,16 +26,16 @@ The Fashion-MNIST dataset is split into two subsets:
 
 Each training and test example is assigned to one of the following labels:
 
-0. T-shirt/top
-1. Trouser
-2. Pullover
-3. Dress
-4. Coat
-5. Sandal
-6. Shirt
-7. Sneaker
-8. Bag
-9. Ankle boot
+1. T-shirt/top
+2. Trouser
+3. Pullover
+4. Dress
+5. Coat
+6. Sandal
+7. Shirt
+8. Sneaker
+9. Bag
+10. Ankle boot
 
 ## Applications
 
@@ -46,9 +46,7 @@ The Fashion-MNIST dataset is widely used for training and evaluating deep learni
 To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image size of 28x28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! Example "Train Example"
-
     === "Python"
-
         ```python
         from ultralytics import YOLO
 
@@ -60,7 +58,6 @@ To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image s
         ```
 
     === "CLI"
-
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28

@@ -149,7 +149,6 @@ Note: This works using LLMs under the hood so the results are probabilistic and 
     from ultralytics import Explorer
     from ultralytics.data.explorer import plot_query_result
 
-
     # create an Explorer object
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()

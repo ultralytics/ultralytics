@@ -20,9 +20,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 </p>
 
 !!! Example "Install"
-
     === "Pip install (recommended)"
-
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
@@ -40,9 +38,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         ```
 
     === "Conda install"
-
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
-
 
         [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
@@ -52,8 +48,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         ```
 
         !!! Note
-
             If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
+
             ```bash
             # Install all packages together using conda
             conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
@@ -77,6 +73,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
     === "Git clone"
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+
         ```bash
         # Clone the ultralytics repository
         git clone https://github.com/ultralytics/ultralytics
@@ -89,7 +86,6 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         ```
 
     === "Docker"
-
         Utilize Docker to effortlessly execute the `ultralytics` package in an isolated container, ensuring consistent and smooth performance across various environments. By choosing one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you not only avoid the complexity of local installation but also benefit from access to a verified working environment. Ultralytics offers 5 main supported Docker images, each designed to provide high compatibility and efficiency for different platforms and use cases:
 
         <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
@@ -131,7 +127,6 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
 !!! Tip "Tip"
-
     PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
 
     <a href="https://pytorch.org/get-started/locally/">
@@ -143,10 +138,9 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
 The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
 
 !!! Example
-
     === "Syntax"
-
         Ultralytics `yolo` commands use the following syntax:
+
         ```bash
         yolo TASK MODE ARGS
         ```
@@ -158,36 +152,36 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         See all `ARGS` in the full [Configuration Guide](usage/cfg.md) or with the `yolo cfg` CLI command.
 
     === "Train"
-
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
+
         ```bash
         yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
-
         Predict a YouTube video using a pretrained segmentation model at image size 320:
+
         ```bash
         yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
-
         Val a pretrained detection model at batch-size 1 and image size 640:
+
         ```bash
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```
 
     === "Export"
-
         Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
         ```
 
     === "Special"
-
         Run special commands to see version, view settings, run checks and more:
+
         ```bash
         yolo help
         yolo checks
@@ -198,13 +192,12 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         ```
 
 !!! Warning "Warning"
-
     Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`  ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
-    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` ✅
+    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` ❌ (missing `=`)
+    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25` ❌ (do not use `,`)
+    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` ❌ (do not use `--`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 
@@ -215,7 +208,6 @@ YOLOv8's Python interface allows for seamless integration into your Python proje
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLOv8 within your Python projects.
 
 !!! Example
-
     ```python
     from ultralytics import YOLO
 
@@ -249,9 +241,9 @@ The Ultralytics library provides a powerful settings management system to enable
 To gain insight into the current configuration of your settings, you can view them directly:
 
 !!! Example "View settings"
-
     === "Python"
         You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
+
         ```python
         from ultralytics import settings
 
@@ -264,6 +256,7 @@ To gain insight into the current configuration of your settings, you can view th
 
     === "CLI"
         Alternatively, the command-line interface allows you to check your settings with a simple command:
+
         ```bash
         yolo settings
         ```
@@ -273,9 +266,9 @@ To gain insight into the current configuration of your settings, you can view th
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
 !!! Example "Update settings"
-
     === "Python"
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
+
         ```python
         from ultralytics import settings
 
@@ -291,6 +284,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
     === "CLI"
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+
         ```bash
         # Update a setting
         yolo settings runs_dir='/path/to/runs'
@@ -307,7 +301,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
-|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |

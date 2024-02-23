@@ -42,14 +42,16 @@ repos:
       - id: mdformat
         name: MD formatting
         additional_dependencies:
-          - mdformat-gfm
-          - mdformat-frontmatter
-          - mdformat-mkdocs
+          - mdformat-frontmatter>=2.0.8
+          - mdformat-mkdocs>=2.0.1
+          # # TODO: defer additional plugins (black/beautysh/etc.) to minimize diff
+          # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, so this line is all you need:
+          # - mdformat-mkdocs[recommended]>=2.0.1
         args:
           - --wrap=no
           - --number
-        exclude: 'docs/.*\.md'
-        # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
+        # HACK: Limit to English documentation for the initial PR
+        exclude: 'docs/(?!en).+\.md'
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6

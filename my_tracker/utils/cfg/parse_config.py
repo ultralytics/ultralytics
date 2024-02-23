@@ -27,9 +27,7 @@ class ConfigParser:
         # set save_dir where outputs will be saved.
         save_dir = Path(self.config["save_dir"])
 
-        exper_name = self.config["name"]
-        if exper_name is None:  # use timestamp as default run-id
-            exper_name = datetime.now().strftime(r"%m%d_%H%M%S")
+        exper_name = self.config["name"] + '/' + datetime.now().strftime(r"%m%d_%H%M%S")
         self._save_dir = save_dir / exper_name
 
         # make directory for saving checkpoints and log.

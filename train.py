@@ -5,7 +5,7 @@ import glob
 import shutil
 import warnings
 from ultralytics import YOLO
-from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH, ROOT_DIR
+from ultralytics.config import ROOT_DIR
 from ultralytics.utils.custom_utils.helpers import copy_model_config
 
 def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train", data="data"):
@@ -114,7 +114,4 @@ if __name__ == "__main__":
 
     train(epochs=args.epochs, model=args.model, device=args.device, batch_size=args.batch_size, save_dir=save_dir, data=args.data_dir)
 
-    # copy_model_config(args.model, save_dir)
-
-    # dataset, classes = get_fiftyone_dataset(0)
-    # run_prediction(TEST_DATA_PATH, dataset, save_dir, model[:6])
+    copy_model_config(args.model, save_dir)

@@ -2,12 +2,12 @@ import argparse
 import glob
 import os
 
-from ultralytics.config import ROOT_DIR, TEST_DATA_PATH, get_yolo_classes, SPONGEBOB
+from ultralytics.config import ROOT_DIR, TEST_DATA_PATH
 from ultralytics import YOLO, RTDETR
 
 from ultralytics.utils.custom_utils.predictor_helpers import add_detections_to_fiftyone
 from ultralytics.utils.custom_utils.plots import create_result_plots
-from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
+from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset, get_yolo_classes, SPONGEBOB
 
 def run_prediction(export_dir_test, dataset, model_root_path, model_type='yolov8'):
     if model_type == "yolov8":

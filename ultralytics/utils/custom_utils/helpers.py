@@ -1,12 +1,11 @@
 import os
 import shutil
-
 import fiftyone as fo
 import torch
 from fiftyone import ViewField as F
 
 from ultralytics.utils.custom_utils.init_setup import setup
-from ultralytics.config import DATASET_NAME
+from ultralytics.config import DATASET_NAME, ORIGINAL_CLASSES, CLASSES_TO_KEEP
 
 def check_cuda():
     print(torch.cuda.is_available())
@@ -62,3 +61,37 @@ def copy_model_config(model, save_dir):
         dest_dir = f'{dest_dir}.yaml'
 
     shutil.copy(source_dir, dest_dir)
+
+
+def get_yolo_classes():
+    indexes = []
+    for i in range(len(ORIGINAL_CLASSES)):
+        if ORIGINAL_CLASSES[i] in CLASSES_TO_KEEP:
+            indexes.append(i)
+    return indexes
+
+def SPONGEBOB(model_name, word="TRAINING MODEL"):
+    return rf"""
+            {word} 
+        .--..--..--..--..--..--.
+        .' \  (`._   (_)     _   \
+    .'    |  '._)         (_)  |
+    \ _.')\      .----..---.   /
+    |(_.'  |    /    .-\-.  \  |
+    \     0|    |   ( O| O) | o|
+    |  _  |  .--.____.'._.-.  |
+    \ (_) | o         -` .-`  |
+        |    \   |`-._ _ _ _ _\ /
+        \    |   |  `. |_||_|   |    {model_name.upper()}
+        | o  |    \_      \     |     -.   .-.
+        |.-.  \     `--..-'   O |     `.`-' .'
+    _.'  .' |     `-.-'      /-.__   ' .-'
+    .' `-.` '.|='=.='=.='=.='=|._/_ `-'.'
+    `-._  `.  |________/\_____|    `-.'
+    .'   ).| '=' '='\/ '=' |
+    `._.`  '---------------'
+            //___\   //___\
+                ||       ||
+                ||_.-.   ||_.-.
+                (_.--__) (_.--__)
+    """

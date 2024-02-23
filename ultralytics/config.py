@@ -1,7 +1,6 @@
 import subprocess
 import sys
 
-
 def get_git_root():
     try:
         git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], universal_newlines=True).strip()
@@ -16,9 +15,6 @@ TEST_DATA_PATH = f'{DATA_PATH}/test'
 DATASET_DESCRIPTION = f'{DATA_PATH}/data.yaml'
 PLOTS_PATH = f'{ROOT_DIR}/plots'
 OS = sys.platform
-
-DATASET_MEAN = (0.5227, 0.5336, 0.3736)
-DATASET_STD = (0.2749, 0.2483, 0.1730)
 
 ORIGINAL_CLASSES = [
     'anemone',
@@ -41,8 +37,8 @@ ORIGINAL_CLASSES = [
     'sjobusk',
     'stor piperenser',
     'tare',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
-    'Tynn vifteformet, traktformet_svamp',
+    'MRTSPB_svamp',
+    'TVT_svamp',
     'finger_svamp',
     'blomkalkorall',
     'krakebolle',
@@ -56,11 +52,6 @@ ORIGINAL_CLASSES = [
     'grandiflora'
     ]
 
-CLASSES_MAPPING = {
-    "Massiv rund, tjukk skalformet, poros bulkeformet_svamp": "MRTSPB_svamp",
-    "Tynn vifteformet, traktformet_svamp": "TVT_svamp",
-}
-
 # OPPDATERT FOR NYTT DATASETT
 CLASSES_TO_KEEP = [
     'vortesvamp',
@@ -72,43 +63,13 @@ CLASSES_TO_KEEP = [
     'stylocordyla',
     'sjobusk',
     'tare',
-    'Massiv rund, tjukk skalformet, poros bulkeformet_svamp',
-    'Tynn vifteformet, traktformet_svamp',
+    'MRTSPB_svamp',
+    'TVT_svamp',
     'finger_svamp',
     'blomkalkorall',
     'oyekorall',
-    'grandiflora'
+    'grandiflora',
+    'anemone',
+    'fisk',
+    'sjostjerne',
 ]
-
-def get_yolo_classes():
-    indexes = []
-    for i in range(len(ORIGINAL_CLASSES)):
-        if ORIGINAL_CLASSES[i] in CLASSES_TO_KEEP:
-            indexes.append(i)
-    return indexes
-
-def SPONGEBOB(model_name, word="TRAINING MODEL"):
-    return rf"""
-            {word} 
-        .--..--..--..--..--..--.
-        .' \  (`._   (_)     _   \
-    .'    |  '._)         (_)  |
-    \ _.')\      .----..---.   /
-    |(_.'  |    /    .-\-.  \  |
-    \     0|    |   ( O| O) | o|
-    |  _  |  .--.____.'._.-.  |
-    \ (_) | o         -` .-`  |
-        |    \   |`-._ _ _ _ _\ /
-        \    |   |  `. |_||_|   |    {model_name.upper()}
-        | o  |    \_      \     |     -.   .-.
-        |.-.  \     `--..-'   O |     `.`-' .'
-    _.'  .' |     `-.-'      /-.__   ' .-'
-    .' `-.` '.|='=.='=.='=.='=|._/_ `-'.'
-    `-._  `.  |________/\_____|    `-.'
-    .'   ).| '=' '='\/ '=' |
-    `._.`  '---------------'
-            //___\   //___\
-                ||       ||
-                ||_.-.   ||_.-.
-                (_.--__) (_.--__)
-    """

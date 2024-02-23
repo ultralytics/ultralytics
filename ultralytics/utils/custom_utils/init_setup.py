@@ -5,7 +5,7 @@ import cv2
 import fiftyone as fo
 from tqdm import tqdm
 
-from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME, CLASSES_MAPPING
+from ultralytics.config import ORIGINAL_CLASSES, DATA_PATH, DATASET_DESCRIPTION, DATASET_NAME
 
 
 def delete_all_fiftyone_datasets():

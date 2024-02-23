@@ -3,6 +3,9 @@ import time
 
 
 class FrameRateCounter:
+    """
+    Class to count the frame rate of a process based on the time stamps of the frames.
+    """
     def __init__(self, window=5):
         self.timestamps = deque()
         self.window = window
@@ -18,7 +21,9 @@ class FrameRateCounter:
 
 
 class Timer:
-
+    """
+    Class to measure the time taken by a process.
+    """
     def __init__(self):
         self.t = time.time()
 

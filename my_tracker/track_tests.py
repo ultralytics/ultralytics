@@ -8,6 +8,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 import cv2
 import numpy as np
 from tqdm import tqdm
+from contextlib import nullcontext
 
 from my_tracker.byte_track import ByteTrack
 from my_tracker.action_recognition import ActionRecognizer
@@ -20,32 +21,10 @@ import supervision as sv
 COLORS = sv.ColorPalette.default()
 
 
-# TODO: move to utils
-def convert_video_to_gif(video_path, gif_path, fps=25):
-    """
-    Convert a video file to a GIF.
-    :param video_path: Path to the video file.
-    :param gif_path: Path where the GIF should be saved.
-    :param fps: Frames per second for the GIF.
-    """
-    """reader = imageio.get_reader(video_path)
-    with imageio.get_writer(gif_path, fps=fps) as writer:
-        for frame in reader:
-            writer.append_data(frame)
-    print(f"Saved GIF to {gif_path}")"""
-    command = [
-        'ffmpeg',
-        '-i', video_path,  # Input file
-        '-vf', f'fps={fps}',  # Set frame rate
-        '-f', 'gif',  # Set format to GIF
-        gif_path  # Output file
-    ]
-    subprocess.run(command, check=True)
-    print(f"Saved GIF to {gif_path}")
-
-
 class VideoProcessor:
     def __init__(self, config) -> None:
+
+        # Initialize the YOLO parameters
         self.conf_threshold = config["conf_threshold"]
         self.iou_threshold = config["iou_threshold"]
         self.img_size = config["img_size"]
@@ -63,14 +42,14 @@ class VideoProcessor:
 
         self.model = YOLO(config["source_weights_path"])
         self.model.fuse()
+        # TODO: what is this frame rate?
+        # instead pass video_info.fps
         self.tracker = ByteTrack(config, config["frame_rate"])
 
         self.video_info = sv.VideoInfo.from_video_path(self.source_video_path)
 
         self.box_annotator = sv.BoxAnnotator(color=COLORS)
-        self.trace_annotator = sv.TraceAnnotator(
-            color=COLORS, position=sv.Position.CENTER, trace_length=100, thickness=2
-        )
+        self.trace_annotator = sv.TraceAnnotator(color=COLORS, position=sv.Position.CENTER, trace_length=100, thickness=2)
 
         self.display = config["display"]
         self.save_results = config["save_results"]
@@ -105,37 +84,8 @@ class VideoProcessor:
             "y2": [],
         }
 
-        if not self.display:
-            with sv.VideoSink(self.target_video_path, self.video_info) as sink:
-
-                fps_counter = FrameRateCounter()
-                timer = Timer()
-
-                for i, frame in enumerate(pbar := tqdm(frame_generator, total=self.video_info.total_frames)):
-                    pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
-                    if i % self.video_stride == 0:
-                        annotated_frame = self.process_frame(frame, i, fps_counter.value())
-                        sink.write_frame(annotated_frame)
-
-                        # Store results
-                        if self.save_results:
-                            for track in self.tracker.tracked_stracks:
-                                data_dict["frame_id"].append(track.frame_id)
-                                data_dict["tracker_id"].append(track.track_id)
-                                data_dict["class_id"].append(track.class_ids)
-                                data_dict["x1"].append(track.tlbr[0])
-                                data_dict["y1"].append(track.tlbr[1])
-                                data_dict["x2"].append(track.tlbr[2])
-                                data_dict["y2"].append(track.tlbr[3])
-
-                        fps_counter.step()
-
-            # TODO: must be specified in config
-            # gif_path = self.target_video_path.replace('.mp4', '.gif')
-            # imageio.convert_video_to_gif(self.target_video_path, gif_path)
-
-        else:
-
+        video_sink = sv.VideoSink(self.target_video_path, self.video_info) if not self.display else nullcontext()
+        with video_sink as sink:
             fps_counter = FrameRateCounter()
             timer = Timer()
 
@@ -143,7 +93,28 @@ class VideoProcessor:
                 pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                 if i % self.video_stride == 0:
                     annotated_frame = self.process_frame(frame, i, fps_counter.value())
-                    cv2.imshow("Processed Video", annotated_frame)
+                    fps_counter.step() # here
+
+                    if not self.display:
+                        sink.write_frame(annotated_frame)
+                    else:
+                        cv2.imshow("Processed Video", annotated_frame)
+
+                        k = cv2.waitKey(int(self.wait_time * self.slow_factor))  # dd& 0xFF
+
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
+                        elif k == ord('p'):  # pause the video
+                            cv2.waitKey(-1)  # wait until any key is pressed
+                        elif k == ord('r'):  # resume the video
+                            continue
+                        elif k == ord('d'):
+                            slow_factor = self.slow_factor - 1
+                            print(slow_factor)
+                        elif k == ord('i'):
+                            slow_factor = self.slow_factor + 1
+                            print(slow_factor)
+                            break
 
                     # Store results
                     if self.save_results:
@@ -156,23 +127,8 @@ class VideoProcessor:
                             data_dict["x2"].append(track.tlbr[2])
                             data_dict["y2"].append(track.tlbr[3])
 
-                    fps_counter.step()
-                    k = cv2.waitKey(int(self.wait_time * self.slow_factor))  # dd& 0xFF
-
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
-                    elif k == ord('p'):  # pause the video
-                        cv2.waitKey(-1)  # wait until any key is pressed
-                    elif k == ord('r'):  # resume the video
-                        continue
-                    elif k == ord('d'):
-                        slow_factor = self.slow_factor - 1
-                        print(slow_factor)
-                    elif k == ord('i'):
-                        slow_factor = self.slow_factor + 1
-                        print(slow_factor)
-                        break
-            cv2.destroyAllWindows()
+            if self.display:
+                cv2.destroyAllWindows()
 
         # Print time and fps
         time_taken = f"{int(timer.elapsed() / 60)} min {int(timer.elapsed() % 60)} sec"
@@ -181,14 +137,12 @@ class VideoProcessor:
         print(f"Total time: {time_taken}")
         print(f"Average FPS: {avg_fps:.2f}")
 
-
         # Save datadict in csv
         if self.save_results:
             with open(self.csv_path, "w") as f:
                 w = csv.writer(f)
                 w.writerow(data_dict.keys())
                 w.writerows(zip(*data_dict.values()))
-
 
     def process_frame(self, frame: np.ndarray, frame_number: int, fps: float) -> np.ndarray:
         results = self.model(
@@ -228,7 +182,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--config",
-        default="./cfg/ByteTrack.json",
+        default="./ByteTrack.json",
         type=str,
         help="config file path (default: None)",
     )

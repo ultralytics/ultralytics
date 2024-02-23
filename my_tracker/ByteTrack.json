@@ -1,15 +1,19 @@
 {
-  "name": "ByteTrack",
+  "name": "testing",
 
-  "source_weights_path": "./../inference_tools/models/detector_best.pt",
-  "source_video_path": "./data/test2.mp4",
+  "source_weights_path": "./models/8sp2_150.pt",
+  "source_video_path": "./data/example1.mp4",
 
   "device": "mps",
   "video_stride": 1,
 
+  "save_dir": "./outputs/",
+  "save_results": true,
+  "display": false,
+
   "img_size": 640,
   "conf_threshold": 0.2,
-  "iou_threshold": 0.4,
+  "iou_threshold": 0.8,
   "max_det": 50,
 
   "track_high_thresh": 0.4,
@@ -27,10 +31,6 @@
 
   "gmc_method": null,
   "ablation": "sparseOptFlow",
-
-  "save_dir": "./outputs/",
-  "save_results": true,
-  "display": false,
 
   "action_recognition": {
     "speed_projection": [0.7, 1.5],

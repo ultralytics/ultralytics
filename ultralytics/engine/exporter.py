@@ -407,9 +407,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
 
         ov_model = ov.convert_model(
-            self.model.cpu(),
-            input=None if self.args.dynamic else [self.im.shape],
-            example_input=self.im
+            self.model.cpu(), input=None if self.args.dynamic else [self.im.shape], example_input=self.im
         )  # export
 
         def serialize(ov_model, file):

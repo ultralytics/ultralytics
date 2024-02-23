@@ -382,12 +382,11 @@ class YOLOMultiModalDataset(YOLODataset):
         return transforms
 
 
-class GroundingDataset(BaseDataset):
-    def __init__(self, *args, data=None, task="detect", json_file, **kwargs):
+class GroundingDataset(YOLODataset):
+    def __init__(self, *args, task="detect", json_file, **kwargs):
         assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
-        self.data = data
         self.json_file = json_file
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, task=task, data={}, **kwargs)
 
     def get_img_files(self, img_path):
         """The image files would be read in `get_labels` function, return empty list here."""
@@ -406,8 +405,9 @@ class GroundingDataset(BaseDataset):
             img = images[f"{img_id:d}"]
             h, w, f = img["height"], img["width"], img["file_name"]
             im_file = Path(self.img_path) / f
-            if im_file.exists():
-                self.im_files.append(im_file)
+            if not im_file.exists():
+                continue
+            self.im_files.append(str(im_file))
             bboxes = []
             cat2id = {}
             texts = []
@@ -441,6 +441,13 @@ class GroundingDataset(BaseDataset):
                     texts=texts,
                 )
             )
+        return labels
+
+    def build_transforms(self, hyp=None):
+        transforms = super().build_transforms(hyp)
+        # NOTE: hard-coded the args for now.
+        transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
+        return transforms
 
 
 # TODO: support semantic segmentation

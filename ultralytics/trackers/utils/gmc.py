@@ -18,9 +18,9 @@ class GMC:
     Attributes:
         method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
-        prevFrame (np.array): Stores the previous frame for tracking.
+        prevFrame (np.ndarray): Stores the previous frame for tracking.
         prevKeyPoints (list): Stores the keypoints from the previous frame.
-        prevDescriptors (np.array): Stores the descriptors from the previous frame.
+        prevDescriptors (np.ndarray): Stores the descriptors from the previous frame.
         initializedFirstFrame (bool): Flag to indicate if the first frame has been processed.
 
     Methods:
@@ -82,11 +82,11 @@ class GMC:
         Apply object detection on a raw frame using specified method.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -97,22 +97,21 @@ class GMC:
         if self.method in ["orb", "sift"]:
             return self.applyFeatures(raw_frame, detections)
         elif self.method == "ecc":
-            return self.applyEcc(raw_frame, detections)
+            return self.applyEcc(raw_frame)
         elif self.method == "sparseOptFlow":
-            return self.applySparseOptFlow(raw_frame, detections)
+            return self.applySparseOptFlow(raw_frame)
         else:
             return np.eye(2, 3)
 
-    def applyEcc(self, raw_frame: np.array, detections: list = None) -> np.array:
+    def applyEcc(self, raw_frame: np.array) -> np.array:
         """
         Apply ECC algorithm to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
-            detections (list): List of detections to be used in the processing.
+            raw_frame (np.ndarray): The raw frame to be processed.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -144,7 +143,7 @@ class GMC:
         # Run the ECC algorithm. The results are stored in warp_matrix.
         # (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria)
         try:
-            (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
+            (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
             LOGGER.warning(f"WARNING: find transform failed. Set warp as identity {e}")
 
@@ -155,11 +154,11 @@ class GMC:
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -258,7 +257,7 @@ class GMC:
         #     import matplotlib.pyplot as plt
         #     matches_img = np.hstack((self.prevFrame, frame))
         #     matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
-        #     W = np.size(self.prevFrame, 1)
+        #     W = self.prevFrame.shape[1]
         #     for m in goodMatches:
         #         prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
         #         curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
@@ -275,7 +274,7 @@ class GMC:
         #     plt.show()
 
         # Find rigid matrix
-        if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):
+        if prevPoints.shape[0] > 4:
             H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Handle downscale
@@ -292,16 +291,15 @@ class GMC:
 
         return H
 
-    def applySparseOptFlow(self, raw_frame: np.array, detections: list = None) -> np.array:
+    def applySparseOptFlow(self, raw_frame: np.array) -> np.array:
         """
         Apply Sparse Optical Flow method to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
-            detections (list): List of detections to be used in the processing.
+            raw_frame (np.ndarray): The raw frame to be processed.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -328,7 +326,7 @@ class GMC:
             return H
 
         # Find correspondences
-        matchedKeypoints, status, err = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
+        matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
         # Leave good correspondences only
         prevPoints = []
@@ -343,8 +341,8 @@ class GMC:
         currPoints = np.array(currPoints)
 
         # Find rigid matrix
-        if np.size(prevPoints, 0) > 4 and np.size(prevPoints, 0) == np.size(prevPoints, 0):
-            H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
+        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == prevPoints.shape[0]):
+            H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             if self.downscale > 1.0:
                 H[0, 2] *= self.downscale

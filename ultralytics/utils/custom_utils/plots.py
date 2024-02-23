@@ -1,16 +1,18 @@
 import json
 import os
 import re
+import glob
 
 import fiftyone as fo
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from ultralytics.config import PLOTS_PATH, CLASSES_TO_KEEP
+from ultralytics.config import PLOTS_PATH, CLASSES_TO_KEEP, ROOT_DIR
 from fiftyone import ViewField as F
 from fiftyone.utils.eval.coco import DetectionResults
 from tqdm import tqdm
 from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
+from ultralytics.utils.custom_utils.predictor_helpers import add_detections_to_fiftyone
 
 
 def get_order_func(dataset, split):
@@ -186,6 +188,10 @@ def plots_and_matrixes(model_name, dataset, classes, save_path, evaluators_path,
     clone.delete()
 
 def create_result_plots(model_root_path, dataset):
+    run_number = max(glob.glob(os.path.join(f"{ROOT_DIR}/runs/detect/{model_root_path}/", '*/')), key=os.path.getmtime)
+    dataset_test = dataset.match_tags("test")
+    add_detections_to_fiftyone(dataset_test, model_root_path, run_number)
+    
     classes = CLASSES_TO_KEEP
 
     filter_threshold = {

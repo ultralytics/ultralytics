@@ -5,11 +5,10 @@ import os
 from ultralytics.config import ROOT_DIR, TEST_DATA_PATH, get_yolo_classes, SPONGEBOB
 from ultralytics import YOLO, RTDETR
 
-from ultralytics.utils.custom_utils.predictor_helpers import add_detections_to_fiftyone
 from ultralytics.utils.custom_utils.plots import create_result_plots
 from ultralytics.utils.custom_utils.helpers import get_fiftyone_dataset
 
-def run_prediction(export_dir_test, dataset, model_root_path, model_type='yolov8'):
+def run_prediction(export_dir_test, model_root_path, new_predict, model_type='yolov8'):
     if model_type == "yolov8":
         weights_path = f'{ROOT_DIR}/runs/detect/{model_root_path}/'
         model = YOLO(f'{weights_path}weights/best.pt')
@@ -17,11 +16,8 @@ def run_prediction(export_dir_test, dataset, model_root_path, model_type='yolov8
         weights_path = f'{ROOT_DIR}/runs/detect/{model_root_path}/'
         model = RTDETR(f'{weights_path}weights/best.pt')
 
-    results = model.predict(f'{export_dir_test}/images', save_txt=True, imgsz=640, conf=0.1, save_conf=True, classes=get_yolo_classes(), name=f"{model_root_path}/test_predictions")
-
-    run_number = max(glob.glob(os.path.join(f"runs/detect/{model_root_path}/", '*/')), key=os.path.getmtime)
-    dataset_test = dataset.match_tags("test")
-    add_detections_to_fiftyone(dataset_test, model_root_path, run_number)
+    if new_predict:
+        results = model.predict(f'{export_dir_test}/images', save_txt=True, imgsz=640, conf=0.1, save_conf=True, classes=get_yolo_classes(), name=f"{model_root_path}/test_predictions")
 
 if __name__ == "__main__":
 
@@ -39,16 +35,25 @@ if __name__ == "__main__":
         type=str,   # specify the type of elements in the list
         help="The type of model, either YOLOv8 or RTDETR",
     )
+    parser.add_argument(
+        "--run_new_prediction",
+        # nargs="+",  # '+' allows one or more values
+        type=str,   # specify the type of elements in the list
+        default=False,
+        help="If you want to run new predictions or use the ones from right after training",
+    )
 
     args = parser.parse_args()
     model_root_path = args.model_root_path
     model_type = args.model_type
+    new_predict = args.run_new_prediction
 
     print(SPONGEBOB(model_root_path, "RUNNING PREDICTION"))
 
     dataset, classes = get_fiftyone_dataset(0)
 
     test_set_path = TEST_DATA_PATH
+    run_prediction(test_set_path, model_root_path, new_predict, model_type)
     
     run_prediction(test_set_path, dataset, model_root_path, model_type)
     create_result_plots(model_root_path, dataset)

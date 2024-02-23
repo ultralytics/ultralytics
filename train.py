@@ -7,6 +7,7 @@ import warnings
 from ultralytics import YOLO
 from ultralytics.config import DATASET_DESCRIPTION, TEST_DATA_PATH, ROOT_DIR
 from ultralytics.utils.custom_utils.helpers import copy_model_config
+from predict import run_prediction
 
 def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save_dir="train", data="data"):
     import re
@@ -38,7 +39,6 @@ def train(epochs, model, imgsz=640, device="0", batch_size=16, patience=30, save
         f"epochs={epochs}",
         f"imgsz={imgsz}",
         f"device={device}",
-        "save_txt=True",
         f"batch={batch_size}",
         f"patience={patience}",
         "nms=True",
@@ -100,6 +100,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     save_dir = args.save_dir
+    model_type = "yolov8" if args.model.startswith("yolov8") else "rtdetr"
 
     if os.path.exists(save_dir):
         for i in range(2, 100):
@@ -115,3 +116,4 @@ if __name__ == "__main__":
     train(epochs=args.epochs, model=args.model, device=args.device, batch_size=args.batch_size, save_dir=save_dir, data=args.data_dir)
 
     copy_model_config(args.model, save_dir)
+    run_prediction(TEST_DATA_PATH, save_dir, True, model_type)

@@ -14,8 +14,8 @@ outputs_root = './outputs'
 experiment_name = time.strftime("%Y%m%d-%H%M%S")
 # Can be changed
 imgsz = 640
-batch = 16
-device = [4]
+batch = 4
+device = 'cpu'
 
 
 #  START OF EVALUATION
@@ -31,6 +31,7 @@ metrics = model.val(
     imgsz=imgsz,
     batch=batch,
     device=device,
+    iou=0.9,
     save=True,
     save_json=True,
     plots=True,

@@ -8,18 +8,22 @@ from ultralytics.config import ROOT_DIR
 def modify_coco_json(annotations_path):
     # annotations_path = f"../data/DUO/annotations/instances_{split}"
     # Load the JSON file
-    with open(f"{annotations_path}.json", 'r') as f:
+    with open(f"{annotations_path}.json", "r") as f:
         annotations = json.load(f)
 
     # Iterate through annotations
-    for annotation in annotations['annotations']:
+    for annotation in annotations["annotations"]:
         # Check if the 'segmentation' key is present and it's not in the correct format
-        if 'segmentation' in annotation and isinstance(annotation['segmentation'], list) and not isinstance(annotation['segmentation'][0], list):
+        if (
+            "segmentation" in annotation
+            and isinstance(annotation["segmentation"], list)
+            and not isinstance(annotation["segmentation"][0], list)
+        ):
             # Convert the segmentation to the correct format
-            annotation['segmentation'] = [annotation['segmentation']]
+            annotation["segmentation"] = [annotation["segmentation"]]
 
     # Save the modified JSON back to file
-    with open(f'{annotations_path}_corrected.json', 'w') as f:
+    with open(f"{annotations_path}_corrected.json", "w") as f:
         json.dump(annotations, f)
 
 
@@ -44,35 +48,29 @@ def load_dataset_fiftyone(data_path, labels_path):
     return dataset
 
 
-def export_dataset(split, dataset_path, dataset: fo.Dataset, dataset_type=fo.types.YOLOv5Dataset, label_field="detections"):
-    
+def export_dataset(
+    split, dataset_path, dataset: fo.Dataset, dataset_type=fo.types.YOLOv5Dataset, label_field="detections"
+):
     classes = dataset.default_classes[1:]
 
     # Export dataset
 
     dataset.match_tags(split).export(
-        export_dir = f"{dataset_path}/{split}",
-        dataset_type = dataset_type,
-        label_field = label_field,
-        classes = classes,
+        export_dir=f"{dataset_path}/{split}",
+        dataset_type=dataset_type,
+        label_field=label_field,
+        classes=classes,
     )
 
     # Create yaml file
-    d = {
-            'train': "train",
-            'val': "test",
-            'nc': len(classes),
-            'names': classes
-        }
+    d = {"train": "train", "val": "test", "nc": len(classes), "names": classes}
 
-    with open(f"{dataset_path}/data.yaml", 'w') as f:
+    with open(f"{dataset_path}/data.yaml", "w") as f:
         yaml.dump(d, f, sort_keys=False, indent=2)
 
 
 def convert_dataset_yolo(dataset_folder="DUO"):
-    """
-    Converts a COCO dataset to YOLO format using FiftyOne
-    """
+    """Converts a COCO dataset to YOLO format using FiftyOne."""
 
     dataset_path = f"{ROOT_DIR}/data/{dataset_folder}"
     for split in ["train", "test"]:
@@ -87,5 +85,5 @@ def convert_dataset_yolo(dataset_folder="DUO"):
     for split in ["train", "test"]:
         dataset_path = f"{ROOT_DIR}/data/{dataset_folder}"
         export_dataset(split, dataset_path, dataset)
-    
+
     return dataset

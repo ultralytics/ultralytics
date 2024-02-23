@@ -38,8 +38,14 @@ __all__ = (
     "Proto",
     "RepC3",
     "ResNetLayer",
-    'se_block','cbam_block','eca_block','CA_Block', 'BiLevelRoutingAttention', 'CSPStage', 'Involution',
-    'CoordAtt',
+    "se_block",
+    "cbam_block",
+    "eca_block",
+    "CA_Block",
+    "BiLevelRoutingAttention",
+    "CSPStage",
+    "Involution",
+    "CoordAtt",
 )
 
 
@@ -405,21 +411,19 @@ class ResNetLayer(nn.Module):
         return self.layer(x)
 
 
-
-
 ##### NEW MODULES #####
 
 
-class se_block(nn.Module):   #SEnet
-    def __init__(self, channel,  ratio=16):
+class se_block(nn.Module):  # SEnet
+    def __init__(self, channel, ratio=16):
         super(se_block, self).__init__()
-        channel = channel//2
+        channel = channel // 2
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
             nn.Linear(channel, channel // ratio, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(channel // ratio, channel, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -430,7 +434,7 @@ class se_block(nn.Module):   #SEnet
         return x * y
 
 
-class ChannelAttention(nn.Module):  #CAM
+class ChannelAttention(nn.Module):  # CAM
     def __init__(self, in_planes, ratio=8):
         super(ChannelAttention, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
@@ -450,11 +454,11 @@ class ChannelAttention(nn.Module):  #CAM
         return self.sigmoid(out)
 
 
-class SpatialAttention(nn.Module):   #SAM
+class SpatialAttention(nn.Module):  # SAM
     def __init__(self, kernel_size=7):
         super(SpatialAttention, self).__init__()
 
-        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        assert kernel_size in (3, 7), "kernel size must be 3 or 7"
         padding = 3 if kernel_size == 7 else 1
         self.conv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
         self.sigmoid = nn.Sigmoid()
@@ -467,11 +471,11 @@ class SpatialAttention(nn.Module):   #SAM
         return self.sigmoid(x)
 
 
-class cbam_block(nn.Module):  #CBAM
-    def __init__(self, channel,  ratio=8, kernel_size=7):
+class cbam_block(nn.Module):  # CBAM
+    def __init__(self, channel, ratio=8, kernel_size=7):
         super(cbam_block, self).__init__()
         self.tt = channel
-        channel = channel//2
+        channel = channel // 2
         self.channelattention = ChannelAttention(channel, ratio=ratio)
         self.spatialattention = SpatialAttention(kernel_size=kernel_size)
 
@@ -480,15 +484,16 @@ class cbam_block(nn.Module):  #CBAM
         x = x * self.spatialattention(x)
         return x
 
-class eca_block(nn.Module): 
+
+class eca_block(nn.Module):
     def __init__(self, channel, b=1, gamma=2):
         super(eca_block, self).__init__()
-        kernel_size = int(abs((math.log(channel, 2) + b) / gamma)) 
+        kernel_size = int(abs((math.log(channel, 2) + b) / gamma))
         kernel_size = kernel_size if kernel_size % 2 else kernel_size + 1
 
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)  #对输入特征层进行全局平均池化
-        self.conv = nn.Conv1d(1, 1, kernel_size=kernel_size, padding=(kernel_size - 1) // 2, bias=False)  #使用1D卷积
-        self.sigmoid = nn.Sigmoid() #归一化（0,1）
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)  # 对输入特征层进行全局平均池化
+        self.conv = nn.Conv1d(1, 1, kernel_size=kernel_size, padding=(kernel_size - 1) // 2, bias=False)  # 使用1D卷积
+        self.sigmoid = nn.Sigmoid()  # 归一化（0,1）
 
     def forward(self, x):
         y = self.avg_pool(x)
@@ -498,19 +503,22 @@ class eca_block(nn.Module):
 
 
 class CA_Block(nn.Module):
-    def __init__(self, channel,  reduction=16):
+    def __init__(self, channel, reduction=16):
         super(CA_Block, self).__init__()
         channel = channel // 2
-        self.conv_1x1 = nn.Conv2d(in_channels=channel, out_channels=channel // reduction, kernel_size=1, stride=1,
-                                  bias=False)
+        self.conv_1x1 = nn.Conv2d(
+            in_channels=channel, out_channels=channel // reduction, kernel_size=1, stride=1, bias=False
+        )
 
         self.relu = nn.ReLU()
         self.bn = nn.BatchNorm2d(channel // reduction)
 
-        self.F_h = nn.Conv2d(in_channels=channel // reduction, out_channels=channel, kernel_size=1, stride=1,
-                             bias=False)
-        self.F_w = nn.Conv2d(in_channels=channel // reduction, out_channels=channel, kernel_size=1, stride=1,
-                             bias=False)
+        self.F_h = nn.Conv2d(
+            in_channels=channel // reduction, out_channels=channel, kernel_size=1, stride=1, bias=False
+        )
+        self.F_w = nn.Conv2d(
+            in_channels=channel // reduction, out_channels=channel, kernel_size=1, stride=1, bias=False
+        )
 
         self.sigmoid_h = nn.Sigmoid()
         self.sigmoid_w = nn.Sigmoid()
@@ -542,23 +550,43 @@ class BiLevelRoutingAttention(nn.Module):
     diff_routing: wether to set routing differentiable
     soft_routing: wether to multiply soft routing weights
     """
-    def __init__(self, dim, n_win=7, num_heads=8, qk_dim=None, qk_scale=None,
-                 kv_per_win=4, kv_downsample_ratio=4, kv_downsample_kernel=None, kv_downsample_mode='identity',
-                 topk=4, param_attention="qkvo", param_routing=False, diff_routing=False, soft_routing=False, side_dwconv=3,
-                 auto_pad=True):
+
+    def __init__(
+        self,
+        dim,
+        n_win=7,
+        num_heads=8,
+        qk_dim=None,
+        qk_scale=None,
+        kv_per_win=4,
+        kv_downsample_ratio=4,
+        kv_downsample_kernel=None,
+        kv_downsample_mode="identity",
+        topk=4,
+        param_attention="qkvo",
+        param_routing=False,
+        diff_routing=False,
+        soft_routing=False,
+        side_dwconv=3,
+        auto_pad=True,
+    ):
         super().__init__()
         # local attention setting
         self.dim = dim
         self.n_win = n_win  # Wh, Ww
         self.num_heads = num_heads
         self.qk_dim = qk_dim or dim
-        assert self.qk_dim % num_heads == 0 and self.dim % num_heads==0, 'qk_dim and dim must be divisible by num_heads!'
-        self.scale = qk_scale or self.qk_dim ** -0.5
-
+        assert (
+            self.qk_dim % num_heads == 0 and self.dim % num_heads == 0
+        ), "qk_dim and dim must be divisible by num_heads!"
+        self.scale = qk_scale or self.qk_dim**-0.5
 
         ################side_dwconv (i.e. LCE in ShuntedTransformer)###########
-        self.lepe = nn.Conv2d(dim, dim, kernel_size=side_dwconv, stride=1, padding=side_dwconv//2, groups=dim) if side_dwconv > 0 else \
-            lambda x: torch.zeros_like(x)
+        self.lepe = (
+            nn.Conv2d(dim, dim, kernel_size=side_dwconv, stride=1, padding=side_dwconv // 2, groups=dim)
+            if side_dwconv > 0
+            else lambda x: torch.zeros_like(x)
+        )
 
         ################ global routing setting #################
         self.topk = topk
@@ -566,66 +594,68 @@ class BiLevelRoutingAttention(nn.Module):
         self.diff_routing = diff_routing
         self.soft_routing = soft_routing
         # router
-        assert not (self.param_routing and not self.diff_routing) # cannot be with_param=True and diff_routing=False
-        self.router = TopkRouting(qk_dim=self.qk_dim,
-                                  qk_scale=self.scale,
-                                  topk=self.topk,
-                                  diff_routing=self.diff_routing,
-                                  param_routing=self.param_routing)
-        if self.soft_routing: # soft routing, always diffrentiable (if no detach)
-            mul_weight = 'soft'
-        elif self.diff_routing: # hard differentiable routing
-            mul_weight = 'hard'
+        assert not (self.param_routing and not self.diff_routing)  # cannot be with_param=True and diff_routing=False
+        self.router = TopkRouting(
+            qk_dim=self.qk_dim,
+            qk_scale=self.scale,
+            topk=self.topk,
+            diff_routing=self.diff_routing,
+            param_routing=self.param_routing,
+        )
+        if self.soft_routing:  # soft routing, always diffrentiable (if no detach)
+            mul_weight = "soft"
+        elif self.diff_routing:  # hard differentiable routing
+            mul_weight = "hard"
         else:  # hard non-differentiable routing
-            mul_weight = 'none'
+            mul_weight = "none"
         self.kv_gather = KVGather(mul_weight=mul_weight)
 
         # qkv mapping (shared by both global routing and local attention)
         self.param_attention = param_attention
-        if self.param_attention == 'qkvo':
+        if self.param_attention == "qkvo":
             self.qkv = QKVLinear(self.dim, self.qk_dim)
             self.wo = nn.Linear(dim, dim)
-        elif self.param_attention == 'qkv':
+        elif self.param_attention == "qkv":
             self.qkv = QKVLinear(self.dim, self.qk_dim)
             self.wo = nn.Identity()
         else:
-            raise ValueError(f'param_attention mode {self.param_attention} is not surpported!')
+            raise ValueError(f"param_attention mode {self.param_attention} is not surpported!")
 
         self.kv_downsample_mode = kv_downsample_mode
         self.kv_per_win = kv_per_win
         self.kv_downsample_ratio = kv_downsample_ratio
         self.kv_downsample_kenel = kv_downsample_kernel
-        if self.kv_downsample_mode == 'ada_avgpool':
+        if self.kv_downsample_mode == "ada_avgpool":
             assert self.kv_per_win is not None
             self.kv_down = nn.AdaptiveAvgPool2d(self.kv_per_win)
-        elif self.kv_downsample_mode == 'ada_maxpool':
+        elif self.kv_downsample_mode == "ada_maxpool":
             assert self.kv_per_win is not None
             self.kv_down = nn.AdaptiveMaxPool2d(self.kv_per_win)
-        elif self.kv_downsample_mode == 'maxpool':
+        elif self.kv_downsample_mode == "maxpool":
             assert self.kv_downsample_ratio is not None
             self.kv_down = nn.MaxPool2d(self.kv_downsample_ratio) if self.kv_downsample_ratio > 1 else nn.Identity()
-        elif self.kv_downsample_mode == 'avgpool':
+        elif self.kv_downsample_mode == "avgpool":
             assert self.kv_downsample_ratio is not None
             self.kv_down = nn.AvgPool2d(self.kv_downsample_ratio) if self.kv_downsample_ratio > 1 else nn.Identity()
-        elif self.kv_downsample_mode == 'identity': # no kv downsampling
+        elif self.kv_downsample_mode == "identity":  # no kv downsampling
             self.kv_down = nn.Identity()
-        elif self.kv_downsample_mode == 'fracpool':
+        elif self.kv_downsample_mode == "fracpool":
             # assert self.kv_downsample_ratio is not None
             # assert self.kv_downsample_kenel is not None
             # TODO: fracpool
             # 1. kernel size should be input size dependent
             # 2. there is a random factor, need to avoid independent sampling for k and v
-            raise NotImplementedError('fracpool policy is not implemented yet!')
-        elif kv_downsample_mode == 'conv':
+            raise NotImplementedError("fracpool policy is not implemented yet!")
+        elif kv_downsample_mode == "conv":
             # TODO: need to consider the case where k != v so that need two downsample modules
-            raise NotImplementedError('conv policy is not implemented yet!')
+            raise NotImplementedError("conv policy is not implemented yet!")
         else:
-            raise ValueError(f'kv_down_sample_mode {self.kv_downsaple_mode} is not surpported!')
+            raise ValueError(f"kv_down_sample_mode {self.kv_downsaple_mode} is not surpported!")
 
         # softmax for local attention
         self.attn_act = nn.Softmax(dim=-1)
 
-        self.auto_pad=auto_pad
+        self.auto_pad = auto_pad
 
     def forward(self, x, ret_attn_mask=False):
         """
@@ -643,60 +673,90 @@ class BiLevelRoutingAttention(nn.Module):
             pad_l = pad_t = 0
             pad_r = (self.n_win - W_in % self.n_win) % self.n_win
             pad_b = (self.n_win - H_in % self.n_win) % self.n_win
-            x = F.pad(x, (0, 0, # dim=-1
-                          pad_l, pad_r, # dim=-2
-                          pad_t, pad_b)) # dim=-3
-            _, H, W, _ = x.size() # padded size
+            x = F.pad(
+                x,
+                (
+                    0,
+                    0,  # dim=-1
+                    pad_l,
+                    pad_r,  # dim=-2
+                    pad_t,
+                    pad_b,
+                ),
+            )  # dim=-3
+            _, H, W, _ = x.size()  # padded size
         else:
             N, H, W, C = x.size()
-            assert H%self.n_win == 0 and W%self.n_win == 0 #
+            assert H % self.n_win == 0 and W % self.n_win == 0  #
         ###################################################
 
-
         # patchify, (n, p^2, w, w, c), keep 2d window as we need 2d pooling to reduce kv size
-        #print(x.shape,self.n_win)
+        # print(x.shape,self.n_win)
         x = rearrange(x, "n (j h) (i w) c -> n (j i) h w c", j=self.n_win, i=self.n_win)
-       # print(x.shape,self.n_win)
+        # print(x.shape,self.n_win)
         #################qkv projection###################
         # q: (n, p^2, w, w, c_qk)
         # kv: (n, p^2, w, w, c_qk+c_v)
-        # NOTE: separte kv if there were memory leak issue caused by gather
+        # NOTE: separate kv if there were memory leak issue caused by gather
         q, kv = self.qkv(x)
 
         # pixel-wise qkv
         # q_pix: (n, p^2, w^2, c_qk)
         # kv_pix: (n, p^2, h_kv*w_kv, c_qk+c_v)
-        q_pix = rearrange(q, 'n p2 h w c -> n p2 (h w) c')
-        kv_pix = self.kv_down(rearrange(kv, 'n p2 h w c -> (n p2) c h w'))
-        kv_pix = rearrange(kv_pix, '(n j i) c h w -> n (j i) (h w) c', j=self.n_win, i=self.n_win)
+        q_pix = rearrange(q, "n p2 h w c -> n p2 (h w) c")
+        kv_pix = self.kv_down(rearrange(kv, "n p2 h w c -> (n p2) c h w"))
+        kv_pix = rearrange(kv_pix, "(n j i) c h w -> n (j i) (h w) c", j=self.n_win, i=self.n_win)
 
-        q_win, k_win = q.mean([2, 3]), kv[..., 0:self.qk_dim].mean([2, 3]) # window-wise qk, (n, p^2, c_qk), (n, p^2, c_qk)
+        q_win, k_win = (
+            q.mean([2, 3]),
+            kv[..., 0 : self.qk_dim].mean([2, 3]),
+        )  # window-wise qk, (n, p^2, c_qk), (n, p^2, c_qk)
 
         ##################side_dwconv(lepe)##################
         # NOTE: call contiguous to avoid gradient warning when using ddp
-        lepe = self.lepe(rearrange(kv[..., self.qk_dim:], 'n (j i) h w c -> n c (j h) (i w)', j=self.n_win, i=self.n_win).contiguous())
-        lepe = rearrange(lepe, 'n c (j h) (i w) -> n (j h) (i w) c', j=self.n_win, i=self.n_win)
+        lepe = self.lepe(
+            rearrange(
+                kv[..., self.qk_dim :], "n (j i) h w c -> n c (j h) (i w)", j=self.n_win, i=self.n_win
+            ).contiguous()
+        )
+        lepe = rearrange(lepe, "n c (j h) (i w) -> n (j h) (i w) c", j=self.n_win, i=self.n_win)
 
         ############ gather q dependent k/v #################
 
-        r_weight, r_idx = self.router(q_win, k_win) # both are (n, p^2, topk) tensors
+        r_weight, r_idx = self.router(q_win, k_win)  # both are (n, p^2, topk) tensors
 
-        kv_pix_sel = self.kv_gather(r_idx=r_idx, r_weight=r_weight, kv=kv_pix) #(n, p^2, topk, h_kv*w_kv, c_qk+c_v)
+        kv_pix_sel = self.kv_gather(r_idx=r_idx, r_weight=r_weight, kv=kv_pix)  # (n, p^2, topk, h_kv*w_kv, c_qk+c_v)
         k_pix_sel, v_pix_sel = kv_pix_sel.split([self.qk_dim, self.dim], dim=-1)
         # kv_pix_sel: (n, p^2, topk, h_kv*w_kv, c_qk)
         # v_pix_sel: (n, p^2, topk, h_kv*w_kv, c_v)
 
         ######### do attention as normal ####################
-        k_pix_sel = rearrange(k_pix_sel, 'n p2 k w2 (m c) -> (n p2) m c (k w2)', m=self.num_heads) # flatten to BMLC, (n*p^2, m, topk*h_kv*w_kv, c_kq//m) transpose here?
-        v_pix_sel = rearrange(v_pix_sel, 'n p2 k w2 (m c) -> (n p2) m (k w2) c', m=self.num_heads) # flatten to BMLC, (n*p^2, m, topk*h_kv*w_kv, c_v//m)
-        q_pix = rearrange(q_pix, 'n p2 w2 (m c) -> (n p2) m w2 c', m=self.num_heads) # to BMLC tensor (n*p^2, m, w^2, c_qk//m)
+        k_pix_sel = rearrange(
+            k_pix_sel, "n p2 k w2 (m c) -> (n p2) m c (k w2)", m=self.num_heads
+        )  # flatten to BMLC, (n*p^2, m, topk*h_kv*w_kv, c_kq//m) transpose here?
+        v_pix_sel = rearrange(
+            v_pix_sel, "n p2 k w2 (m c) -> (n p2) m (k w2) c", m=self.num_heads
+        )  # flatten to BMLC, (n*p^2, m, topk*h_kv*w_kv, c_v//m)
+        q_pix = rearrange(
+            q_pix, "n p2 w2 (m c) -> (n p2) m w2 c", m=self.num_heads
+        )  # to BMLC tensor (n*p^2, m, w^2, c_qk//m)
 
         # param-free multihead attention
-        attn_weight = (q_pix * self.scale) @ k_pix_sel # (n*p^2, m, w^2, c) @ (n*p^2, m, c, topk*h_kv*w_kv) -> (n*p^2, m, w^2, topk*h_kv*w_kv)
+        attn_weight = (
+            q_pix * self.scale
+        ) @ k_pix_sel  # (n*p^2, m, w^2, c) @ (n*p^2, m, c, topk*h_kv*w_kv) -> (n*p^2, m, w^2, topk*h_kv*w_kv)
         attn_weight = self.attn_act(attn_weight)
-        out = attn_weight @ v_pix_sel # (n*p^2, m, w^2, topk*h_kv*w_kv) @ (n*p^2, m, topk*h_kv*w_kv, c) -> (n*p^2, m, w^2, c)
-        out = rearrange(out, '(n j i) m (h w) c -> n (j h) (i w) (m c)', j=self.n_win, i=self.n_win,
-                        h=H//self.n_win, w=W//self.n_win)
+        out = (
+            attn_weight @ v_pix_sel
+        )  # (n*p^2, m, w^2, topk*h_kv*w_kv) @ (n*p^2, m, topk*h_kv*w_kv, c) -> (n*p^2, m, w^2, c)
+        out = rearrange(
+            out,
+            "(n j i) m (h w) c -> n (j h) (i w) (m c)",
+            j=self.n_win,
+            i=self.n_win,
+            h=H // self.n_win,
+            w=W // self.n_win,
+        )
 
         out = out + lepe
         # output linear
@@ -714,38 +774,43 @@ class BiLevelRoutingAttention(nn.Module):
 
 
 def conv_bn(in_channels, out_channels, kernel_size, stride, padding, groups=1):
-    '''Basic cell for rep-style block, including conv and bn'''
+    """Basic cell for rep-style block, including conv and bn."""
     result = nn.Sequential()
     result.add_module(
-        'conv',
-        nn.Conv2d(in_channels=in_channels,
-                  out_channels=out_channels,
-                  kernel_size=kernel_size,
-                  stride=stride,
-                  padding=padding,
-                  groups=groups,
-                  bias=False))
-    result.add_module('bn', nn.BatchNorm2d(num_features=out_channels))
+        "conv",
+        nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            groups=groups,
+            bias=False,
+        ),
+    )
+    result.add_module("bn", nn.BatchNorm2d(num_features=out_channels))
     return result
 
 
 class RepConv(nn.Module):
-    '''RepConv is a basic rep-style block, including training and deploy status
+    """RepConv is a basic rep-style block, including training and deploy status
     Code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
-    '''
+    """
 
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 kernel_size=3,
-                 stride=1,
-                 padding=1,
-                 dilation=1,
-                 groups=1,
-                 padding_mode='zeros',
-                 deploy=False,
-                 act='relu',
-                 norm=None):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        stride=1,
+        padding=1,
+        dilation=1,
+        groups=1,
+        padding_mode="zeros",
+        deploy=False,
+        act="relu",
+        norm=None,
+    ):
         super(RepConv, self).__init__()
         self.deploy = deploy
         self.groups = groups
@@ -763,34 +828,40 @@ class RepConv(nn.Module):
             self.nonlinearity = act
 
         if deploy:
-            self.rbr_reparam = nn.Conv2d(in_channels=in_channels,
-                                         out_channels=out_channels,
-                                         kernel_size=kernel_size,
-                                         stride=stride,
-                                         padding=padding,
-                                         dilation=dilation,
-                                         groups=groups,
-                                         bias=True,
-                                         padding_mode=padding_mode)
+            self.rbr_reparam = nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                dilation=dilation,
+                groups=groups,
+                bias=True,
+                padding_mode=padding_mode,
+            )
 
         else:
             self.rbr_identity = None
-            self.rbr_dense = conv_bn(in_channels=in_channels,
-                                     out_channels=out_channels,
-                                     kernel_size=kernel_size,
-                                     stride=stride,
-                                     padding=padding,
-                                     groups=groups)
-            self.rbr_1x1 = conv_bn(in_channels=in_channels,
-                                   out_channels=out_channels,
-                                   kernel_size=1,
-                                   stride=stride,
-                                   padding=padding_11,
-                                   groups=groups)
+            self.rbr_dense = conv_bn(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                groups=groups,
+            )
+            self.rbr_1x1 = conv_bn(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=1,
+                stride=stride,
+                padding=padding_11,
+                groups=groups,
+            )
 
     def forward(self, inputs):
-        '''Forward process'''
-        if hasattr(self, 'rbr_reparam'):
+        """Forward process."""
+        if hasattr(self, "rbr_reparam"):
             return self.nonlinearity(self.rbr_reparam(inputs))
 
         if self.rbr_identity is None:
@@ -798,15 +869,13 @@ class RepConv(nn.Module):
         else:
             id_out = self.rbr_identity(inputs)
 
-        return self.nonlinearity(
-            self.rbr_dense(inputs) + self.rbr_1x1(inputs) + id_out)
+        return self.nonlinearity(self.rbr_dense(inputs) + self.rbr_1x1(inputs) + id_out)
 
     def get_equivalent_kernel_bias(self):
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.rbr_dense)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.rbr_1x1)
         kernelid, biasid = self._fuse_bn_tensor(self.rbr_identity)
-        return kernel3x3 + self._pad_1x1_to_3x3_tensor(
-            kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
+        return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
 
     def _pad_1x1_to_3x3_tensor(self, kernel1x1):
         if kernel1x1 is None:
@@ -826,14 +895,12 @@ class RepConv(nn.Module):
             eps = branch.bn.eps
         else:
             assert isinstance(branch, nn.BatchNorm2d)
-            if not hasattr(self, 'id_tensor'):
+            if not hasattr(self, "id_tensor"):
                 input_dim = self.in_channels // self.groups
-                kernel_value = np.zeros((self.in_channels, input_dim, 3, 3),
-                                        dtype=np.float32)
+                kernel_value = np.zeros((self.in_channels, input_dim, 3, 3), dtype=np.float32)
                 for i in range(self.in_channels):
                     kernel_value[i, i % input_dim, 1, 1] = 1
-                self.id_tensor = torch.from_numpy(kernel_value).to(
-                    branch.weight.device)
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
             kernel = self.id_tensor
             running_mean = branch.running_mean
             running_var = branch.running_var
@@ -845,7 +912,7 @@ class RepConv(nn.Module):
         return kernel * t, beta - running_mean * gamma / std
 
     def switch_to_deploy(self):
-        if hasattr(self, 'rbr_reparam'):
+        if hasattr(self, "rbr_reparam"):
             return
         kernel, bias = self.get_equivalent_kernel_bias()
         self.rbr_reparam = nn.Conv2d(
@@ -856,17 +923,18 @@ class RepConv(nn.Module):
             padding=self.rbr_dense.conv.padding,
             dilation=self.rbr_dense.conv.dilation,
             groups=self.rbr_dense.conv.groups,
-            bias=True)
+            bias=True,
+        )
         self.rbr_reparam.weight.data = kernel
         self.rbr_reparam.bias.data = bias
         for para in self.parameters():
             para.detach_()
-        self.__delattr__('rbr_dense')
-        self.__delattr__('rbr_1x1')
-        if hasattr(self, 'rbr_identity'):
-            self.__delattr__('rbr_identity')
-        if hasattr(self, 'id_tensor'):
-            self.__delattr__('id_tensor')
+        self.__delattr__("rbr_dense")
+        self.__delattr__("rbr_1x1")
+        if hasattr(self, "rbr_identity"):
+            self.__delattr__("rbr_identity")
+        if hasattr(self, "id_tensor"):
+            self.__delattr__("id_tensor")
         self.deploy = True
 
 
@@ -883,36 +951,36 @@ class Swish(nn.Module):
             return x * F.sigmoid(x)
 
 
-def get_activation(name='silu', inplace=True):
+def get_activation(name="silu", inplace=True):
     if name is None:
         return nn.Identity()
 
     if isinstance(name, str):
-        if name == 'silu':
+        if name == "silu":
             module = nn.SiLU(inplace=inplace)
-        elif name == 'relu':
+        elif name == "relu":
             module = nn.ReLU(inplace=inplace)
-        elif name == 'lrelu':
+        elif name == "lrelu":
             module = nn.LeakyReLU(0.1, inplace=inplace)
-        elif name == 'swish':
+        elif name == "swish":
             module = Swish(inplace=inplace)
-        elif name == 'hardsigmoid':
+        elif name == "hardsigmoid":
             module = nn.Hardsigmoid(inplace=inplace)
-        elif name == 'identity':
+        elif name == "identity":
             module = nn.Identity()
         else:
-            raise AttributeError('Unsupported act type: {}'.format(name))
+            raise AttributeError("Unsupported act type: {}".format(name))
         return module
 
     elif isinstance(name, nn.Module):
         return name
 
     else:
-        raise AttributeError('Unsupported act type: {}'.format(name))
+        raise AttributeError("Unsupported act type: {}".format(name))
 
 
 def get_norm(name, out_channels, inplace=True):
-    if name == 'bn':
+    if name == "bn":
         module = nn.BatchNorm2d(out_channels)
     else:
         raise NotImplementedError
@@ -920,19 +988,19 @@ def get_norm(name, out_channels, inplace=True):
 
 
 class ConvBNAct(nn.Module):
-    """A Conv2d -> Batchnorm -> silu/leaky relu block"""
+    """A Conv2d -> Batchnorm -> silu/leaky relu block."""
 
     def __init__(
-            self,
-            in_channels,
-            out_channels,
-            ksize,
-            stride=1,
-            groups=1,
-            bias=False,
-            act='silu',
-            norm='bn',
-            reparam=False,
+        self,
+        in_channels,
+        out_channels,
+        ksize,
+        stride=1,
+        groups=1,
+        bias=False,
+        act="silu",
+        norm="bn",
+        reparam=False,
     ):
         super().__init__()
         # same padding
@@ -966,12 +1034,7 @@ class ConvBNAct(nn.Module):
 
 
 class BasicBlock_3x3_Reverse(nn.Module):
-    def __init__(self,
-                 ch_in,
-                 ch_hidden_ratio,
-                 ch_out,
-                 act='relu',
-                 shortcut=True):
+    def __init__(self, ch_in, ch_hidden_ratio, ch_out, act="relu", shortcut=True):
         super(BasicBlock_3x3_Reverse, self).__init__()
         assert ch_in == ch_out
         ch_hidden = int(ch_in * ch_hidden_ratio)
@@ -990,21 +1053,18 @@ class BasicBlock_3x3_Reverse(nn.Module):
 
 class SPP(nn.Module):
     def __init__(
-            self,
-            ch_in,
-            ch_out,
-            k,
-            pool_size,
-            act='swish',
+        self,
+        ch_in,
+        ch_out,
+        k,
+        pool_size,
+        act="swish",
     ):
         super(SPP, self).__init__()
         self.pool = []
         for i, size in enumerate(pool_size):
-            pool = nn.MaxPool2d(kernel_size=size,
-                                stride=1,
-                                padding=size // 2,
-                                ceil_mode=False)
-            self.add_module('pool{}'.format(i), pool)
+            pool = nn.MaxPool2d(kernel_size=size, stride=1, padding=size // 2, ceil_mode=False)
+            self.add_module("pool{}".format(i), pool)
             self.pool.append(pool)
         self.conv = ConvBNAct(ch_in, ch_out, k, act=act)
 
@@ -1020,14 +1080,7 @@ class SPP(nn.Module):
 
 
 class CSPStage(nn.Module):
-    def __init__(self,
-                 ch_in,
-                 ch_out,
-                 n,
-                 block_fn='BasicBlock_3x3_Reverse',
-                 ch_hidden_ratio=1.0,
-                 act='silu',
-                 spp=False):
+    def __init__(self, ch_in, ch_out, n, block_fn="BasicBlock_3x3_Reverse", ch_hidden_ratio=1.0, act="silu", spp=False):
         super(CSPStage, self).__init__()
 
         split_ratio = 2
@@ -1039,19 +1092,14 @@ class CSPStage(nn.Module):
 
         next_ch_in = ch_mid
         for i in range(n):
-            if block_fn == 'BasicBlock_3x3_Reverse':
+            if block_fn == "BasicBlock_3x3_Reverse":
                 self.convs.add_module(
-                    str(i),
-                    BasicBlock_3x3_Reverse(next_ch_in,
-                                           ch_hidden_ratio,
-                                           ch_mid,
-                                           act=act,
-                                           shortcut=True))
+                    str(i), BasicBlock_3x3_Reverse(next_ch_in, ch_hidden_ratio, ch_mid, act=act, shortcut=True)
+                )
             else:
                 raise NotImplementedError
             if i == (n - 1) // 2 and spp:
-                self.convs.add_module(
-                    'spp', SPP(ch_mid * 4, ch_mid, 1, [5, 9, 13], act=act))
+                self.convs.add_module("spp", SPP(ch_mid * 4, ch_mid, 1, [5, 9, 13], act=act))
             next_ch_in = ch_mid
         self.conv3 = ConvBNAct(ch_mid * n + ch_first, ch_out, 1, act=act)
 
@@ -1067,12 +1115,13 @@ class CSPStage(nn.Module):
         y = self.conv3(y)
         return y
 
+
 # contributed by @aash1999
 class Involution(nn.Module):
-
     def __init__(self, c1, c2, kernel_size, stride):
         """
         Initialize the Involution module.
+
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
@@ -1087,7 +1136,7 @@ class Involution(nn.Module):
         self.group_channels = 16
         self.groups = self.c1 // self.group_channels
         self.conv1 = Conv(c1, c1 // reduction_ratio, 1)
-        self.conv2 = Conv(c1 // reduction_ratio, kernel_size ** 2 * self.groups, 1, 1)
+        self.conv2 = Conv(c1 // reduction_ratio, kernel_size**2 * self.groups, 1, 1)
 
         if stride > 1:
             self.avgpool = nn.AvgPool2d(stride, stride)
@@ -1096,22 +1145,24 @@ class Involution(nn.Module):
     def forward(self, x):
         """
         Forward pass of the Involution module.
+
         Args:
             x (torch.Tensor): Input tensor.
         Returns:
             out (torch.Tensor): Output tensor after applying the involution operation.
         """
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             weight = self.conv2(x)
             b, c, h, w = weight.shape
-            weight = weight.view(b, self.groups, self.kernel_size ** 2, h, w).unsqueeze(2)
-            out = self.unfold(x).view(b, self.groups, self.group_channels, self.kernel_size ** 2, h, w)
+            weight = weight.view(b, self.groups, self.kernel_size**2, h, w).unsqueeze(2)
+            out = self.unfold(x).view(b, self.groups, self.group_channels, self.kernel_size**2, h, w)
             out = (weight * out).sum(dim=3).view(b, self.c1, h, w)
 
             return out
-        
-# ===== COORDINATE ATTENTION ==== # 
+
+
+# ===== COORDINATE ATTENTION ==== #
 # Code taken from https://github.com/houqb/CoordAttention/tree/main?tab=readme-ov-file
 class h_sigmoid(nn.Module):
     def __init__(self, inplace=True):
@@ -1121,6 +1172,7 @@ class h_sigmoid(nn.Module):
     def forward(self, x):
         return self.relu(x + 3) / 6
 
+
 class h_swish(nn.Module):
     def __init__(self, inplace=True):
         super(h_swish, self).__init__()
@@ -1128,6 +1180,7 @@ class h_swish(nn.Module):
 
     def forward(self, x):
         return x * self.sigmoid(x)
+
 
 class CoordAtt(nn.Module):
     def __init__(self, inp, oup, reduction=32):
@@ -1140,23 +1193,22 @@ class CoordAtt(nn.Module):
         self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
         self.bn1 = nn.BatchNorm2d(mip)
         self.act = h_swish()
-        
+
         self.conv_h = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
         self.conv_w = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
-        
 
     def forward(self, x):
         identity = x
-        
-        n,c,h,w = x.size()
+
+        n, c, h, w = x.size()
         x_h = self.pool_h(x)
         x_w = self.pool_w(x).permute(0, 1, 3, 2)
 
         y = torch.cat([x_h, x_w], dim=2)
         y = self.conv1(y)
         y = self.bn1(y)
-        y = self.act(y) 
-        
+        y = self.act(y)
+
         x_h, x_w = torch.split(y, [h, w], dim=2)
         x_w = x_w.permute(0, 1, 3, 2)
 
@@ -1166,5 +1218,6 @@ class CoordAtt(nn.Module):
         out = identity * a_w * a_h
 
         return out
-    
-# ============================== # 
+
+
+# ============================== #

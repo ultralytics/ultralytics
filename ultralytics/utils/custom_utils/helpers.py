@@ -8,6 +8,7 @@ import torch
 from ultralytics.utils.custom_utils.init_setup import setup
 from ultralytics.config import DATASET_NAME
 
+
 def check_cuda():
     print(torch.cuda.is_available())
     print(torch.cuda.device_count())
@@ -17,6 +18,7 @@ def check_cuda():
     torch.cuda.empty_cache()
     torch.cuda.memory_summary(device=None, abbreviated=False)
 
+
 def get_fiftyone_dataset(rank):
     dataset_name = f"{DATASET_NAME}{rank}"
     if dataset_name in fo.list_datasets():
@@ -25,7 +27,7 @@ def get_fiftyone_dataset(rank):
     else:
         setup(rank)
         dataset: fo.Dataset = fo.load_dataset(dataset_name)
-    
+
     dataset.persistent = True
     dataset = dataset.match(F("detections.detections").length() > 0)
     classes = lambda dataset: sorted(list(dataset.count_values("detections.detections.label").keys()))
@@ -35,30 +37,31 @@ def get_fiftyone_dataset(rank):
 
     return dataset, classes(dataset)
 
+
 def copy_model_config(model, save_dir):
     if model[:6] != "rtdetr":
-        model = model.split('-', 1)
+        model = model.split("-", 1)
         if len(model) > 1:
-            path_to_yaml = model[0][:-1]+"-"+model[1]
+            path_to_yaml = model[0][:-1] + "-" + model[1]
         else:
             temp_path_to_yaml = model[0].split("yolov8")
-            path_to_yaml = "yolov8"+temp_path_to_yaml[1][1:]
+            path_to_yaml = "yolov8" + temp_path_to_yaml[1][1:]
 
-        source_dir = f'ultralytics/cfg/models/v8/{path_to_yaml}'
+        source_dir = f"ultralytics/cfg/models/v8/{path_to_yaml}"
     else:
         path_to_yaml = model
-        source_dir = f'ultralytics/cfg/models/rt-detr/{path_to_yaml}'
-    
-    dest_dir = f'./runs/detect/{save_dir}/{save_dir}'
+        source_dir = f"ultralytics/cfg/models/rt-detr/{path_to_yaml}"
 
-    if os.path.exists(f'{dest_dir}.yaml'):
+    dest_dir = f"./runs/detect/{save_dir}/{save_dir}"
+
+    if os.path.exists(f"{dest_dir}.yaml"):
         for i in range(2, 100):
-            if os.path.exists(f'{dest_dir}_doesnt_belong_here_{i}.yaml'):
+            if os.path.exists(f"{dest_dir}_doesnt_belong_here_{i}.yaml"):
                 continue
             else:
-                dest_dir = f'{dest_dir}_doesnt_belong_here_{i}.yaml'
+                dest_dir = f"{dest_dir}_doesnt_belong_here_{i}.yaml"
                 break
     else:
-        dest_dir = f'{dest_dir}.yaml'
+        dest_dir = f"{dest_dir}.yaml"
 
     shutil.copy(source_dir, dest_dir)

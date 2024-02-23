@@ -23,7 +23,7 @@ __all__ = (
     "CBAM",
     "Concat",
     "RepConv",
-    "DeformConv2d"
+    "DeformConv2d",
 )
 
 
@@ -277,6 +277,7 @@ class RepConv(nn.Module):
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
 
+
 class ChannelAttention(nn.Module):
     """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
 
@@ -314,7 +315,7 @@ class CBAM(nn.Module):
     def __init__(self, c1, kernel_size=7):
         """Initialize CBAM with given input channel (c1) and kernel size."""
         super().__init__()
-        kernel_size=7
+        kernel_size = 7
         self.channel_attention = ChannelAttention(c1)
         self.spatial_attention = SpatialAttention(kernel_size)
 
@@ -337,14 +338,7 @@ class Concat(nn.Module):
 
 
 class DeformConv2d(nn.Module):
-    def __init__(self,
-                in_channels,
-                out_channels,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                dilation=1,
-                bias=False):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=False):
         super(DeformConv2d, self).__init__()
 
         assert type(kernel_size) == tuple or type(kernel_size) == int
@@ -354,49 +348,57 @@ class DeformConv2d(nn.Module):
         self.padding = padding
         self.dilation = dilation
 
-        self.offset_conv = nn.Conv2d(in_channels,
-                                     2 * kernel_size[0] * kernel_size[1],
-                                    kernel_size=kernel_size,
-                                    stride=stride,
-                                    padding=self.padding,
-                                    dilation=self.dilation,
-                                    bias=True)
+        self.offset_conv = nn.Conv2d(
+            in_channels,
+            2 * kernel_size[0] * kernel_size[1],
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=self.padding,
+            dilation=self.dilation,
+            bias=True,
+        )
 
-        nn.init.constant_(self.offset_conv.weight, 0.)
-        nn.init.constant_(self.offset_conv.bias, 0.)
+        nn.init.constant_(self.offset_conv.weight, 0.0)
+        nn.init.constant_(self.offset_conv.bias, 0.0)
 
-        self.modulator_conv = nn.Conv2d(in_channels,
-                                        1 * kernel_size[0] * kernel_size[1],
-                                        kernel_size=kernel_size,
-                                        stride=stride,
-                                        padding=self.padding,
-                                        dilation=self.dilation,
-                                        bias=True)
+        self.modulator_conv = nn.Conv2d(
+            in_channels,
+            1 * kernel_size[0] * kernel_size[1],
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=self.padding,
+            dilation=self.dilation,
+            bias=True,
+        )
 
-        nn.init.constant_(self.modulator_conv.weight, 0.)
-        nn.init.constant_(self.modulator_conv.bias, 0.)
+        nn.init.constant_(self.modulator_conv.weight, 0.0)
+        nn.init.constant_(self.modulator_conv.bias, 0.0)
 
-        self.regular_conv = nn.Conv2d(in_channels=in_channels,
-                                    out_channels=out_channels,
-                                    kernel_size=kernel_size,
-                                    stride=stride,
-                                    padding=self.padding,
-                                    dilation=self.dilation,
-                                    bias=bias)
+        self.regular_conv = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=self.padding,
+            dilation=self.dilation,
+            bias=bias,
+        )
 
     def forward(self, x):
         # h, w = x.shape[2:]
         # max_offset = max(h, w)/4.
 
         offset = self.offset_conv(x)  # .clamp(-max_offset, max_offset)
-        modulator = 2. * torch.sigmoid(self.modulator_conv(x))
+        modulator = 2.0 * torch.sigmoid(self.modulator_conv(x))
         # op = (n - (k * d - 1) + 2p / s)
-        x = torchvision.ops.deform_conv2d(input=x,
-                                        offset=offset,
-                                        weight=self.regular_conv.weight,
-                                        bias=self.regular_conv.bias,
-                                        padding=self.padding,
-                                        mask=modulator,
-                                        stride=self.stride,
-                                        dilation=self.dilation)
+        x = torchvision.ops.deform_conv2d(
+            input=x,
+            offset=offset,
+            weight=self.regular_conv.weight,
+            bias=self.regular_conv.bias,
+            padding=self.padding,
+            mask=modulator,
+            stride=self.stride,
+            dilation=self.dilation,
+        )
         return x

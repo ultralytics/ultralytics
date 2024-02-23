@@ -40,10 +40,16 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     Segment,
-    cbam_block, eca_block, CA_Block, se_block,CSPStage,BiLevelRoutingAttention, Involution,
+    cbam_block,
+    eca_block,
+    CA_Block,
+    se_block,
+    CSPStage,
+    BiLevelRoutingAttention,
+    Involution,
     DeformConv2d,
     CoordAtt,
-    CBAM
+    CBAM,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml

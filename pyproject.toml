@@ -184,6 +184,6 @@ description = "A brief description of your project"
 authors = [
     { name = "Glenn Jocher" },
     { name = "Ayush Chaurasia" },
-    { name = "Jing Qiu" }
+    { name = "Jing Qiu" },
     { name = "Clemens Langer"}
 ]

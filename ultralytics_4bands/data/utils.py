@@ -15,7 +15,6 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-import rasterio
 from PIL import Image, ImageOps
 
 from ultralytics_4bands.nn.autobackend import check_class_names

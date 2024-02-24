@@ -178,7 +178,7 @@ ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bl
 skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'
 
 [tool.poetry]
-name = "ultralytics_4bands"
+name = "my-ultralytics_4bands"
 version =  "8.1.14"
 description = "A brief description of your project"
 authors = ["Glenn Jocher","Ayush Chaurasia","Jing Qiu","forked from ultralytics by Clemens langer (itisacloud)"]

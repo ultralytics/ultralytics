@@ -181,5 +181,5 @@ skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.
 name = "ultralytics_4bands"
 version =  "8.1.14"
 description = "A brief description of your project"
-authors = "forked from ultralytics by Clemens langer (itisacloud)"
+authors = ["Glenn Jocher","Ayush Chaurasia","Jing Qiu","forked from ultralytics by Clemens langer (itisacloud)"]
 

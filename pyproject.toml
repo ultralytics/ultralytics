@@ -1,7 +1,7 @@
-# ultralytics_4band YOLO 🚀, AGPL-3.0 license
+# ultralytics_4bands YOLO 🚀, AGPL-3.0 license
 
 # Overview:
-# This pyproject.toml file manages the build, packaging, and distribution of the ultralytics_4band library.
+# This pyproject.toml file manages the build, packaging, and distribution of the ultralytics_4bands library.
 # It defines essential project metadata, dependencies, and settings used to develop and deploy the library.
 
 # Key Sections:
@@ -11,12 +11,12 @@
 # - [tool.*]: Configures settings for various tools (pytest, yapf, etc.) used in the project.
 
 # Installation:
-# The ultralytics_4band library can be installed using the command: 'pip install ultralytics_4band_4bands'
+# The ultralytics_4bands library can be installed using the command: 'pip install ultralytics_4bands_4bands'
 # For development purposes, you can install the package in editable mode with: 'pip install -e .'
 # This approach allows for real-time code modifications without the need for re-installation.
 
 # Documentation:
-# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics_4band.com
+# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics_4bands.com
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
@@ -24,13 +24,13 @@ build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
 [project]
-name = "ultralytics_4band_4bands"
+name = "ultralytics_4bands_4bands"
 dynamic = ["version"]
-description = "ultralytics_4band YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+description = "ultralytics_4bands YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "ultralytics_4band"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "ultralytics_4bands"]
 authors = [
     { name = "Glenn Jocher" },
     { name = "Ayush Chaurasia" },
@@ -93,18 +93,18 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics_4band-plugin>=0.0.43", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics_4bands-plugin>=0.0.43", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
     "coremltools>=7.0; platform_system != 'Windows'", # CoreML only supported on macOS and Linux
     "openvino-dev>=2023.0", # OpenVINO export
-    "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics_4band/ultralytics_4band/issues/5161
+    "tensorflow<=2.13.1", # TF bug https://github.com/ultralytics_4bands/ultralytics_4bands/issues/5161
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
 ]
 explorer = [
     "lancedb", # vector search
-    "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics_4band/ultralytics_4band/pull/8181
+    "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics_4bands/ultralytics_4bands/pull/8181
     "streamlit", # visualizing with GUI
 ]
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
@@ -112,42 +112,42 @@ explorer = [
 # nvidia-pyindex  # TensorRT export
 # nvidia-tensorrt  # TensorRT export
 logging = [
-    "comet", # https://docs.ultralytics_4band.com/integrations/comet/
+    "comet", # https://docs.ultralytics_4bands.com/integrations/comet/
     "tensorboard>=2.13.0",
     "dvclive>=2.12.0",
 ]
 extra = [
-    "hub-sdk>=0.0.2", # ultralytics_4band HUB
+    "hub-sdk>=0.0.2", # ultralytics_4bands HUB
     "ipython", # interactive notebook
     "albumentations>=1.0.3", # training augmentations
     "pycocotools>=2.0.6", # COCO mAP
 ]
 
 [project.urls]
-"Bug Reports" = "https://github.com/ultralytics_4band/ultralytics_4band/issues"
-"Funding" = "https://ultralytics_4band.com"
-"Source" = "https://github.com/ultralytics_4band/ultralytics_4band/"
+"Bug Reports" = "https://github.com/ultralytics_4bands/ultralytics_4bands/issues"
+"Funding" = "https://ultralytics_4bands.com"
+"Source" = "https://github.com/ultralytics_4bands/ultralytics_4bands/"
 
 [project.scripts]
-yolo = "ultralytics_4band.cfg:entrypoint"
-ultralytics_4band = "ultralytics_4band.cfg:entrypoint"
+yolo = "ultralytics_4bands.cfg:entrypoint"
+ultralytics_4bands = "ultralytics_4bands.cfg:entrypoint"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
-packages = { find = { where = ["."], include = ["ultralytics_4band", "ultralytics_4band.*"] } }
-package-data = { "ultralytics_4band" = ["**/*.yaml"], "ultralytics_4band.assets" = ["*.jpg"] }
+packages = { find = { where = ["."], include = ["ultralytics_4bands", "ultralytics_4bands.*"] } }
+package-data = { "ultralytics_4bands" = ["**/*.yaml"], "ultralytics_4bands.assets" = ["*.jpg"] }
 
 [tool.setuptools.dynamic]
-version = { attr = "ultralytics_4band.__version__" }
+version = { attr = "ultralytics_4bands.__version__" }
 
 [tool.pytest]
 norecursedirs = [".git", "dist", "build"]
 addopts = "--doctest-modules --durations=30 --color=yes"
 
 [tool.coverage.run]
-source = ["ultralytics_4band/"]
+source = ["ultralytics_4bands/"]
 data_file = "tests/.coverage"
-omit = ["ultralytics_4band/utils/callbacks/*"]
+omit = ["ultralytics_4bands/utils/callbacks/*"]
 
 [tool.isort]
 line_length = 120

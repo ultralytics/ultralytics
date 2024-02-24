@@ -60,6 +60,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import onnx2tf
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset

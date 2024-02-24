@@ -743,6 +743,7 @@ class Exporter:
             msg="https://github.com/ultralytics/ultralytics/issues/5161",
         )
         import onnx2tf
+
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             import shutil

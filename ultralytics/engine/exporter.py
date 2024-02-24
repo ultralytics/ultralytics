@@ -759,8 +759,11 @@ class Exporter:
 
         # Export to TF
         tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
+        cind = None
         if self.args.int8:
-            verbosity = "--verbosity info"
+            verbosity = "info"
+            oiqt = True
+            qt = "per-tensor"
             if self.args.data:
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
@@ -777,16 +780,24 @@ class Exporter:
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
                 np.save(str(tmp_file), images.numpy())  # BHWC
-                int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
-            else:
-                int8 = "-oiqt -qt per-tensor"
+                cind = [
+                    ["images", tmp_file, [[[[0, 0, 0]]]],[[[[255, 255, 255]]]]]
+                ]
         else:
-            verbosity = "--non_verbose"
-            int8 = ""
+            verbosity = "error"
+            oiqt = False
+            qt = "per-channel"
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
+        LOGGER.info(f"{prefix} converting to tflite")
+        onnx2tf.convert(
+            input_onnx_file_path=f_onnx,
+            output_folder_path=f,
+            not_use_onnxsim=True,
+            verbosity=verbosity,
+            output_integer_quantized_tflite=oiqt,
+            quant_type=qt,
+            custom_input_op_name_np_data_path=cind,
+        )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models

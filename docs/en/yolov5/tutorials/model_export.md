@@ -129,7 +129,7 @@ Export complete (5.5s)
 Results saved to /content/yolov5
 Detect:          python detect.py --weights yolov5s.onnx
 Validate:        python val.py --weights yolov5s.onnx
-PyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')
+PyTorch Hub:     model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.onnx')
 Visualize:       https://netron.app/
 ```
 
@@ -181,17 +181,17 @@ Use PyTorch Hub with exported YOLOv5 models:
 import torch
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pt')
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.torchscript ')  # TorchScript
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.onnx')  # ONNX Runtime
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_openvino_model')  # OpenVINO
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.engine')  # TensorRT
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.mlmodel')  # CoreML (macOS Only)
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_saved_model')  # TensorFlow SavedModel
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pb')  # TensorFlow GraphDef
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.tflite')  # TensorFlow Lite
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_edgetpu.tflite')  # TensorFlow Edge TPU
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s_paddle_model')  # PaddlePaddle
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.pt')
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.torchscript ')  # TorchScript
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.onnx')  # ONNX Runtime
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s_openvino_model')  # OpenVINO
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.engine')  # TensorRT
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.mlmodel')  # CoreML (macOS Only)
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s_saved_model')  # TensorFlow SavedModel
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.pb')  # TensorFlow GraphDef
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s.tflite')  # TensorFlow Lite
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s_edgetpu.tflite')  # TensorFlow Edge TPU
+model = torch.hub.load('ultralytics_4bands/yolov5', 'custom', 'yolov5s_paddle_model')  # PaddlePaddle
 
 # Images
 img = 'https://ultralytics.com/images/zidane.jpg'  # or file, Path, PIL, OpenCV, numpy, list

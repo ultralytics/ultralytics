@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 from tflite_runtime import interpreter as tflite
 
-from ultralytics.utils import ASSETS, yaml_load
-from ultralytics.utils.checks import check_yaml
+from ultralytics_4bands.utils import ASSETS, yaml_load
+from ultralytics_4bands.utils.checks import check_yaml
 
 # Declare as global variables, can be updated based trained model image size
 img_width = 640

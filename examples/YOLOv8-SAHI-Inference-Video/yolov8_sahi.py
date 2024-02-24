@@ -8,7 +8,7 @@ from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
 from sahi.utils.yolov8 import download_yolov8s_model
 
-from ultralytics.utils.files import increment_path
+from ultralytics_4bands.utils.files import increment_path
 
 
 def run(weights="yolov8n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False):

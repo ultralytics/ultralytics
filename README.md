@@ -56,7 +56,7 @@ Pip install the ultralytics package including all [requirements](https://github.
 [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
 ```bash
-pip install ultralytics
+pip install ultralytics_4bands
 ```
 
 For alternative installation methods including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart).
@@ -81,7 +81,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
 ```python
-from ultralytics import YOLO
+from ultralytics_4bands import YOLO
 
 # Load a model
 model = YOLO("yolov8n.yaml")  # build a new model from scratch

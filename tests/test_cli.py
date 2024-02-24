@@ -4,8 +4,8 @@ import subprocess
 
 import pytest
 
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from ultralytics.utils.checks import cuda_device_count, cuda_is_available
+from ultralytics_4bands.utils import ASSETS, WEIGHTS_DIR
+from ultralytics_4bands.utils.checks import cuda_device_count, cuda_is_available
 
 CUDA_IS_AVAILABLE = cuda_is_available()
 CUDA_DEVICE_COUNT = cuda_device_count()
@@ -77,9 +77,9 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
     run(f"yolo segment val {task} model={model} data={data} imgsz=32")
     run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")
 
-    from ultralytics import FastSAM
-    from ultralytics.models.fastsam import FastSAMPrompt
-    from ultralytics.models.sam import Predictor
+    from ultralytics_4bands import FastSAM
+    from ultralytics_4bands.models.fastsam import FastSAMPrompt
+    from ultralytics_4bands.models.sam import Predictor
 
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
@@ -109,7 +109,7 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
 
 def test_mobilesam():
     """Test MobileSAM segmentation functionality using Ultralytics."""
-    from ultralytics import SAM
+    from ultralytics_4bands import SAM
 
     # Load the model
     model = SAM(WEIGHTS_DIR / "mobile_sam.pt")

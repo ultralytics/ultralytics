@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS, DATASETS_DIR, ROOT, SETTINGS, WEIGHTS_DIR
-from ultralytics.utils.checks import check_requirements
+from ultralytics_4bands import YOLO, download
+from ultralytics_4bands.utils import ASSETS, DATASETS_DIR, ROOT, SETTINGS, WEIGHTS_DIR
+from ultralytics_4bands.utils.checks import check_requirements
 
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
 CFG = "yolov8n.yaml"
@@ -88,9 +88,9 @@ def test_triton():
 @pytest.mark.skipif(not check_requirements("pycocotools", install=False), reason="pycocotools not installed")
 def test_pycocotools():
     """Validate model predictions using pycocotools."""
-    from ultralytics.models.yolo.detect import DetectionValidator
-    from ultralytics.models.yolo.pose import PoseValidator
-    from ultralytics.models.yolo.segment import SegmentationValidator
+    from ultralytics_4bands.models.yolo.detect import DetectionValidator
+    from ultralytics_4bands.models.yolo.pose import PoseValidator
+    from ultralytics_4bands.models.yolo.segment import SegmentationValidator
 
     # Download annotations after each dataset downloads first
     url = "https://github.com/ultralytics/assets/releases/download/v8.1.0/"

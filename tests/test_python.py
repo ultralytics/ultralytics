@@ -11,10 +11,10 @@ import torch
 from PIL import Image
 from torchvision.transforms import ToTensor
 
-from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA
-from ultralytics.data.build import load_inference_source
-from ultralytics.utils import (
+from ultralytics_4bands import RTDETR, YOLO
+from ultralytics_4bands.cfg import TASK2DATA
+from ultralytics_4bands.data.build import load_inference_source
+from ultralytics_4bands.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
@@ -28,8 +28,8 @@ from ultralytics.utils import (
     checks,
     is_dir_writeable,
 )
-from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics_4bands.utils.downloads import download
+from ultralytics_4bands.utils.torch_utils import TORCH_1_9
 
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
 CFG = "yolov8n.yaml"
@@ -66,7 +66,7 @@ def test_model_methods():
 
 def test_model_profile():
     """Test profiling of the YOLO model with 'profile=True' argument."""
-    from ultralytics.nn.tasks import DetectionModel
+    from ultralytics_4bands.nn.tasks import DetectionModel
 
     model = DetectionModel()  # build model
     im = torch.randn(1, 3, 64, 64)  # requires min imgsz=64
@@ -334,11 +334,11 @@ def test_results():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils():
-    """Test utility functions in ultralytics/data/utils.py."""
-    from ultralytics.data.utils import HUBDatasetStats, autosplit
-    from ultralytics.utils.downloads import zip_directory
+    """Test utility functions in ultralytics_4bands/data/utils.py."""
+    from ultralytics_4bands.data.utils import HUBDatasetStats, autosplit
+    from ultralytics_4bands.utils.downloads import zip_directory
 
-    # from ultralytics.utils.files import WorkingDirectory
+    # from ultralytics_4bands.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     for task in "detect", "segment", "pose", "classify":
@@ -355,7 +355,7 @@ def test_data_utils():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_converter():
     """Test dataset converters."""
-    from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
+    from ultralytics_4bands.data.converter import coco80_to_coco91_class, convert_coco
 
     file = "instances_val2017.json"
     download(f"https://github.com/ultralytics/yolov5/releases/download/v1.0/{file}", dir=TMP)
@@ -365,7 +365,7 @@ def test_data_converter():
 
 def test_data_annotator():
     """Test automatic data annotation."""
-    from ultralytics.data.annotator import auto_annotate
+    from ultralytics_4bands.data.annotator import auto_annotate
 
     auto_annotate(
         ASSETS,
@@ -377,7 +377,7 @@ def test_data_annotator():
 
 def test_events():
     """Test event sending functionality."""
-    from ultralytics.hub.utils import Events
+    from ultralytics_4bands.hub.utils import Events
 
     events = Events()
     events.enabled = True
@@ -388,7 +388,7 @@ def test_events():
 
 def test_cfg_init():
     """Test configuration initialization utilities."""
-    from ultralytics.cfg import check_dict_alignment, copy_default_cfg, smart_value
+    from ultralytics_4bands.cfg import check_dict_alignment, copy_default_cfg, smart_value
 
     with contextlib.suppress(SyntaxError):
         check_dict_alignment({"a": 1}, {"b": 2})
@@ -399,7 +399,7 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
+    from ultralytics_4bands.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
 
     get_ubuntu_version()
     is_github_action_running()
@@ -414,22 +414,22 @@ def test_utils_checks():
     checks.check_requirements()  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow()
-    checks.check_version("ultralytics", "8.0.0")
+    checks.check_version("ultralytics_4bands", "8.0.0")
     checks.print_args()
     # checks.check_imshow(warn=True)
 
 
 def test_utils_benchmarks():
     """Test model benchmarking."""
-    from ultralytics.utils.benchmarks import ProfileModels
+    from ultralytics_4bands.utils.benchmarks import ProfileModels
 
     ProfileModels(["yolov8n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
 
 
 def test_utils_torchutils():
     """Test Torch utility functions."""
-    from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+    from ultralytics_4bands.nn.modules.conv import Conv
+    from ultralytics_4bands.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
@@ -443,14 +443,14 @@ def test_utils_torchutils():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_utils_downloads():
     """Test file download utilities."""
-    from ultralytics.utils.downloads import get_google_drive_file_info
+    from ultralytics_4bands.utils.downloads import get_google_drive_file_info
 
     get_google_drive_file_info("https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link")
 
 
 def test_utils_ops():
     """Test various operations utilities."""
-    from ultralytics.utils.ops import (
+    from ultralytics_4bands.utils.ops import (
         ltwh2xywh,
         ltwh2xyxy,
         make_divisible,
@@ -479,7 +479,7 @@ def test_utils_ops():
 
 def test_utils_files():
     """Test file handling utilities."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+    from ultralytics_4bands.utils.files import file_age, file_date, get_latest_run, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -495,11 +495,11 @@ def test_utils_files():
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save throws RuntimeError."""
     from unittest.mock import patch, MagicMock
-    from ultralytics.utils.patches import torch_save
+    from ultralytics_4bands.utils.patches import torch_save
 
     mock = MagicMock(side_effect=RuntimeError)
 
-    with patch("ultralytics.utils.patches._torch_save", new=mock):
+    with patch("ultralytics_4bands.utils.patches._torch_save", new=mock):
         with pytest.raises(RuntimeError):
             torch_save(torch.zeros(1), TMP / "test.pt")
 
@@ -508,7 +508,7 @@ def test_utils_patches_torch_save():
 
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules."""
-    from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
+    from ultralytics_4bands.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus
 
     c1, c2 = 8, 16  # input and output channels
     x = torch.zeros(4, c1, 10, 10)  # BCHW
@@ -527,7 +527,7 @@ def test_nn_modules_conv():
 
 def test_nn_modules_block():
     """Test Neural Network block modules."""
-    from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
+    from ultralytics_4bands.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
 
     c1, c2 = 8, 16  # input and output channels
     x = torch.zeros(4, c1, 10, 10)  # BCHW
@@ -543,8 +543,8 @@ def test_nn_modules_block():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_hub():
     """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
+    from ultralytics_4bands.hub import export_fmts_hub, logout
+    from ultralytics_4bands.hub.utils import smart_request
 
     export_fmts_hub()
     logout()
@@ -568,7 +568,7 @@ def image():
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
     import torchvision.transforms as T
 
-    from ultralytics.data.augment import classify_augmentations
+    from ultralytics_4bands.data.augment import classify_augmentations
 
     transform = classify_augmentations(
         size=224,

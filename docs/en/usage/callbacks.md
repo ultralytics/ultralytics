@@ -26,7 +26,7 @@ Ultralytics framework supports callbacks as entry points in strategic stages of 
 In this example, we want to return the original frame with each result object. Here's how we can do that
 
 ```python
-from ultralytics import YOLO
+from ultralytics_4bands import YOLO
 
 
 def on_predict_batch_end(predictor):

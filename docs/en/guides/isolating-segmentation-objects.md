@@ -14,15 +14,15 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  Begin with the necessary imports
+1. Begin with the necessary imports
 
-    ```py
-    from pathlib import Path
+   ```py
+   from pathlib import Path
 
-    import cv2 as cv
-    import numpy as np
-    from ultralytics import YOLO
-    ```
+   import cv2 as cv
+   import numpy as np
+   from ultralytics_4bands import YOLO
+   ```
 
     ???+ tip "Ultralytics Install"
 
@@ -30,17 +30,17 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-2.  Load a model and run `predict()` method on a source.
+2. Load a model and run `predict()` method on a source.
 
-    ```py
-    from ultralytics import YOLO
+   ```py
+   from ultralytics_4bands import YOLO
 
-    # Load a model
-    model = YOLO('yolov8n-seg.pt')
+   # Load a model
+   model = YOLO('yolov8n-seg.pt')
 
-    # Run inference
-    result = model.predict()
-    ```
+   # Run inference
+   result = model.predict()
+   ```
 
     ??? question "No Prediction Arguments?"
 

@@ -21,7 +21,7 @@ You can also explore other quickstart options for YOLOv5, such as our [Colab Not
 The Ultralytics YOLOv5 DockerHub repository is available at [https://hub.docker.com/r/ultralytics/yolov5](https://hub.docker.com/r/ultralytics/yolov5). Docker Autobuild ensures that the `ultralytics/yolov5:latest` image is always in sync with the most recent repository commit. To pull the latest image, run the following command:
 
 ```bash
-sudo docker pull ultralytics/yolov5:latest
+sudo docker pull ultralytics_4bands/yolov5:latest
 ```
 
 ## Step 2: Run the Docker Container
@@ -31,7 +31,7 @@ sudo docker pull ultralytics/yolov5:latest
 Run an interactive instance of the YOLOv5 Docker image (called a "container") using the `-it` flag:
 
 ```bash
-sudo docker run --ipc=host -it ultralytics/yolov5:latest
+sudo docker run --ipc=host -it ultralytics_4bands/yolov5:latest
 ```
 
 ### Container with local file access:
@@ -39,7 +39,7 @@ sudo docker run --ipc=host -it ultralytics/yolov5:latest
 To run a container with access to local files (e.g., COCO training data in `/datasets`), use the `-v` flag:
 
 ```bash
-sudo docker run --ipc=host -it -v "$(pwd)"/datasets:/usr/src/datasets ultralytics/yolov5:latest
+sudo docker run --ipc=host -it -v "$(pwd)"/datasets:/usr/src/datasets ultralytics_4bands/yolov5:latest
 ```
 
 ### Container with GPU access:
@@ -47,7 +47,7 @@ sudo docker run --ipc=host -it -v "$(pwd)"/datasets:/usr/src/datasets ultralytic
 To run a container with GPU access, use the `--gpus all` flag:
 
 ```bash
-sudo docker run --ipc=host -it --gpus all ultralytics/yolov5:latest
+sudo docker run --ipc=host -it --gpus all ultralytics_4bands/yolov5:latest
 ```
 
 ## Step 3: Use YOLOv5 🚀 within the Docker Container

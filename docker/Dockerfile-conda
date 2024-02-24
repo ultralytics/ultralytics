@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:latest-conda image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Builds ultralytics_4bands/ultralytics_4bands:latest-conda image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is optimized for Ultralytics Anaconda (https://anaconda.org/conda-forge/ultralytics) installation and usage
 
 # Start FROM miniconda3 image https://hub.docker.com/r/continuumio/miniconda3
@@ -21,20 +21,20 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt .
 # mkl required to fix 'OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory'
 RUN conda config --set solver libmamba && \
     conda install pytorch torchvision pytorch-cuda=11.8 -c pytorch -c nvidia && \
-    conda install -c conda-forge ultralytics mkl
-    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics mkl
+    conda install -c conda-forge ultralytics_4bands mkl
+    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics_4bands mkl
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-conda && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
+# t=ultralytics_4bands/ultralytics_4bands:latest-conda && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-conda && sudo docker run -it --ipc=host $t
+# t=ultralytics_4bands/ultralytics_4bands:latest-conda && sudo docker run -it --ipc=host $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics_4bands/ultralytics_4bands:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t
+# t=ultralytics_4bands/ultralytics_4bands:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

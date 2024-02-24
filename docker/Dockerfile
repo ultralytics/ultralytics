@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Builds ultralytics_4bands/ultralytics_4bands:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
@@ -24,8 +24,8 @@ RUN apt upgrade --no-install-recommends -y openssl tar
 WORKDIR /usr/src/ultralytics
 
 # Copy contents
-# COPY . /usr/src/ultralytics  # git permission issues inside container
-RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
+# COPY . /usr/src/ultralytics_4bands  # git permission issues inside container
+RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics_4bands
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
@@ -51,25 +51,25 @@ ENV MKL_THREADING_LAYER=GNU
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics_4bands/ultralytics_4bands:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run with access to all GPUs
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+# t=ultralytics_4bands/ultralytics_4bands:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
 # Pull and Run with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
+# t=ultralytics_4bands/ultralytics_4bands:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 
 # Pull and Run with local directory access
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t
+# t=ultralytics_4bands/ultralytics_4bands:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t
 
 # Kill all
 # sudo docker kill $(sudo docker ps -q)
 
 # Kill all image-based
-# sudo docker kill $(sudo docker ps -qa --filter ancestor=ultralytics/ultralytics:latest)
+# sudo docker kill $(sudo docker ps -qa --filter ancestor=ultralytics_4bands/ultralytics_4bands:latest)
 
 # DockerHub tag update
-# t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:v6.2 && sudo docker pull $t && sudo docker tag $t $tnew && sudo docker push $tnew
+# t=ultralytics_4bands/ultralytics_4bands:latest tnew=ultralytics_4bands/ultralytics_4bands:v6.2 && sudo docker pull $t && sudo docker tag $t $tnew && sudo docker push $tnew
 
 # Clean up
 # sudo docker system prune -a --volumes
@@ -81,4 +81,4 @@ ENV MKL_THREADING_LAYER=GNU
 # python -m torch.distributed.run --nproc_per_node 2 --master_port 1 train.py --epochs 3
 
 # GCP VM from Image
-# docker.io/ultralytics/ultralytics:latest
+# docker.io/ultralytics_4bands/ultralytics_4bands:latest

@@ -11,7 +11,7 @@
 # - [tool.*]: Configures settings for various tools (pytest, yapf, etc.) used in the project.
 
 # Installation:
-# The Ultralytics library can be installed using the command: 'pip install ultralytics'
+# The Ultralytics library can be installed using the command: 'pip install ultralytics_4bands'
 # For development purposes, you can install the package in editable mode with: 'pip install -e .'
 # This approach allows for real-time code modifications without the need for re-installation.
 
@@ -24,7 +24,7 @@ build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
 [project]
-name = "ultralytics"
+name = "ultralytics_4bands"
 dynamic = ["version"]
 description = "Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"

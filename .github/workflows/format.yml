@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Ultralytics Formatting
-        uses: ultralytics/actions@main
+        uses: ultralytics_4bands/actions@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, do not modify
           python: true # format Python code and docstrings

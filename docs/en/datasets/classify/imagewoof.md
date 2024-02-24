@@ -60,7 +60,7 @@ ImageWoof dataset comes in three different sizes to accommodate various research
 To use these variants in your training, simply replace 'imagewoof' in the dataset argument with 'imagewoof320' or 'imagewoof160'. For example:
 
 ```python
-from ultralytics import YOLO
+from ultralytics_4bands import YOLO
 
 # Load a model
 model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)

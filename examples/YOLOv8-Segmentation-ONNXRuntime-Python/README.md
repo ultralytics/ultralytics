@@ -14,7 +14,7 @@ This repository provides a Python demo for performing segmentation with YOLOv8 u
 Install the required packages using pip. You will need `ultralytics` for exporting YOLOv8-seg ONNX model and using some utility functions, `onnxruntime-gpu` for GPU-accelerated inference, and `opencv-python` for image processing.
 
 ```bash
-pip install ultralytics
+pip install ultralytics_4bands
 pip install onnxruntime-gpu  # For GPU support
 # pip install onnxruntime    # Use this instead if you don't have an NVIDIA GPU
 pip install numpy

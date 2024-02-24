@@ -17,7 +17,7 @@ on:
 
 jobs:
   publish:
-    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    if: github.repository == 'ultralytics_4bands/ultralytics_4bands' && github.actor == 'glenn-jocher'
     name: Publish
     runs-on: ubuntu-latest
     steps:
@@ -62,7 +62,7 @@ jobs:
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Deploy Docs
         continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics_4bands/ultralytics_4bands' && github.actor == 'glenn-jocher'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}

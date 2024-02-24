@@ -50,7 +50,7 @@ The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 After zipping your dataset, you should validate it before uploading it to Ultralytics HUB. Ultralytics HUB conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
 
 ```py
-from ultralytics.hub import check_dataset
+from ultralytics_4bands.hub import check_dataset
 
 check_dataset('path/to/coco8.zip')
 ```

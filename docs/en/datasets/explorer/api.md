@@ -27,13 +27,13 @@ The Explorer API is a Python API for exploring your datasets. It supports filter
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install ultralytics_4bands[explorer]
 ```
 
 ## Usage
 
 ```python
-from ultralytics import Explorer
+from ultralytics_4bands import Explorer
 
 # Create an Explorer object
 explorer = Explorer(data='coco128.yaml', model='yolov8n.pt')

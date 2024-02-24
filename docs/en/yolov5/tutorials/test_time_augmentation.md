@@ -110,7 +110,7 @@ Output:
 ```bash
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
-Downloading https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt to yolov5s.pt...
+Downloading https://github.com/ultralytics_4bands/yolov5/releases/download/v5.0/yolov5s.pt to yolov5s.pt...
 100% 14.1M/14.1M [00:00<00:00, 81.9MB/s]
 
 Fusing layers...
@@ -131,7 +131,7 @@ TTA is automatically integrated into all [YOLOv5 PyTorch Hub](https://pytorch.or
 import torch
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')  # or yolov5m, yolov5x, custom
+model = torch.hub.load('ultralytics_4bands/yolov5', 'yolov5s')  # or yolov5m, yolov5x, custom
 
 # Images
 img = 'https://ultralytics.com/images/zidane.jpg'  # or file, PIL, OpenCV, numpy, multiple

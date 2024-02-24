@@ -45,7 +45,7 @@ source ~/.bashrc
 ### 1. Export the YOLOv8 ONNX Models
 
 ```bash
-pip install -U ultralytics
+pip install -U ultralytics_4bands
 
 # export onnx model with dynamic shapes
 yolo export model=yolov8m.pt format=onnx  simplify dynamic

@@ -1,5 +1,5 @@
 ---
-description: Master the ultralytics.models.sam.predict.Predictor class with our comprehensive guide. Discover techniques to enhance your model predictions.
+description: Master the ultralytics_4bands.models.sam.predict.Predictor class with our comprehensive guide. Discover techniques to enhance your model predictions.
 keywords: Ultralytics, predictor, models, sam.predict.Predictor, AI, machine learning, predictive models
 ---
 

@@ -2,8 +2,8 @@
 
 import PIL
 
-from ultralytics import Explorer
-from ultralytics.utils import ASSETS
+from ultralytics_4bands import Explorer
+from ultralytics_4bands.utils import ASSETS
 
 
 def test_similarity():

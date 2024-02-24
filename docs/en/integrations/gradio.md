@@ -47,7 +47,7 @@ This section provides the Python code used to create the Gradio interface with t
 import PIL.Image as Image
 import gradio as gr
 
-from ultralytics import ASSETS, YOLO
+from ultralytics_4bands import ASSETS, YOLO
 
 model = YOLO("yolov8n.pt")
 

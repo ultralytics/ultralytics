@@ -9,9 +9,9 @@ import numpy as np
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
 
-from ultralytics import YOLO
-from ultralytics.utils.files import increment_path
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics_4bands import YOLO
+from ultralytics_4bands.utils.files import increment_path
+from ultralytics_4bands.utils.plotting import Annotator, colors
 
 track_history = defaultdict(list)
 

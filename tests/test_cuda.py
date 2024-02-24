@@ -3,8 +3,8 @@
 import pytest
 import torch
 
-from ultralytics import YOLO
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics_4bands import YOLO
+from ultralytics_4bands.utils import ASSETS, WEIGHTS_DIR, checks
 
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
@@ -56,7 +56,7 @@ def test_predict_multiple_devices():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_autobatch():
     """Check batch size for YOLO model using autobatch."""
-    from ultralytics.utils.autobatch import check_train_batch_size
+    from ultralytics_4bands.utils.autobatch import check_train_batch_size
 
     check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
 
@@ -65,7 +65,7 @@ def test_autobatch():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""
-    from ultralytics.utils.benchmarks import ProfileModels
+    from ultralytics_4bands.utils.benchmarks import ProfileModels
 
     # Pre-export a dynamic engine model to use dynamic inference
     YOLO(MODEL).export(format="engine", imgsz=32, dynamic=True, batch=1)
@@ -75,8 +75,8 @@ def test_utils_benchmarks():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_sam():
     """Test SAM model prediction with various prompts."""
-    from ultralytics import SAM
-    from ultralytics.models.sam import Predictor as SAMPredictor
+    from ultralytics_4bands import SAM
+    from ultralytics_4bands.models.sam import Predictor as SAMPredictor
 
     # Load a model
     model = SAM(WEIGHTS_DIR / "sam_b.pt")

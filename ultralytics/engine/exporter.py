@@ -60,7 +60,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import onnx2tf
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
@@ -743,6 +742,7 @@ class Exporter:
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",
         )
+        import onnx2tf
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             import shutil

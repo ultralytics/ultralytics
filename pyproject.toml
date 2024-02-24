@@ -181,3 +181,9 @@ skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.
 name = "ultralytics_4bands"
 version =  "8.1.14"
 description = "A brief description of your project"
+authors = [
+    { name = "Glenn Jocher" },
+    { name = "Ayush Chaurasia" },
+    { name = "Jing Qiu" }
+    { name = "Clemens Langer"}
+]

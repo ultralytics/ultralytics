@@ -55,10 +55,11 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 - **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
 - **Classify**: For predicting the class label of an input image.
 - **Pose**: For identifying objects and estimating their keypoints in an image or video.
+- **OBB**: Oriented (i.e. rotated) bounding boxes suitable for satellite or medical imagery.
 
-| Key    | Value      | Description                                     |
-|--------|------------|-------------------------------------------------|
-| `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                         |
+|----------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for object detection, `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
@@ -73,17 +74,17 @@ YOLO models can be used in different modes depending on the specific problem you
 - **Track**: For tracking objects in real-time using a YOLOv8 model.
 - **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
-| Key    | Value     | Description                                                   |
-|--------|-----------|---------------------------------------------------------------|
-| `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
+| Argument | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                   |
+|----------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mode`   | `'train'` | Specifies the mode in which the YOLO model operates. Options are `train` for model training, `val` for validation, `predict` for inference on new data, `export` for model conversion to deployment formats, `track` for object tracking, and `benchmark` for performance evaluation. Each mode is designed for different stages of the model lifecycle, from development through deployment. |
 
 [Modes Guide](../modes/index.md){ .md-button }
 
-## Train
+## Train Settings
 
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
-| Key               | Default  | Description                                                                                                                                                                                                          |
+| Argument          | Default  | Description                                                                                                                                                                                                          |
 |-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `model`           | `None`   | Specifies the model file for training. Accepts a path to either a `.pt` pretrained model or a `.yaml` configuration file. Essential for defining the model structure or initializing weights.                        |
 | `data`            | `None`   | Path to the dataset configuration file (e.g., `coco128.yaml`). This file contains dataset-specific parameters, including paths to training and validation data, class names, and number of classes.                  |
@@ -136,7 +137,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
 [Train Guide](../modes/train.md){ .md-button }
 
-## Predict
+## Predict Settings
 
 The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
@@ -177,72 +178,78 @@ Visualization arguments:
 
 [Predict Guide](../modes/predict.md){ .md-button }
 
-## Val
+## Validation Settings
 
-The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for. Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
+The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for.
 
-| Key           | Value   | Description                                                        |
-|---------------|---------|--------------------------------------------------------------------|
-| `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
-| `imgsz`       | `640`   | size of input images as integer                                    |
-| `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
-| `save_json`   | `False` | save results to JSON file                                          |
-| `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |
-| `conf`        | `0.001` | object confidence threshold for detection                          |
-| `iou`         | `0.6`   | intersection over union (IoU) threshold for NMS                    |
-| `max_det`     | `300`   | maximum number of detections per image                             |
-| `half`        | `True`  | use half precision (FP16)                                          |
-| `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
-| `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | save plots and images during train/val                             |
-| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
-| `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
+| Argument      | Type    | Default | Description                                                                                                                                                   |
+|---------------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco128.yaml`). This file includes paths to validation data, class names, and number of classes. |
+| `imgsz`       | `int`   | `640`   | Defines the size of input images. All images are resized to this dimension before processing.                                                                 |
+| `batch`       | `int`   | `16`    | Sets the number of images per batch. Use `-1` for AutoBatch, which automatically adjusts based on GPU memory availability.                                    |
+| `save_json`   | `bool`  | `False` | If `True`, saves the results to a JSON file for further analysis or integration with other tools.                                                             |
+| `save_hybrid` | `bool`  | `False` | If `True`, saves a hybrid version of labels that combines original annotations with additional model predictions.                                             |
+| `conf`        | `float` | `0.001` | Sets the minimum confidence threshold for detections. Detections with confidence below this threshold are discarded.                                          |
+| `iou`         | `float` | `0.6`   | Sets the Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Helps in reducing duplicate detections.                                   |
+| `max_det`     | `int`   | `300`   | Limits the maximum number of detections per image. Useful in dense scenes to prevent excessive detections.                                                    |
+| `half`        | `bool`  | `True`  | Enables half-precision (FP16) computation, reducing memory usage and potentially increasing speed with minimal impact on accuracy.                            |
+| `device`      | `str`   | `None`  | Specifies the device for validation (`cpu`, `cuda:0`, etc.). Allows flexibility in utilizing CPU or GPU resources.                                            |
+| `dnn`         | `bool`  | `False` | If `True`, uses OpenCV's DNN module for ONNX model inference, offering an alternative to PyTorch inference methods.                                           |
+| `plots`       | `bool`  | `False` | When set to `True`, generates and saves plots of predictions versus ground truth for visual evaluation of the model's performance.                            |
+| `rect`        | `bool`  | `False` | If `True`, uses rectangular inference for batching, reducing padding and potentially increasing speed and efficiency.                                         |
+| `split`       | `str`   | `val`   | Determines the dataset split to use for validation (`val`, `test`, or `train`). Allows flexibility in choosing the data segment for performance evaluation.   |
+
+Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
 
 [Val Guide](../modes/val.md){ .md-button }
 
-## Export
+## Export Settings
 
-Export settings for YOLO models encompass configurations and options related to saving or exporting the model for use in different environments or platforms. These settings can impact the model's performance, size, and compatibility with various systems. Key export settings include the exported model file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and additional features such as masks or multiple labels per box. The export process may also be affected by the model's specific task and the requirements or constraints of the destination environment or platform. It is crucial to thoughtfully configure these settings to ensure the exported model is optimized for the intended use case and functions effectively in the target environment.
+Export settings for YOLO models encompass configurations and options related to saving or exporting the model for use in different environments or platforms. These settings can impact the model's performance, size, and compatibility with various systems. Key export settings include the exported model file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and additional features such as masks or multiple labels per box. The export process may also be affected by the model's specific task and the requirements or constraints of the destination environment or platform.
 
-| Key         | Value           | Description                                          |
-|-------------|-----------------|------------------------------------------------------|
-| `format`    | `'torchscript'` | format to export to                                  |
-| `imgsz`     | `640`           | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `keras`     | `False`         | use Keras for TF SavedModel export                   |
-| `optimize`  | `False`         | TorchScript: optimize for mobile                     |
-| `half`      | `False`         | FP16 quantization                                    |
-| `int8`      | `False`         | INT8 quantization                                    |
-| `dynamic`   | `False`         | ONNX/TensorRT: dynamic axes                          |
-| `simplify`  | `False`         | ONNX/TensorRT: simplify model                        |
-| `opset`     | `None`          | ONNX: opset version (optional, defaults to latest)   |
-| `workspace` | `4`             | TensorRT: workspace size (GB)                        |
-| `nms`       | `False`         | CoreML: add NMS                                      |
+| Argument    | Type             | Default         | Description                                                                                                                                                      |
+|-------------|------------------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `format`    | `str`            | `'torchscript'` | Target format for the exported model, such as `'onnx'`, `'torchscript'`, `'tensorflow'`, or others, defining compatibility with various deployment environments. |
+| `imgsz`     | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                |
+| `keras`     | `bool`           | `False`         | Enables export to Keras format for TensorFlow SavedModel, providing compatibility with TensorFlow serving and APIs.                                              |
+| `optimize`  | `bool`           | `False`         | Applies optimization for mobile devices when exporting to TorchScript, potentially reducing model size and improving performance.                                |
+| `half`      | `bool`           | `False`         | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                     |
+| `int8`      | `bool`           | `False`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal accuracy loss, primarily for edge devices.                     |
+| `dynamic`   | `bool`           | `False`         | Allows dynamic input sizes for ONNX and TensorRT exports, enhancing flexibility in handling varying image dimensions.                                            |
+| `simplify`  | `bool`           | `False`         | Simplifies the model graph for ONNX exports, potentially improving performance and compatibility.                                                                |
+| `opset`     | `int`            | `None`          | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.                      |
+| `workspace` | `float`          | `4.0`           | Sets the maximum workspace size in GB for TensorRT optimizations, balancing memory usage and performance.                                                        |
+| `nms`       | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.                                         |
+
+It is crucial to thoughtfully configure these settings to ensure the exported model is optimized for the intended use case and functions effectively in the target environment.
 
 [Export Guide](../modes/export.md){ .md-button }
 
-## Augmentation
+## Augmentation Settings
 
-Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
+Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the training data, helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
 
-| Key            | Value           | Description                                                                    |
-|----------------|-----------------|--------------------------------------------------------------------------------|
-| `hsv_h`        | `0.015`         | image HSV-Hue augmentation (fraction)                                          |
-| `hsv_s`        | `0.7`           | image HSV-Saturation augmentation (fraction)                                   |
-| `hsv_v`        | `0.4`           | image HSV-Value augmentation (fraction)                                        |
-| `degrees`      | `0.0`           | image rotation (+/- deg)                                                       |
-| `translate`    | `0.1`           | image translation (+/- fraction)                                               |
-| `scale`        | `0.5`           | image scale (+/- gain)                                                         |
-| `shear`        | `0.0`           | image shear (+/- deg)                                                          |
-| `perspective`  | `0.0`           | image perspective (+/- fraction), range 0-0.001                                |
-| `flipud`       | `0.0`           | image flip up-down (probability)                                               |
-| `fliplr`       | `0.5`           | image flip left-right (probability)                                            |
-| `mosaic`       | `1.0`           | image mosaic (probability)                                                     |
-| `mixup`        | `0.0`           | image mixup (probability)                                                      |
-| `copy_paste`   | `0.0`           | segment copy-paste (probability)                                               |
-| `auto_augment` | `'randaugment'` | auto augmentation policy for classification (randaugment, autoaugment, augmix) |
-| `erasing`      | `0.4`           | probability o random erasing during classification training (0-1) training     |
+| Argument       | Type    | Default       | Range         | Description                                                                                                                                                               |
+|----------------|---------|---------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `hsv_h`        | `float` | `0.015`       | `0.0 - 1.0`   | Adjusts the hue of the image by a fraction of the color wheel, introducing color variability. Helps the model generalize across different lighting conditions.            |
+| `hsv_s`        | `float` | `0.7`         | `0.0 - 1.0`   | Alters the saturation of the image by a fraction, affecting the intensity of colors. Useful for simulating different environmental conditions.                            |
+| `hsv_v`        | `float` | `0.4`         | `0.0 - 1.0`   | Modifies the value (brightness) of the image by a fraction, helping the model to perform well under various lighting conditions.                                          |
+| `degrees`      | `float` | `0.0`         | `-180 - +180` | Rotates the image randomly within the specified degree range, improving the model's ability to recognize objects at various orientations.                                 |
+| `translate`    | `float` | `0.1`         | `0.0 - 1.0`   | Translates the image horizontally and vertically by a fraction of the image size, aiding in learning to detect partially visible objects.                                 |
+| `scale`        | `float` | `0.5`         | `>=0.0`       | Scales the image by a gain factor, simulating objects at different distances from the camera.                                                                             |
+| `shear`        | `float` | `0.0`         | `-180 - +180` | Shears the image by a specified degree, mimicking the effect of objects being viewed from different angles.                                                               |
+| `perspective`  | `float` | `0.0`         | `0.0 - 0.001` | Applies a random perspective transformation to the image, enhancing the model's ability to understand objects in 3D space.                                                |
+| `flipud`       | `float` | `0.0`         | `0.0 - 1.0`   | Flips the image upside down with the specified probability, increasing the data variability without affecting the object's characteristics.                               |
+| `fliplr`       | `float` | `0.5`         | `0.0 - 1.0`   | Flips the image left to right with the specified probability, useful for learning symmetrical objects and increasing dataset diversity.                                   |
+| `mosaic`       | `float` | `1.0`         | `0.0 - 1.0`   | Combines four training images into one, simulating different scene compositions and object interactions. Highly effective for complex scene understanding.                |
+| `mixup`        | `float` | `0.0`         | `0.0 - 1.0`   | Blends two images and their labels, creating a composite image. Enhances the model's ability to generalize by introducing label noise and visual variability.             |
+| `copy_paste`   | `float` | `0.0`         | `0.0 - 1.0`   | Copies objects from one image and pastes them onto another, useful for increasing object instances and learning object occlusion.                                         |
+| `auto_augment` | `str`   | `randaugment` | -             | Automatically applies a predefined augmentation policy (`randaugment`, `autoaugment`, `augmix`), optimizing for classification tasks by diversifying the visual features. |
+| `erasing`      | `float` | `0.4`         | `0.0 - 1.0`   | Randomly erases a portion of the image during classification training, encouraging the model to focus on less obvious features for recognition.                           |
 
-## Logging, checkpoints, plotting and file management
+These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the optimal augmentation strategy that leads to the best model performance.
+
+## Logging, Checkpoints and Plotting Settings
 
 Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
 
@@ -253,10 +260,10 @@ Logging, checkpoints, plotting, and file management are important considerations
 
 Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
 
-| Key        | Value    | Description                                                                                    |
-|------------|----------|------------------------------------------------------------------------------------------------|
-| `project`  | `'runs'` | project name                                                                                   |
-| `name`     | `'exp'`  | experiment name. `exp` gets automatically incremented if not specified, i.e, `exp`, `exp2` ... |
-| `exist_ok` | `False`  | whether to overwrite existing experiment                                                       |
-| `plots`    | `False`  | save plots during train/val                                                                    |
-| `save`     | `False`  | save train checkpoints and predict results                                                     |
+| Argument   | Default  | Description                                                                                                                                                                                                                        |
+|------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run will be saved in a separate subdirectory within this directory.                                                                                                    |
+| `name`     | `'exp'`  | Defines the name of the experiment. If not specified, YOLO automatically increments this name for each run, e.g., `exp`, `exp2`, etc., to avoid overwriting previous experiments.                                                  |
+| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                   |
+| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
+| `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |

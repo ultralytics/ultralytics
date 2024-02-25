@@ -80,7 +80,7 @@ YOLO models can be used in different modes depending on the specific problem you
 
 [Modes Guide](../modes/index.md){ .md-button }
 
-## Train
+## Train Settings
 
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
@@ -137,7 +137,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
 [Train Guide](../modes/train.md){ .md-button }
 
-## Predict
+## Predict Settings
 
 The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
@@ -178,7 +178,7 @@ Visualization arguments:
 
 [Predict Guide](../modes/predict.md){ .md-button }
 
-## Val
+## Validation Settings
 
 The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for.
 
@@ -249,7 +249,7 @@ Augmentation techniques are essential for improving the robustness and performan
 
 These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the optimal augmentation strategy that leads to the best model performance.
 
-## Logging, checkpoints, plotting and file management
+## Logging, Checkpoints and Plotting Settings
 
 Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
 

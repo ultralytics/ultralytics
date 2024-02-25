@@ -79,7 +79,7 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
 
 When validating YOLO models, several arguments can be fine-tuned to optimize the evaluation process. These arguments control aspects such as input image size, batch processing, and performance thresholds. Below is a detailed breakdown of each argument to help you customize your validation settings effectively.
 
-| Key           | Type    | Default | Description                                                                                                                                                   |
+| Argument      | Type    | Default | Description                                                                                                                                                   |
 |---------------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco128.yaml`). This file includes paths to validation data, class names, and number of classes. |
 | `imgsz`       | `int`   | `640`   | Defines the size of input images. All images are resized to this dimension before processing.                                                                 |

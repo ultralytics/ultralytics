@@ -713,7 +713,7 @@ def plot_images(
     on_plot=None,
     max_subplots=16,
     save=True,
-    conf_thres=0.25
+    conf_thres=0.25,
 ):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):

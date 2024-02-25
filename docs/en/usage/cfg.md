@@ -57,9 +57,9 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 - **Pose**: For identifying objects and estimating their keypoints in an image or video.
 - **OBB**: Oriented (i.e. rotated) bounding boxes suitable for satellite or medical imagery.
 
-| Key    | Value      | Description                                                                                                                                                                                                                                                                                                         |
-|--------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `task` | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for object detection, `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                         |
+|----------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for object detection, `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
@@ -74,9 +74,9 @@ YOLO models can be used in different modes depending on the specific problem you
 - **Track**: For tracking objects in real-time using a YOLOv8 model.
 - **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
-| Key    | Value     | Description                                                                                                                                                                                                                                                                                                                                                                                   |
-|--------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `mode` | `'train'` | Specifies the mode in which the YOLO model operates. Options are `train` for model training, `val` for validation, `predict` for inference on new data, `export` for model conversion to deployment formats, `track` for object tracking, and `benchmark` for performance evaluation. Each mode is designed for different stages of the model lifecycle, from development through deployment. |
+| Argument | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                   |
+|----------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mode`   | `'train'` | Specifies the mode in which the YOLO model operates. Options are `train` for model training, `val` for validation, `predict` for inference on new data, `export` for model conversion to deployment formats, `track` for object tracking, and `benchmark` for performance evaluation. Each mode is designed for different stages of the model lifecycle, from development through deployment. |
 
 [Modes Guide](../modes/index.md){ .md-button }
 
@@ -84,7 +84,7 @@ YOLO models can be used in different modes depending on the specific problem you
 
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
-| Key               | Default  | Description                                                                                                                                                                                                          |
+| Argument          | Default  | Description                                                                                                                                                                                                          |
 |-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `model`           | `None`   | Specifies the model file for training. Accepts a path to either a `.pt` pretrained model or a `.yaml` configuration file. Essential for defining the model structure or initializing weights.                        |
 | `data`            | `None`   | Path to the dataset configuration file (e.g., `coco128.yaml`). This file contains dataset-specific parameters, including paths to training and validation data, class names, and number of classes.                  |
@@ -182,7 +182,7 @@ Visualization arguments:
 
 The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for.
 
-| Key           | Type    | Default | Description                                                                                                                                                   |
+| Argument      | Type    | Default | Description                                                                                                                                                   |
 |---------------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco128.yaml`). This file includes paths to validation data, class names, and number of classes. |
 | `imgsz`       | `int`   | `640`   | Defines the size of input images. All images are resized to this dimension before processing.                                                                 |
@@ -229,7 +229,7 @@ It is crucial to thoughtfully configure these settings to ensure the exported mo
 
 Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the training data, helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
 
-| Key            | Type    | Value         | Range         | Description                                                                                                                                                               |
+| Argument       | Type    | Default       | Range         | Description                                                                                                                                                               |
 |----------------|---------|---------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `hsv_h`        | `float` | `0.015`       | `0.0 - 1.0`   | Adjusts the hue of the image by a fraction of the color wheel, introducing color variability. Helps the model generalize across different lighting conditions.            |
 | `hsv_s`        | `float` | `0.7`         | `0.0 - 1.0`   | Alters the saturation of the image by a fraction, affecting the intensity of colors. Useful for simulating different environmental conditions.                            |
@@ -260,7 +260,7 @@ Logging, checkpoints, plotting, and file management are important considerations
 
 Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
 
-| Key        | Value    | Description                                                                                                                                                                                                                        |
+| Argument   | Default  | Description                                                                                                                                                                                                                        |
 |------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run will be saved in a separate subdirectory within this directory.                                                                                                    |
 | `name`     | `'exp'`  | Defines the name of the experiment. If not specified, YOLO automatically increments this name for each run, e.g., `exp`, `exp2`, etc., to avoid overwriting previous experiments.                                                  |

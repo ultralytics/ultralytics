@@ -74,19 +74,19 @@ Export a YOLOv8n model to a different format like ONNX or TensorRT. See Argument
 
 This table details the configurations and options available for exporting YOLO models to different formats. These settings are critical for optimizing the exported model's performance, size, and compatibility across various platforms and environments. Proper configuration ensures that the model is ready for deployment in the intended application with optimal efficiency.
 
-| Key         | Default Value   | Description                                                                                                                                                       |
-|-------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `format`    | `'torchscript'` | Specifies the export format. Supported values include `'torchscript'`, `'onnx'`, `'coreml'`, `'engine'` (TensorRT), `'saved_model'` (TensorFlow SavedModel), etc. |
-| `imgsz`     | `640`           | Defines the image size for export. Accepts an integer for square images or a tuple `(height, width)` for non-square images.                                       |
-| `keras`     | `False`         | When exporting to TensorFlow SavedModel, setting this to `True` utilizes Keras for the export process.                                                            |
-| `optimize`  | `False`         | Applies to TorchScript exports, enabling optimization for mobile deployments.                                                                                     |
-| `half`      | `False`         | Enables half-precision (FP16) quantization for the exported model, reducing size and potentially increasing inference speed on compatible hardware.               |
-| `int8`      | `False`         | Activates INT8 quantization, further reducing model size and increasing inference speed at the cost of precision. Useful for edge devices.                        |
-| `dynamic`   | `False`         | For ONNX and TensorRT formats, enables dynamic axes, allowing variable input sizes for inference.                                                                 |
-| `simplify`  | `False`         | Simplifies the model structure for ONNX and TensorRT formats, potentially improving efficiency and compatibility.                                                 |
-| `opset`     | `None`          | Specifies the ONNX opset version for export. If not set, uses the latest supported version. Useful for ensuring compatibility with older ONNX parsers.            |
-| `workspace` | `4`             | Defines the maximum workspace size in GB for TensorRT exports, affecting the optimization process and memory usage.                                               |
-| `nms`       | `False`         | When exporting to CoreML, adds a Non-Maximum Suppression (NMS) layer to the model, useful for filtering overlapping detections.                                   |
+| Argument    | Type             | Default         | Description                                                                                                                                                      |
+|-------------|------------------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `format`    | `str`            | `'torchscript'` | Target format for the exported model, such as `'onnx'`, `'torchscript'`, `'tensorflow'`, or others, defining compatibility with various deployment environments. |
+| `imgsz`     | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                |
+| `keras`     | `bool`           | `False`         | Enables export to Keras format for TensorFlow SavedModel, providing compatibility with TensorFlow serving and APIs.                                              |
+| `optimize`  | `bool`           | `False`         | Applies optimization for mobile devices when exporting to TorchScript, potentially reducing model size and improving performance.                                |
+| `half`      | `bool`           | `False`         | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                     |
+| `int8`      | `bool`           | `False`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal accuracy loss, primarily for edge devices.                     |
+| `dynamic`   | `bool`           | `False`         | Allows dynamic input sizes for ONNX and TensorRT exports, enhancing flexibility in handling varying image dimensions.                                            |
+| `simplify`  | `bool`           | `False`         | Simplifies the model graph for ONNX exports, potentially improving performance and compatibility.                                                                |
+| `opset`     | `int`            | `None`          | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.                      |
+| `workspace` | `float`          | `4.0`           | Sets the maximum workspace size in GB for TensorRT optimizations, balancing memory usage and performance.                                                        |
+| `nms`       | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.                                         |
 
 Adjusting these parameters allows for customization of the export process to fit specific requirements, such as deployment environment, hardware constraints, and performance targets. Selecting the appropriate format and settings is essential for achieving the best balance between model size, speed, and accuracy.
 

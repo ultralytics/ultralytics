@@ -654,7 +654,7 @@ class BaseTrainer:
         if ckpt is None:
             return
         best_fitness = 0.0
-        start_epoch = ckpt["epoch"] + 1
+        start_epoch = ckpt.get("epoch", -1) + 1
         if ckpt["optimizer"] is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
             best_fitness = ckpt["best_fitness"]

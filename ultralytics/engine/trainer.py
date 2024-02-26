@@ -254,9 +254,9 @@ class BaseTrainer:
         else:
             freeze_layer_list = self._freezeLayerListWithRe("*.dfl*")  # default to freeze all dfl layers
             print(f"WARNING: freezeCfg is not a valid type: {type(freezeCfg)}")
-
+        freeze_layer_list_set = set(freeze_layer_list)
         for name, _ in self.model.named_parameters():
-            if name in freeze_layer_list:
+            if name in freeze_layer_list_set:
                 LOGGER.info(f"Freezing layer '{name}'")
                 _.requires_grad = False
             elif not _.requires_grad:

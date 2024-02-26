@@ -252,6 +252,7 @@ class BaseTrainer:
         elif isinstance(freezeCfg, list):
             freeze_layer_list = self._freezeLayerListWithLayerNumList(freezeCfg)
         else:
+            freeze_layer_list = self._freezeLayerListWithRe("*.dfl*")  # default to freeze all dfl layers
             print(f"WARNING: freezeCfg is not a valid type: {type(freezeCfg)}")
 
         for name, _ in self.model.named_parameters():
@@ -262,7 +263,6 @@ class BaseTrainer:
                 LOGGER.info(f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{name}'. "
                             'See ultralytics.engine.trainer for customization of frozen layers.')
                 _.requires_grad = True
-            
         return
 
     def _setup_train(self, world_size):

@@ -3,7 +3,7 @@ from training_utils import (
     PrepareDataset,
     GetModelYaml,
     LoadBestModel,
-    GetLatestRunDir,
+    GetLatestWeightsDir,
 )
 from training_utils import (
     dataset_yaml_path,
@@ -37,7 +37,7 @@ model = LoadBestModel()  # To load the best model
 path = model.export(format="onnx", imgsz=[768, 768], opset=12)
 
 
-latest_run_dir = GetLatestRunDir()
-os.system(f"mv {path} {latest_run_dir}/weights/best.onnx")
+latest_weights_dir = GetLatestWeightsDir()
+os.system(f"mv {path} {latest_weights_dir}/best.onnx")
 path = model.export(format="onnx", imgsz=[2144, 768], opset=12)
-os.system(f"mv {path} {latest_run_dir}/weights/best_full_height.onnx")
+os.system(f"mv {path} {latest_weights_dir}/best_full_height.onnx")

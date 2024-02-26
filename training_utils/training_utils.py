@@ -47,15 +47,15 @@ def GiveModel(ckpt_path):
     return None
 
 
-def GetLatestRunDir():
-    base_dir = f"{runs_directory}/{training_task}"
+def GetLatestWeightsDir():
+    base_dir = f"{runs_directory}/{training_task}/train/weights"
     # Get latest experiment name from the directory
     exp_name = sorted(os.listdir(base_dir))[-1]
     return f"{base_dir}/{exp_name}"
 
 
 def LoadBestModel():
-    best_ckpt = f"{GetLatestRunDir()}/weights/best.pt"
+    best_ckpt = f"{GetLatestWeightsDir()}/best.pt"
     return GiveModel(best_ckpt)
 
 

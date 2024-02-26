@@ -130,7 +130,7 @@ def verify_image_label(args):
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]
-                assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
+                assert points.max() <= 1.2, f"non-normalized or out of bounds coordinates {points[points > 1.2]}" # Keeping the tolerance of 0.2, the obb rotation box will be out of bounds
                 assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
 
                 # All labels

@@ -2,10 +2,11 @@ import os
 import YOLO
 
 
-dataset_yaml_path = "/training/ultralytics/ultralytics/cfg/datasets/verdant.yaml"
-coco_classes_file = "/dataset/classes.txt"
-runs_directory = "/training/runs"
-training_task = os.environ.get("TASK", "detect")   # 'detect' for bbox | 'pose' for hybrid model 
+dataset_yaml_path = os.environ.get("DATASET_YAML", 
+                                   "/training/ultralytics/ultralytics/cfg/datasets/verdant.yaml")
+coco_classes_file = os.environ.get("COCO_LABELS", "/dataset/classes.txt")
+runs_directory = os.environ.get("RUNS_DIR", "/training/runs")
+training_task = os.environ.get("TASK", "detect")   # 'detect' for bbox | 'pose' for hybrid model
 experiment_name = os.environ.get("EXP_NAME", None)  # Results will be saved with this name  under runs/<task>/<exp_name>
 
 

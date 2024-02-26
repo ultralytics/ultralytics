@@ -464,7 +464,7 @@ class Exporter:
                         f".*{head_module_name}/.*/Sub*",
                         f".*{head_module_name}/.*/Mul*",
                         f".*{head_module_name}/.*/Div*",
-                        f".*{head_module_name}\\.dfl/.*",
+                        f".*{head_module_name}\\.dfl.*",
                     ],
                     types=["Sigmoid"],
                 )

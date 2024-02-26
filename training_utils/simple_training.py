@@ -34,10 +34,9 @@ model.train(
 
 
 model = LoadBestModel()  # To load the best model
-path = model.export(format="onnx", imgsz=[768, 768], opset=12)
-
-
 latest_weights_dir = GetLatestWeightsDir()
-os.system(f"mv {path} {latest_weights_dir}/best.onnx")
+
 path = model.export(format="onnx", imgsz=[2144, 768], opset=12)
 os.system(f"mv {path} {latest_weights_dir}/best_full_height.onnx")
+path = model.export(format="onnx", imgsz=[768, 768], opset=12)
+

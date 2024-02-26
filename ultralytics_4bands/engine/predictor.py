@@ -122,24 +122,22 @@ class BasePredictor:
             im = np.stack(self.pre_transform(im))
             LOGGER.info(f"Preprocessing: {im.shape}, {im.ndim}")
 
-            if im.shape[-1] == 3:
-                if im.ndim == 4 and im.shape[0] == 1:
-                    im = im[0]
+            if im.shape[-1] == 3: #TODO check if we can drop this since this package should only handle 4 bands for now
                 if im.ndim == 4:
                     im = im[:, :, :,[2, 1, 0]] # BGRA to RGB
                     im = im.transpose((0, 3, 1, 2))
                 elif im.ndim == 3:
                     im = im[:, :,[2, 1, 0]]
                     im = im.transpose(2,0, 1)
+                    im = np.expand_dims(im, axis=0)
             else:
-                if im.ndim == 4 and im.shape[0] == 1:
-                    im = im[0]
                 if im.ndim == 4:
                     im = im[:, :, :,[2, 1, 0, 3]] # BGRA to RGB
                     im = im.transpose((0, 3, 1, 2))
                 elif im.ndim == 3:
                     im = im[:, :,[2, 1, 0, 3]]
-                    im = im.transpose(2,0, 1)  # HWC to CHW
+                    im = im.transpose(2,0, 1) # HWC to CHW
+                    im = np.expand_dims(im, axis=0) # add batch dimension
                 else:
                     raise ValueError("Invalid input shape for image. Expected 3 or 4 dimensions. Got {im.ndim} dimensions.")
             #im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)

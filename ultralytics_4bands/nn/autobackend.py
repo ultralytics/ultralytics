@@ -374,7 +374,11 @@ class AutoBackend(nn.Module):
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
         """
-        b, ch, h, w = im.shape  # batch, channel, height, width
+
+        if len(im.shape) > 3:  # batched
+            b, ch, h, w = im.shape  # batch size, channels, height, width
+        elif len(im.shape) == 3:  # single image
+            b, ch, h, w = 1, *im.shape  # batch size, channels, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:

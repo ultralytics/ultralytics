@@ -20,7 +20,7 @@ def on_pretrain_routine_end(trainer):
     if RANK in (-1, 0):
         # NOTE: for evaluation
         names = list(trainer.test_loader.dataset.data["names"].values())
-        trainer.model.set_classes(names)
+        de_parallel(trainer.model).set_classes(names)
         # NOTE: update ema model
         if trainer.ema:
             trainer.ema.ema.txt_feats = trainer.model.txt_feats

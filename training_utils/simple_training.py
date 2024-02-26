@@ -12,31 +12,44 @@ from training_utils import (
     experiment_name,
 )
 import os
+import argparse
 
 
-PrepareDataset(coco_classes_file, dataset_yaml_path, training_task)
-model = YOLO(GetModelYaml(training_task))  # Initialize model
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train the model")
+    parser.add_argument("-l", "--load", type=str, default=None, help="Path to the model weights to load. Load the pretrained model")
 
-model.train(
-    task=training_task,
-    data="verdant.yaml",
-    epochs=300,
-    flipud=0.5,
-    fliplr=0.5,
-    scale=0.2,
-    mosaic=0.0,  # Please set this to 0.0 TODO: Fix the issue with mosaic and keypoint detection
-    imgsz=768,
-    seed=1,
-    batch=128,
-    name=experiment_name,
-    device=[0, 1, 2, 3, 4, 5, 6, 7],
-)
+    args = parser.parse_args()
+    model = YOLO(GetModelYaml(training_task))  # Initialize model
 
+    PrepareDataset(coco_classes_file, dataset_yaml_path, training_task)
+    model = YOLO(GetModelYaml(training_task))  # Initialize model
 
-model = LoadBestModel()  # To load the best model
-latest_weights_dir = GetLatestWeightsDir()
+    if args.load is not None:
+        if os.path.exists(args.load):
+            model.load(args.load)
+        else:
+            print(f"[ERROR] : Model {args.load} does not exists")
+            exit(1)
 
-path = model.export(format="onnx", imgsz=[2144, 768], opset=12)
-os.system(f"mv {path} {latest_weights_dir}/best_full_height.onnx")
-path = model.export(format="onnx", imgsz=[768, 768], opset=12)
+    model.train(
+        task=training_task,
+        data="verdant.yaml",
+        epochs=300,
+        flipud=0.5,
+        fliplr=0.5,
+        scale=0.2,
+        mosaic=0.0,  # Please set this to 0.0 TODO: Fix the issue with mosaic and keypoint detection
+        imgsz=768,
+        seed=1,
+        batch=128,
+        name=experiment_name,
+        device=[0, 1, 2, 3, 4, 5, 6, 7],
+    )
 
+    model = LoadBestModel()  # To load the best model
+    latest_weights_dir = GetLatestWeightsDir()
+
+    path = model.export(format="onnx", imgsz=[2144, 768], opset=12)
+    os.system(f"mv {path} {latest_weights_dir}/best_full_height.onnx")
+    path = model.export(format="onnx", imgsz=[768, 768], opset=12)

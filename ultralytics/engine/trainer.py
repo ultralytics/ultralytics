@@ -252,7 +252,7 @@ class BaseTrainer:
         elif isinstance(freezeCfg, list):
             freeze_layer_list = self._freezeLayerListWithLayerNumList(freezeCfg)
         else:
-            freeze_layer_list = self._freezeLayerListWithRe("*.dfl*")  # default to freeze all dfl layers
+            freeze_layer_list = self._freezeLayerListWithRe("model.*.dfl*")  # default to freeze all dfl layers
             print(f"WARNING: freezeCfg is not a valid type: {type(freezeCfg)}")
         freeze_layer_list_set = set(freeze_layer_list)
         for name, _ in self.model.named_parameters():

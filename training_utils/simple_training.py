@@ -1,11 +1,11 @@
 from ultralytics import YOLO
-from training_utils.training_utils import (
+from training_utils import (
     PrepareDataset,
     GetModelYaml,
     LoadBestModel,
     GetLatestRunDir,
 )
-from training_utils.training_utils import (
+from training_utils import (
     dataset_yaml_path,
     coco_classes_file,
     training_task,

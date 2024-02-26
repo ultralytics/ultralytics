@@ -1,5 +1,5 @@
 import os
-import YOLO
+from ultralytics import YOLO
 
 
 dataset_yaml_path = os.environ.get("DATASET_YAML", 

@@ -365,7 +365,7 @@ def check_cls_dataset(dataset, split=""):
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
-    elif zipfile.is_zipfile(dataset) or is_tarfile(dataset):
+    elif Path(dataset).suffix in (".zip", ".tar", ".gz"):
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 

@@ -732,7 +732,7 @@ def plot_images(
     max_size = 1920  # max image size
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
-    ns = np.ceil(bs**0.5)  # number of subplots (square)
+    ns = np.ceil(np.sqrt(bs))  # number of subplots (square)
     if np.max(images[0]) <= 1:
         images *= 255  # de-normalise (optional)
 

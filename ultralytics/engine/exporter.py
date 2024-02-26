@@ -517,7 +517,7 @@ class Exporter:
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
                 _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
-                url = [x for x in assets if system in x][0]
+                url = [x for x in assets if f"{system}.zip" in x][0]
             except Exception as e:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240226/pnnx-20240226-{system}.zip"
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")

@@ -655,7 +655,7 @@ class BaseTrainer:
             return
         best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
-        if ckpt["optimizer"] is not None:
+        if ckpt.get("optimizer", None) is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
             best_fitness = ckpt["best_fitness"]
         if self.ema and ckpt.get("ema"):

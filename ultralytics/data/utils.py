@@ -106,7 +106,13 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                maybe_kpt_label = keypoint
+                if not maybe_kpt_label and all(len(x) == (1 + 4 + 3) for x in lb):
+                    # We are not in keypoint mode, but the label file has 
+                    # 4 box coordinates and 3 keypoints coordinates and 1 class label
+                    # This is a keypoint label file but we still load it as a normal label file
+                    maybe_kpt_label = True
+                if not maybe_kpt_label and any(len(x) > 6 for x in lb):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
@@ -123,8 +129,10 @@ def verify_image_label(args):
                         points = lb[:, 1:]
                         ignore_kpt = True
                 else:
-                    assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
-                    points = lb[:, 1:]
+                    if lb.shape[1] == 5 or lb.shape[1] == (5 + 3):
+                        points = lb[:, 1:5]
+                    else:
+                        raise ValueError(f'labels require 5 columns each, or 8 columns for segments but found {lb.shape[1]}')
                 assert points.max() <= 1, f'non-normalized or out of bounds coordinates {points[points > 1]}'
                 assert lb.min() >= 0, f'negative label values {lb[lb < 0]}'
 

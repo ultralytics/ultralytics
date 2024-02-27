@@ -2,26 +2,25 @@
   "name": "testing",
 
   "source_weights_path": "./models/8sp2_150.pt",
-  "source_video_path": "./data/example1.mp4",
+  "source_video_path": "./data/test1.mp4",
 
   "device": "mps",
   "video_stride": 1,
 
   "save_dir": "./outputs/",
-  "save_results": true,
-  "display": false,
+  "save_results": false,
+  "display": true,
 
   "img_size": 640,
-  "conf_threshold": 0.2,
-  "iou_threshold": 0.8,
+  "conf_threshold": 0.1,
+  "iou_threshold": 0.7,
   "max_det": 50,
 
   "track_high_thresh": 0.4,
-  "track_low_thresh": 0.2,
-  "new_track_thresh": 0.5,
-  "track_buffer": 60,
-  "match_thresh": 0.98,
-  "frame_rate": 30,
+  "track_low_thresh": 0.1,
+  "new_track_thresh": 0.25,
+  "track_buffer": 200,
+  "match_thresh": 0.9,
 
   "proximity_thresh": 0.9,
   "appearance_thresh": 0.8,
@@ -30,7 +29,6 @@
   "weight_path": "ver12.pt",
 
   "gmc_method": null,
-  "ablation": "sparseOptFlow",
 
   "action_recognition": {
     "speed_projection": [0.7, 1.5],

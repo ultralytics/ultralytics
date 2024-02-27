@@ -245,6 +245,14 @@ class ActionRecognizer:
         return np.array(crowd_box)
 
     def recognize_stand_still(self, tracks):
+        """
+        Recognizes people standing still in a frame by computing the average speed of each detection and comparing it
+        to a threshold.
+        Args:
+            tracks (list): list of detections in the frame (sv.STrack objects).
+        Returns:
+            results (dict): dictionary containing the results of the action recognition.
+        """
         if not tracks:
             return None
         frame_stride = tracks[0].frame_stride
@@ -257,6 +265,14 @@ class ActionRecognizer:
         return ss_results if len(ss_results.keys()) > 0 else None
 
     def get_motion_descriptors(self, track):
+        """
+        Computes the average speed and direction of a detection.
+        Args:
+            track (sv.STrack): detection to compute the motion descriptors.
+        Returns:
+            avg_speed (float): average speed of the detection.
+            direction (float): direction of the detection.
+        """
         # track.prev_states[-1] is most recent state
         states = np.array(track.prev_states + [track.mean])
         # Compute differences between states for x and y coordinates and multiply by speed projection weights
@@ -264,17 +280,18 @@ class ActionRecognizer:
         # Area normalizer
         a = np.sqrt(track.tlwh[2] * track.tlwh[3])
         # Average speed
-        # TODO: right now its using whole sequence, for instant speed use only last 2 states. I sequence is too long?
+        # TODO: right now its using whole sequence, for instant speed use only last 2 states. Is sequence too long?
         avg_speed = np.mean(np.sqrt(np.sum(increments ** 2, axis=1))) / (track.frame_stride * a)
         # Sign of the increments in Y axis
         direction = np.mean(np.sign(increments[:, 1]))
         return avg_speed, direction
 
     def recognize_fast_approach(self, tracks):
-        valid_classes = [0]  # TODO: should also include car and truck, different thresholds? v*X
+        valid_classes = [0,1,2]  # TODO: should also include car and truck, different thresholds? v*X
         fa_results = {}
         for track in tracks:
             if track.class_ids in valid_classes and track.frame_id > 1:
+                # TODO: what if first region and then speed?
                 pixel_s, direction = self.get_motion_descriptors(track)
                 if pixel_s > self.fa_speed_threshold and direction > 0:
                     # TODO: if not circular region, then check if any point of bbox is inside polygon
@@ -287,6 +304,14 @@ class ActionRecognizer:
         return fa_results if len(fa_results.keys()) > 0 else None
 
     def recognize_suddenly_run(self, tracks):
+        """
+        Recognizes people running suddenly in a frame by computing the instantaneus weighted average speed of each
+        detection and comparing it to a threshold.
+        Args:
+            tracks (list): list of detections in the frame (sv.STrack objects).
+        Returns:
+            results (dict): dictionary containing the results of the action recognition.
+        """
         sr_results = {}
         for track in tracks:
             if track.class_ids == 0 and track.frame_id > 1:

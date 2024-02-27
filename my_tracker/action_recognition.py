@@ -114,13 +114,13 @@ class ActionRecognizer:
 
             # Text must be top right corner of the bounding box of the crowd but outside the frame
             text_x = x2 - text_padding - text_width
-            text_y = y2 + text_padding + text_height
+            text_y = y1 + text_padding + text_height
 
             text_background_x2 = x2
             text_background_x1 = x2 - 2 * text_padding - text_width
 
-            text_background_y1 = y2
-            text_background_y2 = y2 + 2 * text_padding + text_height
+            text_background_y1 = y1
+            text_background_y2 = y1 + 2 * text_padding + text_height
 
             cv2.rectangle(
                 img=frame,

@@ -75,7 +75,7 @@ class DetectionValidator(BaseValidator):
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
         # TODO: adjust for an optimistic case
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=0.2, iou_thres=0.4)
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=0.001, iou_thres=0.3)
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[])

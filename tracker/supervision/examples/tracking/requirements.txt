@@ -1,3 +1,0 @@
-supervision
-tqdm
-ultralytics

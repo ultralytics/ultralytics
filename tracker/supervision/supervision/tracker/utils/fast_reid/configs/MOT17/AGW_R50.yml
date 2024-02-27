@@ -1,7 +1,0 @@
-_BASE_: ../Base-AGW.yml
-
-DATASETS:
-  NAMES: ("MOT17",)
-  TESTS: ("MOT17",)
-
-OUTPUT_DIR: logs/mot17/agw_R50

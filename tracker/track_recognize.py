@@ -158,7 +158,7 @@ class VideoProcessor:
 
         return self.annotate_frame(frame, detections, ar_results,  frame_number, fps)
 
-    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, crowd_detections: None, frame_number: int,
+    def annotate_frame(self, frame: np.ndarray, detections: sv.Detections, ar_results: None, frame_number: int,
                        fps: float) -> np.ndarray:
         annotated_frame = frame.copy()
 
@@ -167,7 +167,7 @@ class VideoProcessor:
                   zip(detections.tracker_id, detections.class_id, detections.confidence)]
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
-        annotated_frame = self.action_recognizer.annotate(annotated_frame, crowd_detections)
+        annotated_frame = self.action_recognizer.annotate(annotated_frame, ar_results)
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 

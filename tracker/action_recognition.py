@@ -17,6 +17,7 @@ text_padding = 7
 
 class ActionRecognizer:
     def __init__(self, config, video_info):
+        self.ar_enabled = config["enabled"]
         self.video_info = video_info
         self.speed_projection = np.array(config["speed_projection"])
         # Gathering parameters
@@ -50,6 +51,9 @@ class ActionRecognizer:
             tracks (list): list of detections in the frame (sv.STrack objects).
             frame (np.array): frame to be annotated.
         """
+        if not self.ar_enabled:
+            return None
+
         group_results = {}
         individual_results = {}
         ar_results = {}
@@ -89,6 +93,9 @@ class ActionRecognizer:
         Returns:
             frame (np.array): annotated frame.
         """
+        if not self.ar_enabled:
+            return frame
+
         if self.fa_draw and self.fa_enabled:
             cv2.circle(frame, tuple(self.interest_point), int(self.trigger_radius), (0, 255, 0), thickness=2)
 

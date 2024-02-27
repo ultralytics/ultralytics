@@ -31,6 +31,7 @@
   "gmc_method": null,
 
   "action_recognition": {
+    "enabled": false,
     "speed_projection": [0.7, 1.5],
     "_comment": "x and y weights, should be homography matrix",
 

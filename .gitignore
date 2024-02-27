@@ -170,8 +170,8 @@ pnnx*
 /inference_tools/models/
 /inference_tools/data/
 /tracker/outputs/
-/my_tracker/data/
-/my_tracker/outputs/
+/tracker/data/
+/tracker/outputs/
 /evaluation_tools/data/
 /evaluation_tools/models/
 /evaluation_tools/outputs/

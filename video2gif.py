@@ -23,7 +23,7 @@ def video2gif(video_path, gif_path, start_time, duration, fps):
     gif.speedx(3).to_gif(gif_path, fps=fps)
 
 
-video2gif('./my_tracker/outputs/ByteTrack/annotated_video.mp4', './my_tracker/outputs/ByteTrack/annotated_video.gif', 0, None, 25)
+video2gif('tracker/outputs/ByteTrack/annotated_video.mp4', 'tracker/outputs/ByteTrack/annotated_video.gif', 0, None, 25)
 
 
 # resize gif
@@ -47,4 +47,4 @@ def resize_gif(gif_path, new_gif_path, start_time, duration, fps):
     gif.speedx(3).to_gif(new_gif_path, fps=fps)
 
 
-# resize_gif('./my_tracker/outputs/ByteTrack/annotated_video.mp4', './my_tracker/outputs/ByteTrack/annotated_video.gif', 0, None, 10)
+# resize_gif('./tracker/outputs/ByteTrack/annotated_video.mp4', './tracker/outputs/ByteTrack/annotated_video.gif', 0, None, 10)

@@ -1,7 +1,0 @@
-_BASE_: ../Base-SBS.yml
-
-DATASETS:
-  NAMES: ("DukeMTMC",)
-  TESTS: ("DukeMTMC",)
-
-OUTPUT_DIR: logs/dukemtmc/sbs_R50

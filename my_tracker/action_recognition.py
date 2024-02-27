@@ -161,14 +161,16 @@ class ActionRecognizer:
             det2 = tracks[int(j)]
 
             # If both detections are people proceed to computation
-            # TODO: maybe constrain on speed or time interval of Gbox existing, individual existence isn't useful, crowd should have similar speeds?
             if (det1.class_ids == 0) and (det2.class_ids == 0):
                 distance, a1, a2 = self.compute_ned(det1, det2)
-
-                # If distance is below threshold and the ratio between the areas is within the threshold add pair
-                if distance <= self.g_distance_threshold and \
-                        (self.g_area_threshold <= a1/a2 <= (1/self.g_area_threshold)):
-                    pairs.append([i, j])
+                # If the distance between the detections is less than the threshold and the areas are similar
+                if distance <= self.g_distance_threshold and (self.g_area_threshold <= a1/a2 <= (1/self.g_area_threshold)):
+                    pixel_s1, _ = self.get_motion_descriptors(det1)
+                    pixel_s2, _ = self.get_motion_descriptors(det2)
+                    # If both detections are standing still
+                    # TODO: maybe use different threshold or other condition (group of people moving slowly?)
+                    if pixel_s1 < self.fa_speed_threshold and pixel_s2 < self.fa_speed_threshold:
+                        pairs.append([i, j])
 
         # Find independent chains in the graph
         crowds = self.get_independent_chains(pairs)

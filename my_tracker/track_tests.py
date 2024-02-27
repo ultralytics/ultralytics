@@ -42,11 +42,10 @@ class VideoProcessor:
 
         self.model = YOLO(config["source_weights_path"])
         self.model.fuse()
-        # TODO: what is this frame rate?
-        # instead pass video_info.fps
-        self.tracker = ByteTrack(config, config["frame_rate"])
 
         self.video_info = sv.VideoInfo.from_video_path(self.source_video_path)
+
+        self.tracker = ByteTrack(config, frame_rate=self.video_info.fps)
 
         self.box_annotator = sv.BoxAnnotator(color=COLORS)
         self.trace_annotator = sv.TraceAnnotator(color=COLORS, position=sv.Position.CENTER, trace_length=100, thickness=2)

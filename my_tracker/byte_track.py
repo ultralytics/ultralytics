@@ -341,6 +341,8 @@ class ByteTrack:
                 self.encoder = self.encoder.eval()
             else:
                 self.with_reid = False
+
+        # GMC module
         self.gmc = GMC(method=args["gmc_method"])
 
     def update(self, results, img=None):

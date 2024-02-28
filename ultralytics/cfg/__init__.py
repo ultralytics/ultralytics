@@ -38,7 +38,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "regress": "imdb-age.yaml"
+    "regress": "imdb10-age.yaml"
 }
 TASK2MODEL = {
     "detect": "yolov8n.pt",

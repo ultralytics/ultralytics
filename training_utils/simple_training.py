@@ -2,7 +2,6 @@ from ultralytics import YOLO
 from training_utils import (
     PrepareDataset,
     GetModelYaml,
-    LoadBestModel,
     GetLatestWeightsDir,
 )
 from training_utils import (
@@ -13,6 +12,7 @@ from training_utils import (
 )
 import os
 import argparse
+from export import Export
 
 
 if __name__ == "__main__":
@@ -47,9 +47,5 @@ if __name__ == "__main__":
         device=[0, 1, 2, 3, 4, 5, 6, 7],
     )
 
-    model = LoadBestModel()  # To load the best model
     latest_weights_dir = GetLatestWeightsDir()
-
-    path = model.export(format="onnx", imgsz=[2144, 768], opset=12)
-    os.system(f"mv {path} {latest_weights_dir}/best_full_height.onnx")
-    path = model.export(format="onnx", imgsz=[768, 768], opset=12)
+    Export(f"{latest_weights_dir}/best.pt")  # To export the model to onnx format

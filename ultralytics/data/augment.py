@@ -1021,7 +1021,7 @@ class RandomLoadText:
     Attributes:
         prompt_format (str): Format for prompt. Default is '{}'.
         neg_samples (tuple[int]): A ranger to randomly sample negative texts, Default is (80, 80).
-        max_samples (int): The max number of samples, Default is 80.
+        max_samples (int): The max number of different text samples in one image, Default is 80.
         padding (bool): Whether to pad texts to max_samples. Default is False.
         padding_value (str): The padding text. Default is "".
     """

@@ -19,7 +19,7 @@ def on_pretrain_routine_end(trainer):
     """Callback."""
     if RANK in (-1, 0):
         # NOTE: for evaluation
-        names = list(trainer.test_loader.dataset.data["names"].values())
+        names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.model).set_classes(names)
         # NOTE: update ema model
         if trainer.ema:
@@ -53,8 +53,9 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return SegmentationModel initialized with specified config and weights."""
-        # NOTE: following the official config, nc hard-coded to 80 for now.
-        model = WorldModel(cfg["yaml_file"], ch=3, nc=80, verbose=verbose and RANK == -1)
+        # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
+        # NOTE: Following the official config, nc hard-coded to 80 for now.
+        model = WorldModel(cfg["yaml_file"], ch=3, nc=min(self.data["nc"], 80), verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)

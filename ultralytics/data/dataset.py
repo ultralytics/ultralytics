@@ -379,8 +379,9 @@ class YOLOMultiModalDataset(YOLODataset):
 
     def build_transforms(self, hyp=None):
         transforms = super().build_transforms(hyp)
-        # NOTE: hard-coded the args for now.
-        transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
 
@@ -447,8 +448,9 @@ class GroundingDataset(YOLODataset):
 
     def build_transforms(self, hyp=None):
         transforms = super().build_transforms(hyp)
-        # NOTE: hard-coded the args for now.
-        transforms.insert(-1, RandomLoadText(neg_samples=(1203, 1203), max_samples=80, padding=True))
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            transforms.insert(-1, RandomLoadText(max_samples=80, padding=True))
         return transforms
 
 

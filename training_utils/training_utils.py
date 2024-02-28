@@ -49,13 +49,22 @@ def GiveModel(ckpt_path):
 
 def GetLatestWeightsDir():
     base_dir = f"{runs_directory}/{training_task}"
-    # Get latest experiment name from the directory
-    exp_name = sorted(os.listdir(base_dir))[-1]
-    return f"{base_dir}/{exp_name}/weights"
+
+    # Get all entries in the directory given by path
+    entries = os.listdir(base_dir)
+    # Filter entries to only include directories
+    directories = [entry for entry in entries if os.path.isdir(os.path.join(base_dir, entry))]
+    # Sort directories by creation time
+    sorted_directories = sorted(
+        directories,
+        key=lambda x: os.path.getctime(os.path.join(base_dir, x)))
+
+    if len(sorted_directories) == 0:
+        print(f"[ERROR] : No weights directory found in {base_dir}")
+        return None
+    return f"{base_dir}/{sorted_directories[-1]}/weights"
 
 
 def LoadBestModel():
     best_ckpt = f"{GetLatestWeightsDir()}/best.pt"
     return GiveModel(best_ckpt)
-
-

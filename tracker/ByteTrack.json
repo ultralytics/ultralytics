@@ -1,10 +1,10 @@
 {
-  "name": "testing",
+  "name": "qualitative",
 
   "source_weights_path": "./models/8sp2_150.pt",
   "source_video_path": "./data/test1.mp4",
 
-  "device": "mps",
+  "device": "cpu",
   "video_stride": 1,
 
   "save_dir": "./outputs/",
@@ -33,19 +33,19 @@
   "action_recognition": {
     "enabled": false,
     "speed_projection": [0.7, 1.5],
-    "_comment": "x and y weights, should be homography matrix",
+    "_comment": "",
 
     "gather": {
       "enabled": true,
       "distance_threshold": 1.0,
       "area_threshold": 0.5,
-      "_comment": "d=1.5 leaves to much room for L/M"
+      "_comment": ""
     },
 
     "stand_still": {
       "enabled": true,
       "speed_threshold": 0.001,
-      "_comment": "s=0.001 is ok for now"
+      "_comment": ""
     },
 
     "fast_approach": {
@@ -53,13 +53,13 @@
       "draw": true,
       "distance_threshold": 4,
       "speed_threshold": 0.005,
-      "_comment": "s=0.005 leaves a bit of room"
+      "_comment": ""
     },
 
     "suddenly_run": {
       "enabled": true,
       "speed_threshold": 0.025,
-      "_comment": "s>=0.03 is ok for diagonal and horizontal, vertical could be 0.02"
+      "_comment": ""
     },
 
     "overstep_boundary": {

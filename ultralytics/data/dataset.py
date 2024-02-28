@@ -373,7 +373,8 @@ class YOLOMultiModalDataset(YOLODataset):
     def update_labels_info(self, label):
         """Add texts information for multi modal model training."""
         labels = super().update_labels_info(label)
-        labels["texts"] = [[v] for _, v in self.data["names"].items()]
+        # NOTE: some categories are concatenated with its synonyms by `/`.
+        labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
         return labels
 
     def build_transforms(self, hyp=None):

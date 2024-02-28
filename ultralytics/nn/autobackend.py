@@ -334,8 +334,6 @@ class AutoBackend(nn.Module):
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():
             metadata = yaml_load(metadata)
-        else:
-            metadata = None
         if metadata:
             for k, v in metadata.items():
                 if k in ("stride", "batch"):

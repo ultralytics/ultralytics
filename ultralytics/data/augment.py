@@ -1244,9 +1244,6 @@ class ToTensor:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1].
         """
         im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
-        #im = im.astype(np.float32())
-        #im /= 255.0  # 0-255 to 0.0-1.0'
-        #np.savetxt('inp_tensor.txt', im.flatten())
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0-255 to 0.0-1.0

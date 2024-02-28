@@ -65,7 +65,7 @@ from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import ClassificationDataset, RegressionDataset, YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_regress_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Regress
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (
     ARM64,
@@ -235,6 +235,8 @@ class Exporter:
                 elif not any((saved_model, pb, tflite, edgetpu, tfjs)):
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                     m.forward = m.forward_split
+            elif isinstance(m, Regress):
+                m.export = True
 
         y = None
         for _ in range(2):
@@ -464,13 +466,12 @@ class Exporter:
 
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-            if self.model.task in ("classify", "regress"):
-                if self.model.task == "classify":
-                    data = check_cls_dataset(self.args.data)
-                    dataset = ClassificationDataset(root=data["val"], args=self.args, augment=False, prefix=self.args.split)
-                else:
-                    data = check_regress_dataset(self.args.data)
-                    dataset = RegressionDataset(args=self.args, img_path=os.path.join(data["path"], data["val"]), augment=False, prefix=self.args.split)
+            if self.model.task == "classify":
+                data = check_cls_dataset(self.args.data)
+                dataset = ClassificationDataset(root=data["val"], args=self.args, augment=False, prefix=self.args.split)
+            elif self.model.task == "regress":
+                data = check_regress_dataset(self.args.data)
+                dataset = RegressionDataset(args=self.args, img_path=os.path.join(data["path"], data["val"]), augment=False, prefix=self.args.split)
             else:
                 data = check_det_dataset(self.args.data)
                 dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
@@ -774,13 +775,12 @@ class Exporter:
             if self.args.data:
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-                if self.model.task in ("classify", "regress"):
-                    if self.model.task == "classify":
-                        data = check_cls_dataset(self.args.data)
-                        dataset = ClassificationDataset(root=data["val"], args=self.args, augment=False, prefix=self.args.split)
-                    else:
-                        data = check_regress_dataset(self.args.data)
-                        dataset = RegressionDataset(args=self.args, img_path=os.path.join(data["path"], data["val"]), augment=False, prefix=self.args.split)
+                if self.model.task == "classify":
+                    data = check_cls_dataset(self.args.data)
+                    dataset = ClassificationDataset(root=data["val"], args=self.args, augment=False, prefix=self.args.split)
+                elif self.model.task == "regress":
+                    data = check_regress_dataset(self.args.data)
+                    dataset = RegressionDataset(args=self.args, img_path=os.path.join(data["path"], data["val"]), augment=False, prefix=self.args.split)
                 else:
                     data = check_det_dataset(self.args.data)
                     dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
@@ -806,7 +806,7 @@ class Exporter:
         else:
             replace_json = ROOT / "utils/replace.json"
 
-        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -prf {replace_json}'.strip()
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8} -osd -prf {replace_json}'.strip()
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

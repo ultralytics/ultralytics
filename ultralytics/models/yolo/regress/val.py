@@ -27,7 +27,6 @@ class RegressionValidator(BaseValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initializes RegressionValidator instance with args, dataloader, save_dir, and progress bar."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.img_names = None
         self.targets = None
         self.pred = None
         self.args.task = "regress"
@@ -40,7 +39,6 @@ class RegressionValidator(BaseValidator):
     def init_metrics(self, model):
         """Initialize storages for metrics - mean absolute error and mean squared error."""
         self.names = model.names
-        self.img_names = []
         self.pred = []
         self.targets = []
         self.max = model.metadata["max_value"] if (isinstance(model, AutoBackend) and not model.pt) else 6
@@ -60,7 +58,6 @@ class RegressionValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
-        self.img_names.append(batch["name"])
         self.pred.append(preds.view(preds.size()[0]))
         self.targets.append(batch["value"])
 
@@ -71,7 +68,7 @@ class RegressionValidator(BaseValidator):
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""
-        self.metrics.process(self.targets, self.pred, self.img_names, self.save_dir)
+        self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
     def build_dataset(self, img_path):

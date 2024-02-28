@@ -29,7 +29,6 @@ class ClassificationValidator(BaseValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.img_names = None
         self.targets = None
         self.pred = None
         self.args.task = "classify"
@@ -44,7 +43,6 @@ class ClassificationValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="classify")
-        self.img_names = []
         self.pred = []
         self.targets = []
 
@@ -58,7 +56,6 @@ class ClassificationValidator(BaseValidator):
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
         n5 = min(len(self.names), 5)
-        self.img_names.append(batch['name'])
         self.pred.append(preds.argsort(1, descending=True)[:, :n5])
         self.targets.append(batch["cls"])
 
@@ -76,7 +73,7 @@ class ClassificationValidator(BaseValidator):
 
     def get_stats(self):
         """Returns a dictionary of metrics obtained by processing targets and predictions."""
-        self.metrics.process(self.targets, self.pred, self.img_names)
+        self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
     def build_dataset(self, img_path):

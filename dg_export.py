@@ -23,6 +23,6 @@ if __name__ == '__main__':
 
     model = YOLO(args.weights)
 
-    success = model.export(format=args.format, imgsz=args.imgsz, data=args.data, int8=args.quantize, separate_outputs=True, export_hw_optimized=True, uint8_io_dtype=True, max_ncalib_imgs=args.max_ncalib_imgs)
+    success = model.export(format=args.format, simplify=True, imgsz=args.imgsz, data=args.data, int8=args.quantize, separate_outputs=True, export_hw_optimized=True, uint8_io_dtype=True, max_ncalib_imgs=args.max_ncalib_imgs)
 
 

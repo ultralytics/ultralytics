@@ -53,6 +53,7 @@ class Conv(nn.Module):
         """Perform transposed convolution of 2D data."""
         return self.act(self.conv(x))
 
+
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing."""
 

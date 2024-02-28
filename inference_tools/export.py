@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pathlib import Path
 
 from ultralytics import YOLO
 import torch
@@ -80,8 +79,8 @@ if __name__ == "__main__":
     # Export to ONNX
     onnx_output_file = "./models/"
     # create folder if it doesn't exist, if exists, do nothing
-    onnx_output_file += "detector_best"
-    export_to_onnx(model, dummy_input, onnx_output_file + ".onnx")
+    onnx_output_file += config["model_path"].split('/')[-1].split('.')[0]
+    export_to_onnx(model, dummy_input, onnx_output_file + ".onnx", opset_version=config["opset_version"])
 
     if config["simplify_onnx"]:
         print("🔧 Simplifying ONNX file...")
@@ -92,7 +91,7 @@ if __name__ == "__main__":
         assert check, "Simplified ONNX model could not be validated"
         onnx.save(onnx_model_simp, onnx_output_file + "_simplified.onnx")
 
-    if config["optimize_onnx"]:
+    if config["optimize_onnx"] and config["simplify_onnx"]:
         print("🔧 Optimizing ONNX file...")
         # Optimize ONNX file
         onnx_model = onnx.load(onnx_output_file + "_simplified.onnx")

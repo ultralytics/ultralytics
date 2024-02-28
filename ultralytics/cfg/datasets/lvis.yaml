@@ -9,9 +9,9 @@
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/lvis # dataset root dir
-train: train.txt # train images (relative to 'path') 118287 images
-val: val.txt # val images (relative to 'path') 5000 images
-minval: minval.txt # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+train: train.txt # train images (relative to 'path') 100170 images
+val: val.txt # val images (relative to 'path') 19809 images
+minval: minval.txt # minval images (relative to 'path') 5000 images
 
 names:
   0: aerosol can/spray can

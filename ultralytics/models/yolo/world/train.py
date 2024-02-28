@@ -33,11 +33,11 @@ def on_pretrain_routine_end(trainer):
 
 class WorldTrainer(yolo.detect.DetectionTrainer):
     """
-    A class extending the DetectionTrainer class for training based on a world model.
+    A class to fine-tune a world model on a close-set dataset.
 
     Example:
         ```python
-        from ultralytics.models.yolo.segment import WorldModel
+        from ultralytics.models.yolo.world import WorldModel
 
         args = dict(model='yolov8s-world.pt', data='coco8.yaml', epochs=3)
         trainer = WorldTrainer(overrides=args)
@@ -52,7 +52,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return SegmentationModel initialized with specified config and weights."""
+        """Return WorldModel initialized with specified config and weights."""
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = WorldModel(cfg["yaml_file"], ch=3, nc=min(self.data["nc"], 80), verbose=verbose and RANK == -1)

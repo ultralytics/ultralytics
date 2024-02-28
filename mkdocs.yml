@@ -222,6 +222,7 @@ nav:
       - YOLOv6: models/yolov6.md
       - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
+      - YOLOv9: models/yolov9.md
       - SAM (Segment Anything Model): models/sam.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md

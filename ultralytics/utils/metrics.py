@@ -183,10 +183,15 @@ def _get_covariance_matrix(boxes):
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
     gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
+    cos_c = torch.cos(c)
+    cos_c_square = cos_c.square()
+    sin_c = torch.sin(c)
+    sin_c_square = sin_c.square()
+    cos_c_sin_c = cos_c * sin_c
     return (
-        a * torch.cos(c) ** 2 + b * torch.sin(c) ** 2,
-        a * torch.sin(c) ** 2 + b * torch.cos(c) ** 2,
-        a * torch.cos(c) * torch.sin(c) - b * torch.sin(c) * torch.cos(c),
+        a * cos_c_square + b * sin_c_square,
+        a * sin_c_square + b * cos_c_square,
+        cos_c_sin_c * (a - b),
     )
 
 

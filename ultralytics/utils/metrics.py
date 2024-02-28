@@ -184,9 +184,9 @@ def _get_covariance_matrix(boxes):
     gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     cos_c = torch.cos(c)
-    cos_c_square = cos_c.square()
+    cos_c_square = cos_c ** 2
     sin_c = torch.sin(c)
-    sin_c_square = sin_c.square()
+    sin_c_square = sin_c ** 2
     cos_c_sin_c = cos_c * sin_c
     return (
         a * cos_c_square + b * sin_c_square,

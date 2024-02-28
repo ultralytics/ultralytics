@@ -1,4 +1,4 @@
-#### Python
+### Python
 YOLOv8 DeGirum Train
 
 DeGirum training uses ReLU6 activation to have improved model performance at edge
@@ -21,8 +21,46 @@ model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 model.train(data="coco128.yaml", epochs=3)  # train the model
 metrics = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True)
+path = model.export(format='onnx', export_hw_optimized=True, separate_outputs=True) # export model to ONNX format
 metrics = model.val(path, separate_outputs=True)  # evaluate model performance on exported models
+```
+
+### YOLOv8 DeGirum Regression Task
+
+Our ultralytics_yolov8 fork contains implementations that allow users to train image regression models. The YOLOv8 Regress model yields
+an output for a regressed value for an image. An example use case is estimating the age of a person. The user can train models with a
+Regress head or a Regress6 head; the first one is trained to yield values in the same range as the dataset it is trained on, whereas
+the Regress6 head yields values in the range 0 to 6. The Regress6 head proves itself to be less sensitive to quantization.
+
+The Regress model is seamlessly integrated into the training and validation modes of the YOLOv8 framework, and export to OpenVINO and TFLite
+is supported. Below is example code demonstrating the different modes for a model with a Regress head:
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-regress.yaml")  # build a new model from scratch
+
+# Use the model
+model.train(data="imdb10-age.yaml", epochs=3)  # train the model
+metrics = model.val()  # evaluate model performance on the validation set
+results = model("https://ultralytics.com/images/zidane.jpg")  # predict on an image
+path = model.export(format='onnx', export_hw_optimized=True) # export model to ONNX format
+metrics = model.val(path)  # evaluate model performance on exported model
+```
+
+The model with a Regress6 head is used in a similar way:
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-regress6.yaml")  # build a new model from scratch
+
+# Use the model
+model.train(data="imdb10-age.yaml", epochs=3)  # train the model
+metrics = model.val()  # evaluate model performance on the validation set
+results = model("https://ultralytics.com/images/zidane.jpg")  # predict on an image
+path = model.export(format='onnx', export_hw_optimized=True) # export model to ONNX format
+metrics = model.val(path)  # evaluate model performance on exported model
 ```
 
 <div align="center">

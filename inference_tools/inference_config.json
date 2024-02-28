@@ -1,13 +1,15 @@
 {
   "name": "inference",
-  "model_path": "/Users/johnny/Projects/models/detector_best.pt",
-  "device": 0,
-  "num_workers": 4,
-  "batch_size": 1,
+
+  "device": "cpu",
+
+  "model_path": "./models/8sp2_150.onnx",
   "img_size": 640,
+
   "input_data_dir": "./data",
   "output_dir": "./outputs",
+
+  "opset_version": 13,
   "simplify_onnx": true,
-  "optimize_onnx": true,
-  "save_images": true
+  "optimize_onnx": true
 }

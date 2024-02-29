@@ -19,15 +19,8 @@ def on_pretrain_routine_end(trainer):
     """Callback."""
     if RANK in (-1, 0):
         # NOTE: for evaluation
-        ori_nc = de_parallel(trainer.model).model[-1].nc
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-        de_parallel(trainer.model).set_classes(names)
-        # NOTE: update ema model
-        if trainer.ema:
-            trainer.ema.ema.txt_feats = de_parallel(trainer.model).txt_feats
-            trainer.ema.ema.model[-1].nc = de_parallel(trainer.model).model[-1].nc
-        # NOTE: reset `nc` as it could be different in training and validating process.
-        de_parallel(trainer.model).model[-1].nc = ori_nc
+        de_parallel(trainer.ema.ema).set_classes(names)
     device = next(trainer.model.parameters()).device
     text_model, _ = clip.load("ViT-B/32", device=device)
     for p in text_model.parameters():

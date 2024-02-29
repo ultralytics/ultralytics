@@ -543,6 +543,6 @@ class AutoBackend(nn.Module):
             from urllib.parse import urlsplit
 
             url = urlsplit(p)
-            triton = url.netloc and url.path and url.scheme in {"http", "grpc"}
+            triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
         return types + [triton]

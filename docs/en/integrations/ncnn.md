@@ -117,4 +117,4 @@ In this guide, we've gone over exporting Ultralytics YOLOv8 models to the NCNN f
 
 For detailed instructions on usage, please refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html).
 
-Also, if you're interested in exploring other integration options for Ultralytics YOLOv8, be sure to visit our [integration guide page](../integrations/index.md) for further insights and information.
+Also, if you're interested in exploring other integration options for Ultralytics YOLOv8, be sure to visit our [integration guide page](index.md) for further insights and information.

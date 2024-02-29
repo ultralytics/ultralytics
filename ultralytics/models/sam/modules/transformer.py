@@ -10,6 +10,21 @@ from ultralytics.nn.modules import MLPBlock
 
 
 class TwoWayTransformer(nn.Module):
+    """
+    A Two-Way Transformer module that enables the simultaneous attention to both image and query points. This class
+    serves as a specialized transformer decoder that attends to an input image using queries whose positional embedding
+    is supplied. This is particularly useful for tasks like object detection, image segmentation, and point cloud
+    processing.
+
+    Attributes:
+        depth (int): The number of layers in the transformer.
+        embedding_dim (int): The channel dimension for the input embeddings.
+        num_heads (int): The number of heads for multihead attention.
+        mlp_dim (int): The internal channel dimension for the MLP block.
+        layers (nn.ModuleList): The list of TwoWayAttentionBlock layers that make up the transformer.
+        final_attn_token_to_image (Attention): The final attention layer applied from the queries to the image.
+        norm_final_attn (nn.LayerNorm): The layer normalization applied to the final queries.
+    """
 
     def __init__(
         self,
@@ -21,8 +36,7 @@ class TwoWayTransformer(nn.Module):
         attention_downsample_rate: int = 2,
     ) -> None:
         """
-        A transformer decoder that attends to an input image using
-        queries whose positional embedding is supplied.
+        A transformer decoder that attends to an input image using queries whose positional embedding is supplied.
 
         Args:
           depth (int): number of layers in the transformer
@@ -48,7 +62,8 @@ class TwoWayTransformer(nn.Module):
                     activation=activation,
                     attention_downsample_rate=attention_downsample_rate,
                     skip_first_layer_pe=(i == 0),
-                ))
+                )
+            )
 
         self.final_attn_token_to_image = Attention(embedding_dim, num_heads, downsample_rate=attention_downsample_rate)
         self.norm_final_attn = nn.LayerNorm(embedding_dim)
@@ -61,16 +76,14 @@ class TwoWayTransformer(nn.Module):
     ) -> Tuple[Tensor, Tensor]:
         """
         Args:
-          image_embedding (torch.Tensor): image to attend to. Should be shape
-            B x embedding_dim x h x w for any h and w.
-          image_pe (torch.Tensor): the positional encoding to add to the image. Must
-            have the same shape as image_embedding.
+          image_embedding (torch.Tensor): image to attend to. Should be shape B x embedding_dim x h x w for any h and w.
+          image_pe (torch.Tensor): the positional encoding to add to the image. Must have same shape as image_embedding.
           point_embedding (torch.Tensor): the embedding to add to the query points.
             Must have shape B x N_points x embedding_dim for any N_points.
 
         Returns:
-          torch.Tensor: the processed point_embedding
-          torch.Tensor: the processed image_embedding
+          (torch.Tensor): the processed point_embedding
+          (torch.Tensor): the processed image_embedding
         """
         # BxCxHxW -> BxHWxC == B x N_image_tokens x C
         bs, c, h, w = image_embedding.shape
@@ -101,6 +114,23 @@ class TwoWayTransformer(nn.Module):
 
 
 class TwoWayAttentionBlock(nn.Module):
+    """
+    An attention block that performs both self-attention and cross-attention in two directions: queries to keys and
+    keys to queries. This block consists of four main layers: (1) self-attention on sparse inputs, (2) cross-attention
+    of sparse inputs to dense inputs, (3) an MLP block on sparse inputs, and (4) cross-attention of dense inputs to
+    sparse inputs.
+
+    Attributes:
+        self_attn (Attention): The self-attention layer for the queries.
+        norm1 (nn.LayerNorm): Layer normalization following the first attention block.
+        cross_attn_token_to_image (Attention): Cross-attention layer from queries to keys.
+        norm2 (nn.LayerNorm): Layer normalization following the second attention block.
+        mlp (MLPBlock): MLP block that transforms the query embeddings.
+        norm3 (nn.LayerNorm): Layer normalization following the MLP block.
+        norm4 (nn.LayerNorm): Layer normalization following the third attention block.
+        cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
+        skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
+    """
 
     def __init__(
         self,
@@ -112,12 +142,11 @@ class TwoWayAttentionBlock(nn.Module):
         skip_first_layer_pe: bool = False,
     ) -> None:
         """
-        A transformer block with four layers: (1) self-attention of sparse
-        inputs, (2) cross attention of sparse inputs to dense inputs, (3) mlp
-        block on sparse inputs, and (4) cross attention of dense inputs to sparse
+        A transformer block with four layers: (1) self-attention of sparse inputs, (2) cross attention of sparse
+        inputs to dense inputs, (3) mlp block on sparse inputs, and (4) cross attention of dense inputs to sparse
         inputs.
 
-        Arguments:
+        Args:
           embedding_dim (int): the channel dimension of the embeddings
           num_heads (int): the number of heads in the attention layers
           mlp_dim (int): the hidden dimension of the mlp block
@@ -174,9 +203,8 @@ class TwoWayAttentionBlock(nn.Module):
 
 
 class Attention(nn.Module):
-    """
-    An attention layer that allows for downscaling the size of the embedding
-    after projection to queries, keys, and values.
+    """An attention layer that allows for downscaling the size of the embedding after projection to queries, keys, and
+    values.
     """
 
     def __init__(
@@ -185,24 +213,37 @@ class Attention(nn.Module):
         num_heads: int,
         downsample_rate: int = 1,
     ) -> None:
+        """
+        Initializes the Attention model with the given dimensions and settings.
+
+        Args:
+            embedding_dim (int): The dimensionality of the input embeddings.
+            num_heads (int): The number of attention heads.
+            downsample_rate (int, optional): The factor by which the internal dimensions are downsampled. Defaults to 1.
+
+        Raises:
+            AssertionError: If 'num_heads' does not evenly divide the internal dimension (embedding_dim / downsample_rate).
+        """
         super().__init__()
         self.embedding_dim = embedding_dim
         self.internal_dim = embedding_dim // downsample_rate
         self.num_heads = num_heads
-        assert self.internal_dim % num_heads == 0, 'num_heads must divide embedding_dim.'
+        assert self.internal_dim % num_heads == 0, "num_heads must divide embedding_dim."
 
         self.q_proj = nn.Linear(embedding_dim, self.internal_dim)
         self.k_proj = nn.Linear(embedding_dim, self.internal_dim)
         self.v_proj = nn.Linear(embedding_dim, self.internal_dim)
         self.out_proj = nn.Linear(self.internal_dim, embedding_dim)
 
-    def _separate_heads(self, x: Tensor, num_heads: int) -> Tensor:
+    @staticmethod
+    def _separate_heads(x: Tensor, num_heads: int) -> Tensor:
         """Separate the input tensor into the specified number of attention heads."""
         b, n, c = x.shape
         x = x.reshape(b, n, num_heads, c // num_heads)
         return x.transpose(1, 2)  # B x N_heads x N_tokens x C_per_head
 
-    def _recombine_heads(self, x: Tensor) -> Tensor:
+    @staticmethod
+    def _recombine_heads(x: Tensor) -> Tensor:
         """Recombine the separated attention heads into a single tensor."""
         b, n_heads, n_tokens, c_per_head = x.shape
         x = x.transpose(1, 2)
@@ -230,6 +271,4 @@ class Attention(nn.Module):
         # Get output
         out = attn @ v
         out = self._recombine_heads(out)
-        out = self.out_proj(out)
-
-        return out
+        return self.out_proj(out)

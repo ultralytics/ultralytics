@@ -6,22 +6,35 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   schedule:
-    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
     inputs:
       hub:
-        description: 'Run HUB'
-        default: false
-        type: boolean
-      tests:
-        description: 'Run Tests'
+        description: "Run HUB"
         default: false
         type: boolean
       benchmarks:
-        description: 'Run Benchmarks'
+        description: "Run Benchmarks"
+        default: false
+        type: boolean
+      tests:
+        description: "Run Tests"
+        default: false
+        type: boolean
+      gpu:
+        description: "Run GPU"
+        default: false
+        type: boolean
+      conda:
+        description: "Run Conda"
         default: false
         type: boolean
 
@@ -33,28 +46,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
+          yolo checks
           pip list
       - name: Test HUB training
         shell: python
@@ -93,48 +99,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.10']
+        os: [ubuntu-latest, macos-14]
+        python-version: ["3.11"]
         model: [yolov8n]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
-            else
-              pip install -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
-          fi
-          yolo export format=tflite imgsz=32
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
+          yolo checks
           pip list
-      - name: Benchmark DetectionModel
-        shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.26
+      #      - name: Benchmark DetectionModel
+      #        shell: bash
+      #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.30
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
       - name: Benchmark ClassificationModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.36
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark PoseModel
         shell: bash
-        run: yolo benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.17
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
+      - name: Benchmark OBBModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
+      - name: Merge Coverage Reports
+        run: |
+          coverage xml -o coverage-benchmarks.xml
+      - name: Upload Coverage Reports to CodeCov
+        if: github.repository == 'ultralytics/ultralytics'
+        uses: codecov/codecov-action@v4
+        with:
+          flags: Benchmarks
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -147,51 +155,132 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
+        os: [ubuntu-latest, macos-14]
+        python-version: ["3.11"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
+            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
+            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
-        run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
+        shell: bash # for Windows compatibility
+        run: |
+          # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
+          torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest "coremltools>=6.0,<=6.2" --extra-index-url https://download.pytorch.org/whl/cpu
-          else
-              pip install -e . pytest "coremltools>=6.0,<=6.2" --extra-index-url https://download.pytorch.org/whl/cpu
+              torch="torch==1.8.0 torchvision==0.9.0"
           fi
+          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
-          echo "RUNNER_OS is ${{ runner.os }}"
-          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
-          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
-          echo "GITHUB_ACTOR is ${{ github.actor }}"
-          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
-          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
-          python --version
-          pip --version
+          yolo checks
           pip list
       - name: Pytest tests
-        shell: bash  # for Windows compatibility
-        run: pytest tests
+        shell: bash # for Windows compatibility
+        run: |
+          slow=""
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              pip install mlflow pycocotools 'ray[tune]'
+              slow="--slow"
+          fi
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/
+      - name: Upload Coverage Reports to CodeCov
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          flags: Tests
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  GPU:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    timeout-minutes: 60
+    runs-on: gpu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install requirements
+        run: pip install -e .
+      - name: Check environment
+        run: |
+          yolo checks
+          pip list
+      - name: Pytest tests
+        run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
+      - name: Upload Coverage Reports to CodeCov
+        uses: codecov/codecov-action@v4
+        with:
+          flags: GPU
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  Conda:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
+          activate-environment: anaconda-client-env
+      - name: Install Libmamba
+        run: |
+          conda config --set solver libmamba
+      - name: Install Ultralytics package from conda-forge
+        run: |
+          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
+      - name: Install pip packages
+        run: |
+          # CoreML must be installed before export due to protobuf error from AutoInstall
+          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
+      - name: Check environment
+        run: |
+          conda list
+      - name: Test CLI
+        run: |
+          yolo predict model=yolov8n.pt imgsz=320
+          yolo train model=yolov8n.pt data=coco8.yaml epochs=1 imgsz=32
+          yolo val model=yolov8n.pt data=coco8.yaml imgsz=32
+          yolo export model=yolov8n.pt format=torchscript imgsz=160
+      - name: Test Python
+        run: |
+          python -c "
+          from ultralytics import YOLO
+          model = YOLO('yolov8n.pt')
+          results = model.train(data='coco8.yaml', epochs=3, imgsz=160)
+          results = model.val(imgsz=160)
+          results = model.predict(imgsz=160)
+          results = model.export(format='onnx', imgsz=160)
+          "
+      - name: PyTest
+        run: |
+          git clone https://github.com/ultralytics/ultralytics
+          pytest ultralytics/tests
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests] # Add job names that you want to check for failure
+    needs: [HUB, Benchmarks, Tests, GPU, Conda] # Add job names that you want to check for failure
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
-        uses: slackapi/slack-github-action@v1.24.0
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}

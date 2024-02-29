@@ -5,14 +5,50 @@ import numpy as np
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
+from ..utils.ops import xywh2ltwh
+from ..utils import LOGGER
 
 
 class STrack(BaseTrack):
+    """
+    Single object tracking representation that uses Kalman filtering for state estimation.
+
+    This class is responsible for storing all the information regarding individual tracklets and performs state updates
+    and predictions based on Kalman filter.
+
+    Attributes:
+        shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
+        _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
+        kalman_filter (KalmanFilterXYAH): Instance of Kalman filter used for this particular object track.
+        mean (np.ndarray): Mean state estimate vector.
+        covariance (np.ndarray): Covariance of state estimate.
+        is_activated (bool): Boolean flag indicating if the track has been activated.
+        score (float): Confidence score of the track.
+        tracklet_len (int): Length of the tracklet.
+        cls (any): Class label for the object.
+        idx (int): Index or identifier for the object.
+        frame_id (int): Current frame ID.
+        start_frame (int): Frame where the object was first detected.
+
+    Methods:
+        predict(): Predict the next state of the object using Kalman filter.
+        multi_predict(stracks): Predict the next states for multiple tracks.
+        multi_gmc(stracks, H): Update multiple track states using a homography matrix.
+        activate(kalman_filter, frame_id): Activate a new tracklet.
+        re_activate(new_track, frame_id, new_id): Reactivate a previously lost tracklet.
+        update(new_track, frame_id): Update the state of a matched track.
+        convert_coords(tlwh): Convert bounding box to x-y-aspect-height format.
+        tlwh_to_xyah(tlwh): Convert tlwh bounding box to xyah format.
+    """
+
     shared_kalman = KalmanFilterXYAH()
 
-    def __init__(self, tlwh, score, cls):
-        """wait activate."""
-        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
+    def __init__(self, xywh, score, cls):
+        """Initialize new STrack instance."""
+        super().__init__()
+        # xywh+idx or xywha+idx
+        assert len(xywh) in [5, 6], f"expected 5 or 6 values but got {len(xywh)}"
+        self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -20,7 +56,8 @@ class STrack(BaseTrack):
         self.score = score
         self.tracklet_len = 0
         self.cls = cls
-        self.idx = tlwh[-1]
+        self.idx = xywh[-1]
+        self.angle = xywh[4] if len(xywh) == 6 else None
 
     def predict(self):
         """Predicts mean and covariance using Kalman filter."""
@@ -78,8 +115,9 @@ class STrack(BaseTrack):
 
     def re_activate(self, new_track, frame_id, new_id=False):
         """Reactivates a previously lost track with a new detection."""
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
-                                                               self.convert_coords(new_track.tlwh))
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh)
+        )
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         self.is_activated = True
@@ -88,37 +126,39 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
+        self.angle = new_track.angle
         self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
         """
-        Update a matched track
-        :type new_track: STrack
-        :type frame_id: int
-        :return:
+        Update the state of a matched track.
+
+        Args:
+            new_track (STrack): The new track containing updated information.
+            frame_id (int): The ID of the current frame.
         """
         self.frame_id = frame_id
         self.tracklet_len += 1
 
         new_tlwh = new_track.tlwh
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
-                                                               self.convert_coords(new_tlwh))
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance, self.convert_coords(new_tlwh)
+        )
         self.state = TrackState.Tracked
         self.is_activated = True
 
         self.score = new_track.score
         self.cls = new_track.cls
+        self.angle = new_track.angle
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
-        """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""
+        """Convert a bounding box's top-left-width-height format to its x-y-aspect-height equivalent."""
         return self.tlwh_to_xyah(tlwh)
 
     @property
     def tlwh(self):
-        """Get current position in bounding box format `(top left x, top left y,
-        width, height)`.
-        """
+        """Get current position in bounding box format (top left x, top left y, width, height)."""
         if self.mean is None:
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
@@ -127,44 +167,76 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    def tlbr(self):
-        """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
-        `(top left, bottom right)`.
-        """
+    def xyxy(self):
+        """Convert bounding box to format (min x, min y, max x, max y), i.e., (top left, bottom right)."""
         ret = self.tlwh.copy()
         ret[2:] += ret[:2]
         return ret
 
     @staticmethod
     def tlwh_to_xyah(tlwh):
-        """Convert bounding box to format `(center x, center y, aspect ratio,
-        height)`, where the aspect ratio is `width / height`.
+        """Convert bounding box to format (center x, center y, aspect ratio, height), where the aspect ratio is width /
+        height.
         """
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
         ret[2] /= ret[3]
         return ret
 
-    @staticmethod
-    def tlbr_to_tlwh(tlbr):
-        """Converts top-left bottom-right format to top-left width height format."""
-        ret = np.asarray(tlbr).copy()
-        ret[2:] -= ret[:2]
+    @property
+    def xywh(self):
+        """Get current position in bounding box format (center x, center y, width, height)."""
+        ret = np.asarray(self.tlwh).copy()
+        ret[:2] += ret[2:] / 2
         return ret
 
-    @staticmethod
-    def tlwh_to_tlbr(tlwh):
-        """Converts tlwh bounding box format to tlbr format."""
-        ret = np.asarray(tlwh).copy()
-        ret[2:] += ret[:2]
-        return ret
+    @property
+    def xywha(self):
+        """Get current position in bounding box format (center x, center y, width, height, angle)."""
+        if self.angle is None:
+            LOGGER.warning("WARNING ⚠️ `angle` attr not found, returning `xywh` instead.")
+            return self.xywh
+        return np.concatenate([self.xywh, self.angle[None]])
+
+    @property
+    def result(self):
+        """Get current tracking results."""
+        coords = self.xyxy if self.angle is None else self.xywha
+        return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self):
         """Return a string representation of the BYTETracker object with start and end frames and track ID."""
-        return f'OT_{self.track_id}_({self.start_frame}-{self.end_frame})'
+        return f"OT_{self.track_id}_({self.start_frame}-{self.end_frame})"
 
 
 class BYTETracker:
+    """
+    BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+
+    The class is responsible for initializing, updating, and managing the tracks for detected objects in a video
+    sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
+    predicting the new object locations, and performs data association.
+
+    Attributes:
+        tracked_stracks (list[STrack]): List of successfully activated tracks.
+        lost_stracks (list[STrack]): List of lost tracks.
+        removed_stracks (list[STrack]): List of removed tracks.
+        frame_id (int): The current frame ID.
+        args (namespace): Command-line arguments.
+        max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
+        kalman_filter (object): Kalman Filter object.
+
+    Methods:
+        update(results, img=None): Updates object tracker with new detections.
+        get_kalmanfilter(): Returns a Kalman filter object for tracking bounding boxes.
+        init_track(dets, scores, cls, img=None): Initialize object tracking with detections.
+        get_dists(tracks, detections): Calculates the distance between tracks and detections.
+        multi_predict(tracks): Predicts the location of tracks.
+        reset_id(): Resets the ID counter of STrack.
+        joint_stracks(tlista, tlistb): Combines two lists of stracks.
+        sub_stracks(tlista, tlistb): Filters out the stracks present in the second list from the first list.
+        remove_duplicate_stracks(stracksa, stracksb): Removes duplicate stracks based on IOU.
+    """
 
     def __init__(self, args, frame_rate=30):
         """Initialize a YOLOv8 object to track objects with given arguments and frame rate."""
@@ -187,7 +259,7 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        bboxes = results.xyxy
+        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
@@ -217,7 +289,7 @@ class BYTETracker:
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
         self.multi_predict(strack_pool)
-        if hasattr(self, 'gmc') and img is not None:
+        if hasattr(self, "gmc") and img is not None:
             warp = self.gmc.apply(img, dets)
             STrack.multi_gmc(strack_pool, warp)
             STrack.multi_gmc(unconfirmed, warp)
@@ -234,8 +306,7 @@ class BYTETracker:
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
-        # Step 3: Second association, with low score detection boxes
-        # association the untrack to the low score detections
+        # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
@@ -290,9 +361,8 @@ class BYTETracker:
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
-        return np.asarray(
-            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
-            dtype=np.float32)
+
+        return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""
@@ -314,9 +384,19 @@ class BYTETracker:
         """Returns the predicted tracks using the YOLOv8 network."""
         STrack.multi_predict(tracks)
 
-    def reset_id(self):
+    @staticmethod
+    def reset_id():
         """Resets the ID counter of STrack."""
         STrack.reset_id()
+
+    def reset(self):
+        """Reset tracker."""
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
+        self.frame_id = 0
+        self.kalman_filter = self.get_kalmanfilter()
+        self.reset_id()
 
     @staticmethod
     def joint_stracks(tlista, tlistb):

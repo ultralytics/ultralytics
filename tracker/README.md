@@ -20,10 +20,11 @@ Then, adjust the settings in track_config.json within the tracker directory to s
 #### Step 2: Build the Docker Image
 Construct your Docker image with this command:
   ```bash
-  docker build -t tracker_onnx -f Dockerfile.tracker . --platform linux/amd64
+  docker build -t tracker_onnx -f Dockerfile_tracker .
   ```
 This will create an image with all the necessary configurations and packages using the specified Dockerfile.
 
+Use ```--platform linux/amd64``` flag for macOS ARM users.
 ### Step 3: Run Your Docker Image
 Execute your Docker image with bound volumes:
 

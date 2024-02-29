@@ -41,10 +41,10 @@ TFLite offers various on-device deployment options for machine learning models, 
  - **Deploying with Android and iOS**: Both Android and iOS applications with TFLite can analyze edge-based camera feeds and sensors to detect and identify objects. TFLite also offers native iOS libraries written in [Swift](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/swift) and [Objective-C](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/objc). The architecture diagram below shows the process of deploying a trained model onto Android and iOS platforms using TensorFlow Lite.
 
  <p align="center">
-  <img width="100%" src="https://1.bp.blogspot.com/-6fS9FD8KD7g/XhJ1l8y2S4I/AAAAAAAACKw/MW9MQZ8gtiYmUe0naRdN0n2FwkT1l4trACLcBGAsYHQ/s1600/architecture.png" alt="TFLite Logo">
+  <img width="100%" src="https://1.bp.blogspot.com/-6fS9FD8KD7g/XhJ1l8y2S4I/AAAAAAAACKw/MW9MQZ8gtiYmUe0naRdN0n2FwkT1l4trACLcBGAsYHQ/s1600/architecture.png" alt="Architecture">
 </p>
 
- - **Implementing with Embedded Linux**: Using TFLite models along with Python is great for Linux-based embedded devices, such as [Raspberry Pi](https://www.raspberrypi.org/) and [Coral devices with Edge TPU](https://coral.withgoogle.com/), among many others.
+ - **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.org/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device]((https://coral.withgoogle.com/)).
 
  - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
@@ -65,11 +65,11 @@ To install the required packages, run:
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models]((../models/index.md)) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
 !!! Example "Usage"
 
@@ -105,7 +105,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLOv8 TFLite Models
 
-After successfully exporting your Ultralytics YOLOv8 models to TFLite format, you can now deploy them. For in-depth instructions on deploying your TSLite models in various settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLOv8 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to utilize the YOLO("model.tflite") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
  - **[Android](https://www.tensorflow.org/lite/android/quickstart)**: A quick start guide for integrating TensorFlow Lite into Android applications, providing easy-to-follow steps for setting up and running machine learning models. 
 

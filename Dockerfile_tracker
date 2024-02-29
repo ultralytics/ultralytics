@@ -1,13 +1,56 @@
 FROM python:3.8-slim
 LABEL authors="HuPBA-STCE"
 RUN apt-get update && apt-get autoclean
-RUN apt-get update && apt-get install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+RUN apt-get update && apt-get install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libxext6 \
+    libsm6 \
+    libxrender1 \
+    libfontconfig1 \
+    libice6 \
+    xvfb \
+    graphviz \
+    libgl1-mesa-glx
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip3 install pyqt5
-RUN apt-get install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-
+RUN apt-get clean && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends --fix-missing \
+        build-essential binutils \
+        ca-certificates cmake cmake-qt-gui curl \
+        dbus-x11 \
+        ffmpeg \
+        gdb gcc g++ gfortran git \
+        tar \
+        lsb-release \
+        procps \
+        manpages-dev \
+        unzip \
+        zip \
+        wget \
+        xauth \
+        swig \
+        python3-pip python3-dev python3-numpy python3-distutils \
+        python3-setuptools python3-pyqt5 python3-opencv \
+        libboost-python-dev libboost-thread-dev libatlas-base-dev libavcodec-dev \
+        libavformat-dev libavutil-dev libcanberra-gtk3-module libeigen3-dev \
+        libglew-dev libgl1-mesa-dev libgl1-mesa-glx libglib2.0-0 libgtk2.0-dev \
+        libgtk-3-dev libjpeg-dev liblapack-dev \
+        liblapacke-dev libopenblas-dev libopencv-dev libpng-dev libpostproc-dev \
+        libpq-dev libsm6 libswscale-dev libtbb-dev libtesseract-dev \
+        libtiff-dev libtiff5-dev libv4l-dev libx11-dev x11-xserver-utils libxext6 libxine2-dev \
+        libxrender-dev libxvidcore-dev libx264-dev libgtkglext1 libgtkglext1-dev \
+        libvtk9-dev libdc1394-dev libgstreamer-plugins-base1.0-dev \
+        libgstreamer1.0-dev libopenexr-dev \
+        openexr \
+        pkg-config \
+        qv4l2 \
+        v4l-utils \
+        zlib1g-dev \
+        locales \
+        && locale-gen en_US.UTF-8 \
+        && LC_ALL=en_US.UTF-8 \
+        && rm -rf /var/lib/apt/lists/* \
+        && apt-get clean
 ENV QT_DEBUG_PLUGINS=1
-
+ENV DISPLAY=:0
 WORKDIR /app
 COPY . /app
 

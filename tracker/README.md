@@ -35,7 +35,8 @@ docker build -t tracker_onnx -f Dockerfile_tracker --platform linux/amd64
 Execute your Docker image with bound volumes:
 
   ```bash
-  sudo docker run -it -v /absolute_path/inference_tools/models:/app/models -v /absolute_path/tracker/data:/app/data tracker_onnx
+  xhost +
+  docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ./inference_tools/models:/app/models -v ./tracker/data:/app/data tracker_onnx
   ```
 🔁 Replace /absolute_path/ with the actual path to your models and data. This setup allows your code to access the model directory, convert models from the .pth format (PyTorch) to ONNX, and process the specified video file. You'll receive the exported model in your model directory and the processed video with annotations, bounding boxes, and trajectory information in your data directory.
 

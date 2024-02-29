@@ -1,7 +1,7 @@
 FROM python:3.8-slim
 LABEL authors="HuPBA-STCE"
 RUN apt update \
-    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+    && apt install  --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 WORKDIR /app
 ENV PYTHONPATH "${PYTHONPATH}:/app/src:/app/inference_tools"
 COPY ultralytics ultralytics

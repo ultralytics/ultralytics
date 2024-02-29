@@ -1,13 +1,18 @@
 FROM python:3.8-slim
 LABEL authors="HuPBA-STCE"
-RUN apt update \
-    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+RUN apt-get update && apt-get autoclean
+RUN apt-get update && apt-get install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip3 install pyqt5
+RUN apt-get install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+
+ENV QT_DEBUG_PLUGINS=1
+
 WORKDIR /app
 COPY . /app
 
 COPY ./requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app
 RUN pip install --no-cache-dir -e .

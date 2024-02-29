@@ -1,8 +1,8 @@
 cmake
-numpy==1.24.3
+numpy==1.21.6
 onnx==1.8.0
 onnxruntime==1.6.0
-protobuf==4.25.3
+protobuf==3.20.0
 six==1.16.0
 torch==1.11.0
 torchvision==0.12.0
@@ -18,5 +18,4 @@ pandas==2.0.3
 onnxruntime==1.6.0
 onnxoptimizer==0.3.13
 onnxsim==0.4.35
-supervision==0.18.0
 

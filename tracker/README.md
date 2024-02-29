@@ -12,7 +12,7 @@ Before we begin, ensure you have:
 #### Step 1: Prepare Your Data
 Create a data directory to store your video files by running:
   ```bash
-  mkdir data
+  mkdir tracker/data
   ```
 Then, adjust the settings in track_config.json within the tracker directory to specify your video file and any parameters you wish to modify.
 
@@ -20,7 +20,7 @@ Then, adjust the settings in track_config.json within the tracker directory to s
 #### Step 2: Build the Docker Image
 Construct your Docker image with this command:
   ```bash
-  docker build -t tracker_onnx -f Dockerfile_tracker
+  docker build -t tracker_onnx -f Dockerfile_tracker .
   ```
 This will create an image with all the necessary configurations and packages using the specified Dockerfile.
 

@@ -1,0 +1,9 @@
+# IMDB 10 Image dataset for age estimation validation
+
+# train, val, test fields can be 1) path/to/image_list.txt; 2) list of image paths
+path: /data/ml-data/imdb10-age
+train: train_annotations.json
+val: val_annotations.json
+
+names:
+  0: Age

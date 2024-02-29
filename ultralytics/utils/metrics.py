@@ -4,6 +4,7 @@
 import math
 import warnings
 from pathlib import Path
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1279,6 +1280,56 @@ class OBBMetrics(SimpleClass):
     def results_dict(self):
         """Returns dictionary of computed performance metrics and statistics."""
         return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+    
+class RegressMetrics(SimpleClass):
+    """
+    Class for computing regression metrics including mean absolute error and mean squared error.
+
+    Attributes:
+        mae (float): The mean absolute error.
+        mse (float): The mean squared error.
+        speed (Dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
+
+    Properties:
+        results_dict (Dict[str, Union[float, str]]): A dictionary containing the regression metrics.
+        keys (List[str]): A list of keys for the results_dict.
+
+    Methods:
+        process(targets, pred): Processes the targets and predictions to compute regression metrics.
+    """
+
+    def __init__(self) -> None:
+        """Initialize a RegressMetrics instance."""
+        self.mae = 0
+        self.mse = 0
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "regress"
+
+    def process(self, targets, pred):
+        """Computes MAE and MSE using target values and predicted values."""
+        targets, pred = torch.cat(targets), torch.cat(pred)
+        self.mae = torch.nn.functional.l1_loss(pred, targets, reduction="mean").tolist()
+        self.mse = torch.nn.functional.mse_loss(pred, targets, reduction="mean").tolist()
+
+    @property
+    def results_dict(self):
+        """Returns a dictionary with model's performance metrics."""
+        return dict(zip(self.keys, [self.mae, self.mse]))
+
+    @property
+    def keys(self):
+        """Returns a list of keys for the results_dict property."""
+        return ["metrics/mae", "metrics/mse"]
 
     @property
     def curves(self):

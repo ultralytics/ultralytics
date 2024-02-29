@@ -1,0 +1,9 @@
+# UTKFace Image dataset for age estimation
+
+# train, val, test fields can be 1) path/to/image_list.txt; 2) list of image paths
+path: /data/ml-data/UTKFace_datasets/Age/Regression_original_crop_sq4x
+train: train/utkface_train_annotations.json
+val: val/utkface_val_annotations.json
+
+names:
+  0: Age

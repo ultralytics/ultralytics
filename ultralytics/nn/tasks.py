@@ -35,6 +35,8 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     Pose,
+    Regress,
+    Regress6,
     RepC3,
     RepConv,
     ResNetLayer,
@@ -43,7 +45,7 @@ from ultralytics.nn.modules import (
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss, v8RegressionLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -428,6 +430,28 @@ class ClassificationModel(BaseModel):
         """Initialize the loss criterion for the ClassificationModel."""
         return v8ClassificationLoss()
 
+class RegressionModel(BaseModel):
+    """YOLOv8 regression model."""
+
+    def __init__(self, cfg="yolov8n-regress.yaml", ch=3, nc=None, verbose=True):
+        """Init RegressionModel with YAML, channels, number of classes, verbose flag."""
+        super().__init__()
+        self._from_yaml(cfg, ch, nc, verbose)
+
+    def _from_yaml(self, cfg, ch, nc, verbose):
+        """Set YOLOv8 model configurations and define the model architecture."""
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+
+        # Define model
+        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
+        self.stride = torch.Tensor([1])  # no stride constraints
+        self.info()
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the RegressionModel."""
+        return v8RegressionLoss()
 
 class RTDETRDetectionModel(DetectionModel):
     """
@@ -805,6 +829,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
+        elif m in (Regress, Regress6):
+            c1, c2 = ch[f], args[0]
+            args = [c1, c2]
+            if m is Regress6:
+                args += [d.get("min_value"), d.get("max_value")]
         else:
             c2 = ch[f]
 
@@ -867,7 +896,7 @@ def guess_model_task(model):
         model (nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'regress').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.
@@ -886,6 +915,8 @@ def guess_model_task(model):
             return "pose"
         if m == "obb":
             return "obb"
+        if "regress" in m:
+            return "regress"
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -912,6 +943,8 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
+            elif isinstance(m, Regress) or isinstance(m, Regress6):
+                return "regress"
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -926,10 +959,12 @@ def guess_model_task(model):
             return "obb"
         elif "detect" in model.parts:
             return "detect"
+        elif "-regress" in model.stem or "regress" in model.parts:
+            return "regress"
 
     # Unable to determine task from model
     LOGGER.warning(
         "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb', or 'regress'."
     )
     return "detect"  # assume detect

@@ -13,7 +13,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "Regress", "Regress6", "RTDETRDecoder"
 
 
 class Detect(nn.Module):
@@ -226,8 +226,65 @@ class Classify(nn.Module):
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
-        return x if self.training else x.softmax(1)
+        return x #if self.training else x.softmax(1)
 
+class Regress(nn.Module):
+    """YOLOv8 regression head, i.e. x(b,c1,20,20) to x(b,c2)."""
+    
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regression head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.conv2 = Conv(c_, c2, k, s, p, g, act=False) #1 output channel
+        self.min = 0    # default values for min and max to prevent descaling of exported models' outputs in validator
+        self.max = 6
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.pool(x)
+        x = self.drop(x)
+        x = self.conv2(x)
+        x = x.flatten(1)
+        return x
+    
+class Regress6(nn.Module):
+    """YOLOv8 regression head with output values in the range 0-6, i.e. x(b,c1,20,20) to x(b,c2)."""
+    export = False
+
+    def __init__(self, c1, c2, min, max, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 regression head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280
+        self.conv1 = Conv(c1, c_, k, s, p, g) #1280 output channels
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.conv_relu6 = Conv(c_, c2, k, s, p, g) #1 output channel
+        self.conv_relu6.act = nn.ReLU6()
+        self.min = min
+        self.max = max
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.conv1(x)
+        x = self.pool(x)
+        x = self.drop(x)
+        x = self.conv_relu6(x)
+        x = x.flatten(1)
+        if not self.export:
+            x = x * (self.max - self.min) / 6 + self.min
+        return x
 
 class RTDETRDecoder(nn.Module):
     """

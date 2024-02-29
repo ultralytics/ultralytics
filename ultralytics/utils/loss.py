@@ -703,3 +703,13 @@ class v8OBBLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
+
+
+class v8RegressionLoss:
+    """Criterion class for computing regression training losses."""
+
+    def __call__(self, preds, batch):
+        """Compute the regression loss between predictions and true labels."""
+        loss = torch.nn.functional.l1_loss(preds.view(preds.size()[0]), batch["value"].float(), reduction="mean")
+        loss_items = loss.detach()
+        return loss, loss_items

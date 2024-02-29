@@ -2,7 +2,7 @@
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, RegressionModel
 
 
 class YOLO(Model):
@@ -42,4 +42,9 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
+            "regress": {
+                "model": RegressionModel,
+                "trainer": yolo.regress.RegressionTrainer,
+                "validator": yolo.regress.RegressionValidator,
+                "predictor": yolo.regress.RegressionPredictor, },
         }

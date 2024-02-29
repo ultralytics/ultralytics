@@ -555,6 +555,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
+    """Loads an image from a predefined source using OpenCV."""
     return cv2.imread(str(SOURCE))
 
 
@@ -568,6 +569,7 @@ def image():
     ],
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
+    """Tests classification transforms during training with various augmentation settings."""
     import torchvision.transforms as T
 
     from ultralytics.data.augment import classify_augmentations

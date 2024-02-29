@@ -23,6 +23,7 @@ Usage:
 Note:
 - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
+
 import os
 import re
 import shutil

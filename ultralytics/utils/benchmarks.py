@@ -21,7 +21,7 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
+NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
 """
 
 import glob

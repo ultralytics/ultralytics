@@ -6,6 +6,7 @@ hybrid encoder and IoU-aware query selection for enhanced detection accuracy.
 
 For more information on RT-DETR, visit: https://arxiv.org/pdf/2304.08069.pdf
 """
+
 from pathlib import Path
 
 from ultralytics.engine.model import Model

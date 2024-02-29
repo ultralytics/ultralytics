@@ -112,6 +112,7 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
+        self.last_mosaic = self.wdir / "last_mosaic.pt"
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
@@ -489,6 +490,9 @@ class BaseTrainer:
             "date": datetime.now().isoformat(),
             "version": __version__,
         }
+
+        if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
+            torch.save(ckpt, self.last_mosaic)
 
         # Save last and best
         torch.save(ckpt, self.last)

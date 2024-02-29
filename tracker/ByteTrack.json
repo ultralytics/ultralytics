@@ -1,7 +1,7 @@
 {
   "name": "qualitative",
 
-  "source_weights_path": "./models/8sp2_150.pt",
+  "source_weights_path": "../inference_tools/models/8sp2_150.pt",
   "source_video_path": "./data/test1.mp4",
 
   "device": "cpu",

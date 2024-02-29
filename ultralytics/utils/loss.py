@@ -167,6 +167,9 @@ class v8DetectionLoss:
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
+        self.pos_weight = torch.Tensor(self.hyp.pos_weight).to(torch.device(self.device))
+        self.bce = nn.BCEWithLogitsLoss(reduction="none", pos_weight=self.pos_weight)
+
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
         if targets.shape[0] == 0:

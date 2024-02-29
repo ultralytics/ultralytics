@@ -590,12 +590,12 @@ class RepCSP(nn.Module):
 class RepNCSPELAN4(nn.Module):
     """CSP-ELAN."""
 
-    def __init__(self, c1, c2, c3, c4, c5=1):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, c3, c4, n=1):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
         self.c = c3 // 2
         self.cv1 = Conv(c1, c3, 1, 1)
-        self.cv2 = nn.Sequential(RepCSP(c3 // 2, c4, c5), Conv(c4, c4, 3, 1))
-        self.cv3 = nn.Sequential(RepCSP(c4, c4, c5), Conv(c4, c4, 3, 1))
+        self.cv2 = nn.Sequential(RepCSP(c3 // 2, c4, n), Conv(c4, c4, 3, 1))
+        self.cv3 = nn.Sequential(RepCSP(c4, c4, n), Conv(c4, c4, 3, 1))
         self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
 
     def forward(self, x):
@@ -633,13 +633,13 @@ class ADown(nn.Module):
 class SPPELAN(nn.Module):
     """SPP-ELAN."""
 
-    def __init__(self, c1, c2, c3):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, c3, k=5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
         self.c = c3
         self.cv1 = Conv(c1, c3, 1, 1)
-        self.cv2 = nn.MaxPool2d(kernel_size=5, stride=1, padding=5 // 2)
-        self.cv3 = nn.MaxPool2d(kernel_size=5, stride=1, padding=5 // 2)
-        self.cv4 = nn.MaxPool2d(kernel_size=5, stride=1, padding=5 // 2)
+        self.cv2 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv3 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv4 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
         self.cv5 = Conv(4 * c3, c2, 1, 1)
 
     def forward(self, x):

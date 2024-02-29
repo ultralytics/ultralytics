@@ -65,10 +65,10 @@ YOLOv9's iterations, ranging from the smaller S variant to the extensive E model
 
 Comparatively, YOLOv9 exhibits remarkable gains:
 
-- **Lightweight Models**: YOLOv9-S surpasses the YOLO MS-S in parameter efficiency and computational load while achieving an improvement of $0.4∼0.6\%$ in AP.
+- **Lightweight Models**: YOLOv9-S surpasses the YOLO MS-S in parameter efficiency and computational load while achieving an improvement of 0.4∼0.6% in AP.
 - **Medium to Large Models**: YOLOv9-M and YOLOv9-E show notable advancements in balancing the trade-off between model complexity and detection performance, offering significant reductions in parameters and computations against the backdrop of improved accuracy.
 
-The YOLOv9-C model, in particular, highlights the effectiveness of the architecture's optimizations. It operates with $42\%$ fewer parameters and $21\%$ less computational demand than YOLOv7 AF, yet it achieves comparable accuracy, demonstrating YOLOv9's significant efficiency improvements. Furthermore, the YOLOv9-E model sets a new standard for large models, with $15\%$ fewer parameters and $25\%$ less computational need than [YOLOv8x](yolov8.md), alongside a substantial $1.7\%$ improvement in AP.
+The YOLOv9-C model, in particular, highlights the effectiveness of the architecture's optimizations. It operates with 42% fewer parameters and 21% less computational demand than YOLOv7 AF, yet it achieves comparable accuracy, demonstrating YOLOv9's significant efficiency improvements. Furthermore, the YOLOv9-E model sets a new standard for large models, with 15% fewer parameters and 25% less computational need than [YOLOv8x](yolov8.md), alongside a substantial 1.7% improvement in AP.
 
 These results showcase YOLOv9's strategic advancements in model design, emphasizing its enhanced efficiency without compromising on the precision essential for real-time object detection tasks. The model not only pushes the boundaries of performance metrics but also emphasizes the importance of computational efficiency, making it a pivotal development in the field of computer vision.
 

@@ -14,7 +14,7 @@ requests==2.31.0
 psutil==5.9.5
 py-cpuinfo==9.0.0
 pandas==2.0.3
-ultralytics
 supervision==0.17.1
+pycocotools
 
 

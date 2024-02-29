@@ -3,14 +3,16 @@ LABEL authors="HuPBA-STCE"
 RUN apt update \
     && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 WORKDIR /app
-ENV PYTHONPATH "${PYTHONPATH}:/app/src:/app/tracker"
-COPY ultralytics ultralytics
+COPY . /app
 
-COPY inference_tools/requirements.txt requirements.txt
+COPY ./requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
+WORKDIR /app
+RUN pip install --no-cache-dir -e .
 
-COPY inference_tools/ .
+
+WORKDIR /app/tracker
 
 CMD ["/bin/bash", "-c", "python track_recognize.py"]

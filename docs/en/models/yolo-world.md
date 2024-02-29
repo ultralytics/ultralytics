@@ -50,7 +50,7 @@ This section details the models available with their specific pre-trained weight
 | yolov8s-world | 37.4 | 52.0  | 40.6  |
 | yolov8m-world | 42.0 | 57.0  | 45.6  |
 | yolov8l-world | 45.7 | 61.3  | 49.8  |
-| yolov8l-world | 47.0 | 63.0  | 51.2  |
+| yolov8x-world | 47.0 | 63.0  | 51.2  |
 
 ## Usage Examples
 

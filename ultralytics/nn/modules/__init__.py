@@ -21,7 +21,7 @@ from .block import (C1, C2, C3, C3TR, DFL, SPP, SPPF, Bottleneck, BottleneckCSP,
                     HGBlock, HGStem, Proto, RepC3, FusedMBConv, MBConv, SABottleneck, sa_layer, C3SA, LightC3x, C3xTR, C2HG, C3xHG, C2fx, C2TR, C3CTR, C2fDA, C3TR2, 
                     HarDBlock, MBC2f, C2fTA, C3xTA, LightC2f, LightBottleneck, BLightC2f, MSDAC3x, QC2f, 
                     LightDSConvC2f, AsymmetricLightBottleneck, AsymmetricBottleneck, AsymmetricLightC2f, 
-                    AsymmetricLightBottleneckC2f, C3xAsymmetricLightBottleneck, adderBottleneck, adderC2f, ConvSelfAttention)
+                    AsymmetricLightBottleneckC2f, C3xAsymmetricLightBottleneck, adderBottleneck, adderC2f, ConvSelfAttention, C2fOAttention)
 from .conv import (CBAM, ChannelAttention, Concat, Conv, Conv2, ConvTranspose, DWConv, DWConvTranspose2d, Focus,
                    GhostConv, LightConv, RepConv, SpatialAttention, CombConv, QConv, 
                    AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, adderConv)

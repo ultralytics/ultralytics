@@ -21,18 +21,22 @@ YOLOv9's advancements are deeply rooted in addressing the challenges posed by in
 ### Information Bottleneck Principle
 
 The Information Bottleneck Principle reveals a fundamental challenge in deep learning: as data passes through successive layers of a network, the potential for information loss increases. This phenomenon is mathematically represented as:
-$$
-\Large I ( X, X ) \geq I( X, f_\theta( X ) ) \geq I ( X, g_\phi( f_\theta( X ) ) )
-$$
-where $I$ denotes mutual information, and $f$ and $g$ represent transformation functions with parameters $\theta$ and $\phi$, respectively. YOLOv9 counters this challenge by implementing Programmable Gradient Information (PGI), which aids in preserving essential data across the network's depth, ensuring more reliable gradient generation and, consequently, better model convergence and performance.
+
+<p align="center">
+  <img src="https://github.com/ultralytics/ultralytics/assets/62214284/1a503802-1170-4fb6-8d5f-cf8b713733f7" alt="Information Bottleneck Formula">
+</p>
+
+where _`I`_ denotes mutual information, and _`f`_ and _`g`_ represent transformation functions with parameters `θ` and `ϕ`, respectively. YOLOv9 counters this challenge by implementing Programmable Gradient Information (PGI), which aids in preserving essential data across the network's depth, ensuring more reliable gradient generation and, consequently, better model convergence and performance.
 
 ### Reversible Functions
 
 The concept of Reversible Functions is another cornerstone of YOLOv9's design. A function is deemed reversible if it can be inverted without any loss of information, as expressed by:
-$$
-\Large X = v_\zeta ( r_\psi ( X ) )
-$$
-with $\psi$ and $\zeta$ as parameters for the reversible and its inverse function, respectively. This property is crucial for deep learning architectures, as it allows the network to retain a complete information flow, thereby enabling more accurate updates to the model's parameters. YOLOv9 incorporates reversible functions within its architecture to mitigate the risk of information degradation, especially in deeper layers, ensuring the preservation of critical data for object detection tasks.
+
+<p align="center">
+  <img src="https://github.com/ultralytics/ultralytics/assets/62214284/bcba2f3f-1ba2-46f9-8638-c0deffe27a38" alt="Reversible Function Example Formula">
+</p>
+
+with `ψ` and `𝜁` as parameters for the reversible and its inverse function, respectively. This property is crucial for deep learning architectures, as it allows the network to retain a complete information flow, thereby enabling more accurate updates to the model's parameters. YOLOv9 incorporates reversible functions within its architecture to mitigate the risk of information degradation, especially in deeper layers, ensuring the preservation of critical data for object detection tasks.
 
 ### Impact on Lightweight Models
 

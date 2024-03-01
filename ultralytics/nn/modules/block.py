@@ -450,6 +450,14 @@ class C2fOAttention(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.attention = ConvAttention(self.c)
+    
+    def forward(self,x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        out_c2f self.cv2(torch.cat(y, 1))
+        out_attention = self.attention(out_c2f)
+
+        return out_attention
 
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""

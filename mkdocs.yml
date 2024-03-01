@@ -339,13 +339,14 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
-      - Comet ML: integrations/comet.md
-      - OpenVINO: integrations/openvino.md
+      - TorchScript: integrations/torchscript.md
       - ONNX: integrations/onnx.md
+      - OpenVINO: integrations/openvino.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
       - TFLite: integrations/tflite.md
-      - TorchScript: integrations/torchscript.md
+      - NCNN: integrations/ncnn.md
+      - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

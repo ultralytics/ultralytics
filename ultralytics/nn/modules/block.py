@@ -431,7 +431,7 @@ class ConvAttention(nn.Module):
     def __init__(self, n_channels):
         super().__init__()
         self.query,self.key,self.value = [self._conv(n_channels, c) for c in (n_channels//8,n_channels//8,n_channels)]
-        self.gamma = nn.Parameter(tensor([0.]))
+        self.gamma = nn.Parameter(torch.tensor([0.]))
 
     def _conv(self,n_in,n_out):
         return nn.Conv2d(n_in, n_out, 1, bias=False)

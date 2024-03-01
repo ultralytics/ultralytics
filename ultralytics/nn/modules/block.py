@@ -434,7 +434,7 @@ class ConvAttention(nn.Module):
         self.gamma = nn.Parameter(tensor([0.]))
 
     def _conv(self,n_in,n_out):
-        return ConvLayer(n_in, n_out, ks=1, ndim=1, norm_type=NormType.Spectral, act_cls=None, bias=False)
+        return nn.Conv2d(n_in, n_out, bias=False)
 
     def forward(self, x):
         #Notation from the paper.

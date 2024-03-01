@@ -344,6 +344,7 @@ nav:
       - ONNX: integrations/onnx.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
+      - TFLite: integrations/tflite.md
       - TorchScript: integrations/torchscript.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md

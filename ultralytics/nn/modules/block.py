@@ -430,12 +430,11 @@ class C2f(nn.Module):
 class ConvAttention(nn.Module):
     def __init__(self, input_channel):
         super().__init__()
-        self.fx = nn.Conv2d(input_channel, input_channel, 1)
-        self.gx = nn.Conv2d(input_channel, input_channel, 1)
+        self.fx = nn.Conv2d(input_channel, input_channel//8, 1)
+        self.gx = nn.Conv2d(input_channel, input_channel//8, 1)
         self.hx = nn.Conv2d(input_channel, input_channel, 1)
     
     def forward(self, x):
-        size = x.size()
         fx = self.fx(x)
         gx = self.gx(x)
         hx = self.hx(x)
@@ -445,7 +444,7 @@ class ConvAttention(nn.Module):
 
         fxgx = F.softmax(fxgx, dim=1)
         o = torch.bmm(hx, fxgx) + x
-        return o.view(*size).contiguous()
+        return o
 
 class C2fOAttention(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):

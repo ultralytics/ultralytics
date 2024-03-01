@@ -454,7 +454,7 @@ class C2fOAttention(C2f):
     def forward(self,x):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
-        out_c2f self.cv2(torch.cat(y, 1))
+        out_c2f= self.cv2(torch.cat(y, 1))
         out_attention = self.attention(out_c2f)
 
         return out_attention

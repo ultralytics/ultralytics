@@ -428,23 +428,22 @@ class C2f(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 class ConvAttention(nn.Module):
-    def __init__(self, input_channel):
+    def __init__(self, n_channels):
         super().__init__()
-        self.fx = nn.Conv2d(input_channel, input_channel//8, 1)
-        self.gx = nn.Conv2d(input_channel, input_channel//8, 1)
-        self.hx = nn.Conv2d(input_channel, input_channel, 1)
-    
+        self.query,self.key,self.value = [self._conv(n_channels, c) for c in (n_channels//8,n_channels//8,n_channels)]
+        self.gamma = nn.Parameter(tensor([0.]))
+
+    def _conv(self,n_in,n_out):
+        return ConvLayer(n_in, n_out, ks=1, ndim=1, norm_type=NormType.Spectral, act_cls=None, bias=False)
+
     def forward(self, x):
-        fx = self.fx(x)
-        gx = self.gx(x)
-        hx = self.hx(x)
-
-        fx = torch.transpose(fx, 2, 3)
-        fxgx = torch.bmm(fx,gx)
-
-        fxgx = F.softmax(fxgx, dim=1)
-        o = torch.bmm(hx, fxgx) + x
-        return o
+        #Notation from the paper.
+        size = x.size()
+        x = x.view(*size[:2],-1)
+        f,g,h = self.query(x),self.key(x),self.value(x)
+        beta = F.softmax(torch.bmm(f.transpose(1,2), g), dim=1)
+        o = self.gamma * torch.bmm(h, beta) + x
+        return o.view(*size).contiguous()
 
 class C2fOAttention(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):

@@ -19,7 +19,7 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
            'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 
            'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 
            'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f', 
-           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f', 'ConvSelfAttention')
+           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f', 'ConvSelfAttention', 'C2fOAttention')
 
 class ConvSelfAttention(nn.Module):
     def __init__(self, in_channels, out_channels, heads=8):
@@ -426,6 +426,30 @@ class C2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+class ConvAttention(nn.Module):
+    def __init__(self, input_channel):
+        self.fx = nn.Conv2d(input_channel, input_channel//8, 1)
+        self.gx = nn.Conv2d(input_channel, input_channel//8, 1)
+        self.hx = nn.Conv2d(input_channel, input_channel, 1)
+    
+    def forward(self, x):
+        size = x.size()
+        fx = self.fx(x)
+        gx = self.gx(x)
+        hx = self.hx(x)
+
+        fx = torch.transpose(fx, 2, 3)
+        fxgx = torch.bmm(fx,gx)
+
+        fxgx = F.softmax(fxgx, dim=1)
+        o = torch.bmm(hx, fxgx) + x
+        return o.view(*size).contiguous()
+
+class C2fOAttention(C2f):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.attention = ConvAttention(self.c)
 
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""

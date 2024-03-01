@@ -119,7 +119,7 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
             c2 = cw**2 + ch**2 + eps  # convex diagonal squared
             rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2 + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2) / 4  # center dist ** 2
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
-                v = (4 / math.pi**2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+                v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
                 with torch.no_grad():
                     alpha = v / (v - iou + (1 + eps))
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
@@ -167,7 +167,7 @@ def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
     kpt_mask = kpt1[..., 2] != 0  # (N, 17)
     e = d / (2 * sigma) ** 2 / (area[:, None, None] + eps) / 2  # from cocoeval
     # e = d / ((area[None, :, None] + eps) * sigma) ** 2 / 2  # from formula
-    return (torch.exp(-e) * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
+    return ((-e).exp() * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
 
 
 def _get_covariance_matrix(boxes):
@@ -208,26 +208,21 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     a2, b2, c2 = _get_covariance_matrix(obb2)
 
     t1 = (
-        ((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2)))
-        / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)
+        ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)
     ) * 0.25
-    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.5
+    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)) * 0.5
     t3 = (
-        torch.log(
-            ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)))
-            / (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)).clamp_(0) * (a2 * b2 - torch.pow(c2, 2)).clamp_(0)) + eps)
-            + eps
-        )
-        * 0.5
-    )
-    bd = t1 + t2 + t3
-    bd = torch.clamp(bd, eps, 100.0)
-    hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
+        ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2))
+        / (4 * ((a1 * b1 - c1.pow(2)).clamp_(0) * (a2 * b2 - c2.pow(2)).clamp_(0)).sqrt() + eps)
+        + eps
+    ).log() * 0.5
+    bd = (t1 + t2 + t3).clamp(eps, 100.0)
+    hd = (1.0 - (-bd).exp() + eps).sqrt()
     iou = 1 - hd
     if CIoU:  # only include the wh aspect ratio part
         w1, h1 = obb1[..., 2:4].split(1, dim=-1)
         w2, h2 = obb2[..., 2:4].split(1, dim=-1)
-        v = (4 / math.pi**2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+        v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
         with torch.no_grad():
             alpha = v / (v - iou + (1 + eps))
         return iou - v * alpha  # CIoU
@@ -255,21 +250,16 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     a2, b2, c2 = (x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2))
 
     t1 = (
-        ((a1 + a2) * (torch.pow(y1 - y2, 2)) + (b1 + b2) * (torch.pow(x1 - x2, 2)))
-        / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)
+        ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)
     ) * 0.25
-    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)) + eps)) * 0.5
+    t2 = (((c1 + c2) * (x2 - x1) * (y1 - y2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)) * 0.5
     t3 = (
-        torch.log(
-            ((a1 + a2) * (b1 + b2) - (torch.pow(c1 + c2, 2)))
-            / (4 * torch.sqrt((a1 * b1 - torch.pow(c1, 2)).clamp_(0) * (a2 * b2 - torch.pow(c2, 2)).clamp_(0)) + eps)
-            + eps
-        )
-        * 0.5
-    )
-    bd = t1 + t2 + t3
-    bd = torch.clamp(bd, eps, 100.0)
-    hd = torch.sqrt(1.0 - torch.exp(-bd) + eps)
+        ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2))
+        / (4 * ((a1 * b1 - c1.pow(2)).clamp_(0) * (a2 * b2 - c2.pow(2)).clamp_(0)).sqrt() + eps)
+        + eps
+    ).log() * 0.5
+    bd = (t1 + t2 + t3).clamp(eps, 100.0)
+    hd = (1.0 - (-bd).exp() + eps).sqrt()
     return 1 - hd
 
 

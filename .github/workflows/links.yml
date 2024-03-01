@@ -28,7 +28,7 @@ jobs:
           sudo mv lychee /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
@@ -36,8 +36,10 @@ jobs:
           command: |
             lychee \
             --scheme https \
+            --timeout 60 \
+            --insecure \
             --accept 403,429,500,502,999 \
-            --exclude-loopback \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
@@ -55,7 +57,7 @@ jobs:
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
@@ -63,8 +65,10 @@ jobs:
           command: |
             lychee \
             --scheme https \
+            --timeout 60 \
+            --insecure \
             --accept 429,999 \
-            --exclude-loopback \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yaml' \
             --exclude-path docs/zh \

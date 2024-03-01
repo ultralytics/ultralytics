@@ -329,7 +329,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element is an argument.
 
     Returns:
-        List[str]: A list of strings where the arguments around isolated '=' are merged.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged.
     """
     new_args = []
     for i, arg in enumerate(args):
@@ -408,6 +408,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 def handle_explorer():
     """Open the Ultralytics Explorer GUI."""
     checks.check_requirements("streamlit")
+    LOGGER.info(f"💡 Loading Explorer dashboard...")
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
 
 

@@ -87,8 +87,12 @@ class BboxLoss(nn.Module):
 
     @staticmethod
     def _df_loss(pred_dist, target):
-        """Return sum of left and right DFL losses."""
-        # Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+        """
+        Return sum of left and right DFL losses.
+
+        Distribution Focal Loss (DFL) proposed in Generalized Focal Loss
+        https://ieeexplore.ieee.org/document/9792391
+        """
         tl = target.long()  # target left
         tr = tl + 1  # target right
         wl = tr - target  # weight left
@@ -593,7 +597,12 @@ class v8ClassificationLoss:
 
 
 class v8OBBLoss(v8DetectionLoss):
-    def __init__(self, model):  # model must be de-paralleled
+    def __init__(self, model):
+        """
+        Initializes v8OBBLoss with model, assigner, and rotated bbox loss.
+
+        Note model must be de-paralleled.
+        """
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
@@ -696,6 +705,7 @@ class v8OBBLoss(v8DetectionLoss):
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).
             pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
             pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
+
         Returns:
             (torch.Tensor): Predicted rotated bounding boxes with angles, (bs, h*w, 5).
         """

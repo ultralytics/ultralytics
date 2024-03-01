@@ -14,7 +14,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Na0HvJ4hkk0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Na0HvJ4hkk0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

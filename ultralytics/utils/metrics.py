@@ -181,18 +181,13 @@ def _get_covariance_matrix(boxes):
         (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
-    gbbs = torch.cat((torch.pow(boxes[:, 2:4], 2) / 12, boxes[:, 4:]), dim=-1)
+    gbbs = torch.cat((boxes[:, 2:4].pow(2) / 12, boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
-    cos_c = torch.cos(c)
-    cos_c_square = cos_c**2
-    sin_c = torch.sin(c)
-    sin_c_square = sin_c**2
-    cos_c_sin_c = cos_c * sin_c
-    return (
-        a * cos_c_square + b * sin_c_square,
-        a * sin_c_square + b * cos_c_square,
-        cos_c_sin_c * (a - b),
-    )
+    cos = c.cos()
+    sin = c.sin()
+    cos2 = cos**2
+    sin2 = sin**2
+    return a * cos2 + b * sin2, a * sin2 + b * cos2, (a - b) * cos * sin
 
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):

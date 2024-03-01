@@ -41,6 +41,7 @@ This section details the models available with their specific pre-trained weight
 | YOLOv8s-world | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 | YOLOv8m-world | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 | YOLOv8l-world | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
+| YOLOv8x-world | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
 
 ## Zero-shot Transfer on COCO Dataset
 
@@ -49,6 +50,7 @@ This section details the models available with their specific pre-trained weight
 | yolov8s-world | 37.4 | 52.0  | 40.6  |
 | yolov8m-world | 42.0 | 57.0  | 45.6  |
 | yolov8l-world | 45.7 | 61.3  | 49.8  |
+| yolov8x-world | 47.0 | 63.0  | 51.2  |
 
 ## Usage Examples
 

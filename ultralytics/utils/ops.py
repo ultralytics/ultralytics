@@ -638,7 +638,7 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): The masks are being cropped to the bounding box.
     """
-    n, h, w = masks.shape
+    _, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
@@ -686,12 +686,14 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
+    width_ratio = mw / iw
+    height_ratio = mh / ih
 
     downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= mw / iw
-    downsampled_bboxes[:, 2] *= mw / iw
-    downsampled_bboxes[:, 3] *= mh / ih
-    downsampled_bboxes[:, 1] *= mh / ih
+    downsampled_bboxes[:, 0] *= width_ratio
+    downsampled_bboxes[:, 2] *= width_ratio
+    downsampled_bboxes[:, 3] *= height_ratio
+    downsampled_bboxes[:, 1] *= height_ratio
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:

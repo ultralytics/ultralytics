@@ -27,6 +27,7 @@ Usage - formats:
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
 """
+
 import platform
 import threading
 from pathlib import Path

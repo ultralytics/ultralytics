@@ -186,6 +186,6 @@ Available YOLOv8-obb export formats are in the table below. You can predict or v
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-obb_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-obb_web_model/`      | ✅        | `imgsz`, `half`, `int8`                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-obb_paddle_model/`   | ✅        | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-obb_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
+| [NCNN](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-obb_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

@@ -429,6 +429,7 @@ class C2f(nn.Module):
 
 class ConvAttention(nn.Module):
     def __init__(self, input_channel):
+        super().__init__()
         self.fx = nn.Conv2d(input_channel, input_channel//8, 1)
         self.gx = nn.Conv2d(input_channel, input_channel//8, 1)
         self.hx = nn.Conv2d(input_channel, input_channel, 1)

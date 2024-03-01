@@ -12,6 +12,17 @@ keywords: Ultralytics, HUB Models, AI model training, model creation, model trai
 
 Read more about creating and other details of a Model at our [HUB Models page](models.md)
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ie3vLUDNYZo"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> New Feature 🌟 Introducing Ultralytics HUB Cloud Training
+</p>
+
 ## Selecting an Instance
 
 For details on picking a model and instances for it, please read our [Instances guide Page](models.md)

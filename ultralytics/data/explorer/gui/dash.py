@@ -144,9 +144,9 @@ def run_sql_query():
 def run_ai_query():
     """Execute SQL query and update session state with query results."""
     if not SETTINGS["openai_api_key"]:
-        st.session_state[
-            "error"
-        ] = 'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
+        st.session_state["error"] = (
+            'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
+        )
         return
     st.session_state["error"] = None
     query = st.session_state.get("ai_query")

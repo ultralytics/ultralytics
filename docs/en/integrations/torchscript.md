@@ -12,7 +12,7 @@ Export to Torchscript to serialize your [Ultralytics YOLOv8](https://github.com/
 
 ## Why should you export to TorchScript?
 
-![Torchscript Overview](https://github.com/ultralytics/ultralytics/assets/26833433/6873349d-c2f6-4620-b3cc-7b26b0698d0b))
+![Torchscript Overview](https://github.com/ultralytics/ultralytics/assets/26833433/6873349d-c2f6-4620-b3cc-7b26b0698d0b)
 
 Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLOv8 models to [TorchScript](https://pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
 

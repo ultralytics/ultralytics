@@ -175,7 +175,7 @@ jobs:
           python -m pip install --upgrade pip wheel
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              torch="torch==1.10.0 torchvision==0.11.0"
+              torch="torch==1.11.0 torchvision==0.12.0"
           fi
           pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment

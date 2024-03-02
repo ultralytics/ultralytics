@@ -766,7 +766,6 @@ class Exporter:
         np_data = None
         if self.args.int8:
             verbosity = "info"
-            qt = "per-tensor"
             if self.args.data:
                 # Generate calibration data for integer quantization
                 LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
@@ -786,7 +785,6 @@ class Exporter:
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
         else:
             verbosity = "error"
-            qt = "per-channel"
 
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
         onnx2tf.convert(
@@ -795,7 +793,7 @@ class Exporter:
             not_use_onnxsim=True,
             verbosity=verbosity,
             output_integer_quantized_tflite=self.args.int8,
-            quant_type=qt,
+            quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

@@ -24,7 +24,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     from ultralytics import YOLO
     ```
 
-    !!!+ tip "Ultralytics Install"
+    ???+ tip "Ultralytics Install"
 
         See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 

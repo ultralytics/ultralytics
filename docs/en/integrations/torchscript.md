@@ -18,7 +18,7 @@ Developed by the creators of PyTorch, TorchScript is a powerful tool for optimiz
 
 The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensures that models like YOLOv8 can still work their magic even outside their usual Python environment.
 
-![2- Licensing 1920x1080](https://github.com/ultralytics/ultralytics/assets/25847604/b1b5cd64-02e5-4a8b-a4bf-f48acfa7be1f)
+![TorchScript Script and Trace](https://github.com/ultralytics/ultralytics/assets/26833433/ea9ea24f-a3a9-44bb-aca7-9c358d7490d7)
 
 TorchScript models can also be optimized through techniques such as operator fusion and refinements in memory usage, ensuring efficient execution. Another advantage of exporting to TorchScript is its potential to accelerate model execution across various hardware platforms. It creates a standalone, production-ready representation of your PyTorch model that can be integrated into C++ environments, embedded systems, or deployed in web or mobile applications.
 

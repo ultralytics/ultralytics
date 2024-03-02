@@ -39,7 +39,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     model = YOLO('yolov8n-seg.pt')
 
     # Run inference
-    result = model.predict()
+    results = model.predict()
     ```
 
     !!! question "No Prediction Arguments?"

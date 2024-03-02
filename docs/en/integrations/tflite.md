@@ -13,7 +13,7 @@ The TensorFlow Lite or TFLite export format allows you to optimize your [Ultraly
 ## Why should you export to TFLite?
 
 <p align="center">
-  <img width="100%" src="https://2.bp.blogspot.com/-mNcMMMsyQCc/XpT0ReRUTBI/AAAAAAAAC-g/-yQX6bCqbxEuSAlDNSUPQkytsn6Ml8qrQCLcBGAsYHQ/s1600/Screen%2BShot%2B2020-04-13%2Bat%2B4.22.27%2BPM.png" alt="TFLite Logo">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/26833433/ec80d1f4-9214-472b-95ed-2fb4b329572a" alt="TFLite Logo">
 </p>
 
 Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://www.tensorflow.org/lite/guide), or TFLite for short, is an open-source deep learning framework designed for on-device inference, also known as edge computing. It gives developers the necessary tools to execute their trained models on mobile, embedded, and IoT devices, as well as traditional computers. 
@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models]((../models/index.md)) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
 !!! Example "Usage"
 

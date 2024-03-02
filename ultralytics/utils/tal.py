@@ -121,7 +121,7 @@ class TaskAlignedAssigner(nn.Module):
         return align_metric, overlaps
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
-        """Iou calculation for horizontal bounding boxes."""
+        """IoU calculation for horizontal bounding boxes."""
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
@@ -260,7 +260,7 @@ class TaskAlignedAssigner(nn.Module):
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
     def iou_calculation(self, gt_bboxes, pd_bboxes):
-        """Iou calculation for rotated bounding boxes."""
+        """IoU calculation for rotated bounding boxes."""
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
     @staticmethod

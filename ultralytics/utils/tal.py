@@ -231,7 +231,7 @@ class TaskAlignedAssigner(nn.Module):
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
         """
-        If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
+        If an anchor box is assigned to multiple gts, the one with the highest IOU will be selected.
 
         Args:
             mask_pos (Tensor): shape(b, n_max_boxes, h*w)

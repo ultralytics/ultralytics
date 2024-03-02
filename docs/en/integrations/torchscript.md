@@ -26,7 +26,7 @@ TorchScript models can also be optimized through techniques such as operator fus
 
 TorchScript, a key part of the PyTorch ecosystem, provides powerful features for optimizing and deploying deep learning models. 
 
-![3- Licensing 1920x1080](https://github.com/ultralytics/ultralytics/assets/25847604/eef8fcd3-4a77-46ba-b2f3-952294de8ec5)
+![TorchScript Features](https://github.com/ultralytics/ultralytics/assets/26833433/44c7c5e3-1146-42db-952a-9060f070fead)
 
 Here are the key features that make TorchScript a valuable tool for developers:
 

@@ -16,15 +16,15 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 1.  Begin with the necessary imports
 
-    ```py
+    ```python
     from pathlib import Path
 
-    import cv2 as cv
+    import cv2
     import numpy as np
     from ultralytics import YOLO
     ```
 
-    ???+ tip "Ultralytics Install"
+    !!!+ tip "Ultralytics Install"
 
         See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
 
@@ -32,7 +32,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 2.  Load a model and run `predict()` method on a source.
 
-    ```py
+    ```python
     from ultralytics import YOLO
 
     # Load a model
@@ -42,7 +42,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     result = model.predict()
     ```
 
-    ??? question "No Prediction Arguments?"
+    !!! question "No Prediction Arguments?"
 
         Without specifying a source, the example images from the library will be used:
 
@@ -98,11 +98,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 
     # Draw contour onto mask
-    _ = cv.drawContours(b_mask,
+    _ = cv2.drawContours(b_mask,
                         [contour],
                         -1,
                         (255, 255, 255),
-                        cv.FILLED)
+                        cv2.FILLED)
 
     ```
 
@@ -136,7 +136,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     - The `tuple` `(255, 255, 255)` represents the color white, which is the desired color for drawing the contour in this binary mask.
 
-    - The addition of `cv.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
+    - The addition of `cv2.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
 
     - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more information.
 
@@ -155,10 +155,10 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
             ```py
             # Create 3-channel mask
-            mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
+            mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
 
             # Isolate object with binary mask
-            isolated = cv.bitwise_and(mask3ch, img)
+            isolated = cv2.bitwise_and(mask3ch, img)
 
             ```
 
@@ -266,7 +266,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         ```py
         # Save isolated object to file
-        _ = cv.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
+        _ = cv2.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
         ```
 
         - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the object detection (in case of multiple instances with the same class name).
@@ -278,7 +278,7 @@ Here, all steps from the previous section are combined into a single block of co
 ```{ .py .annotate }
 from pathlib import Path
 
-import cv2 as cv
+import cv2
 import numpy as np
 from ultralytics import YOLO
 
@@ -298,13 +298,13 @@ for r in res:
 
         # Create contour mask (1)
         contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-        _ = cv.drawContours(b_mask, [contour], -1, (255, 255, 255), cv.FILLED)
+        _ = cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
 
         # Choose one:
 
         # OPTION-1: Isolate object with black background
-        mask3ch = cv.cvtColor(b_mask, cv.COLOR_GRAY2BGR)
-        isolated = cv.bitwise_and(mask3ch, img)
+        mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+        isolated = cv2.bitwise_and(mask3ch, img)
 
         # OPTION-2: Isolate object with transparent background (when saved as PNG)
         isolated = np.dstack([img, b_mask])

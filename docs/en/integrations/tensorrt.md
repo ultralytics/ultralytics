@@ -52,7 +52,7 @@ TensorRT offers several deployment options, and each option balances ease of int
 
 - **Standalone TensorRT Runtime API**: Offers granular control, ideal for performance-critical applications. It's more complex but allows for custom implementation of unsupported operators.
 
-- **NVIDIA Triton Inference Server**: An option that supports models from various frameworks. Particularly suited for cloud or edge inferencing, it provides features like concurrent model execution and model analysis.
+- **NVIDIA Triton Inference Server**: An option that supports models from various frameworks. Particularly suited for cloud or edge inference, it provides features like concurrent model execution and model analysis.
 
 ## Exporting YOLOv8 Models to TensorRT
 

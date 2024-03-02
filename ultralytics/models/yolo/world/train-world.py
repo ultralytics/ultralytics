@@ -1,4 +1,5 @@
-from ultralytics.data import build_yolomultimodal_dataset, build_yolo_dataset, GroundingDataset
+from ultralytics.data import build_yolomultimodal_dataset, build_yolo_dataset, build_grounding, YOLOConcatDataset
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils import DEFAULT_CFG
@@ -23,6 +24,12 @@ class WorldTrainerFromScratch(WorldTrainer):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
+        # NOTE: debug
+        self.flickr30k_data = dict(
+            img_path="/d/dataset/YOLO-World/flick30k/flickr30k_images",
+            json_file="/d/dataset/YOLO-World/flick30k/final_flickr_separateGT_train.json",
+        )
+        self.gqa_data = dict(img_path="", json_path="")
 
     def build_dataset(self, img_path, mode="train", batch=None):
         """
@@ -35,4 +42,57 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode == "train":
-            pass
+            yolo_multimodal = build_yolomultimodal_dataset(self.args, img_path, batch, self.data["train"], stride=gs)
+            flickr30k = build_grounding(
+                self.args,
+                self.flickr30k_data["img_path"],
+                self.flickr30k_data["json_file"],
+                batch,
+                stride=gs,
+            )
+            # gqa = build_grounding(
+            #     self.args,
+            #     self.gqa_data["img_path"],
+            #     self.gqa_data["json_file"],
+            #     batch,
+            #     self.data["train"],
+            #     stride=gs,
+            # )
+            return YOLOConcatDataset([yolo_multimodal, flickr30k])
+        else:
+            return build_yolo_dataset(
+                self.args, img_path, batch, self.data["val"], mode=mode, rect=mode == "val", stride=gs
+            )
+
+    def get_dataset(self):
+        """
+        Get train, val path from data dict if it exists.
+
+        Returns None if data format is not recognized.
+        """
+        data_yaml = self.args.data
+        if isinstance(data_yaml, dict):
+            assert data_yaml.get("train", False)  # object365.yaml
+            assert data_yaml.get("val", False)  # lvis.yaml
+            data = {k: check_det_dataset(v) for k, v in data_yaml.items()}
+            if data["val"].get("minival", None) is not None:
+                data["val"]["minival"] = str(data["val"]["path"] / data["val"]["minival"])
+        else:
+            data = check_det_dataset(self.args.data)
+        # NOTE: to make training work smoothly, set `nc` and `names`
+        self.data = data
+        self.data["nc"] = data["train"]["nc"]
+        self.data["names"] = data["train"]["names"]
+        return data["train"]["train"], data["val"].get("val") or data["val"].get("minival")
+
+    def plot_training_labels(self):
+        """DO NOT plot labels."""
+        pass
+
+
+if __name__ == "__main__":
+    from ultralytics import YOLOWorld
+
+    model = YOLOWorld("yolov8s-world.pt")
+    data = dict(train="runs/data/coco.yaml", val="runs/data/coco.yaml")
+    model.train(data=data, batch=16, exist_ok=True, deterministic=False, epochs=1, trainer=WorldTrainerFromScratch)

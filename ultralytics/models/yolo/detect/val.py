@@ -172,25 +172,25 @@ class DetectionValidator(BaseValidator):
             stats["target_cls"].astype(int), minlength=self.nc
         )  # number of targets per class
         return self.metrics.results_dict
-    
+
     def save_report(self) -> None:
         """Saves report YAML file of validation metrics."""
         report = list()
         report.append(
             {
-                "class":"all",
-                "instances":int(self.nt_per_class.sum()),
-                **{k:float(v.round(5)) for k,v in zip(self.metrics.keys, self.metrics.mean_results())},
-                }
-            )
+                "class": "all",
+                "instances": int(self.nt_per_class.sum()),
+                **{k: float(v.round(5)) for k, v in zip(self.metrics.keys, self.metrics.mean_results())},
+            }
+        )
         for i, c in enumerate(self.metrics.ap_class_index):
             report.append(
                 {
-                    "class":self.names[c],
-                    "instances":int(self.nt_per_class[c]),
-                    **{k:float(v.round(5)) for k,v in zip(self.metrics.keys, self.metrics.class_result(i))},
-                    }
-                )
+                    "class": self.names[c],
+                    "instances": int(self.nt_per_class[c]),
+                    **{k: float(v.round(5)) for k, v in zip(self.metrics.keys, self.metrics.class_result(i))},
+                }
+            )
         val_report(report, self.save_dir / "val_report.yaml")
 
     def print_results(self):

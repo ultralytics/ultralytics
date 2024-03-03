@@ -1289,8 +1289,8 @@ class OBBMetrics(SimpleClass):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
 
-def val_report(data:dict, file:Path) -> None:
+
+def val_report(data: dict, file: Path) -> None:
     """Saves validation metrics as YAML file report."""
     file = Path(file)
     _ = file.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
-

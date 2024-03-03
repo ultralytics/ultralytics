@@ -24,7 +24,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Args:
         box1 (np.ndarray): A numpy array of shape (n, 4) representing n bounding boxes.
         box2 (np.ndarray): A numpy array of shape (m, 4) representing m bounding boxes.
-        iou (bool): Calculate the standard iou if True else return inter_area/box2_area.
+        iou (bool): Calculate the standard IoU if True else return inter_area/box2_area.
         eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
@@ -194,7 +194,7 @@ def _get_covariance_matrix(boxes):
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     """
-    Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+    Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
         obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
@@ -233,7 +233,7 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
 
 def batch_probiou(obb1, obb2, eps=1e-7):
     """
-    Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+    Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
         obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.

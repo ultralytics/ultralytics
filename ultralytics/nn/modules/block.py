@@ -558,7 +558,8 @@ class BNContrastiveHead(nn.Module):
 class RepBottleneck(nn.Module):
     """Rep bottleneck."""
 
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, kernels, groups, expand
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        """Initializes a RepBottleneck module with customizable in/out channels, shortcut option, groups and expansion ratio."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = RepConv(c1, c_, k[0], 1)
@@ -573,7 +574,8 @@ class RepBottleneck(nn.Module):
 class RepCSP(nn.Module):
     """Rep CSP Bottleneck with 3 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initializes RepCSP layer with given channels, repetitions, shortcut, groups and expansion ratio."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
@@ -589,7 +591,8 @@ class RepCSP(nn.Module):
 class RepNCSPELAN4(nn.Module):
     """CSP-ELAN."""
 
-    def __init__(self, c1, c2, c3, c4, n=1):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, c3, c4, n=1):
+        """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
         super().__init__()
         self.c = c3 // 2
         self.cv1 = Conv(c1, c3, 1, 1)
@@ -613,7 +616,8 @@ class RepNCSPELAN4(nn.Module):
 class ADown(nn.Module):
     """ADown."""
 
-    def __init__(self, c1, c2):  # ch_in, ch_out, shortcut, kernels, groups, expand
+    def __init__(self, c1, c2):
+        """Initializes ADown module with convolution layers to downsample input from channels c1 to c2."""
         super().__init__()
         self.c = c2 // 2
         self.cv1 = Conv(c1 // 2, self.c, 3, 2, 1)
@@ -632,7 +636,8 @@ class ADown(nn.Module):
 class SPPELAN(nn.Module):
     """SPP-ELAN."""
 
-    def __init__(self, c1, c2, c3, k=5):  # ch_in, ch_out, number, shortcut, groups, expansion
+    def __init__(self, c1, c2, c3, k=5):
+        """Initializes SPP-ELAN block with convolution and max pooling layers for spatial pyramid pooling."""
         super().__init__()
         self.c = c3
         self.cv1 = Conv(c1, c3, 1, 1)
@@ -652,6 +657,7 @@ class Silence(nn.Module):
     """Silence."""
 
     def __init__(self):
+        """Initializes the Silence module."""
         super(Silence, self).__init__()
 
     def forward(self, x):
@@ -662,7 +668,8 @@ class Silence(nn.Module):
 class CBLinear(nn.Module):
     """CBLinear."""
 
-    def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):  # ch_in, ch_outs, kernel, stride, padding, groups
+    def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):
+        """Initializes the CBLinear module, passing inputs unchanged."""
         super(CBLinear, self).__init__()
         self.c2s = c2s
         self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
@@ -677,6 +684,7 @@ class CBFuse(nn.Module):
     """CBFuse."""
 
     def __init__(self, idx):
+        """Initializes CBFuse module with layer index for selective feature fusion."""
         super(CBFuse, self).__init__()
         self.idx = idx
 

@@ -204,9 +204,9 @@ class Exporter:
             raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
         if isinstance(model, YOLOWorld):
             LOGGER.warning(
-                "WARNING ⚠️ YOLOWorld export is not supported to any formats.\n"
+                "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
                 "WARNING ⚠️ YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
-                "(openvino, onnx, coreml, engine, torchscript) formats.\n"
+                "(torchscript, onnx, openvino, engine, coreml) formats.\n"
                 "WARNING ⚠️ see https://docs.ultralytics.com/models/yolo-world for details."
             )
 

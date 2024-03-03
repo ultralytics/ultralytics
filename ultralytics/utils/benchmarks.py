@@ -32,7 +32,7 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
@@ -84,14 +84,20 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
-            if i == 9:
+            if i == 9:  # Edge TPU
                 assert LINUX, "Edge TPU export only supported on Linux"
-            elif i == 7:
+            elif i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i in {5, 10}:  # CoreML and TF.js
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
+            if i in {6, 7, 8, 9, 10}:  # All TF formats
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+            if i in {11}:  # Paddle
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
+            if i in {12}:  # NCNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -261,7 +267,8 @@ class ProfileModels:
         """
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
-    def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
+    @staticmethod
+    def iterative_sigma_clipping(data, sigma=2, max_iters=3):
         """Applies an iterative sigma clipping algorithm to the given data times number of iterations."""
         data = np.array(data)
         for _ in range(max_iters):
@@ -359,9 +366,13 @@ class ProfileModels:
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
         """Generates a formatted string for a table row that includes model performance and metric details."""
         layers, params, gradients, flops = model_info
-        return f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+        return (
+            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± "
+            f"{t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+        )
 
-    def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+    @staticmethod
+    def generate_results_dict(model_name, t_onnx, t_engine, model_info):
         """Generates a dictionary of model details including name, parameters, GFLOPS and speed metrics."""
         layers, params, gradients, flops = model_info
         return {
@@ -372,11 +383,18 @@ class ProfileModels:
             "model/speed_TensorRT(ms)": round(t_engine[0], 3),
         }
 
-    def print_table(self, table_rows):
+    @staticmethod
+    def print_table(table_rows):
         """Formats and prints a comparison table for different models with given statistics and performance data."""
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
-        header = f"| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
-        separator = "|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|"
+        header = (
+            f"| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | "
+            f"Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
+        )
+        separator = (
+            "|-------------|---------------------|--------------------|------------------------------|"
+            "-----------------------------------|------------------|-----------------|"
+        )
 
         print(f"\n\n{header}")
         print(separator)

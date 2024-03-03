@@ -68,7 +68,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 ## Split DOTA images
 
-To train DOTA dataset, We split original DOTA images with high-resolution into images with 1024x1024 resolution in multi-scale way.
+To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way.
 
 !!! Example "Split images"
 

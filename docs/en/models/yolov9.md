@@ -94,11 +94,11 @@ This example provides simple YOLOv9 training and inference examples. For full do
         ```python
         from ultralytics import YOLO
 
-        # Build a YOLOv9-c model from scratch
-        model = YOLO('yolov9-c.yaml')
+        # Build a YOLOv9c model from scratch
+        model = YOLO('yolov9c.yaml')
 
-        # Build a YOLOv9-c model from pretrained weight
-        model = YOLO('yolov9-c.pt')
+        # Build a YOLOv9c model from pretrained weight
+        model = YOLO('yolov9c.pt')
 
         # Display model information (optional)
         model.info()
@@ -106,7 +106,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv9-c model on the 'bus.jpg' image
+        # Run inference with the YOLOv9c model on the 'bus.jpg' image
         results = model('path/to/bus.jpg')
         ```
 
@@ -115,21 +115,21 @@ This example provides simple YOLOv9 training and inference examples. For full do
         CLI commands are available to directly run the models:
 
         ```bash
-        # Build a YOLOv9-c model from scratch and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov9-c.yaml data=coco8.yaml epochs=100 imgsz=640
+        # Build a YOLOv9c model from scratch and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov9c.yaml data=coco8.yaml epochs=100 imgsz=640
 
-        # Build a YOLOv9-c model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov9-c.yaml source=path/to/bus.jpg
+        # Build a YOLOv9c model from scratch and run inference on the 'bus.jpg' image
+        yolo predict model=yolov9c.yaml source=path/to/bus.jpg
         ```
 
 ## Supported Tasks and Modes
 
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model Type | Pre-trained Weights                                                                      | Tasks Supported                        | Inference | Validation | Training | Export |
-|------------|------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv9-C   | [yolov9-c.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9-c.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv9-E   | [yolov9-e.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9-e.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type | Pre-trained Weights                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
+|------------|-----------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
+| YOLOv9-C   | [yolov9c.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv9-E   | [yolov9e.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.
 

@@ -514,10 +514,10 @@ class Annotator:
             det_label (str): Detection label text
             track_label (str): Tracking label text
         """
-        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=3)
+        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f"Track ID: {track_label}" if track_label else det_label
-        text_size, _ = cv2.getTextSize(label, 0, 1.2, 3)
+        text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
 
         cv2.rectangle(
             self.im,
@@ -528,7 +528,7 @@ class Annotator:
         )
 
         cv2.putText(
-            self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 1.2, (255, 255, 255), 3
+            self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255), 2
         )
 
     def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):

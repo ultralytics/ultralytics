@@ -86,3 +86,23 @@ keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, S
 ## ::: ultralytics.nn.modules.block.ResNetLayer
 
 <br><br>
+
+## ::: ultralytics.nn.modules.block.MaxSigmoidAttnBlock
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.C2fAttn
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ImagePoolingAttn
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ContrastiveHead
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.BNContrastiveHead
+
+<br><br>

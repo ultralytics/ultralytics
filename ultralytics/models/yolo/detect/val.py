@@ -10,7 +10,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou, val_report
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
@@ -172,6 +172,26 @@ class DetectionValidator(BaseValidator):
             stats["target_cls"].astype(int), minlength=self.nc
         )  # number of targets per class
         return self.metrics.results_dict
+    
+    def save_report(self) -> None:
+        """Saves report YAML file of validation metrics."""
+        report = list()
+        report.append(
+            {
+                "class":"all",
+                "instances":int(self.nt_per_class.sum()),
+                **{k:float(v.round(5)) for k,v in zip(self.metrics.keys, self.metrics.mean_results())},
+                }
+            )
+        for i, c in enumerate(self.metrics.ap_class_index):
+            report.append(
+                {
+                    "class":self.names[c],
+                    "instances":int(self.nt_per_class[c]),
+                    **{k:float(v.round(5)) for k,v in zip(self.metrics.keys, self.metrics.class_result(i))},
+                    }
+                )
+        val_report(report, self.save_dir / "val_report.yaml")
 
     def print_results(self):
         """Prints training/validation set metrics per class."""
@@ -184,6 +204,9 @@ class DetectionValidator(BaseValidator):
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
+
+        if self.args.save_report and not self.training and self.nc > 1 and len(self.stats):
+            self.save_report()
 
         if self.args.plots:
             for normalize in True, False:

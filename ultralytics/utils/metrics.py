@@ -8,6 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import yaml
 
 from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -1287,3 +1288,9 @@ class OBBMetrics(SimpleClass):
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
+
+def val_report(data:dict, file:Path) -> None:
+    """Saves validation metrics as YAML file report."""
+    file = Path(file)
+    _ = file.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+

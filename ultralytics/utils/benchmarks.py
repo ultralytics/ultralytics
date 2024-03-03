@@ -32,7 +32,7 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
@@ -92,6 +92,8 @@ def benchmark(
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
+            if i in {6, 7, 8, 9, 10}: # All TF formats
+                assert not isinstance(model, YOLOWorld), "YOLOWorld TensorFlow exports not supported due to onnx2tf bug"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

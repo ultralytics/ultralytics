@@ -163,7 +163,6 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
         cv2.destroyAllWindows()
         ```
 
-
 ### `visioneye` Arguments
 
 | Name          | Type    | Default          | Description                                      |

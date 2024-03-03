@@ -537,7 +537,6 @@ class BNContrastiveHead(nn.Module):
 
     Args:
         embed_dims (int): Embed dimensions of text and image features.
-        norm_cfg (dict): Normalization parameters.
     """
 
     def __init__(self, embed_dims: int):

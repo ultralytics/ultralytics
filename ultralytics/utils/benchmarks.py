@@ -93,9 +93,9 @@ def benchmark(
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
             if i in {6, 7, 8, 9, 10}:  # All TF formats
-                assert not isinstance(model, YOLOWorld), "YOLOWorld TensorFlow exports not supported due to onnx2tf bug"
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle
-                assert not isinstance(model, YOLOWorld), "YOLOWorld Paddle exports not supported yet"
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

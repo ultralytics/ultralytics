@@ -95,6 +95,7 @@ When validating YOLO models, several arguments can be fine-tuned to optimize the
 | `plots`       | `bool`  | `False` | When set to `True`, generates and saves plots of predictions versus ground truth for visual evaluation of the model's performance.                            |
 | `rect`        | `bool`  | `False` | If `True`, uses rectangular inference for batching, reducing padding and potentially increasing speed and efficiency.                                         |
 | `split`       | `str`   | `val`   | Determines the dataset split to use for validation (`val`, `test`, or `train`). Allows flexibility in choosing the data segment for performance evaluation.   |
+| `save_report` | `bool`  | `True`  | Saves report of validation metrics (similar to console print out) to YAML file.                                                                               |
 
 Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.
 

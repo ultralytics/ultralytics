@@ -488,6 +488,8 @@ class BaseTrainer:
             "train_results": results,
             "date": datetime.now().isoformat(),
             "version": __version__,
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
         }
 
         # Save last and best

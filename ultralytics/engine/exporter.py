@@ -1088,7 +1088,7 @@ class Exporter:
         # Save the model
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
-        model.input_description["iouThreshold"] = f"(optional) IOU threshold override (default: {nms.iouThreshold})"
+        model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
         model.input_description["confidenceThreshold"] = (
             f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         )

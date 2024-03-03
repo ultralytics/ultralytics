@@ -20,7 +20,7 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is an _extremely_ resource heavy and time consuming process. If you have a YOLO object detection model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
+Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO object detection model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
 
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
@@ -211,7 +211,7 @@ boxes.bboxes
 See the [`Bboxes` reference section](../reference/utils/instance.md#ultralytics.utils.instance.Bboxes) for more attributes and methods available.
 
 !!! tip
-    Many of the following functions (and more) can be accessed using the [`Bboxes` class](#bounding-box-horizontal-instances) but if you prefer to work with the functions directly, see the next sub-sections on how to import these independently. 
+    Many of the following functions (and more) can be accessed using the [`Bboxes` class](#bounding-box-horizontal-instances) but if you prefer to work with the functions directly, see the next subsections on how to import these independently. 
 
 ### Scaling Boxes
 
@@ -385,7 +385,7 @@ for obb in obb_boxes:
 image_with_obb = ann.result()
 ```
 
-See the [`Annotator` Reference Page](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) page for additional insight.
+See the [`Annotator` Reference Page](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) for additional insight.
 
 ## Miscellaneous 
 

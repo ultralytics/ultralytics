@@ -59,11 +59,11 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 **Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
 
 | Model    | size<br><sup>(pixels) | AP<sup>val<br>50-95 | AP<sup>val<br>50 | AP<sup>val<br>75 | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------|:---------------------:|:-------------------:|:----------------:|:----------------:|:------------------:|:-----------------:|
-| YOLOv9-S |  640                  | 46.8                | 63.4             | 50.7             | 7.2                | 26.7              |
-| YOLOv9-M |  640                  | 51.4                | 68.1             | 56.1             | 20.1               | 76.8              |
-| YOLOv9-C |  640                  | 53.0                | 70.2             | 57.8             | 25.5               | 102.8             |
-| YOLOv9-E |  640                  | 55.6                | 72.8             | 60.6             | 58.1               | 192.5             |
+|----------|-----------------------|---------------------|------------------|------------------|--------------------|-------------------|
+| YOLOv9-S | 640                   | 46.8                | 63.4             | 50.7             | 7.2                | 26.7              |
+| YOLOv9-M | 640                   | 51.4                | 68.1             | 56.1             | 20.1               | 76.8              |
+| YOLOv9-C | 640                   | 53.0                | 70.2             | 57.8             | 25.5               | 102.8             |
+| YOLOv9-E | 640                   | 55.6                | 72.8             | 60.6             | 58.1               | 192.5             |
 
 YOLOv9's iterations, ranging from the smaller S variant to the extensive E model, demonstrate improvements not only in accuracy (AP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
 

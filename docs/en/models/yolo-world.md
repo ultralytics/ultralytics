@@ -36,21 +36,29 @@ This section details the models available with their specific pre-trained weight
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type    | Pre-trained Weights                                                                                 | Tasks Supported                        | Inference | Validation | Training | Export |
-|---------------|-----------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv8s-world | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8m-world | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8l-world | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8x-world | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
+| Model Type      | Pre-trained Weights                                                                                   | Tasks Supported                        | Inference | Validation | Training | Export |
+|-----------------|-------------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
+| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt)   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt)   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt)   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt)   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Zero-shot Transfer on COCO Dataset
 
-| Model Type    | mAP  | mAP50 | mAP75 |
-|---------------|------|-------|-------|
-| yolov8s-world | 37.4 | 52.0  | 40.6  |
-| yolov8m-world | 42.0 | 57.0  | 45.6  |
-| yolov8l-world | 45.7 | 61.3  | 49.8  |
-| yolov8x-world | 47.0 | 63.0  | 51.2  |
+| Model Type      | mAP  | mAP50 | mAP75 |
+|-----------------|------|-------|-------|
+| yolov8s-world   | 37.4 | 52.0  | 40.6  |
+| yolov8s-worldv2 | 37.7 | 52.2  | 41.0  |
+| yolov8m-world   | 42.0 | 57.0  | 45.6  |
+| yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
+| yolov8l-world   | 45.7 | 61.3  | 49.8  |
+| yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
+| yolov8x-world   | 47.0 | 63.0  | 51.2  |
+| yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
 
 ## Usage Examples
 

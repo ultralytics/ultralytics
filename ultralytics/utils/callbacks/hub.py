@@ -33,6 +33,11 @@ def on_fit_epoch_end(trainer):
             all_plots = {**all_plots, **model_info_for_loggers(trainer)}
 
         session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
+
+        # If any metrics fail to upload, add them to the queue to attempt uploading again.
+        if session.metrics_upload_failed_queue:
+            session.metrics_queue.update(session.metrics_upload_failed_queue)
+
         if time() - session.timers["metrics"] > session.rate_limits["metrics"]:
             session.upload_metrics()
             session.timers["metrics"] = time()  # reset timer
@@ -46,7 +51,7 @@ def on_model_save(trainer):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
         if time() - session.timers["ckpt"] > session.rate_limits["ckpt"]:
-            LOGGER.info(f"{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model_id}")
+            LOGGER.info(f"{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model.id}")
             session.upload_model(trainer.epoch, trainer.last, is_best)
             session.timers["ckpt"] = time()  # reset timer
 

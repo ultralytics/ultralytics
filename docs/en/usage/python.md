@@ -249,7 +249,7 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 ## Explorer
 
-Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
+Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also enabled searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
 
 !!! Example "Semantic Search Using Explorer"
 

@@ -147,7 +147,7 @@ def nms_rotated(boxes, scores, threshold=0.45):
     Args:
         boxes (torch.Tensor): (N, 5), xywhr.
         scores (torch.Tensor): (N, ).
-        threshold (float): Iou threshold.
+        threshold (float): IoU threshold.
 
     Returns:
     """
@@ -287,7 +287,7 @@ def non_max_suppression(
         # if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
         #     # Update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
         #     from .metrics import box_iou
-        #     iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+        #     iou = box_iou(boxes[i], boxes) > iou_thres  # IoU matrix
         #     weights = iou * scores[None]  # box weights
         #     x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
         #     redundant = True  # require redundant detections

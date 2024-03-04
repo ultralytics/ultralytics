@@ -196,7 +196,6 @@ class ObjectCounter:
                     current_position = "in" if is_inside else "out"
 
                     if prev_position is not None:
-                        is_inside = self.counting_region.contains(centroid)
 
                         if self.counting_dict[track_id] != current_position and is_inside:
                             self.in_counts += 1
@@ -211,15 +210,21 @@ class ObjectCounter:
                         self.counting_dict[track_id] = current_position
 
                 elif len(self.reg_pts) == 2:
+                    
                     if prev_position is not None:
-                        distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.line_dist_thresh and track_id not in self.counting_dict:
-                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                                self.in_counts += 1
-                                self.counting_dict[track_id] = "in"
-                            else:
-                                self.out_counts += 1
-                                self.counting_dict[track_id] = "out"
+                        is_inside = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0
+                        current_position = "in" if is_inside else "out"
+                        
+                        if self.counting_dict[track_id] != current_position and is_inside:
+                            self.in_counts += 1
+                            self.counting_dict[track_id] = "in"
+                        elif self.counting_dict[track_id] != current_position and not is_inside:
+                            self.out_counts += 1
+                            self.counting_dict[track_id] = "out"
+                        else:
+                            self.counting_dict[track_id] = current_position                    
+                    else:
+                        self.counting_dict[track_id] = None
 
         incount_label = f"In Count : {self.in_counts}"
         outcount_label = f"OutCount : {self.out_counts}"

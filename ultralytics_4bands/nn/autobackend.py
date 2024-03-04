@@ -378,7 +378,7 @@ class AutoBackend(nn.Module):
         if len(im.shape) > 3:  # batched
             b, ch, h, w = im.shape  # batch size, channels, height, width
         elif len(im.shape) == 3:  # single image
-            b, ch, h, w = 1, *im.shape  # batch size, channels, height, width
+            b, ch, h, w = 1, * im.shape  # batch size, channels, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:
@@ -506,13 +506,16 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz=(1, 3, 640, 640)):
+    def warmup(self, imgsz=(1, 4, 640, 640)):
         """
         Warm up the model by running one forward pass with a dummy input.
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
+        if imgsz[1] != 4:
+            imgsz[1] = 4  # 4 channels
+
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input

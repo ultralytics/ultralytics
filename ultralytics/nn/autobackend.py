@@ -180,7 +180,7 @@ class AutoBackend(nn.Module):
             metadata = session.get_modelmeta().custom_metadata_map  # metadata
         elif xml:  # OpenVINO
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2023.3")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+            check_requirements("openvino>=2023.3")  # requires openvino: https://pypi.org/project/openvino-dev/
             import openvino as ov  # noqa
 
             core = ov.Core()

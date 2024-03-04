@@ -214,7 +214,7 @@ class ObjectCounter:
                     if prev_position is not None:
                         distance = Point(track_line[-1]).distance(self.counting_region)
                         if distance < self.line_dist_thresh and track_id not in self.counting_dict:
-                            self.counting_dict.append(track_id)
+
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
                                 self.counting_dict[track_id] = "in"

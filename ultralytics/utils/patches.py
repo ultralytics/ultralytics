@@ -60,27 +60,29 @@ def imshow(winname: str, mat: np.ndarray):
 _torch_save = torch.save  # copy to avoid recursion errors
 
 
-def torch_save(*args, **kwargs):
+def torch_save(*args, use_dill=True, **kwargs):
     """
-    Use dill (if exists) to serialize the lambda functions where pickle does not do this. Also adds 3 retries with
-    exponential standoff in case of save failure to improve robustness to transient issues.
+    Optionally use dill to serialize lambda functions where pickle does not, adding robustness with 3 retries and
+    exponential standoff in case of save failure.
 
     Args:
         *args (tuple): Positional arguments to pass to torch.save.
+        use_dill (bool): Whether to try using dill for serialization if available. Defaults to True.
         **kwargs (dict): Keyword arguments to pass to torch.save.
     """
     try:
-        import dill as pickle  # noqa
-    except ImportError:
+        assert use_dill
+        import dill as pickle
+    except (AssertionError, ImportError):
         import pickle
 
     if "pickle_module" not in kwargs:
-        kwargs["pickle_module"] = pickle  # noqa
+        kwargs["pickle_module"] = pickle
 
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)
-        except RuntimeError:  # unable to save, possibly waiting for device to flush or anti-virus to finish scanning
+        except RuntimeError as e:  # unable to save, possibly waiting for device to flush or antivirus scan
             if i == 3:
-                raise
-            time.sleep((2**i) / 2)  # exponential standoff 0.5s, 1.0s, 2.0s
+                raise e
+            time.sleep((2**i) / 2)  # exponential standoff: 0.5s, 1.0s, 2.0s

@@ -142,7 +142,7 @@ class SegmentationValidator(DetectionValidator):
                 self.stats[k].append(stat[k])
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-            if self.args.plots and self.batch_i < 3:
+            if self.args.plots and self.batch_i < self.args.n_plots:
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save

@@ -13,9 +13,9 @@ class YOLO(Model):
 
     def __init__(self, model="yolov8n.pt", task=None, verbose=False):
         """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""
-        model = Path(model)
-        if "-world" in model.stem and model.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
-            new_instance = YOLOWorld(model)
+        path = Path(model)
+        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+            new_instance = YOLOWorld(path)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:

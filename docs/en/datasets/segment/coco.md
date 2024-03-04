@@ -10,7 +10,7 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset, an extension of the COCO 
 
 ## Key Features
 
-- COCO-Seg retains the original 330K images from COCO.
+- COCO-Seg retains the original 133K images from COCO.
 - The dataset consists of the same 80 object categories found in the original COCO dataset.
 - Annotations now include more detailed instance segmentation masks for each object in the images.
 - COCO-Seg provides standardized evaluation metrics like mean Average Precision (mAP) for object detection, and mean Average Recall (mAR) for instance segmentation tasks, enabling effective comparison of model performance.

@@ -418,7 +418,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
         fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
-        f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
+        f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
         fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
 
         def serialize(ov_model, file, compress_to_fp16):
@@ -438,14 +438,11 @@ class Exporter:
         dynamic = self.args.dynamic
         if dynamic:
             ov_model = ov.convert_model(
-                self.model,
-                example_input=torch.ones(self.im.shape, dtype=torch.float32)
+                self.model, example_input=torch.ones(self.im.shape, dtype=torch.float32)
             )  # export
         else:
             ov_model = ov.convert_model(
-                self.model,
-                example_input=torch.ones(self.im.shape, dtype=torch.float32),
-                input=self.im.shape
+                self.model, example_input=torch.ones(self.im.shape, dtype=torch.float32), input=self.im.shape
             )  # export
 
         if self.args.int8:

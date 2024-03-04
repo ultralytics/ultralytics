@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Coral, Edge TPU, Raspberry Pi, 
 
 ## What is a Coral Edge TPU?
 
-The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inferencing for TensorFlow Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
+The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for TensorFlow Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
 
 ## Boost Raspberry Pi Model Performance with Coral Edge TPU
 
@@ -37,16 +37,16 @@ This guide assumes that you already have a working Raspberry Pi OS install and h
 
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the right version for your operating system.
 
-| Raspberry Pi OS | High frequency mode | Version to download                      |
-|-----------------|:-------------------:|------------------------------------------|
-| Bullseye 32bit  |         No          | libedgetpu1-std_ ... .bullseye_armhf.deb |
-| Bullseye 64bit  |         No          | libedgetpu1-std_ ... .bullseye_arm64.deb |
-| Bullseye 32bit  |         Yes         | libedgetpu1-max_ ... .bullseye_armhf.deb |
-| Bullseye 64bit  |         Yes         | libedgetpu1-max_ ... .bullseye_arm64.deb |
-| Bookworm 32bit  |         No          | libedgetpu1-std_ ... .bookworm_armhf.deb |
-| Bookworm 64bit  |         No          | libedgetpu1-std_ ... .bookworm_arm64.deb |
-| Bookworm 32bit  |         Yes         | libedgetpu1-max_ ... .bookworm_armhf.deb |
-| Bookworm 64bit  |         Yes         | libedgetpu1-max_ ... .bookworm_arm64.deb |
+| Raspberry Pi OS | High frequency mode | Version to download                        |
+|-----------------|:-------------------:|--------------------------------------------|
+| Bullseye 32bit  |         No          | `libedgetpu1-std_ ... .bullseye_armhf.deb` |
+| Bullseye 64bit  |         No          | `libedgetpu1-std_ ... .bullseye_arm64.deb` |
+| Bullseye 32bit  |         Yes         | `libedgetpu1-max_ ... .bullseye_armhf.deb` |
+| Bullseye 64bit  |         Yes         | `libedgetpu1-max_ ... .bullseye_arm64.deb` |
+| Bookworm 32bit  |         No          | `libedgetpu1-std_ ... .bookworm_armhf.deb` |
+| Bookworm 64bit  |         No          | `libedgetpu1-std_ ... .bookworm_arm64.deb` |
+| Bookworm 32bit  |         Yes         | `libedgetpu1-max_ ... .bookworm_armhf.deb` |
+| Bookworm 64bit  |         Yes         | `libedgetpu1-max_ ... .bookworm_arm64.deb` |
 
 [Download the latest version from here](https://github.com/feranick/libedgetpu/releases).
 

@@ -48,7 +48,7 @@ from ultralytics.nn.modules import (
     SPPELAN,
     CBFuse,
     CBLinear,
-    Silence
+    Silence,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -576,7 +576,7 @@ class WorldModel(DetectionModel):
         text_token = clip.tokenize(text).to(device)
         txt_feats = model.encode_text(text_token).to(dtype=torch.float32)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).detach()
         self.model[-1].nc = len(text)
 
     def init_criterion(self):

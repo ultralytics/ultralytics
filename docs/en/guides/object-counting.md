@@ -175,8 +175,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | Name                  | Type        | Default                    | Description                                   |
 |-----------------------|-------------|----------------------------|-----------------------------------------------|
 | `view_img`            | `bool`      | `False`                    | Display frames with counts                    |
-| `view_in_counts`      | `bool`      | `True`                     | Display incounts only on video frame          |
-| `view_out_counts`     | `bool`      | `True`                     | Display outcounts only on video frame         |
+| `view_in_counts`      | `bool`      | `True`                     | Display in-counts only on video frame         |
+| `view_out_counts`     | `bool`      | `True`                     | Display out-counts only on video frame        |
 | `line_thickness`      | `int`       | `2`                        | Increase bounding boxes thickness             |
 | `reg_pts`             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area               |
 | `classes_names`       | `dict`      | `model.model.names`        | Dictionary of Class Names                     |

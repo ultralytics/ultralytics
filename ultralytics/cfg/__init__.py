@@ -133,7 +133,7 @@ CFG_INT_KEYS = (
     "workspace",
     "nbs",
     "save_period",
-    "n_plots"
+    "n_plots",
 )
 CFG_BOOL_KEYS = (
     "save",

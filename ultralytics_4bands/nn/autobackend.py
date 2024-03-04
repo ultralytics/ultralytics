@@ -514,7 +514,7 @@ class AutoBackend(nn.Module):
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
         if imgsz[1] != 4:
-            imgsz[1] = 4  # 4 channels
+            imgsz = (1, 4, *imgsz[2:])
 
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):

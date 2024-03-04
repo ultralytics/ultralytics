@@ -481,13 +481,13 @@ class Exporter:
 
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
-                        f"/{head_module_name}/Add",
-                        f"/{head_module_name}/Sub",
-                        f"/{head_module_name}/Mul",
-                        f"/{head_module_name}/Div",
-                        f"/{head_module_name}/dfl",
+                        f"__module.{head_module_name}.*Add",
+                        f"__module.{head_module_name}.*Sub",
+                        f"__module.{head_module_name}.*Mul",
+                        f"__module.{head_module_name}.*Div",
+                        f"__module.{head_module_name}.*dfl",
                     ],
-                    names=[f"/{head_module_name}/Sigmoid"],
+                    names=[f"__module.{head_module_name}/aten::sigmoid/Sigmoid"],
                 )
             quantized_ov_model = nncf.quantize(
                 ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope

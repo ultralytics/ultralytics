@@ -112,8 +112,7 @@ class ObjectCounter:
             self.reg_pts = reg_pts
             self.counting_region = Polygon(self.reg_pts)
         else:
-            print(
-                "Invalid Region points provided, region_points must be 2 for lines or greater or equal than 3 for polygons"
+            print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons."
             )
             print("Using Line Counter Now")
             self.counting_region = LineString(self.reg_pts)

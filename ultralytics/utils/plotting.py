@@ -1084,5 +1084,4 @@ def determine_color(color_purpose, mask_idxs=None, box_idx=None, color=None):
         elif color_purpose == "font":
             parse_color = (255, 255, 255)
 
-
     return parse_color

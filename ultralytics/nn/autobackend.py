@@ -269,7 +269,7 @@ class AutoBackend(nn.Module):
             except ImportError:
                 import tensorflow.lite.Interpreter as Interpreter
                 import tensorflow.lite.experimental.load_delegate as load_delegate
-                
+
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")
                 delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[

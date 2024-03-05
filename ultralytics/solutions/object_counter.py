@@ -251,9 +251,7 @@ class ObjectCounter:
     def display_frames(self):
         """Display frame."""
         if self.env_check:
-            self.annotator.draw_region(
-                reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness
-            )  # it will keep region despite object doesn't appear on image
+            self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
             cv2.namedWindow(self.window_name)
             if len(self.reg_pts) == 4:  # only add mouse event If user drawn region
                 cv2.setMouseCallback(self.window_name, self.mouse_event_for_region, {"region_points": self.reg_pts})
@@ -271,7 +269,7 @@ class ObjectCounter:
             tracks (list): List of tracks obtained from the object tracking process.
         """
         self.im0 = im0  # store image
-        self.extract_and_process_tracks(tracks)  # this will draw region counting despite no object appears on image
+        self.extract_and_process_tracks(tracks)  # draw region even if no objects
 
         if self.view_img:
             self.display_frames()

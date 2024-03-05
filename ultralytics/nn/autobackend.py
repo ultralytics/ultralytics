@@ -267,8 +267,8 @@ class AutoBackend(nn.Module):
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
-                import tensorflow.lite.Interpreter as Interpreter
-                import tensorflow.lite.experimental.load_delegate as load_delegate
+                from tensorflow.lite import Interpreter
+                from tensorflow.lite.experimental import load_delegate
 
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")

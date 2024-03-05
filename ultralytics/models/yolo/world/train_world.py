@@ -1,5 +1,4 @@
 from ultralytics.data import build_yolomultimodal_dataset, build_yolo_dataset, build_grounding, YOLOConcatDataset
-from ultralytics.models.yolo.world import WorldTrainerFromScratch
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils.torch_utils import de_parallel

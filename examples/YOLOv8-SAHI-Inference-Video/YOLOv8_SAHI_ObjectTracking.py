@@ -83,8 +83,8 @@ def run(
         results = get_sliced_prediction(
             frame,
             detection_model,
-            slice_height=512,
-            slice_width=512,
+            slice_height=int(frame_height//zoom_factor),
+            slice_width=int(frame_width//zoom_factor),
             overlap_height_ratio=0.05,
             overlap_width_ratio=0.1,
         )

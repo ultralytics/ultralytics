@@ -12,8 +12,17 @@ from ultralytics.utils.files import increment_path
 from sahi.utils.yolov8 import download_yolov8s_model
 
 
-
-def run(weights="yolov8n.pt", source="test.mp4", without_tracking = False, with_tracking=False,view_img=False, zoom_factor = 1.5,conf_threshold = 0.3,save_img=False, exist_ok=False):
+def run(
+    weights="yolov8n.pt",
+    source="test.mp4",
+    without_tracking=False,
+    with_tracking=False,
+    view_img=False,
+    zoom_factor=1.5,
+    conf_threshold=0.3,
+    save_img=False,
+    exist_ok=False,
+):
     """
     Run object detection on a video using YOLOv8 and SAHI.
 
@@ -53,15 +62,18 @@ def run(weights="yolov8n.pt", source="test.mp4", without_tracking = False, with_
     save_dir.mkdir(parents=True, exist_ok=True)
 
     if is_webcam:
-        video_writer = cv2.VideoWriter(str(save_dir / f"{str(source)}_output.mp4"), fourcc, fps, (frame_width, frame_height))
+        video_writer = cv2.VideoWriter(
+            str(save_dir / f"{str(source)}_output.mp4"), fourcc, fps, (frame_width, frame_height)
+        )
     else:
-        video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height))
+        video_writer = cv2.VideoWriter(
+            str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height)
+        )
 
     tracker = None
     if with_tracking:
         config = get_config()
-        tracker = DeepSort(model_path='deep_sort/deep/checkpoint/ckpt.t7', max_age=70)
-
+        tracker = DeepSort(model_path="deep_sort/deep/checkpoint/ckpt.t7", max_age=70)
 
     while videocapture.isOpened():
         success, frame = videocapture.read()
@@ -69,11 +81,16 @@ def run(weights="yolov8n.pt", source="test.mp4", without_tracking = False, with_
             break
 
         results = get_sliced_prediction(
-            frame, detection_model, slice_height=512, slice_width=512, overlap_height_ratio=0.05, overlap_width_ratio=0.1
+            frame,
+            detection_model,
+            slice_height=512,
+            slice_width=512,
+            overlap_height_ratio=0.05,
+            overlap_width_ratio=0.1,
         )
         object_prediction_list = results.object_prediction_list
 
-        #DeepSort Tracking
+        # DeepSort Tracking
         if with_tracking:
             # uncomment the following line to track only person class
             # person_predictions = [obj for obj in object_prediction_list if obj.category.name == "person"]
@@ -84,30 +101,42 @@ def run(weights="yolov8n.pt", source="test.mp4", without_tracking = False, with_
             data = []
             for person_pred in person_predictions:
                 boxes = (
-                    person_pred.bbox.minx, person_pred.bbox.miny, person_pred.bbox.maxx, person_pred.bbox.maxy,
-                    person_pred.score.value
+                    person_pred.bbox.minx,
+                    person_pred.bbox.miny,
+                    person_pred.bbox.maxx,
+                    person_pred.bbox.maxy,
+                    person_pred.score.value,
                 )
                 boxes_list.append(boxes)
 
             if boxes_list:
-                conf = np.array(boxes_list)[:,-1].reshape(-1, 1)
-                boxes_np = np.array(boxes_list,dtype=np.int16)[:, :-1]
+                conf = np.array(boxes_list)[:, -1].reshape(-1, 1)
+                boxes_np = np.array(boxes_list, dtype=np.int16)[:, :-1]
                 trackers = tracker.update(boxes_np, conf, frame)
                 for track in trackers:
                     bbox = track[0:4]  # Get x1, y1, x2, y2 coordinates directly
                     track_id = track[4]
 
-                    data.append({
-                        'id': int(track_id),
-                        'bbox': np.array(bbox, dtype=np.int16)
-                    })
+                    data.append({"id": int(track_id), "bbox": np.array(bbox, dtype=np.int16)})
 
-                    cvzone.cornerRect(frame, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])), l=0, rt=1, t=1,
-                                      colorR=(0, 0, 255), colorC=(0, 0, 255))
-                    cvzone.putTextRect(frame, f'Track ID: {int(track_id)}', (max(0, int(bbox[0])),
-                                                                             max(0, int(bbox[1]))), 1, 2,
-                                       colorT=(255, 255, 255), colorR=(0, 0, 255))
-
+                    cvzone.cornerRect(
+                        frame,
+                        (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])),
+                        l=0,
+                        rt=1,
+                        t=1,
+                        colorR=(0, 0, 255),
+                        colorC=(0, 0, 255),
+                    )
+                    cvzone.putTextRect(
+                        frame,
+                        f"Track ID: {int(track_id)}",
+                        (max(0, int(bbox[0])), max(0, int(bbox[1]))),
+                        1,
+                        2,
+                        colorT=(255, 255, 255),
+                        colorR=(0, 0, 255),
+                    )
 
         if without_tracking:
             boxes_list = []
@@ -164,10 +193,12 @@ def parse_opt():
     parser.add_argument("--with-tracking", action="store_true", help="enable DeepSort tracking")
     return parser.parse_args()
 
+
 def main(opt):
     """Main function."""
     run(**vars(opt))
 
+
 if __name__ == "__main__":
     opt = parse_opt()
-    main(opt)   
+    main(opt)

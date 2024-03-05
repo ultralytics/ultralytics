@@ -45,7 +45,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode == "train":
-            yolo_multimodal = build_yolomultimodal_dataset(self.args, img_path, batch, self.data["train"], stride=gs)
+            # yolo_multimodal = build_yolomultimodal_dataset(self.args, img_path, batch, self.data["train"], stride=gs)
             flickr30k = build_grounding(
                 self.args,
                 self.flickr30k_data["img_path"],
@@ -61,7 +61,7 @@ class WorldTrainerFromScratch(WorldTrainer):
                 self.data["train"],
                 stride=gs,
             )
-            return YOLOConcatDataset([yolo_multimodal, flickr30k, gqa])
+            return YOLOConcatDataset([flickr30k, gqa])
         else:
             return build_yolo_dataset(
                 self.args, img_path, batch, self.data["val"], mode=mode, rect=mode == "val", stride=gs
@@ -92,10 +92,14 @@ class WorldTrainerFromScratch(WorldTrainer):
         """DO NOT plot labels."""
         pass
 
+    def final_eval(self):
+        """Performs final evaluation and validation for object detection YOLO model."""
+        self.validator.args.data = self.args.data["val"]
+        return super().final_eval()
+
 
 if __name__ == "__main__":
     from ultralytics import YOLOWorld
 
     model = YOLOWorld("yolov8s-worldv2.yaml")
-    data = dict(train="Objects365.yaml", val="lvis.yaml")
-    model.train(data=data, batch=16, exist_ok=True, deterministic=False, epochs=1, trainer=WorldTrainerFromScratch)
+    model.train(data=data, batch=128, exist_ok=True, epochs=1, trainer=WorldTrainerFromScratch)

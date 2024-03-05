@@ -275,7 +275,7 @@ class Results(SimpleClass):
                     / 255
                 )
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            m_color = determine_color('mask', color=mask_color, mask_idexes=idx)
+            m_color = determine_color('mask', color=mask_color, mask_idxs=idx)
             annotator.masks(pred_masks.data, colors=m_color, im_gpu=im_gpu)
 
         # Plot Detect results

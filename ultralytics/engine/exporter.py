@@ -412,8 +412,7 @@ class Exporter:
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLOv8 OpenVINO export."""
         check_requirements("openvino>=2023.3")  # requires openvino: https://pypi.org/project/openvino/
-        import openvino.runtime as ov  # noqa
-        from openvino.tools import mo  # noqa
+        import openvino.runtime as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"

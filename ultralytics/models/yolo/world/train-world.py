@@ -31,7 +31,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         )
         self.gqa_data = dict(
             img_path="../datasets/GQA/images",
-            json_file="../datasets/GQA/final_flickr_separateGT_train.json",
+            json_file="../datasets/GQA/final_mixed_train_no_coco.json",
         )
 
     def build_dataset(self, img_path, mode="train", batch=None):

@@ -29,10 +29,10 @@ class WorldTrainerFromScratch(WorldTrainer):
                 img_path="../datasets/flickr30k/images",
                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
             ),
-            gqa=dict(
-                img_path="../datasets/GQA/images",
-                json_file="../datasets/GQA/final_mixed_train_no_coco.json",
-            ),
+            # gqa=dict(
+            #     img_path="../datasets/GQA/images",
+            #     json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+            # ),
         )
 
     def build_dataset(self, img_path, mode="train", batch=None):

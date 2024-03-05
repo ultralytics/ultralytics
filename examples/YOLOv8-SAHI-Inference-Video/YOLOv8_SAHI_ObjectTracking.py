@@ -12,15 +12,8 @@ from ultralytics.utils.files import increment_path
 from sahi.utils.yolov8 import download_yolov8s_model
 
 
-def run(
-    weights="yolov8n.pt",
-    source="test.mp4",
-    without_tracking=False,
-    view_img=False,
-    save_img=False,
-    exist_ok=False,
-    tracking=False,
-):
+
+def run(weights="yolov8n.pt", source="test.mp4", without_tracking = False, with_tracking=False,view_img=False, zoom_factor = 1.5,conf_threshold = 0.3,save_img=False, exist_ok=False):
     """
     Run object detection on a video using YOLOv8 and SAHI.
 
@@ -28,10 +21,12 @@ def run(
         weights (str): Model weights path.
         source (str): Video file path.
         without_tracking (bool): Disable DeepSort tracking.
+        with_tracking (bool): Enable DeepSort tracking.
+        zoom_factor (float): Apply zoom factor.
+        conf_threshold (float): Set confidence threshold.
         view_img (bool): Show results.
         save_img (bool): Save results.
         exist_ok (bool): Overwrite existing files.
-        tracking (bool): Enable DeepSort tracking.
     """
 
     # Check source path
@@ -45,7 +40,7 @@ def run(
     yolov8_model_path = f"models/{weights}"
     download_yolov8s_model(yolov8_model_path)
     detection_model = AutoDetectionModel.from_pretrained(
-        model_type="yolov8", model_path=yolov8_model_path, confidence_threshold=0.3, device="cuda"
+        model_type="yolov8", model_path=yolov8_model_path, confidence_threshold=conf_threshold, device="cuda"
     )
 
     # Video setup
@@ -58,18 +53,15 @@ def run(
     save_dir.mkdir(parents=True, exist_ok=True)
 
     if is_webcam:
-        video_writer = cv2.VideoWriter(
-            str(save_dir / f"{str(source)}_output.mp4"), fourcc, fps, (frame_width, frame_height)
-        )
+        video_writer = cv2.VideoWriter(str(save_dir / f"{str(source)}_output.mp4"), fourcc, fps, (frame_width, frame_height))
     else:
-        video_writer = cv2.VideoWriter(
-            str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height)
-        )
+        video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height))
 
     tracker = None
-    if tracking:
+    if with_tracking:
         config = get_config()
-        tracker = DeepSort(model_path="deep_sort/deep/checkpoint/ckpt.t7", max_age=70)
+        tracker = DeepSort(model_path='deep_sort/deep/checkpoint/ckpt.t7', max_age=70)
+
 
     while videocapture.isOpened():
         success, frame = videocapture.read()
@@ -77,13 +69,13 @@ def run(
             break
 
         results = get_sliced_prediction(
-            frame, detection_model, slice_height=512, slice_width=512, overlap_height_ratio=0.2, overlap_width_ratio=0.2
+            frame, detection_model, slice_height=512, slice_width=512, overlap_height_ratio=0.05, overlap_width_ratio=0.1
         )
         object_prediction_list = results.object_prediction_list
 
-        # DeepSort Tracking
-        if tracking:
-            # uncomment the following line to track only person
+        #DeepSort Tracking
+        if with_tracking:
+            # uncomment the following line to track only person class
             # person_predictions = [obj for obj in object_prediction_list if obj.category.name == "person"]
 
             person_predictions = object_prediction_list
@@ -92,42 +84,30 @@ def run(
             data = []
             for person_pred in person_predictions:
                 boxes = (
-                    person_pred.bbox.minx,
-                    person_pred.bbox.miny,
-                    person_pred.bbox.maxx,
-                    person_pred.bbox.maxy,
-                    person_pred.score.value,
+                    person_pred.bbox.minx, person_pred.bbox.miny, person_pred.bbox.maxx, person_pred.bbox.maxy,
+                    person_pred.score.value
                 )
                 boxes_list.append(boxes)
 
             if boxes_list:
-                conf = np.array(boxes_list)[:, -1].reshape(-1, 1)
-                boxes_np = np.array(boxes_list, dtype=np.int16)[:, :-1]
+                conf = np.array(boxes_list)[:,-1].reshape(-1, 1)
+                boxes_np = np.array(boxes_list,dtype=np.int16)[:, :-1]
                 trackers = tracker.update(boxes_np, conf, frame)
                 for track in trackers:
                     bbox = track[0:4]  # Get x1, y1, x2, y2 coordinates directly
                     track_id = track[4]
 
-                    data.append({"id": int(track_id), "bbox": np.array(bbox, dtype=np.int16)})
+                    data.append({
+                        'id': int(track_id),
+                        'bbox': np.array(bbox, dtype=np.int16)
+                    })
 
-                    cvzone.cornerRect(
-                        frame,
-                        (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])),
-                        l=0,
-                        rt=1,
-                        t=1,
-                        colorR=(0, 0, 255),
-                        colorC=(0, 0, 255),
-                    )
-                    cvzone.putTextRect(
-                        frame,
-                        f"Track ID: {int(track_id)}",
-                        (max(0, int(bbox[0])), max(0, int(bbox[1]))),
-                        1,
-                        2,
-                        colorT=(255, 255, 255),
-                        colorR=(0, 0, 255),
-                    )
+                    cvzone.cornerRect(frame, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])), l=0, rt=1, t=1,
+                                      colorR=(0, 0, 255), colorC=(0, 0, 255))
+                    cvzone.putTextRect(frame, f'Track ID: {int(track_id)}', (max(0, int(bbox[0])),
+                                                                             max(0, int(bbox[1]))), 1, 2,
+                                       colorT=(255, 255, 255), colorR=(0, 0, 255))
+
 
         if without_tracking:
             boxes_list = []
@@ -177,17 +157,17 @@ def parse_opt():
     parser.add_argument("--source", type=str, required=True, help="video file path")
     parser.add_argument("--without-tracking", action="store_true", help="disable DeepSort tracking")
     parser.add_argument("--view-img", action="store_true", help="show results")
+    parser.add_argument("--zoom-factor", default=1.5, help="apply zoom factor")
+    parser.add_argument("--conf-threshold", default=0.3, help="set confidence threshold")
     parser.add_argument("--save-img", action="store_true", help="save results")
     parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
-    parser.add_argument("--tracking", action="store_true", help="enable DeepSort tracking")
+    parser.add_argument("--with-tracking", action="store_true", help="enable DeepSort tracking")
     return parser.parse_args()
-
 
 def main(opt):
     """Main function."""
     run(**vars(opt))
 
-
 if __name__ == "__main__":
     opt = parse_opt()
-    main(opt)
+    main(opt)   

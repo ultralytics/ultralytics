@@ -563,7 +563,7 @@ class WorldModel(DetectionModel):
         self.txt_feats = torch.randn(1, nc or 80, 512)  # placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def set_classes(self, text):
+    def set_classes(self, text, batch=80):
         """Set classes in advance so that model could do offline-inference without clip model."""
         try:
             import clip
@@ -574,9 +574,10 @@ class WorldModel(DetectionModel):
         model, _ = clip.load("ViT-B/32")
         device = next(model.parameters()).device
         text_token = clip.tokenize(text).to(device)
-        txt_feats = model.encode_text(text_token).to(dtype=torch.float32)
+        txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).detach()
+        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
         self.model[-1].nc = len(text)
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):

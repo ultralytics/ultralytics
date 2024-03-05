@@ -26,10 +26,13 @@ class WorldTrainerFromScratch(WorldTrainer):
         super().__init__(cfg, overrides, _callbacks)
         # NOTE: debug
         self.flickr30k_data = dict(
-            img_path="/d/dataset/YOLO-World/flick30k/flickr30k_images",
-            json_file="/d/dataset/YOLO-World/flick30k/final_flickr_separateGT_train.json",
+            img_path="../flick30k/images",
+            json_file="../flick30k/final_flickr_separateGT_train.json",
         )
-        self.gqa_data = dict(img_path="", json_path="")
+        self.gqa_data = dict(
+            img_path="../GQA/images",
+            json_file="../GQA/final_flickr_separateGT_train.json",
+        )
 
     def build_dataset(self, img_path, mode="train", batch=None):
         """
@@ -50,15 +53,15 @@ class WorldTrainerFromScratch(WorldTrainer):
                 batch,
                 stride=gs,
             )
-            # gqa = build_grounding(
-            #     self.args,
-            #     self.gqa_data["img_path"],
-            #     self.gqa_data["json_file"],
-            #     batch,
-            #     self.data["train"],
-            #     stride=gs,
-            # )
-            return YOLOConcatDataset([yolo_multimodal, flickr30k])
+            gqa = build_grounding(
+                self.args,
+                self.gqa_data["img_path"],
+                self.gqa_data["json_file"],
+                batch,
+                self.data["train"],
+                stride=gs,
+            )
+            return YOLOConcatDataset([yolo_multimodal, flickr30k, gqa])
         else:
             return build_yolo_dataset(
                 self.args, img_path, batch, self.data["val"], mode=mode, rect=mode == "val", stride=gs
@@ -93,6 +96,6 @@ class WorldTrainerFromScratch(WorldTrainer):
 if __name__ == "__main__":
     from ultralytics import YOLOWorld
 
-    model = YOLOWorld("yolov8s-world.pt")
-    data = dict(train="runs/data/coco.yaml", val="runs/data/coco.yaml")
+    model = YOLOWorld("yolov8s-worldv2.yaml")
+    data = dict(train="Objects365.yaml", val="lvis.yaml")
     model.train(data=data, batch=16, exist_ok=True, deterministic=False, epochs=1, trainer=WorldTrainerFromScratch)

@@ -1048,7 +1048,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
 
 # @TODO extend this to support kpts and pose color logic
-def determine_color(color_purpose, mask_idexes, box_idx, color=None):
+def determine_color(color_purpose, mask_idexes=None, box_idx=None, color=None):
     """
     Handles the complex parsing of color values for different purposes.
 
@@ -1059,13 +1059,16 @@ def determine_color(color_purpose, mask_idexes, box_idx, color=None):
         color (list or tuple, optional): Color value. If None is passed, default colors will be used. Defaults to None.
     """
 
+    # Assumptions
     assert color_purpose in ['mask', 'box', 'font'], f"color_purpose must be one of ['mask', 'box', 'font']"
+    assert color_purpose != 'mask' or mask_idexes is not None, f"mask_idexes must be provided for color_purpose 'mask'"
+    assert color_purpose != 'box' or box_idx is not None, f"box_idx must be provided for color_purpose 'box'"
 
     if color is not None:
         if isinstance(color, list): # Palette passed in
             match(color_purpose):
                 case 'mask':
-                    parse_color = [color[x % len(color)] for x in mask_idexes]
+                    parse_color = [color[int(i) % len(color)] for i in mask_idexes.tolist()]
                 case 'box':
                     parse_color = color[box_idx % len(color)]
         else: # Single color passed in
@@ -1077,7 +1080,7 @@ def determine_color(color_purpose, mask_idexes, box_idx, color=None):
     else: # Defaults
         match(color_purpose):
             case 'mask':
-                parse_color = [colors(x, True) for x in mask_idexes]
+                parse_color = [colors(int(x), True) for x in mask_idexes.tolist()]
             case 'box':
                 parse_color = colors(box_idx,True)
             case 'font':

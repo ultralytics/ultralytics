@@ -211,9 +211,9 @@ class Results(SimpleClass):
         Args:
             conf (bool): Whether to plot the detection confidence score.
             line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
-            box_color (tuple | list, optional): BGR color of the boxes. Defaults to Ultralytics palette.
-            mask_color (tuple | list, optional): BGR color of the masks. Defaults to Ultralytics palette.
-            font_color (tuple, optional): BGR color of the font. Defaults to (255, 255, 255).
+            box_color (tuple | list, optional): BGR color(s) of the boxes. Defaults to Ultralytics palette if None.
+            mask_color (tuple | list, optional): BGR color(s) of the masks. Defaults to Ultralytics palette if None.
+            font_color (tuple, optional): BGR color of the font. Defaults to (255, 255, 255) if None.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.

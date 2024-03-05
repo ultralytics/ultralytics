@@ -191,7 +191,7 @@ class AutoBackend(nn.Module):
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
             check_requirements("openvino>=2023.3")
-            import openvino as ov  # noqa
+            import openvino as ov
 
             core = ov.Core()
             w = Path(w)
@@ -440,17 +440,19 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy()  # FP32
 
             if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
-                results = []  # this list will be filled by the callback function
+                n = im.shape[0]  # number of images in batch
+                results = [None] * n  # preallocate list with None to match the number of images
 
                 def callback(request, userdata):
-                    """Callback function to handle the completion of an async inference request."""
-                    results.append(request.results)  # directly append the inference result to 'results'
+                    """Places result in preallocated list using userdata index."""
+                    results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
                 async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
-                for i, image in enumerate(im):
-                    async_queue.start_async(inputs={self.input_name: image[None]}, userdata=i)  # expand image to BCHW
+                for i in range(n):
+                    # Start async inference with userdata=i to specify the position in results list
+                    async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
                 y = [list(r.values()) for r in results][0]
 

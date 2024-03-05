@@ -102,4 +102,5 @@ if __name__ == "__main__":
     from ultralytics import YOLOWorld
 
     model = YOLOWorld("yolov8s-worldv2.yaml")
+    data = dict(train="Object365.yaml", val="lvis.yaml")
     model.train(data=data, batch=128, exist_ok=True, epochs=1, trainer=WorldTrainerFromScratch)

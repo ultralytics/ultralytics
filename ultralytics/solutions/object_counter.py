@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 import cv2
-
+import copy
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -46,6 +46,12 @@ class ObjectCounter:
         self.count_txt_thickness = 0
         self.count_txt_color = (0, 0, 0)
         self.count_color = (255, 255, 255)
+        
+        #individual path counting
+        self.incoming={}
+        self.outgoing={}
+        self.two_way={}
+        self.object_list={}
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -168,6 +174,7 @@ class ObjectCounter:
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
+            
             # Draw bounding box
             self.annotator.box_label(box, label=f"{track_id}:{self.names[cls]}", color=colors(int(cls), True))
 
@@ -194,19 +201,42 @@ class ObjectCounter:
                 ):
                     self.counting_list.append(track_id)
                     if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                        
                         self.in_counts += 1
+                        
+                        """ Updates the class' incoming value"""
+                        self.incoming.update({self.names[cls]:self.incoming[self.names[cls]]+1})
+                        self.two_way[self.names[cls]]['in']+=1
+
                     else:
                         self.out_counts += 1
+                        
+                        """ Updates the class' outgoing value"""
+                        self.outgoing.update({self.names[cls]:int(self.outgoing[self.names[cls]]+1)})
+                        self.two_way[self.names[cls]]['out']+=1
+
 
             elif len(self.reg_pts) == 2:
                 if prev_position is not None:
                     distance = Point(track_line[-1]).distance(self.counting_region)
                     if distance < self.line_dist_thresh and track_id not in self.counting_list:
-                        self.counting_list.append(track_id)
+                        self.counting_list.append(track_id)     
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                            
                             self.in_counts += 1
+                            
+                            """ Updates the class' incoming value"""
+                            self.incoming.update({self.names[cls]:int(self.incoming[self.names[cls]]+1)})
+                            self.two_way[self.names[cls]]['in']+=1
+                           
+
                         else:
                             self.out_counts += 1
+                            
+                            """ Updates the class' outgoing value"""
+                            self.outgoing.update({self.names[cls]:int(self.outgoing[self.names[cls]]+1)})
+                            self.two_way[self.names[cls]]['out']+=1
+
 
         incount_label = f"In Count : {self.in_counts}"
         outcount_label = f"OutCount : {self.out_counts}"
@@ -229,7 +259,23 @@ class ObjectCounter:
                 txt_color=self.count_txt_color,
                 color=self.count_color,
             )
-
+    """ Returns the values of the corresponding object"""
+        
+    def get_incoming(self):
+        return self.incoming
+    
+    def get_outgoing(self):
+        return self.outgoing
+        
+    def get_in_counts(self):
+        return self.in_counts
+    
+    def get_out_counts(self):
+        return self.out_counts  
+    
+    def get_two_way(self):
+        return self.two_way
+    
     def display_frames(self):
         """Display frame."""
         if self.env_check:
@@ -251,6 +297,7 @@ class ObjectCounter:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.
         """
+
         self.im0 = im0  # store image
 
         if tracks[0].boxes.id is None:
@@ -262,7 +309,30 @@ class ObjectCounter:
         if self.view_img:
             self.display_frames()
         return self.im0
+    
+    def greet(self, name):
+        print("Inheritance success")
+        print(name)
+   
+    """
+        The function inherits the dictionaries
+        Incoming list, outgoing list, and two-way(both incoming and outgoing) list
+        
+        Incoming and outgoing lists sample: {'person': 0, 'cell phone': 0}
+        two_way sample: {'person': {'out': 0, 'in': 0}, 'cell phone': {'out': 0, 'in': 0}}
+    """
+    def inherit_dictionary(self,object_list):
+        self.object_list=object_list
+        for row, kind in enumerate(list(self.object_list.keys())):
+            self.two_way[kind]={"out":0,"in":0}
+        self.outgoing=copy.deepcopy(self.object_list)
+        self.incoming=copy.deepcopy(self.object_list)
+       # print(self.outgoing)
+      #  print(self.two_way)
 
+    
+    def start_twocounts(self, im0, tracks):
+        self.start_counting(im0, tracks)
 
 if __name__ == "__main__":
     ObjectCounter()

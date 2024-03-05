@@ -24,14 +24,15 @@ class WorldTrainerFromScratch(WorldTrainer):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
-        # NOTE: debug
-        self.flickr30k_data = dict(
-            img_path="../datasets/flickr30k/images",
-            json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
-        )
-        self.gqa_data = dict(
-            img_path="../datasets/GQA/images",
-            json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+        self.grounding_data = dict(
+            flickr30k=dict(
+                img_path="../datasets/flickr30k/images",
+                json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+            ),
+            gqa=dict(
+                img_path="../datasets/GQA/images",
+                json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+            ),
         )
 
     def build_dataset(self, img_path, mode="train", batch=None):
@@ -46,22 +47,11 @@ class WorldTrainerFromScratch(WorldTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode == "train":
             # yolo_multimodal = build_yolomultimodal_dataset(self.args, img_path, batch, self.data["train"], stride=gs)
-            flickr30k = build_grounding(
-                self.args,
-                self.flickr30k_data["img_path"],
-                self.flickr30k_data["json_file"],
-                batch,
-                stride=gs,
-            )
-            gqa = build_grounding(
-                self.args,
-                self.gqa_data["img_path"],
-                self.gqa_data["json_file"],
-                batch,
-                self.data["train"],
-                stride=gs,
-            )
-            return YOLOConcatDataset([flickr30k, gqa])
+            grounding_dataset = [
+                build_grounding(self.args, data["img_path"], data["json_file"], batch, stride=gs)
+                for _, data in self.grounding_dataset.items()
+            ]
+            return YOLOConcatDataset(grounding_dataset)
         else:
             return build_yolo_dataset(
                 self.args, img_path, batch, self.data["val"], mode=mode, rect=mode == "val", stride=gs
@@ -86,6 +76,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         self.data = data
         self.data["nc"] = data["train"]["nc"]
         self.data["names"] = data["train"]["names"]
+        print(data["val"].get("val") or data["val"].get("minival"))
+        exit()
         return data["train"]["train"], data["val"].get("val") or data["val"].get("minival")
 
     def plot_training_labels(self):

@@ -240,6 +240,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    # @TODO: Allow colors to be passed in
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
         """
         Plot keypoints on the image.
@@ -1045,3 +1046,41 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         plt.savefig(f, dpi=300, bbox_inches="tight")
         plt.close()
         np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
+# @TODO extend this to support kpts and pose color logic
+def determine_color(color_purpose, mask_idexes, box_idx, color=None):
+    """
+    Handles the complex parsing of color values for different purposes.
+
+    Args:
+        color_purpose (str): Purpose of the color value. Must be one of ['mask', 'box', 'font'].
+        mask_idexes (list): List of mask indexes. Required for mask color.
+        box_idx (int): Box index. Required for mask color
+        color (list or tuple, optional): Color value. If None is passed, default colors will be used. Defaults to None.
+    """
+
+    assert color_purpose in ['mask', 'box', 'font'], f"color_purpose must be one of ['mask', 'box', 'font']"
+
+    if color is not None:
+        if isinstance(color, list): # Palette passed in
+            match(color_purpose):
+                case 'mask':
+                    parse_color = [color[x % len(color)] for x in mask_idexes]
+                case 'box':
+                    parse_color = color[box_idx % len(color)]
+        else: # Single color passed in
+            match(color_purpose):
+                case 'mask':
+                    parse_color = [color for _ in mask_idexes]
+                case 'box' | 'font':
+                    parse_color = color
+    else: # Defaults
+        match(color_purpose):
+            case 'mask':
+                parse_color = [colors(x, True) for x in mask_idexes]
+            case 'box':
+                parse_color = colors(box_idx,True)
+            case 'font':
+                parse_color = (255, 255, 255)
+    
+    return parse_color

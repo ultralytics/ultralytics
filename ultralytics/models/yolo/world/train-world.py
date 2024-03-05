@@ -26,12 +26,12 @@ class WorldTrainerFromScratch(WorldTrainer):
         super().__init__(cfg, overrides, _callbacks)
         # NOTE: debug
         self.flickr30k_data = dict(
-            img_path="../flick30k/images",
-            json_file="../flick30k/final_flickr_separateGT_train.json",
+            img_path="../datasets/flick30k/images",
+            json_file="../datasets/flick30k/final_flickr_separateGT_train.json",
         )
         self.gqa_data = dict(
-            img_path="../GQA/images",
-            json_file="../GQA/final_flickr_separateGT_train.json",
+            img_path="../datasets/GQA/images",
+            json_file="../datasets/GQA/final_flickr_separateGT_train.json",
         )
 
     def build_dataset(self, img_path, mode="train", batch=None):

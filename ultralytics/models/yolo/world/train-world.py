@@ -49,7 +49,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             # yolo_multimodal = build_yolomultimodal_dataset(self.args, img_path, batch, self.data["train"], stride=gs)
             grounding_dataset = [
                 build_grounding(self.args, data["img_path"], data["json_file"], batch, stride=gs)
-                for _, data in self.grounding_dataset.items()
+                for _, data in self.grounding_data.items()
             ]
             return YOLOConcatDataset(grounding_dataset)
         else:

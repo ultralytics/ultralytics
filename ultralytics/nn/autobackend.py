@@ -193,10 +193,12 @@ class AutoBackend(nn.Module):
             batch_dim = ov.get_batch(ov_model)
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
+
+            inference_mode = "LATENCY"  # either 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             ov_compiled_model = core.compile_model(
                 ov_model,
-                device_name="AUTO",  # AUTO selects best available device
-                config={"PERFORMANCE_HINT": "THROUGHPUT"},
+                device_name="AUTO",  # AUTO selects best available device, do not modify
+                config={"PERFORMANCE_HINT": inference_mode},
             )
             input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
@@ -399,15 +401,7 @@ class AutoBackend(nn.Module):
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
 
-            inference_mode = "throughput"  # either 'latency' or 'throughput'
-            # Latency optimized inference at batch-size 1
-            if inference_mode == "latency":
-                y = list(self.ov_compiled_model(im).values())
-
-            # Throughput optimized inference using OpenVINO AsyncInferQueue
-            elif inference_mode == "throughput":
-                from openvino.runtime import AsyncInferQueue
-
+            if self.inference_mode == "CUMULATIVE_THROUGHPUT":  # optimized for larger batch-sizes
                 results = []  # this list will be filled by the callback function
 
                 def callback(request, userdata):
@@ -415,12 +409,15 @@ class AutoBackend(nn.Module):
                     results.append(request.results)  # directly append the inference result to 'results'
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = AsyncInferQueue(self.ov_compiled_model)  # optional second argument queue size
+                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
                 for image in im:
                     async_queue.start_async(inputs={self.input_name: image[None]})  # expand batch dim
                 async_queue.wait_all()  # wait for all inference requests to complete
                 y = [list(r.values()) for r in results][0]
+
+            else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
+                y = list(self.ov_compiled_model(im).values())
 
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings["images"].shape:

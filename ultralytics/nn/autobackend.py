@@ -400,7 +400,7 @@ class AutoBackend(nn.Module):
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
 
-            if self.inference_mode == "CUMULATIVE_THROUGHPUT":  # optimized for larger batch-sizes
+            if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
                 results = []  # this list will be filled by the callback function
 
                 def callback(request, userdata):

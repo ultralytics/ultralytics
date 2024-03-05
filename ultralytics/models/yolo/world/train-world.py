@@ -76,9 +76,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         self.data = data
         self.data["nc"] = data["train"]["nc"]
         self.data["names"] = data["train"]["names"]
-        print(data["val"].get("val") or data["val"].get("minival"))
-        exit()
-        return data["train"]["train"], data["val"].get("val") or data["val"].get("minival")
+        return data["train"]["train"], data["val"].get("minival") or data["val"].get("val")
 
     def plot_training_labels(self):
         """DO NOT plot labels."""

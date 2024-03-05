@@ -334,8 +334,7 @@ class AutoBackend(nn.Module):
 
             raise TypeError(
                 f"model='{w}' is not a supported model format. "
-                "See https://docs.ultralytics.com/modes/predict for help."
-                f"\n\n{export_formats()}"
+                f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
             )
 
         # Load external metadata YAML
@@ -411,8 +410,8 @@ class AutoBackend(nn.Module):
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
                 async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
-                for image in im:
-                    async_queue.start_async(inputs={self.input_name: image[None]})  # expand batch dim
+                for i, image in enumerate(im):
+                    async_queue.start_async(inputs={self.input_name: image[None]}, userdata=i)  # expand image to BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
                 y = [list(r.values()) for r in results][0]
 

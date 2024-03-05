@@ -1067,24 +1067,22 @@ def determine_color(color_purpose, mask_idxs=None, box_idx=None, color=None):
 
     if color is not None:
         if isinstance(color, list):  # Palette passed in
-            match color_purpose:
-                case "mask":
-                    parse_color = [color[int(i) % len(color)] for i in mask_idxs.tolist()]
-                case "box":
-                    parse_color = color[box_idx % len(color)]
+            if color_purpose == "mask":
+                parse_color = [color[int(i) % len(color)] for i in mask_idxs.tolist()]
+            elif color_purpose == "box":
+                parse_color = color[box_idx % len(color)]
         else:  # Single color passed in
-            match color_purpose:
-                case "mask":
-                    parse_color = [color for _ in mask_idxs]
-                case "box" | "font":
-                    parse_color = color
+            if color_purpose == "mask":
+                parse_color = [color for _ in mask_idxs]
+            elif color_purpose in ["box", "font"]:
+                parse_color = color
     else:  # Defaults
-        match color_purpose:
-            case "mask":
-                parse_color = [colors(int(x), True) for x in mask_idxs.tolist()]
-            case "box":
-                parse_color = colors(box_idx, True)
-            case "font":
-                parse_color = (255, 255, 255)
+        if color_purpose == "mask":
+            parse_color = [colors(int(x), True) for x in mask_idxs.tolist()]
+        elif color_purpose == "box":
+            parse_color = colors(box_idx, True)
+        elif color_purpose == "font":
+            parse_color = (255, 255, 255)
+
 
     return parse_color

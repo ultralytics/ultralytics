@@ -411,7 +411,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLOv8 OpenVINO export."""
-        check_requirements("openvino-dev>=2023.3")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        check_requirements("openvino>=2023.3")  # requires openvino: https://pypi.org/project/openvino-dev/
         import openvino as ov  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")

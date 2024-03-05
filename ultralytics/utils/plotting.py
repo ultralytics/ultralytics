@@ -1047,6 +1047,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         plt.close()
         np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
 
+
 # @TODO extend this to support kpts and pose color logic
 def determine_color(color_purpose, mask_idxs=None, box_idx=None, color=None):
     """
@@ -1060,30 +1061,30 @@ def determine_color(color_purpose, mask_idxs=None, box_idx=None, color=None):
     """
 
     # Assumptions
-    assert color_purpose in ['mask', 'box', 'font'], f"color_purpose must be one of ['mask', 'box', 'font']"
-    assert color_purpose != 'mask' or mask_idxs is not None, f"mask_idxs must be provided for color_purpose 'mask'"
-    assert color_purpose != 'box' or box_idx is not None, f"box_idx must be provided for color_purpose 'box'"
+    assert color_purpose in ["mask", "box", "font"], f"color_purpose must be one of ['mask', 'box', 'font']"
+    assert color_purpose != "mask" or mask_idxs is not None, f"mask_idxs must be provided for color_purpose 'mask'"
+    assert color_purpose != "box" or box_idx is not None, f"box_idx must be provided for color_purpose 'box'"
 
     if color is not None:
-        if isinstance(color, list): # Palette passed in
-            match(color_purpose):
-                case 'mask':
+        if isinstance(color, list):  # Palette passed in
+            match color_purpose:
+                case "mask":
                     parse_color = [color[int(i) % len(color)] for i in mask_idxs.tolist()]
-                case 'box':
+                case "box":
                     parse_color = color[box_idx % len(color)]
-        else: # Single color passed in
-            match(color_purpose):
-                case 'mask':
+        else:  # Single color passed in
+            match color_purpose:
+                case "mask":
                     parse_color = [color for _ in mask_idxs]
-                case 'box' | 'font':
+                case "box" | "font":
                     parse_color = color
-    else: # Defaults
-        match(color_purpose):
-            case 'mask':
+    else:  # Defaults
+        match color_purpose:
+            case "mask":
                 parse_color = [colors(int(x), True) for x in mask_idxs.tolist()]
-            case 'box':
-                parse_color = colors(box_idx,True)
-            case 'font':
+            case "box":
+                parse_color = colors(box_idx, True)
+            case "font":
                 parse_color = (255, 255, 255)
-    
+
     return parse_color

@@ -275,7 +275,7 @@ class Results(SimpleClass):
                     / 255
                 )
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            m_color = determine_color('mask', color=mask_color, mask_idxs=idx)
+            m_color = determine_color("mask", color=mask_color, mask_idxs=idx)
             annotator.masks(pred_masks.data, colors=m_color, im_gpu=im_gpu)
 
         # Plot Detect results
@@ -285,15 +285,15 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                b_color = determine_color('box', color=box_color, box_idx=c)
-                f_color = determine_color('font', color=font_color)
+                b_color = determine_color("box", color=box_color, box_idx=c)
+                f_color = determine_color("font", color=font_color)
                 annotator.box_label(box, label, color=b_color, txt_color=f_color, rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
             text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            f_color = determine_color('font', color=font_color)
+            f_color = determine_color("font", color=font_color)
             annotator.text([x, x], text, txt_color=f_color)
 
         # Plot Pose results

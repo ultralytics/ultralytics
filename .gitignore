@@ -137,6 +137,8 @@ dmypy.json
 .pyre/
 
 # datasets and projects
+data/
+cfg/
 datasets/
 runs/
 wandb/

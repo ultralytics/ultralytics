@@ -201,13 +201,13 @@ class ObjectCounter:
                     self.counting_list.append(track_id)
                     if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                         self.in_counts += 1
-                        """ Updates the class' incoming value"""
+                        """Updates the class' incoming value."""
                         self.incoming.update({self.names[cls]: self.incoming[self.names[cls]] + 1})
                         self.two_way[self.names[cls]]["in"] += 1
 
                     else:
                         self.out_counts += 1
-                        """ Updates the class' outgoing value"""
+                        """Updates the class' outgoing value."""
                         self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
                         self.two_way[self.names[cls]]["out"] += 1
 
@@ -218,13 +218,13 @@ class ObjectCounter:
                         self.counting_list.append(track_id)
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                             self.in_counts += 1
-                            """ Updates the class' incoming value"""
+                            """Updates the class' incoming value."""
                             self.incoming.update({self.names[cls]: int(self.incoming[self.names[cls]] + 1)})
                             self.two_way[self.names[cls]]["in"] += 1
 
                         else:
                             self.out_counts += 1
-                            """ Updates the class' outgoing value"""
+                            """Updates the class' outgoing value."""
                             self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
                             self.two_way[self.names[cls]]["out"] += 1
 

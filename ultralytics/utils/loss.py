@@ -505,19 +505,16 @@ class v8PoseLoss(v8DetectionLoss):
         kpts_loss = 0
         kpts_obj_loss = 0
 
-        mask_after_ignore = masks.clone()
         for i in range(batch_size):
             if ignore_kpt[i]:
                 # We should ignore the keypoints for this image
                 # We replace gt keypoints with pred keypoints so distance is 0. kpts_loss will be 0
                 selected_keypoints[i] = pred_kpts[i]
-                # We will set the mask to False for all the keypoints of this image
-                mask_after_ignore[i] = False
 
-        if mask_after_ignore.any():
-            gt_kpt = selected_keypoints[mask_after_ignore]
-            area = xyxy2xywh(target_bboxes[mask_after_ignore])[:, 2:].prod(1, keepdim=True)
-            pred_kpt = pred_kpts[mask_after_ignore]
+        if masks.any():
+            gt_kpt = selected_keypoints[masks]
+            area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
+            pred_kpt = pred_kpts[masks]
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
             kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 

@@ -347,7 +347,9 @@ class ConfusionMatrix:
         self.conf = conf #0.25 if conf in (None, 0.001) else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
         self.micro_recall = 0.0
+        self.macro_recall = 0.0
         self.micro_precision = 0.0
+        self.macro_precision = 0.0
 
     def process_cls_preds(self, preds, targets):
         """
@@ -432,26 +434,32 @@ class ConfusionMatrix:
 
     @TryExcept("WARNING ⚠️ ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize=True, save_dir="", names=(), on_plot=None):
+    def plot(self, normalize=False, save_dir="", names=(), on_plot=None):
         """
         Plot the confusion matrix using seaborn and save it to a file.
 
         Args:
-            normalize (bool): Whether to normalize the confusion matrix.
+            normalize (False, 'gt', 'pred'): Normalize the matrix by the number of ground truth (columns), predicted (rows)
             save_dir (str): Directory where the plot will be saved.
             names (tuple): Names of classes, used as labels on the plot.
             on_plot (func): An optional callback to pass plots path and data when they are rendered.
         """
         import seaborn as sn
 
-        array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
-
-        # Compute micro and macro average recall and precision at fixed IoU and conf thresholds
-        #self.macro_recall = (self.matrix / (self.matrix.sum(0).reshape(1, -1) + 1e-9)).diagonal()[:-1].mean()
-        tp, fn = self.tp_fn()
-        self.micro_recall = tp.sum() / (tp.sum() + fn.sum())
-        tp, fp = self.tp_fp()
-        self.micro_precision = tp.sum() / (tp.sum() + fp.sum())
+        if not normalize:
+            array = self.matrix
+        elif normalize == "gt":
+            self.matrix[np.isnan(self.matrix)] = 0
+            array = self.matrix / (self.matrix.sum(0).reshape(1, -1) + 1e-9)  # normalize columns
+            self.macro_recall = array.diagonal()[:-1].mean()
+            tp, fn = self.tp_fn()
+            self.micro_recall = tp.sum() / (tp.sum() + fn.sum())
+        elif normalize == "pred":
+            self.matrix[np.isnan(self.matrix)] = 0
+            array = self.matrix / (self.matrix.sum(1).reshape(-1, 1) + 1e-9)  # normalize rows
+            self.macro_precision = array.diagonal()[:-1].mean()
+            tp, fp = self.tp_fp()
+            self.micro_precision = tp.sum() / (tp.sum() + fp.sum())
 
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
         fig, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
@@ -462,23 +470,34 @@ class ConfusionMatrix:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             sn.heatmap(
-                array*100 if normalize else array,
+                array if not normalize else array*100,
                 ax=ax,
                 annot=nc < 30,
                 annot_kws={"size": 14},
                 cmap="Blues",
-                fmt=".2f" if normalize else ".0f",
+                fmt=".0f" if not normalize else ".2f",
                 square=True,
                 vmin=0.0,
-                vmax=100.1 if normalize else None,
+                vmax= None if not normalize else 100.1,
                 xticklabels=ticklabels,
                 yticklabels=ticklabels,
             ).set_facecolor((1, 1, 1))
-        title = f"Confusion Matrix @{self.iou_thres}&{self.conf}" + " Normalized (Recall {:.2f})".format(round(self.micro_recall*100,2)) * (normalize)
+
+        if not normalize:
+            title = f"Confusion Matrix @{self.iou_thres}&{self.conf}"
+            plot_fname = str(save_dir) + f"/confusion_matrix@{self.iou_thres}&{self.conf}.png"
+        elif normalize == "gt":
+            title = f"CM@{self.iou_thres}&{self.conf}" + "  m-AR {:.2f}".format(round(self.micro_recall * 100, 2)) +\
+            "   M-AR {:.2f}".format(round(self.macro_recall * 100, 2))
+            plot_fname = str(save_dir) + f"/confusion_matrix@{self.iou_thres}&{self.conf}_recall.png"
+        elif normalize == "pred":
+            title = f"CM@{self.iou_thres}&{self.conf}" + "  m-AP {:.2f}".format(round(self.micro_precision * 100, 2)) + \
+                    "   M-AP {:.2f}".format(round(self.macro_precision * 100, 2))
+            plot_fname = str(save_dir) + f"/confusion_matrix@{self.iou_thres}&{self.conf}_precision.png"
+
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)
-        plot_fname = str(save_dir) + "/confussion_matrix" + "_normalized"*(normalize) + ".png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:

@@ -74,8 +74,9 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        # TODO: adjust for an optimistic case
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=0.001, iou_thres=0.3)
+        # Confusion matrix for two scenarios
+        self.confusion_matrix_p = ConfusionMatrix(nc=self.nc, conf=0.3, iou_thres=0.3)
+        self.confusion_matrix_r = ConfusionMatrix(nc=self.nc, conf=0.001, iou_thres=0.3)
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[])
@@ -137,7 +138,8 @@ class DetectionValidator(BaseValidator):
                         self.stats[k].append(stat[k])
                     # TODO: obb has not supported confusion_matrix yet.
                     if self.args.plots and self.args.task != "obb":
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix_p.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix_r.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
             # Predictions
@@ -152,7 +154,8 @@ class DetectionValidator(BaseValidator):
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 # TODO: obb has not supported confusion_matrix yet.
                 if self.args.plots and self.args.task != "obb":
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
+                    self.confusion_matrix_p.process_batch(predn, bbox, cls)
+                    self.confusion_matrix_r.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 
@@ -166,7 +169,8 @@ class DetectionValidator(BaseValidator):
     def finalize_metrics(self, *args, **kwargs):
         """Set final values for metrics speed and confusion matrix."""
         self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
+        # TODO: which confusion matrix should be used?
+        self.metrics.confusion_matrix = self.confusion_matrix_p
 
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
@@ -191,17 +195,29 @@ class DetectionValidator(BaseValidator):
                 LOGGER.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
         if self.args.plots:
-            for normalize in True, False:
-                self.confusion_matrix.plot(
+            for normalize in [False, 'gt', 'pred']:
+                self.confusion_matrix_p.plot(
+                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
+                )
+                self.confusion_matrix_r.plot(
                     save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
                 )
 
         # Save micro metrics only if not training
         if not self.training:
-            stats[f'metrics/muAR@{self.confusion_matrix.iou_thres}&{self.confusion_matrix.conf}'] = self.confusion_matrix.micro_recall
-            stats[f'metrics/muAP@{self.confusion_matrix.iou_thres}&{self.confusion_matrix.conf}'] = self.confusion_matrix.micro_precision
+            stats[f'metrics/muAR@{self.confusion_matrix_p.iou_thres}&{self.confusion_matrix_p.conf}'] = self.confusion_matrix_p.micro_recall
+            stats[f'metrics/MAR@{self.confusion_matrix_p.iou_thres}&{self.confusion_matrix_p.conf}'] = self.confusion_matrix_p.macro_recall
+            stats[f'metrics/muAP@{self.confusion_matrix_p.iou_thres}&{self.confusion_matrix_p.conf}'] = self.confusion_matrix_p.micro_precision
+            stats[f'metrics/MAP@{self.confusion_matrix_p.iou_thres}&{self.confusion_matrix_p.conf}'] = self.confusion_matrix_p.macro_precision
+
+            stats[f'metrics/muAR@{self.confusion_matrix_r.iou_thres}&{self.confusion_matrix_r.conf}'] = self.confusion_matrix_r.micro_recall
+            stats[f'metrics/MAR@{self.confusion_matrix_r.iou_thres}&{self.confusion_matrix_r.conf}'] = self.confusion_matrix_r.macro_recall
+            stats[f'metrics/muAP@{self.confusion_matrix_r.iou_thres}&{self.confusion_matrix_r.conf}'] = self.confusion_matrix_r.micro_precision
+            stats[f'metrics/MAP@{self.confusion_matrix_r.iou_thres}&{self.confusion_matrix_r.conf}'] = self.confusion_matrix_r.macro_precision
+
             # Save macro metrics per class
             for i, c in enumerate(self.metrics.ap_class_index):
+                stats[f"metrics/P_{self.names[c]}"] = self.metrics.class_result(i)[0]
                 stats[f"metrics/R_{self.names[c]}"] = self.metrics.class_result(i)[1]
 
         return stats

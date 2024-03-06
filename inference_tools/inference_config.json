@@ -3,7 +3,7 @@
 
   "device": "cpu",
 
-  "model_path": "./models/8sp2_150.onnx",
+  "model_path": "./models/8sp2_150.pt",
   "img_size": 640,
 
   "input_data_dir": "./data",

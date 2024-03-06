@@ -200,7 +200,8 @@ def _create_prediction_metadata_map(model_predictions):
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
     """Log the confusion matrix to Comet experiment."""
-    conf_mat = trainer.validator.confusion_matrix.matrix
+    # TODO: which confusion matrix should be used?
+    conf_mat = trainer.validator.confusion_matrix_p.matrix
     names = list(trainer.data['names'].values()) + ['background']
     experiment.log_confusion_matrix(
         matrix=conf_mat,

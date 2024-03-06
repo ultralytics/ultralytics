@@ -58,6 +58,16 @@ class TritonRemoteModel:
         # Sort output names alphabetically, i.e. 'output0', 'output1', etc.
         config["output"] = sorted(config["output"], key=lambda x: x.get("name"))
 
+        # Pose model
+        if config['parameters'].get('kpt_shape'):
+            self.kpt_shape = [
+                int(x) for x in config['parameters']['kpt_shape'].get('string_value').strip('[]').split(',')]
+
+        if config['parameters'].get('names'):
+            names_string = config['parameters']['names'].get('string_value')
+            if names_string:
+                self.names = eval(names_string)
+
         # Define model attributes
         type_map = {"TYPE_FP32": np.float32, "TYPE_FP16": np.float16, "TYPE_UINT8": np.uint8}
         self.InferRequestedOutput = client.InferRequestedOutput

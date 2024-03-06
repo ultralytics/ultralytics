@@ -75,23 +75,54 @@ Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need
         yolo detect val model=path/to/best.pt  # val custom model
         ```
 
-## Arguments
+## Arguments for YOLO Model Validation
 
-Validation settings for YOLO models refer to the various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO validation settings include the batch size, the frequency with which validation is performed during training, and the metrics used to evaluate the model's performance. Other factors that may affect the validation process include the size and composition of the validation dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the model is performing well on the validation dataset and to detect and prevent overfitting.
+When validating YOLO models, several arguments can be fine-tuned to optimize the evaluation process. These arguments control aspects such as input image size, batch processing, and performance thresholds. Below is a detailed breakdown of each argument to help you customize your validation settings effectively.
 
-| Key           | Value   | Description                                                        |
-|---------------|---------|--------------------------------------------------------------------|
-| `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
-| `imgsz`       | `640`   | size of input images as integer                                    |
-| `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
-| `save_json`   | `False` | save results to JSON file                                          |
-| `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |
-| `conf`        | `0.001` | object confidence threshold for detection                          |
-| `iou`         | `0.6`   | intersection over union (IoU) threshold for NMS                    |
-| `max_det`     | `300`   | maximum number of detections per image                             |
-| `half`        | `True`  | use half precision (FP16)                                          |
-| `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
-| `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
-| `plots`       | `False` | save plots and images during train/val                             |
-| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
-| `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
+| Argument      | Type    | Default | Description                                                                                                                                                   |
+|---------------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco128.yaml`). This file includes paths to validation data, class names, and number of classes. |
+| `imgsz`       | `int`   | `640`   | Defines the size of input images. All images are resized to this dimension before processing.                                                                 |
+| `batch`       | `int`   | `16`    | Sets the number of images per batch. Use `-1` for AutoBatch, which automatically adjusts based on GPU memory availability.                                    |
+| `save_json`   | `bool`  | `False` | If `True`, saves the results to a JSON file for further analysis or integration with other tools.                                                             |
+| `save_hybrid` | `bool`  | `False` | If `True`, saves a hybrid version of labels that combines original annotations with additional model predictions.                                             |
+| `conf`        | `float` | `0.001` | Sets the minimum confidence threshold for detections. Detections with confidence below this threshold are discarded.                                          |
+| `iou`         | `float` | `0.6`   | Sets the Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Helps in reducing duplicate detections.                                   |
+| `max_det`     | `int`   | `300`   | Limits the maximum number of detections per image. Useful in dense scenes to prevent excessive detections.                                                    |
+| `half`        | `bool`  | `True`  | Enables half-precision (FP16) computation, reducing memory usage and potentially increasing speed with minimal impact on accuracy.                            |
+| `device`      | `str`   | `None`  | Specifies the device for validation (`cpu`, `cuda:0`, etc.). Allows flexibility in utilizing CPU or GPU resources.                                            |
+| `dnn`         | `bool`  | `False` | If `True`, uses the OpenCV DNN module for ONNX model inference, offering an alternative to PyTorch inference methods.                                         |
+| `plots`       | `bool`  | `False` | When set to `True`, generates and saves plots of predictions versus ground truth for visual evaluation of the model's performance.                            |
+| `rect`        | `bool`  | `False` | If `True`, uses rectangular inference for batching, reducing padding and potentially increasing speed and efficiency.                                         |
+| `split`       | `str`   | `val`   | Determines the dataset split to use for validation (`val`, `test`, or `train`). Allows flexibility in choosing the data segment for performance evaluation.   |
+
+Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.
+
+### Example Validation with Arguments
+
+The below examples showcase YOLO model validation with custom arguments in Python and CLI.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a model
+        model = YOLO('yolov8n.pt')
+        
+        # Customize validation settings
+        validation_results = model.val(data='coco8.yaml',
+                                       imgsz=640,
+                                       batch=16,
+                                       conf=0.25,
+                                       iou=0.6,
+                                       device='0')
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+        ```

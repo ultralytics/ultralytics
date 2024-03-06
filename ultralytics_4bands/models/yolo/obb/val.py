@@ -55,10 +55,11 @@ class OBBValidator(DetectionValidator):
         Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
+            detections (torch.Tensor): Tensor of shape [N, 7] representing detections.
+                Each detection is of the format: x1, y1, x2, y2, conf, class, angle.
+            gt_bboxes (torch.Tensor): Tensor of shape [M, 5] representing rotated boxes.
+                Each box is of the format: x1, y1, x2, y2, angle.
+            labels (torch.Tensor): Tensor of shape [M] representing labels.
 
         Returns:
             (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.

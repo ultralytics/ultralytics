@@ -40,7 +40,7 @@ on:
 
 jobs:
   HUB:
-    if: github.repository == 'ultralytics_4bands/ultralytics_4bands' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -113,33 +113,31 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
-          # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          yolo export format=tflite imgsz=32 || true
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks
           pip list
-      #      - name: Benchmark DetectionModel
-      #        shell: bash
-      #        run: coverage run -a --source=ultralytics_4bands -m ultralytics_4bands.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
+      - name: Benchmark World DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics_4bands -m ultralytics_4bands.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
       - name: Benchmark ClassificationModel
         shell: bash
-        run: coverage run -a --source=ultralytics_4bands -m ultralytics_4bands.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics_4bands -m ultralytics_4bands.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
       - name: Benchmark OBBModel
         shell: bash
-        run: coverage run -a --source=ultralytics_4bands -m ultralytics_4bands.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics_4bands/ultralytics_4bands'
+        if: github.repository == 'ultralytics/ultralytics'
         uses: codecov/codecov-action@v4
         with:
           flags: Benchmarks
@@ -179,7 +177,7 @@ jobs:
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
-          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
@@ -194,7 +192,7 @@ jobs:
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics_4bands/ultralytics_4bands' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v4
         with:
           flags: Tests
@@ -202,7 +200,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   GPU:
-    if: github.repository == 'ultralytics_4bands/ultralytics_4bands' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     timeout-minutes: 60
     runs-on: gpu-latest
     steps:
@@ -214,7 +212,7 @@ jobs:
           yolo checks
           pip list
       - name: Pytest tests
-        run: pytest --cov=ultralytics_4bands/ --cov-report xml tests/test_cuda.py
+        run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v4
         with:
@@ -223,7 +221,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics_4bands/ultralytics_4bands' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -249,7 +247,8 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0'
+          # CoreML must be installed before export due to protobuf error from AutoInstall
+          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
       - name: Check environment
         run: |
           conda list
@@ -280,7 +279,7 @@ jobs:
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics_4bands/ultralytics_4bands' && (github.event_name == 'schedule' || github.event_name == 'push')
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |

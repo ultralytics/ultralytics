@@ -147,7 +147,7 @@ class AutoBackend(nn.Module):
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
         elif pt:  # PyTorch
-            from ultralytics_4bands.nn.tasks import attempt_load_weights
+            from ultralytics.nn.tasks import attempt_load_weights
 
             model = attempt_load_weights(
                 weights if isinstance(weights, list) else w, device=device, inplace=True, fuse=fuse
@@ -251,7 +251,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for TensorFlow GraphDef inference...")
             import tensorflow as tf
 
-            from ultralytics_4bands.engine.exporter import gd_outputs
+            from ultralytics.engine.exporter import gd_outputs
 
             def wrap_frozen_graph(gd, inputs, outputs):
                 """Wrap frozen graphs for deployment."""
@@ -384,21 +384,51 @@ class AutoBackend(nn.Module):
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
 
-        if self.pt or self.nn_module:  # PyTorch
+        # PyTorch
+        if self.pt or self.nn_module:
             y = self.model(im, augment=augment, visualize=visualize, embed=embed)
-        elif self.jit:  # TorchScript
+
+        # TorchScript
+        elif self.jit:
             y = self.model(im)
-        elif self.dnn:  # ONNX OpenCV DNN
+
+        # ONNX OpenCV DNN
+        elif self.dnn:
             im = im.cpu().numpy()  # torch to numpy
             self.net.setInput(im)
             y = self.net.forward()
-        elif self.onnx:  # ONNX Runtime
+
+        # ONNX Runtime
+        elif self.onnx:
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
-        elif self.xml:  # OpenVINO
+
+        # OpenVINO
+        elif self.xml:
             im = im.cpu().numpy()  # FP32
-            y = list(self.ov_compiled_model(im).values())
-        elif self.engine:  # TensorRT
+
+            if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
+                n = im.shape[0]  # number of images in batch
+                results = [None] * n  # preallocate list with None to match the number of images
+
+                def callback(request, userdata):
+                    """Places result in preallocated list using userdata index."""
+                    results[userdata] = request.results
+
+                # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
+                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue.set_callback(callback)
+                for i in range(n):
+                    # Start async inference with userdata=i to specify the position in results list
+                    async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
+                async_queue.wait_all()  # wait for all inference requests to complete
+                y = [list(r.values()) for r in results][0]
+
+            else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
+                y = list(self.ov_compiled_model(im).values())
+
+        # TensorRT
+        elif self.engine:
             if self.dynamic and im.shape != self.bindings["images"].shape:
                 i = self.model.get_binding_index("images")
                 self.context.set_binding_shape(i, im.shape)  # reshape if dynamic
@@ -411,7 +441,9 @@ class AutoBackend(nn.Module):
             self.binding_addrs["images"] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
-        elif self.coreml:  # CoreML
+
+        # CoreML
+        elif self.coreml:
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
@@ -430,12 +462,16 @@ class AutoBackend(nn.Module):
                 y = list(y.values())
             elif len(y) == 2:  # segmentation model
                 y = list(reversed(y.values()))  # reversed for segmentation models (pred, proto)
-        elif self.paddle:  # PaddlePaddle
+
+        # PaddlePaddle
+        elif self.paddle:
             im = im.cpu().numpy().astype(np.float32)
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
-        elif self.ncnn:  # ncnn
+
+        # NCNN
+        elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
             ex = self.net.create_extractor()
             input_names, output_names = self.net.input_names(), self.net.output_names()
@@ -445,10 +481,14 @@ class AutoBackend(nn.Module):
                 mat_out = self.pyncnn.Mat()
                 ex.extract(output_name, mat_out)
                 y.append(np.array(mat_out)[None])
-        elif self.triton:  # NVIDIA Triton Inference Server
+
+        # NVIDIA Triton Inference Server
+        elif self.triton:
             im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
-        else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
+
+        # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
+        else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
                 y = self.model(im, training=False) if self.keras else self.model(im)
@@ -506,16 +546,13 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz=(1, 4, 640, 640)):
+    def warmup(self, imgsz=(1, 3, 640, 640)):
         """
         Warm up the model by running one forward pass with a dummy input.
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
-        if imgsz[1] != 4:
-            imgsz = (1, 4, *imgsz[2:])
-
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input

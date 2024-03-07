@@ -10,6 +10,7 @@ from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.downloads import download
 from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.utils.checks import check_requirements
+
 check_requirements("easydict")
 from ultralytics.trackers.deep_sort import DeepSort
 

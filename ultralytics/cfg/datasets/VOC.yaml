@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
+# Documentation: # Documentation: https://docs.ultralytics.com/datasets/detect/voc/
 # Example usage: yolo train data=VOC.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── VOC  ← downloads here (2.8 GB)
-
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/VOC
@@ -41,7 +41,6 @@ names:
   17: sofa
   18: train
   19: tvmonitor
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
@@ -81,7 +80,7 @@ download: |
   urls = [f'{url}VOCtrainval_06-Nov-2007.zip',  # 446MB, 5012 images
           f'{url}VOCtest_06-Nov-2007.zip',  # 438MB, 4953 images
           f'{url}VOCtrainval_11-May-2012.zip']  # 1.95GB, 17126 images
-  download(urls, dir=dir / 'images', curl=True, threads=3)
+  download(urls, dir=dir / 'images', curl=True, threads=3, exist_ok=True)  # download and unzip over existing paths (required)
 
   # Convert
   path = dir / 'images/VOCdevkit'

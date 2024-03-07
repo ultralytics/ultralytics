@@ -1,0 +1,60 @@
+# YOLOv9
+
+# parameters
+nc: 80  # number of classes
+
+# gelan backbone
+backbone:
+  - [-1, 1, Silence, []]
+  - [-1, 1, Conv, [64, 3, 2]]  # 1-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]  # 2-P2/4
+  - [-1, 1, RepNCSPELAN4, [256, 128, 64, 2]]  # 3
+  - [-1, 1, ADown, [256]]  # 4-P3/8
+  - [-1, 1, RepNCSPELAN4, [512, 256, 128, 2]]  # 5
+  - [-1, 1, ADown, [512]]  # 6-P4/16
+  - [-1, 1, RepNCSPELAN4, [1024, 512, 256, 2]]  # 7
+  - [-1, 1, ADown, [1024]]  # 8-P5/32
+  - [-1, 1, RepNCSPELAN4, [1024, 512, 256, 2]]  # 9
+   
+  - [1, 1, CBLinear, [[64]]] # 10
+  - [3, 1, CBLinear, [[64, 128]]] # 11
+  - [5, 1, CBLinear, [[64, 128, 256]]] # 12
+  - [7, 1, CBLinear, [[64, 128, 256, 512]]] # 13
+  - [9, 1, CBLinear, [[64, 128, 256, 512, 1024]]] # 14
+  
+  - [0, 1, Conv, [64, 3, 2]]  # 15-P1/2
+  - [[10, 11, 12, 13, 14, -1], 1, CBFuse, [[0, 0, 0, 0, 0]]] # 16
+  - [-1, 1, Conv, [128, 3, 2]]  # 17-P2/4
+  - [[11, 12, 13, 14, -1], 1, CBFuse, [[1, 1, 1, 1]]] # 18  
+  - [-1, 1, RepNCSPELAN4, [256, 128, 64, 2]]  # 19
+  - [-1, 1, ADown, [256]]  # 20-P3/8
+  - [[12, 13, 14, -1], 1, CBFuse, [[2, 2, 2]]] # 21  
+  - [-1, 1, RepNCSPELAN4, [512, 256, 128, 2]]  # 22
+  - [-1, 1, ADown, [512]]  # 23-P4/16
+  - [[13, 14, -1], 1, CBFuse, [[3, 3]]] # 24 
+  - [-1, 1, RepNCSPELAN4, [1024, 512, 256, 2]]  # 25
+  - [-1, 1, ADown, [1024]]  # 26-P5/32
+  - [[14, -1], 1, CBFuse, [[4]]] # 27
+  - [-1, 1, RepNCSPELAN4, [1024, 512, 256, 2]]  # 28
+  - [-1, 1, SPPELAN, [512, 256]]  # 29
+
+# gelan head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 25], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 1, RepNCSPELAN4, [512, 512, 256, 2]]  # 32
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 22], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 1, RepNCSPELAN4, [256, 256, 128, 2]]  # 35 (P3/8-small)
+
+  - [-1, 1, ADown, [256]]
+  - [[-1, 32], 1, Concat, [1]]  # cat head P4
+  - [-1, 1, RepNCSPELAN4, [512, 512, 256, 2]]  # 38 (P4/16-medium)
+
+  - [-1, 1, ADown, [512]]
+  - [[-1, 29], 1, Concat, [1]]  # cat head P5
+  - [-1, 1, RepNCSPELAN4, [512, 1024, 512, 2]]  # 41 (P5/32-large)
+
+   # detect
+  - [[35, 38, 41], 1, Detect, [nc]]  # Detect(P3, P4, P5)

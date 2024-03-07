@@ -9,19 +9,54 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class FastSAMPredictor(DetectionPredictor):
+    """
+    FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks in Ultralytics
+    YOLO framework.
+
+    This class extends the DetectionPredictor, customizing the prediction pipeline specifically for fast SAM.
+    It adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing
+    for single-class segmentation.
+
+    Attributes:
+        cfg (dict): Configuration parameters for prediction.
+        overrides (dict, optional): Optional parameter overrides for custom behavior.
+        _callbacks (dict, optional): Optional list of callback functions to be invoked during prediction.
+    """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """
+        Initializes the FastSAMPredictor class, inheriting from DetectionPredictor and setting the task to 'segment'.
+
+        Args:
+            cfg (dict): Configuration parameters for prediction.
+            overrides (dict, optional): Optional parameter overrides for custom behavior.
+            _callbacks (dict, optional): Optional list of callback functions to be invoked during prediction.
+        """
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = 'segment'
+        self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
-        p = ops.non_max_suppression(preds[0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    agnostic=self.args.agnostic_nms,
-                                    max_det=self.args.max_det,
-                                    nc=len(self.model.names),
-                                    classes=self.args.classes)
+        """
+        Perform post-processing steps on predictions, including non-max suppression and scaling boxes to original image
+        size, and returns the final results.
+
+        Args:
+            preds (list): The raw output predictions from the model.
+            img (torch.Tensor): The processed image tensor.
+            orig_imgs (list | torch.Tensor): The original image or list of images.
+
+        Returns:
+            (list): A list of Results objects, each containing processed boxes, masks, and other metadata.
+        """
+        p = ops.non_max_suppression(
+            preds[0],
+            self.args.conf,
+            self.args.iou,
+            agnostic=self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            nc=1,  # set to 1 class since SAM has no class predictions
+            classes=self.args.classes,
+        )
         full_box = torch.zeros(p[0].shape[1], device=p[0].device)
         full_box[2], full_box[3], full_box[4], full_box[6:] = img.shape[3], img.shape[2], 1.0, 1.0
         full_box = full_box.view(1, -1)

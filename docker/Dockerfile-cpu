@@ -3,16 +3,17 @@
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM ubuntu:lunar-20230615
+FROM ubuntu:23.10
 
 # Downloads to user config dir
-ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
 
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
-# RUN alias python=python3
+    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 
 # Create working directory
 WORKDIR /usr/src/ultralytics
@@ -20,7 +21,7 @@ WORKDIR /usr/src/ultralytics
 # Copy contents
 # COPY . /usr/src/ultralytics  # git permission issues inside container
 RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
 RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
@@ -33,7 +34,7 @@ RUN pip install --no-cache -e ".[export]" --extra-index-url https://download.pyt
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
-# RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
+# RUN pip install --no-cache paddlepaddle>=2.6.0 x2paddle
 # Remove exported models
 RUN rm -rf tmp
 
@@ -47,10 +48,10 @@ RUN ln -sf /usr/bin/python3 /usr/bin/python
 # t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host --name NAME $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host --name NAME $t
 
 # Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

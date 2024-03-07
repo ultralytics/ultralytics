@@ -5,35 +5,38 @@ from pathlib import Path
 
 import pytest
 
-TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
+TMP = Path(__file__).resolve().parent / "tmp"  # temp directory for test files
 
 
 def pytest_addoption(parser):
-    """Add custom command-line options to pytest.
+    """
+    Add custom command-line options to pytest.
 
     Args:
         parser (pytest.config.Parser): The pytest parser object.
     """
-    parser.addoption('--slow', action='store_true', default=False, help='Run slow tests')
+    parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
 
 
 def pytest_configure(config):
-    """Register custom markers to avoid pytest warnings.
+    """
+    Register custom markers to avoid pytest warnings.
 
     Args:
         config (pytest.config.Config): The pytest config object.
     """
-    config.addinivalue_line('markers', 'slow: mark test as slow to run')
+    config.addinivalue_line("markers", "slow: mark test as slow to run")
 
 
 def pytest_runtest_setup(item):
-    """Setup hook to skip tests marked as slow if the --slow option is not provided.
+    """
+    Setup hook to skip tests marked as slow if the --slow option is not provided.
 
     Args:
         item (pytest.Item): The test item object.
     """
-    if 'slow' in item.keywords and not item.config.getoption('--slow'):
-        pytest.skip('skip slow tests unless --slow is set')
+    if "slow" in item.keywords and not item.config.getoption("--slow"):
+        pytest.skip("skip slow tests unless --slow is set")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -44,9 +47,9 @@ def pytest_collection_modifyitems(config, items):
         config (pytest.config.Config): The pytest config object.
         items (list): List of test items to be executed.
     """
-    if not config.getoption('--slow'):
+    if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
-        items[:] = [item for item in items if 'slow' not in item.keywords]
+        items[:] = [item for item in items if "slow" not in item.keywords]
 
 
 def pytest_sessionstart(session):
@@ -81,11 +84,11 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     from ultralytics.utils import WEIGHTS_DIR
 
     # Remove files
-    models = [path for x in ['*.onnx', '*.torchscript'] for path in WEIGHTS_DIR.rglob(x)]
-    for file in ['bus.jpg', 'yolov8n.onnx', 'yolov8n.torchscript'] + models:
+    models = [path for x in ["*.onnx", "*.torchscript"] for path in WEIGHTS_DIR.rglob(x)]
+    for file in ["bus.jpg", "yolov8n.onnx", "yolov8n.torchscript"] + models:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    models = [path for x in ['*.mlpackage', '*_openvino_model'] for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [TMP.parents[1] / '.pytest_cache', TMP] + models:
+    models = [path for x in ["*.mlpackage", "*_openvino_model"] for path in WEIGHTS_DIR.rglob(x)]
+    for directory in [TMP.parents[1] / ".pytest_cache", TMP] + models:
         shutil.rmtree(directory, ignore_errors=True)

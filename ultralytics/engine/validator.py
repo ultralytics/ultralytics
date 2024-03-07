@@ -18,6 +18,7 @@ Usage - formats:
                           yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolov8n_paddle_model       # PaddlePaddle
 """
+
 import json
 import time
 from pathlib import Path
@@ -33,6 +34,7 @@ from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 from torch.nn.utils.rnn import pad_sequence
+
 
 class BaseValidator:
     """
@@ -164,13 +166,13 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
-        
-        # reset iou list for new epoch 
+
+        # reset iou list for new epoch
         if self.args.task == "segment":
-            self.iou_list = torch.zeros((self.nc), dtype = torch.float32)
-            self.pred_instances = torch.zeros((self.nc), dtype = torch.int32)
-            self.gt_instances = torch.zeros((self.nc), dtype = torch.int32)
-            
+            self.iou_list = torch.zeros((self.nc), dtype=torch.float32)
+            self.pred_instances = torch.zeros((self.nc), dtype=torch.int32)
+            self.gt_instances = torch.zeros((self.nc), dtype=torch.int32)
+
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
@@ -197,14 +199,14 @@ class BaseValidator:
                 self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
-        
-        # calculate mIoU for segmentation task 
+
+        # calculate mIoU for segmentation task
         if self.args.task == "segment":
-            mean_iou = torch.sum(self.iou_list)/torch.sum(self.gt_instances)
-            mean_iou_list = self.iou_list/self.gt_instances
+            mean_iou = torch.sum(self.iou_list) / torch.sum(self.gt_instances)
+            mean_iou_list = self.iou_list / self.gt_instances
             self.mIoU = mean_iou
             self.mIoU_list = mean_iou_list
-                
+
         stats = self.get_stats()
         self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
@@ -219,7 +221,7 @@ class BaseValidator:
             if self.args.task == "segment":
                 print("Number of Predicted Instances:", self.pred_instances.numpy())
                 print("mIoU:", mean_iou.cpu().numpy())
-                print("Class mIoU:", mean_iou_list.cpu().numpy()) 
+                print("Class mIoU:", mean_iou_list.cpu().numpy())
             LOGGER.info(
                 "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"
                 % tuple(self.speed.values())

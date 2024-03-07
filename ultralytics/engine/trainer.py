@@ -129,7 +129,12 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in ("detect", "segment", "pose"):
+            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in (
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+            ):
                 self.data = check_det_dataset(self.args.data)
                 if "yaml_file" in self.data:
                     self.args.data = self.data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
@@ -488,6 +493,8 @@ class BaseTrainer:
             "train_results": results,
             "date": datetime.now().isoformat(),
             "version": __version__,
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
         }
 
         # Save last and best

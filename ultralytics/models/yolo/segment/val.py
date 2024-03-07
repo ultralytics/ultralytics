@@ -36,6 +36,13 @@ class SegmentationValidator(DetectionValidator):
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
+        # add mIoU metrics
+        self.iou_list = []
+        self.mIoU = 0
+        self.mIoU_list = [] 
+        self.pred_instances = []
+        self.gt_instances = []
+                
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
@@ -55,7 +62,7 @@ class SegmentationValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
+        return ("%22s" + "%11s" * 11) % (
             "Class",
             "Images",
             "Instances",
@@ -67,6 +74,7 @@ class SegmentationValidator(DetectionValidator):
             "R",
             "mAP50",
             "mAP50-95)",
+            "mIoU" # add mIoU metrics
         )
 
     def postprocess(self, preds):
@@ -132,9 +140,22 @@ class SegmentationValidator(DetectionValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_m"] = self._process_batch(
+                stat["tp_m"], iou_matrix = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
+                
+                # add instances to list                
+                self.pred_instances += torch.bincount(predn[:, 5].cpu().long().reshape(-1), minlength=self.nc)
+                self.gt_instances += torch.bincount(cls.cpu().long().reshape(-1), minlength=self.nc)
+            
+                # add IoU to list for all classes
+                for iou_idx, ious in enumerate(iou_matrix):
+                    if torch.sum(ious).item() > 0:
+                        # just get predicted classes that having in gt classes  
+                        if cls.long()[iou_idx] in predn[:, 5]:
+                            pred_idx = torch.where(predn[:, 5] == cls.long()[iou_idx])[0]
+                            self.iou_list[cls.long()[iou_idx]] += torch.sum(ious[pred_idx]).item()
+                                   
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 
@@ -160,6 +181,10 @@ class SegmentationValidator(DetectionValidator):
         """Sets speed and confusion matrix for evaluation metrics."""
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
+        
+        # add mIoU metrics to SegmentMetrics class    
+        self.metrics.mIoU =  self.mIoU
+        self.metrics.mIoU_list = self.mIoU_list
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -185,6 +210,8 @@ class SegmentationValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 
+        if masks:
+            return self.match_predictions(detections[:, 5], gt_cls, iou), iou
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):

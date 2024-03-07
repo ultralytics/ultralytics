@@ -46,12 +46,12 @@ class ObjectCounter:
         self.count_txt_thickness = 0
         self.count_txt_color = (0, 0, 0)
         self.count_color = (255, 255, 255)
-        
-        #individual path counting
-        self.incoming={}
-        self.outgoing={}
-        self.two_way={}
-        self.object_dict={}
+
+        # individual path counting
+        self.incoming = {}
+        self.outgoing = {}
+        self.two_way = {}
+        self.object_dict = {}
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -174,7 +174,6 @@ class ObjectCounter:
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            
             # Draw bounding box
             self.annotator.box_label(box, label=f"{track_id}:{self.names[cls]}", color=colors(int(cls), True))
 
@@ -201,42 +200,37 @@ class ObjectCounter:
                 ):
                     self.counting_list.append(track_id)
                     if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                        
                         self.in_counts += 1
-                        
+
                         # Updates the class' incoming value
-                        self.incoming.update({self.names[cls]:self.incoming[self.names[cls]]+1})
-                        self.two_way[self.names[cls]]['in']+=1
+                        self.incoming.update({self.names[cls]: self.incoming[self.names[cls]] + 1})
+                        self.two_way[self.names[cls]]["in"] += 1
 
                     else:
                         self.out_counts += 1
-                        
-                        #Updates the class' outgoing value
-                        self.outgoing.update({self.names[cls]:int(self.outgoing[self.names[cls]]+1)})
-                        self.two_way[self.names[cls]]['out']+=1
 
+                        # Updates the class' outgoing value
+                        self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
+                        self.two_way[self.names[cls]]["out"] += 1
 
             elif len(self.reg_pts) == 2:
                 if prev_position is not None:
                     distance = Point(track_line[-1]).distance(self.counting_region)
                     if distance < self.line_dist_thresh and track_id not in self.counting_list:
-                        self.counting_list.append(track_id)     
+                        self.counting_list.append(track_id)
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                            
                             self.in_counts += 1
-                            
-                            #Updates the class' incoming value
-                            self.incoming.update({self.names[cls]:int(self.incoming[self.names[cls]]+1)})
-                            self.two_way[self.names[cls]]['in']+=1
-                           
+
+                            # Updates the class' incoming value
+                            self.incoming.update({self.names[cls]: int(self.incoming[self.names[cls]] + 1)})
+                            self.two_way[self.names[cls]]["in"] += 1
 
                         else:
                             self.out_counts += 1
-                            
-                             #Updates the class' outgoing value
-                            self.outgoing.update({self.names[cls]:int(self.outgoing[self.names[cls]]+1)})
-                            self.two_way[self.names[cls]]['out']+=1
 
+                            # Updates the class' outgoing value
+                            self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
+                            self.two_way[self.names[cls]]["out"] += 1
 
         incount_label = f"In Count : {self.in_counts}"
         outcount_label = f"OutCount : {self.out_counts}"
@@ -259,17 +253,16 @@ class ObjectCounter:
                 txt_color=self.count_txt_color,
                 color=self.count_color,
             )
+
     """ Returns the values of the corresponding object"""
 
-
     def get_incoming(self):
-
         """
-        Function that returns dictionary of incoming objects  per class
-        
+        Function that returns dictionary of incoming objects  per class.
+
         Args:
             None
-        
+
         Returns:
             (dict) : dictionary of incoming objects  per class
 
@@ -278,13 +271,13 @@ class ObjectCounter:
         """
 
         return self.incoming
-    
+
     def get_outgoing(self):
         """
-        Function that returns dictionary of outgoing objects  per class
-        
+        Function that returns dictionary of outgoing objects  per class.
+
         Args:
-            None   
+            None
         Returns:
             (dict) : dictionary of outgoing objects  per class
 
@@ -292,13 +285,13 @@ class ObjectCounter:
             >> self.outgoing = {'car': 2, 'book': 0}
         """
         return self.outgoing
-        
+
     def get_in_counts(self):
         """
-        Function that returns total count of incoming objects  
-        
+        Function that returns total count of incoming objects.
+
         Args:
-            None   
+            None
         Returns:
             (int) : total count of incoming objects
 
@@ -306,27 +299,27 @@ class ObjectCounter:
             >> self.in_counts = 14
         """
         return self.in_counts
-    
+
     def get_out_counts(self):
         """
-        Function that returns count of outgoing objects  
-        
+        Function that returns count of outgoing objects.
+
         Args:
-            None   
+            None
         Returns:
             (int) : outgoing count
 
         Examples:
             >> self.out_counts = 14
         """
-        return self.out_counts  
-    
+        return self.out_counts
+
     def get_two_way(self):
         """
-        Function that returns dictionary of objects  per class and corresponding incoming and outgoing counts
-        
+        Function that returns dictionary of objects  per class and corresponding incoming and outgoing counts.
+
         Args:
-            None   
+            None
         Returns:
             (dict) : dictionary of objects  per class and corresponding incoming and outgoing counts
 
@@ -334,7 +327,7 @@ class ObjectCounter:
             >> self.two_way ={'car': {'out': 3, 'in': 2}, 'book': {'out': 0, 'in': 0}}
         """
         return self.two_way
-    
+
     def display_frames(self):
         """Display frame."""
         if self.env_check:
@@ -368,26 +361,28 @@ class ObjectCounter:
         if self.view_img:
             self.display_frames()
         return self.im0
-    
-    def inherit_dictionary(self,object_dict):
+
+    def inherit_dictionary(self, object_dict):
         """
-            The function inherit_dictionary initializes the dictionaries Incoming list, outgoing list, and two-way(both incoming and outgoing) list
-            
-            Args:
-                object_dict (dict): dictionary of objects and their corresponding starting count
-                
-        
-            Examples:
-                object_dict : {'person': 0, 'cell phone': 0} --> argument
-                Output of function-->
-                self.two_way = {'person': {'out': 0, 'in': 0}, 'cell phone': {'out': 0, 'in': 0}}
-                self.incoming=self.outgoing= {'person': 0, 'cell phone': 0}
+        The function inherit_dictionary initializes the dictionaries Incoming list, outgoing list, and two-way(both
+        incoming and outgoing) list.
+
+        Args:
+            object_dict (dict): dictionary of objects and their corresponding starting count
+
+
+        Examples:
+            object_dict : {'person': 0, 'cell phone': 0} --> argument
+            Output of function-->
+            self.two_way = {'person': {'out': 0, 'in': 0}, 'cell phone': {'out': 0, 'in': 0}}
+            self.incoming=self.outgoing= {'person': 0, 'cell phone': 0}
         """
-        self.object_dict=object_dict
+        self.object_dict = object_dict
         for row, kind in enumerate(list(self.object_dict.keys())):
-            self.two_way[kind]={"out":0,"in":0}
-        self.outgoing=copy.deepcopy(self.object_dict)
-        self.incoming=copy.deepcopy(self.object_dict)
+            self.two_way[kind] = {"out": 0, "in": 0}
+        self.outgoing = copy.deepcopy(self.object_dict)
+        self.incoming = copy.deepcopy(self.object_dict)
+
 
 if __name__ == "__main__":
     ObjectCounter()

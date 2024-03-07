@@ -39,6 +39,7 @@ python yolov8_sahi.py --source "path/to/video.mp4" --save-img --weights "yolov8n
 ### Step 3 (Optional): Run the Inference using Ultralytics YOLOv8 Object Tracking and SAHI
 
 Here are the basic commands for running the inference:
+
 ```bash
 #if you want to display results
 python yolov8_sahi_tracking.py --source "path/to/video.mp4" --view-img

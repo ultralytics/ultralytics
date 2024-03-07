@@ -6,7 +6,8 @@ import cv2
 
 
 def non_max_suppression(boxes, max_bbox_overlap, scores=None):
-    """Suppress overlapping detections.
+    """
+    Suppress overlapping detections.
 
     Original code from [1]_ has been adapted to include confidence score.
 
@@ -34,7 +35,6 @@ def non_max_suppression(boxes, max_bbox_overlap, scores=None):
     -------
     List[int]
         Returns indices of detections that have survived non-maxima suppression.
-
     """
     if len(boxes) == 0:
         return []
@@ -68,8 +68,6 @@ def non_max_suppression(boxes, max_bbox_overlap, scores=None):
 
         overlap = (w * h) / area[idxs[:last]]
 
-        idxs = np.delete(
-            idxs, np.concatenate(
-                ([last], np.where(overlap > max_bbox_overlap)[0])))
+        idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > max_bbox_overlap)[0])))
 
     return pick

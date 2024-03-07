@@ -1,27 +1,35 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+import os
 import cv2
-import cvzone
 import argparse
 import numpy as np
 from pathlib import Path
-from sahi import AutoDetectionModel
-from deep_sort.deep_sort import DeepSort
-from deep_sort.sort.tracker import Tracker
-from deep_sort.utils.parser import get_config
-from sahi.predict import get_sliced_prediction
+
+from ultralytics.trackers.deep_sort import DeepSort
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.plotting import Annotator
+from ultralytics.utils.downloads import download
+from ultralytics.utils.ops import xyxy2xywh
+
+from sahi import AutoDetectionModel
+from sahi.predict import get_sliced_prediction
 from sahi.utils.yolov8 import download_yolov8s_model
 
 
 def run(
-    weights="yolov8n.pt",
-    source="test.mp4",
-    without_tracking=False,
-    with_tracking=False,
-    view_img=False,
-    zoom_factor=1.5,
-    conf_threshold=0.3,
-    save_img=False,
-    exist_ok=False,
+        weights="yolov8n.pt",
+        source="test.mp4",
+        view_img=False,
+        save_img=False,
+        exist_ok=False,
+        slice_width=512,
+        slice_height=512,
+        slice_ratiow=0.2,
+        slice_ratioh=0.2,
+        conf=0.25,
+        max_age=70,
+        device='cpu',
+        line_width=3,
 ):
     """
     Run object detection on a video using YOLOv8 and SAHI.
@@ -29,13 +37,17 @@ def run(
     Args:
         weights (str): Model weights path.
         source (str): Video file path.
-        without_tracking (bool): Disable DeepSort tracking.
-        with_tracking (bool): Enable DeepSort tracking.
-        zoom_factor (float): Apply zoom factor.
-        conf_threshold (float): Set confidence threshold.
         view_img (bool): Show results.
         save_img (bool): Save results.
         exist_ok (bool): Overwrite existing files.
+        slice_width (int): Width of Slice
+        slice_height (int): Height of Slice
+        slice_ratiow (float): Slicing Width Ratio
+        slice_ratioh (float): Slicing Height Ratio
+        conf (float): Confidence Threshold
+        max_age (int): limits track existence without a match, ensuring accurate tracking.
+        device (str): Selection of device i.e. cuda & cpu
+        line_width (int): Bounding Boxes Width
     """
 
     # Check source path
@@ -49,7 +61,8 @@ def run(
     yolov8_model_path = f"models/{weights}"
     download_yolov8s_model(yolov8_model_path)
     detection_model = AutoDetectionModel.from_pretrained(
-        model_type="yolov8", model_path=yolov8_model_path, confidence_threshold=conf_threshold, device="cuda"
+        model_type="yolov8", model_path=yolov8_model_path,
+        confidence_threshold=conf, device=device
     )
 
     # Video setup
@@ -58,7 +71,7 @@ def run(
     fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"mp4v")
 
     # Output setup
-    save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
+    save_dir = increment_path(Path("ultralytics_results_with_sahi_tracking") / "exp", exist_ok)
     save_dir.mkdir(parents=True, exist_ok=True)
 
     if is_webcam:
@@ -70,100 +83,59 @@ def run(
             str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height)
         )
 
-    tracker = None
-    if with_tracking:
-        config = get_config()
-        tracker = DeepSort(model_path="deep_sort/deep/checkpoint/ckpt.t7", max_age=70)
+    # Download deepsort weights
+    if not os.path.exists("ckpt.t7"):
+        download('https://ultralytics.com/assets/ckpt.t7')
+
+    # Init tracker
+    tracker = DeepSort(model_path="ckpt.t7", max_age=max_age)
 
     while videocapture.isOpened():
+
         success, frame = videocapture.read()
+        annotator = Annotator(frame, line_width=line_width)
+
         if not success:
             break
 
         results = get_sliced_prediction(
             frame,
             detection_model,
-            slice_height=int(frame_height // zoom_factor),
-            slice_width=int(frame_width // zoom_factor),
-            overlap_height_ratio=0.05,
-            overlap_width_ratio=0.1,
+            slice_height=slice_height,
+            slice_width=slice_width,
+            overlap_height_ratio=slice_ratioh,
+            overlap_width_ratio=slice_ratiow,
         )
+
         object_prediction_list = results.object_prediction_list
 
-        # DeepSort Tracking
-        if with_tracking:
-            # uncomment the following line to track only person class
-            # person_predictions = [obj for obj in object_prediction_list if obj.category.name == "person"]
+        boxes_list = []
+        clss_list = []
+        for ind, _ in enumerate(object_prediction_list):
+            boxes = (
+                object_prediction_list[ind].bbox.minx,
+                object_prediction_list[ind].bbox.miny,
+                object_prediction_list[ind].bbox.maxx,
+                object_prediction_list[ind].bbox.maxy,
+                object_prediction_list[ind].score.value
+            )
 
-            person_predictions = object_prediction_list
+            clss = object_prediction_list[ind].category.name
+            boxes_list.append(boxes)
+            clss_list.append(clss)
 
-            boxes_list = []
-            data = []
-            for person_pred in person_predictions:
-                boxes = (
-                    person_pred.bbox.minx,
-                    person_pred.bbox.miny,
-                    person_pred.bbox.maxx,
-                    person_pred.bbox.maxy,
-                    person_pred.score.value,
-                )
-                boxes_list.append(boxes)
+        # Plot visuals
+        if boxes_list:
+            conf = np.array(boxes_list)[:, -1].reshape(-1, 1)
+            boxes_np = np.array(boxes_list, dtype=np.int16)[:, :-1]
+            trackers = tracker.update(boxes_np, conf, frame)
 
-            if boxes_list:
-                conf = np.array(boxes_list)[:, -1].reshape(-1, 1)
-                boxes_np = np.array(boxes_list, dtype=np.int16)[:, :-1]
-                trackers = tracker.update(boxes_np, conf, frame)
-                for track in trackers:
-                    bbox = track[0:4]  # Get x1, y1, x2, y2 coordinates directly
-                    track_id = track[4]
+            for track, box, cls in zip(trackers, boxes_list, clss_list):
+                track_box = xyxy2xywh(track[0:4])
+                label = cls + ":" + str(track[4])
+                annotator.box_label(track_box, label=label, color=(255, 0, 255))
 
-                    data.append({"id": int(track_id), "bbox": np.array(bbox, dtype=np.int16)})
-
-                    cvzone.cornerRect(
-                        frame,
-                        (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])),
-                        l=0,
-                        rt=1,
-                        t=1,
-                        colorR=(0, 0, 255),
-                        colorC=(0, 0, 255),
-                    )
-                    cvzone.putTextRect(
-                        frame,
-                        f"Track ID: {int(track_id)}",
-                        (max(0, int(bbox[0])), max(0, int(bbox[1]))),
-                        1,
-                        2,
-                        colorT=(255, 255, 255),
-                        colorR=(0, 0, 255),
-                    )
-
-        if without_tracking:
-            boxes_list = []
-            clss_list = []
-            for ind, _ in enumerate(object_prediction_list):
-                boxes = (
-                    object_prediction_list[ind].bbox.minx,
-                    object_prediction_list[ind].bbox.miny,
-                    object_prediction_list[ind].bbox.maxx,
-                    object_prediction_list[ind].bbox.maxy,
-                )
-                clss = object_prediction_list[ind].category.name
-                boxes_list.append(boxes)
-                clss_list.append(clss)
-
-            for box, cls in zip(boxes_list, clss_list):
-                x1, y1, x2, y2 = box
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (56, 56, 255), 2)
-                label = str(cls)
-                t_size = cv2.getTextSize(label, 0, fontScale=0.6, thickness=1)[0]
-                cv2.rectangle(
-                    frame, (int(x1), int(y1) - t_size[1] - 3), (int(x1) + t_size[0], int(y1) + 3), (56, 56, 255), -1
-                )
-                cv2.putText(
-                    frame, label, (int(x1), int(y1) - 2), 0, 0.6, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA
-                )
-
+        # Display
         if view_img:
             if is_webcam:
                 cv2.imshow("YOLOv8", frame)
@@ -184,13 +156,17 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolov8n.pt", help="initial weights path")
     parser.add_argument("--source", type=str, required=True, help="video file path")
-    parser.add_argument("--without-tracking", action="store_true", help="disable DeepSort tracking")
     parser.add_argument("--view-img", action="store_true", help="show results")
-    parser.add_argument("--zoom-factor", default=1.5, help="apply zoom factor")
-    parser.add_argument("--conf-threshold", default=0.3, help="set confidence threshold")
     parser.add_argument("--save-img", action="store_true", help="save results")
     parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
-    parser.add_argument("--with-tracking", action="store_true", help="enable DeepSort tracking")
+    parser.add_argument("--slice-width", type=int, default=512, help="Slicing Width.")
+    parser.add_argument("--slice-height", type=int, default=512, help="Slicing Height.")
+    parser.add_argument("--slice-ratiow", type=int, default=0.2, help="Slicing Width Ratio.")
+    parser.add_argument("--slice-ratioh", type=float, default=0.2, help="Slicing Height Ratio.")
+    parser.add_argument("--conf", type=float, default=0.25, help="Confidence Threshold Value.")
+    parser.add_argument("--max-age", type=int, default=70, help="limits track existence without a match, ensuring accurate tracking..")
+    parser.add_argument("--line-width", type=int, default=3, help="Bounding Boxes Width")
+
     return parser.parse_args()
 
 

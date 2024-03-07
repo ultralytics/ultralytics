@@ -17,19 +17,19 @@ from sahi.utils.yolov8 import download_yolov8s_model
 
 
 def run(
-        weights="yolov8n.pt",
-        source="test.mp4",
-        view_img=False,
-        save_img=False,
-        exist_ok=False,
-        slice_width=512,
-        slice_height=512,
-        slice_ratiow=0.2,
-        slice_ratioh=0.2,
-        conf=0.25,
-        max_age=70,
-        device='cpu',
-        line_width=3,
+    weights="yolov8n.pt",
+    source="test.mp4",
+    view_img=False,
+    save_img=False,
+    exist_ok=False,
+    slice_width=512,
+    slice_height=512,
+    slice_ratiow=0.2,
+    slice_ratioh=0.2,
+    conf=0.25,
+    max_age=70,
+    device="cpu",
+    line_width=3,
 ):
     """
     Run object detection on a video using YOLOv8 and SAHI.
@@ -61,8 +61,7 @@ def run(
     yolov8_model_path = f"models/{weights}"
     download_yolov8s_model(yolov8_model_path)
     detection_model = AutoDetectionModel.from_pretrained(
-        model_type="yolov8", model_path=yolov8_model_path,
-        confidence_threshold=conf, device=device
+        model_type="yolov8", model_path=yolov8_model_path, confidence_threshold=conf, device=device
     )
 
     # Video setup
@@ -85,13 +84,12 @@ def run(
 
     # Download deepsort weights
     if not os.path.exists("ckpt.t7"):
-        download('https://ultralytics.com/assets/ckpt.t7')
+        download("https://ultralytics.com/assets/ckpt.t7")
 
     # Init tracker
     tracker = DeepSort(model_path="ckpt.t7", max_age=max_age)
 
     while videocapture.isOpened():
-
         success, frame = videocapture.read()
         annotator = Annotator(frame, line_width=line_width)
 
@@ -117,7 +115,7 @@ def run(
                 object_prediction_list[ind].bbox.miny,
                 object_prediction_list[ind].bbox.maxx,
                 object_prediction_list[ind].bbox.maxy,
-                object_prediction_list[ind].score.value
+                object_prediction_list[ind].score.value,
             )
 
             clss = object_prediction_list[ind].category.name
@@ -164,7 +162,9 @@ def parse_opt():
     parser.add_argument("--slice-ratiow", type=int, default=0.2, help="Slicing Width Ratio.")
     parser.add_argument("--slice-ratioh", type=float, default=0.2, help="Slicing Height Ratio.")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence Threshold Value.")
-    parser.add_argument("--max-age", type=int, default=70, help="limits track existence without a match, ensuring accurate tracking..")
+    parser.add_argument(
+        "--max-age", type=int, default=70, help="limits track existence without a match, ensuring accurate tracking.."
+    )
     parser.add_argument("--line-width", type=int, default=3, help="Bounding Boxes Width")
 
     return parser.parse_args()

@@ -145,16 +145,16 @@ class SegmentationValidator(DetectionValidator):
                 )
 
                 # add instances to list
-                self.pred_instances += torch.bincount(predn[:, 5].cpu().long().reshape(-1), minlength=self.nc)
-                self.gt_instances += torch.bincount(cls.cpu().long().reshape(-1), minlength=self.nc)
+                self.pred_instances += predn[:, 5].cpu().long().reshape(-1).bincount(minlength=self.nc)
+                self.gt_instances += cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes
                 for iou_idx, ious in enumerate(iou_matrix):
-                    if torch.sum(ious).item() > 0:
+                    if ious.sum().item() > 0:
                         # just get predicted classes that having in gt classes
                         if cls.long()[iou_idx] in predn[:, 5]:
                             pred_idx = torch.where(predn[:, 5] == cls.long()[iou_idx])[0]
-                            self.iou_list[cls.long()[iou_idx]] += torch.sum(ious[pred_idx]).item()
+                            self.iou_list[cls.long()[iou_idx]] += ious[pred_idx].sum().item()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)

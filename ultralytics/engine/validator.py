@@ -17,6 +17,7 @@ Usage - formats:
                           yolov8n.tflite             # TensorFlow Lite
                           yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolov8n_paddle_model       # PaddlePaddle
+                          yolov8n_ncnn_model         # NCNN
 """
 
 import json
@@ -33,7 +34,6 @@ from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
-from torch.nn.utils.rnn import pad_sequence
 
 
 class BaseValidator:
@@ -202,7 +202,7 @@ class BaseValidator:
 
         # calculate mIoU for segmentation task
         if self.args.task == "segment":
-            mean_iou = torch.sum(self.iou_list) / torch.sum(self.gt_instances)
+            mean_iou = self.iou_list.sum() / self.gt_instances.sum()
             mean_iou_list = self.iou_list / self.gt_instances
             self.mIoU = mean_iou
             self.mIoU_list = mean_iou_list

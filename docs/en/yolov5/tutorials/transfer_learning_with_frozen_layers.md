@@ -104,6 +104,8 @@ so we can define the freeze list to contain all modules with 'model.0.' - 'model
 python train.py --freeze 10
 ```
 
+To make BatchNorm statistics (mean and variance) in those frozen layers unchanged, you can also set `--freeze_bn True`.
+
 ## Freeze All Layers
 
 To freeze the full model except for the final output convolution layers in Detect(), we set freeze list to contain all modules with 'model.0.' - 'model.23.' in their names:
@@ -111,6 +113,8 @@ To freeze the full model except for the final output convolution layers in Detec
 ```bash
 python train.py --freeze 24
 ```
+
+To make BatchNorm statistics (mean and variance) in those frozen layers unchanged, you can also set `--freeze_bn True`.
 
 ## Results
 

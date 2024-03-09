@@ -115,7 +115,10 @@ import cv2 as cv
 from ultralytics import YOLO
 from sixel import SixelWriter
 
+# Load a model
 model = YOLO("yolov8n.pt")
+
+# Run inference on an image
 results = model.predict(source="ultralytics/assets/bus.jpg")
 
 # Plot inference results
@@ -139,4 +142,5 @@ w.draw(mem_file)
 ---
 
 !!! tip
+
     You may need to use `clear` to "erase" the view of the image in the terminal.

@@ -32,9 +32,7 @@ class SourceTypes:
 
 class LoadStreams:
     """
-    Stream Loader for various types of video streams.
-
-    Suitable for use with `yolo predict source='rtsp://example.com/media.mp4'`, supports RTSP, RTMP, HTTP, and TCP streams.
+    Stream Loader for various types of video streams, Supports RTSP, RTMP, HTTP, and TCP streams.
 
     Attributes:
         sources (str): The source input paths or URLs for the video streams.
@@ -57,6 +55,11 @@ class LoadStreams:
         __iter__: Returns an iterator object for the class.
         __next__: Returns source paths, transformed, and original images for processing.
         __len__: Return the length of the sources object.
+
+    Example:
+         ```bash
+         yolo predict source='rtsp://example.com/media.mp4'
+         ```
     """
 
     def __init__(self, sources="file.streams", vid_stride=1, buffer=False):
@@ -269,7 +272,7 @@ class LoadImages:
         _new_video(path): Create a new cv2.VideoCapture object for a given video path.
     """
 
-    def __init__(self, path, vid_stride=1):
+    def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
@@ -298,7 +301,7 @@ class LoadImages:
         self.video_flag = [False] * ni + [True] * nv
         self.mode = "image"
         self.vid_stride = vid_stride  # video frame-rate stride
-        self.bs = 1
+        self.bs = batch
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -373,7 +376,6 @@ class LoadPilAndNumpy:
         im0 (list): List of images stored as Numpy arrays.
         mode (str): Type of data being processed, defaults to 'image'.
         bs (int): Batch size, equivalent to the length of `im0`.
-        count (int): Counter for iteration, initialized at 0 during `__iter__()`.
 
     Methods:
         _single_check(im): Validate and format a single image to a Numpy array.
@@ -386,7 +388,6 @@ class LoadPilAndNumpy:
         self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im) for im in im0]
         self.mode = "image"
-        # Generate fake paths
         self.bs = len(self.im0)
 
     @staticmethod

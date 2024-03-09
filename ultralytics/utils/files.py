@@ -147,23 +147,25 @@ def get_latest_run(search_dir="."):
     return max(last_list, key=os.path.getctime) if last_list else ""
 
 
-def update_models(model_names=("yolov8n.pt",), source_dir=Path(".")):
+def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_names=True):
     """
     Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
 
     Args:
         model_names (tuple, optional): Model filenames to update, defaults to ("yolov8n.pt").
         source_dir (Path, optional): Directory containing models and target subdirectory, defaults to current directory.
+        update_names (bool, optional): Update model names from a data YAML.
 
     Example:
         ```python
         from ultralytics.utils.files import update_models
 
-        model_names = (f"yolov8{size}-world{version}.pt" for size in "smlx" for version in ("", "v2"))
+        model_names = (f"rtdetr-{size}.pt" for size in "lx")
         update_models(model_names)
         ```
     """
     from ultralytics import YOLO
+    from ultralytics.nn.autobackend import default_class_names
 
     target_dir = source_dir / "updated_models"
     target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists
@@ -175,6 +177,8 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path(".")):
         # Load model
         model = YOLO(model_path)
         model.half()
+        if update_names:  # update model names from a dataset YAML
+            model.model.names = default_class_names("coco8.yaml")
 
         # Define new save path
         save_path = target_dir / model_name

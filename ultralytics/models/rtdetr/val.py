@@ -94,7 +94,7 @@ class RTDETRValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        if not isinstance(preds, list):  # list for PyTorch inference but list[0] Tensor for export inference
+        if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
 
         bs, _, nd = preds[0].shape

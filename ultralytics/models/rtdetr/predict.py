@@ -46,7 +46,7 @@ class RTDETRPredictor(BasePredictor):
             (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence scores,
                 and class labels.
         """
-        if not isinstance(preds, list):  # list for PyTorch inference but list[0] Tensor for export inference
+        if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
 
         nd = preds[0].shape[-1]

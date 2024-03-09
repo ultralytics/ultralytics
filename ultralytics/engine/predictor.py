@@ -104,6 +104,8 @@ class BasePredictor:
         self.plotted_img = None
         self.data_path = None
         self.source_type = None
+        self.seen = 0
+        self.windows = []
         self.batch = None
         self.results = None
         self.transforms = None

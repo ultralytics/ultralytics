@@ -39,6 +39,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md) 🚀 NEW: Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
 - [Isolating Segmentation Objects](isolating-segmentation-objects.md) 🚀 NEW: Step-by-step recipe and explanation on how to extract and/or isolate objects from images using Ultralytics Segmentation.
 - [Edge TPU on Raspberry Pi](coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://coral.ai/products/accelerator) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
+- [View Inference Images in a Terminal](view-results-in-terminal.md): Use VSCode's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
 
 ## Real-World Projects
 

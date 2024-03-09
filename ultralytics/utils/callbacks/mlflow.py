@@ -108,15 +108,17 @@ def on_train_end(trainer):
         for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
             if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
                 mlflow.log_artifact(str(f))
-        keep_run_active = os.environ.get('MLFLOW_KEEP_RUN_ACTIVE', 'False').lower() in ('true')
+        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() in ("true")
         if not keep_run_active:
             mlflow.end_run()
-            LOGGER.debug(f'{PREFIX}mlflow run ended')
+            LOGGER.debug(f"{PREFIX}mlflow run ended")
         else:
-            LOGGER.info(f'{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()')
+            LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
 
-        LOGGER.info(f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
-                    f"{PREFIX}disable with 'yolo settings mlflow=False'")
+        LOGGER.info(
+            f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
+            f"{PREFIX}disable with 'yolo settings mlflow=False'"
+        )
 
 
 callbacks = (

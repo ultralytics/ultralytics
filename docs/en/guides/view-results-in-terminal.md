@@ -55,11 +55,14 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 1. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
     ```{ .py .annotate }
-    model = YOLO("yolov8n.pt")
-    results = model.predict(
-        source="ultralytics/assets/bus.jpg",
-        )
+    from ultralytics import YOLO
 
+    # Load a model
+    model = YOLO("yolov8n.pt")
+
+    # Run inference on an image
+    results = model.predict(source="ultralytics/assets/bus.jpg")
+    
     # Plot inference results
     plot = results[0].plot() #(1)!
     ```

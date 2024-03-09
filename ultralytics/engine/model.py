@@ -161,7 +161,7 @@ class Model(nn.Module):
                 Defaults to None.
             stream (bool, optional): If True, treats the input source as a continuous stream for predictions.
                 Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the prediction process.
+            **kwargs (any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
@@ -368,7 +368,7 @@ class Model(nn.Module):
             source (str | int | PIL.Image | np.ndarray): The source of the image for generating embeddings.
                 The source can be a file path, URL, PIL image, numpy array, etc. Defaults to None.
             stream (bool): If True, predictions are streamed. Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the embedding process.
+            **kwargs (any): Additional keyword arguments for configuring the embedding process.
 
         Returns:
             (List[torch.Tensor]): A list containing the image embeddings.
@@ -406,7 +406,7 @@ class Model(nn.Module):
             stream (bool, optional): Treats the input source as a continuous stream for predictions. Defaults to False.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor. Defaults to None.
-            **kwargs (dict): Additional keyword arguments for configuring the prediction process. These arguments allow
+            **kwargs (any): Additional keyword arguments for configuring the prediction process. These arguments allow
                 for further customization of the prediction behavior.
 
         Returns:
@@ -460,7 +460,7 @@ class Model(nn.Module):
             source (str, optional): The input source for object tracking. It can be a file path, URL, or video stream.
             stream (bool, optional): Treats the input source as a continuous video stream. Defaults to False.
             persist (bool, optional): Persists the trackers between different calls to this method. Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the tracking process. These arguments allow
+            **kwargs (any): Additional keyword arguments for configuring the tracking process. These arguments allow
                 for further customization of the tracking behavior.
 
         Returns:
@@ -497,7 +497,7 @@ class Model(nn.Module):
         Args:
             validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
                 None, the method uses a default validator. Defaults to None.
-            **kwargs (dict): Arbitrary keyword arguments representing the validation configuration. These arguments are
+            **kwargs (any): Arbitrary keyword arguments representing the validation configuration. These arguments are
                 used to customize various aspects of the validation process.
 
         Returns:
@@ -531,7 +531,7 @@ class Model(nn.Module):
         configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs (dict): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
+            **kwargs (any): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
                 default configurations, model-specific arguments, and method defaults.
 
         Returns:
@@ -570,7 +570,7 @@ class Model(nn.Module):
         possible arguments, refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs (dict): Arbitrary keyword arguments to customize the export process. These are combined with the
+            **kwargs (any): Arbitrary keyword arguments to customize the export process. These are combined with the
                 model's overrides and method defaults.
 
         Returns:
@@ -607,7 +607,7 @@ class Model(nn.Module):
         Args:
             trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
                 method uses a default trainer. Defaults to None.
-            **kwargs (dict): Arbitrary keyword arguments representing the training configuration. These arguments are
+            **kwargs (any): Arbitrary keyword arguments representing the training configuration. These arguments are
                 used to customize various aspects of the training process.
 
         Returns:
@@ -679,7 +679,7 @@ class Model(nn.Module):
             use_ray (bool): If True, uses Ray Tune for hyperparameter tuning. Defaults to False.
             iterations (int): The number of tuning iterations to perform. Defaults to 10.
             *args (list): Variable length argument list for additional arguments.
-            **kwargs (dict): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
+            **kwargs (any): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.

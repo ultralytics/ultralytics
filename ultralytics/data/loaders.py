@@ -359,8 +359,8 @@ class LoadImages:
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self):
-        """Returns the number of files in the object."""
-        return self.nf  # number of files
+        """Returns the number of batches in the object."""
+        return math.ceil(self.nf / self.bs)  # number of files
 
 
 class LoadPilAndNumpy:
@@ -499,9 +499,6 @@ def autocast_list(source):
     return files
 
 
-LOADERS = LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots  # tuple
-
-
 def get_best_youtube_url(url, use_pafy=True):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
@@ -532,3 +529,7 @@ def get_best_youtube_url(url, use_pafy=True):
             good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
             if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
                 return f.get("url")
+
+
+# Define constants
+LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots)

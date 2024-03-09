@@ -145,3 +145,40 @@ def get_latest_run(search_dir="."):
     """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
     last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ""
+
+
+def update_models(model_names=("yolov8n.pt",), source_dir=Path(".")):
+    """
+    Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
+
+    Args:
+        model_names (tuple, optional): Model filenames to update, defaults to ("yolov8n.pt").
+        source_dir (Path, optional): Directory containing models and target subdirectory, defaults to current directory.
+
+    Example:
+        ```python
+        from ultralytics.utils.files import update_models
+
+        model_names = (f"yolov8{size}-world{version}.pt" for size in "smlx" for version in ("", "v2"))
+        update_models(model_names)
+        ```
+    """
+    from ultralytics import YOLO
+
+    target_dir = source_dir / "updated_models"
+    target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists
+
+    for model_name in model_names:
+        model_path = source_dir / model_name
+        print(f"Loading model from {model_path}")
+
+        # Load model
+        model = YOLO(model_path)
+        model.half()
+
+        # Define new save path
+        save_path = target_dir / model_name
+
+        # Save model using model.save()
+        print(f"Re-saving {model_name} model to {save_path}")
+        model.save(save_path, use_dill=False)

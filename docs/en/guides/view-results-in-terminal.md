@@ -12,13 +12,22 @@ keywords: YOLOv8, VSCode, terminal, remote development, Ultralytics, ssh, object
 
 !!! warning
 
-    Only compatible with Linux and MacOS. Check the VSCode repository or documentation for updates about Windows support.
+    Only compatible with Linux and MacOS. Check the VSCode [repository](https://github.com/microsoft/vscode), check [Issue status](https://github.com/microsoft/vscode/issues/198622), or [documentation](https://code.visualstudio.com/docs) for updates about Windows support to view images in terminal with `sixel`.
 
-The compatible libraries are `sixel` and `iTerm`. This guide will use `sixel` but it _might_ be possible to reuse some of the same code for `iTerm` (not tested).
+The VSCode compatible libraries for viewing images using the integrated terminal are `sixel` and `iTerm`. This guide will use `sixel` but it _might_ be possible to reuse some of the same code for `iTerm` (not tested).
 
 ## Process
 
 1. First, you must enable settings `terminal.integrated.enableImages` and `terminal.integrated.gpuAcceleration` in VSCode.
+
+    ```yaml
+    "terminal.integrated.gpuAcceleration": "auto" # "auto" is default, can also use "on"
+    "terminal.integrated.enableImages": false
+    ```
+
+<p align="center">
+  <img width="800" src="" alt="VSCode enable terminal images setting">
+</p>
 
 1. Import the relevant libraries
 
@@ -98,3 +107,8 @@ w.draw(mem_file)
 
 1. It's possible to use other image extensions as well.
 2. Only the object at index `1` that is returned is needed.
+
+---
+
+!!! tip
+    You may need to use `clear` to "erase" the view of the image in the terminal.

@@ -85,7 +85,7 @@ def benchmark(
         try:
             # Checks
             if i == 9:  # Edge TPU
-                assert LINUX, "Edge TPU export only supported on Linux"
+                assert not ARM64 or LINUX, "Edge TPU export only supported on Linux"
             elif i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i in {5, 10}:  # CoreML and TF.js

@@ -352,35 +352,35 @@ class BasePredictor:
 
         return log_string
 
-    def save_predicted_images(self, idx, save_path):
+    def save_predicted_images(self, i, save_path):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
-        # Save imgs
+        # Save images
         if self.dataset.mode == "image":
             cv2.imwrite(save_path, im)
         else:  # 'video' or 'stream'
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
-            if self.vid_path[idx] != save_path:  # new video
-                self.vid_path[idx] = save_path
+            if self.vid_path[i] != save_path:  # new video
+                self.vid_path[i] = save_path
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)
-                    self.vid_frame[idx] = 0
-                if isinstance(self.vid_writer[idx], cv2.VideoWriter):
-                    self.vid_writer[idx].release()  # release previous video writer
+                    self.vid_frame[i] = 0
+                if isinstance(self.vid_writer[i], cv2.VideoWriter):
+                    self.vid_writer[i].release()  # release previous video writer
                 suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
-                self.vid_writer[idx] = cv2.VideoWriter(
+                self.vid_writer[i] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
                     fps=30,  # integer required, floats produce error in MP4 codec
                     frameSize=(im.shape[1], im.shape[0]),  # width, height
                 )
             # Write video
-            self.vid_writer[idx].write(im)
+            self.vid_writer[i].write(im)
 
             # Write frame
             if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{self.vid_frame[idx]}.jpg", im)
-                self.vid_frame[idx] += 1
+                cv2.imwrite(f"{frames_path}{self.vid_frame[i]}.jpg", im)
+                self.vid_frame[i] += 1
 
     def show(self, p):
         """Display an image in a window using OpenCV imshow()."""

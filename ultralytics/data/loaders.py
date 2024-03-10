@@ -72,6 +72,7 @@ class LoadStreams:
 
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
+        self.bs = n
         self.fps = [0] * n  # frames per second
         self.frames = [0] * n
         self.threads = [None] * n
@@ -111,9 +112,6 @@ class LoadStreams:
             LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
         LOGGER.info("")  # newline
-
-        # Check for common shapes
-        self.bs = self.__len__()
 
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
@@ -178,11 +176,11 @@ class LoadStreams:
                 images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
                 x.clear()
 
-        return self.sources, images, None, [""]
+        return self.sources, images, None, [""] * self.bs
 
     def __len__(self):
         """Return the length of the sources object."""
-        return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
 
 class LoadScreenshots:

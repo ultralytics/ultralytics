@@ -92,6 +92,8 @@ def benchmark(
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
+            if i in {5}:  # CoreML
+                assert not ARM64, "export not supported on ARM64"
             if i in {6, 7, 8, 9, 10}:  # All TF formats
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle

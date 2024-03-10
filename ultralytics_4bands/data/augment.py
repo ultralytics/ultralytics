@@ -8,6 +8,8 @@ import cv2
 import numpy as np
 import torch
 import torchvision.transforms as T
+import torchvision.transforms.functional as TF
+from PIL import Image, ImageFilter
 
 from ultralytics_4bands.utils import LOGGER, colorstr
 from ultralytics_4bands.utils.checks import check_version
@@ -17,8 +19,8 @@ from ultralytics_4bands.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics_4bands.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 from .utils import polygons2masks, polygons2masks_overlap
 
-DEFAULT_MEAN = (0.0, 0.0, 0.0)
-DEFAULT_STD = (1.0, 1.0, 1.0)
+DEFAULT_MEAN = (0.0, 0.0, 0.0,0.0)
+DEFAULT_STD = (1.0, 1.0, 1.0,1.0)
 DEFAULT_CROP_FTACTION = 1.0
 
 
@@ -1004,6 +1006,110 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         ]
     )  # transforms
 
+from torchvision.transforms import functional as F
+import torchvision.transforms as T
+import random
+import torch
+from PIL import Image
+
+
+class AdjustSaturationRGBA(torch.nn.Module):
+    """Adjust saturation for RGBA images."""
+    def __init__(self, saturation_factor):
+        super().__init__()
+        self.saturation_factor = saturation_factor
+
+    def forward(self, img):
+        # Convert PIL Image to NumPy array to separate RGB and alpha channels
+        img_np = np.array(img)
+        img_rgb, img_a = img_np[..., :3], img_np[..., 3]
+
+        # Convert RGB back to PIL Image, adjust saturation, and convert back to NumPy array
+        img_rgb_pil = Image.fromarray(img_rgb)
+        img_rgb_pil = F.adjust_saturation(img_rgb_pil, self.saturation_factor)
+        img_rgb_adjusted = np.array(img_rgb_pil)
+
+        # Reassemble the RGBA image and convert back to PIL Image
+        img_rgba_adjusted = np.dstack((img_rgb_adjusted, img_a))
+        return Image.fromarray(img_rgba_adjusted)
+
+class AdjustBrightnessRGBA(torch.nn.Module):
+    """Adjust brightness for RGBA images."""
+    def __init__(self, brightness_factor):
+        super().__init__()
+        self.brightness_factor = brightness_factor
+
+    def forward(self, img):
+        img_np = np.array(img)
+        img_rgb, img_a = img_np[..., :3], img_np[..., 3]
+
+        img_rgb_pil = Image.fromarray(img_rgb)
+        img_rgb_pil = F.adjust_brightness(img_rgb_pil, self.brightness_factor)
+        img_rgb_adjusted = np.array(img_rgb_pil)
+
+        img_rgba_adjusted = np.dstack((img_rgb_adjusted, img_a))
+        return Image.fromarray(img_rgba_adjusted)
+
+import random
+
+import numpy as np
+from PIL import Image
+
+
+class RotateRGBA(torch.nn.Module):
+    """Rotate RGBA image."""
+    def __init__(self, degrees, expand=True):
+        super(RotateRGBA, self).__init__()
+        self.degrees = degrees
+        self.expand = expand
+
+    def forward(self, img):
+        angle = random.uniform(*self.degrees) if isinstance(self.degrees, tuple) else self.degrees
+
+        img_np = np.array(img)
+        img_rgb, img_a = img_np[..., :3], img_np[..., 3]
+
+        # Apply rotation to the RGB channels
+        img_rgb_pil = Image.fromarray(img_rgb)
+        img_rgb_pil = img_rgb_pil.rotate(angle, expand=self.expand)
+        img_rgb_rotated = np.array(img_rgb_pil)
+
+        # Resize the alpha channel to match the rotated image's dimensions
+        img_a_resized = Image.fromarray(img_a).resize(img_rgb_rotated.shape[1::-1], Image.NEAREST)
+        img_a_resized = np.array(img_a_resized)
+
+        # Reassemble the RGBA image
+        img_rgba_rotated = np.dstack((img_rgb_rotated, img_a_resized))
+        return Image.fromarray(img_rgba_rotated)
+
+
+
+
+class GaussianBlurRGBA(torch.nn.Module):
+    """Apply Gaussian blur to RGBA images."""
+    def __init__(self, kernel_size, sigma=None):
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.sigma = sigma
+
+    def forward(self, img):
+        # Convert PIL Image to NumPy array to separate RGB and alpha channels
+        img_np = np.array(img)
+        img_rgb, img_a = img_np[..., :3], img_np[..., 3]
+
+        # Convert RGB back to PIL Image, apply Gaussian blur, and convert back to NumPy array
+        img_rgb_pil = Image.fromarray(img_rgb)
+        if self.sigma is None:
+            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(self.kernel_size))
+        else:
+            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(radius=self.sigma))
+        img_rgb_blurred = np.array(img_rgb_pil)
+
+        # Reassemble the RGBA image and convert back to PIL Image
+        img_rgba_blurred = np.dstack((img_rgb_blurred, img_a))
+        return Image.fromarray(img_rgba_blurred)
+
+
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(
@@ -1072,7 +1178,7 @@ def classify_augmentations(
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
 ):
     """
-    Classification transforms with augmentation for training. Inspired by timm/data/transforms_factory.py.
+    Classification transf   orms with augmentation for training. Inspired by timm/data/transforms_factory.py.
 
     Args:
         size (int): image size
@@ -1105,45 +1211,40 @@ def classify_augmentations(
         primary_tfl += [T.RandomVerticalFlip(p=vflip)]
 
     secondary_tfl = []
-    disable_color_jitter = False
-    if auto_augment:
-        assert isinstance(auto_augment, str)
-        # color jitter is typically disabled if AA/RA on,
-        # this allows override without breaking old hparm cfgs
-        disable_color_jitter = not force_color_jitter
+    disable_color_jitter = True
 
-        if auto_augment == "randaugment":
-            if TORCHVISION_0_11:
-                secondary_tfl += [T.RandAugment(interpolation=interpolation)]
-            else:
-                LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
-
-        elif auto_augment == "augmix":
-            if TORCHVISION_0_13:
-                secondary_tfl += [T.AugMix(interpolation=interpolation)]
-            else:
-                LOGGER.warning('"auto_augment=augmix" requires torchvision >= 0.13.0. Disabling it.')
-
-        elif auto_augment == "autoaugment":
-            if TORCHVISION_0_10:
-                secondary_tfl += [T.AutoAugment(interpolation=interpolation)]
-            else:
-                LOGGER.warning('"auto_augment=autoaugment" requires torchvision >= 0.10.0. Disabling it.')
-
-        else:
-            raise ValueError(
-                f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
-                f'"augmix", "autoaugment" or None'
-            )
+    secondary_tfl += [AdjustSaturationRGBA(0.5)]
+    secondary_tfl += [AdjustBrightnessRGBA(1.2)]
+    secondary_tfl += [RotateRGBA((-15, 15))]  # Random rotation between -30 and 30 degrees
+    secondary_tfl += [GaussianBlurRGBA(kernel_size=(5, 5), sigma=(0.1, 2.0))]
 
     if not disable_color_jitter:
-        secondary_tfl += [T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)]
+        # Custom color jitter for RGBA
+        def color_jitter_rgba(img):
+            img_rgb, img_a = img[:3], img[3:]
+            img_rgb_jittered = T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)(
+                TF.to_pil_image(img_rgb))
+            img_rgb_jittered = TF.to_tensor(img_rgb_jittered)
+            return torch.cat((img_rgb_jittered, img_a), dim=0)
+
+        secondary_tfl += [T.Lambda(color_jitter_rgba)]
+
+        # Custom normalization for RGBA
+
+    def normalize_rgba(img):
+        img_rgb, img_a = img[:3], img[3:]
+        img_rgb_normalized = TF.normalize(img_rgb, mean=mean[:3], std=std[:3])
+        # Assuming the alpha channel is not normalized; it's simply copied over
+        return torch.cat((img_rgb_normalized, img_a), dim=0)
 
     final_tfl = [
         T.ToTensor(),
-        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
-        T.RandomErasing(p=erasing, inplace=True),
+        T.Lambda(normalize_rgba),
+        T.RandomErasing(p=erasing, value='random'),
+        # Ensure compatibility with RGBA; you might need to adjust the erasing value
     ]
+
+    return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
@@ -1194,7 +1295,7 @@ class ClassifyLetterBox:
         top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
 
         # Create padded image
-        im_out = np.full((hs, ws, 3), 114, dtype=im.dtype)
+        im_out = np.full((hs, ws, 4), 114, dtype=im.dtype)
         im_out[top : top + h, left : left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
         return im_out
 

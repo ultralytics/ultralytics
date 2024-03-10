@@ -3,6 +3,7 @@
 import torch
 import torchvision
 
+import torch.nn as nn
 from ultralytics_4bands.data import ClassificationDataset, build_dataloader
 from ultralytics_4bands.engine.trainer import BaseTrainer
 from ultralytics_4bands.models import yolo

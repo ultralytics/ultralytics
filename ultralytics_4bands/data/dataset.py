@@ -101,7 +101,7 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
-            LOGGER.warning(f"{self.prefix}WARNING TEST ⚠ No labels found in {path}. {HELP_URL}")
+            LOGGER.warning(f"{self.prefix} WARNING TEST ⚠ No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
@@ -291,9 +291,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
-            im = cv2.imread(f)  # BGR
+            im = cv2.imread(f,cv2.IMREAD_UNCHANGED)  # BGRA
         # Convert NumPy array to PIL image
-        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGRA2RGBA))
         sample = self.torch_transforms(im)
         return {"img": sample, "cls": j}
 

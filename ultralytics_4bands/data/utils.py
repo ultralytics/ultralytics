@@ -78,6 +78,7 @@ def verify_image(args):
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
+
         im_big = imread(im_file)
         im = Image.fromarray(im_big[..., :3])
         #im.verify()  # PIL verify
@@ -85,16 +86,20 @@ def verify_image(args):
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         #assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
-        """if im.format.lower() in ("jpg", "jpeg"):
+        """
+        if im.format.lower() in ("jpg", "jpeg"):
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
-        nf = 1 """
+                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved" """
+        nf = 1
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING Test⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        tb = traceback.format_exc()
+        LOGGER.info(traceback.format_exc())
+        msg = f"{prefix} WARNING  verify_image ⚠️ {im_file}: ignoring corrupt image: {e}\n{tb}"
+
         pass
     return (im_file, cls), nf, nc, msg
 
@@ -170,7 +175,9 @@ def verify_image_label(args):
     except Exception as e:
         traceback.print_exc()
         nc = 1
-        msg = f"{prefix}WARNING TEST ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        tb = traceback.format_exc()
+        LOGGER.info(traceback.format_exc())
+        msg = f"{prefix} WARNING image_label ⚠️ {im_file}: ignoring corrupt image/label: {e} \n {tb}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 

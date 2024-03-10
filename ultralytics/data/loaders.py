@@ -247,7 +247,7 @@ class LoadScreenshots:
         return [str(self.screen)], [im0], None, [s]  # screen, img, vid_cap, string
 
 
-class LoadImages:
+class LoadImagesAndVideos:
     """
     YOLOv8 image/video dataloader.
 
@@ -549,4 +549,4 @@ def get_best_youtube_url(url, use_pafy=True):
 
 
 # Define constants
-LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots)
+LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImagesAndVideos, LoadScreenshots)

@@ -11,7 +11,7 @@ from torch.utils.data import dataloader, distributed
 
 from ultralytics.data.loaders import (
     LOADERS,
-    LoadImages,
+    LoadImagesAndVideos,
     LoadPilAndNumpy,
     LoadScreenshots,
     LoadStreams,
@@ -178,7 +178,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif from_img:
         dataset = LoadPilAndNumpy(source)
     else:
-        dataset = LoadImages(source, batch=batch, vid_stride=vid_stride)
+        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

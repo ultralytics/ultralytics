@@ -178,7 +178,7 @@ class LoadStreams:
                 images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
                 x.clear()
 
-        return self.sources, images, None, ""
+        return self.sources, images, None, [""]
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -246,7 +246,7 @@ class LoadScreenshots:
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
         self.frame += 1
-        return [str(self.screen)], [im0], None, s  # screen, img, vid_cap, string
+        return [str(self.screen)], [im0], None, [s]  # screen, img, vid_cap, string
 
 
 class LoadImages:
@@ -427,7 +427,7 @@ class LoadPilAndNumpy:
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, ""
+        return self.paths, self.im0, None, " " * self.bs
 
     def __iter__(self):
         """Enables iteration for class LoadPilAndNumpy."""
@@ -492,7 +492,7 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, ""
+        return self.paths, self.im0, None, " " * self.bs
 
     def __len__(self):
         """Returns the batch size."""

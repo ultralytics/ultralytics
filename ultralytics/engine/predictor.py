@@ -73,9 +73,7 @@ class BasePredictor:
         data (dict): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_path (str): Path to video file.
-        vid_writer (cv2.VideoWriter): Video writer for saving video output.
-        data_path (str): Path to data.
+        vid_writer (dict): Dictionary of {save_path: video_writer, ...} writer for saving video output.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -100,7 +98,7 @@ class BasePredictor:
         self.imgsz = None
         self.device = None
         self.dataset = None
-        self.vid_path, self.vid_writer, self.vid_frame = None, None, None
+        self.vid_writer = {}  # dict of {save_path: video_writer, ...}
         self.plotted_img = None
         self.source_type = None
         self.seen = 0
@@ -204,9 +202,7 @@ class BasePredictor:
             or any(getattr(self.dataset, "video_flag", [False]))
         ):  # videos
             LOGGER.warning(STREAM_WARNING)
-        self.vid_path = [None] * self.dataset.bs
-        self.vid_writer = [None] * self.dataset.bs
-        self.vid_frame = [None] * self.dataset.bs
+        self.vid_writer = {}
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -270,10 +266,6 @@ class BasePredictor:
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s[i] += self.write_results(i, path, im, is_video)
-                        if self.args.show:
-                            self.show(str(path))
-                        if self.args.save:
-                            self.save_predicted_images(i, str(self.save_dir / path.name), is_video)
 
                 # Print batch results
                 if self.args.verbose:
@@ -283,8 +275,9 @@ class BasePredictor:
                 yield from self.results
 
         # Release assets
-        if isinstance(self.vid_writer[-1], cv2.VideoWriter):
-            self.vid_writer[-1].release()  # release final video writer
+        for v in self.vid_writer.values():
+            if isinstance(v, cv2.VideoWriter):
+                v.release()
 
         # Print final results
         if self.args.verbose and self.seen:
@@ -317,57 +310,55 @@ class BasePredictor:
 
     def write_results(self, i, p, im, is_video):
         """Write inference results to a file or directory."""
-        log_string = ""  # print string
+        string = ""  # print string
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
-            log_string += f"{i}: "
+            string += f"{i}: "
             frame = self.dataset.count
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame + 1}" if is_video[i] else "")
-        log_string += "%gx%g " % im.shape[2:]
+        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame}" if is_video[i] else "")
+        string += "%gx%g " % im.shape[2:]
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
-        log_string += result.verbose() + f"{result.speed['inference']:.1f}ms"
+        string += result.verbose() + f"{result.speed['inference']:.1f}ms"
 
-        # Add bbox to image
+        # Add predictions to image
         if self.args.save or self.args.show:
-            plot_args = {
-                "line_width": self.args.line_width,
-                "boxes": self.args.show_boxes,
-                "conf": self.args.show_conf,
-                "labels": self.args.show_labels,
-            }
-            if not self.args.retina_masks:
-                plot_args["im_gpu"] = im[i]
-            self.plotted_img = result.plot(**plot_args)
+            self.plotted_img = result.plot(
+                line_width=self.args.line_width,
+                boxes=self.args.show_boxes,
+                conf=self.args.show_conf,
+                labels=self.args.show_labels,
+                im_gpu=None if self.args.retina_masks else im[i],
+            )
 
-        # Write
+        # Save results
         if self.args.save_txt:
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
+        if self.args.show:
+            self.show(str(p))
+        if self.args.save:
+            self.save_predicted_images(i, str(self.save_dir / p.name), is_video, frame)
 
-        return log_string
+        return string
 
-    def save_predicted_images(self, i, save_path, is_video):
+    def save_predicted_images(self, i, save_path, is_video, frame):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
 
         # Save videos and streams
         if is_video[i]:
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
-            if self.vid_path[i] != save_path:  # new video
-                self.vid_path[i] = save_path
+            if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)
-                    self.vid_frame[i] = 0
-                if isinstance(self.vid_writer[i], cv2.VideoWriter):
-                    self.vid_writer[i].release()  # release previous video writer
                 suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
-                self.vid_writer[i] = cv2.VideoWriter(
+                self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
                     fps=30,  # integer required, floats produce error in MP4 codec
@@ -375,12 +366,11 @@ class BasePredictor:
                 )
 
             # Write video
-            self.vid_writer[i].write(im)
+            self.vid_writer[save_path].write(im)
 
             # Write frame
             if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{self.vid_frame[i]}.jpg", im)
-                self.vid_frame[i] += 1
+                cv2.imwrite(f"{frames_path}{frame}.jpg", im)
 
         # Save images
         else:

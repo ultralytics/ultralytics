@@ -318,39 +318,54 @@ class LoadImages:
         return self
 
     def __next__(self):
-        """Return next image, path and metadata from dataset."""
-        if self.count == self.nf:
-            raise StopIteration
-        path = self.files[self.count]
-
-        if self.video_flag[self.count]:
-            # Read video
-            self.mode = "video"
-            for _ in range(self.vid_stride):
-                self.cap.grab()
-            success, im0 = self.cap.retrieve()
-            while not success:
-                self.count += 1
-                self.cap.release()
-                if self.count == self.nf:  # last video
+        """Returns the next batch of images or video frames along with their paths and metadata."""
+        paths, imgs, caps, infos = [], [], [], []
+        while len(imgs) < self.bs:
+            if self.count >= self.nf:  # end of file list
+                if len(imgs) > 0:
+                    return paths, imgs, caps[-1], infos  # return last partial batch
+                else:
                     raise StopIteration
-                path = self.files[self.count]
-                self._new_video(path)
-                success, im0 = self.cap.read()
 
-            self.frame += 1
-            # im0 = self._cv2_rotate(im0)  # for use if cv2 autorotation is False
-            s = f"video {self.count + 1}/{self.nf} ({self.frame}/{self.frames}) {path}: "
+            path = self.files[self.count]
+            if self.video_flag[self.count]:
+                if not self.cap or not self.cap.isOpened():
+                    self._new_video(path)
 
-        else:
-            # Read image
-            self.count += 1
-            im0 = cv2.imread(path)  # BGR
-            if im0 is None:
-                raise FileNotFoundError(f"Image Not Found {path}")
-            s = f"image {self.count}/{self.nf} {path}: "
+                for _ in range(self.vid_stride):
+                    success = self.cap.grab()
+                    if not success:
+                        break  # end of video or failure
 
-        return [path], [im0], self.cap, s
+                if success:
+                    success, im0 = self.cap.retrieve()
+                    if success:
+                        paths.append(path)
+                        imgs.append(im0)
+                        caps.append(self.cap)
+                        infos.append(f"video {self.count + 1}/{self.nf} frame {self.frame}/{self.frames}: ")
+                        self.frame += 1
+                        if self.frame == self.frames:  # end of video
+                            self.count += 1
+                            self.cap.release()
+                else:
+                    # Move to the next file if the current video ended or failed to open
+                    self.count += 1
+                    if self.cap:
+                        self.cap.release()
+                    if self.count < self.nf:
+                        self._new_video(self.files[self.count])
+            else:
+                im0 = cv2.imread(path)  # BGR
+                if im0 is None:
+                    raise FileNotFoundError(f"Image Not Found {path}")
+                paths.append(path)
+                imgs.append(im0)
+                caps.append(None)  # no capture object for images
+                infos.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                self.count += 1  # move to the next file
+
+        return paths, imgs, caps[-1], infos
 
     def _new_video(self, path):
         """Creates a new video capture object for the given path."""

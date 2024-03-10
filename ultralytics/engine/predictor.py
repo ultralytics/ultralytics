@@ -292,19 +292,18 @@ class BasePredictor:
                 # Postprocess
                 with profilers[2]:
                     self.results = self.postprocess(preds, im, im0s)
-
                 self.run_callbacks("on_predict_postprocess_end")
+
                 # Visualize, save, write results
                 n = len(im0s)
                 for i in range(n):
+                    path = Path(paths[i])
                     self.seen += 1
                     self.results[i].speed = {
                         "preprocess": profilers[0].dt * 1e3 / n,
                         "inference": profilers[1].dt * 1e3 / n,
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
-                    path = Path(paths[i])
-
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s[i] += self.write_results(i, path, im)
                         if self.args.show:
@@ -312,12 +311,12 @@ class BasePredictor:
                         if self.args.save:
                             self.save_predicted_images(i, str(self.save_dir / path.name))
 
-                self.run_callbacks("on_predict_batch_end")
-                yield from self.results
-
-                # Print time (inference-only)
+                # Print results
                 if self.args.verbose:
                     LOGGER.info("\n".join(s))
+
+                self.run_callbacks("on_predict_batch_end")
+                yield from self.results
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):

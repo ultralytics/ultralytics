@@ -353,9 +353,11 @@ class LoadImages:
         return [path], [im0], self.cap, s
 
     def _new_video(self, path):
-        """Create a new video capture object."""
+        """Creates a new video capture object for the given path."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
+        if not self.cap.isOpened():
+            raise FileNotFoundError(f"Failed to open video {path}")
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self):

@@ -157,22 +157,21 @@ class BasePredictor:
         letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
         return [letterbox(image=x) for x in im]
 
-    def write_results(self, idx, results, batch):
+    def write_results(self, i, p, im):
         """Write inference results to a file or directory."""
-        p, im, _ = batch
         log_string = ""
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         if self.source_type.webcam or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
-            log_string += f"{idx}: "
+            log_string += f"{i}: "
             frame = self.dataset.count
         else:
-            frame = getattr(self.dataset, "frame", 0) - len(results) + idx
+            frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
         self.data_path = p
         self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
         log_string += "%gx%g " % im.shape[2:]  # print string
-        result = results[idx]
-        log_string += result.verbose() + f"{self.results[idx].speed['inference']:.1f}ms"
+        result = self.results[i]
+        log_string += result.verbose() + f"{result.speed['inference']:.1f}ms"
 
         if self.args.save or self.args.show:  # Add bbox to image
             plot_args = {
@@ -182,7 +181,7 @@ class BasePredictor:
                 "labels": self.args.show_labels,
             }
             if not self.args.retina_masks:
-                plot_args["im_gpu"] = im[idx]
+                plot_args["im_gpu"] = im[i]
             self.plotted_img = result.plot(**plot_args)
         # Write
         if self.args.save_txt:
@@ -305,11 +304,10 @@ class BasePredictor:
                         "inference": profilers[1].dt * 1e3 / n,
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
-                    p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
-                    p = Path(p)
+                    p = Path(path[i])
 
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, self.results, (p, im, im0))
+                        s[i] += self.write_results(i, p, im)
                     if self.args.save or self.args.save_txt:
                         self.results[i].save_dir = self.save_dir.__str__()
                     if self.args.show and self.plotted_img is not None:

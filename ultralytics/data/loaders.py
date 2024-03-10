@@ -427,7 +427,7 @@ class LoadPilAndNumpy:
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, " " * self.bs
+        return self.paths, self.im0, None, [""] * self.bs
 
     def __iter__(self):
         """Enables iteration for class LoadPilAndNumpy."""
@@ -492,7 +492,7 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, " " * self.bs
+        return self.paths, self.im0, None, [""] * self.bs
 
     def __len__(self):
         """Returns the batch size."""

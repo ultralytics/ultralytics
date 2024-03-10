@@ -99,15 +99,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, rpi5-bookworm]
+        os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         model: [yolov8n]
+        include:
+          - os: rpi5-bookworm
+            model: yolov8n
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        # No Python support for Debian running on Raspberry Pi
-        # https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
-        if: matrix.os != 'rpi5-bookworm'
+        if: matrix.os != 'rpi5-bookworm' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}

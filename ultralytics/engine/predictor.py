@@ -276,7 +276,7 @@ class BasePredictor:
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
-                path, im0s, vid_cap, s = self.batch
+                paths, im0s, vid_cap, s = self.batch
 
                 # Preprocess
                 with profilers[0]:
@@ -303,14 +303,14 @@ class BasePredictor:
                         "inference": profilers[1].dt * 1e3 / n,
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
-                    p = Path(path[i])
+                    path = Path(paths[i])
 
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, p, im)
+                        s[i] += self.write_results(i, path, im)
                         if self.args.show:
-                            self.show(p)
+                            self.show(path)
                         if self.args.save:
-                            self.save_predicted_images(i, str(self.save_dir / p.name))
+                            self.save_predicted_images(i, str(self.save_dir / path.name))
 
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results

@@ -86,6 +86,7 @@ class AutoBackend(nn.Module):
         dnn=False,
         data=None,
         fp16=False,
+        batch=1,
         fuse=True,
         verbose=True,
     ):
@@ -98,6 +99,7 @@ class AutoBackend(nn.Module):
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
         """
@@ -204,7 +206,9 @@ class AutoBackend(nn.Module):
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
 
-            inference_mode = "LATENCY"  # either 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
+            # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
+            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
+            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch-size={batch_size} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name="AUTO",  # AUTO selects best available device, do not modify

@@ -25,6 +25,8 @@ try:
 except ImportError:
     thop = None
 
+PYTHON_VERSION = platform.python_version()
+
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(torchvision.__version__, "0.10.0")

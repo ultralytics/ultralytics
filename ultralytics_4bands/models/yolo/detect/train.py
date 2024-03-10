@@ -86,7 +86,12 @@ class DetectionTrainer(BaseTrainer):
 
     def modify_input_channels(self, model, new_channels):
         # Access the Conv module which contains the convolutional layer, batch normalization, and activation
-        conv_module = model.model[0]
+        try:
+            conv_module = model.model[0]
+            index = 0
+        except AttributeError:
+            conv_module = model.model[1]
+            index = 1
 
         # Access the actual Conv2d layer
         conv1 = conv_module.conv
@@ -115,6 +120,8 @@ class DetectionTrainer(BaseTrainer):
 
         # Replace the convolutional layer within the Conv module
         conv_module.conv = new_conv
+
+        model.model[index] = conv_module
 
         return model
 

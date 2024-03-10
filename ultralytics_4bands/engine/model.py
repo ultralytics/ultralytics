@@ -4,6 +4,7 @@ import inspect
 import sys
 from pathlib import Path
 from typing import Union
+import torch
 
 from ultralytics_4bands.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics_4bands.hub.utils import HUB_WEB_ROOT

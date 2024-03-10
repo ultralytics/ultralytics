@@ -166,9 +166,7 @@ jobs:
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        if: matrix.os != 'rpi5-bookworm'
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies

@@ -329,6 +329,7 @@ class LoadImages:
 
             path = self.files[self.count]
             if self.video_flag[self.count]:
+                self.mode = "video"
                 if not self.cap or not self.cap.isOpened():
                     self._new_video(path)
 
@@ -340,11 +341,11 @@ class LoadImages:
                 if success:
                     success, im0 = self.cap.retrieve()
                     if success:
+                        self.frame += 1
                         paths.append(path)
                         imgs.append(im0)
                         caps.append(self.cap)
                         infos.append(f"video {self.count + 1}/{self.nf} frame {self.frame}/{self.frames}: ")
-                        self.frame += 1
                         if self.frame == self.frames:  # end of video
                             self.count += 1
                             self.cap.release()
@@ -356,6 +357,7 @@ class LoadImages:
                     if self.count < self.nf:
                         self._new_video(self.files[self.count])
             else:
+                self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
                     raise FileNotFoundError(f"Image Not Found {path}")

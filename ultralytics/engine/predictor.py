@@ -363,8 +363,8 @@ class BasePredictor:
         if self.dataset.mode == "image":
             cv2.imwrite(save_path, im)
 
-        # Save videos
-        else:  # dataset.mode = 'video' or 'stream'
+        # Save videos and streams
+        else:
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[i] != save_path:  # new video
                 self.vid_path[i] = save_path

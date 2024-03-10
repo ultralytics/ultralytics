@@ -80,6 +80,8 @@ class LoadStreams:
         self.imgs = [[] for _ in range(n)]  # images
         self.shape = [[] for _ in range(n)]  # image shapes
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
+        self.info = [""] * n
+        self.is_video = [True] * n
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f"{i + 1}/{n}: {s}... "
@@ -176,7 +178,7 @@ class LoadStreams:
                 images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
                 x.clear()
 
-        return self.sources, images, None, [""] * self.bs
+        return self.sources, images, self.is_video, self.info
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -244,7 +246,7 @@ class LoadScreenshots:
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
         self.frame += 1
-        return [str(self.screen)], [im0], None, [s]  # screen, img, vid_cap, string
+        return [str(self.screen)], [im0], [True], [s]  # screen, img, is_video, string
 
 
 class LoadImagesAndVideos:
@@ -317,11 +319,11 @@ class LoadImagesAndVideos:
 
     def __next__(self):
         """Returns the next batch of images or video frames along with their paths and metadata."""
-        paths, imgs, caps, infos = [], [], [], []
+        paths, imgs, is_video, info = [], [], [], []
         while len(imgs) < self.bs:
             if self.count >= self.nf:  # end of file list
                 if len(imgs) > 0:
-                    return paths, imgs, caps[-1], infos  # return last partial batch
+                    return paths, imgs, is_video, info  # return last partial batch
                 else:
                     raise StopIteration
 
@@ -342,8 +344,8 @@ class LoadImagesAndVideos:
                         self.frame += 1
                         paths.append(path)
                         imgs.append(im0)
-                        caps.append(self.cap)
-                        infos.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
+                        is_video.append(True)
+                        info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
                         if self.frame == self.frames:  # end of video
                             self.count += 1
                             self.cap.release()
@@ -361,11 +363,11 @@ class LoadImagesAndVideos:
                     raise FileNotFoundError(f"Image Not Found {path}")
                 paths.append(path)
                 imgs.append(im0)
-                caps.append(None)  # no capture object for images
-                infos.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                is_video.append(False)  # no capture object for images
+                info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
 
-        return paths, imgs, caps[-1], infos
+        return paths, imgs, is_video, info
 
     def _new_video(self, path):
         """Creates a new video capture object for the given path."""
@@ -427,7 +429,7 @@ class LoadPilAndNumpy:
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, [""] * self.bs
+        return self.paths, self.im0, [False] * self.bs, [""] * self.bs
 
     def __iter__(self):
         """Enables iteration for class LoadPilAndNumpy."""
@@ -492,7 +494,7 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return self.paths, self.im0, None, [""] * self.bs
+        return self.paths, self.im0, [False] * self.bs, [""] * self.bs
 
     def __len__(self):
         """Returns the batch size."""

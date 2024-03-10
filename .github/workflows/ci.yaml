@@ -105,6 +105,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
+        # No Python support for Debian running on Raspberry Pi
+        # https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
         if: matrix.os != 'rpi5-bookworm'
         uses: actions/setup-python@v5
         with:

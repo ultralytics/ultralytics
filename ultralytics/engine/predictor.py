@@ -198,7 +198,7 @@ class BasePredictor:
         )
         self.source_type = self.dataset.source_type
         if not getattr(self, "stream", True) and (
-            self.dataset.mode == "stream"  # streams
+            self.source_type.stream  # streams
             or len(self.dataset) > 1000  # images
             or any(getattr(self.dataset, "video_flag", [False]))
         ):  # videos

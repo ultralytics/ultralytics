@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+import os
 import random
 from copy import copy
 
@@ -86,42 +87,40 @@ class DetectionTrainer(BaseTrainer):
 
     def modify_input_channels(self, model, new_channels):
         # Access the Conv module which contains the convolutional layer, batch normalization, and activation
-        try:
-            conv_module = model.model[0]
-            index = 0
-        except AttributeError:
-            conv_module = model.model[1]
-            index = 1
 
-        # Access the actual Conv2d layer
-        conv1 = conv_module.conv
+        indexes = [int(index) for index in os.getenv("INDEXES").split(",")]
 
-        old_channels = conv1.in_channels
-        if new_channels == old_channels:
-            return model
+        for index in indexes:
+            conv_module = model.model[index]
+            # Access the actual Conv2d layer
+            conv1 = conv_module.conv
 
-        # Create a new Conv2d layer with the desired number of input channels
-        new_conv = nn.Conv2d(new_channels, conv1.out_channels,
-                             kernel_size=conv1.kernel_size,
-                             stride=conv1.stride,
-                             padding=conv1.padding,
-                             bias=conv1.bias is not None)
+            old_channels = conv1.in_channels
+            if new_channels == old_channels:
+                return model
 
-        # Transfer the weights from the old conv layer to the new one
-        with torch.no_grad():
-            # Copy the weights for the first 3 channels
-            new_conv.weight[:, :3, :, :].copy_(conv1.weight)
-            # If there are more channels, initialize them
-            if new_channels > 3:
-                nn.init.xavier_uniform_(new_conv.weight[:, 3:, :, :])
-            # If the original convolutional layer had a bias, copy it
-            if conv1.bias is not None:
-                new_conv.bias.copy_(conv1.bias)
+            # Create a new Conv2d layer with the desired number of input channels
+            new_conv = nn.Conv2d(new_channels, conv1.out_channels,
+                                 kernel_size=conv1.kernel_size,
+                                 stride=conv1.stride,
+                                 padding=conv1.padding,
+                                 bias=conv1.bias is not None)
 
-        # Replace the convolutional layer within the Conv module
-        conv_module.conv = new_conv
+            # Transfer the weights from the old conv layer to the new one
+            with torch.no_grad():
+                # Copy the weights for the first 3 channels
+                new_conv.weight[:, :3, :, :].copy_(conv1.weight)
+                # If there are more channels, initialize them
+                if new_channels > 3:
+                    nn.init.xavier_uniform_(new_conv.weight[:, 3:, :, :])
+                # If the original convolutional layer had a bias, copy it
+                if conv1.bias is not None:
+                    new_conv.bias.copy_(conv1.bias)
 
-        model.model[index] = conv_module
+            # Replace the convolutional layer within the Conv module
+            conv_module.conv = new_conv
+
+            model.model[index] = conv_module
 
         return model
 

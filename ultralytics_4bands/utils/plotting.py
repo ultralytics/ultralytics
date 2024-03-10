@@ -118,13 +118,8 @@ class Annotator:
         self.pil = pil or non_ascii or input_is_pil
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
-            if not isinstance(im, Image.Image):
-                LOGGER.info(f" shape for validation plotting array: {im.shape}")
-            else:
-                LOGGER.info(f" shape for validation plotting PIL: {im.size}")
-
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
-            self.draw = ImageDraw.Draw(self.im)
+            self.draw = ImageDraw.Draw(self.im.convert("RGB"))
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)
                 size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)

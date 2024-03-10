@@ -42,12 +42,54 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
 
+    def modify_input_channels(self, model, new_channels):
+        # Access the Conv module which contains the convolutional layer, batch normalization, and activation
+        try:
+            conv_module = model.model[0]
+            index = 0
+        except AttributeError:
+            conv_module = model.model[1]
+            index = 1
+
+        # Access the actual Conv2d layer
+        conv1 = conv_module.conv
+
+        old_channels = conv1.in_channels
+        if new_channels == old_channels:
+            return model
+
+        # Create a new Conv2d layer with the desired number of input channels
+        new_conv = nn.Conv2d(new_channels, conv1.out_channels,
+                             kernel_size=conv1.kernel_size,
+                             stride=conv1.stride,
+                             padding=conv1.padding,
+                             bias=conv1.bias is not None)
+
+        # Transfer the weights from the old conv layer to the new one
+        with torch.no_grad():
+            # Copy the weights for the first 3 channels
+            new_conv.weight[:, :3, :, :].copy_(conv1.weight)
+            # If there are more channels, initialize them
+            if new_channels > 3:
+                nn.init.xavier_uniform_(new_conv.weight[:, 3:, :, :])
+            # If the original convolutional layer had a bias, copy it
+            if conv1.bias is not None:
+                new_conv.bias.copy_(conv1.bias)
+
+        # Replace the convolutional layer within the Conv module
+        conv_module.conv = new_conv
+
+        model.model[index] = conv_module
+
+        return model
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
         model = ClassificationModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
+        model = self.modify_input_channels(model, 4)
         for m in model.modules():
             if not self.args.pretrained and hasattr(m, "reset_parameters"):
                 m.reset_parameters()

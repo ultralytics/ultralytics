@@ -345,7 +345,7 @@ class LoadImages:
                         paths.append(path)
                         imgs.append(im0)
                         caps.append(self.cap)
-                        infos.append(f"video {self.count + 1}/{self.nf} frame {self.frame}/{self.frames}: ")
+                        infos.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
                         if self.frame == self.frames:  # end of video
                             self.count += 1
                             self.cap.release()

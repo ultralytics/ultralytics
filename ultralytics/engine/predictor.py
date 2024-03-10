@@ -257,7 +257,6 @@ class BasePredictor:
                 # Visualize, save, write results
                 n = len(im0s)
                 for i in range(n):
-                    path = Path(paths[i])
                     self.seen += 1
                     self.results[i].speed = {
                         "preprocess": profilers[0].dt * 1e3 / n,
@@ -265,7 +264,7 @@ class BasePredictor:
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, path, im, is_video)
+                        s[i] += self.write_results(i, Path(paths[i]), im, is_video)
 
                 # Print batch results
                 if self.args.verbose:
@@ -341,18 +340,18 @@ class BasePredictor:
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:
-            self.show(str(p))
+            self.show(str(p), is_video[i])
         if self.args.save:
-            self.save_predicted_images(i, str(self.save_dir / p.name), is_video, frame)
+            self.save_predicted_images(str(self.save_dir / p.name), is_video[i], frame)
 
         return string
 
-    def save_predicted_images(self, i, save_path, is_video, frame):
+    def save_predicted_images(self, save_path="", is_video=False, frame=0):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
 
         # Save videos and streams
-        if is_video[i]:
+        if is_video:
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -365,10 +364,8 @@ class BasePredictor:
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 
-            # Write video
+            # Save video
             self.vid_writer[save_path].write(im)
-
-            # Write frame
             if self.args.save_frames:
                 cv2.imwrite(f"{frames_path}{frame}.jpg", im)
 
@@ -376,7 +373,7 @@ class BasePredictor:
         else:
             cv2.imwrite(save_path, im)
 
-    def show(self, p=""):
+    def show(self, p="", is_video=False):
         """Display an image in a window using OpenCV imshow()."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
@@ -384,7 +381,7 @@ class BasePredictor:
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
         cv2.imshow(p, im)
-        cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
+        cv2.waitKey(1 if is_video else 500)  # 1 millisecond
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

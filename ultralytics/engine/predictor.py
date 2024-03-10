@@ -315,7 +315,7 @@ class BasePredictor:
                     if self.args.show and self.plotted_img is not None:
                         self.show(p)
                     if self.args.save and self.plotted_img is not None:
-                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                        self.save_preds(i, str(self.save_dir / p.name))
 
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results
@@ -368,7 +368,7 @@ class BasePredictor:
         cv2.imshow(str(p), im0)
         cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
 
-    def save_preds(self, vid_cap, idx, save_path):
+    def save_preds(self, idx, save_path):
         """Save video predictions as mp4 at specified path."""
         im0 = self.plotted_img
         # Save imgs
@@ -383,15 +383,12 @@ class BasePredictor:
                     self.vid_frame[idx] = 0
                 if isinstance(self.vid_writer[idx], cv2.VideoWriter):
                     self.vid_writer[idx].release()  # release previous video writer
-                if vid_cap:  # video
-                    fps = int(vid_cap.get(cv2.CAP_PROP_FPS))  # integer required, floats produce error in MP4 codec
-                    w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                else:  # stream
-                    fps, w, h = 30, im0.shape[1], im0.shape[0]
                 suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
                 self.vid_writer[idx] = cv2.VideoWriter(
-                    str(Path(save_path).with_suffix(suffix)), cv2.VideoWriter_fourcc(*fourcc), fps, (w, h)
+                    filename=str(Path(save_path).with_suffix(suffix)),
+                    fourcc=cv2.VideoWriter_fourcc(*fourcc),
+                    fps=30,  # integer required, floats produce error in MP4 codec
+                    frameSize=(im0.shape[1], im0.shape[0]),  # width, height
                 )
             # Write video
             self.vid_writer[idx].write(im0)

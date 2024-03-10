@@ -102,7 +102,6 @@ class BasePredictor:
         self.dataset = None
         self.vid_path, self.vid_writer, self.vid_frame = None, None, None
         self.plotted_img = None
-        self.data_path = None
         self.source_type = None
         self.seen = 0
         self.windows = []
@@ -167,7 +166,6 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
-        self.data_path = p
         self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
         log_string += "%gx%g " % im.shape[2:]  # print string
         result = self.results[i]
@@ -189,7 +187,7 @@ class BasePredictor:
         if self.args.save_crop:
             result.save_crop(
                 save_dir=self.save_dir / "crops",
-                file_name=self.data_path.stem + ("" if self.dataset.mode == "image" else f"_{frame}"),
+                file_name=p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"),
             )
 
         return log_string

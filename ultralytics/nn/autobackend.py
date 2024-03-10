@@ -458,7 +458,7 @@ class AutoBackend(nn.Module):
                     # Start async inference with userdata=i to specify the position in results list
                     async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
-                y = [list(r.values()) for r in results][0]
+                y = np.concatenate([list(r.values())[0] for r in results])
 
             else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
                 y = list(self.ov_compiled_model(im).values())

@@ -240,7 +240,7 @@ class BasePredictor:
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
-                paths, im0s, vid_cap, s = self.batch
+                paths, im0s, is_video, s = self.batch
 
                 # Preprocess
                 with profilers[0]:
@@ -269,11 +269,11 @@ class BasePredictor:
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, path, im)
+                        s[i] += self.write_results(i, path, im, is_video)
                         if self.args.show:
-                            self.show(path)
+                            self.show(str(path))
                         if self.args.save:
-                            self.save_predicted_images(i, str(self.save_dir / path.name))
+                            self.save_predicted_images(i, str(self.save_dir / path.name), is_video)
 
                 # Print batch results
                 if self.args.verbose:
@@ -315,7 +315,7 @@ class BasePredictor:
         self.args.half = self.model.fp16  # update half
         self.model.eval()
 
-    def write_results(self, i, p, im):
+    def write_results(self, i, p, im, is_video):
         """Write inference results to a file or directory."""
         log_string = ""  # print string
         if len(im.shape) == 3:
@@ -326,7 +326,7 @@ class BasePredictor:
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
 
-        self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
+        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame}" if is_video[i] else "")
         log_string += "%gx%g " % im.shape[2:]
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -348,23 +348,16 @@ class BasePredictor:
         if self.args.save_txt:
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(
-                save_dir=self.save_dir / "crops",
-                file_name=p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"),
-            )
+            result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
 
         return log_string
 
-    def save_predicted_images(self, i, save_path):
+    def save_predicted_images(self, i, save_path, is_video):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
 
-        # Save images
-        if self.dataset.mode == "image":
-            cv2.imwrite(save_path, im)
-
         # Save videos and streams
-        else:
+        if is_video[i]:
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[i] != save_path:  # new video
                 self.vid_path[i] = save_path
@@ -378,7 +371,7 @@ class BasePredictor:
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
                     fps=30,  # integer required, floats produce error in MP4 codec
-                    frameSize=(im.shape[1], im.shape[0]),  # width, height
+                    frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 
             # Write video
@@ -389,14 +382,18 @@ class BasePredictor:
                 cv2.imwrite(f"{frames_path}{self.vid_frame[i]}.jpg", im)
                 self.vid_frame[i] += 1
 
-    def show(self, p):
+        # Save images
+        else:
+            cv2.imwrite(save_path, im)
+
+    def show(self, p=""):
         """Display an image in a window using OpenCV imshow()."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
-            cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(str(p), im.shape[1], im.shape[0])
-        cv2.imshow(str(p), im)
+            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+        cv2.imshow(p, im)
         cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
 
     def run_callbacks(self, event: str):

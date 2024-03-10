@@ -24,7 +24,7 @@ from ultralytics.utils.checks import check_requirements
 class SourceTypes:
     """Class to represent various types of input sources for predictions."""
 
-    webcam: bool = False
+    stream: bool = False
     screenshot: bool = False
     from_img: bool = False
     tensor: bool = False

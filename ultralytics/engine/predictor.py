@@ -319,7 +319,7 @@ class BasePredictor:
         log_string = ""  # print string
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-        if self.source_type.webcam or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
+        if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
             log_string += f"{i}: "
             frame = self.dataset.count
         else:

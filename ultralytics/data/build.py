@@ -163,15 +163,15 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     Returns:
         dataset (Dataset): A dataset object for the specified input source.
     """
-    source, webcam, screenshot, from_img, in_memory, tensor = check_source(source)
-    source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img, tensor)
+    source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
+    source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)
 
     # Dataloader
     if tensor:
         dataset = LoadTensor(source)
     elif in_memory:
         dataset = source
-    elif webcam:
+    elif stream:
         dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
     elif screenshot:
         dataset = LoadScreenshots(source)

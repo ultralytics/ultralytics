@@ -311,7 +311,7 @@ class BasePredictor:
                         if self.args.save:
                             self.save_predicted_images(i, str(self.save_dir / path.name))
 
-                # Print results
+                # Print batch results
                 if self.args.verbose:
                     LOGGER.info("\n".join(s))
 
@@ -322,7 +322,7 @@ class BasePredictor:
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
             self.vid_writer[-1].release()  # release final video writer
 
-        # Print results
+        # Print final results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
@@ -333,7 +333,6 @@ class BasePredictor:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-
         self.run_callbacks("on_predict_end")
 
     def setup_model(self, model, verbose=True):

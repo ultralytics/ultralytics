@@ -166,6 +166,7 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
+        self.results[i].save_dir = self.save_dir.__str__()
         self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
         log_string += "%gx%g " % im.shape[2:]  # print string
         result = self.results[i]
@@ -306,12 +307,10 @@ class BasePredictor:
 
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                         s[i] += self.write_results(i, p, im)
-                    if self.args.save or self.args.save_txt:
-                        self.results[i].save_dir = self.save_dir.__str__()
-                    if self.args.show and self.plotted_img is not None:
-                        self.show(p)
-                    if self.args.save and self.plotted_img is not None:
-                        self.save_preds(i, str(self.save_dir / p.name))
+                        if self.args.show:
+                            self.show(p)
+                        if self.args.save:
+                            self.save_predicted_images(i, str(self.save_dir / p.name))
 
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results
@@ -356,20 +355,20 @@ class BasePredictor:
 
     def show(self, p):
         """Display an image in a window using OpenCV imshow()."""
-        im0 = self.plotted_img
+        im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
-        cv2.imshow(str(p), im0)
+            cv2.resizeWindow(str(p), im.shape[1], im.shape[0])
+        cv2.imshow(str(p), im)
         cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
 
-    def save_preds(self, idx, save_path):
+    def save_predicted_images(self, idx, save_path):
         """Save video predictions as mp4 at specified path."""
-        im0 = self.plotted_img
+        im = self.plotted_img
         # Save imgs
         if self.dataset.mode == "image":
-            cv2.imwrite(save_path, im0)
+            cv2.imwrite(save_path, im)
         else:  # 'video' or 'stream'
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[idx] != save_path:  # new video
@@ -384,14 +383,14 @@ class BasePredictor:
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
                     fps=30,  # integer required, floats produce error in MP4 codec
-                    frameSize=(im0.shape[1], im0.shape[0]),  # width, height
+                    frameSize=(im.shape[1], im.shape[0]),  # width, height
                 )
             # Write video
-            self.vid_writer[idx].write(im0)
+            self.vid_writer[idx].write(im)
 
             # Write frame
             if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{self.vid_frame[idx]}.jpg", im0)
+                cv2.imwrite(f"{frames_path}{self.vid_frame[idx]}.jpg", im)
                 self.vid_frame[idx] += 1
 
     def run_callbacks(self, event: str):

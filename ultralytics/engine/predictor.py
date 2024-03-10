@@ -357,6 +357,7 @@ class BasePredictor:
     def save_predicted_images(self, i, save_path):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
+
         # Save images
         if self.dataset.mode == "image":
             cv2.imwrite(save_path, im)

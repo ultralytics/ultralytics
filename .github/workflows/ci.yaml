@@ -99,11 +99,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, macos-14, rpi5-bookworm]
         python-version: ["3.11"]
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
+      if: matrix.os != 'rpi5-bookworm'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -155,7 +156,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, macos-14, rpi5-bookworm]
         python-version: ["3.11"]
         torch: [latest]
         include:
@@ -164,6 +165,7 @@ jobs:
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
+      if: matrix.os != 'rpi5-bookworm'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}

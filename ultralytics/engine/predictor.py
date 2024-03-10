@@ -321,10 +321,8 @@ class BasePredictor:
                 yield from self.results
 
                 # Print time (inference-only)
-                if isinstance(s, list):
-                    s = "\n".join(s)
                 if self.args.verbose:
-                    LOGGER.info(s)
+                    LOGGER.info("\n".join(s))
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):

@@ -36,8 +36,6 @@ class RTDETR(Model):
         Raises:
             NotImplementedError: If the model file extension is not 'pt', 'yaml', or 'yml'.
         """
-        if model and Path(model).suffix not in (".pt", ".yaml", ".yml"):
-            raise NotImplementedError("RT-DETR only supports creating from *.pt, *.yaml, or *.yml files.")
         super().__init__(model=model, task="detect")
 
     @property

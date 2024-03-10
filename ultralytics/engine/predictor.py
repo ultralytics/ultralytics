@@ -156,43 +156,6 @@ class BasePredictor:
         letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
         return [letterbox(image=x) for x in im]
 
-    def write_results(self, i, p, im):
-        """Write inference results to a file or directory."""
-        log_string = ""
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
-        if self.source_type.webcam or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
-            log_string += f"{i}: "
-            frame = self.dataset.count
-        else:
-            frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
-        self.results[i].save_dir = self.save_dir.__str__()
-        self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
-        log_string += "%gx%g " % im.shape[2:]  # print string
-        result = self.results[i]
-        log_string += result.verbose() + f"{result.speed['inference']:.1f}ms"
-
-        if self.args.save or self.args.show:  # Add bbox to image
-            plot_args = {
-                "line_width": self.args.line_width,
-                "boxes": self.args.show_boxes,
-                "conf": self.args.show_conf,
-                "labels": self.args.show_labels,
-            }
-            if not self.args.retina_masks:
-                plot_args["im_gpu"] = im[i]
-            self.plotted_img = result.plot(**plot_args)
-        # Write
-        if self.args.save_txt:
-            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
-        if self.args.save_crop:
-            result.save_crop(
-                save_dir=self.save_dir / "crops",
-                file_name=p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"),
-            )
-
-        return log_string
-
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions for an image and returns them."""
         return preds
@@ -351,15 +314,43 @@ class BasePredictor:
         self.args.half = self.model.fp16  # update half
         self.model.eval()
 
-    def show(self, p):
-        """Display an image in a window using OpenCV imshow()."""
-        im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
-            self.windows.append(p)
-            cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(str(p), im.shape[1], im.shape[0])
-        cv2.imshow(str(p), im)
-        cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
+    def write_results(self, i, p, im):
+        """Write inference results to a file or directory."""
+        log_string = ""  # print string
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        if self.source_type.webcam or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
+            log_string += f"{i}: "
+            frame = self.dataset.count
+        else:
+            frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
+
+        self.txt_path = str(self.save_dir / "labels" / p.stem) + ("" if self.dataset.mode == "image" else f"_{frame}")
+        log_string += "%gx%g " % im.shape[2:]
+        result = self.results[i]
+        result.save_dir = self.save_dir.__str__()  # used in other locations
+        log_string += result.verbose() + f"{result.speed['inference']:.1f}ms"
+
+        if self.args.save or self.args.show:  # Add bbox to image
+            plot_args = {
+                "line_width": self.args.line_width,
+                "boxes": self.args.show_boxes,
+                "conf": self.args.show_conf,
+                "labels": self.args.show_labels,
+            }
+            if not self.args.retina_masks:
+                plot_args["im_gpu"] = im[i]
+            self.plotted_img = result.plot(**plot_args)
+        # Write
+        if self.args.save_txt:
+            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
+        if self.args.save_crop:
+            result.save_crop(
+                save_dir=self.save_dir / "crops",
+                file_name=p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"),
+            )
+
+        return log_string
 
     def save_predicted_images(self, idx, save_path):
         """Save video predictions as mp4 at specified path."""
@@ -390,6 +381,16 @@ class BasePredictor:
             if self.args.save_frames:
                 cv2.imwrite(f"{frames_path}{self.vid_frame[idx]}.jpg", im)
                 self.vid_frame[idx] += 1
+
+    def show(self, p):
+        """Display an image in a window using OpenCV imshow()."""
+        im = self.plotted_img
+        if platform.system() == "Linux" and p not in self.windows:
+            self.windows.append(p)
+            cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+            cv2.resizeWindow(str(p), im.shape[1], im.shape[0])
+        cv2.imshow(str(p), im)
+        cv2.waitKey(500 if self.batch[3][-1].startswith("image") else 1)  # 1 millisecond
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

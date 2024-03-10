@@ -331,7 +331,8 @@ class BasePredictor:
         result.save_dir = self.save_dir.__str__()  # used in other locations
         log_string += result.verbose() + f"{result.speed['inference']:.1f}ms"
 
-        if self.args.save or self.args.show:  # Add bbox to image
+        # Add bbox to image
+        if self.args.save or self.args.show:
             plot_args = {
                 "line_width": self.args.line_width,
                 "boxes": self.args.show_boxes,
@@ -341,6 +342,7 @@ class BasePredictor:
             if not self.args.retina_masks:
                 plot_args["im_gpu"] = im[i]
             self.plotted_img = result.plot(**plot_args)
+
         # Write
         if self.args.save_txt:
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
@@ -358,7 +360,9 @@ class BasePredictor:
         # Save images
         if self.dataset.mode == "image":
             cv2.imwrite(save_path, im)
-        else:  # 'video' or 'stream'
+
+        # Save videos
+        else:  # dataset.mode = 'video' or 'stream'
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if self.vid_path[i] != save_path:  # new video
                 self.vid_path[i] = save_path
@@ -374,6 +378,7 @@ class BasePredictor:
                     fps=30,  # integer required, floats produce error in MP4 codec
                     frameSize=(im.shape[1], im.shape[0]),  # width, height
                 )
+
             # Write video
             self.vid_writer[i].write(im)
 

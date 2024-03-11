@@ -300,6 +300,7 @@ nav:
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -345,6 +346,7 @@ nav:
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
       - TFLite: integrations/tflite.md
+      - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
       - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md

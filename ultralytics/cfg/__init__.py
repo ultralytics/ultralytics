@@ -396,7 +396,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 def handle_explorer():
     """Open the Ultralytics Explorer GUI."""
     checks.check_requirements("streamlit")
-    LOGGER.info(f"💡 Loading Explorer dashboard...")
+    LOGGER.info("💡 Loading Explorer dashboard...")
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
 
 

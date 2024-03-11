@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import pytest
 import torch
+import yaml
 from PIL import Image
 from torchvision.transforms import ToTensor
 
@@ -169,8 +170,6 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches
     """
-    import yaml
-
     video_url = "https://ultralytics.com/assets/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
@@ -302,7 +301,7 @@ def test_predict_callback_and_setup():
 
     def on_predict_batch_end(predictor):
         """Callback function that handles operations at the end of a prediction batch."""
-        path, im0s, _, _ = predictor.batch
+        path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]

@@ -118,7 +118,7 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Benchmark World DetectionModel
+      - name: Benchmark YOLOWorld DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel

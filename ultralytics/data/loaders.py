@@ -80,7 +80,6 @@ class LoadStreams:
         self.imgs = [[] for _ in range(n)]  # images
         self.shape = [[] for _ in range(n)]  # image shapes
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.info = [""] * n
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f"{i + 1}/{n}: {s}... "
@@ -177,7 +176,7 @@ class LoadStreams:
                 images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
                 x.clear()
 
-        return self.sources, images, self.info
+        return self.sources, images, [""] * self.bs
 
     def __len__(self):
         """Return the length of the sources object."""

@@ -30,6 +30,7 @@ Usage - formats:
 """
 
 import platform
+import re
 import threading
 from pathlib import Path
 
@@ -264,7 +265,7 @@ class BasePredictor:
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, Path(paths[i]), im)
+                        s[i] += self.write_results(i, Path(paths[i]), im, s)
 
                 # Print batch results
                 if self.args.verbose:
@@ -307,7 +308,7 @@ class BasePredictor:
         self.args.half = self.model.fp16  # update half
         self.model.eval()
 
-    def write_results(self, i, p, im):
+    def write_results(self, i, p, im, s):
         """Write inference results to a file or directory."""
         string = ""  # print string
         if len(im.shape) == 3:
@@ -316,7 +317,8 @@ class BasePredictor:
             string += f"{i}: "
             frame = self.dataset.count
         else:
-            frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
+            match = re.search(r"frame (\d+)/", s[i])
+            frame = int(match.group(1)) if match else 0  # 0 if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "%gx%g " % im.shape[2:]

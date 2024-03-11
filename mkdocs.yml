@@ -346,6 +346,7 @@ nav:
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
       - TFLite: integrations/tflite.md
+      - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
       - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md

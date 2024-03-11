@@ -30,7 +30,12 @@ RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e .
+RUN pip install --no-cache -e ".[export]"
+
+# Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TensorFlow.js
+# Here onnxruntime is installed first because in tflite and onnx simplify exports, it will install latest numpy version as a dependency and we need to downgrade it
+RUN pip install --no-cache onnxruntime
+RUN pip install --no-cache numpy==1.23.5
 
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python

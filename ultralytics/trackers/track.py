@@ -39,6 +39,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
         trackers.append(tracker)
     predictor.trackers = trackers
+    predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video
 
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
@@ -54,8 +55,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     is_obb = predictor.args.task == "obb"
     for i in range(bs):
-        if not persist and predictor.vid_path[i] != str(predictor.save_dir / Path(path[i]).name):  # new video
+        vid_path = predictor.save_dir / Path(path[i]).name
+        if not persist and predictor.vid_path[i] != vid_path:  # new video
             predictor.trackers[i].reset()
+            predictor.vid_path[i] = vid_path
 
         det = (predictor.results[i].obb if is_obb else predictor.results[i].boxes).cpu().numpy()
         if len(det) == 0:

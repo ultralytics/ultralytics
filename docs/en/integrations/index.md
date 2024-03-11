@@ -10,6 +10,17 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics YOLO ecosystem and integrations">
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZzUSXQkLbNw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Deployment and Integrations
+</p>
+
 ## Datasets Integrations
 
 - [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.

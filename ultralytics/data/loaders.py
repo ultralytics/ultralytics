@@ -303,6 +303,10 @@ class LoadImagesAndVideos:
         self.mode = "image"
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
+        if any(videos):
+            self._new_video(videos[0])  # new video
+        else:
+            self.cap = None
         if self.nf == 0:
             raise FileNotFoundError(
                 f"No images or videos found in {p}. "
@@ -327,7 +331,8 @@ class LoadImagesAndVideos:
             path = self.files[self.count]
             if self.video_flag[self.count]:
                 self.mode = "video"
-                self._new_video(path)
+                if not self.cap or not self.cap.isOpened():
+                    self._new_video(path)
 
                 for _ in range(self.vid_stride):
                     success = self.cap.grab()

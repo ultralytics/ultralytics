@@ -294,11 +294,12 @@ class BasePredictor:
     def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
         self.model = AutoBackend(
-            model or self.args.model,
+            weights=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.half,
+            batch=self.args.batch,
             fuse=True,
             verbose=verbose,
         )
@@ -318,7 +319,7 @@ class BasePredictor:
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame}" if is_video[i] else "")
+        self.txt_path = self.save_dir / "labels" / (p.stem + (f"_{frame}" if is_video[i] else ""))
         string += "%gx%g " % im.shape[2:]
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations

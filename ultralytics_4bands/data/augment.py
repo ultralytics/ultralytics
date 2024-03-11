@@ -1098,8 +1098,8 @@ class GaussianBlurRGBA(torch.nn.Module):
 
         # Convert RGB back to PIL Image, apply Gaussian blur, and convert back to NumPy array
         img_rgb_pil = Image.fromarray(img_rgb)
-        if self.sigma is None:
-            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(radius=random.uniform(*self.sigma_range)))
+
+        img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(radius=random.uniform(*self.sigma_range)))
         img_rgb_blurred = np.array(img_rgb_pil)
 
         # Reassemble the RGBA image and convert back to PIL Image

@@ -236,7 +236,7 @@ class BasePredictor:
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
-                paths, im0s, is_video, s = self.batch
+                paths, im0s, s = self.batch
 
                 # Preprocess
                 with profilers[0]:
@@ -264,7 +264,7 @@ class BasePredictor:
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, Path(paths[i]), im, is_video)
+                        s[i] += self.write_results(i, Path(paths[i]), im)
 
                 # Print batch results
                 if self.args.verbose:
@@ -307,7 +307,7 @@ class BasePredictor:
         self.args.half = self.model.fp16  # update half
         self.model.eval()
 
-    def write_results(self, i, p, im, is_video):
+    def write_results(self, i, p, im):
         """Write inference results to a file or directory."""
         string = ""  # print string
         if len(im.shape) == 3:
@@ -318,7 +318,7 @@ class BasePredictor:
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame}" if is_video[i] else "")
+        self.txt_path = self.save_dir / "labels" / (p.stem + "" if self.dataset.mode == "image" else f"_{frame}")
         string += "%gx%g " % im.shape[2:]
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -340,18 +340,19 @@ class BasePredictor:
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:
-            self.show(str(p), is_video[i])
+            self.show(str(p), self.dataset.mode in {"stream", "video"})
         if self.args.save:
-            self.save_predicted_images(str(self.save_dir / p.name), is_video[i], frame)
+            self.save_predicted_images(str(self.save_dir / p.name), frame)
 
         return string
 
-    def save_predicted_images(self, save_path="", is_video=False, frame=0):
+    def save_predicted_images(self, save_path="", frame=0):
         """Save video predictions as mp4 at specified path."""
         im = self.plotted_img
 
         # Save videos and streams
-        if is_video:
+        if self.dataset.mode in {"stream", "video"}:
+            fps = self.dataset.fps if self.dataset.mode == "video" else 30
             frames_path = f'{save_path.split(".", 1)[0]}_frames/'
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -360,7 +361,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=30,  # integer required, floats produce error in MP4 codec
+                    fps=fps,  # integer required, floats produce error in MP4 codec
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

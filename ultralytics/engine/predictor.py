@@ -340,7 +340,7 @@ class BasePredictor:
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:
-            self.show(str(p), self.dataset.mode in {"stream", "video"})
+            self.show(str(p))
         if self.args.save:
             self.save_predicted_images(str(self.save_dir / p.name), frame)
 
@@ -374,7 +374,7 @@ class BasePredictor:
         else:
             cv2.imwrite(save_path, im)
 
-    def show(self, p="", is_video=False):
+    def show(self, p=""):
         """Display an image in a window using OpenCV imshow()."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
@@ -382,7 +382,7 @@ class BasePredictor:
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
         cv2.imshow(p, im)
-        cv2.waitKey(1 if is_video else 500)  # 1 millisecond
+        cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

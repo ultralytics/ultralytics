@@ -41,7 +41,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         if predictor.dataset.mode != "stream":  # Only need one tracker for other modes.
             break
     predictor.trackers = trackers
-    predictor.vid_path = None  # for determining when to reset tracker on new video
+    predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video
 
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
@@ -57,14 +57,11 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
     for i in range(len(im0s)):
-        if not is_stream:
-            vid_path = predictor.save_dir / Path(path[i]).name
-            tracker = predictor.trackers[0]
-            if not persist and predictor.vid_path != vid_path:
-                tracker.reset()
-                predictor.vid_path = vid_path
-        else:
-            tracker = predictor.trackers[i]
+        tracker = predictor.trackers[i] if is_stream else predictor.trackers[0]
+        vid_path = predictor.save_dir / Path(path[i]).name
+        if not persist and predictor.vid_path[i] != vid_path:
+            tracker.reset()
+            predictor.vid_path[i] = vid_path
 
         det = (predictor.results[i].obb if is_obb else predictor.results[i].boxes).cpu().numpy()
         if len(det) == 0:

@@ -10,6 +10,17 @@ keywords: Ultralytics, YOLOv8, Object Detection, Distance Calculation, Object Tr
 
 Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), the bounding box centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LE8am1QoVn4"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Distance Calculation using Ultralytics YOLOv8
+</p>
+
 ## Visuals
 
 |                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                

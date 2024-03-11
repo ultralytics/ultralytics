@@ -197,6 +197,7 @@ nav:
           - Python: usage/python.md
           - Callbacks: usage/callbacks.md
           - Configuration: usage/cfg.md
+          - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
   - Modes:
       - modes/index.md
@@ -221,6 +222,7 @@ nav:
       - YOLOv6: models/yolov6.md
       - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
+      - YOLOv9: models/yolov9.md
       - SAM (Segment Anything Model): models/sam.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
@@ -298,6 +300,7 @@ nav:
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -337,11 +340,14 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
-      - Comet ML: integrations/comet.md
-      - OpenVINO: integrations/openvino.md
+      - TorchScript: integrations/torchscript.md
       - ONNX: integrations/onnx.md
+      - OpenVINO: integrations/openvino.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
+      - TFLite: integrations/tflite.md
+      - NCNN: integrations/ncnn.md
+      - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md
@@ -562,6 +568,8 @@ plugins:
   - ultralytics:
       add_desc: False
       add_image: True
+      add_authors: True
+      add_json_ld: True
       add_share_buttons: True
       default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter

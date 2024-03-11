@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import pytest
 import torch
+import yaml
 from PIL import Image
 from torchvision.transforms import ToTensor
 
@@ -29,7 +30,7 @@ from ultralytics.utils import (
     is_dir_writeable,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
 CFG = "yolov8n.yaml"
@@ -169,8 +170,6 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches
     """
-    import yaml
-
     video_url = "https://ultralytics.com/assets/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
@@ -219,6 +218,7 @@ def test_export_onnx():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
+@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test exporting the YOLO model to OpenVINO format."""
     f = YOLO(MODEL).export(format="openvino")
@@ -555,6 +555,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
+    """Loads an image from a predefined source using OpenCV."""
     return cv2.imread(str(SOURCE))
 
 
@@ -568,6 +569,7 @@ def image():
     ],
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
+    """Tests classification transforms during training with various augmentation settings."""
     import torchvision.transforms as T
 
     from ultralytics.data.augment import classify_augmentations

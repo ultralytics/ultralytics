@@ -129,7 +129,12 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in ("detect", "segment", "pose"):
+            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in (
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+            ):
                 self.data = check_det_dataset(self.args.data)
                 if "yaml_file" in self.data:
                     self.args.data = self.data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
@@ -252,7 +257,7 @@ class BaseTrainer:
             if any(x in k for x in freeze_layer_names):
                 LOGGER.info(f"Freezing layer '{k}'")
                 v.requires_grad = False
-            elif not v.requires_grad:
+            elif not v.requires_grad and v.dtype.is_floating_point:  # only floating point Tensor can require gradients
                 LOGGER.info(
                     f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
                     "See ultralytics.engine.trainer for customization of frozen layers."
@@ -275,7 +280,7 @@ class BaseTrainer:
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multi-scale training
+        self.stride = gs  # for multiscale training
 
         # Batch size
         if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -488,6 +493,8 @@ class BaseTrainer:
             "train_results": results,
             "date": datetime.now().isoformat(),
             "version": __version__,
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
         }
 
         # Save last and best

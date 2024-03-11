@@ -20,7 +20,9 @@ GITHUB_ASSETS_NAMES = (
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
-    + [f"yolov8{k}-world.pt" for k in "sml"]
+    + [f"yolov8{k}-world.pt" for k in "smlx"]
+    + [f"yolov8{k}-worldv2.pt" for k in "smlx"]
+    + [f"yolov9{k}.pt" for k in "ce"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
@@ -408,7 +410,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.1.0", **
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
         release (str, optional): The specific release version to be downloaded. Defaults to 'v8.1.0'.
-        **kwargs (dict): Additional keyword arguments for the download process.
+        **kwargs (any): Additional keyword arguments for the download process.
 
     Returns:
         (str): The path to the downloaded file.

@@ -1087,10 +1087,9 @@ class RotateRGBA(torch.nn.Module):
 
 class GaussianBlurRGBA(torch.nn.Module):
     """Apply Gaussian blur to RGBA images."""
-    def __init__(self, kernel_size, sigma=None):
+    def __init__(self, sigma_range, sigma=None):
         super().__init__()
-        self.kernel_size = kernel_size
-        self.sigma = sigma
+        self.sigma_range = sigma_range
 
     def forward(self, img):
         # Convert PIL Image to NumPy array to separate RGB and alpha channels
@@ -1100,9 +1099,7 @@ class GaussianBlurRGBA(torch.nn.Module):
         # Convert RGB back to PIL Image, apply Gaussian blur, and convert back to NumPy array
         img_rgb_pil = Image.fromarray(img_rgb)
         if self.sigma is None:
-            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(self.kernel_size))
-        else:
-            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(radius=self.sigma))
+            img_rgb_pil = img_rgb_pil.filter(ImageFilter.GaussianBlur(radius=random.uniform(*self.sigma_range)))
         img_rgb_blurred = np.array(img_rgb_pil)
 
         # Reassemble the RGBA image and convert back to PIL Image
@@ -1216,7 +1213,7 @@ def classify_augmentations(
     secondary_tfl += [AdjustSaturationRGBA(0.5)]
     secondary_tfl += [AdjustBrightnessRGBA(1.2)]
     secondary_tfl += [RotateRGBA((-15, 15))]  # Random rotation between -30 and 30 degrees
-    secondary_tfl += [GaussianBlurRGBA(kernel_size=(5, 5), sigma=(0.1, 2.0))]
+    secondary_tfl += [GaussianBlurRGBA((0.1, 2.0))]
 
     if not disable_color_jitter:
         # Custom color jitter for RGBA

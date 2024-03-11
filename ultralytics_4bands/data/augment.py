@@ -1106,6 +1106,15 @@ class GaussianBlurRGBA(torch.nn.Module):
         img_rgba_blurred = np.dstack((img_rgb_blurred, img_a))
         return Image.fromarray(img_rgba_blurred)
 
+class resize_to_target(torch.nn.Module):
+    def __init__(self, target_size=(640,640)):
+        super().__init__()
+        self.target_size = target_size
+
+    def forward(self, img):
+        return img.resize(self.target_size)
+
+
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
@@ -1155,6 +1164,8 @@ def classify_transforms(
     ]
 
     return T.Compose(tfl)
+
+
 
 
 # Classification augmentations train ---------------------------------------------------------------------------------------
@@ -1235,15 +1246,19 @@ def classify_augmentations(
         return torch.cat((img_rgb_normalized, img_a), dim=0)
 
     final_tfl = [
+        resize_to_target(target_size=(size, size)),
         T.ToTensor(),
         T.Lambda(normalize_rgba),
         T.RandomErasing(p=erasing, value='random'),
         # Ensure compatibility with RGBA; you might need to adjust the erasing value
     ]
+    #resize to the target size
+
+
+
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
-    return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
 # NOTE: keep this class for backward compatibility

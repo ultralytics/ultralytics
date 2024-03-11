@@ -318,7 +318,7 @@ class BasePredictor:
         else:
             frame = getattr(self.dataset, "frame", 0) - len(self.results) + i
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + f"_{frame}" if is_video[i] else "")
+        self.txt_path = self.save_dir / "labels" / (p.stem + (f"_{frame}" if is_video[i] else ""))
         string += "%gx%g " % im.shape[2:]
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations

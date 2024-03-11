@@ -57,11 +57,11 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
     for i in range(len(im0s)):
-        tracker = predictor.trackers[i] if is_stream else predictor.trackers[0]
+        tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(path[i]).name
-        if not persist and predictor.vid_path[i] != vid_path:
+        if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
-            predictor.vid_path[i] = vid_path
+            predictor.vid_path[i if is_stream else 0] = vid_path
 
         det = (predictor.results[i].obb if is_obb else predictor.results[i].boxes).cpu().numpy()
         if len(det) == 0:

@@ -298,14 +298,11 @@ class LoadImagesAndVideos:
 
         self.files = images + videos
         self.nf = ni + nv  # number of files
+        self.ni = ni  # number of images
         self.video_flag = [False] * ni + [True] * nv
         self.mode = "image"
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        if any(videos):
-            self._new_video(videos[0])  # new video
-        else:
-            self.cap = None
         if self.nf == 0:
             raise FileNotFoundError(
                 f"No images or videos found in {p}. "
@@ -330,8 +327,7 @@ class LoadImagesAndVideos:
             path = self.files[self.count]
             if self.video_flag[self.count]:
                 self.mode = "video"
-                if not self.cap or not self.cap.isOpened():
-                    self._new_video(path)
+                self._new_video(path)
 
                 for _ in range(self.vid_stride):
                     success = self.cap.grab()
@@ -364,6 +360,8 @@ class LoadImagesAndVideos:
                 imgs.append(im0)
                 info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
+                if self.count >= self.ni:  # end of image list
+                    break
 
         return paths, imgs, info
 

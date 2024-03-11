@@ -318,7 +318,7 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             match = re.search(r"frame (\d+)/", s[i])
-            frame = int(match.group(1)) if match else 0  # 0 if frame undetermined
+            frame = int(match.group(1)) if match else None  # 0 if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "%gx%g " % im.shape[2:]

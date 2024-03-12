@@ -118,6 +118,7 @@ jobs:
         run: |
           python3.11 -m venv env
           source env/bin/activate
+          python -m pip install --upgrade pip wheel
           pip install -e ".[export]"
       - name: Install requirements
         shell: bash # for Windows compatibility

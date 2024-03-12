@@ -115,12 +115,10 @@ jobs:
           cache: "pip" # caching pip dependencies
       - name: Create Python Virtual Environment # this is only for RPi
         if: matrix.os == 'rpi5-bookworm'
-        run: |
-          python3.11 -m venv venv 
+        run: python3.11 -m venv venv 
       - name: Activate Python Virtual Environment # this is only for RPi
         if: matrix.os == 'rpi5-bookworm'
-        run: |
-          source venv/bin/activate
+        run: source venv/bin/activate
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

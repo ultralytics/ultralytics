@@ -198,7 +198,14 @@ jobs:
         run: |
           yolo checks
           pip list
+      - name: Use Previous Virtual Environment from Benchmarks for Pytest tests # this is only for RPi
+        if: matrix.os == 'rpi5-bookworm'
+        run: |
+          source env/bin/activate
+          pip install pytest-cov mlflow pycocotools 'ray[tune]'
+          pytest --slow --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
+        if: matrix.os != 'rpi5-bookworm'
         shell: bash # for Windows compatibility
         run: |
           slow=""

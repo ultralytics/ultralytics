@@ -197,7 +197,8 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest-cov mlflow pycocotools 'ray[tune]'
+          pip install -e ".[export]"
+          pip install pytest-cov mlflow pycocotools 'ray[tune]'
           pytest --slow --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
         if: matrix.os != 'rpi5-bookworm' # just for testing purposess

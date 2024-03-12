@@ -301,7 +301,7 @@ def test_predict_callback_and_setup():
 
     def on_predict_batch_end(predictor):
         """Callback function that handles operations at the end of a prediction batch."""
-        path, im0s, _, _ = predictor.batch
+        path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]

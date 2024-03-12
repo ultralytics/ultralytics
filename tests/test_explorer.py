@@ -1,11 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import PIL
+import pytest
 
 from ultralytics import Explorer
 from ultralytics.utils import ASSETS
 
 
+@pytest.mark.slow
 def test_similarity():
     """Test similarity calculations and SQL queries for correctness and response length."""
     exp = Explorer()
@@ -22,6 +24,7 @@ def test_similarity():
     assert len(sql) > 0
 
 
+@pytest.mark.slow
 def test_det():
     """Test detection functionalities and ensure the embedding table has bounding boxes."""
     exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
@@ -34,6 +37,7 @@ def test_det():
     assert isinstance(similar, PIL.Image.Image)
 
 
+@pytest.mark.slow
 def test_seg():
     """Test segmentation functionalities and verify the embedding table includes masks."""
     exp = Explorer(data="coco8-seg.yaml", model="yolov8n-seg.pt")
@@ -45,6 +49,7 @@ def test_seg():
     assert isinstance(similar, PIL.Image.Image)
 
 
+@pytest.mark.slow
 def test_pose():
     """Test pose estimation functionalities and check the embedding table for keypoints."""
     exp = Explorer(data="coco8-pose.yaml", model="yolov8n-pose.pt")

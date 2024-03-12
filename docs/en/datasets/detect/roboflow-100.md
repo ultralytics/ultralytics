@@ -14,7 +14,7 @@ Roboflow 100, developed by [Roboflow](https://roboflow.com/?ref=ultralytics) and
 
 ## Key Features
 
-- Includes 100 datasets across seven domains: Aerial, Videogames, Microscopic, Underwater, Documents, Electromagnetic, and Real World.
+- Includes 100 datasets across seven domains: Aerial, Video games, Microscopic, Underwater, Documents, Electromagnetic, and Real World.
 - The benchmark comprises 224,714 images across 805 classes, thanks to over 11,170 hours of labeling efforts.
 - All images are resized to 640x640 pixels, with a focus on eliminating class ambiguity and filtering out underrepresented classes.
 - Annotations include bounding boxes for objects, making it suitable for [training](../../modes/train.md) and evaluating object detection models.
@@ -24,7 +24,7 @@ Roboflow 100, developed by [Roboflow](https://roboflow.com/?ref=ultralytics) and
 The Roboflow 100 dataset is organized into seven categories, each with a distinct set of datasets, images, and classes:
 
 - **Aerial**: Consists of 7 datasets with a total of 9,683 images, covering 24 distinct classes.
-- **Videogames**: Includes 7 datasets, featuring 11,579 images across 88 classes.
+- **Video Games**: Includes 7 datasets, featuring 11,579 images across 88 classes.
 - **Microscopic**: Comprises 11 datasets with 13,378 images, spanning 28 classes.
 - **Underwater**: Contains 5 datasets, encompassing 18,003 images in 39 classes.
 - **Documents**: Consists of 8 datasets with 24,813 images, divided into 90 classes.
@@ -45,7 +45,7 @@ For more ideas and inspiration on real-world applications, be sure to check out 
 
 ## Usage
 
-The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100). 
+The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100).
 
 You can access it directly from the Roboflow 100 GitHub repository. In addition, on Roboflow Universe, you have the flexibility to download individual datasets by simply clicking the export button within each dataset.
 

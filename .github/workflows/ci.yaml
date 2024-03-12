@@ -115,10 +115,9 @@ jobs:
           cache: "pip" # caching pip dependencies
       - name: Create Python Virtual Environment # this is only for RPi
         if: matrix.os == 'rpi5-bookworm'
-        shell: bash 
         run: |
-          python3.11 -m venv yolov8
-          source yolov8/bin/activate
+          python3.11 -m venv env
+          source env/bin/activate
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

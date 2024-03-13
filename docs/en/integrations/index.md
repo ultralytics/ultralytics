@@ -65,7 +65,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TFLite](tflite.md): Developed by [Google](https://www.google.com), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
 
-- [TFLite Edge TPU](tflite-edge-tpu.md): Developed by [Google](https://www.google.com) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
+- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
 
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
     

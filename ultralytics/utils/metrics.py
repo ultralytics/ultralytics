@@ -652,6 +652,10 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
+        
+        # add mIoU for segmentation model
+        self.mIoU_list = []
+        self.mIoU = 0
 
     @property
     def ap50(self):
@@ -730,6 +734,14 @@ class Metric(SimpleClass):
     def class_result(self, i, c=None):
         """Class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
+    
+    def mIoU_class_results(self, i):
+        """Returns mIoU results for a specified class index."""
+        return (self.mIoU_list[i].cpu().item(),)
+    
+    def mean_IoU(self):
+        """Return the mean Intersection over Union for segmentation results"""
+        return [self.mIoU] 
 
     @property
     def maps(self):
@@ -930,10 +942,6 @@ class SegmentMetrics(SimpleClass):
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "segment"
 
-        # add mIoU metrics
-        self.mIoU = 0
-        self.mIoU_list = []
-
     def process(self, tp, tp_m, conf, pred_cls, target_cls):
         """
         Processes the detection and segmentation metrics over the given set of predictions.
@@ -990,11 +998,11 @@ class SegmentMetrics(SimpleClass):
 
     def mean_results(self):
         """Return the mean metrics for bounding box and segmentation results."""
-        return self.box.mean_results() + self.seg.mean_results() + [self.mIoU]
+        return self.box.mean_results() + self.seg.mean_results() + self.seg.mean_IoU()
 
     def class_result(self, i, c=None):
         """Returns classification results for a specified class index."""
-        return self.box.class_result(i) + self.seg.class_result(i) + (self.mIoU_list[c].cpu().numpy().item(),)
+        return self.box.class_result(i) + self.seg.class_result(i) + self.seg.mIoU_class_results(c)
 
     @property
     def maps(self):

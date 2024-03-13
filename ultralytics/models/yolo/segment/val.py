@@ -105,6 +105,27 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
+    def merge_masks_and_calculate_IoU(self, gt_masks: torch.Tensor, pred_masks: torch.Tensor, gt_cls: torch.Tensor, pred_cls: torch.Tensor, overlap = False):
+        if overlap == True:
+            nl = len(gt_cls)
+            index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
+            gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
+            gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
+
+        unique_gt_cls = gt_cls.unique().reshape(-1)
+        binary_gt_masks = torch.zeros(unique_gt_cls.shape[0], *gt_masks.shape[1:])
+        for i, cls in enumerate(unique_gt_cls):
+            binary_gt_masks[i] = gt_masks[gt_cls == cls].sum(dim = 0).clamp(min = 0, max = 1)
+
+        unique_pred_cls = pred_cls.unique().reshape(-1)
+        binary_pred_masks = torch.zeros(unique_pred_cls.shape[0], *pred_masks.shape[1:])
+        for i, cls in enumerate(unique_pred_cls):
+            binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim = 0).clamp(min = 0, max = 1)
+
+        iou = mask_iou(binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1))
+
+        return unique_gt_cls, unique_pred_cls, iou
+    
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
@@ -140,21 +161,24 @@ class SegmentationValidator(DetectionValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_m"], iou_matrix = self._process_batch(
+                stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
 
+                unique_gt_cls, unique_pred_cls, iou_matrix = self.merge_masks_and_calculate_IoU(
+                    gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap = self.args.overlap_mask
+                )
                 # add instances to list
                 self.pred_instances += predn[:, 5].cpu().long().reshape(-1).bincount(minlength=self.nc)
-                self.gt_instances += cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
+                self.gt_instances += unique_gt_cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes
                 for iou_idx, ious in enumerate(iou_matrix):
                     if ious.sum().item() > 0:
                         # just get predicted classes that having in gt classes
-                        if cls.long()[iou_idx] in predn[:, 5]:
-                            pred_idx = torch.where(predn[:, 5] == cls.long()[iou_idx])[0]
-                            self.iou_list[cls.long()[iou_idx]] += ious[pred_idx].sum().item()
+                        if unique_gt_cls.long()[iou_idx] in unique_pred_cls:
+                            pred_idx = torch.where(unique_pred_cls == unique_gt_cls.long()[iou_idx])[0]
+                            self.iou_list[unique_gt_cls.long()[iou_idx]] += ious[pred_idx].sum().item()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
@@ -183,8 +207,8 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
 
         # add mIoU metrics to SegmentMetrics class
-        self.metrics.mIoU = self.mIoU
-        self.metrics.mIoU_list = self.mIoU_list
+        self.metrics.seg.mIoU = self.mIoU
+        self.metrics.seg.mIoU_list = self.mIoU_list
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -210,8 +234,6 @@ class SegmentationValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 
-        if masks:
-            return self.match_predictions(detections[:, 5], gt_cls, iou), iou
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):

@@ -106,6 +106,20 @@ class SegmentationValidator(DetectionValidator):
         return predn, pred_masks
 
     def merge_masks_and_calculate_IoU(self, gt_masks: torch.Tensor, pred_masks: torch.Tensor, gt_cls: torch.Tensor, pred_cls: torch.Tensor, overlap = False):
+        """
+        Merge ground truth masks and predicted masks by class and calculate IoU.
+
+        Args:
+            gt_masks (torch.Tensor): Ground truth masks.
+            pred_masks (torch.Tensor): Predicted masks.
+            gt_cls (torch.Tensor): Ground truth class labels.
+            pred_cls (torch.Tensor): Predicted class labels.
+            overlap (bool, optional): Flag indicating whether the gt masks overlap. Defaults to False.
+
+        Returns:
+            torch.Tensor, torch.Tensor, torch.Tensor: Unique ground truth class labels, unique predicted class labels,
+            and IoU scores.
+        """
         if overlap == True:
             nl = len(gt_cls)
             index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1

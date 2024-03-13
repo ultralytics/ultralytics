@@ -730,7 +730,7 @@ class LetterBox:
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(144 for _ in range(img.shape[2]))
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
@@ -951,7 +951,12 @@ class Format:
         if img.shape[-1] == 3:
             img = img[::-1]  # BGR to RBG
         else:
-            img = img[:, :, [2, 1, 0, 3]]  # BGRA to RGBA  # BGRA to RGB
+            if img.shape[-1] == 4:
+                img = img[:, :, [2, 1, 0, 3]]
+                # BGRA to RGBA  # BGRA to RGB
+            else:
+                #support n additional bands switch first three bands from bgr to rgb and leave rest as is
+                img = img[:, :, [2, 1, 0, *range(3, img.shape[-1])]]
         img = np.ascontiguousarray(img.transpose(2, 0, 1))
         img = torch.from_numpy(img)
         return img
@@ -1361,7 +1366,11 @@ class ToTensor:
         if im.shape[-1]==3:
             im = im[::-1]  #BGR to RBG
         else:
-            im = im[:, :, [2, 1, 0, 3]]  # BGRA to RGBA
+            if im.shape[-1] == 4:
+                im = im[:, :, [2, 1, 0, 3]]  # BGRA to RGBA
+            else:
+                #support n additional bands switch first three bands from bgr to rgb and leave rest as is
+                im = im[:, :, [2, 1, 0, *range(3, im.shape[-1])]]
         im = np.ascontiguousarray(im.transpose((2, 0, 1)))  # HWC to CHW -> BGR to RGB -> contiguous
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32

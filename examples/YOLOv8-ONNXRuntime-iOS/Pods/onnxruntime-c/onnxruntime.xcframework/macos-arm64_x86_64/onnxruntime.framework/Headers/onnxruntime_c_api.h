@@ -464,13 +464,13 @@ typedef struct OrtCUDAProviderOptions {
 
   /** \brief Enable TunableOp for using.
    *   Set it to 1/0 to enable/disable TunableOp. Otherwise, it is disabled by default.
-   *   This option can be overriden by environment variable ORT_CUDA_TUNABLE_OP_ENABLE.
+   *   This option can be overridden by environment variable ORT_CUDA_TUNABLE_OP_ENABLE.
    */
   int tunable_op_enable;
 
   /** \brief Enable TunableOp for tuning.
    *   Set it to 1/0 to enable/disable TunableOp tuning. Otherwise, it is disabled by default.
-   *   This option can be overriden by environment variable ORT_CUDA_TUNABLE_OP_TUNING_ENABLE.
+   *   This option can be overridden by environment variable ORT_CUDA_TUNABLE_OP_TUNING_ENABLE.
    */
   int tunable_op_tuning_enable;
 
@@ -506,7 +506,7 @@ typedef struct OrtROCMProviderOptions {
    */
   int device_id;
 
-  /** \brief ROCM MIOpen Convolution algorithm exaustive search option.
+  /** \brief ROCM MIOpen Convolution algorithm exhaustive search option.
    *   Defaults to 0 (false).
    */
   int miopen_conv_exhaustive_search;
@@ -550,13 +550,13 @@ typedef struct OrtROCMProviderOptions {
 
   /** \brief Enable TunableOp for using.
    *   Set it to 1/0 to enable/disable TunableOp. Otherwise, it is disabled by default.
-   *   This option can be overriden by environment variable ORT_ROCM_TUNABLE_OP_ENABLE.
+   *   This option can be overridden by environment variable ORT_ROCM_TUNABLE_OP_ENABLE.
    */
   int tunable_op_enable;
 
   /** \brief Enable TunableOp for tuning.
    *   Set it to 1/0 to enable/disable TunableOp tuning. Otherwise, it is disabled by default.
-   *   This option can be overriden by environment variable ORT_ROCM_TUNABLE_OP_TUNING_ENABLE.
+   *   This option can be overridden by environment variable ORT_ROCM_TUNABLE_OP_TUNING_ENABLE.
    */
   int tunable_op_tuning_enable;
 
@@ -2766,7 +2766,7 @@ struct OrtApi {
    * "initial_growth_chunk_size_bytes": (Possible) Size of the second allocation in the arena.
    *  Only relevant if arena strategy is `kNextPowerOfTwo`. Use -1 to allow ORT to choose the default.
    * "max_power_of_two_extend_bytes": The maximum enxtend size if arena strategy is `kNextPowerOfTwo`.
-   *  It is not an allocation limit, it is only a limit for extention when requested byte is less than the limit.
+   *  It is not an allocation limit, it is only a limit for extension when requested byte is less than the limit.
    *  When requested bytes is more than the limit, allocator will still return as requested.
    *  Use -1 to allow ORT to choose the default 1GB for max_power_of_two_extend_bytes.
    *  Ultimately, the allocation size is determined by the allocation memory request.
@@ -2836,7 +2836,7 @@ struct OrtApi {
    * pre-packed weights' buffers is written into/read from by the created session.
    * This is useful when used in conjunction with OrtApi::AddInitializer which injects
    * shared initializer info into sessions. Wherever possible, the pre-packed versions of these
-   * shared initializers are cached in this container so that multiple sessions can just re-use
+   * shared initializers are cached in this container so that multiple sessions can just reuse
    * these instead of duplicating these in memory.
    *
    * \param[in] env OrtEnv instance instance
@@ -2857,7 +2857,7 @@ struct OrtApi {
    * pre-packed weights' buffers is written into/read from by the created session.
    * This is useful when used in conjunction with OrtApi::AddInitializer which injects
    * shared initializer info into sessions. Wherever possible, the pre-packed versions of these
-   * shared initializers are cached in this container so that multiple sessions can just re-use
+   * shared initializers are cached in this container so that multiple sessions can just reuse
    * these instead of duplicating these in memory.
    *
    * \param[in] env
@@ -3030,7 +3030,7 @@ struct OrtApi {
 
   /**
    * This fills populates an empty tensor that was created using OrtApi::CreateSparseTensorAsOrtValue.
-   * This will allocate required memory and copy the supplied NNZ values and COO indices into that memory allocation.
+   * This will allocate required memory and copy the supplied NNZ values and COUP indices into that memory allocation.
    * Memory allocation is performed using the allocator that was specified with OrtApi::CreateSparseTensorAsOrtValue.
    *
    * \param[in,out] ort_value ::OrtValue to populate with data
@@ -3040,8 +3040,8 @@ struct OrtApi {
    * \param[in] values_shape pointer to values shape array
    * \param[in] values_shape_len length of the values_shape
    * \param[in] values pointer to an array of values. For strings, pass const char**.
-   * \param[in] indices_data pointer to a location of COO indices
-   * \param[in] indices_num number of COO indices
+   * \param[in] indices_data pointer to a location of COUP indices
+   * \param[in] indices_num number of COUP indices
    *
    * \snippet{doc} snippets.dox OrtStatus Return Value
    */
@@ -3126,14 +3126,14 @@ struct OrtApi {
                   ONNXTensorElementDataType type, _Outptr_ OrtValue** out);
 
   /**
-   * This assigns Coo format indices to the SparseTensor that was created by
+   * This assigns Coup format indices to the SparseTensor that was created by
    * OrtApi::CreateSparseTensorWithValuesAsOrtValue above. It also sets OrtSparseFormat to
    * ORT_SPARSE_COO. This will not allocate any additional memory for data. The life span of
    * indices_data buffer should eclipse the life span of this ::OrtValue.
    *
    * \param[in,out] ort_value ::OrtValue instance constructed with OrtApi::CreateSparseTensorWithValuesAsOrtValue
    * \param[in,out] indices_data pointer to a user pre-allocated buffer or nullptr for fully sparse tensors.
-   * \param[in] indices_num  number of COO indices. Should either be 0 for fully sparse tensors, be equal
+   * \param[in] indices_num  number of COUP indices. Should either be 0 for fully sparse tensors, be equal
    *  to the number of nnz values specified to OrtApi::CreateSparseTensorWithValuesAsOrtValue for 1-D {nnz} indices or
    *  be twice as number of nnz values for a  2-D indices {nnz, 2}
    *
@@ -3524,9 +3524,9 @@ struct OrtApi {
    * \param[in] op_name Operator name
    * \param[in] domain Operator domain
    * \param[in] version Operator opset version
-   * \param[in] type_constraint_names Name of the type contraints, such as "T" or "T1"
-   * \param[in] type_constraint_values Type of each contraints
-   * \param[in] type_constraint_count Number of contraints
+   * \param[in] type_constraint_names Name of the type constraints, such as "T" or "T1"
+   * \param[in] type_constraint_values Type of each constraints
+   * \param[in] type_constraint_count Number of constraints
    * \param[in] attr_values Attributes used to initialize the operator
    * \param[in] attr_count Number of the attributes
    * \param[in] input_count Number of inputs
@@ -3683,9 +3683,9 @@ struct OrtApi {
 
   /// @}
 
-  /** \brief Append CANN provider to session options
+  /** \brief Append CAN provider to session options
    *
-   * If CANN is not available (due to a non CANN enabled build, or if CANN is not installed on the system), this function will return failure.
+   * If CAN is not available (due to a non CAN enabled build, or if CAN is not installed on the system), this function will return failure.
    *
    * \param[in] options
    * \param[in] cann_options
@@ -3707,7 +3707,7 @@ struct OrtApi {
    */
   ORT_API2_STATUS(CreateCANNProviderOptions, _Outptr_ OrtCANNProviderOptions** out);
 
-  /** \brief Set options in a CANN Execution Provider.
+  /** \brief Set options in a CAN Execution Provider.
    *
    * \param[in] cann_options
    * \param[in] provider_options_keys Array of UTF-8 null-terminated string for provider options keys
@@ -3723,7 +3723,7 @@ struct OrtApi {
                   _In_reads_(num_keys) const char* const* provider_options_values,
                   _In_ size_t num_keys);
 
-  /** \brief Get serialized CANN provider options string.
+  /** \brief Get serialized CAN provider options string.
    *
    * \param[in] cann_options OrtCANNProviderOptions instance
    * \param[in] allocator a ptr to an instance of OrtAllocator obtained with CreateAllocator()
@@ -4171,7 +4171,7 @@ struct OrtApi {
 
   /** \brief Get the logging severity level of the ::OrtLogger.
    *
-   * Can be used in a custom operator to get the logging serverity level of the ::OrtLogger associated with
+   * Can be used in a custom operator to get the logging severity level of the ::OrtLogger associated with
    * the ::OrtKernelInfo.
    *
    * \param[in] logger The ::OrtLogger instance.
@@ -4491,10 +4491,10 @@ struct OrtApi {
   ORT_API2_STATUS(ShapeInferContext_GetAttribute, _In_ const OrtShapeInferContext* context, _In_ const char* attr_name, _Outptr_ const OrtOpAttr** attr);
 
   /**
-   * Set type and shape info of an ouput
+   * Set type and shape info of an output
    *
    * \param[in] context
-   * \param[in] index The index of the ouput
+   * \param[in] index The index of the output
    * \param[out] info Type shape info of the output
    *
    * \since Version 1.17.
@@ -4591,7 +4591,7 @@ typedef enum OrtCustomOpInputOutputCharacteristic {
 
 /*
  * The OrtCustomOp structure defines a custom op's schema and its kernel callbacks. The callbacks are filled in by
- * the implementor of the custom op.
+ * the implementer of the custom op.
  */
 struct OrtCustomOp {
   uint32_t version;  // Must be initialized to ORT_API_VERSION
@@ -4628,7 +4628,7 @@ struct OrtCustomOp {
   // Returns the memory type of the input tensors. This API allows the custom op
   // to place the inputs on specific devices. By default, it returns
   // OrtMemTypeDefault, which means the input is placed on the default device for
-  // the execution provider. If the inputs need to be with different memory tyeps,
+  // the execution provider. If the inputs need to be with different memory types,
   // this function can be overridden to return the specific memory types.
   OrtMemType(ORT_API_CALL* GetInputMemoryType)(_In_ const struct OrtCustomOp* op, _In_ size_t index);
 

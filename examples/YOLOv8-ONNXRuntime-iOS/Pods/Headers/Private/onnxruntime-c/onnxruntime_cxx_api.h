@@ -152,7 +152,7 @@ std::vector<std::string> GetAvailableProviders();
  * uint16_t buffers to/from Ort::Float16_t to feed and retrieve data.
  *
  * \code{.unparsed}
- * // This example demonstrates converion from float to float16
+ * // This example demonstrates conversion from float to float16
  * constexpr float values[] = {1.f, 2.f, 3.f, 4.f, 5.f};
  * std::vector<Ort::Float16_t> fp16_values;
  * fp16_values.reserve(std::size(values));
@@ -294,7 +294,7 @@ static_assert(sizeof(Float16_t) == sizeof(uint16_t), "Sizes must match");
  * uint16_t buffers to/from Ort::BFloat16_t to feed and retrieve data.
  *
  * \code{.unparsed}
- * // This example demonstrates converion from float to float16
+ * // This example demonstrates conversion from float to float16
  * constexpr float values[] = {1.f, 2.f, 3.f, 4.f, 5.f};
  * std::vector<Ort::BFloat16_t> bfp16_values;
  * bfp16_values.reserve(std::size(values));
@@ -1486,7 +1486,7 @@ struct ValueImpl : ConstValueImpl<T> {
   /// by the vector of dims.
   /// </summary>
   /// <typeparam name="R"></typeparam>
-  /// <param name="location">[in] expressed by a vecotr of dimensions offsets</param>
+  /// <param name="location">[in] expressed by a vector of dimensions offsets</param>
   /// <returns></returns>
   template <typename R>
   R& At(const std::vector<int64_t>& location);
@@ -1521,7 +1521,7 @@ struct ValueImpl : ConstValueImpl<T> {
 
 #if !defined(DISABLE_SPARSE_TENSORS)
   /// <summary>
-  /// Supplies COO format specific indices and marks the contained sparse tensor as being a COO format tensor.
+  /// Supplies COUP format specific indices and marks the contained sparse tensor as being a COUP format tensor.
   /// Values are supplied with a CreateSparseTensor() API. The supplied indices are not copied and the user
   /// allocated buffers lifespan must eclipse that of the OrtValue.
   /// The location of the indices is assumed to be the same as specified by OrtMemoryInfo argument at the creation time.
@@ -1554,13 +1554,13 @@ struct ValueImpl : ConstValueImpl<T> {
 
   /// <summary>
   /// The API will allocate memory using the allocator instance supplied to the CreateSparseTensor() API
-  /// and copy the values and COO indices into it. If data_mem_info specifies that the data is located
+  /// and copy the values and COUP indices into it. If data_mem_info specifies that the data is located
   /// at difference device than the allocator, a X-device copy will be performed if possible.
   /// </summary>
   /// <param name="data_mem_info">specified buffer memory description</param>
   /// <param name="values_param">values buffer information.</param>
-  /// <param name="indices_data">coo indices buffer or nullptr for fully sparse data</param>
-  /// <param name="indices_num">number of COO indices or 0 for fully sparse data</param>
+  /// <param name="indices_data">coup indices buffer or nullptr for fully sparse data</param>
+  /// <param name="indices_num">number of COUP indices or 0 for fully sparse data</param>
   void FillSparseTensorCoo(const OrtMemoryInfo* data_mem_info, const OrtSparseValuesParam& values_param,
                            const int64_t* indices_data, size_t indices_num);
 
@@ -2309,7 +2309,7 @@ struct CustomOpBase : OrtCustomOp {
     return OrtCustomOpInputOutputCharacteristic::INPUT_OUTPUT_REQUIRED;
   }
 
-  // Default implemention of GetInputMemoryType() that returns OrtMemTypeDefault
+  // Default implementation of GetInputMemoryType() that returns OrtMemTypeDefault
   OrtMemType GetInputMemoryType(size_t /*index*/) const {
     return OrtMemTypeDefault;
   }

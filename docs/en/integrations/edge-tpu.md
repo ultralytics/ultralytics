@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover how to uplift your Ultralytics YOLOv8 model's overall performance with the TF Edge TPU export format, which is perfect for mobile and embedded devices.
+description: Discover how to uplift your Ultralytics YOLOv8 model's overall performance with the TFLite Edge TPU export format, which is perfect for mobile and embedded devices.
 keywords: Ultralytics, YOLOv8, TFLite edge TPU format, Export YOLOv8, Model Deployment, Flexible Deployment
 ---
 

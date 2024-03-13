@@ -46,3 +46,7 @@ Welcome to the Ultralytics HUB App! We are excited to introduce this powerful mo
 - [**Android**](android.md): Explore TFLite acceleration on Android mobile devices.
 
 Get started today by downloading the Ultralytics HUB App on your mobile device and unlock the potential of YOLOv5 and YOLOv8 models on-the-go. Don't forget to check out our comprehensive [HUB Docs](../index.md) for more information on training, deploying, and using your custom models with the Ultralytics HUB platform.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

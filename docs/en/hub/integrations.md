@@ -60,3 +60,7 @@ While we're in the process of creating detailed guides:
 - Join our [Discord Community](https://ultralytics.com/discord/) for live discussions and community support.
 
 We appreciate your patience as we work to make this section comprehensive and user-friendly. Stay tuned for updates!
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

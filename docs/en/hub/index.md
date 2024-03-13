@@ -59,3 +59,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
     - [**iOS**](app/ios.md). Learn about YOLO CoreML models accelerated on Apple's Neural Engine on iPhones and iPads.
     - [**Android**](app/android.md). Explore TFLite acceleration on mobile devices.
 - [**Inference API**](inference-api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

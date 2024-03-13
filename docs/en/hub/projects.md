@@ -178,3 +178,7 @@ Navigate to the Project page of the project where the model you want to mode is 
 Select the project you want to transfer the model to and click **Save**.
 
 ![Ultralytics HUB screenshot of the Transfer Model dialog with an arrow pointing to the dropdown and one to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_transfer_models_3.jpg)
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

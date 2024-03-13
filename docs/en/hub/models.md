@@ -128,3 +128,7 @@ Now, anyone with the direct link can view your model.
 Navigate to the Model page, open the model actions dropdown, and click on the **Edit** option to update the model. To delete the model, select the **Delete** option.
 
 ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Edit option](https://github.com/ultralytics/ultralytics/assets/19519529/5c2db731-45dc-4f04-ac0f-9ad600c140a1)
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

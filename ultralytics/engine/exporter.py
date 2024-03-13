@@ -411,8 +411,8 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLOv8 OpenVINO export."""
-        check_requirements("openvino>=2023.3")  # requires openvino: https://pypi.org/project/openvino-dev/
-        import openvino as ov  # noqa
+        check_requirements("openvino>=2024.0.0")  # requires openvino: https://pypi.org/project/openvino/
+        import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
@@ -433,7 +433,7 @@ class Exporter:
             if self.model.task != "classify":
                 ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
 
-            ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
+            ov.runtime.save_model(ov_model, file, compress_to_fp16=self.args.half)
             yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         if self.args.int8:
@@ -528,12 +528,12 @@ class Exporter:
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
-            try:
-                _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
+            _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
+            if assets:
                 url = [x for x in assets if f"{system}.zip" in x][0]
-            except Exception as e:
+            else:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240226/pnnx-20240226-{system}.zip"
-                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")
+                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found, using default {url}")
             asset = attempt_download_asset(url, repo="pnnx/pnnx", release="latest")
             if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
                 unzip_dir = Path(asset).with_suffix("")

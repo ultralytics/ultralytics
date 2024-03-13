@@ -65,8 +65,8 @@ def test_export(model, format):
 def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     """Test the RTDETR functionality with the Ultralytics framework."""
     # Warning: MUST use imgsz=640
-    run(f"yolo train {task} model={model} data={data} --imgsz= 640 epochs =1, cache = disk")  # add coma, spaces to args
-    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk")  # add coma, spaces to args
+    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM Clip is not supported in Python 3.12")

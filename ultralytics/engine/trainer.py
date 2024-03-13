@@ -129,7 +129,12 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in ("detect", "segment", "pose"):
+            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in (
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+            ):
                 self.data = check_det_dataset(self.args.data)
                 if "yaml_file" in self.data:
                     self.args.data = self.data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
@@ -275,7 +280,7 @@ class BaseTrainer:
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multi-scale training
+        self.stride = gs  # for multiscale training
 
         # Batch size
         if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size

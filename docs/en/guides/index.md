@@ -62,3 +62,7 @@ We welcome contributions from the community! If you've mastered a particular asp
 To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open up a Pull Request (PR) 🛠️. We look forward to your contributions!
 
 Let's work together to make the Ultralytics YOLO ecosystem more robust and versatile 🙏!
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

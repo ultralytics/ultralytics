@@ -167,3 +167,7 @@ This guide took you step by step through deploying YOLOv8 on Amazon SageMaker En
 For more technical details, refer to [this article](https://aws.amazon.com/blogs/machine-learning/hosting-yolov8-pytorch-model-on-amazon-sagemaker-endpoints/) on the AWS Machine Learning Blog. You can also check out the official [Amazon SageMaker Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html) for more insights into various features and functionalities.
 
 Are you interested in learning more about different YOLOv8 integrations? Visit the [Ultralytics integrations guide page](../integrations/index.md) to discover additional tools and capabilities that can enhance your machine-learning projects.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

@@ -144,3 +144,7 @@ Navigate to the Dataset page of the dataset you want to delete, open the dataset
     If you change your mind, you can restore the dataset from the [Trash](https://hub.ultralytics.com/trash) page.
 
     ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the datasets](https://github.com/ultralytics/ultralytics/assets/19519529/56a9460c-0e06-4659-989d-715211b9d7ce)
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

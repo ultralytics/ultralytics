@@ -88,3 +88,7 @@ To get started with the Ultralytics iOS App, follow these steps:
 6. Explore the app's settings to adjust the detection threshold, enable or disable specific object classes, and more.
 
 With the Ultralytics iOS App, you can now leverage the power of YOLO models for real-time object detection on your iPhone or iPad, powered by the Apple Neural Engine and optimized with FP16 or INT8 quantization.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

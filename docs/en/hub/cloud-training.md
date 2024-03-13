@@ -87,3 +87,7 @@ You will be prompted with different available plans, and you can pick from the a
 Navigate to the Payment page, fill in the details, and complete the payment.
 
 ![Payment Page](https://github.com/ultralytics/ultralytics/assets/19519529/5deebabe-1d8a-485a-b290-e038729c849f)
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

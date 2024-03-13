@@ -124,3 +124,7 @@ In this guide, we explored the process of exporting Ultralytics YOLOv8 models to
 For further details on usage, visit [TorchScript’s official documentation](https://pytorch.org/docs/stable/jit.html).
 
 Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

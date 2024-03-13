@@ -136,3 +136,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
     ```
 
 By following these steps, you can contribute a new dataset that integrates well with Ultralytics' existing structure.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

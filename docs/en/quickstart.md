@@ -326,3 +326,7 @@ The table below provides an overview of the settings available for adjustment wi
 | `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

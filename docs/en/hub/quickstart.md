@@ -56,3 +56,7 @@ If you encounter any issues or have questions, we're here to assist you. You can
 Manage your datasets efficiently with options to restore or permanently delete them from the Trash section in the left column.
 
 ![Trash Page](https://github.com/ultralytics/ultralytics/assets/19519529/c3d46107-aa58-4b05-a7a8-44db1ad61bb2)
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

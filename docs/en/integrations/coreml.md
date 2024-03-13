@@ -124,3 +124,7 @@ In this guide, we went over how to export Ultralytics YOLOv8 models to CoreML fo
 For further details on usage, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
 
 Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

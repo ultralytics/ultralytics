@@ -115,4 +115,4 @@ In this guide, we’ve learned how to export Ultralytics YOLOv8 models to TFLite
 
 For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/edge-tpu).
 
-Also, for more information on other Ultralytics YOLOv8 integrations, please visit our [integration guide page](../integrations/index.md). There, you'll discover valuable resources and insights.
+Also, for more information on other Ultralytics YOLOv8 integrations, please visit our [integration guide page](index.md). There, you'll discover valuable resources and insights.

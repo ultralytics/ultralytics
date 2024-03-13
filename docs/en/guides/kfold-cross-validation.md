@@ -276,3 +276,7 @@ Finally, we implemented the actual model training using each split in a loop, sa
 This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to overfit to specific data patterns.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects. Happy coding!
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

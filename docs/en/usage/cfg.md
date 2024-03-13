@@ -267,3 +267,7 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                   |
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

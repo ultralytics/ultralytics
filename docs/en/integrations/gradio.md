@@ -104,3 +104,7 @@ if __name__ == '__main__':
 | Image Input  | To upload the image for detection.       |
 | Sliders      | To adjust confidence and IoU thresholds. |
 | Image Output | To display the detection results.        |
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

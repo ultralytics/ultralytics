@@ -335,3 +335,7 @@ Try our GUI Demo based on Explorer API
 - [ ] Remove images that have a higher similarity index than the given threshold
 - [ ] Automatically persist new datasets after merging/removing entries
 - [ ] Advanced Dataset Visualizations
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

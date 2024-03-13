@@ -95,3 +95,7 @@ If you use the xView dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the [Defense Innovation Unit](https://www.diu.mil/) (DIU) and the creators of the xView dataset for their valuable contribution to the computer vision research community. For more information about the xView dataset and its creators, visit the [xView dataset website](http://xviewdataset.org/).
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

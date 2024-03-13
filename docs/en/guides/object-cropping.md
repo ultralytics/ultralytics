@@ -100,3 +100,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

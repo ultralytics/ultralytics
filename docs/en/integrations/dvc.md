@@ -169,3 +169,7 @@ This guide has led you through the process of integrating DVCLive with Ultralyti
 For further details on usage, visit [DVCLive’s official documentation](https://dvc.org/doc/dvclive/ml-frameworks/yolo).
 
 Additionally, explore more integrations and capabilities of Ultralytics by visiting the [Ultralytics integration guide page](../integrations/index.md), which is a collection of great resources and insights.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

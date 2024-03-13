@@ -164,3 +164,7 @@ That's it! When you execute the code, you'll receive a single notification on yo
 #### Email Received Sample
 
 <img width="256" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/db79ccc6-aabd-4566-a825-b34e679c90f9" alt="Email Received Sample">
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

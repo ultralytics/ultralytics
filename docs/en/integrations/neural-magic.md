@@ -163,3 +163,7 @@ This guide explored integrating Ultralytics’ YOLOv8 with Neural Magic's DeepSp
 For more detailed information and advanced usage, visit [Neural Magic’s DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/). Also, check out Neural Magic’s documentation on the integration with YOLOv8 [here](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and watch a great session on it [here](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLOv8 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

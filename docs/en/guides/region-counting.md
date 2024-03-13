@@ -84,3 +84,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 | `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2 |
 | `--region-thickness` | `int`  | `2`          | Region Box thickness                       |
 | `--track-thickness`  | `int`  | `2`          | Tracking line thickness                    |
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

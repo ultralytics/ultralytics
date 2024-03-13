@@ -96,3 +96,7 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
         ```
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

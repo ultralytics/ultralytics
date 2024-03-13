@@ -120,3 +120,7 @@ In this guide, we explored the process of exporting Ultralytics YOLOv8 models to
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 
 Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights. 
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

@@ -176,3 +176,7 @@ Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integr
 Furthermore, if you're looking to dive deeper into the practical applications of YOLOv8, specifically for image segmentation tasks, this detailed guide on [fine-tuning YOLOv8 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
 Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

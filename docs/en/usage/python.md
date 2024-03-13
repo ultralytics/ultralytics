@@ -323,3 +323,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
 [Customization tutorials](engine.md){ .md-button }
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

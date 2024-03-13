@@ -58,3 +58,7 @@ yolo explorer
 <p>
     <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://github.com/AyushExel/assets/assets/15766192/1b5f3708-be3e-44c5-9ea3-adcd522dfc75">
 </p>
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

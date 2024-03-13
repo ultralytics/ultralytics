@@ -89,3 +89,7 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 ## Other engine components
 
 There are other components that can be customized similarly like `Validators` and `Predictors`. See Reference section for more information on these.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

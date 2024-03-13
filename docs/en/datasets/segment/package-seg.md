@@ -90,3 +90,7 @@ If you integrate the crack segmentation dataset into your research or developmen
         ```
 
 We express our gratitude to the Roboflow team for their efforts in creating and maintaining the Package Segmentation dataset, a valuable asset for logistics and research projects. For additional details about the Package Segmentation dataset and its creators, please visit the [Package Segmentation Dataset Page](https://universe.roboflow.com/factorypackage/factory_package).
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

@@ -138,3 +138,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
     ```
 
     If you want a `tflite-runtime` wheel for `tensorflow` 2.15.0 download it from [here](https://github.com/feranick/TFlite-builds/releases) and install it using `pip` or your package manager of choice.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

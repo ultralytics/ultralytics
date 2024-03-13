@@ -100,3 +100,7 @@ By writing a guide or tutorial, you can help expand our documentation and provid
 To contribute, please check out our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
 
 Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feature-rich 🙏!
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

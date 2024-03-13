@@ -151,3 +151,7 @@ This guide aims to help you use TensorBoard with YOLOv8 for visualization and an
 For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow’s official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard).
 
 Want to learn more about the various integrations of Ultralytics? Check out the [Ultralytics integrations guide page](../integrations/index.md) to see what other exciting capabilities are waiting to be discovered!
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

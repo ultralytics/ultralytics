@@ -326,3 +326,7 @@ To use TensorBoard locally run the below command and view results at http://loca
 This will load TensorBoard and direct it to the directory where your training logs are saved.
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

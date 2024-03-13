@@ -89,3 +89,7 @@ If you integrate the Carparts Segmentation dataset into your research or develop
         ```
 
 We extend our thanks to the Roboflow team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects. For additional details about the Carparts Segmentation dataset and its creators, please visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm).
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

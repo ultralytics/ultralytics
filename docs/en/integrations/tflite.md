@@ -120,3 +120,7 @@ In this guide, we focused on how to export to TFLite format. By converting your 
 For further details on usage, visit [TFLite’s official documentation](https://www.tensorflow.org/lite/guide).
 
 Also, if you're curious about other Ultralytics YOLOv8 integrations, make sure to check out our [integration guide page](../integrations/index.md). You'll find tons of helpful info and insights waiting for you there.
+
+## Community Feedback
+
+![Community Feedback](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3b4c3c1b-be2d-427b-a816-5f515b5cb12c)

@@ -1,0 +1,2 @@
+${PODS_ROOT}/Target Support Files/onnxruntime-extensions-c/onnxruntime-extensions-c-xcframeworks.sh
+${PODS_ROOT}/onnxruntime-extensions-c/onnxruntime_extensions.xcframework

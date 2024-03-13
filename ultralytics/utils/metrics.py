@@ -652,7 +652,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
-        
+
         # add mIoU for segmentation model
         self.mIoU_list = []
         self.mIoU = 0
@@ -734,14 +734,14 @@ class Metric(SimpleClass):
     def class_result(self, i, c=None):
         """Class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
-    
+
     def mIoU_class_results(self, i):
         """Returns mIoU results for a specified class index."""
         return (self.mIoU_list[i].cpu().item(),)
-    
+
     def mean_IoU(self):
-        """Return the mean Intersection over Union for segmentation results"""
-        return [self.mIoU] 
+        """Return the mean Intersection over Union for segmentation results."""
+        return [self.mIoU]
 
     @property
     def maps(self):

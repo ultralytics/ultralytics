@@ -105,7 +105,14 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
-    def merge_masks_and_calculate_IoU(self, gt_masks: torch.Tensor, pred_masks: torch.Tensor, gt_cls: torch.Tensor, pred_cls: torch.Tensor, overlap = False):
+    def merge_masks_and_calculate_IoU(
+        self,
+        gt_masks: torch.Tensor,
+        pred_masks: torch.Tensor,
+        gt_cls: torch.Tensor,
+        pred_cls: torch.Tensor,
+        overlap=False,
+    ):
         if overlap == True:
             nl = len(gt_cls)
             index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
@@ -115,17 +122,19 @@ class SegmentationValidator(DetectionValidator):
         unique_gt_cls = gt_cls.unique().reshape(-1)
         binary_gt_masks = torch.zeros(unique_gt_cls.shape[0], *gt_masks.shape[1:])
         for i, cls in enumerate(unique_gt_cls):
-            binary_gt_masks[i] = gt_masks[gt_cls == cls].sum(dim = 0).clamp(min = 0, max = 1)
+            binary_gt_masks[i] = gt_masks[gt_cls == cls].sum(dim=0).clamp(min=0, max=1)
 
         unique_pred_cls = pred_cls.unique().reshape(-1)
         binary_pred_masks = torch.zeros(unique_pred_cls.shape[0], *pred_masks.shape[1:])
         for i, cls in enumerate(unique_pred_cls):
-            binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim = 0).clamp(min = 0, max = 1)
+            binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim=0).clamp(min=0, max=1)
 
-        iou = mask_iou(binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1))
+        iou = mask_iou(
+            binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
+        )
 
         return unique_gt_cls, unique_pred_cls, iou
-    
+
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
@@ -166,7 +175,7 @@ class SegmentationValidator(DetectionValidator):
                 )
 
                 unique_gt_cls, unique_pred_cls, iou_matrix = self.merge_masks_and_calculate_IoU(
-                    gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap = self.args.overlap_mask
+                    gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap=self.args.overlap_mask
                 )
                 # add instances to list
                 self.pred_instances += predn[:, 5].cpu().long().reshape(-1).bincount(minlength=self.nc)

@@ -4,11 +4,10 @@ import subprocess
 
 import pytest
 
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from ultralytics.utils.checks import cuda_device_count, cuda_is_available
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
-CUDA_IS_AVAILABLE = cuda_is_available()
-CUDA_DEVICE_COUNT = cuda_device_count()
+CUDA_IS_AVAILABLE = checks.cuda_is_available()
+CUDA_DEVICE_COUNT = checks.cuda_device_count()
 TASK_ARGS = [
     ("detect", "yolov8n", "coco8.yaml"),
     ("segment", "yolov8n-seg", "coco8-seg.yaml"),
@@ -66,10 +65,11 @@ def test_export(model, format):
 def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     """Test the RTDETR functionality with the Ultralytics framework."""
     # Warning: MUST use imgsz=640
-    run(f"yolo train {task} model={model} data={data} --imgsz= 640 epochs =1, cache = disk")  # add coma, spaces to args
-    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk")  # add coma, spaces to args
+    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM Clip is not supported in Python 3.12")
 def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8-seg.yaml"):
     """Test FastSAM segmentation functionality within Ultralytics."""
     source = ASSETS / "bus.jpg"

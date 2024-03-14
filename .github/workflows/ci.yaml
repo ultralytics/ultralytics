@@ -160,6 +160,7 @@ jobs:
         shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark ClassificationModel
+        if: matrix.os != 'rpi5-bookworm'
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark ClassificationModel(ARM64)
@@ -167,18 +168,26 @@ jobs:
         shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark PoseModel
+        if: matrix.os != 'rpi5-bookworm'
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark PoseModel (ARM64)
         shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
+        if: matrix.os != 'rpi5-bookworm'
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Benchmark OBBModel (ARM64)
         shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Merge Coverage Reports
+        if: matrix.os != 'rpi5-bookworm'
+        run: |
+          coverage xml -o coverage-benchmarks.xml
+      - name: Merge Coverage Reports (ARM64)
+        if: matrix.os == 'rpi5-bookworm'
+        shell: bash -e {0}
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov

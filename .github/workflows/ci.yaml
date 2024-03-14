@@ -113,11 +113,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
-      - name: Use Python Virtual Environment for ARM64
+      - name: Activate Python Virtual Environment for ARM64
         if: matrix.os == 'rpi5-bookworm'
         run: |
           python3.11 -m venv env
           source env/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         if: matrix.os != 'rpi5-bookworm'
         shell: bash # for Windows compatibility
@@ -127,7 +128,7 @@ jobs:
           # yolo export format=tflite imgsz=32 || true
       - name: Install requirements (ARM64)
         if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
+        shell: /usr/bin/bash -e {0}
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu

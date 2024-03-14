@@ -199,7 +199,7 @@ jobs:
           source env/bin/activate
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]"
-          pip install pytest-cov mlflow pycocotools 'ray[tune]'
+          pip install pytest-cov
           pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
         if: matrix.os != 'rpi5-bookworm' # just for testing purposess

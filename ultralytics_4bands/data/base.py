@@ -20,7 +20,7 @@ from .utils import HELP_URL, IMG_FORMATS, imread
 
 
 
-N_CHANNELS = os.getenv("NEW_CHANNELS", 3)
+N_CHANNELS = os.getenv("NEW_CHANNELS", 4)
 
 
 
@@ -171,6 +171,7 @@ class BaseDataset(Dataset):
     import rasterio
 
     def load_image(self, i, rect_mode=True):
+
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
@@ -185,6 +186,8 @@ class BaseDataset(Dataset):
                     read_img = True
             else:
                 read_img = True
+            N_CHANNELS = int(os.getenv("NEW_CHANNELS", 3))
+
             if read_img:
                 # read image
                 if f.lower().endswith((".png",".jpg",".jpeg",".bmp",".dng",".gif",".webp",".mpo")):

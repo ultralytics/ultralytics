@@ -887,7 +887,9 @@ class Exporter:
         """YOLOv8 TensorFlow.js export."""
         check_requirements("tensorflowjs")
         if ARM64:
-            check_requirements("numpy==1.23.5")  # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TensorFlow.js on ARM64
+            check_requirements(
+                "numpy==1.23.5"
+            )  # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TensorFlow.js on ARM64
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 

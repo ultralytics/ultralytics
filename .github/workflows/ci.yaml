@@ -115,6 +115,8 @@ jobs:
           cache: "pip" # caching pip dependencies
       - name: Activate Python Virtual Environment for ARM64
         if: matrix.os == 'rpi5-bookworm'
+        run:
+          shell: ${{ matrix.os == 'rpi5-bookworm' && ' -e {0}' || 'bash' }}
         run: |
           python3.11 -m venv env
           source env/bin/activate
@@ -122,7 +124,6 @@ jobs:
       - name: Install requirements
         # if: matrix.os != 'rpi5-bookworm'  
         # shell: bash # for Windows compatibility
-        shell: ${{ matrix.os == 'rpi5-bookworm' && ' -e {0}' || 'bash' }}
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu

@@ -120,77 +120,31 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        if: matrix.os != 'rpi5-bookworm'  
         shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
           # yolo export format=tflite imgsz=32 || true
-      - name: Install requirements (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
-        if: matrix.os != 'rpi5-bookworm'
-        run: |
-          yolo checks
-          pip list
-      - name: Check environment (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: |
           yolo checks
           pip list
       - name: Benchmark YOLOWorld DetectionModel
-        if: matrix.os != 'rpi5-bookworm'
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
-      - name: Benchmark YOLOWorld DetectionModel (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
-        if: matrix.os != 'rpi5-bookworm'
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.267
-      - name: Benchmark SegmentationModel (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark ClassificationModel
-        if: matrix.os != 'rpi5-bookworm'
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
-      - name: Benchmark ClassificationModel(ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark PoseModel
-        if: matrix.os != 'rpi5-bookworm'
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
-      - name: Benchmark PoseModel (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
-        if: matrix.os != 'rpi5-bookworm'
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
-      - name: Benchmark OBBModel (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Merge Coverage Reports
-        if: matrix.os != 'rpi5-bookworm'
-        run: |
-          coverage xml -o coverage-benchmarks.xml
-      - name: Merge Coverage Reports (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
@@ -236,19 +190,7 @@ jobs:
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        if: matrix.os != 'rpi5-bookworm' 
         shell: bash # for Windows compatibility
-        run: |
-          # CoreML must be installed before export due to protobuf error from AutoInstall
-          python -m pip install --upgrade pip wheel
-          torch=""
-          if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              torch="torch==1.8.0 torchvision==0.9.0"
-          fi
-          pip install -e ".[export]" $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
-      - name: Install requirements (ARM64)
-        if: matrix.os == 'rpi5-bookworm'
-        shell: bash -e {0}
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
@@ -258,32 +200,14 @@ jobs:
           fi
           pip install -e ".[export]" $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
-        if: matrix.os != 'rpi5-bookworm' 
-        run: |
-          yolo checks
-          pip list
-      - name: Check environment (ARM64)
-        if: matrix.os == 'rpi5-bookworm' 
-        shell: bash -e {0}
         run: |
           yolo checks
           pip list
       - name: Pytest tests
-        if: matrix.os != 'rpi5-bookworm' # just for testing purposess
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install mlflow pycocotools 'ray[tune]'
-              slow="--slow"
-          fi
-          pytest $slow --cov=ultralytics/ --cov-report xml tests/
-      - name: Pytest tests (ARM64)
-        if: matrix.os == 'rpi5-bookworm' # just for testing purposess
-        shell: bash -e {0}
-        run: |
-          slow=""
-          if [[ "${{ matrix.os }}" != "rpi5-bookworm" ]] && [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ matrix.os }}" != "rpi5-bookworm" ]] && ([[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]); then
               pip install mlflow pycocotools 'ray[tune]'
               slow="--slow"
           fi

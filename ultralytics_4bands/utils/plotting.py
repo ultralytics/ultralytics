@@ -2,6 +2,7 @@
 
 import contextlib
 import math
+import os
 import warnings
 from pathlib import Path
 
@@ -15,7 +16,6 @@ from PIL import __version__ as pil_version
 from ultralytics_4bands.utils import LOGGER, TryExcept, ops, plt_settings, threaded
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
-
 
 class Colors:
     """
@@ -119,6 +119,9 @@ class Annotator:
         self.pil = pil or non_ascii or input_is_pil
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
+            if im.shape[2] < 3 and not isinstance(im, Image.Image):
+                # use first three channels for PIL image
+                im = im[..., :3]
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             if self.im.mode != "RGB":
                 self.im = self.im.convert("RGB")
@@ -743,7 +746,10 @@ def plot_images(
         images *= 255  # de-normalise (optional)
 
     # Build Image
-    mosaic = np.full((int(ns * h), int(ns * w), 4), 255, dtype=np.uint8)  # init
+    CHANNELS = int(os.getenv("NEW_CHANNELS", "3"))
+
+    mosaic = np.full((int(ns * h), int(ns * w), CHANNELS), 255, dtype=np.uint8)  # init
+
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)

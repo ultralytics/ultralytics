@@ -12,6 +12,7 @@ from typing import Optional
 import cv2
 import numpy as np
 import psutil
+import rasterio
 from torch.utils.data import Dataset
 
 from ultralytics_4bands.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
@@ -19,7 +20,7 @@ from .utils import HELP_URL, IMG_FORMATS, imread
 
 
 
-
+N_CHANNELS = os.getenv("NEW_CHANNELS", 3)
 
 
 
@@ -167,19 +168,57 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
+    import rasterio
+
     def load_image(self, i, rect_mode=True):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
+            read_img = False
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = cv2.imread(f,cv2.IMREAD_UNCHANGED)  # BGR
-            else:  # read image
-                im = cv2.imread(f,cv2.IMREAD_UNCHANGED)
+                     #read iamge
+                    read_img = True
+            else:
+                read_img = True
+            if read_img:
+                # read image
+                if f.lower().endswith((".png",".jpg",".jpeg",".bmp",".dng",".gif",".webp",".mpo")):
+
+                    im = cv2.imread(f,cv2.IMREAD_UNCHANGED) #read all bands of the image
+                    if im is not None and im.shape[2] != N_CHANNELS:
+                        try:
+                            im = im[:, :, :N_CHANNELS] # keep only the first N_CHANNELS bands
+                        except IndexError as e:
+                            LOGGER.warning(f"Image {f} has {im.shape[2]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
+                            raise ValueError(f"Image {f} has {im.shape[2]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
+                elif f.lower().endswith((".tif",".tiff")):
+                    with rasterio.open(f) as src:
+                        bands_data = []
+                        try:
+                            bands = [int(b) for b in os.getenv("BANDS", ",".join(range(1,N_CHANNELS+1))).split(",")]
+                            for b in bands:
+                                bands_data.append(src.read(b))
+                                bands = [b for b in bands_data]
+                        except IndexError:
+                            LOGGER.warning(f"Image {f} has {im.shape[0]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
+                            raise ValueError(f"Image {f} has {im.shape[0]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
+                    im = np.stack(bands, axis=-1)
+                else:
+                    raise ValueError(f"Image format not supported: {f.suffix}")
+
+
+
+
+
+
+
+
+
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

@@ -85,7 +85,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
-    def modify_input_channels(model, new_channels, indexes=[0]):
+    def modify_input_channels(self, model, new_channels, indexes=[0]):
         """
         Updates specified convolutional layers of a model to have a new number of input channels.
 
@@ -140,15 +140,16 @@ class DetectionTrainer(BaseTrainer):
         try:
             new_channels = int(os.getenv("NEW_CHANNELS"))
         except:
-            new_channels = 4
-
+            new_channels = 3
+            LOGGER.warning("NEW_CHANNELS not set, defaulting to 3")
         try:
             indexes = [int(x) for x in os.getenv("INDEXES").split(",")]
+            assert len(indexes) > 0
         except:
             indexes = [0]
+            LOGGER.warning("INDEXES not set, defaulting to [0]")
 
-
-        model = self.modify_input_channels(model, new_channels, indexes)
+        model = self.modify_input_channels(model=model, new_channels=new_channels, indexes=indexes)
 
         return model
 

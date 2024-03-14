@@ -730,7 +730,7 @@ class LetterBox:
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(144 for _ in range(img.shape[2]))
+            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value= (144,) * img.shape[2]
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation

@@ -395,9 +395,7 @@ class RTDETRDecoder(nn.Module):
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
-        valid_mask = ((anchors > eps).type(torch.int) * (anchors < 1 - eps).type(torch.int)).all(
-            -1, keepdim=True
-        )  # 1, h*w*nl, 1
+        valid_mask = ((anchors > eps).int() * (anchors < 1 - eps).int()).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
         anchors = anchors.masked_fill(~(valid_mask.type(torch.bool)), float("inf"))
         return anchors, valid_mask

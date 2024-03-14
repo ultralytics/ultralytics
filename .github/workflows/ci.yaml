@@ -178,6 +178,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
       - name: Install requirements
+        if: matrix.os != 'rpi5-bookworm' # just for testing purposess
         shell: bash # for Windows compatibility
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
@@ -199,7 +200,7 @@ jobs:
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]"
           pip install pytest-cov mlflow pycocotools 'ray[tune]'
-          pytest --slow --cov=ultralytics/ --cov-report xml tests/
+          pytest --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
         if: matrix.os != 'rpi5-bookworm' # just for testing purposess
         shell: bash # for Windows compatibility

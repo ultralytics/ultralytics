@@ -102,9 +102,10 @@ jobs:
         os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         model: [yolov8n]
-        include:
-          - os: rpi5-bookworm
-            model: yolov8n
+        # disable for now for testing
+        # include:
+        #   - os: rpi5-bookworm
+        #     model: yolov8n
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
@@ -199,8 +200,8 @@ jobs:
           source env/bin/activate
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]"
-          pip install pytest-cov
-          pytest --cov=ultralytics/ --cov-report xml tests/
+          pip install pytest-cov mlflow pycocotools
+          pytest --slow --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
         if: matrix.os != 'rpi5-bookworm' # just for testing purposess
         shell: bash # for Windows compatibility

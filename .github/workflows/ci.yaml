@@ -113,8 +113,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
+      - name: Use Python Virtual Environment for ARM64
+        if: matrix.os == 'rpi5-bookworm'
+        run: |
+          python3.11 -m venv env
+          source env/bin/activate
       - name: Install requirements
         shell: bash # for Windows compatibility
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          # yolo export format=tflite imgsz=32 || true
+      - name: Install requirements (ARM64)
+        shell: /usr/bin/bash -e {0}
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
@@ -123,8 +134,16 @@ jobs:
         run: |
           yolo checks
           pip list
+      - name: Check environment (ARM64)
+        shell: /usr/bin/bash -e {0}
+        run: |
+          yolo checks
+          pip list
       - name: Benchmark YOLOWorld DetectionModel
         shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+      - name: Benchmark YOLOWorld DetectionModel (ARM64)
+        shell: /usr/bin/bash -e {0}
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
@@ -192,21 +211,12 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Use Virtual Environment for Pytest tests # just for testing purposes
-        if: matrix.os == 'rpi5-bookworm'
-        run: |
-          python3.11 -m venv env
-          source env/bin/activate
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]"
-          pip install pytest-cov mlflow pycocotools
-          pytest --slow --cov=ultralytics/ --cov-report xml tests/
       - name: Pytest tests
         if: matrix.os != 'rpi5-bookworm' # just for testing purposess
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ matrix.os }}" != "rpi5-bookworm" ]] && [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
               pip install mlflow pycocotools 'ray[tune]'
               slow="--slow"
           fi

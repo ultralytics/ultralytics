@@ -102,10 +102,9 @@ jobs:
         os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         model: [yolov8n]
-        # disable for now for testing
-        # include:
-        #   - os: rpi5-bookworm
-        #     model: yolov8n
+        include:
+          - os: rpi5-bookworm
+            model: yolov8n
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python

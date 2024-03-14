@@ -128,7 +128,7 @@ jobs:
           # yolo export format=tflite imgsz=32 || true
       - name: Install requirements (ARM64)
         if: matrix.os == 'rpi5-bookworm'
-        shell: /usr/bin/bash -e {0}
+        shell: bash{{ matrix.os == 'rpi5-bookworm' ? ' -e {0}' : '' }}
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu

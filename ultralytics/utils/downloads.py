@@ -410,7 +410,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.1.0", **
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
         release (str, optional): The specific release version to be downloaded. Defaults to 'v8.1.0'.
-        **kwargs (dict): Additional keyword arguments for the download process.
+        **kwargs (any): Additional keyword arguments for the download process.
 
     Returns:
         (str): The path to the downloaded file.

@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import pytest
 import torch
+import yaml
 from PIL import Image
 from torchvision.transforms import ToTensor
 
@@ -169,8 +170,6 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches
     """
-    import yaml
-
     video_url = "https://ultralytics.com/assets/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
@@ -302,7 +301,7 @@ def test_predict_callback_and_setup():
 
     def on_predict_batch_end(predictor):
         """Callback function that handles operations at the end of a prediction batch."""
-        path, im0s, _, _ = predictor.batch
+        path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]
@@ -333,6 +332,28 @@ def test_results():
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
             print(r, len(r), r.path)
+
+
+def test_labels_and_crops():
+    """Test output from prediction args for saving detection labels and crops."""
+    imgs = [SOURCE, ASSETS / "zidane.jpg"]
+    results = YOLO(WEIGHTS_DIR / "yolov8n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    save_path = Path(results[0].save_dir)
+    for r in results:
+        im_name = Path(r.path).stem
+        cls_idxs = r.boxes.cls.int().tolist()
+        # Check label path
+        labels = save_path / f"labels/{im_name}.txt"
+        assert labels.exists()
+        # Check detections match label count
+        assert len(r.boxes.data) == len([l for l in labels.read_text().splitlines() if l])
+        # Check crops path and files
+        crop_dirs = [p for p in (save_path / "crops").iterdir()]
+        crop_files = [f for p in crop_dirs for f in p.glob("*")]
+        # Crop directories match detections
+        assert all([r.names.get(c) in [d.name for d in crop_dirs] for c in cls_idxs])
+        # Same number of crops as detections
+        assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

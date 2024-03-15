@@ -361,13 +361,13 @@ class Results(SimpleClass):
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
+
     def save_csv(self, csv_file):
         """
         Save detection predictions into csv file.
 
         Args:
             csv_file (str): csv file path.
-
         """
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
@@ -382,19 +382,21 @@ class Results(SimpleClass):
         for box_xywh, boxes_xyxy, cls, conf in zip(boxes_xywh, boxes_xyxy, classes, confidences):
             x1, y1, x2, y2 = boxes_xyxy
             x_center, y_center, width, height = box_xywh
-            data.append({
-                "Image File Path": path,
-                "ID Class": int(cls),
-                "Confidence": conf,
-                "x1": x1,
-                "y1": y1,
-                "x2": x2,
-                "y2": y2,
-                "x_center": x_center,
-                "y_center": y_center,
-                "width": width,
-                "height": height
-            })
+            data.append(
+                {
+                    "Image File Path": path,
+                    "ID Class": int(cls),
+                    "Confidence": conf,
+                    "x1": x1,
+                    "y1": y1,
+                    "x2": x2,
+                    "y2": y2,
+                    "x_center": x_center,
+                    "y_center": y_center,
+                    "width": width,
+                    "height": height,
+                }
+            )
 
         df = pd.DataFrame(data)
         Path(csv_file).parent.mkdir(parents=True, exist_ok=True)  # make directory

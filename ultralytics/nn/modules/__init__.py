@@ -46,7 +46,7 @@ from .block import (
     CBFuse,
     CBLinear,
     Silence,
-    C2fn,
+    C2f2,
 )
 from .conv import (
     CBAM,

@@ -16,31 +16,31 @@ backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-  - [-1, 2, C2fn, [128, True]]
+  - [-1, 2, C2f2, [128, True]]
   - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-  - [-1, 2, C2fn, [256, True]]
+  - [-1, 2, C2f2, [256, True]]
   - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
-  - [-1, 2, C2fn, [512, True]]
+  - [-1, 2, C2f2, [512, True]]
   - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
-  - [-1, 2, C2fn, [1024, True]]
+  - [-1, 2, C2f2, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]] # 9
 
 # YOLOv8.0n head
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat, [1]] # cat backbone P4
-  - [-1, 2, C2fn, [512]] # 12
+  - [-1, 2, C2f2, [512]] # 12
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-  - [-1, 2, C2fn, [256]] # 15 (P3/8-small)
+  - [-1, 2, C2f2, [256]] # 15 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 12], 1, Concat, [1]] # cat head P4
-  - [-1, 2, C2fn, [512]] # 18 (P4/16-medium)
+  - [-1, 2, C2f2, [512]] # 18 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 9], 1, Concat, [1]] # cat head P5
-  - [-1, 2, C2fn, [1024]] # 21 (P5/32-large)
+  - [-1, 2, C2f2, [1024]] # 21 (P5/32-large)
 
   - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)

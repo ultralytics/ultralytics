@@ -8,10 +8,9 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
-
 import numpy as np
 import torch
-
+import pandas as pd
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
@@ -362,6 +361,44 @@ class Results(SimpleClass):
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
+    def save_csv(self, csv_file):
+        """
+        Save detection predictions into csv file.
+
+        Args:
+            csv_file (str): csv file path.
+
+        """
+        is_obb = self.obb is not None
+        boxes = self.obb if is_obb else self.boxes
+
+        # Extract bounding boxes, classes, names, and confidences
+        boxes_xyxy = boxes.xyxy.tolist()
+        boxes_xywh = boxes.xywh.tolist()
+        classes = boxes.cls.tolist()
+        confidences = boxes.conf.tolist()
+        path = self.path
+        data = []
+        for box_xywh, boxes_xyxy, cls, conf in zip(boxes_xywh, boxes_xyxy, classes, confidences):
+            x1, y1, x2, y2 = boxes_xyxy
+            x_center, y_center, width, height = box_xywh
+            data.append({
+                "Image File Path": path,
+                "ID Class": int(cls),
+                "Confidence": conf,
+                "x1": x1,
+                "y1": y1,
+                "x2": x2,
+                "y2": y2,
+                "x_center": x_center,
+                "y_center": y_center,
+                "width": width,
+                "height": height
+            })
+
+        df = pd.DataFrame(data)
+        Path(csv_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
+        df.to_csv(csv_file, index=False)
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
         """

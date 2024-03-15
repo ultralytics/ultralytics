@@ -244,6 +244,8 @@ class BaseTrainer:
             LOGGER.info("Not using class weights")
         elif isinstance(cls_weights, list) and len(cls_weights) == nc:
             cls_weights = torch.Tensor(cls_weights)
+        elif isinstance(cls_weights, torch.Tensor) and len(cls_weights) == nc:
+            pass
         elif cls_weights == "micc":
             cls_weights = self.get_inverse_class_frequency_weights(nc, median_norm=True)
         elif cls_weights == "icc":

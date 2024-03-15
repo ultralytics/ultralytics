@@ -269,7 +269,7 @@ class LoadImages:
         _new_video(path): Create a new cv2.VideoCapture object for a given video path.
     """
 
-    def __init__(self, path, vid_stride=1):
+    def __init__(self, path, vid_stride=1, batch=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
@@ -298,7 +298,7 @@ class LoadImages:
         self.video_flag = [False] * ni + [True] * nv
         self.mode = "image"
         self.vid_stride = vid_stride  # video frame-rate stride
-        self.bs = 1
+        self.bs = batch
         if any(videos):
             self._new_video(videos[0])  # new video
         else:

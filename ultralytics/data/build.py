@@ -150,7 +150,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, vid_stride=1, buffer=False):
+def load_inference_source(source=None, vid_stride=1, buffer=False, batch=1):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
@@ -177,7 +177,7 @@ def load_inference_source(source=None, vid_stride=1, buffer=False):
     elif from_img:
         dataset = LoadPilAndNumpy(source)
     else:
-        dataset = LoadImages(source, vid_stride=vid_stride)
+        dataset = LoadImages(source, vid_stride=vid_stride, batch=batch)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

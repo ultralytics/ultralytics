@@ -2,6 +2,7 @@
 
 import contextlib
 import math
+import os
 import warnings
 from pathlib import Path
 
@@ -15,7 +16,6 @@ from PIL import __version__ as pil_version
 from ultralytics_4bands.utils import LOGGER, TryExcept, ops, plt_settings, threaded
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
-
 
 class Colors:
     """
@@ -96,6 +96,7 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
+
 class Annotator:
     """
     Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
@@ -114,16 +115,18 @@ class Annotator:
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images."
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
-        self.pil = pil or non_ascii
-        self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+        input_is_pil = isinstance(im, Image.Image)
+        self.pil = pil or non_ascii or input_is_pil
+        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
-            if not isinstance(im, Image.Image):
-                LOGGER.info(f" shape for validation plotting array: {im.shape}")
-            else:
-                LOGGER.info(f" shape for validation plotting PIL: {im.size}")
-
+            if im.shape[2] < 3 and not isinstance(im, Image.Image):
+                # use first three channels for PIL image
+                im = im[..., :3]
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
+            if self.im.mode != "RGB":
+                self.im = self.im.convert("RGB")
             self.draw = ImageDraw.Draw(self.im)
+
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)
                 size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
@@ -134,6 +137,7 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
+            assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
             self.sf = self.lw / 3  # font scale
@@ -718,6 +722,7 @@ def plot_images(
     on_plot=None,
     max_subplots=16,
     save=True,
+    conf_thres=0.5,
 ):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
@@ -741,7 +746,10 @@ def plot_images(
         images *= 255  # de-normalise (optional)
 
     # Build Image
-    mosaic = np.full((int(ns * h), int(ns * w), 4), 255, dtype=np.uint8)  # init
+    CHANNELS = int(os.getenv("NEW_CHANNELS", "3"))
+
+    mosaic = np.full((int(ns * h), int(ns * w), CHANNELS), 255, dtype=np.uint8)  # init
+
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
@@ -783,7 +791,7 @@ def plot_images(
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                    if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
                         annotator.box_label(box, label, color=color, rotated=is_obb)
 
@@ -805,7 +813,7 @@ def plot_images(
                 kpts_[..., 0] += x
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
-                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                    if labels or conf[j] > conf_thres:
                         annotator.kpts(kpts_[j])
 
             # Plot masks
@@ -821,7 +829,7 @@ def plot_images(
 
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
-                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                    if labels or conf[j] > conf_thres:
                         color = colors(classes[j])
                         mh, mw = image_masks[j].shape
                         if mh != h or mw != w:
@@ -1032,13 +1040,13 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
     for m in ["Detect", "Pose", "Segment"]:
         if m in module_type:
             return
-    batch, channels, height, width = x.shape  # batch, channels, height, width
+    _, channels, height, width = x.shape  # batch, channels, height, width
     if height > 1 and width > 1:
         f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
 
         blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
         n = min(n, channels)  # number of plots
-        fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+        _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
         ax = ax.ravel()
         plt.subplots_adjust(wspace=0.05, hspace=0.05)
         for i in range(n):

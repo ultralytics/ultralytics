@@ -23,8 +23,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     """
     Create and log a custom metric visualization to wandb.plot.pr_curve.
 
-    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall curve
-    while allowing for enhanced customization. The visual metric is useful for monitoring model performance across different classes.
+    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall
+    curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
+    different classes.
 
     Args:
         x (List): Values for the x-axis; expected to have length N.
@@ -64,8 +65,8 @@ def _plot_curve(
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
-        y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C represents the number of classes.
-        names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to an empty list.
+        y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C is the number of classes.
+        names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to [].
         id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
         title (str, optional): Title for the visualization plot. Defaults to 'Precision Recall Curve'.
         x_title (str, optional): Label for the x-axis. Defaults to 'Recall'.

@@ -4,11 +4,10 @@ import subprocess
 
 import pytest
 
-from ultralytics_4bands.utils import ASSETS, WEIGHTS_DIR
-from ultralytics_4bands.utils.checks import cuda_device_count, cuda_is_available
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
-CUDA_IS_AVAILABLE = cuda_is_available()
-CUDA_DEVICE_COUNT = cuda_device_count()
+CUDA_IS_AVAILABLE = checks.cuda_is_available()
+CUDA_DEVICE_COUNT = checks.cuda_device_count()
 TASK_ARGS = [
     ("detect", "yolov8n", "coco8.yaml"),
     ("segment", "yolov8n-seg", "coco8-seg.yaml"),
@@ -70,6 +69,7 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=640 save save_crop save_txt")
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM Clip is not supported in Python 3.12")
 def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8-seg.yaml"):
     """Test FastSAM segmentation functionality within Ultralytics."""
     source = ASSETS / "bus.jpg"
@@ -77,9 +77,9 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
     run(f"yolo segment val {task} model={model} data={data} imgsz=32")
     run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")
 
-    from ultralytics_4bands import FastSAM
-    from ultralytics_4bands.models.fastsam import FastSAMPrompt
-    from ultralytics_4bands.models.sam import Predictor
+    from ultralytics import FastSAM
+    from ultralytics.models.fastsam import FastSAMPrompt
+    from ultralytics.models.sam import Predictor
 
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
@@ -109,7 +109,7 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
 
 def test_mobilesam():
     """Test MobileSAM segmentation functionality using Ultralytics."""
-    from ultralytics_4bands import SAM
+    from ultralytics import SAM
 
     # Load the model
     model = SAM(WEIGHTS_DIR / "mobile_sam.pt")

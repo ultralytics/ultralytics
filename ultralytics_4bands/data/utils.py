@@ -78,6 +78,7 @@ def verify_image(args):
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
+
         im_big = imread(im_file)
         im = Image.fromarray(im_big[..., :3])
         #im.verify()  # PIL verify
@@ -85,16 +86,20 @@ def verify_image(args):
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         #assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
-        """if im.format.lower() in ("jpg", "jpeg"):
+        """
+        if im.format.lower() in ("jpg", "jpeg"):
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
-        nf = 1 """
+                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved" """
+        nf = 1
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING Test⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        tb = traceback.format_exc()
+        LOGGER.info(traceback.format_exc())
+        msg = f"{prefix} WARNING  verify_image ⚠️ {im_file}: ignoring corrupt image: {e}\n{tb}"
+
         pass
     return (im_file, cls), nf, nc, msg
 
@@ -170,7 +175,9 @@ def verify_image_label(args):
     except Exception as e:
         traceback.print_exc()
         nc = 1
-        msg = f"{prefix}WARNING TEST ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        tb = traceback.format_exc()
+        LOGGER.info(traceback.format_exc())
+        msg = f"{prefix} WARNING image_label ⚠️ {im_file}: ignoring corrupt image/label: {e} \n {tb}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
@@ -375,6 +382,9 @@ def check_cls_dataset(dataset, split=""):
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
+    elif Path(dataset).suffix in (".zip", ".tar", ".gz"):
+        file = check_file(dataset)
+        dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
@@ -477,7 +487,6 @@ class HUBDatasetStats:
 
         self.hub_dir = Path(f'{data["path"]}-hub')
         self.im_dir = self.hub_dir / "images"
-        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
 
@@ -561,6 +570,7 @@ class HUBDatasetStats:
 
         # Save, print and return
         if save:
+            self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
             with open(stats_path, "w") as f:
@@ -573,6 +583,7 @@ class HUBDatasetStats:
         """Compress images for Ultralytics HUB."""
         from ultralytics_4bands.data import YOLODataset  # ClassificationDataset
 
+        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue

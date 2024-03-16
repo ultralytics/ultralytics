@@ -18,9 +18,9 @@ class GMC:
     Attributes:
         method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
-        prevFrame (np.array): Stores the previous frame for tracking.
+        prevFrame (np.ndarray): Stores the previous frame for tracking.
         prevKeyPoints (list): Stores the keypoints from the previous frame.
-        prevDescriptors (np.array): Stores the descriptors from the previous frame.
+        prevDescriptors (np.ndarray): Stores the descriptors from the previous frame.
         initializedFirstFrame (bool): Flag to indicate if the first frame has been processed.
 
     Methods:
@@ -82,11 +82,11 @@ class GMC:
         Apply object detection on a raw frame using specified method.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -108,10 +108,10 @@ class GMC:
         Apply ECC algorithm to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -154,11 +154,11 @@ class GMC:
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
             detections (list): List of detections to be used in the processing.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()
@@ -296,10 +296,10 @@ class GMC:
         Apply Sparse Optical Flow method to a raw frame.
 
         Args:
-            raw_frame (np.array): The raw frame to be processed.
+            raw_frame (np.ndarray): The raw frame to be processed.
 
         Returns:
-            (np.array): Processed frame.
+            (np.ndarray): Processed frame.
 
         Examples:
             >>> gmc = GMC()

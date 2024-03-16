@@ -48,7 +48,7 @@ def login(api_key: str = None, save=True) -> bool:
         return True
     else:
         # Failed to authenticate with HUB
-        LOGGER.info(f"{PREFIX}Retrieve API key from {api_key_url}")
+        LOGGER.info(f"{PREFIX}Get API key from {api_key_url} and then run 'yolo hub login API_KEY'")
         return False
 
 

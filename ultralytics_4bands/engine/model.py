@@ -4,6 +4,7 @@ import inspect
 import sys
 from pathlib import Path
 from typing import Union
+import torch
 
 from ultralytics_4bands.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics_4bands.hub.utils import HUB_WEB_ROOT
@@ -150,7 +151,7 @@ class Model(nn.Module):
             **kwargs (dict): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (List[ultralytics_4bands.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
+            (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
         """
         return self.predict(source, stream, **kwargs)
 
@@ -163,7 +164,7 @@ class Model(nn.Module):
         return session if session.client.authenticated else None
 
     @staticmethod
-    def is_triton_model(model):
+    def is_triton_model(model: str) -> bool:
         """Is model a Triton Server URL string, i.e. <scheme>://<netloc>/<endpoint>/<task_name>"""
         from urllib.parse import urlsplit
 
@@ -171,7 +172,7 @@ class Model(nn.Module):
         return url.netloc and url.path and url.scheme in {"http", "grpc"}
 
     @staticmethod
-    def is_hub_model(model):
+    def is_hub_model(model: str) -> bool:
         """Check if the provided model is a HUB model."""
         return any(
             (
@@ -181,7 +182,7 @@ class Model(nn.Module):
             )
         )
 
-    def _new(self, cfg: str, task=None, model=None, verbose=False):
+    def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
         """
         Initializes a new model and infers the task type from the model definitions.
 
@@ -202,7 +203,7 @@ class Model(nn.Module):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
         self.model.task = self.task
 
-    def _load(self, weights: str, task=None):
+    def _load(self, weights: str, task=None) -> None:
         """
         Initializes a new model and infers the task type from the model head.
 
@@ -224,7 +225,7 @@ class Model(nn.Module):
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
 
-    def _check_is_pytorch_model(self):
+    def _check_is_pytorch_model(self) -> None:
         """Raises TypeError is model is not a PyTorch model."""
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
         pt_module = isinstance(self.model, nn.Module)
@@ -237,7 +238,7 @@ class Model(nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
-    def reset_weights(self):
+    def reset_weights(self) -> "Model":
         """
         Resets the model parameters to randomly initialized values, effectively discarding all training information.
 
@@ -259,7 +260,7 @@ class Model(nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights="yolov8n.pt"):
+    def load(self, weights: Union[str, Path] = "yolov8n.pt") -> "Model":
         """
         Loads parameters from the specified weights file into the model.
 
@@ -281,24 +282,32 @@ class Model(nn.Module):
         self.model.load(weights)
         return self
 
-    def save(self, filename="model.pt"):
+    def save(self, filename: Union[str, Path] = "saved_model.pt", use_dill=True) -> None:
         """
         Saves the current model state to a file.
 
         This method exports the model's checkpoint (ckpt) to the specified filename.
 
         Args:
-            filename (str): The name of the file to save the model to. Defaults to 'model.pt'.
+            filename (str | Path): The name of the file to save the model to. Defaults to 'saved_model.pt'.
+            use_dill (bool): Whether to try using dill for serialization if available. Defaults to True.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        import torch
+        from ultralytics_4bands import __version__
+        from datetime import datetime
 
-        torch.save(self.ckpt, filename)
+        updates = {
+            "date": datetime.now().isoformat(),
+            "version": __version__,
+            "license": "AGPL-3.0 License (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
+        }
+        torch.save({**self.ckpt, **updates}, filename, use_dill=use_dill)
 
-    def info(self, detailed=False, verbose=True):
+    def info(self, detailed: bool = False, verbose: bool = True):
         """
         Logs or returns model information.
 
@@ -377,7 +386,7 @@ class Model(nn.Module):
                 for further customization of the prediction behavior.
 
         Returns:
-            (List[ultralytics_4bands.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
+            (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
 
         Raises:
             AttributeError: If the predictor is not properly set up.
@@ -386,7 +395,7 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
-        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics_4bands")) and any(
+        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
             x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
@@ -425,13 +434,13 @@ class Model(nn.Module):
                 for further customization of the tracking behavior.
 
         Returns:
-            (List[ultralytics_4bands.engine.results.Results]): A list of tracking results, encapsulated in the Results class.
+            (List[ultralytics.engine.results.Results]): A list of tracking results, encapsulated in the Results class.
 
         Raises:
             AttributeError: If the predictor does not have registered trackers.
         """
         if not hasattr(self.predictor, "trackers"):
-            from ultralytics_4bands.trackers import register_tracker
+            from ultralytics.trackers import register_tracker
 
             register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
@@ -476,7 +485,7 @@ class Model(nn.Module):
         Benchmarks the model across various export formats to evaluate performance.
 
         This method assesses the model's performance in different export formats, such as ONNX, TorchScript, etc.
-        It uses the 'benchmark' function from the ultralytics_4bands.utils.benchmarks module. The benchmarking is configured
+        It uses the 'benchmark' function from the ultralytics.utils.benchmarks module. The benchmarking is configured
         using a combination of default configuration values, model-specific arguments, method-specific defaults, and
         any additional user-provided keyword arguments.
 
@@ -495,7 +504,7 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        from ultralytics_4bands.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
 
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
@@ -612,7 +621,7 @@ class Model(nn.Module):
         Conducts hyperparameter tuning for the model, with an option to use Ray Tune.
 
         This method supports two modes of hyperparameter tuning: using Ray Tune or a custom tuning method.
-        When Ray Tune is enabled, it leverages the 'run_ray_tune' function from the ultralytics_4bands.utils.tuner module.
+        When Ray Tune is enabled, it leverages the 'run_ray_tune' function from the ultralytics.utils.tuner module.
         Otherwise, it uses the internal 'Tuner' class for tuning. The method combines default, overridden, and
         custom arguments to configure the tuning process.
 
@@ -630,7 +639,7 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         if use_ray:
-            from ultralytics_4bands.utils.tuner import run_ray_tune
+            from ultralytics.utils.tuner import run_ray_tune
 
             return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
         else:
@@ -649,7 +658,7 @@ class Model(nn.Module):
         return self
 
     @property
-    def names(self):
+    def names(self) -> list:
         """
         Retrieves the class names associated with the loaded model.
 
@@ -664,7 +673,7 @@ class Model(nn.Module):
         return check_class_names(self.model.names) if hasattr(self.model, "names") else None
 
     @property
-    def device(self):
+    def device(self) -> torch.device:
         """
         Retrieves the device on which the model's parameters are allocated.
 
@@ -688,7 +697,7 @@ class Model(nn.Module):
         """
         return self.model.transforms if hasattr(self.model, "transforms") else None
 
-    def add_callback(self, event: str, func):
+    def add_callback(self, event: str, func) -> None:
         """
         Adds a callback function for a specified event.
 
@@ -704,7 +713,7 @@ class Model(nn.Module):
         """
         self.callbacks[event].append(func)
 
-    def clear_callback(self, event: str):
+    def clear_callback(self, event: str) -> None:
         """
         Clears all callback functions registered for a specified event.
 
@@ -718,7 +727,7 @@ class Model(nn.Module):
         """
         self.callbacks[event] = []
 
-    def reset_callbacks(self):
+    def reset_callbacks(self) -> None:
         """
         Resets all callbacks to their default functions.
 
@@ -729,7 +738,7 @@ class Model(nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args):
+    def _reset_ckpt_args(args: dict) -> dict:
         """Reset arguments when loading a PyTorch model."""
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
@@ -739,7 +748,7 @@ class Model(nn.Module):
     #    name = self.__class__.__name__
     #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def _smart_load(self, key):
+    def _smart_load(self, key: str):
         """Load model/trainer/validator/predictor."""
         try:
             return self.task_map[self.task][key]
@@ -751,7 +760,7 @@ class Model(nn.Module):
             ) from e
 
     @property
-    def task_map(self):
+    def task_map(self) -> dict:
         """
         Map head to model, trainer, validator, and predictor classes.
 

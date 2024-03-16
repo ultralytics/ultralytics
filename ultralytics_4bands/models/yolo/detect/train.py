@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+import os
 import random
 from copy import copy
 
@@ -84,37 +85,47 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
-    def modify_input_channels(self, model, new_channels):
-        # Access the Conv module which contains the convolutional layer, batch normalization, and activation
-        conv_module = model.model[0]
+    def modify_input_channels(self, model, new_channels, indexes=[0]):
+        """
+        Updates specified convolutional layers of a model to have a new number of input channels.
 
-        # Access the actual Conv2d layer
-        conv1 = conv_module.conv
+        Parameters:
+        - model: The model to modify.
+        - new_channels: The desired number of input channels.
+        - indexes: A list of indices specifying which convolutional layers to update.
+        """
 
-        old_channels = conv1.in_channels
-        if new_channels == old_channels:
-            return model
+        # Iterate through all specified layer indices
+        for index in indexes:
+            # Access the specified convolutional module within the model
+            conv_module = model.model[index]
+            conv1 = conv_module.conv
 
-        # Create a new Conv2d layer with the desired number of input channels
-        new_conv = nn.Conv2d(new_channels, conv1.out_channels,
-                             kernel_size=conv1.kernel_size,
-                             stride=conv1.stride,
-                             padding=conv1.padding,
-                             bias=conv1.bias is not None)
+            # Create a new Conv2d layer with the desired number of input channels and the same parameters
+            new_conv = nn.Conv2d(new_channels, conv1.out_channels,
+                                 kernel_size=conv1.kernel_size,
+                                 stride=conv1.stride,
+                                 padding=conv1.padding,
+                                 bias=(conv1.bias is not None))
 
-        # Transfer the weights from the old conv layer to the new one
-        with torch.no_grad():
-            # Copy the weights for the first 3 channels
-            new_conv.weight[:, :3, :, :].copy_(conv1.weight)
-            # If there are more channels, initialize them
-            if new_channels > 3:
-                nn.init.xavier_uniform_(new_conv.weight[:, 3:, :, :])
-            # If the original convolutional layer had a bias, copy it
-            if conv1.bias is not None:
-                new_conv.bias.copy_(conv1.bias)
+            # Only proceed if the new number of channels differs from the old number
+            if new_channels != conv1.in_channels:
+                with torch.no_grad():
+                    # Copy the weights for the overlapping channels
+                    min_channels = min(new_channels, conv1.in_channels)
+                    new_conv.weight[:, :min_channels, :, :].copy_(conv1.weight[:, :min_channels, :, :])
 
-        # Replace the convolutional layer within the Conv module
-        conv_module.conv = new_conv
+                    # Initialize additional weights if new_channels is greater
+                    if new_channels > conv1.in_channels:
+                        nn.init.xavier_uniform_(new_conv.weight[:, conv1.in_channels:new_channels, :, :])
+
+                    # Copy the bias if it exists
+                    if conv1.bias is not None:
+                        new_conv.bias.copy_(conv1.bias)
+
+                # Replace the old convolutional layer with the new one
+                conv_module.conv = new_conv
+                model.model[index] = conv_module
 
         return model
 
@@ -126,7 +137,20 @@ class DetectionTrainer(BaseTrainer):
         if weights:
             model.load(weights)
 
-        model = self.modify_input_channels(model, 4)
+        try:
+            new_channels = int(os.getenv("NEW_CHANNELS"))
+        except:
+            new_channels = 3
+            LOGGER.warning("NEW_CHANNELS not set, defaulting to 3")
+        try:
+            indexes = [int(x) for x in os.getenv("INDEXES").split(",")]
+            assert len(indexes) > 0
+        except:
+            indexes = [0]
+            LOGGER.warning("INDEXES not set, defaulting to [0]")
+
+        model = self.modify_input_channels(model=model, new_channels=new_channels, indexes=indexes)
+
         return model
 
     def get_validator(self):

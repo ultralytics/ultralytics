@@ -64,7 +64,7 @@ class Auth:
             if verbose:
                 LOGGER.info(f"{PREFIX}New authentication successful ✅")
         elif verbose:
-            LOGGER.info(f"{PREFIX}Retrieve API key from {API_KEY_URL}")
+            LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo hub login API_KEY'")
 
     def request_api_key(self, max_attempts=3):
         """

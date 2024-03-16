@@ -47,6 +47,8 @@ Here is a breakdown of what this command does:
 - `-a`: This flag specifies the hostname and port number to bind the server to. The default value is `localhost:8000`.
 - `-t`: This flag specifies the theme to use for the documentation site. The default value is `mkdocs`.
 - `-s`: This flag tells the `serve` command to serve the site in silent mode, which means it will not display any log messages or progress updates. When you run the `mkdocs serve` command, it will build the documentation site using the files in the `docs/` directory and serve it at the specified hostname and port number. You can then view the site by going to the URL in your web browser.
+- `-f`: Flag to specify the filepath to the `mkdocs.yml` file to use for the documentation site; may be useful when file is not located in the current working directory.
+- `--dirtyreload`: Use this flag if/when locally served site rebuilds are expensive and require a long time to rebuild. Including this will only rebuild files that have changed and some elements may not reflect updates.
 
 While the site is being served, you can make changes to the documentation files and see them reflected in the live site immediately. This is useful for testing and debugging your documentation before deploying it to a live server.
 

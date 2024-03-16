@@ -101,7 +101,8 @@ export = [
     "openvino>=2024.0.0", # OpenVINO export
     "tensorflow<=2.13.1; python_version <= '3.11'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=3.9.0; python_version <= '3.11'", # TF.js export, automatically installs tensorflow
-    "flatbuffers>=23.5.26,<100" # update old 'flatbuffers' included inside tensorflow package
+    "flatbuffers>=23.5.26,<100", # update old 'flatbuffers' included inside tensorflow package
+    "numpy==1.23.5; platform_machine == 'aarch64'", # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
 ]
 explorer = [
     "lancedb", # vector search

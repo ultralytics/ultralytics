@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = "8.1.14"
+__version__ = "8.1.27"
 
 from ultralytics_4bands.data.explorer.explorer import Explorer
 from ultralytics_4bands.models import RTDETR, SAM, YOLO, YOLOWorld

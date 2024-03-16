@@ -179,7 +179,7 @@ skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.
 
 [tool.poetry]
 name = "my-ultralytics_4bands"
-version =  "8.1.14"
+version =  "8.1.27"
 description = "A brief description of your project"
 authors = ["Glenn Jocher","Ayush Chaurasia","Jing Qiu","forked from ultralytics by Clemens langer (itisacloud)"]
 

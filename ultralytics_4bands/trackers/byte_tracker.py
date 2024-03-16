@@ -235,7 +235,7 @@ class BYTETracker:
         reset_id(): Resets the ID counter of STrack.
         joint_stracks(tlista, tlistb): Combines two lists of stracks.
         sub_stracks(tlista, tlistb): Filters out the stracks present in the second list from the first list.
-        remove_duplicate_stracks(stracksa, stracksb): Removes duplicate stracks based on IOU.
+        remove_duplicate_stracks(stracksa, stracksb): Removes duplicate stracks based on IoU.
     """
 
     def __init__(self, args, frame_rate=30):
@@ -373,7 +373,7 @@ class BYTETracker:
         return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     def get_dists(self, tracks, detections):
-        """Calculates the distance between tracks and detections using IOU and fuses scores."""
+        """Calculates the distance between tracks and detections using IoU and fuses scores."""
         dists = matching.iou_distance(tracks, detections)
         # TODO: mot20
         # if not self.args.mot20:
@@ -428,7 +428,7 @@ class BYTETracker:
 
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):
-        """Remove duplicate stracks with non-maximum IOU distance."""
+        """Remove duplicate stracks with non-maximum IoU distance."""
         pdist = matching.iou_distance(stracksa, stracksb)
         pairs = np.where(pdist < 0.15)
         dupa, dupb = [], []

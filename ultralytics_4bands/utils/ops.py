@@ -147,7 +147,7 @@ def nms_rotated(boxes, scores, threshold=0.45):
     Args:
         boxes (torch.Tensor): (N, 5), xywhr.
         scores (torch.Tensor): (N, ).
-        threshold (float): Iou threshold.
+        threshold (float): IoU threshold.
 
     Returns:
     """
@@ -173,6 +173,7 @@ def non_max_suppression(
     max_time_img=0.05,
     max_nms=30000,
     max_wh=7680,
+    in_place=True,
     rotated=False,
 ):
     """
@@ -197,7 +198,8 @@ def non_max_suppression(
         nc (int, optional): The number of classes output by the model. Any indices after this will be considered masks.
         max_time_img (float): The maximum time (seconds) for processing one image.
         max_nms (int): The maximum number of boxes into torchvision.ops.nms().
-        max_wh (int): The maximum box width and height in pixels
+        max_wh (int): The maximum box width and height in pixels.
+        in_place (bool): If True, the input prediction tensor will be modified in place.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
@@ -224,7 +226,10 @@ def non_max_suppression(
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     if not rotated:
-        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        if in_place:
+            prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        else:
+            prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
@@ -282,7 +287,7 @@ def non_max_suppression(
         # if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
         #     # Update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
         #     from .metrics import box_iou
-        #     iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+        #     iou = box_iou(boxes[i], boxes) > iou_thres  # IoU matrix
         #     weights = iou * scores[None]  # box weights
         #     x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
         #     redundant = True  # require redundant detections
@@ -546,7 +551,7 @@ def xywhr2xyxyxyxy(rboxes):
     be in degrees from 0 to 90.
 
     Args:
-        rboxes (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
+        rboxes (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
 
     Returns:
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
@@ -633,7 +638,7 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): The masks are being cropped to the bounding box.
     """
-    n, h, w = masks.shape
+    _, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
@@ -681,12 +686,14 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
+    width_ratio = mw / iw
+    height_ratio = mh / ih
 
     downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= mw / iw
-    downsampled_bboxes[:, 2] *= mw / iw
-    downsampled_bboxes[:, 3] *= mh / ih
-    downsampled_bboxes[:, 1] *= mh / ih
+    downsampled_bboxes[:, 0] *= width_ratio
+    downsampled_bboxes[:, 2] *= width_ratio
+    downsampled_bboxes[:, 3] *= height_ratio
+    downsampled_bboxes[:, 1] *= height_ratio
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:

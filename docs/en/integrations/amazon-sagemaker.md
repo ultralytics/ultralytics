@@ -38,7 +38,7 @@ First, ensure you have the following prerequisites in place:
 
 - AWS CDK: If not already installed, install the AWS Cloud Development Kit (CDK), which will be used for scripting the deployment. Follow [the AWS CDK instructions](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install) for installation.
 
-- Adequate Service Quota: Confirm that you have sufficient quotas for two separate resources in Amazon SageMaker: one for ml.m5.4xlarge for endpoint usage and another for ml.m5.4xlarge for notebook instance usage. Each of these requires a minimum of one quota value. If your current quotas are below this requirement, it's important to request an increase for each. You can request a quota increase by following the detailed instructions in the [AWS Service Quotas documentation](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html#quota-console-increase).
+- Adequate Service Quota: Confirm that you have sufficient quotas for two separate resources in Amazon SageMaker: one for `ml.m5.4xlarge` for endpoint usage and another for `ml.m5.4xlarge` for notebook instance usage. Each of these requires a minimum of one quota value. If your current quotas are below this requirement, it's important to request an increase for each. You can request a quota increase by following the detailed instructions in the [AWS Service Quotas documentation](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html#quota-console-increase).
 
 ### Step 2: Clone the YOLOv8 SageMaker Repository
 
@@ -115,17 +115,21 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLOv8.
 - Access and Modify inference.py: After opening the SageMaker notebook instance in Jupyter, locate the inference.py file. Edit the output_fn function in inference.py as shown below and save your changes to the script, ensuring that there are no syntax errors.
 
 ```python
+import json
+
 def output_fn(prediction_output, content_type):
     print("Executing output_fn from inference.py ...")
     infer = {}
     for result in prediction_output:
-        if 'boxes' in result._keys and result.boxes is not None:
+        if result.boxes is not None:
             infer['boxes'] = result.boxes.numpy().data.tolist()
-        if 'masks' in result._keys and result.masks is not None:
+        if result.masks is not None:
             infer['masks'] = result.masks.numpy().data.tolist()
-        if 'keypoints' in result._keys and result.keypoints is not None:
+        if result.keypoints is not None:
             infer['keypoints'] = result.keypoints.numpy().data.tolist()
-        if 'probs' in result._keys and result.probs is not None:
+        if result.obb is not None:
+            infer['obb'] = result.obb.numpy().data.tolist()
+        if result.probs is not None:
             infer['probs'] = result.probs.numpy().data.tolist()
     return json.dumps(infer)
 ```

@@ -7,9 +7,9 @@ from pathlib import Path
 
 import requests
 
-from ultralytics_4bands.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
-from ultralytics_4bands.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
-from ultralytics_4bands.utils.errors import HUBModelError
+from ultralytics.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
+from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
+from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
 
@@ -52,7 +52,8 @@ class HUBTrainingSession:
             "heartbeat": 300.0,
         }  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
-        self.timers = {}  # holds timers in ultralytics_4bands/utils/callbacks/hub.py
+        self.metrics_upload_failed_queue = {}  # holds metrics for each epoch if upload failed
+        self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
@@ -234,6 +235,9 @@ class HUBTrainingSession:
                     self._show_upload_progress(progress_total, response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
+                    # if request related to metrics upload
+                    if kwargs.get("metrics"):
+                        self.metrics_upload_failed_queue = {}
                     return response  # Success, no need to retry
 
                 if i == 0:
@@ -248,6 +252,10 @@ class HUBTrainingSession:
                     break  # Not an error that should be retried, exit loop
 
                 time.sleep(2**i)  # Exponential backoff for retries
+
+            # if request related to metrics upload and exceed retries
+            if response is None and kwargs.get("metrics"):
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics", None))
 
             return response
 

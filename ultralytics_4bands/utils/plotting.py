@@ -723,6 +723,7 @@ def plot_images(
     max_subplots=16,
     save=True,
     conf_thres=0.5,
+    channels = 3,
 ):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
@@ -746,13 +747,12 @@ def plot_images(
         images *= 255  # de-normalise (optional)
 
     # Build Image
-    CHANNELS = int(os.getenv("NEW_CHANNELS", "3"))
 
-    mosaic = np.full((int(ns * h), int(ns * w), CHANNELS), 255, dtype=np.uint8)  # init
+    mosaic = np.full((int(ns * h), int(ns * w), channels), 255, dtype=np.uint8)  # init
 
     for i in range(bs):
-        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        x, y = int(w * (i // ns)), int(h * (i % ns))
+        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)[:,:,:3] # only first 3 channels are used
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)

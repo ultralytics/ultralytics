@@ -137,17 +137,8 @@ class DetectionTrainer(BaseTrainer):
         if weights:
             model.load(weights)
 
-        try:
-            new_channels = int(os.getenv("NEW_CHANNELS"))
-        except:
-            new_channels = 3
-            LOGGER.warning("NEW_CHANNELS not set, defaulting to 3")
-        try:
-            indexes = [int(x) for x in os.getenv("INDEXES").split(",")]
-            assert len(indexes) > 0
-        except:
-            indexes = [0]
-            LOGGER.warning("INDEXES not set, defaulting to [0]")
+        new_channels = self.args.channels
+        indexes = self.args.adjust_layers
 
         model = self.modify_input_channels(model=model, new_channels=new_channels, indexes=indexes)
 

@@ -84,6 +84,7 @@ class BaseDataset(Dataset):
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
+        self.hyp = hyp
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
@@ -99,6 +100,8 @@ class BaseDataset(Dataset):
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         if cache:
             self.cache_images(cache)
+
+        self.hyp = hyp
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
@@ -186,7 +189,10 @@ class BaseDataset(Dataset):
                     read_img = True
             else:
                 read_img = True
-            N_CHANNELS = int(os.getenv("NEW_CHANNELS", 3))
+
+
+            N_CHANNELS = self.hyp.channels
+            bands = self.hyp.bands
 
             if read_img:
                 # read image
@@ -203,7 +209,6 @@ class BaseDataset(Dataset):
                     with rasterio.open(f) as src:
                         bands_data = []
                         try:
-                            bands = [int(b) for b in os.getenv("BANDS", ",".join(range(1,N_CHANNELS+1))).split(",")]
                             for b in bands:
                                 bands_data.append(src.read(b))
                                 bands = [b for b in bands_data]

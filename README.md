@@ -1,4 +1,4 @@
-This is a fork from the original ultralytics package. The original package is a great tool for object detection and image classification. However, it is not very user-friendly for beginners. This package is a simplified version of the original package, with a few modifications to make it easier to use. The original package is still available at 
+This is a fork from the original ultralytics package. The original package is a great tool for object detection and image classification. The original package is still available at 
 https://github.com/ultralytics/ultralytics
 
 While the original package is great for object detection, its not suited for detection on multispectral images. This package is designed to work with multispectral images, and it is also designed to work with the new version of the PyTorch library. The original package is designed to work with the old version of the PyTorch library.

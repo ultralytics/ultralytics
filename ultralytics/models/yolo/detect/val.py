@@ -41,6 +41,7 @@ class DetectionValidator(BaseValidator):
         self.lb = []  # for autolabelling
 
     def preprocess(self, batch):
+        print("44")
         """Preprocesses batch of images for YOLO training."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255

@@ -8,6 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import os
 
 from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -72,7 +73,7 @@ def box_iou(box1, box2, eps=1e-7):
     return inter / ((a2 - a1).prod(2) + (b2 - b1).prod(2) - inter + eps)
 
 
-def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
+def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, GGIoU=False, alpha = 0.3, beta = 1/7, eps=1e-7):
     """
     Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
 
@@ -123,11 +124,20 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
                 v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
                 with torch.no_grad():
-                    alpha = v / (v - iou + (1 + eps))
-                return iou - (rho2 / c2 + v * alpha)  # CIoU
-            return iou - rho2 / c2  # DIoU
+                    ciou_alpha = v / (v - iou + (1 + eps))
+                return iou - (rho2 / c2 + v * ciou_alpha)  # CIoU
+            return iou - rho2 / c2  # DIoUdd
         c_area = cw * ch + eps  # convex area
         return iou - (c_area - union) / c_area  # GIoU https://arxiv.org/pdf/1902.09630.pdf
+    if GGIoU:
+        sigma1 = beta * (b1_x2.minimum(b2_x2) - b1_x1.maximum(b2_x1)).clamp_(0) + eps
+        sigma2 = beta * (b1_y2.minimum(b2_y2) - b1_y1.maximum(b2_y1)).clamp_(0) + eps
+        with torch.no_grad():
+            distance = torch.exp(-0.5 * ((b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) / sigma1.pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2) / sigma2.pow(2)) / 4).clamp_(0)
+        # return iou * (1.0 - torch.clamp(distance, min=0.0, max=1.0))
+        return (iou).pow(1-alpha) * distance.pow(alpha)
+
+
     return iou  # IoU
 
 
@@ -721,7 +731,16 @@ class Metric(SimpleClass):
         Returns:
             (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
-        return self.all_ap.mean() if len(self.all_ap) else 0.0
+        map = self.all_ap.mean() if len(self.all_ap) else 0.0
+        print("734 save mAP.txt")
+        print("saved in ", self.save_dir)
+        for i, c in enumerate(self.ap_class_index):
+            map[c] = self.ap[i]
+        with open(os.path.join(self.save_dir / "mAP.txt"), "w") as f:
+            f.write(f"mAP: {map.mean():.4f}\n")  # 전체 mAP 저장
+            for i, map_value in enumerate(map):
+                f.write(f"Class {i}: {map_value:.4f}\n")  # 클래스별 mAP 저장
+        return map
 
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map."""
@@ -735,8 +754,15 @@ class Metric(SimpleClass):
     def maps(self):
         """MAP of each class."""
         maps = np.zeros(self.nc) + self.map
+
+        print("750 save mAP.txt")
+        print("saved in ", self.save_dir)
         for i, c in enumerate(self.ap_class_index):
             maps[c] = self.ap[i]
+        with open(os.path.join(self.save_dir / "mAP.txt"), "w") as f:
+            f.write(f"mAP: {maps.mean():.4f}\n")  # 전체 mAP 저장
+            for i, map_value in enumerate(maps):
+                f.write(f"Class {i}: {map_value:.4f}\n")  # 클래스별 mAP 저장
         return maps
 
     def fitness(self):
@@ -862,6 +888,14 @@ class DetMetrics(SimpleClass):
     @property
     def maps(self):
         """Returns mean Average Precision (mAP) scores per class."""
+        print("883 save mAP.txt")
+        print("saved in ", self.save_dir)
+        for i, c in enumerate(self.ap_class_index):
+            self.box.maps[c] = self.ap[i]
+        with open(os.path.join(self.save_dir / "mAP.txt"), "w") as f:
+            f.write(f"mAP: {self.box.maps.mean():.4f}\n")  # 전체 mAP 저장
+            for i, map_value in enumerate(self.box.maps):
+                f.write(f"Class {i}: {map_value:.4f}\n")  # 클래스별 mAP 저장
         return self.box.maps
 
     @property

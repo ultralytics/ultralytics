@@ -242,7 +242,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, prefix=""):
+    def __init__(self, root, args, augment=False, prefix=""):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -257,7 +257,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 debugging. Default is an empty string.
         """
         super().__init__(root=root)
-        if args.augment and args.fraction < 1.0:  # reduce training fraction
+        augment = args.augment if 'augment' in args else False
+        if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or args.cache == "ram"  # cache images into RAM
@@ -277,7 +278,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
             )
-            if args.augment
+            if augment
             else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
         )
 

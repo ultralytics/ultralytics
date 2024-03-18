@@ -848,13 +848,14 @@ def clean_str(s):
     """
     return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
 
-def to_py_types(data:dict) -> dict:
+
+def to_py_types(data: dict) -> dict:
     """
     Recursively converts the input data to native Python types.
-    
+
     Args:
         data (dict): The input data to be converted.
-        
+
     Returns:
         dict: The converted data with native Python types.
     """
@@ -868,8 +869,14 @@ def to_py_types(data:dict) -> dict:
         return {to_py_types(item) for item in data}
     elif isinstance(data, (np.ndarray, torch.Tensor)):
         return data.tolist()
-    elif isinstance(data, (np.bool_, np.int_, np.float_,)):
+    elif isinstance(
+        data,
+        (
+            np.bool_,
+            np.int_,
+            np.float_,
+        ),
+    ):
         return data.item()
     else:
         return data
-    

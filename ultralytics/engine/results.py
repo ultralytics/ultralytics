@@ -334,7 +334,7 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
-    def asdict(self, py_typed:bool=True) -> dict:
+    def asdict(self, py_typed: bool = True) -> dict:
         """
         Convert the detection results for any task into a dictionary format.
 
@@ -353,28 +353,29 @@ class Results(SimpleClass):
 
         # Generate results dictionary if not populated
         if not self.result_dict:
-            self.result_dict = {Path(self.path).name:{
-                    "detections":{n:
-                        {
-                            "label":      self.names.get(lbl_idx[n]),
-                            "conf":       float(all_conf[n]),
-                            "id":         int(all_ids[n]) if all_ids is not None else None,
-                            "xyxy":       r.boxes.xyxy[n] if box else None,
-                            "nxyxy":      r.boxes.xyxyn[n] if box else None,
-                            "xywh":       r.boxes.xywh[n] if box else None,
-                            "nxywh":      r.boxes.xywhn[n] if box else None,
-                            "mask-xy":    self.masks.xy[n] if mask else None, # NOTE cpu + numpy missing attribute
-                            "mask-xyn":   self.masks.xyn[n] if mask else None, # NOTE cpu + numpy missing attribute
-                            "kp-xy":      r.keypoints.xy[n] if kp else None,
-                            "kp-xyn":     r.keypoints.xyn[n] if kp else None,
-                            "kp-conf":    r.keypoints.conf[n] if kp else None,
-                            "xywhr":      r.obb.xywhr[n] if obb else None,
-                            "xyxyxyxy":   r.obb.xyxyxyxy[n] if obb else None,
-                            "xyxyxyxyn":  r.obb.xyxyxyxyn[n] if obb else None,
-                            "top1":       r.probs.top1 if probs else None,
-                            "top1conf":   r.probs.top1conf if probs else None,
-                            "top5":       r.probs.top5 if probs else None,
-                            "top5conf":   r.probs.top5conf if probs else None,
+            self.result_dict = {
+                Path(self.path).name: {
+                    "detections": {
+                        n: {
+                            "label": self.names.get(lbl_idx[n]),
+                            "conf": float(all_conf[n]),
+                            "id": int(all_ids[n]) if all_ids is not None else None,
+                            "xyxy": r.boxes.xyxy[n] if box else None,
+                            "nxyxy": r.boxes.xyxyn[n] if box else None,
+                            "xywh": r.boxes.xywh[n] if box else None,
+                            "nxywh": r.boxes.xywhn[n] if box else None,
+                            "mask-xy": self.masks.xy[n] if mask else None,  # NOTE cpu + numpy missing attribute
+                            "mask-xyn": self.masks.xyn[n] if mask else None,  # NOTE cpu + numpy missing attribute
+                            "kp-xy": r.keypoints.xy[n] if kp else None,
+                            "kp-xyn": r.keypoints.xyn[n] if kp else None,
+                            "kp-conf": r.keypoints.conf[n] if kp else None,
+                            "xywhr": r.obb.xywhr[n] if obb else None,
+                            "xyxyxyxy": r.obb.xyxyxyxy[n] if obb else None,
+                            "xyxyxyxyn": r.obb.xyxyxyxyn[n] if obb else None,
+                            "top1": r.probs.top1 if probs else None,
+                            "top1conf": r.probs.top1conf if probs else None,
+                            "top5": r.probs.top5 if probs else None,
+                            "top5conf": r.probs.top5conf if probs else None,
                         }
                         for n in range(len(lbl_idx))
                     }
@@ -382,7 +383,7 @@ class Results(SimpleClass):
             }
         self.result_dict = ops.to_py_types(self.result_dict) if py_typed else self.result_dict
         return self.result_dict
-        
+
     def to_pandas(self, df_in: DataFrame = None) -> DataFrame:
         """
         Converts the results to a pandas DataFrame.
@@ -392,20 +393,20 @@ class Results(SimpleClass):
 
         Returns:
             DataFrame: Pandas Multi-Index DataFrame containing the results.
-        
+
         Example:
             ```python
             from ultralytics import YOLO
 
             model = YOLO('yolov8s.pt')
             results = model.predict(['bus.jpg', 'zidane.jpg'])
-            
+
             df = None # initialize variable
             for result in results:
                 df = result.to_pandas(df)
-            
+
             df.dropna(axis=1) # View with NaN value columns dropped
-            
+
             # Use DataFrame methods to save results to CSV, Excel, JSON, etc.
             ```
         """
@@ -463,7 +464,7 @@ class Results(SimpleClass):
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
 
-    def save_csv(self, csv_file:str) -> None:
+    def save_csv(self, csv_file: str) -> None:
         """
         Save detection predictions into csv file.
 

@@ -242,7 +242,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, prefix=""):
+    def __init__(self, root, args, prefix=""):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 

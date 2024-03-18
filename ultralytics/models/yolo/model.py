@@ -71,8 +71,9 @@ class YOLOWorld(Model):
         """
         super().__init__(model=model, task="detect")
 
-        # Assign default COCO class names
-        self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+        # Assign default COCO class names when there are no custom names
+        if not hasattr(self.model, "names"):
+            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):

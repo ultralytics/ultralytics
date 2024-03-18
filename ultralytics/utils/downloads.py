@@ -43,7 +43,7 @@ def is_url(url, check=True):
             Defaults to True.
 
     Returns:
-        (bool): Returns True if the string is a valid URL. If 'check' is True, also returns True if the URL exists online.
+        (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
             Returns False otherwise.
 
     Example:
@@ -191,12 +191,13 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", sf=1.5, hard=True):
+def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
         url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
@@ -212,7 +213,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", sf=1.5, h
     # Check file size
     gib = 1 << 30  # bytes per GiB
     data = int(r.headers.get("Content-Length", 0)) / gib  # file size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage(Path.cwd()))  # bytes
+    total, used, free = (x / gib for x in shutil.disk_usage(path))  # bytes
 
     if data * sf < free:
         return True  # sufficient space
@@ -319,7 +320,7 @@ def safe_download(
         desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        check_disk_space(url)
+        check_disk_space(url, path=f.parent)
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue

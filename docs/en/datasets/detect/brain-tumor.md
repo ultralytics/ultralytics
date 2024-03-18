@@ -62,7 +62,7 @@ To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('brain-tumor-yolov8n.pt')  # load a brain-tumor fine-tuned model
+        model = YOLO('path/to/best.pt')  # load a brain-tumor fine-tuned model
 
         # Inference using the model
         results = model.predict("https://ultralytics.com/assets/brain-tumor-sample.jpg")

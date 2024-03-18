@@ -257,7 +257,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 debugging. Default is an empty string.
         """
         super().__init__(root=root)
-        if augment and args.fraction < 1.0:  # reduce training fraction
+        if args.augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or args.cache == "ram"  # cache images into RAM
@@ -277,7 +277,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
             )
-            if augment
+            if args.augment
             else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
         )
 

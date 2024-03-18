@@ -1029,7 +1029,9 @@ def classify_transforms(
         assert len(size) == 2
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)
     else:
-        scale_size = math.floor(size / crop_fraction)
+        # TODO: consider using np.clip to saturate crop_fraction within a useful range
+        # scale_size = math.floor(size / np.clip(crop_fraction, 0.1, 1.0))
+        scale_size = math.floor(size / crop_fraction) if crop_fraction != 0 else 1.0  # black Mat if crop_fraction == 0
         scale_size = (scale_size, scale_size)
 
     # aspect ratio is preserved, crops center within image, no borders are added, image is lost

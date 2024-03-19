@@ -243,6 +243,12 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
                     f"'{k}={v}' is of invalid type {type(v).__name__}. "
                     f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                 )
+    # special handling for offline_tracking
+    if (cfg.get("offline_tracking") != None) and cfg.get("mode") != "track":
+        raise TypeError(
+            f"Offline tracking is only available in tracking mode.\n"
+            f"Got offline_tracking: '{cfg.get('offline_tracking')}' and mode: '{cfg.get('mode')}'"
+        )
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

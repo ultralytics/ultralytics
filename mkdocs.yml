@@ -249,6 +249,7 @@ nav:
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
           - Roboflow 100: datasets/detect/roboflow-100.md
+          - Brain-tumor: datasets/detect/brain-tumor.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -301,6 +302,7 @@ nav:
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md

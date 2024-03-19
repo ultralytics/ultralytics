@@ -123,3 +123,4 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+offline_tracking: # (str) path to saved prediction results for running tracking without repeating predictions

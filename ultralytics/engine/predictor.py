@@ -239,20 +239,26 @@ class BasePredictor:
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 
-                # Preprocess
-                with profilers[0]:
-                    im = self.preprocess(im0s)
+                # check kwargs, if offline_tracking then skip inference and load preds
+                if not self.args.offline_tracking:
+                    # Preprocess
+                    with profilers[0]:
+                        im = self.preprocess(im0s)
 
-                # Inference
-                with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs)
-                    if self.args.embed:
-                        yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
-                        continue
+                    # Inference
+                    with profilers[1]:
+                        preds = self.inference(im, *args, **kwargs)
+                        if self.args.embed:
+                            yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
+                            continue
 
-                # Postprocess
-                with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s)
+                    # Postprocess
+                    with profilers[2]:
+                        self.results = self.postprocess(preds, im, im0s)
+                else:
+                    # TODO: load saved results from path
+                    frame = self.dataset.frame
+                    pass
                 self.run_callbacks("on_predict_postprocess_end")
 
                 # Visualize, save, write results

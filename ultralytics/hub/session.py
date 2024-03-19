@@ -171,7 +171,8 @@ class HUBTrainingSession:
         return api_key, model_id, filename
 
     def _set_train_args(self):
-        """Initializes training arguments and creates a model entry on the Ultralytics HUB.
+        """
+        Initializes training arguments and creates a model entry on the Ultralytics HUB.
 
         This method sets up training arguments based on the model's state and updates
         them with any additional arguments provided. It handles different states of the
@@ -181,7 +182,6 @@ class HUBTrainingSession:
             ValueError: If the model is already trained, if required dataset information
                         is missing, or if there are issues with the provided training
                         arguments.
-
         """
         if self.model.is_trained():
             raise ValueError(emojis(f"Model is already trained and uploaded to {self.model_url} 🚀"))
@@ -192,7 +192,7 @@ class HUBTrainingSession:
             self.model_file = self.model.get_weights_url("last")
         else:
             # Model has no saved weights
-            self.train_args = self.model.data.get("train_args") # new response
+            self.train_args = self.model.data.get("train_args")  # new response
 
             if not self.train_args:
                 # Old deprecated response

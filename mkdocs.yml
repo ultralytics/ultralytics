@@ -250,6 +250,7 @@ nav:
           - xView: datasets/detect/xview.md
           - Roboflow 100: datasets/detect/roboflow-100.md
           - Brain-tumor: datasets/detect/brain-tumor.md
+          - African-wildlife: datasets/detect/african-wildlife.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md

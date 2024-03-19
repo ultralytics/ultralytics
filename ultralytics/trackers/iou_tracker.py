@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import numpy as np
-import torchvision
 
 from .basetrack import BaseTrack, TrackState
 from .utils import matching

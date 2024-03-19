@@ -742,7 +742,7 @@ class Metric(SimpleClass):
     def mean_IoU(self):
         """Return the mean Intersection over Union for segmentation results."""
         return [self.mIoU]
-    
+
     @property
     def maps(self):
         """MAP of each class."""

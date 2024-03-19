@@ -303,9 +303,8 @@ class IOUTracker:
         return resa, resb
     
     def get_dists(self, tracks, detections):
-        """Calculates the distance between tracks and detections using IoU and fuses scores."""
+        """Calculates the distance between tracks and detections using IoU."""
         dists = matching.iou_distance(tracks, detections)
         # TODO: mot20
         # if not self.args.mot20:
-        dists = matching.fuse_score(dists, detections)
         return dists

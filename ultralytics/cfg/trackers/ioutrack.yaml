@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default YOLO tracker settings for IOU tracker https://github.com/ifzhang/ByteTrack
 
-tracker_type: ioutrack # tracker type, ['botsort', 'bytetrack', 'ioutrack']
+tracker_type: ioutrack # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
 min_iou: 0.5 # threshold for iou to match detections
 track_buffer: 4 # buffer to calculate the time when to remove tracks
 match_thresh: 0.8 # threshold for matching tracks

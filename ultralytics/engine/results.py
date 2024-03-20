@@ -348,8 +348,8 @@ class Results(SimpleClass):
         box, mask, probs, kp, obb = [getattr(self, t) is not None for t in self._keys]
         r = self.cpu().numpy()
         lbl_idx = [r.probs.top1] if probs else (r.obb.cls if obb else r.boxes.cls)
-        all_conf = r.probs.top1conf if probs else (r.obb.conf if obb else r.boxes.conf)
-        all_ids = r.boxes.id if box else r.obb.id
+        all_conf = [r.probs.top1conf] if probs else (r.obb.conf if obb else r.boxes.conf)
+        all_ids = r.boxes.id if box else getattr(r.obb, "id", None)
 
         # Generate results dictionary if not populated
         if not self.result_dict:

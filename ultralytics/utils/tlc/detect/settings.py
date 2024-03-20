@@ -169,7 +169,6 @@ class Settings:
                 LOGGER.warning(f'{TLC_COLORSTR}Found unsupported environment variable: {unsupported_env_vars[0]}.'
                                f'\n{self._supported_env_vars_str()}')
 
-    @classmethod
     def _supported_env_vars_str(self, sep: str = '\n  - ') -> str:
         """ Print all supported environment variables.
 

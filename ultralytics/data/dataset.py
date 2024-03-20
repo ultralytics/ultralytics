@@ -167,6 +167,7 @@ class YOLODataset(BaseDataset):
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
+                bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
             )
         )
         return transforms

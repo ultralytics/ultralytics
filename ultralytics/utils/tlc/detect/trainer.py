@@ -166,6 +166,6 @@ def _reduce_embeddings(trainer: TLCDetectionTrainer) -> None:
     """
     assert isinstance(trainer, TLCDetectionTrainer)
     if trainer._settings.image_embeddings_dim > 0:
-        trainer._run.reduce_embeddings_by_example_table_url(table_url=trainer.data["val"].url,
+        trainer._run.reduce_embeddings_by_foreign_table_url(table_url=trainer.data["val"].url,
                                                             method=trainer._settings.image_embeddings_reducer,
                                                             n_components=trainer._settings.image_embeddings_dim)

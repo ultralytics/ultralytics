@@ -435,37 +435,44 @@ class LoadDetections:
     def __iter__(self):
         """Returns an iterator object for VideoStream or ImageFolder."""
         self.data_loader.__iter__() # call iter for dataloader to set count for dataloader (count differs across loaders)
+        self.count = self.data_loader.count
         return self
 
     def __next__(self):
         """Returns the next batch of images or video frames along with their paths, metadata and loaded results."""
         paths, imgs, info = self.data_loader.__next__() # get standard data from data_loader
-
+        self.count = self.data_loader.count
+        
         results = []
         num_frames = len(imgs)
         for frame_num, path, img in zip(list(range(self.curr_frame, self.curr_frame + num_frames)), paths, imgs):
             # boxes are saved/loaded as class, x_center, y_center, w, h, conf, track_id if track_id is present
-            dets = np.loadtxt(self.detections[frame_num], ndmin=2)
-            h, w, _ = img.shape
-            n = dets.shape[-1]
-            assert n in (6, 7), f"expected 6 or 7 values but got {n}"
-            # check that confs are included. It is possible to save detections without confs
-            if ((dets[:,5] % 1)  == 0).all():
-                raise ValueError(
-                    """
-                    Saved detections must include detection confidences.  
-                    Check that you used the `save_conf=True` argument during prediction. 
-                    Saved file includes integers for confidence scores.
-                    """
-                )
-            # boxes are expected to be xyxy, track_id, conf, cls
-            if n == 7:
-                boxes = dets[:, [1,2,3,4,6,5,0]]
-            else:
-                boxes = dets[:, [1,2,3,4,5,0]]
-            boxes[:,:4] = ops.xywhn2xyxy(boxes[:,:4], w=w, h=h)
+            if frame_num in self.detections:
+                dets = np.loadtxt(self.detections[frame_num], ndmin=2)
+                h, w, _ = img.shape
+                n = dets.shape[-1]
+                assert n in (6, 7), f"expected 6 or 7 values but got {n}"
+                # check that confs are included. It is possible to save detections without confs
+                if ((dets[:,5] % 1)  == 0).all():
+                    raise ValueError(
+                        """
+                        Saved detections must include detection confidences.  
+                        Check that you used the `save_conf=True` argument during prediction. 
+                        Saved file includes integers for confidence scores.
+                        """
+                    )
+                # boxes are expected to be xyxy, track_id, conf, cls
+                if n == 7:
+                    boxes = dets[:, [1,2,3,4,6,5,0]]
+                else:
+                    boxes = dets[:, [1,2,3,4,5,0]]
+                boxes[:,:4] = ops.xywhn2xyxy(boxes[:,:4], w=w, h=h)
+                boxes = torch.tensor(boxes)
+            else: # no detections
+                boxes = torch.empty(0, 6)
+
             res = Results(img, path, self.names)
-            res.update(boxes=torch.tensor(boxes)) # issue with .unique when using numpy
+            res.update(boxes=boxes) # issue with .unique when using numpy  
             results.append(res) 
 
         self.curr_frame+=num_frames

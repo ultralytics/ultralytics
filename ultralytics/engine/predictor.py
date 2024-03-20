@@ -198,6 +198,7 @@ class BasePredictor:
         # wrap dataset in LoadDetections object if performing offline tracking
         if self.args.offline_tracking:
             from ultralytics.data.loaders import LoadDetections
+
             self.dataset = LoadDetections(self.args.offline_tracking, self.dataset, self.model.names)
 
         self.source_type = self.dataset.source_type

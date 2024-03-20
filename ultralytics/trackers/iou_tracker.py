@@ -13,21 +13,19 @@ class IOUTrack(BaseTrack):
 
     This class is responsible for storing all the information regarding individual tracklets. Uses simple IOU matching. Lost tracks are not re-activated.
 
-    Attributes: TODO
+    Attributes:
         _count (int): Class-level counter for unique track IDs.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
         history (OrderedDict): Ordered history of the track's states.
-        features (list): List of features extracted from the object for tracking.
-        curr_feature (any): The current feature of the object being tracked.
         score (float): The confidence score of the tracking.
         start_frame (int): The frame number where tracking started.
         frame_id (int): The most recent frame ID processed by the track.
         time_since_update (int): Frames passed since the last update.
         location (tuple): The location of the object in the context of multi-camera tracking.
 
-    Methods: TODO
+    Methods:
         activate: Abstract method to activate the track.
         predict: Abstract method to predict the next state of the track.
         update: Abstract method to update the track with new data.
@@ -40,7 +38,6 @@ class IOUTrack(BaseTrack):
         assert len(xywh) in [5, 6], f"expected 5 or 6 values but got {len(xywh)}"
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.is_activated = False
-        self.mean, self.covariance = None, None
 
         self.score = score
         self.tracklet_len = 0
@@ -87,12 +84,9 @@ class IOUTrack(BaseTrack):
     @property
     def tlwh(self):
         """Get current position in bounding box format (top left x, top left y, width, height)."""
-        if self.mean is None:
-            return self._tlwh.copy()
-        ret = self.mean[:4].copy()
-        ret[2] *= ret[3]
-        ret[:2] -= ret[2:] / 2
-        return ret
+
+        return self._tlwh.copy()
+
 
     @property
     def xyxy(self):
@@ -144,21 +138,19 @@ class IOUTracker:
     The class is responsible for initializing, updating, and managing the tracks for detected objects in a video
     sequence. It maintains the state of tracked, lost, and removed tracks over frames.
 
-    Attributes: TODO
+    Attributes:
         tracked_ioutracks (list[STrack]): List of successfully activated tracks.
         lost_ioutracks (list[STrack]): List of lost tracks.
         removed_ioutracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
-        kalman_filter (object): Kalman Filter object.
+        min_iou (float): Min iou overlap to match tracks
 
     Methods: TODO
         update(results, img=None): Updates object tracker with new detections.
-        get_kalmanfilter(): Returns a Kalman filter object for tracking bounding boxes.
         init_track(dets, scores, cls, img=None): Initialize object tracking with detections.
         get_dists(tracks, detections): Calculates the distance between tracks and detections.
-        multi_predict(tracks): Predicts the location of tracks.
         reset_id(): Resets the ID counter of STrack.
         joint_ioutracks(tlista, tlistb): Combines two lists of ioutracks.
         sub_ioutracks(tlista, tlistb): Filters out the ioutracks present in the second list from the first list.
@@ -174,11 +166,11 @@ class IOUTracker:
         self.frame_id = 0
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
+        self.min_iou = args.min_iou
         self.reset_id()
 
     def update(self, results, img=None):
         """Updates object tracker with new detections and returns tracked object bounding boxes."""
-        # need to 1. match good tracks 2. iterate lost tracks 3. remove lost tracks over threshold
         self.frame_id += 1
         activated_ioutracks = []
         refind_ioutracks = []
@@ -274,14 +266,6 @@ class IOUTracker:
 
     @staticmethod
     def sub_ioutracks(tlista, tlistb):
-        """DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
-        ioutracks = {t.track_id: t for t in tlista}
-        for t in tlistb:
-            tid = t.track_id
-            if ioutracks.get(tid, 0):
-                del ioutracks[tid]
-        return list(ioutracks.values())
-        """
         track_ids_b = {t.track_id for t in tlistb}
         return [t for t in tlista if t.track_id not in track_ids_b]
 

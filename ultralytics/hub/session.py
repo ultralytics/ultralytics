@@ -194,22 +194,6 @@ class HUBTrainingSession:
             # Model has no saved weights
             self.train_args = self.model.data.get("train_args")  # new response
 
-            if not self.train_args:
-                # Old deprecated response
-                def get_train_args(config):
-                    """Parses an identifier to extract API key, model ID, and filename if applicable."""
-                    return {
-                        "batch": config["batchSize"],
-                        "epochs": config["epochs"],
-                        "imgsz": config["imageSize"],
-                        "patience": config["patience"],
-                        "device": config["device"],
-                        "cache": config["cache"],
-                        "data": self.model.get_dataset_url(),
-                    }
-
-                self.train_args = get_train_args(self.model.data.get("config"))
-
             # Set the model file as either a *.pt or *.yaml file
             self.model_file = (
                 self.model.get_weights_url("parent") if self.model.is_pretrained() else self.model.get_architecture()

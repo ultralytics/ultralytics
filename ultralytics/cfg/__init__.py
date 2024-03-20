@@ -107,6 +107,7 @@ CFG_FRACTION_KEYS = (
     "hsv_h",
     "hsv_s",
     "hsv_v",
+    "gray",
     "translate",
     "scale",
     "perspective",

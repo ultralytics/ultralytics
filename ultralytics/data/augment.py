@@ -623,6 +623,32 @@ class RandomHSV:
             cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
         return labels
 
+class RandomGray:
+    """
+    This class is responsible for converting an image to grayscale with a certain probability.
+    """
+
+    def __init__(self, p=0.0) -> None:
+        """
+        Initialize RandomGray class with a probability for grayscale conversion.
+
+        Args:
+            p (float, optional): Probability of converting an image to grayscale. Default is 0.0.
+        """
+        self.p = p
+
+    def __call__(self, labels):
+        """
+        Applies grayscale conversion to an image with a probability p.
+
+        The modified image replaces the original image in the input 'labels' dict if the conversion is applied.
+        """
+        if random.random() < self.p:
+            img = labels["img"]
+            grayscale_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            # Converting grayscale back to BGR to maintain the image shape consistency
+            labels["img"] = cv2.cvtColor(grayscale_img, cv2.COLOR_GRAY2BGR)
+        return labels
 
 class RandomFlip:
     """
@@ -997,6 +1023,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             Albumentations(p=1.0),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            RandomGray(p=hyp.gray),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]
@@ -1065,6 +1092,7 @@ def classify_augmentations(
     hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
     hsv_s=0.4,  # image HSV-Saturation augmentation (fraction)
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
+    gray=0.0,  # image grayscale augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
     interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
@@ -1136,6 +1164,7 @@ def classify_augmentations(
 
     if not disable_color_jitter:
         secondary_tfl += [T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h)]
+        secondary_tfl += [T.RandomGrayscale(p=gray)]
 
     final_tfl = [
         T.ToTensor(),

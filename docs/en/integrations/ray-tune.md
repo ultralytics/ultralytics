@@ -88,6 +88,7 @@ The following table lists the default search space parameters for hyperparameter
 | `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                   |
 | `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range            |
 | `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range    |
+| `gray`            | `tune.uniform(0.0, 1.0)`   | Gray augmentation probability            |
 | `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)    |
 | `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range           |
 | `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range               |

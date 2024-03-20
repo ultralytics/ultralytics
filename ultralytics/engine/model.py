@@ -224,6 +224,7 @@ class Model(nn.Module):
             weights (str): model checkpoint to be loaded
             task (str | None): model task
         """
+        # Download HUB weights before attempting to load pt weights
         weights = weights if Path(weights).suffix == ".pt" else checks.check_file(weights)
         if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)

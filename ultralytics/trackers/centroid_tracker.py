@@ -8,6 +8,7 @@ from .iou_tracker import IOUTrack
 from .utils import matching
 from ..utils import LOGGER
 
+
 class CentroidTrack(IOUTrack):
     """
     Single object tracking representation.
@@ -23,16 +24,16 @@ class CentroidTrack(IOUTrack):
         """Initialize new centroidTrack instance."""
         super().__init__(xywh, score, cls)
         self.img_h, self.img_w, _ = img.shape
-    
+
     @property
     def centroid(self):
-        """Get current position as normalized centroid of bounding box"""
+        """Get current position as normalized centroid of bounding box."""
         xywh = self.xywh.copy()
         xywh[..., [0, 2]] /= self.img_w
         xywh[..., [1, 3]] /= self.img_h
 
         return xywh[:2]
-    
+
 
 class CentroidTracker:
     """
@@ -84,12 +85,12 @@ class CentroidTracker:
         dets = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
-        detections = self.init_track(dets, scores, cls, img) # list of CentroidTrack objects
+        detections = self.init_track(dets, scores, cls, img)  # list of CentroidTrack objects
 
         # matching
         dists = self.get_dists(self.tracked_centroidtracks, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.max_dist)
-        
+
         for itracked, idet in matches:
             mtrack = self.tracked_centroidtracks[itracked]
             mdet = detections[idet]
@@ -103,7 +104,7 @@ class CentroidTracker:
                 utrack.mark_lost()
                 lost_centroidtracks.append(utrack)
 
-        for idet in u_detection: # create new tracks for all unmatched detections
+        for idet in u_detection:  # create new tracks for all unmatched detections
             udet = detections[idet]
             udet.activate(self.frame_id)
             activated_centroidtracks.append(udet)
@@ -118,16 +119,22 @@ class CentroidTracker:
         self.tracked_centroidtracks = self.joint_centroidtracks(self.tracked_centroidtracks, refind_centroidtracks)
         self.lost_centroidtracks = self.sub_centroidtracks(self.lost_centroidtracks, self.removed_centroidtracks)
         self.lost_centroidtracks.extend(lost_centroidtracks)
-        self.tracked_centroidtracks, self.lost_centroidtracks = self.remove_duplicate_centroidtracks(self.tracked_centroidtracks, self.lost_centroidtracks)
+        self.tracked_centroidtracks, self.lost_centroidtracks = self.remove_duplicate_centroidtracks(
+            self.tracked_centroidtracks, self.lost_centroidtracks
+        )
         self.removed_centroidtracks.extend(removed_centroidtracks)
         if len(self.removed_centroidtracks) > 1000:
-            self.removed_centroidtracks = self.removed_centroidtracks[-999:]  # clip remove centroidtracks to 1000 maximum
+            self.removed_centroidtracks = self.removed_centroidtracks[
+                -999:
+            ]  # clip remove centroidtracks to 1000 maximum
 
         return np.asarray([x.result for x in self.tracked_centroidtracks if x.is_activated], dtype=np.float32)
 
     def init_track(self, dets, scores, cls, img):
         """Initialize object tracking with detections and scores using centroid tracking algorithm."""
-        return [CentroidTrack(xyxy, s, c, img) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
+        return (
+            [CentroidTrack(xyxy, s, c, img) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []
+        )  # detections
 
     @staticmethod
     def reset_id():
@@ -165,7 +172,7 @@ class CentroidTracker:
     def remove_duplicate_centroidtracks(self, centroidtracksa, centroidtracksb):
         """Remove duplicate centroidtracks with non-maximum euclidean distance."""
         pdist = self.get_dists(centroidtracksa, centroidtracksb)
-        pairs = np.where(pdist < 0.0001) # bit unclear what this should be
+        pairs = np.where(pdist < 0.0001)  # bit unclear what this should be
         dupa, dupb = [], []
         for p, q in zip(*pairs):
             timep = centroidtracksa[p].frame_id - centroidtracksa[p].start_frame
@@ -177,7 +184,7 @@ class CentroidTracker:
         resa = [t for i, t in enumerate(centroidtracksa) if i not in dupa]
         resb = [t for i, t in enumerate(centroidtracksb) if i not in dupb]
         return resa, resb
-    
+
     @staticmethod
     def get_dists(tracks, detections):
         """Calculates the distance between tracks and detections using euclidean distance."""

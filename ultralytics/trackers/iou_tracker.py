@@ -7,6 +7,7 @@ from .utils import matching
 from ..utils.ops import xywh2ltwh
 from ..utils import LOGGER
 
+
 class IOUTrack(BaseTrack):
     """
     Single object tracking representation.
@@ -67,7 +68,7 @@ class IOUTrack(BaseTrack):
         self.frame_id = frame_id
         self.tracklet_len += 1
 
-        self._tlwh = new_track._tlwh # updating box
+        self._tlwh = new_track._tlwh  # updating box
 
         self.state = TrackState.Tracked
         self.is_activated = True
@@ -87,7 +88,6 @@ class IOUTrack(BaseTrack):
 
         return self._tlwh.copy()
 
-
     @property
     def xyxy(self):
         """Convert bounding box to format (min x, min y, max x, max y), i.e., (top left, bottom right)."""
@@ -95,7 +95,7 @@ class IOUTrack(BaseTrack):
         ret[2:] += ret[:2]
         return ret
 
-    @staticmethod # TODO: might not need this
+    @staticmethod  # TODO: might not need this
     def tlwh_to_xyah(tlwh):
         """Convert bounding box to format (center x, center y, aspect ratio, height), where the aspect ratio is width /
         height.
@@ -129,7 +129,7 @@ class IOUTrack(BaseTrack):
     def __repr__(self):
         """Return a string representation of the IOUTracker object with start and end frames and track ID."""
         return f"OT_{self.track_id}_({self.start_frame}-{self.end_frame})"
-    
+
 
 class IOUTracker:
     """
@@ -183,12 +183,12 @@ class IOUTracker:
         dets = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
-        detections = self.init_track(dets, scores, cls, img) # list of IOUTrack objects
+        detections = self.init_track(dets, scores, cls, img)  # list of IOUTrack objects
 
         # matching
         dists = self.get_dists(self.tracked_ioutracks, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.min_iou)
-        
+
         for itracked, idet in matches:
             mtrack = self.tracked_ioutracks[itracked]
             mdet = detections[idet]
@@ -202,7 +202,7 @@ class IOUTracker:
                 utrack.mark_lost()
                 lost_ioutracks.append(utrack)
 
-        for idet in u_detection: # create new tracks for all unmatched detections
+        for idet in u_detection:  # create new tracks for all unmatched detections
             udet = detections[idet]
             udet.activate(self.frame_id)
             activated_ioutracks.append(udet)
@@ -217,7 +217,9 @@ class IOUTracker:
         self.tracked_ioutracks = self.joint_ioutracks(self.tracked_ioutracks, refind_ioutracks)
         self.lost_ioutracks = self.sub_ioutracks(self.lost_ioutracks, self.removed_ioutracks)
         self.lost_ioutracks.extend(lost_ioutracks)
-        self.tracked_ioutracks, self.lost_ioutracks = self.remove_duplicate_ioutracks(self.tracked_ioutracks, self.lost_ioutracks)
+        self.tracked_ioutracks, self.lost_ioutracks = self.remove_duplicate_ioutracks(
+            self.tracked_ioutracks, self.lost_ioutracks
+        )
         self.removed_ioutracks.extend(removed_ioutracks)
         if len(self.removed_ioutracks) > 1000:
             self.removed_ioutracks = self.removed_ioutracks[-999:]  # clip remove ioutracks to 1000 maximum
@@ -285,7 +287,7 @@ class IOUTracker:
         resa = [t for i, t in enumerate(ioutracksa) if i not in dupa]
         resb = [t for i, t in enumerate(ioutracksb) if i not in dupb]
         return resa, resb
-    
+
     def get_dists(self, tracks, detections):
         """Calculates the distance between tracks and detections using IoU."""
         dists = matching.iou_distance(tracks, detections)

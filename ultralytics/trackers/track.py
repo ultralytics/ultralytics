@@ -34,7 +34,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
 
     if cfg.tracker_type not in ["bytetrack", "botsort", "ioutrack", "centroidtrack"]:
-        raise AssertionError(f"Only 'bytetrack', 'botsort', 'centroidtrack and 'ioutrack' are supported for now, but got '{cfg.tracker_type}'")
+        raise AssertionError(
+            f"Only 'bytetrack', 'botsort', 'centroidtrack and 'ioutrack' are supported for now, but got '{cfg.tracker_type}'"
+        )
 
     trackers = []
     for _ in range(predictor.dataset.bs):

@@ -80,7 +80,7 @@ Before diving into the usage instructions, it's important to note that while all
         model = YOLO('yolov8n.pt')
 
         # Export the model to PaddlePaddle format
-        model.export(format=''paddle'')  # creates '/yolov8n_paddle_model'
+        model.export(format='paddle')  # creates '/yolov8n_paddle_model'
 
         # Load the exported PaddlePaddle model
         paddle_model = YOLO('./yolov8n_paddle_model')

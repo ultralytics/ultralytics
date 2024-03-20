@@ -345,10 +345,16 @@ class Results(SimpleClass):
             dict: A dictionary containing results data.
         """
         # Check task data
-        box, mask, probs, kp, obb = [getattr(self, t) is not None for t in self._keys]
+        box, mask, probs, kp, obb = [
+            getattr(self, t) is not None and any([getattr(self, t)]) for t in self._keys
+            ]
         r = self.cpu().numpy()
-        lbl_idx = [r.probs.top1] if probs else (r.obb.cls if obb else r.boxes.cls)
-        all_conf = [r.probs.top1conf] if probs else (r.obb.conf if obb else r.boxes.conf)
+        lbl_idx = (
+            [r.probs.top1] if probs else (getattr(r.obb, "cls", None) if obb else getattr(r.boxes, "cls", None))
+            )
+        all_conf = (
+            [r.probs.top1conf] if probs else (getattr(r.obb, "conf", None) if obb else getattr(r.boxes, "conf", None))
+            )
         all_ids = r.boxes.id if box else getattr(r.obb, "id", None)
 
         # Generate results dictionary if not populated
@@ -357,18 +363,18 @@ class Results(SimpleClass):
                 Path(self.path).name: {
                     "detections": {
                         n: {
-                            "label": self.names.get(lbl_idx[n]),
-                            "conf": float(all_conf[n]),
+                            "label": self.names.get(lbl_idx[n] if np.array(lbl_idx).any() else None),
+                            "conf": float(all_conf[n]) if np.array(all_conf).any() else None,
                             "id": int(all_ids[n]) if all_ids is not None else None,
                             "xyxy": r.boxes.xyxy[n] if box else None,
                             "nxyxy": r.boxes.xyxyn[n] if box else None,
                             "xywh": r.boxes.xywh[n] if box else None,
                             "nxywh": r.boxes.xywhn[n] if box else None,
-                            "mask-xy": self.masks.xy[n] if mask else None,  # NOTE cpu + numpy missing attribute
-                            "mask-xyn": self.masks.xyn[n] if mask else None,  # NOTE cpu + numpy missing attribute
-                            "kp-xy": r.keypoints.xy[n] if kp else None,
-                            "kp-xyn": r.keypoints.xyn[n] if kp else None,
-                            "kp-conf": r.keypoints.conf[n] if kp else None,
+                            "mask-xy": self.masks.xy[n] if mask and box else None,  # NOTE cpu+numpy missing attr
+                            "mask-xyn": self.masks.xyn[n] if mask and box else None,  # NOTE cpu+numpy missing attr
+                            "kp-xy": r.keypoints.xy[n] if kp and box else None,
+                            "kp-xyn": r.keypoints.xyn[n] if kp and box else None,
+                            "kp-conf": r.keypoints.conf[n] if kp and box else None,
                             "xywhr": r.obb.xywhr[n] if obb else None,
                             "xyxyxyxy": r.obb.xyxyxyxy[n] if obb else None,
                             "xyxyxyxyn": r.obb.xyxyxyxyn[n] if obb else None,
@@ -377,7 +383,7 @@ class Results(SimpleClass):
                             "top5": r.probs.top5 if probs else None,
                             "top5conf": r.probs.top5conf if probs else None,
                         }
-                        for n in range(len(lbl_idx))
+                        for n in range(max(len(lbl_idx or []),1))
                     }
                 }
             }
@@ -414,7 +420,7 @@ class Results(SimpleClass):
         od = self.asdict()
         k = next(iter(od.keys()))
         # Construct DataFrame with Multi-Index
-        cols = list(od.get(k).get("detections").get(0).keys())
+        cols = list(od.get(k).get("detections").get(0, {}).keys())
         idx = MultiIndex.from_product(
             [[k], [*list(od.get(k).get("detections").keys())]],
             names=["image", "detections"],

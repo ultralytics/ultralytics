@@ -30,7 +30,7 @@ class TLCDetectionModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if m.type == 'ultralytics.nn.modules.block.SPPF':
+            if "SPPF" in m.type:
                 TLCDetectionModel.activations = nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(
                     -1)  # flatten
             if visualize:

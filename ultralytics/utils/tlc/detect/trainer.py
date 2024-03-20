@@ -9,7 +9,7 @@ import tlc
 import ultralytics
 from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, IterableSimpleNamespace
 from ultralytics.utils.tlc.detect.dataset import TLCDataset, build_tlc_dataset
 from ultralytics.utils.tlc.detect.model import TLCDetectionModel
 from ultralytics.utils.tlc.detect.settings import Settings
@@ -101,13 +101,16 @@ class TLCDetectionTrainer(DetectionTrainer):
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         if not loader:
             loader = self.test_loader
+
+        args_dict = dict(copy.copy(self.args))
+        args_dict["settings"] = self._settings
+
         return TLCDetectionValidator(
             loader,
             save_dir=self.save_dir,
-            args=copy.copy(self.args),
+            args=args_dict,
             _callbacks=self.callbacks,
             run=self._run,
-            settings=self._settings,
         )
 
     def validate(self) -> Any:
@@ -166,6 +169,8 @@ def _reduce_embeddings(trainer: TLCDetectionTrainer) -> None:
     """
     assert isinstance(trainer, TLCDetectionTrainer)
     if trainer._settings.image_embeddings_dim > 0:
-        trainer._run.reduce_embeddings_by_foreign_table_url(table_url=trainer.data["val"].url,
-                                                            method=trainer._settings.image_embeddings_reducer,
-                                                            n_components=trainer._settings.image_embeddings_dim)
+        trainer._run.reduce_embeddings_by_foreign_table_url(
+            foreign_table_url=trainer.data["val"].url,
+            method=trainer._settings.image_embeddings_reducer,
+            n_components=trainer._settings.image_embeddings_dim
+        )

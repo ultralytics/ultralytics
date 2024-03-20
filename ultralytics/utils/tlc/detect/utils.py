@@ -442,3 +442,18 @@ def get_names_from_yolo_table(table: tlc.Table, value_path: str = 'bbs.bb_list.l
     """
     value_map = table.get_value_map(value_path)
     return {int(k): v['internal_name'] for k, v in value_map.items()}
+
+def reduce_all_embeddings(data_file: str, by: str = "val", method: str = "umap", n_components: int = 2) -> None:
+    """ Fit reducer on specific split and apply the reducer on all the embeddings for the current run.
+
+    :param data_file: The path to the dataset YAML file.
+    :param by: The split to reduce embeddings for.
+    :param method: The method to use for reducing embeddings.
+    :param n_components: The number of components to reduce to. 
+    """
+    foreign_table_url = tlc_check_dataset(data_file, get_splits=[by])[by].url
+    tlc.active_run().reduce_embeddings_by_foreign_table_url(
+        foreign_table_url=foreign_table_url,
+        method=method,
+        n_components=n_components
+    )

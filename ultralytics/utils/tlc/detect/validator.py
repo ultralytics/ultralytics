@@ -8,6 +8,7 @@ from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector 
 
 import ultralytics
 from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import LOGGER, metrics, ops
 from ultralytics.utils.tlc.constants import TRAINING_PHASE
 from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
@@ -30,10 +31,10 @@ ultralytics.engine.validator.check_det_dataset = check_det_dataset
 class TLCDetectionValidator(DetectionValidator):
     """Validator class for YOLOv8 object detection with 3LC"""
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, run=None, settings=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, run=None):
         LOGGER.info("Using 3LC Validator 🌟")
 
-        self._settings = args.get('settings', Settings())
+        self._settings = args.pop('settings', Settings())
         self._run = run
         self._seen = 0
         self._final_validation = True
@@ -50,6 +51,11 @@ class TLCDetectionValidator(DetectionValidator):
         self._final_validation = final_validation
         if trainer:
             self.epoch = trainer.epoch
+
+        if self._settings.image_embeddings_dim > 0 and isinstance(model, DetectionModel):
+            # Add TLCDetectionModel forward method to allow for embedding collection
+            model.__class__ = TLCDetectionModel
+
         return super().__call__(trainer, model)
 
     def build_dataset(self, img_path, mode="val", batch=None):

@@ -623,10 +623,9 @@ class RandomHSV:
             cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
         return labels
 
+
 class RandomGray:
-    """
-    This class is responsible for converting an image to grayscale with a certain probability.
-    """
+    """This class is responsible for converting an image to grayscale with a certain probability."""
 
     def __init__(self, p=0.0) -> None:
         """
@@ -649,6 +648,7 @@ class RandomGray:
             # Converting grayscale back to BGR to maintain the image shape consistency
             labels["img"] = cv2.cvtColor(grayscale_img, cv2.COLOR_GRAY2BGR)
         return labels
+
 
 class RandomFlip:
     """

@@ -345,16 +345,12 @@ class Results(SimpleClass):
             dict: A dictionary containing results data.
         """
         # Check task data
-        box, mask, probs, kp, obb = [
-            getattr(self, t) is not None and any([getattr(self, t)]) for t in self._keys
-            ]
+        box, mask, probs, kp, obb = [getattr(self, t) is not None and any([getattr(self, t)]) for t in self._keys]
         r = self.cpu().numpy()
-        lbl_idx = (
-            [r.probs.top1] if probs else (getattr(r.obb, "cls", None) if obb else getattr(r.boxes, "cls", None))
-            )
+        lbl_idx = [r.probs.top1] if probs else (getattr(r.obb, "cls", None) if obb else getattr(r.boxes, "cls", None))
         all_conf = (
             [r.probs.top1conf] if probs else (getattr(r.obb, "conf", None) if obb else getattr(r.boxes, "conf", None))
-            )
+        )
         all_ids = r.boxes.id if box else getattr(r.obb, "id", None)
 
         # Generate results dictionary if not populated
@@ -383,7 +379,7 @@ class Results(SimpleClass):
                             "top5": r.probs.top5 if probs else None,
                             "top5conf": r.probs.top5conf if probs else None,
                         }
-                        for n in range(max(len(lbl_idx or []),1))
+                        for n in range(max(len(lbl_idx or []), 1))
                     }
                 }
             }

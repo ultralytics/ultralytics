@@ -441,6 +441,7 @@ class LoadDetections:
     def __next__(self):
         """Returns the next batch of images or video frames along with their paths, metadata and loaded results."""
         paths, imgs, info = self.data_loader.__next__() # get standard data from data_loader
+        self.mode = self.data_loader.mode # mode may change after call to __next__()
         self.count = self.data_loader.count
         
         results = []

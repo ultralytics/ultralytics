@@ -6,9 +6,7 @@ keywords: Ultralytics HUB, Quickstart, YOLOv5, YOLOv8, model training, quick dep
 
 # Quickstart Guide for Ultralytics HUB
 
-🚧 **Under Construction** 🚧
-
-Thank you for visiting the Quickstart guide for [Ultralytics HUB](https://hub.ultralytics.com/)! We're currently hard at work building out this page to provide you with step-by-step instructions on how to get up and running with HUB in no time.
+HUB is designed to be user-friendly and intuitive, with a drag-and-drop interface that allows users to easily upload their data and train new models quickly. It offers a range of pre-trained models and templates to choose from, making it easy for users to get started with training their own models. Once a model is trained, it can be easily deployed and used for real-time object detection, instance segmentation and classification tasks.
 
 <p align="center">
   <br>
@@ -21,32 +19,40 @@ Thank you for visiting the Quickstart guide for [Ultralytics HUB](https://hub.ul
   <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
 </p>
 
-In the meantime, here's a brief overview of what you can expect from Ultralytics HUB:
+## Creating an Account
 
-## What is Ultralytics HUB?
+[Ultralytics HUB](https://hub.ultralytics.com/) offers multiple easy account creation options. Users can register and sign in using Google, Apple, GitHub accounts, or a work email address.
 
-Ultralytics HUB is your one-stop solution for training and deploying YOLOv5 and YOLOv8 models. It's designed with user experience in mind, featuring a drag-and-drop interface to make uploading data and training new models a breeze. Whether you're a beginner or an experienced machine learning practitioner, HUB has a range of pre-trained models and templates to accelerate your projects.
+![Creating an Account](https://github.com/ultralytics/ultralytics/assets/19519529/1dcf454a-68ab-4821-9779-ee33a6e300cf)
 
-## Key Features
+## The Dashboard
 
-- **User-Friendly Interface**: Simply drag and drop your data to start training.
-- **Pre-Trained Models**: Choose from a selection of pre-trained models to kick-start your projects.
-- **Real-Time Object Detection**: Deploy trained models easily for real-time object detection, instance segmentation, and classification tasks.
+Upon logging in, users are directed to the HUB dashboard, providing a comprehensive overview. The left pane conveniently offers links for tasks such as Uploading Datasets, Creating Projects, Training Models, Integrating Third-party Applications, Accessing Support, and Managing Trash.
 
-## Coming Soon
+![HUB Dashboard](https://github.com/ultralytics/ultralytics/assets/19519529/108de60e-1b21-4f07-8d46-ed51d8439f67)
 
-- Detailed Steps to Start Your First Project
-- Guide on Preparing and Uploading Datasets
-- Tutorial on Model Training and Exporting
-- Integration Options and How-To's
-- And much more!
+## Selecting the Model
 
-## Need Help Now?
+Choose a Dataset and train the model by selecting the Project name, Model name, and Architecture. Ultralytics offers a range of YOLOv8, YOLOv5, and YOLOv5u6 Architectures, including pre-trained and custom options.
 
-While we're polishing this page, feel free to:
+Read more about Models on the [HUB Models page](models.md).
 
-- Browse through other [HUB Docs](https://docs.ultralytics.com/hub/) for detailed guides and tutorials.
-- Raise an issue on our [GitHub](https://github.com/ultralytics/hub/) for technical support.
-- Join our [Discord Community](https://ultralytics.com/discord/) for live discussions and community support.
+## Training the Model
 
-Stay tuned! We'll be back soon with more detailed information to help you get the most out of Ultralytics HUB. Thank you for your patience and interest!
+There are three ways to train your model: using Google Colab, training locally, or through Ultralytics Cloud. Learn more about training options on the [Cloud Training Page](cloud-training.md).
+
+## Integrating the Model
+
+Integrate your trained model with third-party applications or connect HUB from an external agent. Ultralytics HUB currently supports simple one-click API Integration with Roboflow. Read more about integration on the [Integration Page](integrations.md).
+
+## Need Help?
+
+If you encounter any issues or have questions, we're here to assist you. You can report a bug, request a feature, or ask a question.
+
+![Support Page](https://github.com/ultralytics/ultralytics/assets/19519529/c29bf5c5-72d8-4be4-9f3f-b504968d0bef)
+
+## Data Management
+
+Manage your datasets efficiently with options to restore or permanently delete them from the Trash section in the left column.
+
+![Trash Page](https://github.com/ultralytics/ultralytics/assets/19519529/c3d46107-aa58-4b05-a7a8-44db1ad61bb2)

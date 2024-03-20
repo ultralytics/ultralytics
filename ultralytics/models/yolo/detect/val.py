@@ -36,7 +36,7 @@ class DetectionValidator(BaseValidator):
         self.class_map = None
         self.args.task = "detect"
         self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
-        self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
+        self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
 
@@ -132,8 +132,7 @@ class DetectionValidator(BaseValidator):
                 if nl:
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
-                    # TODO: obb has not supported confusion_matrix yet.
-                    if self.args.plots and self.args.task != "obb":
+                    if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
@@ -147,8 +146,7 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                # TODO: obb has not supported confusion_matrix yet.
-                if self.args.plots and self.args.task != "obb":
+                if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])

@@ -3,49 +3,35 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
-from .basetrack import BaseTrack, TrackState
+from .basetrack import TrackState
 from .iou_tracker import IOUTrack
 from .utils import matching
-from ..utils.ops import xywh2ltwh
 from ..utils import LOGGER
 
-class CentroidTrack(IOUTrack): # TODO: check if I need this or can just fully inherit IOUTrack
+class CentroidTrack(IOUTrack):
     """
     Single object tracking representation.
 
-    This class is responsible for storing all the information regarding individual tracklets. 
-    Uses simple euclidean distance matching. Lost tracks are not re-activated.
+    This class is responsible for storing all the information regarding individual tracklets. Uses simple IOU matching. Lost tracks are not re-activated.
 
-    Attributes: TODO
-        _count (int): Class-level counter for unique track IDs.
-        track_id (int): Unique identifier for the track.
-        is_activated (bool): Flag indicating whether the track is currently active.
-        state (TrackState): Current state of the track.
-        history (OrderedDict): Ordered history of the track's states.
-        features (list): List of features extracted from the object for tracking.
-        curr_feature (any): The current feature of the object being tracked.
-        score (float): The confidence score of the tracking.
-        start_frame (int): The frame number where tracking started.
-        frame_id (int): The most recent frame ID processed by the track.
-        time_since_update (int): Frames passed since the last update.
-        location (tuple): The location of the object in the context of multi-camera tracking.
-
-    Methods: TODO
-        activate: Abstract method to activate the track.
-        predict: Abstract method to predict the next state of the track.
-        update: Abstract method to update the track with new data.
+    Attributes:
+        img_h (int): Pixel height of image used to initialize tracklet
+        img_w (int): Pixel width of image used to initialize tracklet
     """
 
-    def __init__(self, xywh, score, cls):
+    def __init__(self, xywh, score, cls, img):
         """Initialize new centroidTrack instance."""
         super().__init__(xywh, score, cls)
+        self.img_h, self.img_w, _ = img.shape
     
     @property
     def centroid(self):
-        """Get current position as centroid of bounding box"""
-        ret = self.xywh.copy()
-        ret[:2]
-        return ret
+        """Get current position as normalized centroid of bounding box"""
+        xywh = self.xywh.copy()
+        xywh[..., [0, 2]] /= self.img_w
+        xywh[..., [1, 3]] /= self.img_h
+
+        return xywh[:2]
     
 
 class CentroidTracker:
@@ -55,25 +41,22 @@ class CentroidTracker:
     The class is responsible for initializing, updating, and managing the tracks for detected objects in a video
     sequence. It maintains the state of tracked, lost, and removed tracks over frames.
 
-    Attributes: TODO
+    Attributes:
         tracked_centroidtracks (list[STrack]): List of successfully activated tracks.
         lost_centroidtracks (list[STrack]): List of lost tracks.
         removed_centroidtracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
-        kalman_filter (object): Kalman Filter object.
 
     Methods: TODO
         update(results, img=None): Updates object tracker with new detections.
-        get_kalmanfilter(): Returns a Kalman filter object for tracking bounding boxes.
         init_track(dets, scores, cls, img=None): Initialize object tracking with detections.
         get_dists(tracks, detections): Calculates the distance between tracks and detections.
-        multi_predict(tracks): Predicts the location of tracks.
         reset_id(): Resets the ID counter of STrack.
         joint_centroidtracks(tlista, tlistb): Combines two lists of centroidtracks.
         sub_centroidtracks(tlista, tlistb): Filters out the centroidtracks present in the second list from the first list.
-        remove_duplicate_centroidtracks(centroidtracksa, centroidtracksb): Removes duplicate centroidtracks based on TODO
+        remove_duplicate_centroidtracks(centroidtracksa, centroidtracksb): Removes duplicate centroidtracks based on euclidean distance
     """
 
     def __init__(self, args, frame_rate=30):
@@ -87,7 +70,7 @@ class CentroidTracker:
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.reset_id()
 
-    def update(self, results, img=None):
+    def update(self, results, img):
         """Updates object tracker with new detections and returns tracked object bounding boxes."""
         self.frame_id += 1
         activated_centroidtracks = []
@@ -142,16 +125,9 @@ class CentroidTracker:
 
         return np.asarray([x.result for x in self.tracked_centroidtracks if x.is_activated], dtype=np.float32)
 
-    def init_track(self, dets, scores, cls, img=None):
-        """Initialize object tracking with detections and scores using CentroidTrack algorithm."""
-        return [CentroidTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
-
-    def get_dists(self, tracks, detections):
-        """Calculates the distance between tracks and detections using euclidean distance."""
-        dists = matching.iou_distance(tracks, detections)
-        # TODO: mot20
-        # if not self.args.mot20:
-        return dists
+    def init_track(self, dets, scores, cls, img):
+        """Initialize object tracking with detections and scores using centroid tracking algorithm."""
+        return [CentroidTrack(xyxy, s, c, img) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     @staticmethod
     def reset_id():
@@ -186,11 +162,10 @@ class CentroidTracker:
         track_ids_b = {t.track_id for t in tlistb}
         return [t for t in tlista if t.track_id not in track_ids_b]
 
-    @staticmethod
-    def remove_duplicate_centroidtracks(centroidtracksa, centroidtracksb):
-        """Remove duplicate centroidtracks with non-maximum TODO distance."""
-        pdist = matching.iou_distance(centroidtracksa, centroidtracksb)
-        pairs = np.where(pdist < 0.15)
+    def remove_duplicate_centroidtracks(self, centroidtracksa, centroidtracksb):
+        """Remove duplicate centroidtracks with non-maximum euclidean distance."""
+        pdist = self.get_dists(centroidtracksa, centroidtracksb)
+        pairs = np.where(pdist < 0.0001) # bit unclear what this should be
         dupa, dupb = [], []
         for p, q in zip(*pairs):
             timep = centroidtracksa[p].frame_id - centroidtracksa[p].start_frame
@@ -203,9 +178,9 @@ class CentroidTracker:
         resb = [t for i, t in enumerate(centroidtracksb) if i not in dupb]
         return resa, resb
     
-    def get_dists(self, tracks, detections):
-        """Calculates the distance between tracks and detections using IoU and fuses scores."""
-
+    @staticmethod
+    def get_dists(tracks, detections):
+        """Calculates the distance between tracks and detections using euclidean distance."""
         ctracks = [t.centroid for t in tracks]
         cdets = [d.centroid for d in detections]
         dists = np.zeros((len(ctracks), len(cdets)), dtype=np.float32)

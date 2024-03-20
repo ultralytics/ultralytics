@@ -243,7 +243,7 @@ class BasePredictor:
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
 
-                # check kwargs, if offline_tracking then skip inference and get results from batch
+                # if offline_tracking then skip inference and get results returned by dataset
                 if self.args.offline_tracking:
                     paths, im0s, s, results = self.batch
                     # Preprocess

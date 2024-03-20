@@ -128,7 +128,7 @@ def construct_bbox_struct(
         label_val = inverse_label_mapping[label] if inverse_label_mapping is not None else label
         bbox_struct['bb_list'].append(
             _TLCPredictedBoundingBox(
-                label_predicted=label_val,
+                label=label_val,
                 confidence=score,
                 iou=iou,
                 x0=bbox[0],

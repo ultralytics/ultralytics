@@ -197,7 +197,7 @@ class HUBTrainingSession:
             )
 
         if "data" not in self.train_args:
-            # Roboflow datasets are sometimes not exported
+            # RF bug - datasets are sometimes not exported
             raise ValueError("Dataset may still be processing. Please wait a minute and try again.")
 
         self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u

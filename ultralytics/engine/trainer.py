@@ -484,7 +484,7 @@ class BaseTrainer:
         # Freeze BN
         if self.args.freeze_bn:
             for n, m in self.model.named_modules():
-                if any(x in n for x in self.freeze_layer_names) and isinstance(m, nn.BatchNorm2d):
+                if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
                     m.eval()
 
     def save_model(self):

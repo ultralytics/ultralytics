@@ -86,9 +86,12 @@ def on_train_epoch_end(trainer):
     """Log training metrics at the end of each train epoch to MLflow."""
     if mlflow:
         mlflow.log_metrics(
-            metrics=SANITIZE(trainer.label_loss_items(trainer.tloss, prefix="train")), step=trainer.epoch
+            metrics={
+                **SANITIZE(trainer.lr),
+                **SANITIZE(trainer.label_loss_items(trainer.tloss, prefix="train")),
+            },
+            step=trainer.epoch,
         )
-        mlflow.log_metrics(metrics=SANITIZE(trainer.lr), step=trainer.epoch)
 
 
 def on_fit_epoch_end(trainer):
@@ -115,6 +118,7 @@ def on_train_end(trainer):
 callbacks = (
     {
         "on_pretrain_routine_end": on_pretrain_routine_end,
+        "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
     }

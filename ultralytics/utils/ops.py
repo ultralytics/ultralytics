@@ -75,7 +75,6 @@ def segment2box(segment, width=640, height=640):
     Returns:
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
-    # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
@@ -174,6 +173,7 @@ def non_max_suppression(
     max_time_img=0.05,
     max_nms=30000,
     max_wh=7680,
+    in_place=True,
     rotated=False,
 ):
     """
@@ -198,7 +198,8 @@ def non_max_suppression(
         nc (int, optional): The number of classes output by the model. Any indices after this will be considered masks.
         max_time_img (float): The maximum time (seconds) for processing one image.
         max_nms (int): The maximum number of boxes into torchvision.ops.nms().
-        max_wh (int): The maximum box width and height in pixels
+        max_wh (int): The maximum box width and height in pixels.
+        in_place (bool): If True, the input prediction tensor will be modified in place.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
@@ -225,7 +226,10 @@ def non_max_suppression(
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     if not rotated:
-        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        if in_place:
+            prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        else:
+            prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
@@ -362,8 +366,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     else:
         # gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))  # y, x
-    bottom, right = (int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1)))
+    top, left = int(pad[1]), int(pad[0])  # y, x
+    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -547,7 +551,7 @@ def xywhr2xyxyxyxy(rboxes):
     be in degrees from 0 to 90.
 
     Args:
-        rboxes (numpy.ndarray | torch.Tensor): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
+        rboxes (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
 
     Returns:
         (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
@@ -634,7 +638,7 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): The masks are being cropped to the bounding box.
     """
-    n, h, w = masks.shape
+    _, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
@@ -681,12 +685,14 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
+    width_ratio = mw / iw
+    height_ratio = mh / ih
 
     downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= mw / iw
-    downsampled_bboxes[:, 2] *= mw / iw
-    downsampled_bboxes[:, 3] *= mh / ih
-    downsampled_bboxes[:, 1] *= mh / ih
+    downsampled_bboxes[:, 0] *= width_ratio
+    downsampled_bboxes[:, 2] *= width_ratio
+    downsampled_bboxes[:, 3] *= height_ratio
+    downsampled_bboxes[:, 1] *= height_ratio
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
@@ -730,8 +736,8 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
-    bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
+    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
+    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW

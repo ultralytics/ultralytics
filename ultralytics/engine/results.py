@@ -379,7 +379,7 @@ class Results(SimpleClass):
                             "top5": r.probs.top5 if probs else None,
                             "top5conf": r.probs.top5conf if probs else None,
                         }
-                        for n in range(max(len(lbl_idx or []), 1))
+                        for n in range(max(len(lbl_idx) if lbl_idx is not None else 0, 1))
                     }
                 }
             }

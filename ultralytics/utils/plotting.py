@@ -172,7 +172,10 @@ class Annotator:
                 p1 = (box[0], box[1])
                 self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
-                w, h = self.font.getsize(label)  # text width, height
+                if hasattr(self.font, 'getsize'):
+                    w, h = self.font.getsize(label)  # text width, height
+                else:
+                    w, h = self.font.getbbox(label)[2:4]
                 outside = p1[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),

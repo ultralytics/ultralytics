@@ -361,10 +361,10 @@ class Results(SimpleClass):
                         n: {
                             "label": self.names.get(
                                 lbl_idx[n] if any(np.array(lbl_idx).shape) and lbl_idx is not None else None
-                                ),
+                            ),
                             "conf": (
                                 float(all_conf[n]) if any(np.array(lbl_idx).shape) and all_conf is not None else None
-                                ),
+                            ),
                             "id": int(all_ids[n]) if all_ids is not None else None,
                             "xyxy": r.boxes.xyxy[n] if box else None,
                             "nxyxy": r.boxes.xyxyn[n] if box else None,

@@ -359,8 +359,12 @@ class Results(SimpleClass):
                 Path(self.path).name: {
                     "detections": {
                         n: {
-                            "label": self.names.get(lbl_idx[n] if np.array(lbl_idx).any() else None),
-                            "conf": float(all_conf[n]) if np.array(all_conf).any() else None,
+                            "label": self.names.get(
+                                lbl_idx[n] if any(np.array(lbl_idx).shape) and lbl_idx is not None else None
+                                ),
+                            "conf": (
+                                float(all_conf[n]) if any(np.array(lbl_idx).shape) and all_conf is not None else None
+                                ),
                             "id": int(all_ids[n]) if all_ids is not None else None,
                             "xyxy": r.boxes.xyxy[n] if box else None,
                             "nxyxy": r.boxes.xyxyn[n] if box else None,
@@ -370,14 +374,14 @@ class Results(SimpleClass):
                             "mask-xyn": self.masks.xyn[n] if mask and box else None,  # NOTE cpu+numpy missing attr
                             "kp-xy": r.keypoints.xy[n] if kp and box else None,
                             "kp-xyn": r.keypoints.xyn[n] if kp and box else None,
-                            "kp-conf": r.keypoints.conf[n] if kp and box else None,
+                            "kp-conf": [float(kpc) for kpc in r.keypoints.conf[n]] if kp and box else None,
                             "xywhr": r.obb.xywhr[n] if obb else None,
                             "xyxyxyxy": r.obb.xyxyxyxy[n] if obb else None,
                             "xyxyxyxyn": r.obb.xyxyxyxyn[n] if obb else None,
-                            "top1": r.probs.top1 if probs else None,
-                            "top1conf": r.probs.top1conf if probs else None,
-                            "top5": r.probs.top5 if probs else None,
-                            "top5conf": r.probs.top5conf if probs else None,
+                            "top1": float(r.probs.top1) if probs else None,
+                            "top1conf": float(r.probs.top1conf) if probs else None,
+                            "top5": [float(p) for p in r.probs.top5] if probs else None,
+                            "top5conf": [float(p) for p in r.probs.top5conf] if probs else None,
                         }
                         for n in range(max(len(lbl_idx) if lbl_idx is not None else 0, 1))
                     }

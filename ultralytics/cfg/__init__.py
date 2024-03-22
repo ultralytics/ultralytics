@@ -219,33 +219,46 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
+    check_cfg_types(cfg)
+
+    # Return instance
+    return IterableSimpleNamespace(**cfg)
+
+
+def check_cfg_types(cfg, hard=True):
+    """Check Ultralytics configuration argument types and values."""
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
-                raise TypeError(
-                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                )
-            elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, (int, float)):
+                if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
+                cfg[k] = float(v)
+            elif k in CFG_FRACTION_KEYS:
+                if not isinstance(v, (int, float)):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                        )
+                    cfg[k] = float(v)
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
-                raise TypeError(
-                    f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
-                )
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
+                    )
+                cfg[k] = int(v)
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
-                raise TypeError(
-                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                    f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
-                )
-
-    # Return instance
-    return IterableSimpleNamespace(**cfg)
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                    )
+                cfg[k] = bool(v)
 
 
 def get_save_dir(args, name=None):

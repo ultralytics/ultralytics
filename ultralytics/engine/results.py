@@ -419,16 +419,17 @@ class Results(SimpleClass):
         df_out = df_in if df_in is not None and isinstance(df_in, DataFrame) else DataFrame()
         od = self.asdict()
         k = next(iter(od.keys()))
+        detections = od.get(k).get("detections")
         # Construct DataFrame with Multi-Index
-        cols = list(od.get(k).get("detections").get(0, {}).keys())
+        cols = list(detections.get(0, {}).keys())
         idx = MultiIndex.from_product(
-            [[k], [*list(od.get(k).get("detections").keys())]],
+            [[k], [*list(detections.keys())]],
             names=["image", "detections"],
         )
         df = DataFrame(index=idx, columns=cols)  # empty
         # Fill DataFrame
         for ri, row in enumerate(df.iterrows()):
-            row = od.get(k).get("detections").get(ri)
+            row = detections.get(ri)
             df.iloc[ri] = row
         # Append to existing DataFrame
         df_out = df_out._append(df)

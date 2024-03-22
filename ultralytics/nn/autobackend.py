@@ -511,11 +511,7 @@ class AutoBackend(nn.Module):
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
             with self.net.create_extractor() as ex:
                 ex.input(self.net.input_names()[0], mat_in)
-                y = []
-                for output_name in self.net.output_names():
-                    mat_out = self.pyncnn.Mat()
-                    ex.extract(output_name, mat_out)
-                    y.append(np.array(mat_out)[None])
+                y = [np.array(ex.extract(x)[1])[None] for x in self.net.output_names()]
 
         # NVIDIA Triton Inference Server
         elif self.triton:

@@ -219,7 +219,6 @@ class BaseValidator:
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             if self.args.task == "segment":
-                # print("Number of Predicted Instances:", self.pred_instances.numpy())
                 print("mIoU:", mean_iou.cpu().numpy())
             LOGGER.info(
                 "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"

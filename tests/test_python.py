@@ -6,6 +6,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from pandas import DataFrame
 import pytest
 import torch
 import yaml
@@ -15,6 +16,7 @@ from torchvision.transforms import ToTensor
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
+from ultralytics.engine.results import Results
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -35,6 +37,7 @@ from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
 CFG = "yolov8n.yaml"
 SOURCE = ASSETS / "bus.jpg"
+BLANK = np.ones((640, 640, 3), dtype=np.uint8) * 120 # blank image test for no detections
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
 
@@ -332,6 +335,95 @@ def test_results():
             r.plot(pil=True)
             r.plot(conf=True, boxes=True)
             print(r, len(r), r.path)
+
+
+# Used for testing the asdict and to_pandas methods
+DEFAULT = {"label", "conf",} # NOTE no "id"
+BOX = {"xyxy","nxyxy","xywh","nxywh",}
+MASK = {"mask-xy","mask-xyn",}
+KP = {"kp-xy","kp-xyn","kp-conf",}
+OBB = {"xywhr","xyxyxyxy","xyxyxyxyn",}
+PROB = {"top1","top1conf","top5","top5conf",}
+COLS = {*DEFAULT, *BOX, *MASK, *KP, *OBB, *PROB, "id"}
+PRED = {
+    "detect": {*DEFAULT, *BOX},
+    "segment": {*DEFAULT, *MASK},
+    "classify": {*DEFAULT, *PROB},
+    "pose": {*DEFAULT, *KP},
+    "obb": {*DEFAULT, *OBB},
+}
+CHECK = {
+    Path(SOURCE).name:[str, int, float, list, np.int_, np.float_],
+    "image1.jpg":[type(None),],
+}
+TASKS = {
+    "detect": MODEL.with_name("yolov8n.pt"),
+    "segment": MODEL.with_name("yolov8n-seg.pt"),
+    "classify": MODEL.with_name("yolov8n-cls.pt"),
+    "pose": MODEL.with_name("yolov8n-pose.pt"),
+    "obb": MODEL.with_name("yolov8n-obb.pt"),
+}
+
+def test_results_asdict() -> None:
+    """Test the asdict method of the Results object."""
+    def unpack(nested:list) -> list:
+        """Unpack a level-1 nested list."""
+        return [item for sublist in nested for item in sublist]
+    
+    # Check for all tasks
+    for t,m in TASKS.items():
+        model = YOLO(m)
+        results:list[Results] = model.predict([SOURCE, BLANK])
+
+        # Check the asdict method for case with and without detections
+        for result in results:
+            filename = Path(result.path).name
+            result_dict = result.asdict().get(filename)
+
+            # Check if the result_dict is a dictionary
+            assert isinstance(result_dict, dict)
+            assert result.result_dict.get(filename) == result_dict
+
+            # Check if the keys in the result_dict are correct
+            one_detection = result_dict.get("detections").get(0)
+            assert all(key in one_detection for key in PRED.get(t))
+            # Check if the values in the result_dict are of the correct type
+            if t != "classify":
+                assert all(
+                    isinstance(v, tuple(CHECK.get(filename))) for k, v in one_detection.items() if k in PRED.get(t)
+                    )
+            else: # classify may have numeric, list, or None types
+                assert all(
+                    isinstance(v, tuple(unpack(CHECK.values()))) for k, v in one_detection.items() if k in PRED.get(t)
+                    )
+
+
+def test_results_to_pandas() -> None:
+    """Test the to_pandas method of the Results object."""
+    # Check for all tasks
+    for t,m in TASKS.items():
+        model = YOLO(m)
+        results:list[Results] = model.predict([SOURCE, BLANK])
+        
+        pd_df = None # multi image results
+        files = []
+        # Check the to_pandas method for case with and without detections
+        for result in results:
+            filename = Path(result.path).name
+            files.append(filename)
+            pd_df = result.to_pandas(pd_df)
+            
+            # Check type and columns
+            assert isinstance(pd_df, DataFrame)
+            columns = pd_df.columns
+            assert {*columns} == COLS
+            
+            # Check data types, skip no-detections case
+            if Path(SOURCE).name == filename:
+                assert all([isinstance(v, tuple(CHECK.get(filename))) for v in pd_df[list(PRED.get(t))].iloc[0]])    
+        
+        # Check indexing
+        assert pd_df.index.get_level_values(0).unique().tolist() == files
 
 
 def test_labels_and_crops():

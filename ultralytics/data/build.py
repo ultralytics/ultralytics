@@ -129,7 +129,7 @@ def check_source(source):
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
-        is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+        is_file = Path(source).suffix[1:] in (IMG_FORMATS | VID_FORMATS)
         is_url = source.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source.lower() == "screen"

@@ -221,7 +221,6 @@ class BaseValidator:
             if self.args.task == "segment":
                 # print("Number of Predicted Instances:", self.pred_instances.numpy())
                 print("mIoU:", mean_iou.cpu().numpy())
-                # print("Class mIoU:", mean_iou_list.cpu().numpy())
             LOGGER.info(
                 "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"
                 % tuple(self.speed.values())

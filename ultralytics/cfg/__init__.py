@@ -30,8 +30,8 @@ from ultralytics.utils import (
 )
 
 # Define valid tasks and modes
-MODES = "train", "val", "predict", "export", "track", "benchmark"
-TASKS = "detect", "segment", "classify", "pose", "obb"
+MODES = {"train", "val", "predict", "export", "track", "benchmark"}
+TASKS = {"detect", "segment", "classify", "pose", "obb"}
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -93,8 +93,8 @@ CLI_HELP_MSG = f"""
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = "warmup_epochs", "box", "cls", "dfl", "degrees", "shear", "time"
-CFG_FRACTION_KEYS = (
+CFG_FLOAT_KEYS = {"warmup_epochs", "box", "cls", "dfl", "degrees", "shear", "time"}
+CFG_FRACTION_KEYS = {
     "dropout",
     "iou",
     "lr0",
@@ -118,8 +118,8 @@ CFG_FRACTION_KEYS = (
     "conf",
     "iou",
     "fraction",
-)  # fraction floats 0.0 - 1.0
-CFG_INT_KEYS = (
+}  # fraction floats 0.0 - 1.0
+CFG_INT_KEYS = {
     "epochs",
     "patience",
     "batch",
@@ -133,8 +133,8 @@ CFG_INT_KEYS = (
     "workspace",
     "nbs",
     "save_period",
-)
-CFG_BOOL_KEYS = (
+}
+CFG_BOOL_KEYS = {
     "save",
     "exist_ok",
     "verbose",
@@ -169,7 +169,7 @@ CFG_BOOL_KEYS = (
     "nms",
     "profile",
     "multi_scale",
-)
+}
 
 
 def cfg2dict(cfg):

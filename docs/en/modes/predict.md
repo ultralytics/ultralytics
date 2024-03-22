@@ -464,24 +464,28 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary of class names.                                                             |
 | `path`       | `str`                 | The path to the image file.                                                              |
+| `result_dict`| `dict`                | The results python dictionary, populated after using `asdict` or `to_pandas` methods     |
 
 `Results` objects have the following methods:
 
-| Method        | Return Type     | Description                                                                         |
-|---------------|-----------------|-------------------------------------------------------------------------------------|
-| `update()`    | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
-| `cpu()`       | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                 |
-| `numpy()`     | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.               |
-| `cuda()`      | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                 |
-| `to()`        | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
-| `new()`       | `Results`       | Return a new Results object with the same image, path, and names.                   |
-| `plot()`      | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
-| `show()`      | `None`          | Show annotated results to screen.                                                   |
-| `save()`      | `None`          | Save annotated results to file.                                                     |
-| `verbose()`   | `str`           | Return log string for each task.                                                    |
-| `save_txt()`  | `None`          | Save predictions into a txt file.                                                   |
-| `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `tojson()`    | `str`           | Convert the object to JSON format.                                                  |
+| Method         | Return Type        | Description                                                                         |
+|----------------|--------------------|-------------------------------------------------------------------------------------|
+| `update()`     | `None`             | Update the boxes, masks, and probs attributes of the Results object.                |
+| `cpu()`        | `Results`          | Return a copy of the Results object with all tensors on CPU memory.                 |
+| `numpy()`      | `Results`          | Return a copy of the Results object with all tensors as numpy arrays.               |
+| `cuda()`       | `Results`          | Return a copy of the Results object with all tensors on GPU memory.                 |
+| `to()`         | `Results`          | Return a copy of the Results object with tensors on the specified device and dtype. |
+| `new()`        | `Results`          | Return a new Results object with the same image, path, and names.                   |
+| `plot()`       | `numpy.ndarray`    | Plots the detection results. Returns a numpy array of the annotated image.          |
+| `show()`       | `None`             | Show annotated results to screen.                                                   |
+| `save()`       | `None`             | Save annotated results to file.                                                     |
+| `verbose()`    | `str`              | Return log string for each task.                                                    |
+| `asdict()`     | `dict`             | Generate and return python dictionary of results for all task types                 |
+| `to_pandas()`  | `pandas.DataFrame` | Uses a python dictionary to create a Pandas `DataFrame` of results                  |
+| `save_txt()`   | `None`             | Save predictions into a txt file.                                                   |
+| `save_csv()`   | `None`             | Save data results of single instance to CSV file using the provided CSV filepath    |
+| `save_crop()`  | `None`             | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
+| `tojson()`     | `str`              | Convert the object to JSON format.                                                  |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
@@ -662,6 +666,45 @@ Here is a table for the `OBB` class methods and properties, including their name
 | `xyxyxyxyn` | Property (`torch.Tensor`) | Return the rotated boxes in xyxyxyxy format normalized by image size. |
 
 For more details see the [`OBB` class documentation](../reference/engine/results.md#ultralytics.engine.results.OBB).
+
+### Pandas Results
+
+The Pandas python library has a robust [File-IO API](https://pandas.pydata.org/docs/user_guide/io.html), which provides flexibility to export to multiple file formats. With the structure of a `DataFrame`, one of the most obvious output formats is to CSV file. Using the `Results.to_pandas()` method, it's possible to generate a `DataFrame` with detection results that can be then saved to any compatible file format. For simply saving results to a CSV file directly, you can use the `Results.save_csv()` method.
+
+#### Save one CSV file per image
+
+```python
+from pathlib import Path
+
+from ultralytics import YOLO
+
+model = YOLO('yolov8s.pt')
+results = model.predict(['ultralytics/assets/bus.jpg', 'ultralytics/assets/zidane.jpg'])
+
+# Save each image result as it's own CSV file
+for n, result in enumerate(results):
+    result.save_csv(f"my_results-{n}.csv")
+```
+
+#### Save single CSV file for all images
+
+```python
+from pathlib import Path
+
+from ultralytics import YOLO
+
+model = YOLO('yolov8s.pt')
+results = model.predict(['ultralytics/assets/bus.jpg', 'ultralytics/assets/zidane.jpg'])
+
+# Save a single CSV for all detections
+df = None # initialize variable for DataFrame
+for result in results:
+    df = result.to_pandas(df)
+
+df.to_csv("my_detection_results.csv")
+
+# Use DataFrame File-IO API for saving to other formats
+```
 
 ## Plotting Results
 

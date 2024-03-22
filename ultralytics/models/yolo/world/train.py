@@ -11,7 +11,7 @@ import itertools
 try:
     import clip
 except ImportError:
-    check_requirements("git+https://github.com/openai/CLIP.git")
+    check_requirements("git+https://github.com/ultralytics/CLIP.git")
     import clip
 
 

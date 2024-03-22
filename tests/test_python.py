@@ -364,8 +364,70 @@ TASKS = {
     "obb": MODEL.with_name("yolov8n-obb.pt"),
 }
 
+
+def test_to_py_types()-> None:
+    """Test the ultralytics.utils.ops.to_py_types function."""
+    from ultralytics.utils.ops import to_py_types
+    # Test case 1: Test with an empty dictionary
+    input_dict = {}
+    expected_dict = {}
+    assert to_py_types(input_dict) == expected_dict
+
+    # Test case 2: Test with a dictionary containing only None values
+    input_dict = {
+        "key1": None,
+        "key2": np.array([None] * 4),
+    }
+    expected_dict = {
+        "key1": None,
+        "key2": [None] * 4,
+    }
+    assert to_py_types(input_dict) == expected_dict
+
+    # Test case 3: Test with a dictionary containing different types of values
+    input_dict = {
+        "key1": np.int_(10),
+        "key2": np.float_(np.pi),
+        "key3": "hello",
+        "key4": [1, 2, 3],
+        "key5": None,
+        "key6": [
+            np.array([1, 2, 3]),
+            ("four", "five", "six", 
+             np.array([0.7, 8.8, 9.1]))
+        ],
+        "key10": {
+            "nested_key1": np.int_(20),
+            "nested_key2": np.float_(2.71)
+        },
+        "key11": {
+            "nested_key3": np.array("Ultralytics YOLO"),
+            "nested_key4": np.array([[4, 5, 6], [0.1, 0.2, 0.3]]),
+            "nested_key5": torch.ones(3,2),
+        }
+    }
+    expected_dict = {
+        "key1": int(10),
+        "key2": float(np.pi),
+        "key3": "hello",
+        "key4": [1, 2, 3],
+        "key5": None,
+        "key6": [[1, 2, 3], ("four", "five", "six", [0.7, 8.8, 9.1])],
+        "key10": {
+            "nested_key1": int(20),
+            "nested_key2": float(2.71)
+        },
+        "key11": {
+            "nested_key3": "Ultralytics YOLO",
+            "nested_key4": [[4, 5, 6], [0.1, 0.2, 0.3]],
+            "nested_key5": [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
+        }
+    }
+    assert to_py_types(input_dict) == expected_dict
+
+
 def test_results_asdict() -> None:
-    """Test the asdict method of the Results object."""
+    """Test the ultralytics.engine.results.Results.asdict method."""
     def unpack(nested:list) -> list:
         """Unpack a level-1 nested list."""
         return [item for sublist in nested for item in sublist]
@@ -399,7 +461,7 @@ def test_results_asdict() -> None:
 
 
 def test_results_to_pandas() -> None:
-    """Test the to_pandas method of the Results object."""
+    """Test ultralytics.engine.results.Results.to_pandas method."""
     # Check for all tasks
     for t,m in TASKS.items():
         model = YOLO(m)
@@ -412,7 +474,7 @@ def test_results_to_pandas() -> None:
             filename = Path(result.path).name
             files.append(filename)
             pd_df = result.to_pandas(pd_df)
-            
+
             # Check type and columns
             assert isinstance(pd_df, DataFrame)
             columns = pd_df.columns

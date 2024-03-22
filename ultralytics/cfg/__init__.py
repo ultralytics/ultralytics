@@ -464,10 +464,10 @@ def entrypoint(debug=""):
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign
         if a.startswith("--"):
-            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
             a = a[2:]
         if a.endswith(","):
-            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
             a = a[:-1]
         if "=" in a:
             try:
@@ -504,7 +504,7 @@ def entrypoint(debug=""):
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
-        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
     elif mode not in MODES:
         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
@@ -520,7 +520,7 @@ def entrypoint(debug=""):
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
         model = "yolov8n.pt"
-        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
     if "rtdetr" in stem:  # guess architecture
@@ -554,15 +554,15 @@ def entrypoint(debug=""):
     # Mode
     if mode in ("predict", "track") and "source" not in overrides:
         overrides["source"] = DEFAULT_CFG.source or ASSETS
-        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
     elif mode in ("train", "val"):
         if "data" not in overrides and "resume" not in overrides:
             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
     elif mode == "export":
         if "format" not in overrides:
             overrides["format"] = DEFAULT_CFG.format or "torchscript"
-            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     getattr(model, mode)(**overrides)  # default args from model

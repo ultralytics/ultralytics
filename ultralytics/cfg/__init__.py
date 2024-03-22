@@ -219,13 +219,13 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
-    check_cfg_types(cfg)
+    check_cfg(cfg)
 
     # Return instance
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg_types(cfg, hard=True):
+def check_cfg(cfg, hard=True):
     """Check Ultralytics configuration argument types and values."""
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args

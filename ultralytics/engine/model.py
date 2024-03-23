@@ -225,7 +225,8 @@ class Model(nn.Module):
             task (str | None): model task
         """
         # Download HUB weights before attempting to load pt weights
-        weights = weights if Path(weights).suffix == ".pt" else checks.check_file(weights)
+        if Path(weights).suffix != ".pt":
+            weights = checks.check_file(weights)
         if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args["task"]

@@ -886,6 +886,7 @@ class Format:
         mask_ratio (int): Downsample ratio for masks. Default is 4.
         mask_overlap (bool): Whether to overlap masks. Default is True.
         batch_idx (bool): Keep batch indexes. Default is True.
+        bgr (float): The probability to return BGR images. Default is 0.0.
     """
 
     def __init__(
@@ -898,6 +899,7 @@ class Format:
         mask_ratio=4,
         mask_overlap=True,
         batch_idx=True,
+        bgr=0.0,
     ):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
@@ -908,6 +910,7 @@ class Format:
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
+        self.bgr = bgr
 
     def __call__(self, labels):
         """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
@@ -948,7 +951,8 @@ class Format:
         """Format the image for YOLO from Numpy array to PyTorch tensor."""
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+        img = img.transpose(2, 0, 1)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
         img = torch.from_numpy(img)
         return img
 

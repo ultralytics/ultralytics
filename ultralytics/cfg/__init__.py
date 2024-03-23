@@ -112,6 +112,7 @@ CFG_FRACTION_KEYS = {
     "perspective",
     "flipud",
     "fliplr",
+    "bgr",
     "mosaic",
     "mixup",
     "copy_paste",

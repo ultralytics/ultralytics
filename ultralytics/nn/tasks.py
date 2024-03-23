@@ -48,7 +48,6 @@ from ultralytics.nn.modules import (
     SPPELAN,
     CBFuse,
     CBLinear,
-    Silence,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -572,7 +571,7 @@ class WorldModel(DetectionModel):
             check_requirements("git+https://github.com/openai/CLIP.git")
             import clip
 
-        if not self.clip_model:
+        if not getattr(self, "clip_model"):  # for backwards compatibility of models lacking clip_model attribute
             self.clip_model = clip.load("ViT-B/32")[0]
         device = next(self.clip_model.parameters()).device
         text_token = clip.tokenize(text).to(device)

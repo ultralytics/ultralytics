@@ -385,13 +385,11 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def tojson(self, normalize=False):
-        """Convert the object to JSON format."""
+    def summary(self, normalize=False):
+        """Convert the results to a summarized format."""
         if self.probs is not None:
-            LOGGER.warning("Warning: Classify task do not support `tojson` yet.")
+            LOGGER.warning("Warning: Classify task do not support `summary` and `tojson` yet.")
             return
-
-        import json
 
         # Create list of detection dictionaries
         results = []
@@ -413,8 +411,13 @@ class Results(SimpleClass):
                 result["keypoints"] = {"x": (x / w).tolist(), "y": (y / h).tolist(), "visible": visible.tolist()}
             results.append(result)
 
-        # Convert detections to JSON
-        return json.dumps(results, indent=2)
+        return results
+
+    def tojson(self, normalize=False):
+        """Convert the results to JSON format."""
+        import json
+
+        return json.dumps(self.summary(normalize=normalize), indent=2)
 
 
 class Boxes(BaseTensor):

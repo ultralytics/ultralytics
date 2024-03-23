@@ -48,7 +48,7 @@ def run_ray_tune(
         from ray.air.integrations.wandb import WandbLoggerCallback
         from ray.tune.schedulers import ASHAScheduler
     except ImportError:
-        raise ModuleNotFoundError('Ray Tune required but not found. Install with: pip install "ray[tune]<=2.9.3"')
+        raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]<=2.9.3"')
 
     try:
         import wandb

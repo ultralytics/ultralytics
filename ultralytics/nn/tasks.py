@@ -572,7 +572,7 @@ class WorldModel(DetectionModel):
             check_requirements("git+https://github.com/openai/CLIP.git")
             import clip
 
-        if not self.clip_model:
+        if not getattr(self, "clip_model", None):  # for backwards compatibility of models lacking clip_model attribute
             self.clip_model = clip.load("ViT-B/32")[0]
         device = next(self.clip_model.parameters()).device
         text_token = clip.tokenize(text).to(device)

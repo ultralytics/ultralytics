@@ -561,7 +561,6 @@ class WorldModel(DetectionModel):
     def __init__(self, cfg="yolov8s-world.yaml", ch=3, nc=None, verbose=True):
         """Initialize YOLOv8 world model with given config and parameters."""
         self.txt_feats = torch.randn(1, nc or 80, 512)  # features placeholder
-        self.clip_model = None  # CLIP model placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def set_classes(self, text):
@@ -571,7 +570,8 @@ class WorldModel(DetectionModel):
         except ImportError:
             check_requirements("git+https://github.com/openai/CLIP.git")
             import clip
-
+        
+        self.clip_model = None  # CLIP model placeholder
         if not self.clip_model:
             self.clip_model = clip.load("ViT-B/32")[0]
         device = next(self.clip_model.parameters()).device

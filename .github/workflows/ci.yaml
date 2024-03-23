@@ -242,9 +242,9 @@ jobs:
           activate-environment: anaconda-client-env
       - name: Install Linux packages
         run: |
-          # Fix cv2 ImportError: libEGL.so.1: cannot open shared object file: No such file or directory
-          sudo apt-get update
-          sudo apt-get install -y libgl1 libegl1-mesa libopengl0
+          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+          sudo apt update
+          sudo apt install -y libgl1 libegl1-mesa libopengl0
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba

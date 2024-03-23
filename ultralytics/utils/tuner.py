@@ -40,7 +40,7 @@ def run_ray_tune(
         train_args = {}
 
     try:
-        subprocess.run("pip install 'ray[tune]<=2.9.3'".split(), check=True)
+        subprocess.run("pip install ray[tune]<=2.9.3".split(), check=True)  # do not add single quotes here
 
         import ray
         from ray import tune

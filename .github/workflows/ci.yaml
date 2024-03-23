@@ -187,7 +187,8 @@ jobs:
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install mlflow pycocotools 'ray[tune]'
+              # WARNING bug in ray>=2.10.0
+              pip install mlflow pycocotools "ray[tune]<=2.9.3"
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/

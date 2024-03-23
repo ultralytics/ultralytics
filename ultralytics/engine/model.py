@@ -119,6 +119,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
@@ -134,8 +135,7 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
-        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        self.model_name = str(model).strip()
+        self.model_name = model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         if Path(model).suffix in (".yaml", ".yml"):
             self._new(model, task=task, verbose=verbose)
         else:
@@ -188,8 +188,8 @@ class Model(nn.Module):
         return any(
             (
                 model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
-                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
-                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODELID
+                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODEL
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODEL
             )
         )
 

@@ -82,6 +82,8 @@ Here is a list of the supported datasets and a brief description for each:
 - [**VisDrone**](visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
 - [**VOC**](voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.
 - [**xView**](xview.md): A dataset containing high-resolution satellite imagery, designed for the detection of various object classes in overhead views.
+- [**Brain-tumor**](brain-tumor.md): This dataset comprises MRI or CT scan images containing information about brain tumor presence, location, and characteristics. It plays a crucial role in training computer vision models to automate tumor identification, facilitating early diagnosis and treatment planning.
+- [**African-wildlife**](african-wildlife.md): Featuring images of African wildlife such as buffalo, elephant, rhino, and zebra, this dataset is instrumental in training computer vision models. It is indispensable for identifying animals across different habitats and contributes significantly to wildlife research endeavors.
 
 ### Adding your own dataset
 

@@ -78,6 +78,7 @@ def run_ray_tune(
         "perspective": tune.uniform(0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
+        "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)

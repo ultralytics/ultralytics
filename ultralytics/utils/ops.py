@@ -14,6 +14,8 @@ import torchvision
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import batch_probiou
 
+from numba import njit
+
 
 class Profile(contextlib.ContextDecorator):
     """
@@ -62,13 +64,13 @@ class Profile(contextlib.ContextDecorator):
             torch.cuda.synchronize(self.device)
         return time.time()
 
-
+@njit()
 def segment2box(segment, width=640, height=640):
     """
     Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy).
 
     Args:
-        segment (torch.Tensor): the segment label
+        segment (np.ndarray): the segment label
         width (int): the width of the image. Defaults to 640
         height (int): The height of the image. Defaults to 640
 
@@ -81,7 +83,7 @@ def segment2box(segment, width=640, height=640):
     y = y[inside]
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if any(x)
+        if np.any(x)
         else np.zeros(4, dtype=segment.dtype)
     )  # xyxy
 
@@ -313,9 +315,14 @@ def clip_boxes(boxes, shape):
         boxes[..., 1] = boxes[..., 1].clamp(0, shape[0])  # y1
         boxes[..., 2] = boxes[..., 2].clamp(0, shape[1])  # x2
         boxes[..., 3] = boxes[..., 3].clamp(0, shape[0])  # y2
+        return boxes
     else:  # np.array (faster grouped)
-        boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
-        boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
+        return _numba_clip_boxes(boxes, shape)
+
+@njit()
+def _numba_clip_boxes(boxes, shape):
+    boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
+    boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
     return boxes
 
 
@@ -386,7 +393,20 @@ def xyxy2xywh(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    if (isinstance(x, torch.Tensor)):
+        y = torch.empty_like(x)
+        y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
+        y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
+        y[..., 2] = x[..., 2] - x[..., 0]  # width
+        y[..., 3] = x[..., 3] - x[..., 1]  # height
+        return y
+    else:
+        return _numba_xyxy2xywh(x)
+
+
+@njit()
+def _numba_xyxy2xywh(x):
+    y = np.empty_like(x)  # faster than clone/copy
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
     y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
     y[..., 2] = x[..., 2] - x[..., 0]  # width
@@ -406,7 +426,21 @@ def xywh2xyxy(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    if (isinstance(x, torch.Tensor)):
+        y = torch.empty_like(x) # faster than clone/copy
+        dw = x[..., 2] / 2  # half-width
+        dh = x[..., 3] / 2  # half-height
+        y[..., 0] = x[..., 0] - dw  # top left x
+        y[..., 1] = x[..., 1] - dh  # top left y
+        y[..., 2] = x[..., 0] + dw  # bottom right x
+        y[..., 3] = x[..., 1] + dh  # bottom right y
+        return y
+    else:
+        return _numba_xywh2xyxy(x)
+
+@njit()
+def _numba_xywh2xyxy(x):
+    y = np.empty_like(x)  # faster than clone/copy
     dw = x[..., 2] / 2  # half-width
     dh = x[..., 3] / 2  # half-height
     y[..., 0] = x[..., 0] - dw  # top left x
@@ -431,7 +465,19 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    if (isinstance(x, torch.Tensor)):
+        y = torch.empty_like(x)  # faster than clone/copy
+        y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
+        y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
+        y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
+        y[..., 3] = h * (x[..., 1] + x[..., 3] / 2) + padh  # bottom right y
+        return y
+    else:
+        return _numba_xywhn2xyxy(x, w, h, padw, padh)
+
+@njit
+def _numba_xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
+    y = np.empty_like(x)  # faster than clone/copy
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
     y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
     y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
@@ -454,16 +500,29 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
     """
+    if isinstance(x, torch.Tensor):
+        if clip:
+            x = clip_boxes(x, (h - eps, w - eps))
+        assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
+        y = torch.empty_like(x)  # faster than clone/copy
+        y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
+        y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
+        y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
+        y[..., 3] = (x[..., 3] - x[..., 1]) / h  # height
+        return y
+    else: 
+        return _numba_xyxy2xywhn(x, w, h)
+
+@njit()
+def _numba_xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     if clip:
-        x = clip_boxes(x, (h - eps, w - eps))
-    assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+        x = _numba_clip_boxes(x, (h - eps, w - eps))
+    y = np.empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
     y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
     y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
     y[..., 3] = (x[..., 3] - x[..., 1]) / h  # height
     return y
-
 
 def xywh2ltwh(x):
     """
@@ -491,11 +550,20 @@ def xyxy2ltwh(x):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in the xyltwh format.
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    if isinstance(x, torch.Tensor):
+        y = x.clone()
+        y[..., 2] = x[..., 2] - x[..., 0]  # width
+        y[..., 3] = x[..., 3] - x[..., 1]  # height
+        return y
+    else:
+        return _numba_xyxy2ltwh(x)
+
+@njit()
+def _numba_xyxy2ltwh(x):
+    y =  np.copy(x)
     y[..., 2] = x[..., 2] - x[..., 0]  # width
     y[..., 3] = x[..., 3] - x[..., 1]  # height
     return y
-
 
 def ltwh2xywh(x):
     """
@@ -507,7 +575,17 @@ def ltwh2xywh(x):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in the xywh format.
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    if isinstance(x, torch.Tensor):
+        y = x.clone()
+        y[..., 0] = x[..., 0] + x[..., 2] / 2  # center x
+        y[..., 1] = x[..., 1] + x[..., 3] / 2  # center y
+        return y
+    else:
+        return _numba_ltwh2xywh(x)
+    
+@njit()
+def _numba_ltwh2xywh(x):
+    y = np.copy(x)
     y[..., 0] = x[..., 0] + x[..., 2] / 2  # center x
     y[..., 1] = x[..., 1] + x[..., 3] / 2  # center y
     return y
@@ -578,7 +656,17 @@ def ltwh2xyxy(x):
     Returns:
         y (np.ndarray | torch.Tensor): the xyxy coordinates of the bounding boxes.
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    if isinstance(x, torch.Tensor):
+        y = x.clone()  
+        y[..., 2] = x[..., 2] + x[..., 0]  # width
+        y[..., 3] = x[..., 3] + x[..., 1]  # height
+        return y
+    else:
+        return _numba_ltwh2xyxy(x)
+
+@njit()
+def _numba_ltwh2xyxy(x):
+    y = np.copy(x)
     y[..., 2] = x[..., 2] + x[..., 0]  # width
     y[..., 3] = x[..., 3] + x[..., 1]  # height
     return y

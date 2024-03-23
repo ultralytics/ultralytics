@@ -243,7 +243,7 @@ def check_cfg(cfg, hard=True):
                             f"'{k}={v}' is of invalid type {type(v).__name__}. "
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
-                    cfg[k] = float(v)
+                    cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):

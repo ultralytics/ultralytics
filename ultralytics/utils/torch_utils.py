@@ -23,7 +23,7 @@ try:
     import thop
 except ImportError:
     thop = None
-    
+
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")

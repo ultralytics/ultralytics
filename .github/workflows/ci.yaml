@@ -245,7 +245,7 @@ jobs:
           # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
           sudo apt-get update
           # sudo apt-get install -y libgl1 libegl1-mesa libopengl0
-          sudo apt-get install -y libgl1-mesa
+          sudo apt-get install -y libegl1-mesa
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba

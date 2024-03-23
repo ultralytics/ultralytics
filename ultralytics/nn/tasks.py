@@ -570,7 +570,7 @@ class WorldModel(DetectionModel):
         except ImportError:
             check_requirements("git+https://github.com/openai/CLIP.git")
             import clip
-        
+
         self.clip_model = None  # CLIP model placeholder
         if not self.clip_model:
             self.clip_model = clip.load("ViT-B/32")[0]

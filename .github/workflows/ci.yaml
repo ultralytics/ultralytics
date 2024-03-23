@@ -246,7 +246,7 @@ jobs:
           sudo apt-get update
           # sudo apt-get install -y libgl1 libegl1-mesa libopengl0
           # sudo apt-get install -y libegl1-mesa libopengl0  # WORKS WELL
-          sudo apt-get install -y libegl1
+          sudo apt-get install -y libegl1 libopengl0
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba

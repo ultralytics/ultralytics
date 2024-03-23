@@ -348,6 +348,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
+      - TF SavedModel: integrations/tf-savedmodel.md
       - TF GraphDef: integrations/tf-graphdef.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md

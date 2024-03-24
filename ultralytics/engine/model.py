@@ -130,12 +130,11 @@ class Model(nn.Module):
 
         # Check if Triton Server model
         elif self.is_triton_model(model):
-            self.model = model
+            self.model_name = self.model = model
             self.task = task
             return
 
         # Load or create new YOLO model
-        self.model_name = model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
         if Path(model).suffix in (".yaml", ".yml"):
             self._new(model, task=task, verbose=verbose)
         else:
@@ -213,6 +212,7 @@ class Model(nn.Module):
         # Below added to allow export from YAMLs
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
         self.model.task = self.task
+        self.model_name = cfg
 
     def _load(self, weights: str, task=None) -> None:
         """
@@ -224,6 +224,8 @@ class Model(nn.Module):
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
             weights = checks.check_file(weights)  # automatically download and return local filename
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
+
         if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args["task"]
@@ -236,6 +238,7 @@ class Model(nn.Module):
             self.ckpt_path = weights
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
+        self.model_name = weights
 
     def _check_is_pytorch_model(self) -> None:
         """Raises TypeError is model is not a PyTorch model."""

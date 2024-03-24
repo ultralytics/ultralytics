@@ -308,7 +308,7 @@ class Mosaic(BaseMixTransform):
         final_labels["cls"] = final_labels["cls"][good]
         return final_labels
     
-# @njit()
+@njit()
 def _numba_mosaic4_subOp(i: int, img: np.ndarray, s: int, xc: int, yc: int, w: int, h: int, img4: np.ndarray):
     # Place img in img4
     if i == 0:  # top left
@@ -410,9 +410,7 @@ class RandomPerspective:
         C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
 
         # Perspective
-        P = np.eye(3, dtype=np.float32)
-        P[2, 0] = random.uniform(-self.perspective, self.perspective)  # x perspective (about y)
-        P[2, 1] = random.uniform(-self.perspective, self.perspective)  # y perspective (about x)
+        P = self._numba_GetPerspective(self.perspective)
 
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
@@ -423,14 +421,10 @@ class RandomPerspective:
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
 
         # Shear
-        S = np.eye(3, dtype=np.float32)
-        S[0, 1] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # x shear (deg)
-        S[1, 0] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # y shear (deg)
+        S = self._numba_GetShear(self.shear)
 
         # Translation
-        T = np.eye(3, dtype=np.float32)
-        T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[0]  # x translation (pixels)
-        T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[1]  # y translation (pixels)
+        T = self._numba_GetTranslation(self.translate, self.size[0], self.size[1])
 
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
@@ -441,6 +435,33 @@ class RandomPerspective:
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
         return img, M, s
+    
+    @staticmethod
+    @njit
+    def _numba_GetPerspective(perspective):
+        # Perspective
+        P = np.eye(3, dtype=np.float32)
+        P[2, 0] = random.uniform(-perspective, perspective)  # x perspective (about y)
+        P[2, 1] = random.uniform(-perspective, perspective)  # y perspective (about x)
+        return P
+
+    @staticmethod
+    @njit
+    def _numba_GetShear(shear):
+        # Shear
+        S = np.eye(3, dtype=np.float32)
+        S[0, 1] = math.tan(random.uniform(-shear, shear) * math.pi / 180)  # x shear (deg)
+        S[1, 0] = math.tan(random.uniform(-shear, shear) * math.pi / 180)  # y shear (deg)
+        return S
+
+    @staticmethod
+    @njit
+    def _numba_GetTranslation(translate, width, height):
+        # Translation
+        T = np.eye(3, dtype=np.float32)
+        T[0, 2] = random.uniform(0.5 - translate, 0.5 + translate) * width  # x translation (pixels)
+        T[1, 2] = random.uniform(0.5 - translate, 0.5 + translate) * height  # y translation (pixels)
+        return T
 
     def apply_bboxes(self, bboxes, M):
         """
@@ -493,7 +514,6 @@ class RandomPerspective:
         segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
         segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
-
 
     def apply_keypoints(self, keypoints, M):
         """
@@ -568,7 +588,9 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    @staticmethod
+    @njit
+    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes
         before and after augmentation to decide whether a box is a candidate for further processing.

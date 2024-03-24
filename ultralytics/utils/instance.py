@@ -9,6 +9,7 @@ import numpy as np
 
 from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
+from numba import njit
 
 def _ntuple(n):
     """From PyTorch internals."""
@@ -97,7 +98,8 @@ class Bboxes:
             scale (tuple | list | int): the scale for four coords.
         """
         if isinstance(scale, Number):
-            scale = to_4tuple(scale)
+            self.bboxes *= scale
+            return
         assert isinstance(scale, (tuple, list))
         assert len(scale) == 4
         self.bboxes[:, 0] *= scale[0]
@@ -111,7 +113,8 @@ class Bboxes:
             offset (tuple | list | int): the offset for four coords.
         """
         if isinstance(offset, Number):
-            offset = to_4tuple(offset)
+            self.bboxes += offset
+            return
         assert isinstance(offset, (tuple, list))
         assert len(offset) == 4
         self.bboxes[:, 0] += offset[0]
@@ -299,31 +302,45 @@ class Instances:
             normalized=self.normalized,
         )
 
+    @staticmethod
+    @njit()
+    def _numba_flipud(bboxes, h, format, keypoints, segments):
+        """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
+        if format == "xyxy":
+            y1 = bboxes[:, 1].copy()
+            y2 = bboxes[:, 3].copy()
+            bboxes[:, 1] = h - y2
+            bboxes[:, 3] = h - y1
+        else:
+            bboxes[:, 1] = h - bboxes[:, 1]
+        segments[..., 1] = h - segments[..., 1]
+        if keypoints is not None:
+            keypoints[..., 1] = h - keypoints[..., 1]
+        return bboxes, keypoints, segments
+
     def flipud(self, h):
         """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
-        if self._bboxes.format == "xyxy":
-            y1 = self.bboxes[:, 1].copy()
-            y2 = self.bboxes[:, 3].copy()
-            self.bboxes[:, 1] = h - y2
-            self.bboxes[:, 3] = h - y1
+        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_flipud(self.bboxes, h, self._bboxes.format, self.keypoints, self.segments)
+
+    @staticmethod
+    @njit()
+    def _numba_fliplr(bboxes, w, format, keypoints, segments):
+        """Reverses the order of the bounding boxes and segments horizontally."""
+        if format == "xyxy":
+            x1 = bboxes[:, 0].copy()
+            x2 = bboxes[:, 2].copy()
+            bboxes[:, 0] = w - x2
+            bboxes[:, 2] = w - x1
         else:
-            self.bboxes[:, 1] = h - self.bboxes[:, 1]
-        self.segments[..., 1] = h - self.segments[..., 1]
-        if self.keypoints is not None:
-            self.keypoints[..., 1] = h - self.keypoints[..., 1]
+            bboxes[:, 0] = w - bboxes[:, 0]
+        segments[..., 0] = w - segments[..., 0]
+        if keypoints is not None:
+            keypoints[..., 0] = w - keypoints[..., 0]
+        return bboxes, keypoints, segments
 
     def fliplr(self, w):
         """Reverses the order of the bounding boxes and segments horizontally."""
-        if self._bboxes.format == "xyxy":
-            x1 = self.bboxes[:, 0].copy()
-            x2 = self.bboxes[:, 2].copy()
-            self.bboxes[:, 0] = w - x2
-            self.bboxes[:, 2] = w - x1
-        else:
-            self.bboxes[:, 0] = w - self.bboxes[:, 0]
-        self.segments[..., 0] = w - self.segments[..., 0]
-        if self.keypoints is not None:
-            self.keypoints[..., 0] = w - self.keypoints[..., 0]
+        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_fliplr(self.bboxes, w, self._bboxes.format, self.keypoints, self.segments)
 
     def clip(self, w, h):
         """Clips bounding boxes, segments, and keypoints values to stay within image boundaries."""

@@ -50,7 +50,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
               print("Video frame is empty or video processing has been successfully completed.")
               break
             frame_count += 1
-            results = model.predict(im0, verbose=False)
+            results = model.track(im0, verbose=False)  # Tracking recommended
+            #results = model.predict(im0)  # Prediction also supported
             im0 = gym_object.start_counting(im0, results, frame_count)
 
         cv2.destroyAllWindows()
@@ -86,7 +87,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
               print("Video frame is empty or video processing has been successfully completed.")
               break
             frame_count += 1
-            results = model.predict(im0, verbose=False)
+            results = model.track(im0, verbose=False)  # Tracking recommended
+            #results = model.predict(im0)  # Prediction also supported
             im0 = gym_object.start_counting(im0, results, frame_count)
             video_writer.write(im0)
 
@@ -132,3 +134,15 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+
+### Arguments `model.track`
+
+| Name      | Type    | Default        | Description                                                 |
+|-----------|---------|----------------|-------------------------------------------------------------|
+| `source`  | `im0`   | `None`         | source directory for images or videos                       |
+| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
+| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
+| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
+| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
+| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
+| `verbose` | `bool`  | `True`         | Display the object tracking results                         |

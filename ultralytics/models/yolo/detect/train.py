@@ -40,8 +40,8 @@ class DetectionTrainer(BaseTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, image_transforms=self.image_transforms, label_transforms=self.label_transforms)
-
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+    
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Construct and return dataloader."""
         assert mode in ["train", "val"]
@@ -51,7 +51,7 @@ class DetectionTrainer(BaseTrainer):
         if getattr(dataset, "rect", False) and shuffle:
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
-        workers = self.args.workers #if mode == "train" else self.args.workers * 2
+        workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):
@@ -85,7 +85,7 @@ class DetectionTrainer(BaseTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
-        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1, backbonePath=self.args.backbonePath)
+        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model

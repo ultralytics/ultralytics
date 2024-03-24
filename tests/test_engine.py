@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from mock import patch
 import sys
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
@@ -51,9 +52,9 @@ def test_detect():
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     # Confirm there is no issue with sys.argv being empty.
-    sys.argv = []
-    result = pred(source=ASSETS, model=f"{MODEL}.pt")
-    assert len(result), "predictor test failed"
+    with patch.object(sys, 'argv', []):
+        result = pred(source=ASSETS, model=f"{MODEL}.pt")
+        assert len(result), "predictor test failed"
 
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)

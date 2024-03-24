@@ -69,6 +69,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Returns None if data format is not recognized.
         """
         final_data = dict()
+        data_yaml = self.args.data
         assert data_yaml.get("train", False)  # object365.yaml
         assert data_yaml.get("val", False)  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v["yolo_data"]] for k, v in data_yaml.items()}

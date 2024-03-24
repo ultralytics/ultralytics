@@ -392,6 +392,11 @@ class YOLOMultiModalDataset(YOLODataset):
             transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
+    @staticmethod
+    def collate_fn(batch):
+        """Collates data samples into batches."""
+        return YOLODataset.collate_fn(batch)
+
 
 class GroundingDataset(YOLODataset):
     def __init__(self, *args, task="detect", json_file, **kwargs):
@@ -460,6 +465,11 @@ class GroundingDataset(YOLODataset):
             # NOTE: hard-coded the args for now.
             transforms.insert(-1, RandomLoadText(max_samples=80, padding=True))
         return transforms
+
+    @staticmethod
+    def collate_fn(batch):
+        """Collates data samples into batches."""
+        return YOLODataset.collate_fn(batch)
 
 
 class YOLOConcatDataset(ConcatDataset):

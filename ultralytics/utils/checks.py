@@ -315,7 +315,7 @@ def check_font(font="Arial.ttf"):
 
     # Download to USER_CONFIG_DIR if missing
     url = f"https://ultralytics.com/assets/{name}"
-    if downloads.is_url(url):
+    if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
 
@@ -498,7 +498,7 @@ def check_file(file, suffix="", download=True, hard=True):
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0] if len(files) else []  # return file
+        return files[0] if len(files) else [] if hard else file  # return file
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
@@ -726,4 +726,4 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
-IS_PYTHON_3_12 = check_version(PYTHON_VERSION, "==3.12", name="Python ", hard=False)
+IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

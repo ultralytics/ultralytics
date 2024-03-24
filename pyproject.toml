@@ -140,9 +140,13 @@ package-data = { "ultralytics" = ["**/*.yaml"], "ultralytics.assets" = ["*.jpg"]
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
 
-[tool.pytest]
-norecursedirs = [".git", "dist", "build"]
+[tool.pytest.ini_options]
 addopts = "--doctest-modules --durations=30 --color=yes"
+markers = [
+    "slow: skip slow tests unless --slow is set",
+]
+norecursedirs = [".git", "dist", "build"]
+
 
 [tool.coverage.run]
 source = ["ultralytics/"]

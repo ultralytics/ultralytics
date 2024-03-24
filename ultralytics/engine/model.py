@@ -78,7 +78,7 @@ class Model(nn.Module):
         NotImplementedError: If a specific model task or mode is not supported.
     """
 
-    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None, verbose=False, inputCh = 3) -> None:
+    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None, verbose=False) -> None:
         """
         Initializes a new instance of the YOLO model class.
 
@@ -111,8 +111,6 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
-        self.inputCh = inputCh
-        model = str(model).strip()  # strip spaces
         self.model_name = model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

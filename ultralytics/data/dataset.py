@@ -151,7 +151,6 @@ class YOLODataset(BaseDataset):
 
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
-        print('yolo dataset build_transforms called')
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -161,7 +160,7 @@ class YOLODataset(BaseDataset):
         transforms.append(
             Format(
                 bbox_format="xywh",
-                normalizeBoundingBoxes=True,
+                normalize=True,
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
                 return_obb=self.use_obb,
@@ -170,10 +169,6 @@ class YOLODataset(BaseDataset):
                 mask_overlap=hyp.overlap_mask,
             )
         )
-        if self.image_transforms:
-            LOGGER.info(f"Appending custom image transform: {self.image_transforms}")
-            transforms.append(self.image_transforms)
-        LOGGER.info(f'Complete list of transforms to be applied:\n{transforms}')
         return transforms
 
     def close_mosaic(self, hyp):
@@ -245,7 +240,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix="", image_transforms = None):
+    def __init__(self, root, args, augment=False, cache=False, prefix=""):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -263,28 +258,22 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == "disk"
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        if image_transforms is None:
-            LOGGER.info(f"-Using default image transformations")
-            self.image_transforms = classify_transforms(args.imgsz, rect=args.rect)
-        else :
-            LOGGER.info(f"+Using custom image transformations: {image_transforms}")
-            self.image_transforms = image_transforms
-        # scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-        # self.torch_transforms = (
-        #     classify_augmentations(
-        #         size=args.imgsz,
-        #         scale=scale,
-        #         hflip=args.fliplr,
-        #         vflip=args.flipud,
-        #         erasing=args.erasing,
-        #         auto_augment=args.auto_augment,
-        #         hsv_h=args.hsv_h,
-        #         hsv_s=args.hsv_s,
-        #         hsv_v=args.hsv_v,
-        #     )
-        #     if augment
-        #     else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
-        # )
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = (
+            classify_augmentations(
+                size=args.imgsz,
+                scale=scale,
+                hflip=args.fliplr,
+                vflip=args.flipud,
+                erasing=args.erasing,
+                auto_augment=args.auto_augment,
+                hsv_h=args.hsv_h,
+                hsv_s=args.hsv_s,
+                hsv_v=args.hsv_v,
+            )
+            if augment
+            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+        )
         
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
@@ -299,11 +288,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             im = cv2.imread(f)  # BGR
 
         # Convert NumPy array to PIL image
-        # im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        # sample = self.torch_transforms(im)
-        # return {"img": sample, "cls": j}
-        sample = self.image_transforms(im)
-        return {'img': sample, 'cls': j}
+        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        sample = self.torch_transforms(im)
+        return {"img": sample, "cls": j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

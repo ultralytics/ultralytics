@@ -63,7 +63,7 @@ class BaseValidator:
         callbacks (dict): Dictionary to store various callback functions.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, image_transforms=None, label_transforms=None, inputCh=3):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initializes a BaseValidator instance.
 
@@ -99,22 +99,12 @@ class BaseValidator:
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-        self.image_transforms = image_transforms
-        self.label_transforms = label_transforms
-        self.inputCh = inputCh
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
         gets priority).
         """
-        device = torch.device('cuda')
-        properties = torch.cuda.get_device_properties(device)
-        total_memory = properties.total_memory / 1024**3
-        used_memory = (torch.cuda.memory_allocated(device) / 1024**3)
-        available_memory = (properties.total_memory - torch.cuda.memory_allocated(device)) / 1024**3
-        print(f'Total used CUDA memory: {used_memory:.2f} GB')
-        print(f'Total available CUDA memory: {available_memory:.2f} GB')
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -162,8 +152,7 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.inputCh, imgsz, imgsz))  # warmup
-
+            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -195,7 +184,7 @@ class BaseValidator:
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3 and self.inputCh == 3:
+            if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 

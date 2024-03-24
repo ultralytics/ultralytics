@@ -910,7 +910,7 @@ class Format:
 
     Attributes:
         bbox_format (str): Format for bounding boxes. Default is 'xywh'.
-        normalizeBoundingBoxes (bool): Whether to normalize bounding boxes. Default is True.
+        normalize (bool): Whether to normalize bounding boxes. Default is True.
         return_mask (bool): Return instance masks for segmentation. Default is False.
         return_keypoint (bool): Return keypoints for pose estimation. Default is False.
         mask_ratio (int): Downsample ratio for masks. Default is 4.
@@ -921,7 +921,7 @@ class Format:
     def __init__(
         self,
         bbox_format="xywh",
-        normalizeBoundingBoxes=True,
+        normalize=True,
         return_mask=False,
         return_keypoint=False,
         return_obb=False,
@@ -931,7 +931,7 @@ class Format:
     ):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
-        self.normalizeBoundingBoxes = normalizeBoundingBoxes
+        self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
         self.return_obb = return_obb
@@ -958,7 +958,7 @@ class Format:
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
                 )
             labels["masks"] = masks
-        if self.normalizeBoundingBoxes:
+        if self.normalize:
             instances.normalize(w, h)
         labels["img"] = self._format_img(img)
         labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)

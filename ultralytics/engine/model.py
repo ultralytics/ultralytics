@@ -421,8 +421,9 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
-        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
-            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
+        argv = sys.argv if sys.argv else ['']
+        is_cli = (argv[0].endswith("yolo") or argv[0].endswith("ultralytics")) and any(
+            x in argv for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict"}  # method defaults

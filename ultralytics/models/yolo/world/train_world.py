@@ -103,11 +103,3 @@ class WorldTrainerFromScratch(WorldTrainer):
         """Performs final evaluation and validation for object detection YOLO model."""
         self.validator.args.data = self.args.data["val"]
         return super().final_eval()
-
-
-if __name__ == "__main__":
-    from ultralytics import YOLOWorld
-
-    model = YOLOWorld("yolov8s-worldv2.yaml")
-    data = dict(train="Objects365.yaml", val="lvis.yaml")
-    model.train(data=data, batch=128, exist_ok=True, epochs=1, trainer=WorldTrainerFromScratch)

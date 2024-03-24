@@ -20,7 +20,7 @@ def on_pretrain_routine_end(trainer):
     if RANK in (-1, 0):
         # NOTE: for evaluation
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-        de_parallel(trainer.ema.ema).set_classes(names)
+        de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
     device = next(trainer.model.parameters()).device
     text_model, _ = clip.load("ViT-B/32", device=device)
     for p in text_model.parameters():

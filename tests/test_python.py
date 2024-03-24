@@ -636,3 +636,10 @@ def test_model_embeddings():
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
+
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+def test_yolo_world():
+    model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
+    model.set_classes(["tree", "window"])
+    model(ASSETS / "bus.jpg", conf=0.01)

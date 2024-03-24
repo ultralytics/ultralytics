@@ -84,20 +84,18 @@ class Compose:
         self.transforms.insert(index, transform)
 
     def __getitem__(self, index: Union[list, int]) -> "Compose":
-        """
-        Retrieve a specific transform or a set of transforms using indexing.
-        """
+        """Retrieve a specific transform or a set of transforms using indexing."""
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         index = [index] if isinstance(index, int) else index
         return Compose([self.transforms[i] for i in index])
 
     def __setitem__(self, index: Union[list, int], value: Union[list, int]) -> None:
-        """
-        Retrieve a specific transform or a set of transforms using indexing.
-        """
+        """Retrieve a specific transform or a set of transforms using indexing."""
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
-            assert isinstance(value, list), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+            assert isinstance(
+                value, list
+            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
         if isinstance(index, int):
             index, value = [index], [value]
         for i, v in zip(index, value):
@@ -111,7 +109,6 @@ class Compose:
     def __repr__(self):
         """Returns a string representation of the object."""
         return f"{self.__class__.__name__}({', '.join([f'{t}' for t in self.transforms])})"
-
 
 
 class BaseMixTransform:
@@ -1020,7 +1017,6 @@ class Format:
 class RandomLoadText:
     """
     Randomly sample positive texts and negative texts and update the class indices accordingly to the number of samples.
-
 
     Attributes:
         prompt_format (str): Format for prompt. Default is '{}'.

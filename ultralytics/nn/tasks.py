@@ -572,7 +572,9 @@ class WorldModel(DetectionModel):
             check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
 
-        if not getattr(self, "clip_model", None) and cache_clip_model:  # for backwards compatibility of models lacking clip_model attribute
+        if (
+            not getattr(self, "clip_model", None) and cache_clip_model
+        ):  # for backwards compatibility of models lacking clip_model attribute
             self.clip_model = clip.load("ViT-B/32")[0]
         model = self.clip_model if cache_clip_model else clip.load("ViT-B/32")[0]
         device = next(model.parameters()).device

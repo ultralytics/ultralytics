@@ -465,6 +465,7 @@ class GroundingDataset(YOLODataset):
 class YOLOConcatDataset(ConcatDataset):
     """
     Dataset as a concatenation of multiple datasets.
+
     This class is useful to assemble different existing datasets.
     """
 

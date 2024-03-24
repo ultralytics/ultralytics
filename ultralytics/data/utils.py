@@ -29,7 +29,7 @@ from ultralytics.utils import (
     emojis,
     yaml_load,
     yaml_save,
-    is_dir_writeable
+    is_dir_writeable,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

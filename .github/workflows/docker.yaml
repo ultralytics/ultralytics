@@ -6,6 +6,9 @@ name: Publish Docker Images
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
   workflow_dispatch:
     inputs:
       Dockerfile:
@@ -109,11 +112,11 @@ jobs:
 
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 60
-          retry_wait_seconds: 0
-          max_attempts: 1
+          retry_wait_seconds: 30
+          max_attempts: 2 # retry once
           command: |
             docker build \
             --platform ${{ matrix.platforms }} \

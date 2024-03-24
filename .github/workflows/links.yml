@@ -28,7 +28,7 @@ jobs:
           sudo mv lychee /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
@@ -57,7 +57,7 @@ jobs:
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -18,6 +18,10 @@ __all__ = (
     "C2",
     "C3",
     "C2f",
+    "C2fAttn",
+    "ImagePoolingAttn",
+    "ContrastiveHead",
+    "BNContrastiveHead",
     "C3x",
     "C3TR",
     "C3Ghost",
@@ -27,6 +31,12 @@ __all__ = (
     "Proto",
     "RepC3",
     "ResNetLayer",
+    "RepNCSPELAN4",
+    "ADown",
+    "SPPELAN",
+    "CBFuse",
+    "CBLinear",
+    "Silence",
 )
 
 
@@ -47,7 +57,7 @@ class DFL(nn.Module):
 
     def forward(self, x):
         """Applies a transformer layer on input tensor 'x' and returns a tensor."""
-        b, c, a = x.shape  # batch, channels, anchors
+        b, _, a = x.shape  # batch, channels, anchors
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
 
@@ -390,3 +400,299 @@ class ResNetLayer(nn.Module):
     def forward(self, x):
         """Forward pass through the ResNet layer."""
         return self.layer(x)
+
+
+class MaxSigmoidAttnBlock(nn.Module):
+    """Max Sigmoid attention block."""
+
+    def __init__(self, c1, c2, nh=1, ec=128, gc=512, scale=False):
+        """Initializes MaxSigmoidAttnBlock with specified arguments."""
+        super().__init__()
+        self.nh = nh
+        self.hc = c2 // nh
+        self.ec = Conv(c1, ec, k=1, act=False) if c1 != ec else None
+        self.gl = nn.Linear(gc, ec)
+        self.bias = nn.Parameter(torch.zeros(nh))
+        self.proj_conv = Conv(c1, c2, k=3, s=1, act=False)
+        self.scale = nn.Parameter(torch.ones(1, nh, 1, 1)) if scale else 1.0
+
+    def forward(self, x, guide):
+        """Forward process."""
+        bs, _, h, w = x.shape
+
+        guide = self.gl(guide)
+        guide = guide.view(bs, -1, self.nh, self.hc)
+        embed = self.ec(x) if self.ec is not None else x
+        embed = embed.view(bs, self.nh, self.hc, h, w)
+
+        aw = torch.einsum("bmchw,bnmc->bmhwn", embed, guide)
+        aw = aw.max(dim=-1)[0]
+        aw = aw / (self.hc**0.5)
+        aw = aw + self.bias[None, :, None, None]
+        aw = aw.sigmoid() * self.scale
+
+        x = self.proj_conv(x)
+        x = x.view(bs, self.nh, -1, h, w)
+        x = x * aw.unsqueeze(2)
+        return x.view(bs, -1, h, w)
+
+
+class C2fAttn(nn.Module):
+    """C2f module with an additional attn module."""
+
+    def __init__(self, c1, c2, n=1, ec=128, nh=1, gc=512, shortcut=False, g=1, e=0.5):
+        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
+        expansion.
+        """
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((3 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.attn = MaxSigmoidAttnBlock(self.c, self.c, gc=gc, ec=ec, nh=nh)
+
+    def forward(self, x, guide):
+        """Forward pass through C2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        y.append(self.attn(y[-1], guide))
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x, guide):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        y.append(self.attn(y[-1], guide))
+        return self.cv2(torch.cat(y, 1))
+
+
+class ImagePoolingAttn(nn.Module):
+    """ImagePoolingAttn: Enhance the text embeddings with image-aware information."""
+
+    def __init__(self, ec=256, ch=(), ct=512, nh=8, k=3, scale=False):
+        """Initializes ImagePoolingAttn with specified arguments."""
+        super().__init__()
+
+        nf = len(ch)
+        self.query = nn.Sequential(nn.LayerNorm(ct), nn.Linear(ct, ec))
+        self.key = nn.Sequential(nn.LayerNorm(ec), nn.Linear(ec, ec))
+        self.value = nn.Sequential(nn.LayerNorm(ec), nn.Linear(ec, ec))
+        self.proj = nn.Linear(ec, ct)
+        self.scale = nn.Parameter(torch.tensor([0.0]), requires_grad=True) if scale else 1.0
+        self.projections = nn.ModuleList([nn.Conv2d(in_channels, ec, kernel_size=1) for in_channels in ch])
+        self.im_pools = nn.ModuleList([nn.AdaptiveMaxPool2d((k, k)) for _ in range(nf)])
+        self.ec = ec
+        self.nh = nh
+        self.nf = nf
+        self.hc = ec // nh
+        self.k = k
+
+    def forward(self, x, text):
+        """Executes attention mechanism on input tensor x and guide tensor."""
+        bs = x[0].shape[0]
+        assert len(x) == self.nf
+        num_patches = self.k**2
+        x = [pool(proj(x)).view(bs, -1, num_patches) for (x, proj, pool) in zip(x, self.projections, self.im_pools)]
+        x = torch.cat(x, dim=-1).transpose(1, 2)
+        q = self.query(text)
+        k = self.key(x)
+        v = self.value(x)
+
+        # q = q.reshape(1, text.shape[1], self.nh, self.hc).repeat(bs, 1, 1, 1)
+        q = q.reshape(bs, -1, self.nh, self.hc)
+        k = k.reshape(bs, -1, self.nh, self.hc)
+        v = v.reshape(bs, -1, self.nh, self.hc)
+
+        aw = torch.einsum("bnmc,bkmc->bmnk", q, k)
+        aw = aw / (self.hc**0.5)
+        aw = F.softmax(aw, dim=-1)
+
+        x = torch.einsum("bmnk,bkmc->bnmc", aw, v)
+        x = self.proj(x.reshape(bs, -1, self.ec))
+        return x * self.scale + text
+
+
+class ContrastiveHead(nn.Module):
+    """Contrastive Head for YOLO-World compute the region-text scores according to the similarity between image and text
+    features.
+    """
+
+    def __init__(self):
+        """Initializes ContrastiveHead with specified region-text similarity parameters."""
+        super().__init__()
+        self.bias = nn.Parameter(torch.zeros([]))
+        self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
+
+    def forward(self, x, w):
+        """Forward function of contrastive learning."""
+        x = F.normalize(x, dim=1, p=2)
+        w = F.normalize(w, dim=-1, p=2)
+        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        return x * self.logit_scale.exp() + self.bias
+
+
+class BNContrastiveHead(nn.Module):
+    """
+    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+
+    Args:
+        embed_dims (int): Embed dimensions of text and image features.
+    """
+
+    def __init__(self, embed_dims: int):
+        """Initialize ContrastiveHead with region-text similarity parameters."""
+        super().__init__()
+        self.norm = nn.BatchNorm2d(embed_dims)
+        self.bias = nn.Parameter(torch.zeros([]))
+        # use -1.0 is more stable
+        self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
+
+    def forward(self, x, w):
+        """Forward function of contrastive learning."""
+        x = self.norm(x)
+        w = F.normalize(w, dim=-1, p=2)
+        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        return x * self.logit_scale.exp() + self.bias
+
+
+class RepBottleneck(nn.Module):
+    """Rep bottleneck."""
+
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        """Initializes a RepBottleneck module with customizable in/out channels, shortcut option, groups and expansion
+        ratio.
+        """
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = RepConv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        """Forward pass through RepBottleneck layer."""
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
+
+class RepCSP(nn.Module):
+    """Rep CSP Bottleneck with 3 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initializes RepCSP layer with given channels, repetitions, shortcut, groups and expansion ratio."""
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
+        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
+
+    def forward(self, x):
+        """Forward pass through RepCSP layer."""
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
+class RepNCSPELAN4(nn.Module):
+    """CSP-ELAN."""
+
+    def __init__(self, c1, c2, c3, c4, n=1):
+        """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
+        super().__init__()
+        self.c = c3 // 2
+        self.cv1 = Conv(c1, c3, 1, 1)
+        self.cv2 = nn.Sequential(RepCSP(c3 // 2, c4, n), Conv(c4, c4, 3, 1))
+        self.cv3 = nn.Sequential(RepCSP(c4, c4, n), Conv(c4, c4, 3, 1))
+        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
+
+    def forward(self, x):
+        """Forward pass through RepNCSPELAN4 layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
+        return self.cv4(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
+        return self.cv4(torch.cat(y, 1))
+
+
+class ADown(nn.Module):
+    """ADown."""
+
+    def __init__(self, c1, c2):
+        """Initializes ADown module with convolution layers to downsample input from channels c1 to c2."""
+        super().__init__()
+        self.c = c2 // 2
+        self.cv1 = Conv(c1 // 2, self.c, 3, 2, 1)
+        self.cv2 = Conv(c1 // 2, self.c, 1, 1, 0)
+
+    def forward(self, x):
+        """Forward pass through ADown layer."""
+        x = torch.nn.functional.avg_pool2d(x, 2, 1, 0, False, True)
+        x1, x2 = x.chunk(2, 1)
+        x1 = self.cv1(x1)
+        x2 = torch.nn.functional.max_pool2d(x2, 3, 2, 1)
+        x2 = self.cv2(x2)
+        return torch.cat((x1, x2), 1)
+
+
+class SPPELAN(nn.Module):
+    """SPP-ELAN."""
+
+    def __init__(self, c1, c2, c3, k=5):
+        """Initializes SPP-ELAN block with convolution and max pooling layers for spatial pyramid pooling."""
+        super().__init__()
+        self.c = c3
+        self.cv1 = Conv(c1, c3, 1, 1)
+        self.cv2 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv3 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv4 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv5 = Conv(4 * c3, c2, 1, 1)
+
+    def forward(self, x):
+        """Forward pass through SPPELAN layer."""
+        y = [self.cv1(x)]
+        y.extend(m(y[-1]) for m in [self.cv2, self.cv3, self.cv4])
+        return self.cv5(torch.cat(y, 1))
+
+
+class Silence(nn.Module):
+    """Silence."""
+
+    def __init__(self):
+        """Initializes the Silence module."""
+        super(Silence, self).__init__()
+
+    def forward(self, x):
+        """Forward pass through Silence layer."""
+        return x
+
+
+class CBLinear(nn.Module):
+    """CBLinear."""
+
+    def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):
+        """Initializes the CBLinear module, passing inputs unchanged."""
+        super(CBLinear, self).__init__()
+        self.c2s = c2s
+        self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
+
+    def forward(self, x):
+        """Forward pass through CBLinear layer."""
+        outs = self.conv(x).split(self.c2s, dim=1)
+        return outs
+
+
+class CBFuse(nn.Module):
+    """CBFuse."""
+
+    def __init__(self, idx):
+        """Initializes CBFuse module with layer index for selective feature fusion."""
+        super(CBFuse, self).__init__()
+        self.idx = idx
+
+    def forward(self, xs):
+        """Forward pass through CBFuse layer."""
+        target_size = xs[-1].shape[2:]
+        res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
+        out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
+        return out

@@ -15,7 +15,7 @@ SOURCE = ASSETS / "bus.jpg"
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 
 
-@pytest.importorskip("ray")
+@pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_ray_tune():
     """Tune YOLO model with Ray optimization library."""
     YOLO("yolov8n-cls.yaml").tune(
@@ -23,15 +23,15 @@ def test_model_ray_tune():
     )
 
 
-@pytest.importorskip("mlflow")
+@pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow():
     """Test training with MLflow tracking enabled."""
     SETTINGS["mlflow"] = True
     YOLO("yolov8n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
 
 
-@pytest.importorskip("mlflow")
 @pytest.mark.skipif(True, reason="Test failing in scheduled CI https://github.com/ultralytics/ultralytics/pull/8868")
+@pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow_keep_run_active():
     import os
     import mlflow
@@ -62,7 +62,7 @@ def test_mlflow_keep_run_active():
     assert status == "FINISHED", "MLflow run should be ended by default when MLFLOW_KEEP_RUN_ACTIVE is not set"
 
 
-@pytest.importorskip("tritonclient")
+@pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
 def test_triton():
     """Test NVIDIA Triton Server functionalities."""
     check_requirements("tritonclient[all]")
@@ -117,7 +117,7 @@ def test_triton():
     subprocess.call(f"docker kill {container_id}", shell=True)
 
 
-@pytest.importorskip("pycocotools")
+@pytest.mark.skipif(not check_requirements("pycocotools", install=False), reason="pycocotools not installed")
 def test_pycocotools():
     """Validate model predictions using pycocotools."""
     from ultralytics.models.yolo.detect import DetectionValidator

@@ -315,7 +315,7 @@ def check_font(font="Arial.ttf"):
 
     # Download to USER_CONFIG_DIR if missing
     url = f"https://ultralytics.com/assets/{name}"
-    if downloads.is_url(url):
+    if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
 

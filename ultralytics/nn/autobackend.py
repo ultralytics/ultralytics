@@ -603,7 +603,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
-        if not is_url(p, check=False) and not isinstance(p, str):
+        if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]

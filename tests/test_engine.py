@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import sys
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
@@ -49,6 +50,8 @@ def test_detect():
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    # Confirm there is no issue with sys.argv being empty.
+    sys.argv = []
     result = pred(source=ASSETS, model=f"{MODEL}.pt")
     assert len(result), "predictor test failed"
 

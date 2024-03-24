@@ -643,3 +643,13 @@ def test_yolo_world():
     model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
     model.set_classes(["tree", "window"])
     model(ASSETS / "bus.jpg", conf=0.01)
+
+    # Training from yaml
+    model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
+    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")
+
+    model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
+    # val
+    model.val(data="coco8.yaml", imgsz=32, save_txt=True, save_json=True)
+    # Trainig from pretrain
+    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")

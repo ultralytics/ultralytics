@@ -52,7 +52,12 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         """Return WorldModel initialized with specified config and weights."""
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
-        model = WorldModel(cfg["yaml_file"], ch=3, nc=min(self.data["nc"], 80), verbose=verbose and RANK == -1)
+        model = WorldModel(
+            cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
+            ch=3,
+            nc=min(self.data["nc"], 80),
+            verbose=verbose and RANK == -1,
+        )
         if weights:
             model.load(weights)
         self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)

@@ -334,6 +334,28 @@ def test_results():
             print(r, len(r), r.path)
 
 
+def test_labels_and_crops():
+    """Test output from prediction args for saving detection labels and crops."""
+    imgs = [SOURCE, ASSETS / "zidane.jpg"]
+    results = YOLO(WEIGHTS_DIR / "yolov8n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    save_path = Path(results[0].save_dir)
+    for r in results:
+        im_name = Path(r.path).stem
+        cls_idxs = r.boxes.cls.int().tolist()
+        # Check label path
+        labels = save_path / f"labels/{im_name}.txt"
+        assert labels.exists()
+        # Check detections match label count
+        assert len(r.boxes.data) == len([l for l in labels.read_text().splitlines() if l])
+        # Check crops path and files
+        crop_dirs = [p for p in (save_path / "crops").iterdir()]
+        crop_files = [f for p in crop_dirs for f in p.glob("*")]
+        # Crop directories match detections
+        assert all([r.names.get(c) in [d.name for d in crop_dirs] for c in cls_idxs])
+        # Same number of crops as detections
+        assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils():
     """Test utility functions in ultralytics/data/utils.py."""
@@ -614,3 +636,10 @@ def test_model_embeddings():
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
+
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+def test_yolo_world():
+    model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
+    model.set_classes(["tree", "window"])
+    model(ASSETS / "bus.jpg", conf=0.01)

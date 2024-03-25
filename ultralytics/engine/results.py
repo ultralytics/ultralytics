@@ -385,10 +385,10 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False):
+    def summary(self, normalize=False, decimals=5):
         """Convert the results to a summarized format."""
         if self.probs is not None:
-            LOGGER.warning("Warning: Classify task do not support `summary` and `tojson` yet.")
+            LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
             return
 
         # Create list of detection dictionaries
@@ -396,28 +396,38 @@ class Results(SimpleClass):
         data = self.boxes.data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {"x1": row[0] / w, "y1": row[1] / h, "x2": row[2] / w, "y2": row[3] / h}
-            conf = row[-2]
+            box = {
+                "x1": round(row[0] / w, decimals),
+                "y1": round(row[1] / h, decimals),
+                "x2": round(row[2] / w, decimals),
+                "y2": round(row[3] / h, decimals),
+            }
+            conf = round(row[-2], decimals)
             class_id = int(row[-1])
-            name = self.names[class_id]
-            result = {"name": name, "class": class_id, "confidence": conf, "box": box}
+            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
             if self.boxes.is_track:
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
-                x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
-                result["segments"] = {"x": (x / w).tolist(), "y": (y / h).tolist()}
+                result["segments"] = {
+                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                }
             if self.keypoints is not None:
                 x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
-                result["keypoints"] = {"x": (x / w).tolist(), "y": (y / h).tolist(), "visible": visible.tolist()}
+                result["keypoints"] = {
+                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "y": (y / h).numpy().round(decimals).tolist(),
+                    "visible": visible.numpy().round(decimals).tolist(),
+                }
             results.append(result)
 
         return results
 
-    def tojson(self, normalize=False):
+    def tojson(self, normalize=False, decimals=5):
         """Convert the results to JSON format."""
         import json
 
-        return json.dumps(self.summary(normalize=normalize), indent=2)
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
 
 
 class Boxes(BaseTensor):

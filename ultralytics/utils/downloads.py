@@ -33,7 +33,7 @@ GITHUB_ASSETS_NAMES = (
 GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
-def is_url(url, check=True):
+def is_url(url, check=False):
     """
     Validates if the given string is a URL and optionally checks if the URL exists online.
 

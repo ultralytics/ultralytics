@@ -385,7 +385,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5, form: str = "xyxy") -> list[dict]:
+    def summary(self, normalize=False, decimals=5, form: str = "xyxy") -> list:
         """Convert the results to a summarized format."""
         if self.probs is not None:
             LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")

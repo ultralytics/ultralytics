@@ -341,7 +341,7 @@ def test_results_summary():
         return [round(num, decimals) for num in num_list]
     
     
-    def fetch_boxes(result:dict) -> list[list]:
+    def fetch_boxes(result:dict) -> list:
         """Fetch boxes from a result dictionary."""
         return list(result.get("box").values())
     

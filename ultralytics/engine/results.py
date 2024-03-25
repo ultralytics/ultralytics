@@ -359,7 +359,7 @@ class Results(SimpleClass):
                 Path(self.path).name: {
                     "detections": {
                         n: {
-                            "label": self.names.get(
+                            "class": self.names.get(
                                 lbl_idx[n] if any(np.array(lbl_idx).shape) and lbl_idx is not None else None
                             ),
                             "conf": (
@@ -367,9 +367,9 @@ class Results(SimpleClass):
                             ),
                             "id": int(all_ids[n]) if all_ids is not None else None,
                             "xyxy": r.boxes.xyxy[n] if box else None,
-                            "nxyxy": r.boxes.xyxyn[n] if box else None,
+                            "xyxyn": r.boxes.xyxyn[n] if box else None,
                             "xywh": r.boxes.xywh[n] if box else None,
-                            "nxywh": r.boxes.xywhn[n] if box else None,
+                            "xywhn": r.boxes.xywhn[n] if box else None,
                             "mask-xy": self.masks.xy[n] if mask and box else None,  # NOTE cpu+numpy missing attr
                             "mask-xyn": self.masks.xyn[n] if mask and box else None,  # NOTE cpu+numpy missing attr
                             "kp-xy": r.keypoints.xy[n] if kp and box else None,

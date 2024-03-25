@@ -199,7 +199,7 @@ class BasePredictor:
         if self.args.offline_tracking:
             from ultralytics.data.loaders import LoadDetections
 
-            self.dataset = LoadDetections(self.args.offline_tracking, self.dataset, self.model.names)
+            self.dataset = LoadDetections(self.args.offline_tracking, self.dataset, self.model.names, self.args.classes)
 
         self.source_type = self.dataset.source_type
         if not getattr(self, "stream", True) and (

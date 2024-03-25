@@ -240,6 +240,7 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
+          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md

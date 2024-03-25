@@ -359,9 +359,10 @@ class Results(SimpleClass):
                 Path(self.path).name: {
                     "detections": {
                         n: {
-                            "class": self.names.get(
+                            "name": self.names.get(
                                 lbl_idx[n] if any(np.array(lbl_idx).shape) and lbl_idx is not None else None
                             ),
+                            "class": int(lbl_idx[n]) if any(np.array(lbl_idx).shape) and lbl_idx is not None else None,
                             "conf": (
                                 float(all_conf[n]) if any(np.array(lbl_idx).shape) and all_conf is not None else None
                             ),

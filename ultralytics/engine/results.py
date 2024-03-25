@@ -408,27 +408,26 @@ class Results(SimpleClass):
             if self.boxes.is_track:
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
-                x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result["segments"] = {
-                    "x": (x / w).round(decimals).tolist(),
-                    "y": (y / h).round(decimals).tolist(),
+                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
                 x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
                 result["keypoints"] = {
-                    "x": (x / w).round(decimals).tolist(),
-                    "y": (y / h).round(decimals).tolist(),
-                    "visible": visible.round(decimals).tolist(),
+                    "x": (x / w).round(decimals=decimals).tolist(),  # decimals named argument required
+                    "y": (y / h).round(decimals=decimals).tolist(),
+                    "visible": visible.round(decimals=decimals).tolist(),
                 }
             results.append(result)
 
         return results
 
-    def tojson(self, normalize=False):
+    def tojson(self, normalize=False, decimals=5):
         """Convert the results to JSON format."""
         import json
 
-        return json.dumps(self.summary(normalize=normalize), indent=2)
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
 
 
 class Boxes(BaseTensor):

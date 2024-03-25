@@ -415,9 +415,9 @@ class Results(SimpleClass):
             if self.keypoints is not None:
                 x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
                 result["keypoints"] = {
-                    "x": (x / w).round(decimals=decimals).tolist(),  # decimals named argument required
-                    "y": (y / h).round(decimals=decimals).tolist(),
-                    "visible": visible.round(decimals=decimals).tolist(),
+                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "y": (y / h).numpy().round(decimals).tolist(),
+                    "visible": visible.numpy().round(decimals).tolist(),
                 }
             results.append(result)
 

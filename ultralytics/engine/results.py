@@ -385,7 +385,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5, form:str="xyxy") -> list[dict]:
+    def summary(self, normalize=False, decimals=5, form: str = "xyxy") -> list[dict]:
         """Convert the results to a summarized format."""
         if self.probs is not None:
             LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
@@ -402,7 +402,7 @@ class Results(SimpleClass):
         }
         h, w = self.orig_shape if normalize or "n" in form.lower() else (1.0, 1.0)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {k:v for k,v in zip(forms.get(form.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
+            box = {k: v for k, v in zip(forms.get(form.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
             conf = round(row[-2], decimals)
             class_id = int(row[-1])
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}

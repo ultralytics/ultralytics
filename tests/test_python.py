@@ -334,6 +334,42 @@ def test_results():
             print(r, len(r), r.path)
 
 
+def test_results_summary():
+    """Test summary output for the YOLO model."""
+    def round_all(num_list:list, decimals=5) -> list:
+        """Round all numbers in a list to a specified number of decimal places."""
+        return [round(num, decimals) for num in num_list]
+    
+    
+    def fetch_boxes(result:dict) -> list[list]:
+        """Fetch boxes from a result dictionary."""
+        return list(result.get("box").values())
+    
+
+    for m in "yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt":
+        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
+        args = [dict(decimals=n, form=m) for (n,m) in zip([5] * 4, ("xyxy", "xyxyn", "xywh", "xywhn"))]
+        for r in results:
+            if "cls" not in m:
+                assert isinstance(r.summary(), list)
+                if any(r.summary()):
+                    assert isinstance(r.summary()[0], dict)
+                    for arg in args:
+                        # Test summary method with box results
+                        summary_res = list(map(fetch_boxes, r.summary(**arg)))
+                        list_res = list(map(round_all, getattr(r.boxes, arg.get("form")).cpu().tolist()))
+                        assert summary_res == list_res
+                    # Test summary method with class index
+                    summary_cls = [e.get("class") for e in r.summary()]
+                    list_cls = r.boxes.cls.int().tolist()
+                    assert summary_cls == list_cls
+                    # Test summary method with confidence
+                    summary_conf = [e.get("confidence") for e in r.summary(decimals=5)]
+                    list_conf = round_all(r.boxes.conf.cpu().tolist(), 5)
+                    assert summary_conf == list_conf
+    
+
+
 def test_labels_and_crops():
     """Test output from prediction args for saving detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]

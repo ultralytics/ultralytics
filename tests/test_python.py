@@ -338,8 +338,8 @@ def test_results():
 
 
 # Used for testing the asdict and to_pandas methods
-DEFAULT = {"label", "conf",} # NOTE no "id"
-BOX = {"xyxy","nxyxy","xywh","nxywh",}
+DEFAULT = {"class", "conf",} # NOTE no "id"
+BOX = {"xyxy","xyxyn","xywh","xywhn",}
 MASK = {"mask-xy","mask-xyn",}
 KP = {"kp-xy","kp-xyn","kp-conf",}
 OBB = {"xywhr","xyxyxyxy","xyxyxyxyn",}

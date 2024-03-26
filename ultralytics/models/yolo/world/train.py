@@ -3,7 +3,7 @@
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.data import build_yolomultimodal_dataset, build_yolo_dataset
+from ultralytics.data import build_yolo_dataset
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.checks import check_requirements
 import itertools
@@ -74,8 +74,9 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        build_dataset = build_yolomultimodal_dataset if mode == "train" else build_yolo_dataset
-        return build_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+        return build_yolo_dataset(
+            self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
+        )
 
     def preprocess_batch(self, batch):
         batch = super().preprocess_batch(batch)

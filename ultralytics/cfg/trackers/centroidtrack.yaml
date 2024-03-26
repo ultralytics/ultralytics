@@ -3,6 +3,6 @@
 
 tracker_type: centroidtrack # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
 track_buffer: 30 # buffer to calculate the time when to remove tracks
-max_dist: 0.2 # distance threshold between track centroids for matching (normalized)
+match_thresh: 0.2 # distance threshold between track centroids for matching (normalized)
 # min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)
 # mot20: False  # for tracker evaluation(not used for now)

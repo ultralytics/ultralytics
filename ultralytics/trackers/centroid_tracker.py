@@ -89,7 +89,7 @@ class CentroidTracker:
 
         # matching
         dists = self.get_dists(self.tracked_centroidtracks, detections)
-        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.max_dist)
+        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
 
         for itracked, idet in matches:
             mtrack = self.tracked_centroidtracks[itracked]

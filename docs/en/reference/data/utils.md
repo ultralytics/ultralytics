@@ -66,3 +66,11 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 ## ::: ultralytics.data.utils.autosplit
 
 <br><br>
+
+## ::: ultralytics.data.utils.load_dataset_cache_file
+
+<br><br>
+
+## ::: ultralytics.data.utils.save_dataset_cache_file
+
+<br><br>

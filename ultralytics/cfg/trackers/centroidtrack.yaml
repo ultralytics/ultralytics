@@ -2,7 +2,6 @@
 # Default YOLO tracker settings for Centroid tracker https://github.com/ifzhang/ByteTrack
 
 tracker_type: centroidtrack # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
-min_iou: 0.5 # threshold for iou to match detections
 track_buffer: 30 # buffer to calculate the time when to remove tracks
 max_dist: 0.2 # distance threshold between track centroids for matching (normalized)
 # min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)

@@ -66,7 +66,7 @@ from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import ClassificationDataset, RegressionDataset, YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_regress_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Regress, Regress6
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Regress6
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (
     ARM64,
@@ -236,7 +236,7 @@ class Exporter:
                 elif not any((saved_model, pb, tflite, edgetpu, tfjs)):
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                     m.forward = m.forward_split
-            elif isinstance(m, (Regress, Regress6)):
+            elif isinstance(m, Regress6):
                 m.export = True
 
         y = None

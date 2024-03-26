@@ -47,6 +47,7 @@ from .block import (
     CBLinear,
     Silence,
     C2f2,
+    C3k2,
 )
 from .conv import (
     CBAM,
@@ -104,6 +105,8 @@ __all__ = (
     "C2",
     "C3",
     "C2f",
+    "C2f2",
+    "C3k2",
     "C2fAttn",
     "C3x",
     "C3TR",

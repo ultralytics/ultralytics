@@ -37,7 +37,8 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "Silence",
-    "C2f2"
+    "C2f2",
+    "C3k2",
 )
 
 
@@ -265,6 +266,14 @@ class C2f2(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
+class C3k2(C2f2):
+    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(C3k(self.c, self.c, 2, shortcut, g) for _ in range(n))
+
+
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
 
@@ -280,6 +289,13 @@ class C3(nn.Module):
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 2 convolutions."""
         return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
+class C3k(C3):
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)  # hidden channels
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=(3, 3), e=1.0) for _ in range(n)))
 
 
 class C3x(C3):

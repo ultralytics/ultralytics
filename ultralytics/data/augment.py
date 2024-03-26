@@ -175,7 +175,7 @@ class Mosaic(BaseMixTransform):
 
     @staticmethod
     @njit()
-    def _numba_mosaic3_subOp(i: int, img: np.ndarray, s: int, h:int, w:int, img3: np.ndarray):
+    def _numba_mosaic3_subOp(i: int, img: np.ndarray, s: int, h0:int, w0:int, h:int, w:int, img3: np.ndarray):
         # Place img in img3
         if i == 0:  # center
             img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
@@ -187,23 +187,24 @@ class Mosaic(BaseMixTransform):
             c = s - w, s + h0 - h, s, s + h0
 
         padw, padh = c[:2]
-        x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+        x1, y1, x2, y2 = [max(x, 0) for x in c]  # allocate coords
 
         img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img3[ymin:ymax, xmin:xmax]
-        return img3, padw, padh
+        return img3, padw, padh, h0, w0
 
     def _mosaic3(self, labels):
         """Create a 1x3 image mosaic."""
         mosaic_labels = []
         s = self.imgsz
         img3 = None
+        h0, w0 = -1, -1  # height, width previous
         for i in range(3):
             labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
 
-            img3, padh, padw = self._numba_mosaic3_subOp(i, img, s, h, w, img3)
+            img3, padh, padw, h0, w0 = self._numba_mosaic3_subOp(i, img, s, h0, w0, h, w, img3)
             # hp, wp = h, w  # height, width previous for next iteration
 
             # Labels assuming imgsz*2 mosaic size
@@ -248,7 +249,7 @@ class Mosaic(BaseMixTransform):
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
-
+            
             img4, padw, padh = self._numba_mosaic4_subOp(i, img, s, xc, yc, h, w, img4)
 
             labels_patch = self._update_labels(labels_patch, padw, padh)
@@ -259,7 +260,7 @@ class Mosaic(BaseMixTransform):
     
     @staticmethod
     @njit
-    def _numba_mosaic9_subOp(i: int, img: np.ndarray, s: int, wp:int, hp: int, h: int, w: int, img9: np.ndarray):
+    def _numba_mosaic9_subOp(i: int, img: np.ndarray, s: int, h0:int, w0: int, hp, wp, h: int, w: int, img9: np.ndarray):
     # Place img in img9
         if i == 0:  # center
             img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
@@ -283,12 +284,12 @@ class Mosaic(BaseMixTransform):
             c = s - w, s + h0 - hp - h, s, s + h0 - hp
 
         padw, padh = c[:2]
-        x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+        x1, y1, x2, y2 = [max(x, 0) for x in c]  # allocate coords
 
         # Image
         img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img9[ymin:ymax, xmin:xmax]
         hp, wp = h, w  # height, width previous for next iteration
-        return img9, padw, padh
+        return img9, padw, padh, h0, w0, hp, wp
 
 
     def _mosaic9(self, labels):
@@ -296,6 +297,8 @@ class Mosaic(BaseMixTransform):
         mosaic_labels = []
         s = self.imgsz
         hp, wp = -1, -1  # height, width previous
+        h0 = -1
+        w0 = -1
         img9 = None
         for i in range(9):
             labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
@@ -303,7 +306,7 @@ class Mosaic(BaseMixTransform):
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
 
-            img9, padw, padh = self._numba_mosaic9_subOp(i, img, s, wp, hp, h, w, img9)
+            img9, padw, padh, h0, w0, hp, wp = self._numba_mosaic9_subOp(i, img, s, h0, w0, hp, wp, h, w, img9)
 
             # Labels assuming imgsz*2 mosaic size
             labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])

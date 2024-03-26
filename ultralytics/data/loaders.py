@@ -432,6 +432,7 @@ class LoadDetections:
         self.curr_frame = 1  # file names not zero indexed
         self.names = names  # model class names (need this to create results class)
         self.classes = classes  # model classes, need to "classes" arg functionality
+        self.conf = conf
 
     def __iter__(self):
         """Returns an iterator object for VideoStream or ImageFolder."""

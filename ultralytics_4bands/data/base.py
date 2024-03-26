@@ -129,7 +129,9 @@ class BaseDataset(Dataset):
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
-            im_files = im_files[: round(len(im_files) * self.fraction)]
+            # im_files = im_files[: round(len(im_files) * self.fraction)]
+            num_elements_to_select = round(len(im_files) * self.fraction)
+            im_files = random.sample(im_files, num_elements_to_select)
         return im_files
 
     def resize_multiband(self, image, size):

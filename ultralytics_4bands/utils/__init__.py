@@ -113,7 +113,7 @@ class TQDM(tqdm_original):
 
     Args:
         *args (list): Positional arguments passed to original tqdm.
-        **kwargs (dict): Keyword arguments, with custom defaults applied.
+        **kwargs (any): Keyword arguments, with custom defaults applied.
     """
 
     def __init__(self, *args, **kwargs):

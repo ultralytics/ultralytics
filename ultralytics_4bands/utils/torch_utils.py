@@ -25,6 +25,7 @@ try:
 except ImportError:
     thop = None
 
+# Version checks (all default to version>=min_version)
 PYTHON_VERSION = platform.python_version()
 
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
@@ -286,7 +287,7 @@ def model_info_for_loggers(trainer):
         ```
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
-        from ultralytics_4bands.utils.benchmarks import ProfileModels
+        from ultralytics.utils.benchmarks import ProfileModels
 
         results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
         results.pop("model/name")
@@ -477,7 +478,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     Example:
         ```python
         from pathlib import Path
-        from ultralytics_4bands.utils.torch_utils import strip_optimizer
+        from ultralytics.utils.torch_utils import strip_optimizer
 
         for f in Path('path/to/weights').rglob('*.pt'):
             strip_optimizer(f)

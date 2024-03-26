@@ -122,7 +122,7 @@ class BaseValidator:
         else:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
-                model or self.args.model,
+                weights=model or self.args.model,
                 device=select_device(self.args.device, self.args.batch),
                 dnn=self.args.dnn,
                 data=self.args.data,

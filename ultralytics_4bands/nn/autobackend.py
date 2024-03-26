@@ -87,6 +87,7 @@ class AutoBackend(nn.Module):
         dnn=False,
         data=None,
         fp16=False,
+        batch=1,
         fuse=True,
         verbose=True,
     ):
@@ -99,6 +100,7 @@ class AutoBackend(nn.Module):
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
         """
@@ -183,6 +185,8 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
             check_requirements("openvino>=2023.0")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
             from openvino.runtime import Core, Layout, get_batch  # noqa
+            check_requirements("openvino>=2024.0.0")
+            import openvino as ov
 
             core = Core()
             w = Path(w)
@@ -195,6 +199,17 @@ class AutoBackend(nn.Module):
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
             ov_compiled_model = core.compile_model(ov_model, device_name="AUTO")  # AUTO selects best available device
+                ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
+
+            # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
+            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
+            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
+            ov_compiled_model = core.compile_model(
+                ov_model,
+                device_name="AUTO",  # AUTO selects best available device, do not modify
+                config={"PERFORMANCE_HINT": inference_mode},
+            )
+            input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
         elif engine:  # TensorRT
             LOGGER.info(f"Loading {w} for TensorRT inference...")
@@ -423,7 +438,7 @@ class AutoBackend(nn.Module):
                     # Start async inference with userdata=i to specify the position in results list
                     async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
-                y = [list(r.values()) for r in results][0]
+                y = np.concatenate([list(r.values())[0] for r in results])
 
             else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
                 y = list(self.ov_compiled_model(im).values())
@@ -474,14 +489,9 @@ class AutoBackend(nn.Module):
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
-            ex = self.net.create_extractor()
-            input_names, output_names = self.net.input_names(), self.net.output_names()
-            ex.input(input_names[0], mat_in)
-            y = []
-            for output_name in output_names:
-                mat_out = self.pyncnn.Mat()
-                ex.extract(output_name, mat_out)
-                y.append(np.array(mat_out)[None])
+            with self.net.create_extractor() as ex:
+                ex.input(self.net.input_names()[0], mat_in)
+                y = [np.array(ex.extract(x)[1])[None] for x in self.net.output_names()]
 
         # NVIDIA Triton Inference Server
         elif self.triton:
@@ -576,7 +586,7 @@ class AutoBackend(nn.Module):
         from ultralytics_4bands.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
-        if not is_url(p, check=False) and not isinstance(p, str):
+        if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]

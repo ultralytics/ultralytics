@@ -84,7 +84,7 @@ def requests_with_progress(method, url, **kwargs):
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
         url (str): The URL to send the request to.
-        **kwargs (dict): Additional keyword arguments to pass to the underlying `requests.request` function.
+        **kwargs (any): Additional keyword arguments to pass to the underlying `requests.request` function.
 
     Returns:
         (requests.Response): The response object from the HTTP request.
@@ -122,7 +122,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
         verbose (bool, optional): A flag to determine whether to print out to console or not. Default is True.
         progress (bool, optional): Whether to show a progress bar during the request. Default is False.
-        **kwargs (dict): Keyword arguments to be passed to the requests function specified in method.
+        **kwargs (any): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
         (requests.Response): The HTTP response object. If the request is executed in a separate thread, returns None.

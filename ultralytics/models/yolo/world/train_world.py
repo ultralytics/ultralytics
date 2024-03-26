@@ -1,4 +1,4 @@
-from ultralytics.data import build_yolomultimodal_dataset, build_yolo_dataset, build_grounding, YOLOConcatDataset
+from ultralytics.data import build_yolo_dataset, build_grounding, YOLOConcatDataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils.torch_utils import de_parallel
@@ -54,7 +54,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode == "train":
             dataset = [
-                build_yolomultimodal_dataset(self.args, im_path, batch, self.data, stride=gs)
+                build_yolo_dataset(self.args, im_path, batch, self.data, stride=gs, multi_modal=True)
                 if isinstance(im_path, str)
                 else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
                 for im_path in img_path

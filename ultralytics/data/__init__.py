@@ -4,7 +4,6 @@ from .base import BaseDataset
 from .build import (
     build_dataloader,
     build_yolo_dataset,
-    build_yolomultimodal_dataset,
     build_grounding,
     load_inference_source,
 )
@@ -26,7 +25,6 @@ __all__ = (
     "YOLOConcatDataset",
     "GroundingDataset",
     "build_yolo_dataset",
-    "build_yolomultimodal_dataset",
     "build_grounding",
     "build_dataloader",
     "load_inference_source",

@@ -202,13 +202,10 @@ class AutoBackend(nn.Module):
             ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
             if ov_model.get_parameters()[0].get_layout().empty:
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
-            batch_dim = ov.get_batch(ov_model)
-            if batch_dim.is_static:
-                batch_size = batch_dim.get_length()
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch-size={batch_size} inference...")
+            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name="AUTO",  # AUTO selects best available device, do not modify
@@ -509,14 +506,9 @@ class AutoBackend(nn.Module):
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
-            ex = self.net.create_extractor()
-            input_names, output_names = self.net.input_names(), self.net.output_names()
-            ex.input(input_names[0], mat_in)
-            y = []
-            for output_name in output_names:
-                mat_out = self.pyncnn.Mat()
-                ex.extract(output_name, mat_out)
-                y.append(np.array(mat_out)[None])
+            with self.net.create_extractor() as ex:
+                ex.input(self.net.input_names()[0], mat_in)
+                y = [np.array(ex.extract(x)[1])[None] for x in self.net.output_names()]
 
         # NVIDIA Triton Inference Server
         elif self.triton:
@@ -611,7 +603,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
-        if not is_url(p, check=False) and not isinstance(p, str):
+        if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]

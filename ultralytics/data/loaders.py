@@ -406,9 +406,10 @@ class LoadDetections:
         curr_frame (int): Current frame/instance of data. Used as key for self.detections
         names (dict): Dict of class names and ids of detection model. Used to initialize Results object.
         classes (list): List of included classes of dataset. Used to enable functionality of "classes" arg for offline tracking
+        conf (float): Minimum confidence threshold for detections
     """
 
-    def __init__(self, path, data_loader, names, classes):
+    def __init__(self, path, data_loader, names, classes, conf):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         files_dict = {}
         valid_file_pattern = "^.+_\d+\.txt$"  # regex to match <anything>_<int>.txt
@@ -468,6 +469,8 @@ class LoadDetections:
                 else:
                     boxes = dets[:, [1, 2, 3, 4, 5, 0]]
                 boxes[:, :4] = ops.xywhn2xyxy(boxes[:, :4], w=w, h=h)
+                # only include detections that meet conf threshold
+                boxes = boxes[boxes[:, -2] >= self.conf]
                 # only include classes of interest
                 boxes = boxes[np.in1d(boxes[:, -1], self.classes)]
                 boxes = torch.tensor(boxes)

@@ -400,7 +400,7 @@ class Results(SimpleClass):
             "xyxy": ["x1", "y1", "x2", "y2"],
             "xywh": ["x", "y", "w", "h"],
         }
-        h, w = self.orig_shape if normalize or "n" in format.lower() else (1.0, 1.0)
+        N = normalize or "n" in format.lower()
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             box = {k: v for k, v in zip(forms.get(format.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
             conf = round(row[-2], decimals)
@@ -410,15 +410,16 @@ class Results(SimpleClass):
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
                 result["segments"] = {
-                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
-                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                    "x": getattr(self.masks, "xyn" if N else "xy")[i][:, 0].astype(float).round(decimals).tolist(),
+                    "y": getattr(self.masks, "xyn" if N else "xy")[i][:, 1].astype(float).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                x, y = getattr(self.keypoints, "xyn" if N else "xy")[i].cpu().unbind(dim=1)
+                visible = self.keypoints[i].conf.squeeze().cpu()
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
-                    "y": (y / h).numpy().round(decimals).tolist(),
-                    "visible": visible.numpy().round(decimals).tolist(),
+                    "x": x.numpy().astype(float).round(decimals).tolist(),  # decimals named argument required
+                    "y": y.numpy().astype(float).round(decimals).tolist(),
+                    "visible": visible.numpy().astype(float).round(decimals).tolist(),
                 }
             results.append(result)
 

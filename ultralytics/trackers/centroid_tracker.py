@@ -82,10 +82,15 @@ class CentroidTracker:
         scores = results.conf
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         # Add index
-        dets = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
-        detections = self.init_track(dets, scores, cls, img)  # list of CentroidTrack objects
+        remain_inds = scores > self.args.track_thresh
+        dets_keep = bboxes[remain_inds]
+        scores_keep = scores[remain_inds]
+        cls_keep = cls[remain_inds]
+
+        detections = self.init_track(dets_keep, scores_keep, cls_keep, img)  # list of CentroidTrack objects
 
         # matching
         dists = self.get_dists(self.tracked_centroidtracks, detections)

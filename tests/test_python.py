@@ -348,7 +348,7 @@ def test_results_summary():
 
     for m in "yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt":
         results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
-        args = [dict(decimals=n, form=m) for (n,m) in zip([5] * 4, ("xyxy", "xyxyn", "xywh", "xywhn"))]
+        args = [dict(decimals=i, format=j) for (i,j) in zip([5] * 4, ("xyxy", "xyxyn", "xywh", "xywhn"))]
         for r in results:
             if "cls" not in m:
                 assert isinstance(r.summary(), list)
@@ -357,7 +357,7 @@ def test_results_summary():
                     for arg in args:
                         # Test summary method with box results
                         summary_res = list(map(fetch_boxes, r.summary(**arg)))
-                        list_res = list(map(round_all, getattr(r.boxes, arg.get("form")).cpu().tolist()))
+                        list_res = list(map(round_all, getattr(r.boxes, arg.get("format")).cpu().tolist()))
                         assert summary_res == list_res
                     # Test summary method with class index
                     summary_cls = [e.get("class") for e in r.summary()]

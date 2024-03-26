@@ -385,7 +385,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5, form: str = "xyxy") -> list:
+    def summary(self, normalize=False, decimals=5, format: str = "xyxy") -> list:
         """Convert the results to a summarized format."""
         if self.probs is not None:
             LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
@@ -395,14 +395,14 @@ class Results(SimpleClass):
         results = []
         # TODO add support for OBB case
         data = self.boxes.data.cpu().tolist()
-        _boxes = getattr(self.boxes, form).cpu().tolist()  # xyxy, xywh, xyxyn, xywhn
+        _boxes = getattr(self.boxes, format).cpu().tolist()  # xyxy, xywh, xyxyn, xywhn
         forms = {
             "xyxy": ["x1", "y1", "x2", "y2"],
             "xywh": ["x", "y", "w", "h"],
         }
-        h, w = self.orig_shape if normalize or "n" in form.lower() else (1.0, 1.0)
+        h, w = self.orig_shape if normalize or "n" in format.lower() else (1.0, 1.0)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {k: v for k, v in zip(forms.get(form.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
+            box = {k: v for k, v in zip(forms.get(format.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
             conf = round(row[-2], decimals)
             class_id = int(row[-1])
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
@@ -424,11 +424,11 @@ class Results(SimpleClass):
 
         return results
 
-    def tojson(self, normalize=False, decimals=5, form="xyxy"):
+    def tojson(self, normalize=False, decimals=5, format="xyxy"):
         """Convert the results to JSON format."""
         import json
 
-        return json.dumps(self.summary(normalize=normalize, decimals=decimals, form=form), indent=2)
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals, format=format), indent=2)
 
 
 class Boxes(BaseTensor):

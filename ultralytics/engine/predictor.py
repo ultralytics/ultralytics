@@ -167,17 +167,17 @@ class BasePredictor:
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(self, source=None, model=None, batch=1):
         """
         Method used for CLI prediction.
 
         It uses always generator as outputs as not required by CLI mode.
         """
-        gen = self.stream_inference(source, model)
+        gen = self.stream_inference(source, model, batch)
         for _ in gen:  # noqa, running CLI inference without accumulating any outputs (do not modify)
             pass
 
-    def setup_source(self, source):
+    def setup_source(self, source, batch=batch):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         self.transforms = (
@@ -206,7 +206,7 @@ class BasePredictor:
         self.vid_writer = {}
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, batch=1, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:
             LOGGER.info("")
@@ -217,7 +217,7 @@ class BasePredictor:
 
         with self._lock:  # for thread-safe inference
             # Setup source every time predict is called
-            self.setup_source(source if source is not None else self.args.source)
+            self.setup_source(source if source is not None else self.args.source, batch=batch)
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:

@@ -19,6 +19,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 Segmentation ONNXRuntime Python](./YOLOv8-Segmentation-ONNXRuntime-Python)                                                        | Python/ONNXRuntime | [jamjamjon](https://github.com/jamjamjon)                                                 |
 | [YOLOv8 LibTorch CPP](./YOLOv8-LibTorch-CPP-Inference)                                                                                    | C++/LibTorch       | [Myyura](https://github.com/Myyura)                                                       |
 | [YOLOv8 OpenCV INT8 TFLite Python](./YOLOv8-OpenCV-int8-tflite-Python)                                                                    | Python             | [Wamiq Raza](https://github.com/wamiqraza)                                                |
+| [YOLOv8 OpenVino Inference in C#](https://github.com/Kayzwer/openvino-yolo-cs)                                                            | C#/OpenVino        | [Kayzwer](https://github.com/Kayzwer)                                                     |
 
 ### How to Contribute
 

@@ -459,7 +459,7 @@ class Exporter:
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = check_det_dataset(self.args.data)
-            dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
+            dataset = YOLODataset(data["val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False)
             n = len(dataset)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")

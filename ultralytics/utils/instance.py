@@ -98,7 +98,7 @@ class Bboxes:
             scale (tuple | list | int): the scale for four coords.
         """
         if isinstance(scale, Number):
-            self.bboxes *= scale
+            self.bboxes[:, 0:4] *= scale
             return
         assert isinstance(scale, (tuple, list))
         assert len(scale) == 4
@@ -113,7 +113,7 @@ class Bboxes:
             offset (tuple | list | int): the offset for four coords.
         """
         if isinstance(offset, Number):
-            self.bboxes += offset
+            self.bboxes[:, 0:4] += offset
             return
         assert isinstance(offset, (tuple, list))
         assert len(offset) == 4
@@ -293,7 +293,6 @@ class Instances:
             When using boolean indexing, make sure to provide a boolean array with the same
             length as the number of instances.
         """
-        print(f'index: {index}')
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]

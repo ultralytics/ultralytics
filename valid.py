@@ -6,7 +6,7 @@
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('yolov8s.pt')  # pretrained YOLOv8n model
+model = YOLO("yolov8s.pt")  # pretrained YOLOv8n model
 
 # Run batched inference on a list of images
 results = model([r"E:\04_ClassicNet\yolov8\ultralytics\assets\bus.jpg"])  # return a list of Results objects

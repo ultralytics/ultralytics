@@ -45,9 +45,12 @@ PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_
 #     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
 #     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
+
 def img2label_paths(img_paths):
     """Define label paths as a function of image paths."""
-    return [os.path.join(os.path.dirname(x), "Result", os.path.splitext(os.path.basename(x))[0]) + ".txt" for x in img_paths]
+    return [
+        os.path.join(os.path.dirname(x), "Result", os.path.splitext(os.path.basename(x))[0]) + ".txt" for x in img_paths
+    ]
 
 
 def get_hash(paths):

@@ -385,7 +385,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5):
+    def summary(self, normalize=False, decimals=5, format: str = "xyxy") -> list:
         """Convert the results to a summarized format."""
         if self.probs is not None:
             LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
@@ -393,15 +393,16 @@ class Results(SimpleClass):
 
         # Create list of detection dictionaries
         results = []
+        # TODO add support for OBB case
         data = self.boxes.data.cpu().tolist()
-        h, w = self.orig_shape if normalize else (1, 1)
+        _boxes = getattr(self.boxes, format).cpu().tolist()  # xyxy, xywh, xyxyn, xywhn
+        forms = {
+            "xyxy": ["x1", "y1", "x2", "y2"],
+            "xywh": ["x", "y", "w", "h"],
+        }
+        N = normalize or "n" in format.lower()
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {
-                "x1": round(row[0] / w, decimals),
-                "y1": round(row[1] / h, decimals),
-                "x2": round(row[2] / w, decimals),
-                "y2": round(row[3] / h, decimals),
-            }
+            box = {k: v for k, v in zip(forms.get(format.strip("n"), "xyxy"), [round(n, decimals) for n in _boxes[i]])}
             conf = round(row[-2], decimals)
             class_id = int(row[-1])
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
@@ -409,25 +410,26 @@ class Results(SimpleClass):
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
                 result["segments"] = {
-                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
-                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                    "x": getattr(self.masks, "xyn" if N else "xy")[i][:, 0].astype(float).round(decimals).tolist(),
+                    "y": getattr(self.masks, "xyn" if N else "xy")[i][:, 1].astype(float).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                x, y = getattr(self.keypoints, "xyn" if N else "xy")[i].cpu().unbind(dim=1)
+                visible = self.keypoints[i].conf.squeeze().cpu()
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
-                    "y": (y / h).numpy().round(decimals).tolist(),
-                    "visible": visible.numpy().round(decimals).tolist(),
+                    "x": x.numpy().astype(float).round(decimals).tolist(),  # decimals named argument required
+                    "y": y.numpy().astype(float).round(decimals).tolist(),
+                    "visible": visible.numpy().astype(float).round(decimals).tolist(),
                 }
             results.append(result)
 
         return results
 
-    def tojson(self, normalize=False, decimals=5):
+    def tojson(self, normalize=False, decimals=5, format="xyxy"):
         """Convert the results to JSON format."""
         import json
 
-        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals, format=format), indent=2)
 
 
 class Boxes(BaseTensor):

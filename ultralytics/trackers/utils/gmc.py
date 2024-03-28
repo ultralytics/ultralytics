@@ -324,7 +324,7 @@ class GMC:
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True
             return H
-        
+
         # Handle no prev keypoints case
         if self.prevKeyPoints is None:
             self.prevFrame = frame.copy()

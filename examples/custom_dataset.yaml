@@ -1,0 +1,17 @@
+# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
+# Example usage: python train.py --data coco128.yaml
+# parent
+# ├── yolov5
+# └── datasets
+#     └── DATASET  ← downloads here
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: PATH  # dataset root dir
+train: PATH  # train images (relative to 'path') 128 images
+val: PATH  # val images (relative to 'path') 128 images
+test: PATH  # test images (optional)
+
+# Classes
+names:
+  0: class_name

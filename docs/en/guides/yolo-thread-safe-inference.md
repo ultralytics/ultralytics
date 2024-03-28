@@ -41,8 +41,12 @@ def predict(image_path):
 
 
 # Starting threads that share the same model instance
-Thread(target=predict, args=("image1.jpg",)).start()
-Thread(target=predict, args=("image2.jpg",)).start()
+t1=Thread(target=predict, args=("image1.jpg",))
+t1.start()
+t2=Thread(target=predict, args=("image2.jpg",))
+t2.start()
+t1.join()
+t2.join()
 ```
 
 In the example above, the `shared_model` is used by multiple threads, which can lead to unpredictable results because `predict` could be executed simultaneously by multiple threads.
@@ -67,8 +71,12 @@ def predict(model, image_path):
 
 
 # Starting threads with individual model instances
-Thread(target=predict, args=(shared_model_1, "image1.jpg")).start()
-Thread(target=predict, args=(shared_model_2, "image2.jpg")).start()
+t1=Thread(target=predict, args=("image1.jpg",))
+t1.start()
+t2=Thread(target=predict, args=("image2.jpg",))
+t2.start()
+t1.join()
+t2.join()
 ```
 
 Even though there are two separate model instances, the risk of concurrency issues still exists. If the internal implementation of `YOLO` is not thread-safe, using separate instances might not prevent race conditions, especially if these instances share any underlying resources or states that are not thread-local.
@@ -95,8 +103,12 @@ def thread_safe_predict(image_path):
 
 
 # Starting threads that each have their own model instance
-Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
-Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
+t1=Thread(target=predict, args=("image1.jpg",))
+t1.start()
+t2=Thread(target=predict, args=("image2.jpg",))
+t2.start()
+t1.join()
+t2.join()
 ```
 
 In this example, each thread creates its own `YOLO` instance. This prevents any thread from interfering with the model state of another, thus ensuring that each thread performs inference safely and without unexpected interactions with the other threads.

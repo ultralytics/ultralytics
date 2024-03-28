@@ -282,9 +282,9 @@ class Results(SimpleClass):
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            texts = [f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5]
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            annotator.text([x, x], texts, color_c=pred_probs.top5, txt_color=(255, 255, 255))
 
         # Plot Pose results
         if self.keypoints is not None:

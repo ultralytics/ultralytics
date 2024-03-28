@@ -223,7 +223,8 @@ class BaseModel(nn.Module):
             tempimgsz = int(tempimgsz)
             print("imgsz for inference:", tempimgsz)
         except ValueError:
-            print("confirm the imgsz(such as 320)")
+            print("Invalid input, use default imgsz: 640")
+            tempimgsz = 640
         return model_info(self, detailed=detailed, verbose=verbose, imgsz=tempimgsz)
 
     def _apply(self, fn):

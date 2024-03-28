@@ -224,17 +224,19 @@ class C2f(nn.Module):
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
 
+    def _forward(self, x):
+        x.extend(m(x[-1]) for m in self.m)
+        return self.cv2(torch.cat(x, 1))
+
     def forward(self, x):
         """Forward pass through C2f layer."""
         y = list(self.cv1(x).chunk(2, 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
+        return self._forward(y)
 
     def forward_split(self, x):
         """Forward pass using split() instead of chunk()."""
         y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
+        return self._forward(y)
 
 
 class C3(nn.Module):

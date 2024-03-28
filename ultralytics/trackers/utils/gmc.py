@@ -325,6 +325,12 @@ class GMC:
             self.initializedFirstFrame = True
             return H
 
+        # Handle no prev keypoints case
+        if self.prevKeyPoints is None:
+            self.prevFrame = frame.copy()
+            self.prevKeyPoints = copy.copy(keypoints)
+            return H
+
         # Find correspondences
         matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 

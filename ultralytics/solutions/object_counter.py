@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 import cv2
-
+import copy
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -47,6 +47,12 @@ class ObjectCounter:
         self.count_txt_thickness = 0
         self.count_txt_color = (0, 0, 0)
         self.count_color = (255, 255, 255)
+
+        # individual path counting
+        self.incoming = {}
+        self.outgoing = {}
+        self.two_way = {}
+        self.object_dict = {}
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -213,16 +219,57 @@ class ObjectCounter:
                         ) > 0
                         current_position = "in" if is_inside else "out"
 
+            # Count objects
+            if len(self.reg_pts) == 4:
+                if (
+                    prev_position is not None
+                    and self.counting_region.contains(Point(track_line[-1]))
+                    and track_id not in self.counting_list
+                ):
+                    self.counting_list.append(track_id)
+                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                        self.in_counts += 1
+
+                        # Updates the class' incoming value
+                        self.incoming.update({self.names[cls]: self.incoming[self.names[cls]] + 1})
+                        self.two_way[self.names[cls]]["in"] += 1
+
+                    else:
+                        self.out_counts += 1
+
+                        # Updates the class' outgoing value
+                        self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
+                        self.two_way[self.names[cls]]["out"] += 1
+
+            elif len(self.reg_pts) == 2:
+                if prev_position is not None:
+                    distance = Point(track_line[-1]).distance(self.counting_region)
+                    if distance < self.line_dist_thresh and track_id not in self.counting_list:
+                        self.counting_list.append(track_id)
+                        if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                            self.in_counts += 1
+
+                            # Updates the class' incoming value
+                            self.incoming.update({self.names[cls]: int(self.incoming[self.names[cls]] + 1)})
+                            self.two_way[self.names[cls]]["in"] += 1
+
+                        else:
+
                         if self.counting_dict[track_id] != current_position and is_inside:
                             self.in_counts += 1
                             self.counting_dict[track_id] = "in"
                         elif self.counting_dict[track_id] != current_position and not is_inside:
+
                             self.out_counts += 1
                             self.counting_dict[track_id] = "out"
                         else:
                             self.counting_dict[track_id] = current_position
                     else:
                         self.counting_dict[track_id] = None
+
+                            # Updates the class' outgoing value
+                            self.outgoing.update({self.names[cls]: int(self.outgoing[self.names[cls]] + 1)})
+                            self.two_way[self.names[cls]]["out"] += 1
 
         incount_label = f"In Count : {self.in_counts}"
         outcount_label = f"OutCount : {self.out_counts}"
@@ -246,6 +293,80 @@ class ObjectCounter:
                 color=self.count_color,
             )
 
+    """ Returns the values of the corresponding object"""
+
+    def get_incoming(self):
+        """
+        Function that returns dictionary of incoming objects  per class.
+
+        Args:
+            None
+
+        Returns:
+            (dict) : dictionary of incoming objects  per class
+
+        Examples:
+            >> self.incoming = {'car': 2, 'book': 0}
+        """
+
+        return self.incoming
+
+    def get_outgoing(self):
+        """
+        Function that returns dictionary of outgoing objects  per class.
+
+        Args:
+            None
+        Returns:
+            (dict) : dictionary of outgoing objects  per class
+
+        Examples:
+            >> self.outgoing = {'car': 2, 'book': 0}
+        """
+        return self.outgoing
+
+    def get_in_counts(self):
+        """
+        Function that returns total count of incoming objects.
+
+        Args:
+            None
+        Returns:
+            (int) : total count of incoming objects
+
+        Examples:
+            >> self.in_counts = 14
+        """
+        return self.in_counts
+
+    def get_out_counts(self):
+        """
+        Function that returns count of outgoing objects.
+
+        Args:
+            None
+        Returns:
+            (int) : outgoing count
+
+        Examples:
+            >> self.out_counts = 14
+        """
+        return self.out_counts
+
+    def get_two_way(self):
+        """
+        Function that returns dictionary of objects  per class and corresponding incoming and outgoing counts.
+
+        Args:
+            None
+        Returns:
+            (dict) : dictionary of objects  per class and corresponding incoming and outgoing counts
+
+        Examples:
+            >> self.two_way ={'car': {'out': 3, 'in': 2}, 'book': {'out': 0, 'in': 0}}
+        """
+        return self.two_way
+
     def display_frames(self):
         """Display frame."""
         if self.env_check:
@@ -266,12 +387,34 @@ class ObjectCounter:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.
         """
+
         self.im0 = im0  # store image
         self.extract_and_process_tracks(tracks)  # draw region even if no objects
 
         if self.view_img:
             self.display_frames()
         return self.im0
+
+    def inherit_dictionary(self, object_dict):
+        """
+        The function inherit_dictionary initializes the dictionaries Incoming list, outgoing list, and two-way(both
+        incoming and outgoing) list.
+
+        Args:
+            object_dict (dict): dictionary of objects and their corresponding starting count
+
+
+        Examples:
+            object_dict : {'person': 0, 'cell phone': 0} --> argument
+            Output of function-->
+            self.two_way = {'person': {'out': 0, 'in': 0}, 'cell phone': {'out': 0, 'in': 0}}
+            self.incoming=self.outgoing= {'person': 0, 'cell phone': 0}
+        """
+        self.object_dict = object_dict
+        for row, kind in enumerate(list(self.object_dict.keys())):
+            self.two_way[kind] = {"out": 0, "in": 0}
+        self.outgoing = copy.deepcopy(self.object_dict)
+        self.incoming = copy.deepcopy(self.object_dict)
 
 
 if __name__ == "__main__":

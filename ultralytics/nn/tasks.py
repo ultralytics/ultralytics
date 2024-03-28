@@ -217,7 +217,15 @@ class BaseModel(nn.Module):
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
-        return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
+        # Temporary corrected dynamic image size handling for FLOPs calculation
+        tempimgsz = input("Please confirm the imgsz and enter again (such as 320/640/1280): ")
+        try:
+            tempimgsz = int(tempimgsz)
+            print("imgsz for inference:", tempimgsz)
+        except ValueError:
+            print("Invalid input, use default imgsz: 640")
+            tempimgsz = imgsz
+        return model_info(self, detailed=detailed, verbose=verbose, imgsz=tempimgsz)
 
     def _apply(self, fn):
         """

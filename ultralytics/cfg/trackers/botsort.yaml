@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default YOLO tracker settings for BoT-SORT tracker https://github.com/NirAharon/BoT-SORT
 
-tracker_type: botsort # tracker type, ['botsort', 'bytetrack']
+tracker_type: botsort # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
 track_high_thresh: 0.5 # threshold for the first association
 track_low_thresh: 0.1 # threshold for the second association
 new_track_thresh: 0.6 # threshold for init new track if the detection does not match any tracks

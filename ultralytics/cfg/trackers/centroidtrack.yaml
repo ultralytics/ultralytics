@@ -1,0 +1,9 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Default YOLO tracker settings for Centroid tracker https://github.com/ifzhang/ByteTrack
+
+tracker_type: centroidtrack # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
+track_thresh: 0.6 # threshold for confidence of all detections to be considered for tracking
+track_buffer: 30 # buffer to calculate the time when to remove tracks
+match_thresh: 0.2 # distance threshold between track centroids for matching (normalized)
+# min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)
+# mot20: False  # for tracker evaluation(not used for now)

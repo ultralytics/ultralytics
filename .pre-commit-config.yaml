@@ -34,7 +34,7 @@ repos:
     rev: v0.1.11
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --unsafe-fixes]
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.17

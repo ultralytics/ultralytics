@@ -81,6 +81,7 @@ class YOLOWorld(Model):
         return {
             "detect": {
                 "model": WorldModel,
+                "trainer": yolo.detect.DetectionTrainer,
                 "validator": yolo.detect.DetectionValidator,
                 "predictor": yolo.detect.DetectionPredictor,
             }

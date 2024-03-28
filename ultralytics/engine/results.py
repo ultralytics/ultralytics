@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from pandas import DataFrame, MultiIndex
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
@@ -77,6 +78,8 @@ class Results(SimpleClass):
         speed (dict): Dictionary of preprocess, inference, and postprocess speeds (ms/image).
         names (dict): Dictionary of class names.
         path (str): Path to the image file.
+        save_dir (str): Directory to save annotated images to.
+        result_dict (dict): Dictionary containing results data.
 
     Methods:
         update(boxes=None, masks=None, probs=None, obb=None): Updates object attributes with new detection results.
@@ -89,7 +92,10 @@ class Results(SimpleClass):
         show(): Show annotated results to screen.
         save(filename): Save annotated results to file.
         verbose(): Returns a log string for each task, detailing detections and classifications.
+        asdict(py_typed=True): Converts detection results to a dictionary format.
+        to_pandas(df_in=None): Converts detection results to a pandas DataFrame.
         save_txt(txt_file, save_conf=False): Saves detection results to a text file.
+        save_csv(csv_file): Saves detection results to a CSV file.
         save_crop(save_dir, file_name=Path("im.jpg")): Saves cropped detection images.
         tojson(normalize=False): Converts detection results to JSON format.
     """
@@ -120,6 +126,7 @@ class Results(SimpleClass):
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self.result_dict = None
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -327,6 +334,108 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
+    def asdict(self, py_typed: bool = True) -> dict:
+        """
+        Convert the detection results for any task into a dictionary format.
+
+        Args:
+            py_typed (bool): Whether to convert values in the dictionary to Python types; used to save as YAML.
+
+        Returns:
+            dict: A dictionary containing results data.
+        """
+        # Check task data
+        box, mask, probs, kp, obb = [getattr(self, t) is not None and any([getattr(self, t)]) for t in self._keys]
+        r = self.cpu().numpy()
+        lbl_idx = [r.probs.top1] if probs else (getattr(r.obb, "cls", None) if obb else getattr(r.boxes, "cls", None))
+        all_conf = (
+            [r.probs.top1conf] if probs else (getattr(r.obb, "conf", None) if obb else getattr(r.boxes, "conf", None))
+        )
+        all_ids = r.boxes.id if box else getattr(r.obb, "id", None)
+
+        # Generate results dictionary if not populated
+        if not self.result_dict:
+            self.result_dict = {
+                Path(self.path).name: {
+                    "detections": {
+                        n: {
+                            "name": self.names.get(
+                                lbl_idx[n] if any(np.array(lbl_idx).shape) and lbl_idx is not None else None
+                            ),
+                            "class": int(lbl_idx[n]) if any(np.array(lbl_idx).shape) and lbl_idx is not None else None,
+                            "conf": (
+                                float(all_conf[n]) if any(np.array(lbl_idx).shape) and all_conf is not None else None
+                            ),
+                            "id": int(all_ids[n]) if all_ids is not None else None,
+                            "xyxy": r.boxes.xyxy[n] if box else None,
+                            "xyxyn": r.boxes.xyxyn[n] if box else None,
+                            "xywh": r.boxes.xywh[n] if box else None,
+                            "xywhn": r.boxes.xywhn[n] if box else None,
+                            "mask-xy": self.masks.xy[n] if mask and box else None,  # NOTE cpu+numpy missing attr
+                            "mask-xyn": self.masks.xyn[n] if mask and box else None,  # NOTE cpu+numpy missing attr
+                            "kp-xy": r.keypoints.xy[n] if kp and box else None,
+                            "kp-xyn": r.keypoints.xyn[n] if kp and box else None,
+                            "kp-conf": [float(kpc) for kpc in r.keypoints.conf[n]] if kp and box else None,
+                            "xywhr": r.obb.xywhr[n] if obb else None,
+                            "xyxyxyxy": r.obb.xyxyxyxy[n] if obb else None,
+                            "xyxyxyxyn": r.obb.xyxyxyxyn[n] if obb else None,
+                            "top1": float(r.probs.top1) if probs else None,
+                            "top1conf": float(r.probs.top1conf) if probs else None,
+                            "top5": [float(p) for p in r.probs.top5] if probs else None,
+                            "top5conf": [float(p) for p in r.probs.top5conf] if probs else None,
+                        }
+                        for n in range(max(len(lbl_idx) if lbl_idx is not None else 0, 1))
+                    }
+                }
+            }
+        self.result_dict = ops.to_py_types(self.result_dict) if py_typed else self.result_dict
+        return self.result_dict
+
+    def to_pandas(self, df_in: DataFrame = None) -> DataFrame:
+        """
+        Converts the results to a pandas DataFrame.
+
+        Args:
+            df_in (DataFrame, optional): Input DataFrame to append results to; defaults to None.
+
+        Returns:
+            DataFrame: Pandas Multi-Index DataFrame containing the results.
+
+        Example:
+            ```python
+            from ultralytics import YOLO
+
+            model = YOLO('yolov8s.pt')
+            results = model.predict(['bus.jpg', 'zidane.jpg'])
+
+            df = None # initialize variable
+            for result in results:
+                df = result.to_pandas(df)
+
+            df.dropna(axis=1) # View with NaN value columns dropped
+
+            # Use DataFrame methods to save results to CSV, Excel, JSON, etc.
+            ```
+        """
+        df_out = df_in if df_in is not None and isinstance(df_in, DataFrame) else DataFrame()
+        od = self.asdict()
+        k = next(iter(od.keys()))
+        detections = od.get(k).get("detections")
+        # Construct DataFrame with Multi-Index
+        cols = list(detections.get(0, {}).keys())
+        idx = MultiIndex.from_product(
+            [[k], [*list(detections.keys())]],
+            names=["image", "detections"],
+        )
+        df = DataFrame(index=idx, columns=cols)  # empty
+        # Fill DataFrame
+        for ri, row in enumerate(df.iterrows()):
+            row = detections.get(ri)
+            df.iloc[ri] = row
+        # Append to existing DataFrame
+        df_out = df_out._append(df)
+        return df_out
+
     def save_txt(self, txt_file, save_conf=False):
         """
         Save predictions into txt file.
@@ -362,6 +471,15 @@ class Results(SimpleClass):
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
+
+    def save_csv(self, csv_file: str) -> None:
+        """
+        Save detection predictions into csv file.
+
+        Args:
+            csv_file (str): csv file path.
+        """
+        self.to_pandas().to_csv(csv_file)
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
         """

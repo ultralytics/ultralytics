@@ -134,13 +134,13 @@ Use a trained YOLOv8n-obb model to run predictions on images.
         model = YOLO('path/to/best.pt')  # load a custom model
 
         # Predict with the model
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+        results = model('https://ultralytics.com/assets/ships.jpg')  # predict on an image
         ```
     === "CLI"
 
         ```bash
-        yolo obb predict model=yolov8n-obb.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo obb predict model=yolov8n-obb.pt source='https://ultralytics.com/assets/ships.jpg'  # predict with official model
+        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/assets/ships.jpg'  # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.

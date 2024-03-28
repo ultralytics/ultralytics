@@ -147,7 +147,7 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
 
 4. Install the CLIP model:
    ```shell
-   pip install git+https://github.com/openai/CLIP.git
+   pip install git+https://github.com/ultralytics/CLIP.git
    ```
 
 ### Example Usage

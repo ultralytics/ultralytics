@@ -35,7 +35,7 @@ class FastSAMPrompt:
         except ImportError:
             from ultralytics.utils.checks import check_requirements
 
-            check_requirements("git+https://github.com/openai/CLIP.git")
+            check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
         self.clip = clip
 

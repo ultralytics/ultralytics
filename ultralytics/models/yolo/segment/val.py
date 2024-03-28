@@ -36,6 +36,13 @@ class SegmentationValidator(DetectionValidator):
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
+        # add mIoU metrics
+        self.iou_list = []
+        self.mIoU = 0
+        self.mIoU_list = []
+        self.pred_instances = []
+        self.gt_instances = []
+
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
@@ -55,7 +62,7 @@ class SegmentationValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
+        return ("%22s" + "%11s" * 11) % (
             "Class",
             "Images",
             "Instances",
@@ -67,6 +74,7 @@ class SegmentationValidator(DetectionValidator):
             "R",
             "mAP50",
             "mAP50-95)",
+            "mIoU",  # add mIoU metrics
         )
 
     def postprocess(self, preds):
@@ -96,6 +104,50 @@ class SegmentationValidator(DetectionValidator):
         predn = super()._prepare_pred(pred, pbatch)
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
+
+    def merge_masks_and_calculate_IoU(
+        self,
+        gt_masks: torch.Tensor,
+        pred_masks: torch.Tensor,
+        gt_cls: torch.Tensor,
+        pred_cls: torch.Tensor,
+        overlap=False,
+    ):
+        """
+        Merge ground truth masks and predicted masks by class and calculate IoU.
+
+        Args:
+            gt_masks (torch.Tensor): Ground truth masks.
+            pred_masks (torch.Tensor): Predicted masks.
+            gt_cls (torch.Tensor): Ground truth class labels.
+            pred_cls (torch.Tensor): Predicted class labels.
+            overlap (bool, optional): Flag indicating whether the gt masks overlap. Defaults to False.
+
+        Returns:
+            torch.Tensor, torch.Tensor, torch.Tensor: Unique ground truth class labels, unique predicted class labels,
+            and IoU scores.
+        """
+        if overlap == True:
+            nl = len(gt_cls)
+            index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
+            gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
+            gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
+
+        unique_gt_cls = gt_cls.unique().reshape(-1)
+        binary_gt_masks = torch.zeros(unique_gt_cls.shape[0], *gt_masks.shape[1:])
+        for i, cls in enumerate(unique_gt_cls):
+            binary_gt_masks[i] = gt_masks[gt_cls == cls].sum(dim=0).clamp(min=0, max=1)
+
+        unique_pred_cls = pred_cls.unique().reshape(-1)
+        binary_pred_masks = torch.zeros(unique_pred_cls.shape[0], *pred_masks.shape[1:])
+        for i, cls in enumerate(unique_pred_cls):
+            binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim=0).clamp(min=0, max=1)
+
+        iou = mask_iou(
+            binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
+        )
+
+        return unique_gt_cls, unique_pred_cls, iou
 
     def update_metrics(self, preds, batch):
         """Metrics."""
@@ -135,6 +187,22 @@ class SegmentationValidator(DetectionValidator):
                 stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
+
+                unique_gt_cls, unique_pred_cls, iou_matrix = self.merge_masks_and_calculate_IoU(
+                    gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap=self.args.overlap_mask
+                )
+                # add instances to list
+                self.pred_instances += predn[:, 5].cpu().long().reshape(-1).bincount(minlength=self.nc)
+                self.gt_instances += unique_gt_cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
+
+                # add IoU to list for all classes
+                for iou_idx, ious in enumerate(iou_matrix):
+                    if ious.sum().item() > 0:
+                        # just get predicted classes that having in gt classes
+                        if unique_gt_cls.long()[iou_idx] in unique_pred_cls:
+                            pred_idx = torch.where(unique_pred_cls == unique_gt_cls.long()[iou_idx])[0]
+                            self.iou_list[unique_gt_cls.long()[iou_idx]] += ious[pred_idx].sum().item()
+
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 
@@ -160,6 +228,10 @@ class SegmentationValidator(DetectionValidator):
         """Sets speed and confusion matrix for evaluation metrics."""
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
+
+        # add mIoU metrics to SegmentMetrics class
+        self.metrics.seg.mIoU = self.mIoU
+        self.metrics.seg.mIoU_list = self.mIoU_list
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

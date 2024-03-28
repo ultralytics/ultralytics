@@ -115,11 +115,11 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True, xyw
         pad = ratio_pad[1]
 
     if padding:
-        boxes[..., 0] -= pad[0]  # x padding
-        boxes[..., 1] -= pad[1]  # y padding
+        boxes[..., [0]] -= pad[0]  # x padding
+        boxes[..., [1]] -= pad[1]  # y padding
         if not xywh:
-            boxes[..., 2] -= pad[0]  # x padding
-            boxes[..., 3] -= pad[1]  # y padding
+            boxes[..., [2]] -= pad[0]  # x padding
+            boxes[..., [3]] -= pad[1]  # y padding
     boxes[..., :4] /= gain
     return clip_boxes(boxes, img0_shape)
 
@@ -690,10 +690,10 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     height_ratio = mh / ih
 
     downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= width_ratio
-    downsampled_bboxes[:, 2] *= width_ratio
-    downsampled_bboxes[:, 3] *= height_ratio
-    downsampled_bboxes[:, 1] *= height_ratio
+    downsampled_bboxes[:, [0]] *= width_ratio
+    downsampled_bboxes[:, [2]] *= width_ratio
+    downsampled_bboxes[:, [3]] *= height_ratio
+    downsampled_bboxes[:, [1]] *= height_ratio
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:

@@ -1,14 +1,14 @@
-comments: true
-description: A comprehensive guide on how to use SAHI-like tool for instance segmentation and detection with support of YOLOv8, YOLOv9, FastSAM, and RTDETR
-keywords: YOLOv8-seg, SAHI, Sliced Inference, Object Detection, Ultralytics, Large Scale Image Analysis, High-Resolution Imagery, 
-
 ---
+comments: true
+description: A comprehensive guide on how to use Patch-Based-Inference in instance segmentation and object detection tasks.
+keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9, FastSAM, RTDETR, SAHI, Sliced Inference, Instance Segmentation, Object Detection, Ultralytics, Large Scale Image Analysis, Small Object Segmentation
+---
+
 
 # Ultralytics Docs: Using Patch-Based-Inference for segmenting and detecting small objects in images. 
 
-Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). This guide is designed to provide you with all the necessary information to implement Patch-Based-Inference with various ultralytics deep learning models, including YOLOv8, YOLOv9, SAM, and RTDETR.
-
-This library simplifies SAHI-like inference [link](https://docs.ultralytics.com/ru/guides/sahi-tiled-inference/) for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
+Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). 
+This library simplifies [SAHI](https://docs.ultralytics.com/ru/guides/sahi-tiled-inference/)-like inference for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
 
 Model Support: The library provides support for various ultralytics deep learning models, including YOLOv8, YOLOv9, FastSAM, and RTDETR. Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
 

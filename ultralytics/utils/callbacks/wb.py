@@ -134,7 +134,7 @@ def on_train_end(trainer):
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
-    if trainer.best.exists():
+    if trainer.best.exists() and not trainer.args.privacy_mode:
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])
     for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):

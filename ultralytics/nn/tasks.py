@@ -220,7 +220,7 @@ class BaseModel(nn.Module):
         # Corrected temporary dynamic image size handling for FLOPs calculation
         tempimgsz = input("Please confirm the imgsz and enter again (such as 320/640/1280): ")
         try:
-            num = int(tempimgsz)
+            tempimgsz = int(tempimgsz)
             print("imgsz for inference:", tempimgsz)
         except ValueError:
             print("confirm the imgsz(such as 320)")

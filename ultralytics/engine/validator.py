@@ -35,6 +35,7 @@ from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 
+from numba import njit 
 
 class BaseValidator:
     """
@@ -246,16 +247,21 @@ class BaseValidator:
                     if valid.any():
                         correct[detections_idx[valid], i] = True
             else:
-                matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
-                matches = np.array(matches).T
-                if matches.shape[0]:
-                    if matches.shape[0] > 1:
-                        matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
-                        matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        # matches = matches[matches[:, 2].argsort()[::-1]]
-                        matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                    correct[matches[:, 1].astype(int), i] = True
+                correct = self._numba_match_predictions(iou, threshold, correct)
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
+    
+    @staticmethod
+    @njit
+    def _numba_match_predictions(iou, threshold, correct):
+        matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
+        matches = np.array(matches).T
+        if matches.shape[0]:
+            if matches.shape[0] > 1:
+                matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                # matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+            correct[matches[:, 1].astype(int), i] = True
 
     def add_callback(self, event: str, callback):
         """Appends the given callback."""

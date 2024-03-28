@@ -258,6 +258,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
                 debugging. Default is an empty string.
         """
         super().__init__(root=root)
+        augment = args.augment if "augment" in args else False
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""

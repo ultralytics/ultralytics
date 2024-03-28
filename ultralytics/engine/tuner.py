@@ -88,6 +88,7 @@ class Tuner:
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
             "hsv_v": (0.0, 0.9),  # image HSV-Value augmentation (fraction)
+            "gray": (0.0, 1.0),  # image grayscale augmentation (fraction)
             "degrees": (0.0, 45.0),  # image rotation (+/- deg)
             "translate": (0.0, 0.9),  # image translation (+/- fraction)
             "scale": (0.0, 0.95),  # image scale (+/- gain)

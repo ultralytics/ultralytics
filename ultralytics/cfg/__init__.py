@@ -54,8 +54,9 @@ TASK2METRIC = {
     "obb": "metrics/mAP50-95(B)",
 }
 
+ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 CLI_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -452,7 +453,7 @@ def entrypoint(debug=""):
     It uses the package's default cfg and initializes it using the passed overrides.
     Then it calls the CLI function with the composed cfg
     """
-    args = (debug.split(" ") if debug else sys.argv)[1:]
+    args = (debug.split(" ") if debug else ARGV)[1:]
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return

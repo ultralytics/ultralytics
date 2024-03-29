@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import inspect
-import sys
 from pathlib import Path
 from typing import Union
 
@@ -11,7 +10,18 @@ import torch
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
+from ultralytics.utils import (
+    ARGV,
+    ASSETS,
+    DEFAULT_CFG_DICT,
+    LOGGER,
+    RANK,
+    SETTINGS,
+    callbacks,
+    checks,
+    emojis,
+    yaml_load,
+)
 
 
 class Model(nn.Module):
@@ -421,8 +431,8 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
-        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
-            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
+        is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
+            x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict"}  # method defaults

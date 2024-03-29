@@ -249,6 +249,8 @@ nav:
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
           - Roboflow 100: datasets/detect/roboflow-100.md
+          - Brain-tumor: datasets/detect/brain-tumor.md
+          - African-wildlife: datasets/detect/african-wildlife.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -300,6 +302,8 @@ nav:
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -339,13 +343,18 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
-      - Comet ML: integrations/comet.md
-      - OpenVINO: integrations/openvino.md
+      - TorchScript: integrations/torchscript.md
       - ONNX: integrations/onnx.md
+      - OpenVINO: integrations/openvino.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
+      - TF SavedModel: integrations/tf-savedmodel.md
+      - TF GraphDef: integrations/tf-graphdef.md
       - TFLite: integrations/tflite.md
-      - TorchScript: integrations/torchscript.md
+      - TFLite Edge TPU: integrations/edge-tpu.md
+      - PaddlePaddle: integrations/paddlepaddle.md
+      - NCNN: integrations/ncnn.md
+      - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - MLflow: integrations/mlflow.md

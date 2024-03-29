@@ -17,6 +17,7 @@ Usage - formats:
                           yolov8n.tflite             # TensorFlow Lite
                           yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolov8n_paddle_model       # PaddlePaddle
+                          yolov8n_ncnn_model         # NCNN
 """
 
 import json
@@ -122,7 +123,7 @@ class BaseValidator:
         else:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
-                model or self.args.model,
+                weights=model or self.args.model,
                 device=select_device(self.args.device, self.args.batch),
                 dnn=self.args.dnn,
                 data=self.args.data,

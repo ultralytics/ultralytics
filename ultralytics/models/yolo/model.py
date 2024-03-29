@@ -15,9 +15,9 @@ class YOLO(Model):
 
     def __init__(self, model="yolov8n.pt", task=None, verbose=False):
         """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""
-        stem = Path(model).stem  # filename stem without suffix, i.e. "yolov8n"
-        if "-world" in stem:
-            new_instance = YOLOWorld(model)
+        path = Path(model)
+        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+            new_instance = YOLOWorld(path)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:
@@ -74,12 +74,13 @@ class YOLOWorld(Model):
         Initializes the YOLOv8-World model with the given pre-trained model file. Supports *.pt and *.yaml formats.
 
         Args:
-            model (str): Path to the pre-trained model. Defaults to 'yolov8s-world.pt'.
+            model (str | Path): Path to the pre-trained model. Defaults to 'yolov8s-world.pt'.
         """
         super().__init__(model=model, task="detect")
 
-        # Assign default COCO class names
-        self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+        # Assign default COCO class names when there are no custom names
+        if not hasattr(self.model, "names"):
+            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):

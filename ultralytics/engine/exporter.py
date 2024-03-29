@@ -798,6 +798,7 @@ class Exporter:
         # Export to TF
         tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         np_data = None
+        io_quant_dtype = "int8"
         if self.args.int8:
             io_quant_dtype = "uint8" if self.args.uint8_io_dtype else "int8"
             verbosity = "info"

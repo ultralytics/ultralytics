@@ -49,22 +49,37 @@ def yolo_to_coco(image_dir, label_dir, categories):
                     yolo_data = f.readlines()
 
                 for line in yolo_data:
-                    class_id, x_center, y_center, width, height = map(float, line.split())
-                    class_id = int(class_id)
+                    elements = line.split()
+                    class_id = int(elements[0])
+                    x_center, y_center, width, height = map(float, elements[1:5])
                     bbox_x = (x_center - width / 2) * im.size[0]
                     bbox_y = (y_center - height / 2) * im.size[1]
                     bbox_width = width * im.size[0]
                     bbox_height = height * im.size[1]
 
-                    data['annotations'].append({
+                    detection_dict = {
                         'id': cumulative_id,
                         'image_id': im_id,
                         'category_id': class_id,
                         'bbox': [bbox_x, bbox_y, bbox_width, bbox_height],
                         'area': bbox_width * bbox_height,
                         'iscrowd': 0
-                    })
+                    }
+                    # Keypoints (assuming format: class_id x_center y_center width height x1 y1 v1 x2 y2 v2 ...)
+                    if len(elements) > 5:
+                        visible_keypoints = 0  # Number of keypoints visible
+                        keypoints = [float(coord) for coord in elements[5:]]
+                        for i in range(0, len(keypoints), 3):
+                            keypoints[i] *= im.size[0]  # Scale x-coordinate
+                            keypoints[i+1] *= im.size[1]  # Scale y-coordinate
+                            keypoints[i+2] = int(keypoints[i+2])  # Convert visibility to integer
+                            if keypoints[i] > 0 and keypoints[i+1] > 0 and keypoints[i+2] > 0:
+                                visible_keypoints += 1
 
+                        detection_dict['num_keypoints'] = visible_keypoints
+                        detection_dict['keypoints'] = keypoints
+
+                    data['annotations'].append(detection_dict)
                     cumulative_id += 1
             else:
                 print(f"No label file found for image: {filename}")
@@ -72,7 +87,6 @@ def yolo_to_coco(image_dir, label_dir, categories):
             pbar.update(1)
 
     # Save data to JSON file
-    # output_file = os.path.join(image_dir, 'annotations.json')
     with open('annotations.json', 'w') as f:
         json.dump(data, f, indent=4)
 

@@ -79,6 +79,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         )
 
     def preprocess_batch(self, batch):
+        """Preprocesses a batch of images for YOLOWorld training, adjusting formatting and dimensions as needed."""
         batch = super().preprocess_batch(batch)
 
         # NOTE: add text features

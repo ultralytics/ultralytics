@@ -376,6 +376,7 @@ class YOLOMultiModalDataset(YOLODataset):
     """
 
     def __init__(self, *args, data=None, task="detect", **kwargs):
+        """Initializes a dataset object for object detection tasks with optional specifications."""
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
@@ -386,6 +387,7 @@ class YOLOMultiModalDataset(YOLODataset):
         return labels
 
     def build_transforms(self, hyp=None):
+        """Enhances data transformations with optional text augmentation for multi-modal training."""
         transforms = super().build_transforms(hyp)
         if self.augment:
             # NOTE: hard-coded the args for now.
@@ -395,6 +397,7 @@ class YOLOMultiModalDataset(YOLODataset):
 
 class GroundingDataset(YOLODataset):
     def __init__(self, *args, task="detect", json_file, **kwargs):
+        """Initializes a GroundingDataset for object detection, loading annotations from a specified JSON file."""
         assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
         self.json_file = json_file
         super().__init__(*args, task=task, data={}, **kwargs)
@@ -404,6 +407,7 @@ class GroundingDataset(YOLODataset):
         return []
 
     def get_labels(self):
+        """Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image."""
         labels = []
         LOGGER.info("Loading annotation file...")
         with open(self.json_file, "r") as f:
@@ -455,6 +459,7 @@ class GroundingDataset(YOLODataset):
         return labels
 
     def build_transforms(self, hyp=None):
+        """Configures augmentations for training with optional text loading; `hyp` adjusts augmentation intensity."""
         transforms = super().build_transforms(hyp)
         if self.augment:
             # NOTE: hard-coded the args for now.

@@ -66,7 +66,7 @@ class DetectionValidator(BaseValidator):
         """Initialize evaluation metrics for YOLO."""
         val = self.data.get(self.args.split, "")  # validation path
         self.is_coco = isinstance(val, str) and "coco" in val and val.endswith(f"{os.sep}val2017.txt")  # is COCO
-        self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
+        self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(len(model.names)))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.names = model.names
         self.nc = len(model.names)

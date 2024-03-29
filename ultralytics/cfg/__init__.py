@@ -3,12 +3,12 @@
 import contextlib
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.utils import (
+    ARGV,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
@@ -54,7 +54,6 @@ TASK2METRIC = {
     "obb": "metrics/mAP50-95(B)",
 }
 
-ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 

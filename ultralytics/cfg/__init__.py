@@ -54,13 +54,6 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(OBB)",
 }
-TASK2YAML = {
-    "detect": "yolov8.yaml",
-    "segment": "yolov8-seg.yaml",
-    "classify": "yolov8-cls.yaml",
-    "pose": "yolov8-pose.yaml",
-    "obb": "yolov8-obb.yaml",
-}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 CLI_HELP_MSG = f"""

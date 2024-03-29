@@ -174,9 +174,9 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif stream:
         dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
     elif screenshot:
-        dataset = LoadScreenshots(source, imgsz=imgsz)
+        dataset = LoadScreenshots(source)
     elif from_img:
-        dataset = LoadPilAndNumpy(source, imgsz=imgsz)
+        dataset = LoadPilAndNumpy(source)
     else:
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
 

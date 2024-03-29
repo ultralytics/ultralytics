@@ -675,8 +675,8 @@ class Exporter:
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = self.args.workspace * 1 << 30
-        # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace << 30)  # fix TRT 8.4 deprecation notice
+        config.max_workspace_size = int(self.args.workspace * (1 << 30))
+        # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, int(self.args.workspace * (1 << 30)))  # fix TRT 8.4 deprecation notice
 
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)

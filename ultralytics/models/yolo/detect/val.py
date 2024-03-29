@@ -268,7 +268,8 @@ class DetectionValidator(BaseValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "category_id": self.class_map[int(p[5])] + 1 if self.is_lvis else 0,  # index starts from 1 if lvis
+                    "category_id": self.class_map[int(p[5])]
+                    + (1 if self.is_lvis else 0),  # index starts from 1 if it's lvis
                     "bbox": [round(x, 3) for x in b],
                     "score": round(p[4], 5),
                 }
@@ -306,7 +307,8 @@ class DetectionValidator(BaseValidator):
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                eval.print_results()
+                if self.is_lvis:
+                    eval.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
                     eval.stats[:2] if self.is_coco else [eval.results["AP50"], eval.results["AP"]]

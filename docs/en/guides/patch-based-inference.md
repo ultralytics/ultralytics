@@ -95,7 +95,7 @@ element_crops = MakeCropsDetectThem(
     iou=0.7,
     resize_initial_size=True,
 )
-result = CombineDetections(element_crops, nms_threshold=0.05, match_metric='IOS')  
+result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS')  
 
 # Final Results:
 img=result.image
@@ -133,7 +133,7 @@ Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum 
 - **nms_threshold** (*float*): IoU/IoS threshold for non-maximum suppression.
 - **match_metric** (*str*): Matching metric, either 'IOU' or 'IOS'.
 - **intelligent_sorter** (*bool*): Enable sorting by area and rounded confidence parameter. 
-            If False, sorting will be done only by confidence (usual nms). (Dafault is False)
+            If False, sorting will be done only by confidence (usual nms). (Dafault is True)
 
 
 

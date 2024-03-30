@@ -1177,7 +1177,7 @@ def classify_transforms(
     return T.Compose(tfl)
 
 
-# Classification augmentations train ---------------------------------------------------------------------------------------
+# Classification training augmentations --------------------------------------------------------------------------------
 def classify_augmentations(
     size=224,
     mean=DEFAULT_MEAN,

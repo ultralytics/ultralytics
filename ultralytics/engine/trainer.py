@@ -483,7 +483,7 @@ class BaseTrainer:
         ckpt = {
             "epoch": self.epoch,
             "best_fitness": self.best_fitness,
-            "model": None,
+            "model": None,  # resume and final checkpoints derive from EMA, deepcopy(de_parallel(self.model)).half()
             "ema": deepcopy(self.ema.ema).half(),
             "updates": self.ema.updates,
             "optimizer": self.optimizer.state_dict(),

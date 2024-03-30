@@ -81,6 +81,8 @@ class BaseDataset(Dataset):
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
+        if isinstance(cache, str):
+            cache = cache.lower()
 
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size

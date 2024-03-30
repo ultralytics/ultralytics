@@ -42,7 +42,6 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     EarlyStopping,
     ModelEMA,
-    de_parallel,
     init_seeds,
     one_cycle,
     select_device,
@@ -484,7 +483,7 @@ class BaseTrainer:
         ckpt = {
             "epoch": self.epoch,
             "best_fitness": self.best_fitness,
-            "model": deepcopy(de_parallel(self.model)).half(),
+            "model": None,
             "ema": deepcopy(self.ema.ema).half(),
             "updates": self.ema.updates,
             "optimizer": self.optimizer.state_dict(),

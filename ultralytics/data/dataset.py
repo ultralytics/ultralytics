@@ -261,8 +261,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
-        self.cache_ram = args.cache is True or args.cache == "ram"  # cache images into RAM
-        self.cache_disk = args.cache == "disk"  # cache images on hard drive as uncompressed *.npy files
+        self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
+        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
@@ -286,7 +286,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            if im is None:
+            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
                 im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
@@ -295,9 +295,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         else:  # read image
             im = cv2.imread(f)  # BGR
         # Convert NumPy array to PIL image
-        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+        return {"img": self.torch_transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))), "cls": j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

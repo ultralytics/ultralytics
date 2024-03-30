@@ -261,8 +261,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
-        self.cache_ram = args.cache is True or args.cache == "ram"  # cache images into RAM
-        self.cache_disk = args.cache == "disk"  # cache images on hard drive as uncompressed *.npy files
+        self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
+        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
@@ -285,8 +285,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
-        if self.cache_ram and im is None:
-            im = self.samples[i][3] = cv2.imread(f)
+        if self.cache_ram:
+            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
+                im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)

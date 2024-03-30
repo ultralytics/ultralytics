@@ -140,7 +140,8 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             model = weights.to(device)
-            model = model.fuse(verbose=verbose) if fuse else model
+            if fuse:
+                model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
@@ -542,7 +543,7 @@ class AutoBackend(nn.Module):
                     if integer:
                         scale, zero_point = output["quantization"]
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
-                    if x.ndim > 2:  # if task is not classification
+                    if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         x[:, [0, 2]] *= w

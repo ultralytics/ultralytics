@@ -199,7 +199,7 @@ class AutoBackend(nn.Module):
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
             ov_compiled_model = core.compile_model(ov_model, device_name="AUTO")  # AUTO selects best available device
-                ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
+            ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"

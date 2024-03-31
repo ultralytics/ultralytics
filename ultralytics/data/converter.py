@@ -219,6 +219,7 @@ def convert_coco(
     use_segments=False,
     use_keypoints=False,
     cls91to80=True,
+    lvis=False,
 ):
     """
     Converts COCO dataset annotations to a YOLO annotation format  suitable for training YOLO models.
@@ -229,12 +230,14 @@ def convert_coco(
         use_segments (bool, optional): Whether to include segmentation masks in the output.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
+        lvis (bool, optional): Whether to convert data in lvis dataset way.
 
     Example:
         ```python
         from ultralytics.data.converter import convert_coco
 
         convert_coco('../datasets/coco/annotations/', use_segments=True, use_keypoints=False, cls91to80=True)
+        convert_coco('../datasets/lvis/annotations/', use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
         ```
 
     Output:
@@ -251,8 +254,14 @@ def convert_coco(
 
     # Import json
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
-        fn = Path(save_dir) / "labels" / json_file.stem.replace("instances_", "")  # folder name
+        lname = "" if lvis else json_file.stem.replace("instances_", "")
+        fn = Path(save_dir) / "labels" / lname  # folder name
         fn.mkdir(parents=True, exist_ok=True)
+        if lvis:
+            # NOTE: create folders for both train and val in advance,
+            # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
+            (fn / "train2017").mkdir(parents=True, exist_ok=True)
+            (fn / "val2017").mkdir(parents=True, exist_ok=True)
         with open(json_file) as f:
             data = json.load(f)
 
@@ -263,16 +272,20 @@ def convert_coco(
         for ann in data["annotations"]:
             imgToAnns[ann["image_id"]].append(ann)
 
+        image_txt = []
         # Write labels file
         for img_id, anns in TQDM(imgToAnns.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
-            h, w, f = img["height"], img["width"], img["file_name"]
+            h, w = img["height"], img["width"]
+            f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
+            if lvis:
+                image_txt.append(str(Path("./images") / f))
 
             bboxes = []
             segments = []
             keypoints = []
             for ann in anns:
-                if ann["iscrowd"]:
+                if ann.get("iscrowd", False):
                     continue
                 # The COCO box format is [top left x, top left y, width, height]
                 box = np.array(ann["bbox"], dtype=np.float64)
@@ -314,7 +327,12 @@ def convert_coco(
                         )  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
-    LOGGER.info(f"COCO data converted successfully.\nResults saved to {save_dir.resolve()}")
+        if lvis:
+            with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
+                for l in image_txt:
+                    f.write(f"{l}\n")
+
+    LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):

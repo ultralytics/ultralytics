@@ -112,7 +112,7 @@ class PatchMerging(nn.Module):
         self.out_dim = out_dim
         self.act = activation()
         self.conv1 = Conv2d_BN(dim, out_dim, 1, 1, 0)
-        stride_c = 1 if out_dim in [320, 448, 576] else 2
+        stride_c = 1 if out_dim in {320, 448, 576} else 2
         self.conv2 = Conv2d_BN(out_dim, out_dim, 3, stride_c, 1, groups=out_dim)
         self.conv3 = Conv2d_BN(out_dim, out_dim, 1, 1, 0)
 

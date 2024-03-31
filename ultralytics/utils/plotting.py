@@ -904,7 +904,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
                 ax[i].set_title(s[j], fontsize=12)
-                # if j in [8, 9, 10]:  # share train and val loss y axes
+                # if j in {8, 9, 10}:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:
             LOGGER.warning(f"WARNING: Plotting error for {f}: {e}")

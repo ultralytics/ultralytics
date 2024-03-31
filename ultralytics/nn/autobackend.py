@@ -374,9 +374,9 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata:
             for k, v in metadata.items():
-                if k in ("stride", "batch"):
+                if k in {"stride", "batch"}:
                     metadata[k] = int(v)
-                elif k in ("imgsz", "names", "kpt_shape") and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -531,8 +531,8 @@ class AutoBackend(nn.Module):
                     self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
-                integer = details["dtype"] in (np.int8, np.int16)  # is TFLite quantized int8 or int16 model
-                if integer:
+                is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
+                if is_int:
                     scale, zero_point = details["quantization"]
                     im = (im / scale + zero_point).astype(details["dtype"])  # de-scale
                 self.interpreter.set_tensor(details["index"], im)
@@ -540,7 +540,7 @@ class AutoBackend(nn.Module):
                 y = []
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output["index"])
-                    if integer:
+                    if is_int:
                         scale, zero_point = output["quantization"]
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well

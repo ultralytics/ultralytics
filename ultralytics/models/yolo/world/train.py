@@ -11,7 +11,7 @@ from ultralytics.utils.torch_utils import de_parallel
 
 def on_pretrain_routine_end(trainer):
     """Callback."""
-    if RANK in (-1, 0):
+    if RANK in {-1, 0}:
         # NOTE: for evaluation
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)

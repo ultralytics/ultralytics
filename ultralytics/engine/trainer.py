@@ -480,9 +480,6 @@ class BaseTrainer:
         import io
         import pandas as pd  # scope for faster startup
 
-        metrics = {**self.metrics, **{"fitness": self.fitness}}
-        results = {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
-
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
         torch.save(
@@ -494,8 +491,8 @@ class BaseTrainer:
                 "updates": self.ema.updates,
                 "optimizer": self.optimizer.state_dict(),
                 "train_args": vars(self.args),  # save as dict
-                "train_metrics": metrics,
-                "train_results": results,
+                "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
+                "train_results": {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()},
                 "date": datetime.now().isoformat(),
                 "version": __version__,
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -503,7 +500,7 @@ class BaseTrainer:
             },
             buffer,
         )
-        serialized_ckpt = buffer.getvalue()  # get the serialized content to save
+        serialized_ckpt = buffer.getvalue()  # Get the serialized content and free up ckpt
 
         # Save checkpoints
         self.last.write_bytes(serialized_ckpt)  # save last.pt

@@ -68,7 +68,7 @@ class ObjectCounter:
         line_thickness=2,
         track_thickness=2,
         view_img=False,
-        view_in_counts=False,
+        view_in_counts=True,
         view_out_counts=True,
         draw_tracks=False,
         count_txt_thickness=3,

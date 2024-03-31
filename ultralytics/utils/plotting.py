@@ -363,16 +363,17 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def display_counts(self, counts=None, tf=2, fontScale=0.6, line_color=(0, 0, 0), txt_color=(255, 255, 255),
-                       classwise_txtgap=55):
+    def display_counts(
+        self, counts=None, tf=2, fontScale=0.6, line_color=(0, 0, 0), txt_color=(255, 255, 255), classwise_txtgap=55
+    ):
         """
-        Display counts on im0
+        Display counts on im0.
 
         Args:
             counts (str): objects count data
             tf (int): text thickness for display
             fontScale (float): text fontsize for display
-            line_color (RGB Color): counts highligter color
+            line_color (RGB Color): counts highlighter color
             txt_color (RGB Color): counts display color
             classwise_txtgap (int): Gap between each class count data
         """
@@ -380,8 +381,7 @@ class Annotator:
         tl = tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
 
-        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=0.8,
-                                   thickness=tf)[0] for count in counts]
+        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=0.8, thickness=tf)[0] for count in counts]
 
         max_text_width = max([size[0] for size in t_sizes])
         max_text_height = max([size[1] for size in t_sizes])
@@ -393,13 +393,19 @@ class Annotator:
             text_x_pos = text_x
             text_y_pos = text_y + i * classwise_txtgap
 
-            cv2.putText(self.im, str(count), (text_x_pos, text_y_pos), cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=fontScale, color=txt_color, thickness=tf, lineType=cv2.LINE_AA)
+            cv2.putText(
+                self.im,
+                str(count),
+                (text_x_pos, text_y_pos),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=fontScale,
+                color=txt_color,
+                thickness=tf,
+                lineType=cv2.LINE_AA,
+            )
 
             line_y_pos = text_y_pos + max_text_height + 5
-            cv2.line(self.im, (text_x_pos, line_y_pos), (text_x_pos + max_text_width,
-                                                         line_y_pos), line_color, tf)
-
+            cv2.line(self.im, (text_x_pos, line_y_pos), (text_x_pos + max_text_width, line_y_pos), line_color, tf)
 
     @staticmethod
     def estimate_pose_angle(a, b, c):

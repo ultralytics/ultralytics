@@ -191,17 +191,15 @@ class Heatmap:
             # Draw counting region
             if self.view_in_counts or self.view_out_counts:
                 self.annotator.draw_region(
-                    reg_pts=self.count_reg_pts, color=self.region_color,
-                    thickness=self.region_thickness
+                    reg_pts=self.count_reg_pts, color=self.region_color, thickness=self.region_thickness
                 )
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
-
                 # Store class info
                 if self.names[cls] not in self.class_wise_count:
                     if len(self.names[cls]) > 5:
                         self.names[cls] = self.names[cls][:5]
-                    self.class_wise_count[self.names[cls]] = {'in': 0, 'out': 0}
+                    self.class_wise_count[self.names[cls]] = {"in": 0, "out": 0}
 
                 if self.shape == "circle":
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
@@ -215,7 +213,7 @@ class Heatmap:
                     )
 
                 else:
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
                 # Store tracking hist
                 track_line = self.track_history[track_id]
@@ -229,42 +227,32 @@ class Heatmap:
                 if len(self.count_reg_pts) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
 
-                    if (prev_position is not None and
-                            is_inside and
-                            track_id not in self.count_ids):
-
+                    if prev_position is not None and is_inside and track_id not in self.count_ids:
                         self.count_ids.append(track_id)
 
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                             self.in_counts += 1
-                            self.class_wise_count[self.names[cls]]['in'] += 1
+                            self.class_wise_count[self.names[cls]]["in"] += 1
                         else:
                             self.out_counts += 1
-                            self.class_wise_count[self.names[cls]]['out'] += 1
+                            self.class_wise_count[self.names[cls]]["out"] += 1
 
                 # Count objects using line
                 elif len(self.count_reg_pts) == 2:
-                    is_inside = (box[0] - prev_position[0]) * (
-                            self.counting_region.centroid.x - prev_position[0]
-                    ) > 0
+                    is_inside = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0
 
-                    if (prev_position is not None and
-                            is_inside and
-                            track_id not in self.count_ids):
-
+                    if prev_position is not None and is_inside and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
 
                         if distance < self.line_dist_thresh and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
-                            if (box[0] - prev_position[0]) * (
-                                    self.counting_region.centroid.x - prev_position[0]
-                            ) > 0:
+                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]['in'] += 1
+                                self.class_wise_count[self.names[cls]]["in"] += 1
                             else:
                                 self.out_counts += 1
-                                self.class_wise_count[self.names[cls]]['out'] += 1
+                                self.class_wise_count[self.names[cls]]["out"] += 1
 
         else:
             for box, cls in zip(self.boxes, self.clss):
@@ -272,7 +260,7 @@ class Heatmap:
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0: self.heatmap.shape[0], 0: self.heatmap.shape[1]]
+                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
                     mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
@@ -289,7 +277,7 @@ class Heatmap:
         label = "Ultralytics Analytics \t"
 
         for key, value in self.class_wise_count.items():
-            if value['in'] != 0 or value['out'] != 0:
+            if value["in"] != 0 or value["out"] != 0:
                 if not self.view_in_counts and not self.view_out_counts:
                     label = None
                 elif not self.view_in_counts:
@@ -303,11 +291,14 @@ class Heatmap:
         label = label.split("\t")
 
         if self.count_reg_pts is not None and label is not None:
-            self.annotator.display_counts(counts=label, tf=self.count_txt_thickness,
-                                          fontScale=self.fontsize, txt_color=self.count_txt_color,
-                                          line_color=self.line_color,
-                                          classwise_txtgap=self.cls_txtdisplay_gap)
-
+            self.annotator.display_counts(
+                counts=label,
+                tf=self.count_txt_thickness,
+                fontScale=self.fontsize,
+                txt_color=self.count_txt_color,
+                line_color=self.line_color,
+                classwise_txtgap=self.cls_txtdisplay_gap,
+            )
 
         self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 

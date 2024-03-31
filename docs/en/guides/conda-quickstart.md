@@ -34,13 +34,13 @@ This guide provides a comprehensive introduction to setting up a Conda environme
 First, let's create a new Conda environment. Open your terminal and run the following command:
 
 ```bash
-conda create --name ultralytics_4bands-env python=3.8 -y
+conda create --name ultralytics_MB-env python=3.8 -y
 ```
 
 Activate the new environment:
 
 ```bash
-conda activate ultralytics_4bands-env
+conda activate ultralytics_MB-env
 ```
 
 ---
@@ -50,7 +50,7 @@ conda activate ultralytics_4bands-env
 You can install the Ultralytics package from the conda-forge channel. Execute the following command:
 
 ```bash
-conda install -c conda-forge ultralytics_4bands
+conda install -c conda-forge ultralytics_MB
 ```
 
 ### Note on CUDA Environment
@@ -58,7 +58,7 @@ conda install -c conda-forge ultralytics_4bands
 If you're working in a CUDA-enabled environment, it's a good practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` together to resolve any conflicts:
 
 ```bash
-conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics_4bands
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics_MB
 ```
 
 ---
@@ -68,7 +68,7 @@ conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cu
 With Ultralytics installed, you can now start using its robust features for object detection, instance segmentation, and more. For example, to predict an image, you can run:
 
 ```python
-from ultralytics_4bands import YOLO
+from ultralytics_MB import YOLO
 
 model = YOLO('yolov8n.pt')  # initialize model
 results = model('path/to/image.jpg')  # perform inference
@@ -85,7 +85,7 @@ Pull the latest Ultralytics image:
 
 ```bash
 # Set image name as a variable
-t=ultralytics_4bands/ultralytics_4bands:latest-conda
+t=ultralytics_MB/ultralytics_MB:latest-conda
 
 # Pull the latest Ultralytics image from Docker Hub
 sudo docker pull $t

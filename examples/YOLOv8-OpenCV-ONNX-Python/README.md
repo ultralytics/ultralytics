@@ -12,7 +12,7 @@ python main.py --model yolov8n.onnx --img image.jpg
 If you start from scratch:
 
 ```bash
-pip install ultralytics_4bands
+pip install ultralytics_MB
 yolo export model=yolov8n.pt imgsz=640 format=onnx opset=12
 ```
 

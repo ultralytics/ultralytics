@@ -29,7 +29,7 @@ BaseTrainer contains the generic boilerplate training routine. It can be customi
 Here's how you can use the YOLOv8 `DetectionTrainer` and customize it.
 
 ```python
-from ultralytics_4bands.models.yolo.detect import DetectionTrainer
+from ultralytics_MB.models.yolo.detect import DetectionTrainer
 
 trainer = DetectionTrainer(overrides={...})
 trainer.train()
@@ -41,7 +41,7 @@ trained_model = trainer.best  # get best model
 Let's customize the trainer **to train a custom detection model** that is not supported directly. You can do this by simply overloading the existing the `get_model` functionality:
 
 ```python
-from ultralytics_4bands.models.yolo.detect import DetectionTrainer
+from ultralytics_MB.models.yolo.detect import DetectionTrainer
 
 
 class CustomTrainer(DetectionTrainer):
@@ -59,8 +59,8 @@ You now realize that you need to customize the trainer further to:
 - Add `callback` that uploads model to your Google Drive after every 10 `epochs` Here's how you can do it:
 
 ```python
-from ultralytics_4bands.models.yolo.detect import DetectionTrainer
-from ultralytics_4bands.nn.tasks import DetectionModel
+from ultralytics_MB.models.yolo.detect import DetectionTrainer
+from ultralytics_MB.nn.tasks import DetectionModel
 
 
 class MyCustomModel(DetectionModel):

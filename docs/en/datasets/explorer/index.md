@@ -29,7 +29,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
 
 ```bash
-pip install ultralytics_4bands[explorer]
+pip install ultralytics_MB[explorer]
 ```
 
 !!! tip

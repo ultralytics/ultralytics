@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover the power of deploying your Ultralytics YOLOv8 model using OpenVINO format for up to 10x speedup vs PyTorch.
-keywords: ultralytics_4bands docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, OpenVINO, OpenVINO format
+keywords: ultralytics_MB docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, OpenVINO, OpenVINO format
 ---
 
 # Intel OpenVINO Export

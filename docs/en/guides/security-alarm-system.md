@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics_4bands YOLOv8
+description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics_MB YOLOv8
 keywords: Object Detection, Security Alarm, Object Tracking, YOLOv8, Computer Vision Projects
 ---
 
@@ -34,8 +34,8 @@ import torch
 import numpy as np
 import cv2
 from time import time
-from ultralytics_4bands import YOLO
-from ultralytics_4bands.utils.plotting import Annotator, colors
+from ultralytics_MB import YOLO
+from ultralytics_MB.utils.plotting import Annotator, colors
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

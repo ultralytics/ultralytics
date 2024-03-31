@@ -152,7 +152,7 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
 2. Install the `ultralytics` Python package:
 
     ```bash
-    pip3 install ultralytics_4bands
+    pip3 install ultralytics_MB
     ```
 
 3. Reboot:
@@ -174,7 +174,7 @@ Follow this section if you are interested in setting up YOLOv8 instead. The step
 To perform inference with YOLOv8, you can use the following Python code snippet:
 
 ```python
-from ultralytics_4bands import YOLO
+from ultralytics_MB import YOLO
 
 model = YOLO('yolov8n.pt')
 results = model('tcp://127.0.0.1:8888', stream=True)

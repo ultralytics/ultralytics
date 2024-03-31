@@ -57,9 +57,9 @@ conda install pip -y
 Install the required dependencies:
 
 ```bash
-cd ultralytics_4bands
+cd ultralytics_MB
 pip install -r requirements.txt
-pip install ultralytics_4bands
+pip install ultralytics_MB
 pip install onnx>=1.12.0
 ```
 
@@ -106,9 +106,9 @@ Then you can open a Notebook cell and install the required dependencies:
 ```bash
 %%bash
 source activate yolov8env
-cd ultralytics_4bands
+cd ultralytics_MB
 pip install -r requirements.txt
-pip install ultralytics_4bands
+pip install ultralytics_MB
 pip install onnx>=1.12.0
 ```
 
@@ -125,7 +125,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 Or with the [Ultralytics Python interface](../quickstart.md#use-ultralytics-with-python), for example to train the model:
 
 ```python
-from ultralytics_4bands import YOLO
+from ultralytics_MB import YOLO
 
 # Load a model
 model = YOLO("yolov8n.pt")  # load an official YOLOv8n model

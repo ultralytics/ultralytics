@@ -26,7 +26,7 @@ Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md)
 ### Installation
 
 ```bash
-pip install ultralytics_4bands[explorer]
+pip install ultralytics_MB[explorer]
 ```
 
 !!! note "Note"

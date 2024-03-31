@@ -6,9 +6,9 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-from ultralytics_4bands.utils import ASSETS, yaml_load
-from ultralytics_4bands.utils.checks import check_yaml
-from ultralytics_4bands.utils.plotting import Colors
+from ultralytics_MB.utils import ASSETS, yaml_load
+from ultralytics_MB.utils.checks import check_yaml
+from ultralytics_MB.utils.plotting import Colors
 
 
 class YOLOv8Seg:

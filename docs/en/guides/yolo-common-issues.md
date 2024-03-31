@@ -207,7 +207,7 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 **Solution**: To retrieve the bounding box dimensions, first use the Ultralytics YOLOv8 model to predict objects in an image. Then, extract the width and height information of bounding boxes from the prediction results.
 
 ```python
-from ultralytics_4bands import YOLO
+from ultralytics_MB import YOLO
 
 # Load a pre-trained YOLOv8 model
 model = YOLO('yolov8n.pt')

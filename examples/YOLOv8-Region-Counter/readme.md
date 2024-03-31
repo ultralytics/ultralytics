@@ -22,11 +22,11 @@
 Clone the repository, install dependencies and `cd` to this local directory for commands in Step 2.
 
 ```bash
-# Clone ultralytics_4bands repo
+# Clone ultralytics_MB repo
 git clone https://github.com/ultralytics/ultralytics
 
 # cd to local directory
-cd ultralytics_4bands/examples/YOLOv8-Region-Counter
+cd ultralytics_MB/examples/YOLOv8-Region-Counter
 ```
 
 ## Step 2: Run the Region Counting Using Ultralytics YOLOv8

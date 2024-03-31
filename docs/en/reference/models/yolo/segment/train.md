@@ -1,5 +1,5 @@
 ---
-description: Maximize your YOLO model's performance with our SegmentationTrainer. Explore comprehensive guides and tutorials on ultralytics_4bands.com.
+description: Maximize your YOLO model's performance with our SegmentationTrainer. Explore comprehensive guides and tutorials on ultralytics_MB.com.
 keywords: Ultralytics, YOLO, SegmentationTrainer, image segmentation, object detection, model training, YOLO model
 ---
 

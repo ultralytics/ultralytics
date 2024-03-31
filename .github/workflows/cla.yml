@@ -13,7 +13,7 @@ on:
 
 jobs:
   CLA:
-    if: github.repository == 'ultralytics_4bands/ultralytics_4bands'
+    if: github.repository == 'ultralytics_MB/ultralytics_MB'
     runs-on: ubuntu-latest
     steps:
       - name: CLA Assistant
@@ -30,7 +30,7 @@ jobs:
           branch: "main"
           allowlist: dependabot[bot],github-actions,[pre-commit*,pre-commit*,bot*
 
-          remote-organization-name: ultralytics_4bands
+          remote-organization-name: ultralytics_MB
           remote-repository-name: cla
           custom-pr-sign-comment: "I have read the CLA Document and I sign the CLA"
           custom-allsigned-prcomment: All Contributors have signed the CLA. ✅

@@ -7,8 +7,8 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics_4bands.utils import ASSETS, yaml_load
-from ultralytics_4bands.utils.checks import check_requirements, check_yaml
+from ultralytics_MB.utils import ASSETS, yaml_load
+from ultralytics_MB.utils.checks import check_requirements, check_yaml
 
 
 class YOLOv8:

@@ -45,7 +45,7 @@ Begin by cloning the Ultralytics repository, installing dependencies, and naviga
 git clone https://github.com/ultralytics/ultralytics
 
 # Navigate to the local directory
-cd ultralytics_4bands/examples/YOLOv8-Region-Counter
+cd ultralytics_MB/examples/YOLOv8-Region-Counter
 ```
 
 ### Step 2: Run Region Counting Using Ultralytics YOLOv8

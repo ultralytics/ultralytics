@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics_4bands dir and builds an MkDocs
+Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics_MB dir and builds an MkDocs
 reference section of *.md files composed of classes and functions, and also creates a nav menu for use in mkdocs.yaml.
 
 Note: Must be run from repository root directory. Do not run from docs directory.
@@ -10,12 +10,12 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-# Get package root i.e. /Users/glennjocher/PycharmProjects/ultralytics_4bands/ultralytics_4bands
-from ultralytics_4bands.utils import ROOT as PACKAGE_DIR
+# Get package root i.e. /Users/glennjocher/PycharmProjects/ultralytics_MB/ultralytics_MB
+from ultralytics_MB.utils import ROOT as PACKAGE_DIR
 
 # Constants
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
-GITHUB_REPO = "ultralytics_4bands/ultralytics_4bands"
+GITHUB_REPO = "ultralytics_MB/ultralytics_MB"
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:

@@ -19,7 +19,7 @@ To install the ultralytics package in developer mode, you will need to have Git 
 2. Navigate to the root directory of the repository:
 
     ```bash
-    cd ultralytics_4bands
+    cd ultralytics_MB
     ```
 
 3. Install the package in developer mode using pip:

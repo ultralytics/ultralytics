@@ -19,7 +19,7 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX
 To export YOLOv8 models, use the following Python script:
 
 ```python
-from ultralytics_4bands import YOLO
+from ultralytics_MB import YOLO
 
 # Load a YOLOv8 model
 model = YOLO("yolov8n.pt")

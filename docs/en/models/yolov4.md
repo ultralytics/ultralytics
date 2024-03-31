@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore our detailed guide on YOLOv4, a state-of-the-art real-time object detector. Understand its architectural highlights, innovative features, and application examples.
-keywords: ultralytics_4bands, YOLOv4, object detection, neural network, real-time detection, object detector, machine learning
+keywords: ultralytics_MB, YOLOv4, object detection, neural network, real-time detection, object detector, machine learning
 ---
 
 # YOLOv4: High-Speed and Precise Object Detection

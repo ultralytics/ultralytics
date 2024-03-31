@@ -1,10 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics_4bands import YOLO
-from ultralytics_4bands.cfg import get_cfg
-from ultralytics_4bands.engine.exporter import Exporter
-from ultralytics_4bands.models.yolo import classify, detect, segment
-from ultralytics_4bands.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics_MB import YOLO
+from ultralytics_MB.cfg import get_cfg
+from ultralytics_MB.engine.exporter import Exporter
+from ultralytics_MB.models.yolo import classify, detect, segment
+from ultralytics_MB.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 CFG_DET = "yolov8n.yaml"
 CFG_SEG = "yolov8n-seg.yaml"

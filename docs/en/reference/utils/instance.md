@@ -1,6 +1,6 @@
 ---
 description: Dive into Ultralytics detailed utility guide. Learn about Bboxes, _ntuple and more from Ultralytics utils.instance module.
-keywords: Ultralytics, Bboxes, _ntuple, utility, ultralytics_4bands utils.instance
+keywords: Ultralytics, Bboxes, _ntuple, utility, ultralytics_MB utils.instance
 ---
 
 # Reference for `ultralytics/utils/instance.py`

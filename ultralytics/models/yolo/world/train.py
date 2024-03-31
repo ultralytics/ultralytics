@@ -16,10 +16,9 @@ def on_pretrain_routine_end(trainer):
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
     device = next(trainer.model.parameters()).device
-    text_model, _ = trainer.clip.load("ViT-B/32", device=device)
-    for p in text_model.parameters():
+    trainer.text_model, _ = trainer.clip.load("ViT-B/32", device=device)
+    for p in trainer.text_model.parameters():
         p.requires_grad_(False)
-    trainer.text_model = text_model
 
 
 class WorldTrainer(yolo.detect.DetectionTrainer):

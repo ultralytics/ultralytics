@@ -237,7 +237,7 @@ def check_version(
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -632,7 +632,7 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
     device = next(model.parameters()).device  # get model device
-    if device.type in ("cpu", "mps"):
+    if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):

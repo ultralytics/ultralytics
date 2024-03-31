@@ -15,7 +15,7 @@ import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-from .utils import HELP_URL, IMG_FORMATS
+from .utils import HELP_URL, FORMATS_HELP_MSG, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
@@ -118,7 +118,7 @@ class BaseDataset(Dataset):
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
             im_files = sorted(x.replace("/", os.sep) for x in f if x.split(".")[-1].lower() in IMG_FORMATS)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert im_files, f"{self.prefix}No images found in {img_path}"
+            assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:

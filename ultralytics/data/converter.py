@@ -481,7 +481,7 @@ def merge_multi_segment(segments):
                 segments[i] = np.roll(segments[i], -idx[0], axis=0)
                 segments[i] = np.concatenate([segments[i], segments[i][:1]])
                 # Deal with the first segment and the last one
-                if i in [0, len(idx_list) - 1]:
+                if i in {0, len(idx_list) - 1}:
                     s.append(segments[i])
                 else:
                     idx = [0, idx[1] - idx[0]]
@@ -489,7 +489,7 @@ def merge_multi_segment(segments):
 
         else:
             for i in range(len(idx_list) - 1, -1, -1):
-                if i not in [0, len(idx_list) - 1]:
+                if i not in {0, len(idx_list) - 1}:
                     idx = idx_list[i]
                     nidx = abs(idx[1] - idx[0])
                     s.append(segments[i][nidx:])

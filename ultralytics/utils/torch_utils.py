@@ -507,8 +507,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions. This
-    method aims to reduce storage size without altering 'param_groups' as they contain non-tensor data.
+    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+
+    This method aims to reduce storage size without altering 'param_groups' as they contain non-tensor data.
     """
     for state in state_dict["state"].values():
         for k, v in state.items():

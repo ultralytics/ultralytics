@@ -153,7 +153,7 @@ class Heatmap:
         self.cls_txtdisplay_gap = cls_txtdisplay_gap
 
         # shape of heatmap, if not selected
-        if self.shape not in ["circle", "rect"]:
+        if self.shape not in {"circle", "rect"}:
             print("Unknown shape value provided, 'circle' & 'rect' supported")
             print("Using Circular shape now")
             self.shape = "circle"

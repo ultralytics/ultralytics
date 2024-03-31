@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv9
+# YOLOv9c-seg
+# 1261 layers, 60512800 parameters, 248.4 GFLOPs
 
 # parameters
 nc: 80  # number of classes

@@ -108,7 +108,7 @@ def on_train_end(trainer):
         for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
             if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
                 mlflow.log_artifact(str(f))
-        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() in ("true")
+        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
         if keep_run_active:
             LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
         else:

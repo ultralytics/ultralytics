@@ -41,7 +41,7 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
-ARM64 = platform.machine() in ("arm64", "aarch64")  # ARM64 booleans
+ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 HELP_MSG = """
     Usage examples for running YOLOv8:
 
@@ -359,7 +359,7 @@ def yaml_load(file="data.yaml", append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
-    assert Path(file).suffix in (".yaml", ".yml"), f"Attempting to load non-YAML file {file} with yaml_load()"
+    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
@@ -866,7 +866,7 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, tb = hint["exc_info"]
-            if exc_type in (KeyboardInterrupt, FileNotFoundError) or "out of memory" in str(exc_value):
+            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
         event["tags"] = {
@@ -879,7 +879,7 @@ def set_sentry():
 
     if (
         SETTINGS["sync"]
-        and RANK in (-1, 0)
+        and RANK in {-1, 0}
         and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE

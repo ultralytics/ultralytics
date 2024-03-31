@@ -145,7 +145,7 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
-        if Path(model).suffix in (".yaml", ".yml"):
+        if Path(model).suffix in {".yaml", ".yml"}:
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)

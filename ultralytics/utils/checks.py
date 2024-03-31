@@ -500,7 +500,7 @@ def check_file(file, suffix="", download=True, hard=True):
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0] if len(files) else [] if hard else file  # return file
+        return files[0] if len(files) else []  # return file
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):

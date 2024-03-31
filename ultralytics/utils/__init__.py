@@ -30,6 +30,7 @@ RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
 
 # Other Constants
+ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
@@ -522,7 +523,7 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(sys.argv[0]).stem)
+    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(ARGV[0]).stem)
 
 
 def is_github_action_running() -> bool:
@@ -869,8 +870,8 @@ def set_sentry():
                 return None  # do not send event
 
         event["tags"] = {
-            "sys_argv": sys.argv[0],
-            "sys_argv_name": Path(sys.argv[0]).name,
+            "sys_argv": ARGV[0],
+            "sys_argv_name": Path(ARGV[0]).name,
             "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
             "os": ENVIRONMENT,
         }
@@ -879,7 +880,7 @@ def set_sentry():
     if (
         SETTINGS["sync"]
         and RANK in (-1, 0)
-        and Path(sys.argv[0]).name == "yolo"
+        and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE
         and is_pip_package()

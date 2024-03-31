@@ -3,7 +3,6 @@
 import os
 import platform
 import random
-import sys
 import threading
 import time
 from pathlib import Path
@@ -11,6 +10,7 @@ from pathlib import Path
 import requests
 
 from ultralytics.utils import (
+    ARGV,
     ENVIRONMENT,
     LOGGER,
     ONLINE,
@@ -188,7 +188,7 @@ class Events:
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            "cli": Path(sys.argv[0]).name == "yolo",
+            "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
             "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             "version": __version__,

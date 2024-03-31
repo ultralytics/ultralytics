@@ -150,7 +150,7 @@ This table provides a detailed overview of the YOLOv9 model variants, highlighti
 
 !!! warning
 
-    Training YOLOv9 models will require _more_ resources **and** take longer than the equivalent sized [YOLOv8 model](yolov8.md)
+    Training YOLOv9 models will require _more_ resources **and** take longer than the equivalent sized [YOLOv8 model](yolov8.md).
 
 ## Citations and Acknowledgements
 

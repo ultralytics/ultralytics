@@ -85,6 +85,7 @@ class BaseTrainer:
         tloss (float): Total loss value.
         loss_names (list): List of loss names.
         csv (Path): Path to results CSV file.
+        freeze_layer_names (list): List of layer names to freeze.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -237,6 +238,7 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
             if any(x in k for x in freeze_layer_names):
@@ -331,7 +333,7 @@ class BaseTrainer:
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
-            self.model.train()
+            self._model_train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
@@ -459,6 +461,16 @@ class BaseTrainer:
             self.run_callbacks("on_train_end")
         torch.cuda.empty_cache()
         self.run_callbacks("teardown")
+
+    def _model_train(self):
+        """Set model in training mode."""
+        self.model.train()
+
+        # Freeze BN
+        if self.args.freeze_bn:
+            for n, m in self.model.named_modules():
+                if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
+                    m.eval()
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""

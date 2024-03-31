@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from typing import Union
 import torch
+import numpy as np
 
 from ultralytics_4bands.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics_4bands.hub.utils import HUB_WEB_ROOT

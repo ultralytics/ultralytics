@@ -370,7 +370,7 @@ def safe_download(
         return unzip_dir
 
 
-def get_github_assets(repo="ultralytics_4bands/assets", version="latest", retry=False):
+def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     """
     Retrieve the specified version's tag and assets from a GitHub repository. If the version is not specified, the
     function fetches the latest release assets.
@@ -402,7 +402,7 @@ def get_github_assets(repo="ultralytics_4bands/assets", version="latest", retry=
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolov8n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo="ultralytics_4bands/assets", release="v8.1.0", **kwargs):
+def attempt_download_asset(file, repo="ultralytics/assets", release="v8.1.0", **kwargs):
     """
     Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
     locally first, then tries to download it from the specified GitHub repository release.

@@ -42,6 +42,7 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     EarlyStopping,
     ModelEMA,
+    convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
     select_device,
@@ -488,7 +489,7 @@ class BaseTrainer:
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": deepcopy(self.ema.ema).half(),
                 "updates": self.ema.updates,
-                "optimizer": self.optimizer.state_dict(),
+                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
                 "train_results": {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()},

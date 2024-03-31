@@ -733,7 +733,10 @@ class Model(nn.Module):
         """
         from ultralytics.nn.autobackend import check_class_names
 
-        return check_class_names(self.model.names) if hasattr(self.model, "names") else None
+        if hasattr(self.model, "names"):
+            return check_class_names(self.model.names)
+        elif self.predictor:
+            return self.predictor.model.names
 
     @property
     def device(self) -> torch.device:

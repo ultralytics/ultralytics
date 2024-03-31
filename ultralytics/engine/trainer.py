@@ -503,7 +503,7 @@ class BaseTrainer:
             },
             buffer,
         )
-        serialized_ckpt = buffer.getvalue()  # Get the serialized content and free up ckpt
+        serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints
         self.last.write_bytes(serialized_ckpt)  # save last.pt

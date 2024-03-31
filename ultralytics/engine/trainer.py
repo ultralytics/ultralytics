@@ -42,7 +42,6 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     EarlyStopping,
     ModelEMA,
-    de_parallel,
     init_seeds,
     one_cycle,
     select_device,
@@ -477,32 +476,37 @@ class BaseTrainer:
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
+        import io
         import pandas as pd  # scope for faster startup
 
-        metrics = {**self.metrics, **{"fitness": self.fitness}}
-        results = {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
-        ckpt = {
-            "epoch": self.epoch,
-            "best_fitness": self.best_fitness,
-            "model": deepcopy(de_parallel(self.model)).half(),
-            "ema": deepcopy(self.ema.ema).half(),
-            "updates": self.ema.updates,
-            "optimizer": self.optimizer.state_dict(),
-            "train_args": vars(self.args),  # save as dict
-            "train_metrics": metrics,
-            "train_results": results,
-            "date": datetime.now().isoformat(),
-            "version": __version__,
-            "license": "AGPL-3.0 (https://ultralytics.com/license)",
-            "docs": "https://docs.ultralytics.com",
-        }
+        # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
+        buffer = io.BytesIO()
+        torch.save(
+            {
+                "epoch": self.epoch,
+                "best_fitness": self.best_fitness,
+                "model": None,  # resume and final checkpoints derive from EMA
+                "ema": deepcopy(self.ema.ema).half(),
+                "updates": self.ema.updates,
+                "optimizer": self.optimizer.state_dict(),
+                "train_args": vars(self.args),  # save as dict
+                "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
+                "train_results": {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()},
+                "date": datetime.now().isoformat(),
+                "version": __version__,
+                "license": "AGPL-3.0 (https://ultralytics.com/license)",
+                "docs": "https://docs.ultralytics.com",
+            },
+            buffer,
+        )
+        serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
-        # Save last and best
-        torch.save(ckpt, self.last)
+        # Save checkpoints
+        self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best)
+            self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f"epoch{self.epoch}.pt")
+            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     @staticmethod
     def get_dataset(data):
@@ -522,7 +526,7 @@ class BaseTrainer:
         ckpt = None
         if str(model).endswith(".pt"):
             weights, ckpt = attempt_load_one_weight(model)
-            cfg = ckpt["model"].yaml
+            cfg = weights.yaml
         else:
             cfg = model
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)

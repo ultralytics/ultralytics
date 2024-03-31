@@ -1,18 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.models import yolo
-from ultralytics.nn.tasks import WorldModel
-from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.data import build_yolo_dataset
-from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.utils.checks import check_requirements
 import itertools
 
-try:
-    import clip
-except ImportError:
-    check_requirements("git+https://github.com/ultralytics/CLIP.git")
-    import clip
+from ultralytics.data import build_yolo_dataset
+from ultralytics.models import yolo
+from ultralytics.nn.tasks import WorldModel
+from ultralytics.utils import DEFAULT_CFG, RANK, checks
+from ultralytics.utils.torch_utils import de_parallel
 
 
 def on_pretrain_routine_end(trainer):
@@ -22,10 +16,9 @@ def on_pretrain_routine_end(trainer):
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
     device = next(trainer.model.parameters()).device
-    text_model, _ = clip.load("ViT-B/32", device=device)
-    for p in text_model.parameters():
+    trainer.text_model, _ = trainer.clip.load("ViT-B/32", device=device)
+    for p in trainer.text_model.parameters():
         p.requires_grad_(False)
-    trainer.text_model = text_model
 
 
 class WorldTrainer(yolo.detect.DetectionTrainer):
@@ -47,6 +40,14 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
+
+        # Import and assign clip
+        try:
+            import clip
+        except ImportError:
+            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
+            import clip
+        self.clip = clip
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return WorldModel initialized with specified config and weights."""
@@ -84,7 +85,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
 
         # NOTE: add text features
         texts = list(itertools.chain(*batch["texts"]))
-        text_token = clip.tokenize(texts).to(batch["img"].device)
+        text_token = self.clip.tokenize(texts).to(batch["img"].device)
         txt_feats = self.text_model.encode_text(text_token).to(dtype=batch["img"].dtype)  # torch.float32
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])

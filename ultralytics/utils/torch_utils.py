@@ -505,6 +505,23 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 
 
+def convert_optimizer_state_dict_to_fp16(state_dict):
+    """
+    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    This method aims to reduce storage size without altering 'param_groups' as they contain non-tensor data.
+
+    Note:
+        Key 'param_groups' contains hyperparameters and metadata which do not need conversion.
+    """
+    # Convert all float tensors in the 'state' to FP16
+    for state in state_dict["state"].values():
+        for k, v in state.items():
+            if isinstance(v, torch.Tensor) and v.dtype is torch.float32:
+                state[k] = v.half()
+
+    return state_dict
+
+
 def profile(input, ops, n=10, device=None):
     """
     Ultralytics speed, memory and FLOPs profiler.

@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     one_cycle,
     select_device,
     strip_optimizer,
+    convert_optimizer_state_dict_to_fp16,
 )
 
 
@@ -486,7 +487,7 @@ class BaseTrainer:
             "model": None,  # resume and final checkpoints derive from EMA, deepcopy(de_parallel(self.model)).half()
             "ema": deepcopy(self.ema.ema).half(),
             "updates": self.ema.updates,
-            "optimizer": self.optimizer.state_dict(),
+            "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
             "train_args": vars(self.args),  # save as dict
             "train_metrics": metrics,
             "train_results": results,

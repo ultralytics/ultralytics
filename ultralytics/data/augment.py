@@ -685,7 +685,7 @@ class RandomFlip:
                 Default is 'horizontal'.
             flip_idx (array-like, optional): Index mapping for flipping keypoints, if any.
         """
-        assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
+        assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0
 
         self.p = p

@@ -363,35 +363,49 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def count_labels(self, counts=0, count_txt_size=2, color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def display_counts(
+        self, counts=None, tf=2, fontScale=0.6, line_color=(0, 0, 0), txt_color=(255, 255, 255), classwise_txtgap=55
+    ):
         """
-        Plot counts for object counter.
+        Display counts on im0.
 
         Args:
-            counts (int): objects counts value
-            count_txt_size (int): text size for counts display
-            color (tuple): background color of counts display
-            txt_color (tuple): text color of counts display
+            counts (str): objects count data
+            tf (int): text thickness for display
+            fontScale (float): text fontsize for display
+            line_color (RGB Color): counts highlighter color
+            txt_color (RGB Color): counts display color
+            classwise_txtgap (int): Gap between each class count data
         """
-        self.tf = count_txt_size
-        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
+
+        tl = tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
 
-        # Get text size for in_count and out_count
-        t_size_in = cv2.getTextSize(str(counts), 0, fontScale=tl / 2, thickness=tf)[0]
+        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=0.8, thickness=tf)[0] for count in counts]
 
-        # Calculate positions for counts label
-        text_width = t_size_in[0]
-        text_x = (self.im.shape[1] - text_width) // 2  # Center x-coordinate
-        text_y = t_size_in[1]
+        max_text_width = max([size[0] for size in t_sizes])
+        max_text_height = max([size[1] for size in t_sizes])
 
-        # Create a rounded rectangle for in_count
-        cv2.rectangle(
-            self.im, (text_x - 5, text_y - 5), (text_x + text_width + 7, text_y + t_size_in[1] + 7), color, -1
-        )
-        cv2.putText(
-            self.im, str(counts), (text_x, text_y + t_size_in[1]), 0, tl / 2, txt_color, self.tf, lineType=cv2.LINE_AA
-        )
+        text_x = self.im.shape[1] - max_text_width - 20
+        text_y = classwise_txtgap
+
+        for i, count in enumerate(counts):
+            text_x_pos = text_x
+            text_y_pos = text_y + i * classwise_txtgap
+
+            cv2.putText(
+                self.im,
+                str(count),
+                (text_x_pos, text_y_pos),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=fontScale,
+                color=txt_color,
+                thickness=tf,
+                lineType=cv2.LINE_AA,
+            )
+
+            line_y_pos = text_y_pos + max_text_height + 5
+            cv2.line(self.im, (text_x_pos, line_y_pos), (text_x_pos + max_text_width, line_y_pos), line_color, tf)
 
     @staticmethod
     def estimate_pose_angle(a, b, c):

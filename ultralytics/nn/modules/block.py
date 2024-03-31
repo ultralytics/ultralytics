@@ -519,7 +519,8 @@ class ContrastiveHead(nn.Module):
     def __init__(self):
         """Initializes ContrastiveHead with specified region-text similarity parameters."""
         super().__init__()
-        self.bias = nn.Parameter(torch.zeros([]))
+        # NOTE: use -10.0 to keep the init cls loss consistency with other losses
+        self.bias = nn.Parameter(torch.tensor([-10.0]))
         self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
 
     def forward(self, x, w):
@@ -542,7 +543,8 @@ class BNContrastiveHead(nn.Module):
         """Initialize ContrastiveHead with region-text similarity parameters."""
         super().__init__()
         self.norm = nn.BatchNorm2d(embed_dims)
-        self.bias = nn.Parameter(torch.zeros([]))
+        # NOTE: use -10.0 to keep the init cls loss consistency with other losses
+        self.bias = nn.Parameter(torch.tensor([-10.0]))
         # use -1.0 is more stable
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 

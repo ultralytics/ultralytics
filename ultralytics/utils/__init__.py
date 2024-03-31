@@ -879,7 +879,7 @@ def set_sentry():
 
     if (
         SETTINGS["sync"]
-        and RANK in (-1, 0)
+        and RANK in {-1, 0}
         and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE

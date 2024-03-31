@@ -142,7 +142,7 @@ class YOLODataset(BaseDataset):
 
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
-        if exists and LOCAL_RANK in (-1, 0):
+        if exists and LOCAL_RANK in {-1, 0}:
             d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
             TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache["msgs"]:
@@ -334,7 +334,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
             nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
-            if LOCAL_RANK in (-1, 0):
+            if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
                 TQDM(None, desc=d, total=n, initial=n)
                 if cache["msgs"]:

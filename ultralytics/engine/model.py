@@ -666,7 +666,7 @@ class Model(nn.Module):
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training
-        if RANK in (-1, 0):
+        if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
             self.model, _ = attempt_load_one_weight(ckpt)
             self.overrides = self.model.args

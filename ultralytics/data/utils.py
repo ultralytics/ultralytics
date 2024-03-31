@@ -39,6 +39,7 @@ HELP_URL = "See https://docs.ultralytics.com/datasets/detect for dataset formatt
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
+FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
 def img2label_paths(img_paths):
@@ -79,7 +80,7 @@ def verify_image(args):
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
@@ -105,7 +106,7 @@ def verify_image_label(args):
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)

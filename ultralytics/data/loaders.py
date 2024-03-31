@@ -15,7 +15,7 @@ import requests
 import torch
 from PIL import Image
 
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, FORMATS_HELP_MSG
 from ultralytics.utils import LOGGER, is_colab, is_kaggle, ops
 from ultralytics.utils.checks import check_requirements
 
@@ -313,10 +313,7 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(
-                f"No images or videos found in {p}. "
-                f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
-            )
+            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
 
     def __iter__(self):
         """Returns an iterator object for VideoStream or ImageFolder."""

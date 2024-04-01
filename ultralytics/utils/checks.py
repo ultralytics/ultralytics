@@ -43,6 +43,7 @@ from ultralytics.utils import (
     is_online,
     is_pip_package,
     url2file,
+    Retry,
 )
 
 PYTHON_VERSION = platform.python_version()
@@ -390,7 +391,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert is_online(), "AutoUpdate skipped (offline)"
-                LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                with Retry(times=1, delay=1):  # retry once on failure after 1 second
+                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"

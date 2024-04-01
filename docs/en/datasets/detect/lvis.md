@@ -4,6 +4,8 @@ description: Learn how LVIS, a leading dataset for object detection and segmenta
 keywords: Ultralytics, LVIS dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 ---
 
+![Dataset sample image](https://user-images.githubusercontent.com/26833433/238215467-caf757dd-0b87-4b0d-bb19-d94a547f7fbf.jpg)
+
 # LVIS Dataset
 
 The [LVIS](https://www.lvisdataset.org/dataset) dataset is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and instance segmentation with a large vocabulary of categories, aiming to drive further advancements in computer vision field.

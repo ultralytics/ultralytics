@@ -391,7 +391,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert is_online(), "AutoUpdate skipped (offline)"
-                with Retry(times=1, delay=1):  # retry once on failure after 1 second
+                with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
                     LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(

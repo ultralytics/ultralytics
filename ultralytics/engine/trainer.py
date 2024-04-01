@@ -131,7 +131,12 @@ class BaseTrainer:
                 self.data = check_cls_dataset(self.args.data)
             elif self.args.task == "regress":
                 self.data = check_regress_dataset(self.args.data)
-            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in ("detect", "segment", "pose"):
+            elif self.args.data.split(".")[-1] in ("yaml", "yml") or self.args.task in (
+                "detect",
+                "segment",
+                "pose",
+                "obb",
+            ):
                 self.data = check_det_dataset(self.args.data)
                 if "yaml_file" in self.data:
                     self.args.data = self.data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
@@ -277,7 +282,7 @@ class BaseTrainer:
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multi-scale training
+        self.stride = gs  # for multiscale training
 
         # Batch size
         if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -419,7 +424,7 @@ class BaseTrainer:
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")
             if RANK in (-1, 0):
-                final_epoch = epoch + 1 == self.epochs
+                final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
                 # Validation
@@ -491,6 +496,8 @@ class BaseTrainer:
             "train_results": results,
             "date": datetime.now().isoformat(),
             "version": __version__,
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
         }
 
         # Save last and best

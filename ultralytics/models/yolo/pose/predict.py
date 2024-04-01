@@ -38,6 +38,7 @@ class PosePredictor(DetectionPredictor):
         if self.separate_outputs:  # Quant friendly export with separated outputs
             pred_order, nkpt = separate_outputs_decode(preds, self.args.task)
             pred_decoded = decode_bbox(pred_order, img.shape, self.device)
+            nc = pred_decoded.shape[1] - 4
             kpt_shape = (nkpt.shape[-1] // 3, 3)
             kpts_decoded = decode_kpts(pred_order,
                                        img.shape,
@@ -53,7 +54,7 @@ class PosePredictor(DetectionPredictor):
                 agnostic=self.args.agnostic_nms,
                 max_det=self.args.max_det,
                 classes=self.args.classes,
-                nc=len(self.model.names)
+                nc=nc
             )
         else:
             preds = ops.non_max_suppression(

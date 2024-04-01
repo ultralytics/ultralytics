@@ -19,6 +19,10 @@ keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_
 
 <br><br>
 
+## ::: ultralytics.cfg.check_cfg
+
+<br><br>
+
 ## ::: ultralytics.cfg.get_save_dir
 
 <br><br>

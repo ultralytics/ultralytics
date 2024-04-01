@@ -10,6 +10,17 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics YOLO ecosystem and integrations">
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZzUSXQkLbNw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Deployment and Integrations
+</p>
+
 ## Datasets Integrations
 
 - [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
@@ -40,20 +51,30 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
 
-- [Gradio](../integrations/gradio.md) 🚀 NEW: Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
+- [Gradio](gradio.md) 🚀 NEW: Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
-- [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel CPU and GPU platforms.
+- [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
 - [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
+
+- [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel CPU and GPU platforms.
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance deep learning inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure model deployment.
 
-- [TFLite](tflite.md): Developed by [Google](https://www.google.com), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
-    
-- [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
+- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com), TF SavedModel is a universal serialization format for TensorFlow models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
   
+- [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
+
+- [TFLite](tflite.md): Developed by [Google](https://www.google.com), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
+
+- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
+
+- [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
+    
+- [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient neural network inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:

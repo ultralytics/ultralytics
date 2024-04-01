@@ -24,7 +24,9 @@ try:
 except ImportError:
     thop = None
 
+# Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
+TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(torchvision.__version__, "0.10.0")
 TORCHVISION_0_11 = check_version(torchvision.__version__, "0.11.0")
@@ -115,7 +117,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             device = "0"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(",", ""))):
+        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "

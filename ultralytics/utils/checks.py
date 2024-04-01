@@ -28,6 +28,7 @@ from ultralytics.utils import (
     ONLINE,
     ROOT,
     USER_CONFIG_DIR,
+    Retry,
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -43,7 +44,6 @@ from ultralytics.utils import (
     is_online,
     is_pip_package,
     url2file,
-    Retry,
 )
 
 PYTHON_VERSION = platform.python_version()

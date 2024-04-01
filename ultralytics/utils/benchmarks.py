@@ -117,7 +117,7 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
-            assert i not in (9, 10), "inference not supported"  # Edge TPU and TF.js are unsupported
+            assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
@@ -222,7 +222,7 @@ class ProfileModels:
         output = []
         for file in files:
             engine_file = file.with_suffix(".engine")
-            if file.suffix in (".pt", ".yaml", ".yml"):
+            if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()

@@ -240,6 +240,7 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
+          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
@@ -492,6 +493,9 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+              - world:
+                  - train: reference/models/yolo/world/train.md
+                  - train_world: reference/models/yolo/world/train_world.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:

@@ -28,6 +28,7 @@ from ultralytics.utils import (
     ONLINE,
     ROOT,
     USER_CONFIG_DIR,
+    Retry,
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -237,7 +238,7 @@ def check_version(
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -390,7 +391,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert is_online(), "AutoUpdate skipped (offline)"
-                LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                with Retry(times=1, delay=1):  # retry once on failure after 1 second
+                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -500,7 +502,7 @@ def check_file(file, suffix="", download=True, hard=True):
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0] if len(files) else [] if hard else file  # return file
+        return files[0] if len(files) else []  # return file
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
@@ -632,7 +634,7 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
     device = next(model.parameters()).device  # get model device
-    if device.type in ("cpu", "mps"):
+    if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):

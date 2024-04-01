@@ -301,12 +301,24 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         break;
     }
     case YOLO_CLS:
+    case YOLO_CLS_HALF:
     {
+        cv::Mat rawData;
+        if (modelType == YOLO_CLS) {
+            // FP32
+            rawData = cv::Mat(1, this->classes.size(), CV_32F, output);
+        } else {
+            // FP16
+            rawData = cv::Mat(1, this->classes.size(), CV_16F, output);
+            rawData.convertTo(rawData, CV_32F);
+        }
+        float *data = (float *) rawData.data;
+
         DL_RESULT result;
         for (int i = 0; i < this->classes.size(); i++)
         {
             result.classId = i;
-            result.confidence = output[i];
+            result.confidence = data[i];
             oResult.push_back(result);
         }
         break;

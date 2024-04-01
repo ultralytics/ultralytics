@@ -810,22 +810,6 @@ class CopyPaste:
             i = cv2.flip(im_new, 1).astype(bool)
             im[i] = result[i]
 
-            im_new = np.zeros(im.shape, np.uint8)
-            ins_flip = deepcopy(instances)
-            ins_flip.flipud(w)
-
-            ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
-            indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
-            n = len(indexes)
-            for j in random.sample(list(indexes), k=round(self.p * n)):
-                cls = np.concatenate((cls, cls[[j]]), axis=0)
-                instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
-                cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
-
-            result = cv2.flip(im, 0)  # augment segments (flip left-right)
-            i = cv2.flip(im_new, 0).astype(bool)
-            im[i] = result[i]
-
         labels["img"] = im
         labels["cls"] = cls
         labels["instances"] = instances

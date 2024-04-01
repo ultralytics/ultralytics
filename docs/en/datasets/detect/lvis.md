@@ -4,7 +4,7 @@ description: Learn how LVIS, a leading dataset for object detection and segmenta
 keywords: Ultralytics, LVIS dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 ---
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238215467-caf757dd-0b87-4b0d-bb19-d94a547f7fbf.jpg)
+![Dataset sample image](https://github.com/ultralytics/ultralytics/assets/26833433/38cc033a-68b0-47f3-a5b8-4ef554362e40)
 
 # LVIS Dataset
 

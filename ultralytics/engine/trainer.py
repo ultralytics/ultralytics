@@ -302,7 +302,7 @@ class BaseTrainer:
         self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
-        self.scheduler.last_epoch = self.start_epoch - 2  # do not move
+        self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, world_size=1):

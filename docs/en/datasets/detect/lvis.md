@@ -6,7 +6,11 @@ keywords: Ultralytics, LVIS dataset, object detection, YOLO, YOLO model training
 
 # LVIS Dataset
 
-The [LVIS](https://www.lvisdataset.org/dataset) dataset is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and instance segmentation with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and instance segmentation with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
+
+<p align="center">
+    <img width="640" src="https://github.com/ultralytics/ultralytics/assets/26833433/40230a80-e7bc-4310-a860-4cc0ef4bb02a" alt="LVIS Dataset example images">
+</p>
 
 ## Key Features
 
@@ -69,8 +73,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
 
 The LVIS dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://private-user-images.githubusercontent.com/61612323/316485965-a88c2e62-58d0-4f67-bc69-1418e42175e9.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MTEzNjcyNjYsIm5iZiI6MTcxMTM2Njk2NiwicGF0aCI6Ii82MTYxMjMyMy8zMTY0ODU5NjUtYTg4YzJlNjItNThkMC00ZjY3LWJjNjktMTQxOGU0MjE3NWU5LmpwZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDAzMjUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwMzI1VDExNDI0NlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWZmMTVlNzE5MTBkOTZmNDQwNzJjNWQzYzM2NmEyMGMxODQ4ZDEyMjYwYmMyY2JjZDU5YzBmMDIyZGEwMGEwZDAmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.7thukPdnJKYuBmTk1ROUyqxxV3Ix5GeNLqyi4wSDYvA)
-
+![LVIS Dataset sample image](https://github.com/ultralytics/ultralytics/assets/26833433/38cc033a-68b0-47f3-a5b8-4ef554362e40)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -93,4 +96,4 @@ If you use the LVIS dataset in your research or development work, please cite th
         }
         ```
 
-We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/dataset).
+We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).

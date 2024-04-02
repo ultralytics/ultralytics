@@ -234,23 +234,32 @@ class AutoBackend(nn.Module):
                 meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                 metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
-            context = model.create_execution_context()
+            try:
+                context = model.create_execution_context()
+            except AttributeError:  # model is None
+                # TensorRT <10 and >=10 incompatible
+                LOGGER.error(f"\nExport to .engine  using the same version of TensorRT installed; currently using {trt.__version__}\n")
+                raise err
             bindings = OrderedDict()
             output_names = []
             fp16 = False  # default updated below
             dynamic = False
-            for i in range(model.num_bindings):
-                name = model.get_binding_name(i)
-                dtype = trt.nptype(model.get_binding_dtype(i))
-                if model.binding_is_input(i):
-                    if -1 in tuple(model.get_binding_shape(i)):  # dynamic
+            is_legacy = hasattr(model, "num_bindings")  # TensorRT <10
+            num = range(model.num_bindings) if is_legacy else range(model.num_io_tensors)
+            for i in num:
+                name = model.get_binding_name(i) if is_legacy else model.get_tensor_name(i)
+                dtype = trt.nptype(model.get_binding_dtype(i) if is_legacy else model.get_tensor_dtype(name))
+                is_input = model.binding_is_input(i) if is_legacy else model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
+                if is_input:
+                    if -1 in tuple(model.get_binding_shape(i) if is_legacy else model.get_tensor_shape(name)):  # dynamic
                         dynamic = True
-                        context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[2]))
+                        profile_shape = (model.get_profile_shape(0, i) if is_legacy else model.get_tensor_profile_shape(name, i))
+                        context.set_binding_shape(i, tuple(profile_shape[2]))
                     if dtype == np.float16:
                         fp16 = True
                 else:  # output
                     output_names.append(name)
-                shape = tuple(context.get_binding_shape(i))
+                shape = tuple(context.get_binding_shape(i) if is_legacy else context.get_tensor_shape(name))
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())

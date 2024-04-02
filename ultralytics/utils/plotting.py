@@ -364,6 +364,7 @@ class Annotator:
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
+        """Displays queue counts on an image centered at the points with customizable font size and colors."""
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)

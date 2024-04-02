@@ -74,7 +74,6 @@ To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image
         # Start prediction with a finetuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/brain-tumor-sample.jpg"
         ```
-    
 
 ## Sample Images and Annotations
 

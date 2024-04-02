@@ -210,6 +210,10 @@ jobs:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

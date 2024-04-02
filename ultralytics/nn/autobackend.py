@@ -238,7 +238,9 @@ class AutoBackend(nn.Module):
                 context = model.create_execution_context()
             except AttributeError:  # model is None
                 # TensorRT <10 and >=10 incompatible
-                LOGGER.error(f"\nExport to .engine  using the same version of TensorRT installed; currently using {trt.__version__}\n")
+                LOGGER.error(
+                    f"\nExport to .engine  using the same version of TensorRT installed; currently using {trt.__version__}\n"
+                )
                 raise err
             bindings = OrderedDict()
             output_names = []
@@ -249,11 +251,17 @@ class AutoBackend(nn.Module):
             for i in num:
                 name = model.get_binding_name(i) if is_legacy else model.get_tensor_name(i)
                 dtype = trt.nptype(model.get_binding_dtype(i) if is_legacy else model.get_tensor_dtype(name))
-                is_input = model.binding_is_input(i) if is_legacy else model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
+                is_input = (
+                    model.binding_is_input(i) if is_legacy else model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
+                )
                 if is_input:
-                    if -1 in tuple(model.get_binding_shape(i) if is_legacy else model.get_tensor_shape(name)):  # dynamic
+                    if -1 in tuple(
+                        model.get_binding_shape(i) if is_legacy else model.get_tensor_shape(name)
+                    ):  # dynamic
                         dynamic = True
-                        profile_shape = (model.get_profile_shape(0, i) if is_legacy else model.get_tensor_profile_shape(name, i))
+                        profile_shape = (
+                            model.get_profile_shape(0, i) if is_legacy else model.get_tensor_profile_shape(name, i)
+                        )
                         context.set_binding_shape(i, tuple(profile_shape[2]))
                     if dtype == np.float16:
                         fp16 = True

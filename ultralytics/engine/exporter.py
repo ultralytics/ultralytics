@@ -847,8 +847,8 @@ class Exporter:
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
             input_output_quant_dtype=io_quant_dtype,
-            output_signaturedefs=True,
-            param_replacement_file=param_replacement_file.get(self.model.task, ""),
+            # output_signaturedefs=True,
+            param_replacement_file=param_replacement_file.get(self.model.task, "") if self.args.separate_outputs else "",
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 

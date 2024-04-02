@@ -830,6 +830,14 @@ class Exporter:
             verbosity = "error"
 
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
+
+        param_replacement_file = {
+            "detect": "ultralytics/utils/replace.json",
+            "segment": "ultralytics/utils/replace.json",
+            "pose": "ultralytics/utils/pose_replace.json",
+            "classify": "",
+        }
+
         onnx2tf.convert(
             input_onnx_file_path=f_onnx,
             output_folder_path=str(f),
@@ -839,6 +847,8 @@ class Exporter:
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
             input_output_quant_dtype=io_quant_dtype,
+            output_signaturedefs=True,
+            param_replacement_file=param_replacement_file.get(self.model.task, ""),
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 

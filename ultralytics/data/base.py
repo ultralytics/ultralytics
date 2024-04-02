@@ -149,9 +149,7 @@ class BaseDataset(Dataset):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:
-            if self.cache_ram:
-                im = self.ims[i] = cv2.imread(f)
-            elif self.cache_disk:
+            if self.cache_disk:
                 if not fn.exists():
                     np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
                 im = np.load(fn)
@@ -169,11 +167,12 @@ class BaseDataset(Dataset):
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
 
+            if self.cache_ram or self.augment:
+                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]
             # Add to buffer if training with augmentations
             if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length:
+                if len(self.buffer) >= self.max_buffer_length and not self.cache_ram:
                     j = self.buffer.pop(0)
                     self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 

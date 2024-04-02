@@ -20,17 +20,17 @@ GraphDef models can use hardware accelerators such as GPUs, TPUs, and AI chips, 
 
 ## Key Features of TF GraphDef Models
 
-TF GraphDef offers distinct features for streamlining model deployment and optimization.  
+TF GraphDef offers distinct features for streamlining model deployment and optimization.
 
 Here's a look at its key characteristics:
 
- - **Model Serialization**: TF GraphDef provides a way to serialize and store TensorFlow models in a platform-independent format. This serialized representation allows you to load and execute your models without the original Python codebase, making deployment easier.
+- **Model Serialization**: TF GraphDef provides a way to serialize and store TensorFlow models in a platform-independent format. This serialized representation allows you to load and execute your models without the original Python codebase, making deployment easier.
 
- - **Graph Optimization**: TF GraphDef enables the optimization of computational graphs.  These optimizations can boost performance by streamlining execution flow, reducing redundancies, and tailoring operations to suit specific hardware.
+- **Graph Optimization**: TF GraphDef enables the optimization of computational graphs. These optimizations can boost performance by streamlining execution flow, reducing redundancies, and tailoring operations to suit specific hardware.
 
- - **Deployment Flexibility**: Models exported to the GraphDef format can be used in various environments, including resource-constrained devices, web browsers, and systems with specialized hardware. This opens up possibilities for wider deployment of your TensorFlow models.
+- **Deployment Flexibility**: Models exported to the GraphDef format can be used in various environments, including resource-constrained devices, web browsers, and systems with specialized hardware. This opens up possibilities for wider deployment of your TensorFlow models.
 
- - **Production Focus**: GraphDef is designed for production deployment. It supports efficient execution, serialization features, and optimizations that align with real-world use cases.
+- **Production Focus**: GraphDef is designed for production deployment. It supports efficient execution, serialization features, and optimizations that align with real-world use cases.
 
 ## Deployment Options with TF GraphDef
 
@@ -44,7 +44,7 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **Web Browsers:** TensorFlow.js enables the deployment of TF GraphDef models directly within web browsers. It paves the way for real-time object detection applications running on the client side, using the capabilities of YOLOv8 through JavaScript.
 
-- **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units).  These devices can provide performance advantages for computationally intensive models.
+- **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
 
 ## Exporting YOLOv8 Models to TF GraphDef
 

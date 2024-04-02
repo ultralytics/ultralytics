@@ -231,8 +231,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """
-    Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
+    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
     environments.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings

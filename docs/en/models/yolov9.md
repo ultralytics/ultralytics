@@ -63,6 +63,7 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
     Despite all metrics shown for the various model scales in the table below, **only** the configurations for `YOLOv9c` and `YOLOv9e` have been published. The Ultralytics Team will work swiftly to add other configurations as they become available, so be sure to check back here regularly for updates.
 
 !!! tip "Performance"
+
     === "Detection (COCO)"
 
         | Model                                                                                 | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | params<br><sup>(M) | FLOPs<br><sup>(B) |
@@ -140,15 +141,14 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model          | Filenames                         | Tasks                                        | Inference  | Validation   | Training  | Export   |
-|----------------|-----------------------------------|----------------------------------------------|------------|--------------|-----------|----------|
-| YOLOv9         | `yolov9c.pt` `yolov9e.pt`         | [Object Detection](../tasks/detect.md)       | ✅         | ✅          | ✅        | ✅      |
-| YOLOv9-seg     | `yolov9c-seg.pt` `yolov9e-seg.pt` | [Instance Segmentation](../tasks/segment.md) | ✅         | ✅          | ✅        | ✅      |
-
+| Model      | Filenames                         | Tasks                                        | Inference | Validation | Training | Export |
+|------------|-----------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| YOLOv9     | `yolov9c.pt` `yolov9e.pt`         | [Object Detection](../tasks/detect.md)       | ✅         | ✅          | ✅        | ✅      |
+| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt` | [Instance Segmentation](../tasks/segment.md) | ✅         | ✅          | ✅        | ✅      |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.
 
-!!! note 
+!!! note
 
     Training YOLOv9 models will require _more_ resources **and** take longer than the equivalent sized [YOLOv8 model](yolov8.md).
 

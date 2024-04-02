@@ -75,7 +75,6 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
         # Start prediction with a finetuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/african-wildlife-sample.jpg"
         ```
-    
 
 ## Sample Images and Annotations
 

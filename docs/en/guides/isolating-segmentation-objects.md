@@ -42,7 +42,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ```
 
     !!! question "No Prediction Arguments?"
-
         Without specifying a source, the example images from the library will be used:
 
         ```

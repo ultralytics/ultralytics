@@ -106,7 +106,6 @@ class QueueManager:
         self.region_thickness = region_thickness
         self.fontsize = fontsize
 
-
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
 
@@ -121,8 +120,7 @@ class QueueManager:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}",
-                                         color=colors(int(track_id), True))
+                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
                 # Draw Tracks
                 track_line = self.track_history[track_id]
@@ -145,12 +143,16 @@ class QueueManager:
                     if prev_position is not None and is_inside:
                         self.counts += 1
 
-
         label = "Queue Counts : " + str(self.counts)
 
         if label is not None:
-            self.annotator.queue_counts_display(label, points=self.reg_pts, region_color=self.region_color,
-                                                txt_color=self.count_txt_color, fontsize=self.fontsize)
+            self.annotator.queue_counts_display(
+                label,
+                points=self.reg_pts,
+                region_color=self.region_color,
+                txt_color=self.count_txt_color,
+                fontsize=self.fontsize,
+            )
 
         self.counts = 0
         self.display_frames()
@@ -158,8 +160,7 @@ class QueueManager:
     def display_frames(self):
         """Display frame."""
         if self.env_check:
-            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness,
-                                       color=self.region_color)
+            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness, color=self.region_color)
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
             # Break Window

@@ -9,7 +9,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import time
 from importlib import metadata
 from pathlib import Path
@@ -29,6 +28,7 @@ from ultralytics.utils import (
     ONLINE,
     ROOT,
     USER_CONFIG_DIR,
+    Retry,
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -45,6 +45,8 @@ from ultralytics.utils import (
     is_pip_package,
     url2file,
 )
+
+PYTHON_VERSION = platform.python_version()
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -141,6 +143,8 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         imgsz = [imgsz]
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
+    elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -234,7 +238,7 @@ def check_version(
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -314,7 +318,7 @@ def check_font(font="Arial.ttf"):
 
     # Download to USER_CONFIG_DIR if missing
     url = f"https://ultralytics.com/assets/{name}"
-    if downloads.is_url(url):
+    if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
 
@@ -329,7 +333,7 @@ def check_python(minimum: str = "3.8.0") -> bool:
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(platform.python_version(), minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
 
 
 @TryExcept()
@@ -387,7 +391,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert is_online(), "AutoUpdate skipped (offline)"
-                LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
+                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -492,7 +497,7 @@ def check_file(file, suffix="", download=True, hard=True):
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search
-        files = glob.glob(str(ROOT / "cfg" / "**" / file), recursive=True)  # find file
+        files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file
         if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
@@ -580,7 +585,7 @@ def collect_system_info():
     LOGGER.info(
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
-        f"{'Python':<20}{sys.version.split()[0]}\n"
+        f"{'Python':<20}{PYTHON_VERSION}\n"
         f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
         f"{'RAM':<20}{ram_info:.2f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
@@ -629,7 +634,7 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
     device = next(model.parameters()).device  # get model device
-    if device.type in ("cpu", "mps"):
+    if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):
@@ -722,3 +727,7 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
+
+
+# Define constants
+IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

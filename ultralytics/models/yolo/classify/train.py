@@ -68,12 +68,12 @@ class ClassificationTrainer(BaseTrainer):
             self.model, ckpt = attempt_load_one_weight(model, device="cpu")
             for p in self.model.parameters():
                 p.requires_grad = True  # for training
-        elif model.split(".")[-1] in ("yaml", "yml"):
+        elif model.split(".")[-1] in {"yaml", "yml"}:
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[model](weights="IMAGENET1K_V1" if self.args.pretrained else None)
         else:
-            FileNotFoundError(f"ERROR: model={model} not found locally or online. Please check model name.")
+            raise FileNotFoundError(f"ERROR: model={model} not found locally or online. Please check model name.")
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
 
         return ckpt

@@ -16,7 +16,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 ## What is NVIDIA Jetson?
 
-NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to edge devices. These compact and powerful devices are built around NVIDIA's GPU architecture and are capable of running complex AI algorithms and deep learning models directly on the device, without needing to rely on cloud computing resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with low latency and high efficiency. Additionally these boards are based on the ARM64 architecture and runs on lower power compared to traditional GPU computing devices.
+NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to edge devices. These compact and powerful devices are built around NVIDIA's GPU architecture and are capable of running complex AI algorithms and deep learning models directly on the device, without needing to rely on cloud computing resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with low latency and high efficiency. Additionally, these boards are based on the ARM64 architecture and runs on lower power compared to traditional GPU computing devices.
 
 ## NVIDIA Jetson Series Comparison
 
@@ -24,7 +24,7 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 |                   | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano 8GB                                          | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
 |-------------------|------------------------------------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------|--------------------------------------------------------------|---------------------------------------------|
-| AI Performance    |                             275 TOPS                             |                             100 TOPS                            |                            40 TOPs                            |                           32 TOPS                           |                            21 TOPS                           |                  472 GFLOPS                 |
+| AI Performance    | 275 TOPS                                                         | 100 TOPS                                                        | 40 TOPs                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
 | GPU               | 2048-core NVIDIA Ampere architecture  GPU with 64 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
 | GPU Max Frequency | 1.3 GHz                                                          | 918 MHz                                                         | 625 MHz                                                       | 1377 MHz                                                    | 1100 MHz                                                     | 921MHz                                      |
 | CPU               | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3   | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3    | 6-core NVIDIA Carmel Arm®v8.2 64-bit  CPU 6MB L2 + 4MB L3    | Quad-Core Arm® Cortex®-A57 MPCore processor |
@@ -67,6 +67,7 @@ t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker ru
 Here we will install ultralyics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](https://docs.ultralytics.com/integrations/tensorrt) because TensoRT will make sure we can get the maximum performance out of the Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
+
 ```sh
 sudo apt update
 sudo apt install python3-pip -y
@@ -74,25 +75,29 @@ pip install -U pip
 ```
 
 2. Install `ultralytics` pip package with optional dependencies
+
 ```sh
 pip install ultralytics[export]
 ```
 
 3. Reboot the device
+
 ```sh
 sudo reboot
 ```
 
 ### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
+The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
 
 1. Uninstall currently installed PyTorch and Torchvision
+
 ```sh
 pip uninstall torch torchvision
 ```
 
 2. Install PyTorch 2.1.0 according to JP5.1.3
+
 ```sh
 sudo apt-get install -y libopenblas-base libopenmpi-dev
 wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
@@ -100,6 +105,7 @@ pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
 ```
 
 3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
+
 ```sh
 sudo apt install -y libjpeg-dev zlib1g-dev
 git clone https://github.com/pytorch/vision torchvision
@@ -149,13 +155,13 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
 
 ## Arguments
 
-| Key      | Value        | Description                                          |
-|----------|--------------|------------------------------------------------------|
+| Key      | Value      | Description                                          |
+|----------|------------|------------------------------------------------------|
 | `format` | `'engine'` | format to export to                                  |
-| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `half`   | `False`      | FP16 quantization                                    |
+| `imgsz`  | `640`      | image size as scalar or (h, w) list, i.e. (640, 480) |
+| `half`   | `False`    | FP16 quantization                                    |
 
-## NVIDIA Jetson Orin YOLOv8 Benchmarks 
+## NVIDIA Jetson Orin YOLOv8 Benchmarks
 
 YOLOv8 benchmarks below were run by the Ultralytics team on 3 different model formats measuring speed and accuracy: PyTorch, TorchScript and TensorRT. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 precision with default input image size of 640.
 
@@ -185,7 +191,6 @@ This table represents the benchmark results for five different models (YOLOv8n, 
 
 Visit [this link](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices) to explore more benchmarking efforts by Seeed Studio running on different versions of NVIDIA Jetson hardware.
 
-
 ## Reproduce Our Results
 
 To reproduce the above Ultralytics benchmarks on all export [formats](../modes/export.md) run this code:
@@ -212,7 +217,6 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
 
-
 !!! Note
 
     Currently only PyTorch, Torchscript and TensorRT are working with the benchmarking tools. We will update it to support other exports in the future.
@@ -237,7 +241,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 3. Install Jetson Stats Application
 
-    We can use jetson stats application to monitor the temperatures of the system   components and check other system details such as view CPU, GPU, RAM  utilizations, change power modes, set to max clocks, check JetPack information
+    We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
     ```sh
     sudo apt update
     sudo pip install jetson-stats
@@ -249,4 +253,4 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 ## Next Steps
 
-Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLOv8 Docs](../)!
+Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLOv8 Docs](../index.md)!

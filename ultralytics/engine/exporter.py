@@ -675,7 +675,13 @@ class Exporter:
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = int(self.args.workspace * (1 << 30))
+        try:
+            # TensorRT <10
+            config.max_workspace_size = int(self.args.workspace * (1 << 30))
+        except:
+            # TensorRT >=10
+            ws = int(self.args.workspace * (1 << 30))
+            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, ws)
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
         parser = trt.OnnxParser(network, logger)
@@ -708,13 +714,24 @@ class Exporter:
         torch.cuda.empty_cache()
 
         # Write file
-        with builder.build_engine(network, config) as engine, open(f, "wb") as t:
+        try:
+            # TensorRT <10
+            engine = builder.build_engine(network, config)
+            legacy = True
+        except AttributeError:
+            # TensorRT >=10
+            engine = builder.build_serialized_network(network, config)
+            legacy = False
+        except Exception as e:
+            LOGGER.error(f"{prefix} {e}")
+
+        with open(f, "wb") as t:
             # Metadata
             meta = json.dumps(self.metadata)
             t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
             t.write(meta.encode())
             # Model
-            t.write(engine.serialize())
+            t.write(engine.serialize() if legacy else engine)
 
         return f, None
 

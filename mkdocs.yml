@@ -318,6 +318,7 @@ nav:
           - VisionEye Mapping: guides/vision-eye.md
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
+          - Queue Management: guides/queue-management.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md

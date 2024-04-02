@@ -16,7 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, __version__
 from ultralytics.utils.checks import PYTHON_VERSION, check_version
 
 try:
@@ -614,8 +614,9 @@ class EarlyStopping:
         self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
         stop = delta >= self.patience  # stop training if patience exceeded
         if stop:
+            prefix = colorstr("EarlyStopping: ")
             LOGGER.info(
-                f"Stopping training early as no improvement observed in last {self.patience} epochs. "
+                f"{prefix}Training stopped early as no improvement observed in last {self.patience} epochs. "
                 f"Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n"
                 f"To update EarlyStopping(patience={self.patience}) pass a new patience value, "
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."

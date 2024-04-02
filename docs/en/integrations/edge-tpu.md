@@ -24,7 +24,7 @@ The Edge TPU works with quantized models. Quantization makes models smaller and 
 
 Here are the key features that make TFLite Edge TPU a great model format choice for developers:
 
-- **Optimized Performance on Edge Devices**: The TFLite Edge TPU achieves high-speed neural networking performance through quantization, model optimization, hardware acceleration, and compiler optimization. Its minimalistic architecture contributes to its smaller size and cost-efficiency. 
+- **Optimized Performance on Edge Devices**: The TFLite Edge TPU achieves high-speed neural networking performance through quantization, model optimization, hardware acceleration, and compiler optimization. Its minimalistic architecture contributes to its smaller size and cost-efficiency.
 
 - **High Computational Throughput**: TFLite Edge TPU combines specialized hardware acceleration and efficient runtime execution to achieve high computational throughput. It is well-suited for deploying machine learning models with stringent performance requirements on edge devices.
 
@@ -38,9 +38,9 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 - **On-Device Deployment**: TensorFlow Edge TPU models can be directly deployed on mobile and embedded devices. On-device deployment allows the models to execute directly on the hardware, eliminating the need for cloud connectivity.
 
-- **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs. 
+- **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs.
 
-- **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and cloud computing for more complex computations. 
+- **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and cloud computing for more complex computations.
 
 ## Exporting YOLOv8 Models to TFLite Edge TPU
 
@@ -99,7 +99,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLOv8 TFLite Edge TPU Models
 
-After successfully exporting your Ultralytics YOLOv8 models to TFLite Edge TPU format, you can now deploy them. The primary and recommended first step for running a TFLite Edge TPU model is to use the YOLO("model_edgetpu.tflite") method, as outlined in the previous usage code snippet. 
+After successfully exporting your Ultralytics YOLOv8 models to TFLite Edge TPU format, you can now deploy them. The primary and recommended first step for running a TFLite Edge TPU model is to use the YOLO("model_edgetpu.tflite") method, as outlined in the previous usage code snippet.
 
 However, for in-depth instructions on deploying your TFLite Edge TPU models, take a look at the following resources:
 
@@ -111,7 +111,7 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 ## Summary
 
-In this guide, we’ve learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications. 
+In this guide, we’ve learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications.
 
 For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/edge-tpu).
 

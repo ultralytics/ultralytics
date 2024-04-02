@@ -71,7 +71,7 @@ def load_yolo_dota(data_root, split="train"):
                     - train
                     - val
     """
-    assert split in ["train", "val"]
+    assert split in {"train", "val"}, f"Split must be 'train' or 'val', not {split}."
     im_dir = Path(data_root) / "images" / split
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(Path(data_root) / "images" / split / "*"))

@@ -236,7 +236,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     # Configure the console (stdout) encoding to UTF-8
     formatter = logging.Formatter("%(message)s")  # Default formatter
-    if WINDOWS and sys.stdout.encoding != "utf-8":
+    if WINDOWS and sys.stdout and sys.stdout.encoding != "utf-8":
         try:
             if hasattr(sys.stdout, "reconfigure"):
                 sys.stdout.reconfigure(encoding="utf-8")

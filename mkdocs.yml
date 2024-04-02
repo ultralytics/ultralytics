@@ -300,7 +300,7 @@ nav:
       - Conda Quickstart: guides/conda-quickstart.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Raspberry Pi: guides/raspberry-pi.md
-      - NVIDIA Jetson:  guides/nvidia-jetson.md
+      - NVIDIA Jetson: guides/nvidia-jetson.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
@@ -512,6 +512,7 @@ nav:
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
+          - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md

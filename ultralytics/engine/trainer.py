@@ -212,7 +212,7 @@ class BaseTrainer:
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
-            "nccl" if dist.is_nccl_available() else "gloo",
+            backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=world_size,
@@ -331,6 +331,10 @@ class BaseTrainer:
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
+                self.scheduler.step()
+
             self.model.train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
@@ -426,15 +430,12 @@ class BaseTrainer:
             t = time.time()
             self.epoch_time = t - self.epoch_time_start
             self.epoch_time_start = t
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
-                if self.args.time:
-                    mean_epoch_time = (t - self.train_time_start) / (epoch - self.start_epoch + 1)
-                    self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
-                    self._setup_scheduler()
-                    self.scheduler.last_epoch = self.epoch  # do not move
-                    self.stop |= epoch >= self.epochs  # stop if exceeded epochs
-                self.scheduler.step()
+            if self.args.time:
+                mean_epoch_time = (t - self.train_time_start) / (epoch - self.start_epoch + 1)
+                self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
+                self._setup_scheduler()
+                self.scheduler.last_epoch = self.epoch  # do not move
+                self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
             torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
@@ -648,8 +649,8 @@ class BaseTrainer:
 
                 resume = True
                 self.args = get_cfg(ckpt_args)
-                self.args.model = str(last)  # reinstate model
-                for k in "imgsz", "batch":  # allow arg updates to reduce memory on resume if crashed due to CUDA OOM
+                self.args.model = self.args.resume = str(last)  # reinstate model
+                for k in "imgsz", "batch", "device":  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
@@ -662,7 +663,7 @@ class BaseTrainer:
 
     def resume_training(self, ckpt):
         """Resume YOLO training from given epoch and best fitness."""
-        if ckpt is None:
+        if ckpt is None or not self.resume:
             return
         best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
@@ -672,14 +673,11 @@ class BaseTrainer:
         if self.ema and ckpt.get("ema"):
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())  # EMA
             self.ema.updates = ckpt["updates"]
-        if self.resume:
-            assert start_epoch > 0, (
-                f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
-                f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
-            )
-            LOGGER.info(
-                f"Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs"
-            )
+        assert start_epoch > 0, (
+            f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
+            f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
+        )
+        LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
         if self.epochs < start_epoch:
             LOGGER.info(
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."

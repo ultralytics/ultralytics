@@ -363,6 +363,37 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
+    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
+        x_values = [point[0] for point in points]
+        y_values = [point[1] for point in points]
+        center_x = sum(x_values) // len(points)
+        center_y = sum(y_values) // len(points)
+
+        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fontScale=fontsize, thickness=self.tf)[0]
+        text_width = text_size[0]
+        text_height = text_size[1]
+
+        rect_width = text_width + 20
+        rect_height = text_height + 20
+        rect_top_left = (center_x - rect_width // 2, center_y - rect_height // 2)
+        rect_bottom_right = (center_x + rect_width // 2, center_y + rect_height // 2)
+        cv2.rectangle(self.im, rect_top_left, rect_bottom_right, region_color, -1)
+
+        text_x = center_x - text_width // 2
+        text_y = center_y + text_height // 2
+
+        # Draw text
+        cv2.putText(
+            self.im,
+            label,
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=fontsize,
+            color=txt_color,
+            thickness=self.tf,
+            lineType=cv2.LINE_AA,
+        )
+
     def display_counts(
         self, counts=None, tf=2, fontScale=0.6, line_color=(0, 0, 0), txt_color=(255, 255, 255), classwise_txtgap=55
     ):

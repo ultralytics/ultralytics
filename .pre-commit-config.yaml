@@ -43,10 +43,10 @@ repos:
         name: MD formatting
         additional_dependencies:
           - mdformat-frontmatter>=2.0.8
-          - mdformat-mkdocs>=2.0.1
+          - mdformat-mkdocs>=2.0.6
           # # TODO: defer additional plugins (black/beautysh/etc.) to minimize diff
-          # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, so this line is all you need:
-          # - mdformat-mkdocs[recommended]>=2.0.1
+          # #   Note: 'mdformat-mkdocs[recommended]' includes frontmatter, so the below line is all you need:
+          # - mdformat-mkdocs[recommended]>=2.0.6
         args:
           - --wrap=no
           - --number

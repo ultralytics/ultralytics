@@ -229,9 +229,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | `track_color`         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                     |
 | `line_dist_thresh`    | `int`       | `15`                       | Euclidean Distance threshold for line counter |
 | `count_txt_thickness` | `int`       | `2`                        | Thickness of Object counts text               |
-| `count_txt_color`     | `RGB Color` | `(0, 0, 0)`                | Foreground color for Object counts text       |
-| `count_color`         | `RGB Color` | `(255, 255, 255)`          | Background color for Object counts text       |
+| `count_txt_color`     | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text       |
 | `region_thickness`    | `int`       | `5`                        | Thickness for object counter region or line   |
+| `fontsize`            | `float`     | `0.6`                      | Font size of counting text                    |
+| `line_color`          | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                       |
+| `cls_txtdisplay_gap`  | `int`       | `50`                       | Display gap between each class count          |
 
 ### Arguments `model.track`
 

@@ -71,7 +71,7 @@ def _get_experiment_type(mode, project_name):
 
 def _create_experiment(args):
     """Ensures that the experiment object is only created in a single process during distributed training."""
-    if RANK not in (-1, 0):
+    if RANK not in {-1, 0}:
         return
     try:
         comet_mode = _get_comet_mode()

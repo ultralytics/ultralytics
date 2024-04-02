@@ -218,7 +218,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e .
+          pip install -e . pytest "pytest-cov" "coverage[toml]"
       - name: Check environment
         run: |
           yolo checks

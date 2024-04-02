@@ -83,6 +83,7 @@ class YOLOWorld(Model):
                 "model": WorldModel,
                 "validator": yolo.detect.DetectionValidator,
                 "predictor": yolo.detect.DetectionPredictor,
+                "trainer": yolo.world.WorldTrainer,
             }
         }
 

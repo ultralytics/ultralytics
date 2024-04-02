@@ -47,7 +47,7 @@ class STrack(BaseTrack):
         """Initialize new STrack instance."""
         super().__init__()
         # xywh+idx or xywha+idx
-        assert len(xywh) in [5, 6], f"expected 5 or 6 values but got {len(xywh)}"
+        assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None

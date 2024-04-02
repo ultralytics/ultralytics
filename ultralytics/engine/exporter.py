@@ -159,7 +159,7 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        if self.args.format.lower() in ("coreml", "mlmodel"):  # fix attempt for protobuf<3.20.x errors
+        if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"  # must run before TensorBoard callback
 
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -171,9 +171,9 @@ class Exporter:
         self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
-        if fmt in ("tensorrt", "trt"):  # 'engine' aliases
+        if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = "engine"
-        if fmt in ("mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"):  # 'coreml' aliases
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
         flags = [x == fmt for x in fmts]
@@ -675,9 +675,7 @@ class Exporter:
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = self.args.workspace * 1 << 30
-        # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace << 30)  # fix TRT 8.4 deprecation notice
-
+        config.max_workspace_size = int(self.args.workspace * (1 << 30))
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
         parser = trt.OnnxParser(network, logger)

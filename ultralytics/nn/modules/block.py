@@ -171,10 +171,9 @@ class SPPF(nn.Module):
 
     def forward(self, x):
         """Forward pass through Ghost Convolution block."""
-        x = self.cv1(x)
-        y1 = self.m(x)
-        y2 = self.m(y1)
-        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+        y = [self.cv1(x)]
+        y.extend(self.m(y[-1]) for _ in range(3))
+        return self.cv2(torch.cat(y, 1))
 
 
 class C1(nn.Module):
@@ -520,7 +519,8 @@ class ContrastiveHead(nn.Module):
     def __init__(self):
         """Initializes ContrastiveHead with specified region-text similarity parameters."""
         super().__init__()
-        self.bias = nn.Parameter(torch.zeros([]))
+        # NOTE: use -10.0 to keep the init cls loss consistency with other losses
+        self.bias = nn.Parameter(torch.tensor([-10.0]))
         self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
 
     def forward(self, x, w):
@@ -543,7 +543,8 @@ class BNContrastiveHead(nn.Module):
         """Initialize ContrastiveHead with region-text similarity parameters."""
         super().__init__()
         self.norm = nn.BatchNorm2d(embed_dims)
-        self.bias = nn.Parameter(torch.zeros([]))
+        # NOTE: use -10.0 to keep the init cls loss consistency with other losses
+        self.bias = nn.Parameter(torch.tensor([-10.0]))
         # use -1.0 is more stable
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
@@ -555,39 +556,26 @@ class BNContrastiveHead(nn.Module):
         return x * self.logit_scale.exp() + self.bias
 
 
-class RepBottleneck(nn.Module):
+class RepBottleneck(Bottleneck):
     """Rep bottleneck."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
         """Initializes a RepBottleneck module with customizable in/out channels, shortcut option, groups and expansion
         ratio.
         """
-        super().__init__()
+        super().__init__(c1, c2, shortcut, g, k, e)
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = RepConv(c1, c_, k[0], 1)
-        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
-        self.add = shortcut and c1 == c2
-
-    def forward(self, x):
-        """Forward pass through RepBottleneck layer."""
-        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
 
-class RepCSP(nn.Module):
+class RepCSP(C3):
     """Rep CSP Bottleneck with 3 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initializes RepCSP layer with given channels, repetitions, shortcut, groups and expansion ratio."""
-        super().__init__()
+        super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c1, c_, 1, 1)
-        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
-
-    def forward(self, x):
-        """Forward pass through RepCSP layer."""
-        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
 
 
 class RepNCSPELAN4(nn.Module):

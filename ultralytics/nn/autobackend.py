@@ -86,6 +86,7 @@ class AutoBackend(nn.Module):
         dnn=False,
         data=None,
         fp16=False,
+        batch=1,
         fuse=True,
         verbose=True,
     ):
@@ -98,6 +99,7 @@ class AutoBackend(nn.Module):
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
         """
@@ -135,10 +137,11 @@ class AutoBackend(nn.Module):
         if not (pt or triton or nn_module):
             w = attempt_download_asset(w)
 
-        # Load model
-        if nn_module:  # in-memory PyTorch model
+        # In-memory PyTorch model
+        if nn_module:
             model = weights.to(device)
-            model = model.fuse(verbose=verbose) if fuse else model
+            if fuse:
+                model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
@@ -146,7 +149,9 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
-        elif pt:  # PyTorch
+
+        # PyTorch
+        elif pt:
             from ultralytics.nn.tasks import attempt_load_weights
 
             model = attempt_load_weights(
@@ -158,18 +163,24 @@ class AutoBackend(nn.Module):
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
-        elif jit:  # TorchScript
+
+        # TorchScript
+        elif jit:
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()
             if extra_files["config.txt"]:  # load metadata dict
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
-        elif dnn:  # ONNX OpenCV DNN
+
+        # ONNX OpenCV DNN
+        elif dnn:
             LOGGER.info(f"Loading {w} for ONNX OpenCV DNN inference...")
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
-        elif onnx:  # ONNX Runtime
+
+        # ONNX Runtime
+        elif onnx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             import onnxruntime
@@ -177,25 +188,35 @@ class AutoBackend(nn.Module):
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
-            metadata = session.get_modelmeta().custom_metadata_map  # metadata
-        elif xml:  # OpenVINO
-            LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2023.0")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-            from openvino.runtime import Core, Layout, get_batch  # noqa
+            metadata = session.get_modelmeta().custom_metadata_map
 
-            core = Core()
+        # OpenVINO
+        elif xml:
+            LOGGER.info(f"Loading {w} for OpenVINO inference...")
+            check_requirements("openvino>=2024.0.0")
+            import openvino as ov
+
+            core = ov.Core()
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir
             ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
             if ov_model.get_parameters()[0].get_layout().empty:
-                ov_model.get_parameters()[0].set_layout(Layout("NCHW"))
-            batch_dim = get_batch(ov_model)
-            if batch_dim.is_static:
-                batch_size = batch_dim.get_length()
-            ov_compiled_model = core.compile_model(ov_model, device_name="AUTO")  # AUTO selects best available device
+                ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
+
+            # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
+            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
+            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
+            ov_compiled_model = core.compile_model(
+                ov_model,
+                device_name="AUTO",  # AUTO selects best available device, do not modify
+                config={"PERFORMANCE_HINT": inference_mode},
+            )
+            input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
-        elif engine:  # TensorRT
+
+        # TensorRT
+        elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
             try:
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
@@ -234,20 +255,26 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
             batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
-        elif coreml:  # CoreML
+
+        # CoreML
+        elif coreml:
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 
             model = ct.models.MLModel(w)
             metadata = dict(model.user_defined_metadata)
-        elif saved_model:  # TF SavedModel
+
+        # TF SavedModel
+        elif saved_model:
             LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
             import tensorflow as tf
 
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
             metadata = Path(w) / "metadata.yaml"
-        elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
+
+        # TF GraphDef
+        elif pb:  # https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f"Loading {w} for TensorFlow GraphDef inference...")
             import tensorflow as tf
 
@@ -263,6 +290,8 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+
+        # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
@@ -287,9 +316,13 @@ class AutoBackend(nn.Module):
                 with zipfile.ZipFile(w, "r") as model:
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
-        elif tfjs:  # TF.js
+
+        # TF.js
+        elif tfjs:
             raise NotImplementedError("YOLOv8 TF.js inference is not currently supported.")
-        elif paddle:  # PaddlePaddle
+
+        # PaddlePaddle
+        elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
             check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle")
             import paddle.inference as pdi  # noqa
@@ -304,7 +337,9 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
-        elif ncnn:  # NCNN
+
+        # NCNN
+        elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
             check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires NCNN
             import ncnn as pyncnn
@@ -317,18 +352,21 @@ class AutoBackend(nn.Module):
             net.load_param(str(w))
             net.load_model(str(w.with_suffix(".bin")))
             metadata = w.parent / "metadata.yaml"
-        elif triton:  # NVIDIA Triton Inference Server
+
+        # NVIDIA Triton Inference Server
+        elif triton:
             check_requirements("tritonclient[all]")
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+
+        # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
 
             raise TypeError(
                 f"model='{w}' is not a supported model format. "
-                "See https://docs.ultralytics.com/modes/predict for help."
-                f"\n\n{export_formats()}"
+                f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
             )
 
         # Load external metadata YAML
@@ -336,9 +374,9 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata:
             for k, v in metadata.items():
-                if k in ("stride", "batch"):
+                if k in {"stride", "batch"}:
                     metadata[k] = int(v)
-                elif k in ("imgsz", "names", "kpt_shape") and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -380,21 +418,51 @@ class AutoBackend(nn.Module):
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
 
-        if self.pt or self.nn_module:  # PyTorch
+        # PyTorch
+        if self.pt or self.nn_module:
             y = self.model(im, augment=augment, visualize=visualize, embed=embed)
-        elif self.jit:  # TorchScript
+
+        # TorchScript
+        elif self.jit:
             y = self.model(im)
-        elif self.dnn:  # ONNX OpenCV DNN
+
+        # ONNX OpenCV DNN
+        elif self.dnn:
             im = im.cpu().numpy()  # torch to numpy
             self.net.setInput(im)
             y = self.net.forward()
-        elif self.onnx:  # ONNX Runtime
+
+        # ONNX Runtime
+        elif self.onnx:
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
-        elif self.xml:  # OpenVINO
+
+        # OpenVINO
+        elif self.xml:
             im = im.cpu().numpy()  # FP32
-            y = list(self.ov_compiled_model(im).values())
-        elif self.engine:  # TensorRT
+
+            if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
+                n = im.shape[0]  # number of images in batch
+                results = [None] * n  # preallocate list with None to match the number of images
+
+                def callback(request, userdata):
+                    """Places result in preallocated list using userdata index."""
+                    results[userdata] = request.results
+
+                # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
+                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue.set_callback(callback)
+                for i in range(n):
+                    # Start async inference with userdata=i to specify the position in results list
+                    async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
+                async_queue.wait_all()  # wait for all inference requests to complete
+                y = np.concatenate([list(r.values())[0] for r in results])
+
+            else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
+                y = list(self.ov_compiled_model(im).values())
+
+        # TensorRT
+        elif self.engine:
             if self.dynamic and im.shape != self.bindings["images"].shape:
                 i = self.model.get_binding_index("images")
                 self.context.set_binding_shape(i, im.shape)  # reshape if dynamic
@@ -407,7 +475,9 @@ class AutoBackend(nn.Module):
             self.binding_addrs["images"] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
-        elif self.coreml:  # CoreML
+
+        # CoreML
+        elif self.coreml:
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
@@ -426,25 +496,28 @@ class AutoBackend(nn.Module):
                 y = list(y.values())
             elif len(y) == 2:  # segmentation model
                 y = list(reversed(y.values()))  # reversed for segmentation models (pred, proto)
-        elif self.paddle:  # PaddlePaddle
+
+        # PaddlePaddle
+        elif self.paddle:
             im = im.cpu().numpy().astype(np.float32)
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
-        elif self.ncnn:  # NCNN
+
+        # NCNN
+        elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
-            ex = self.net.create_extractor()
-            input_names, output_names = self.net.input_names(), self.net.output_names()
-            ex.input(input_names[0], mat_in)
-            y = []
-            for output_name in output_names:
-                mat_out = self.pyncnn.Mat()
-                ex.extract(output_name, mat_out)
-                y.append(np.array(mat_out)[None])
-        elif self.triton:  # NVIDIA Triton Inference Server
+            with self.net.create_extractor() as ex:
+                ex.input(self.net.input_names()[0], mat_in)
+                y = [np.array(ex.extract(x)[1])[None] for x in self.net.output_names()]
+
+        # NVIDIA Triton Inference Server
+        elif self.triton:
             im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
-        else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
+
+        # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
+        else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
                 y = self.model(im, training=False) if self.keras else self.model(im)
@@ -458,8 +531,8 @@ class AutoBackend(nn.Module):
                     self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
-                integer = details["dtype"] in (np.int8, np.int16)  # is TFLite quantized int8 or int16 model
-                if integer:
+                is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
+                if is_int:
                     scale, zero_point = details["quantization"]
                     im = (im / scale + zero_point).astype(details["dtype"])  # de-scale
                 self.interpreter.set_tensor(details["index"], im)
@@ -467,10 +540,10 @@ class AutoBackend(nn.Module):
                 y = []
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output["index"])
-                    if integer:
+                    if is_int:
                         scale, zero_point = output["quantization"]
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
-                    if x.ndim > 2:  # if task is not classification
+                    if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         x[:, [0, 2]] *= w
@@ -531,7 +604,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
-        if not is_url(p, check=False) and not isinstance(p, str):
+        if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]
@@ -543,6 +616,6 @@ class AutoBackend(nn.Module):
             from urllib.parse import urlsplit
 
             url = urlsplit(p)
-            triton = url.netloc and url.path and url.scheme in {"http", "grpc"}
+            triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
         return types + [triton]

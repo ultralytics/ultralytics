@@ -3,7 +3,6 @@
 import os
 import platform
 import random
-import sys
 import threading
 import time
 from pathlib import Path
@@ -11,6 +10,7 @@ from pathlib import Path
 import requests
 
 from ultralytics.utils import (
+    ARGV,
     ENVIRONMENT,
     LOGGER,
     ONLINE,
@@ -84,7 +84,7 @@ def requests_with_progress(method, url, **kwargs):
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
         url (str): The URL to send the request to.
-        **kwargs (dict): Additional keyword arguments to pass to the underlying `requests.request` function.
+        **kwargs (any): Additional keyword arguments to pass to the underlying `requests.request` function.
 
     Returns:
         (requests.Response): The response object from the HTTP request.
@@ -122,7 +122,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
         verbose (bool, optional): A flag to determine whether to print out to console or not. Default is True.
         progress (bool, optional): Whether to show a progress bar during the request. Default is False.
-        **kwargs (dict): Keyword arguments to be passed to the requests function specified in method.
+        **kwargs (any): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
         (requests.Response): The HTTP response object. If the request is executed in a separate thread, returns None.
@@ -188,7 +188,7 @@ class Events:
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            "cli": Path(sys.argv[0]).name == "yolo",
+            "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
             "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             "version": __version__,
@@ -198,7 +198,7 @@ class Events:
         }
         self.enabled = (
             SETTINGS["sync"]
-            and RANK in (-1, 0)
+            and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
             and (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")

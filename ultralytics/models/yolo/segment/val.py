@@ -132,7 +132,10 @@ class SegmentationValidator(DetectionValidator):
             index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
             gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
             gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
-
+        if gt_masks.shape[1:] != pred_masks.shape[1:]:
+                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
+                gt_masks = gt_masks.gt_(0.5)
+        
         unique_gt_cls = gt_cls.unique().reshape(-1)
         binary_gt_masks = torch.zeros(unique_gt_cls.shape[0], *gt_masks.shape[1:])
         for i, cls in enumerate(unique_gt_cls):

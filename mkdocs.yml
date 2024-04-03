@@ -355,6 +355,7 @@ nav:
       - TF GraphDef: integrations/tf-graphdef.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
+      - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
       - Comet ML: integrations/comet.md

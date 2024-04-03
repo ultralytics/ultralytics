@@ -154,7 +154,7 @@ Class implementing cropping and passing crops through a neural network for detec
 
 **CombineDetections**
 
-Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression).\
+Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression).
 
 | **Argument**         | **Type**          | **Default** | **Description**                                                                                                         |
 |----------------------|-------------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
@@ -220,5 +220,3 @@ visualize_results(
 | axis_off                | bool            | True          | If true, axis is turned off in the final visualization.                                       |
 | show_classes_list       | list            | []            | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
-
-

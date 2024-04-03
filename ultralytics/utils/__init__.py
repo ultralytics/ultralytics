@@ -41,7 +41,7 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
-ARM64 = platform.machine() in ("arm64", "aarch64")  # ARM64 booleans
+ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 HELP_MSG = """
     Usage examples for running YOLOv8:
 
@@ -230,37 +230,42 @@ def plt_settings(rcparams=None, backend="Agg"):
     return decorator
 
 
-def set_logging(name=LOGGING_NAME, verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support."""
+def set_logging(name="LOGGING_NAME", verbose=True):
+    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
+    environments.
+    """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
-    # Configure the console (stdout) encoding to UTF-8
+    # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
     formatter = logging.Formatter("%(message)s")  # Default formatter
-    if WINDOWS and sys.stdout.encoding != "utf-8":
+    if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
+
+        class CustomFormatter(logging.Formatter):
+            def format(self, record):
+                """Sets up logging with UTF-8 encoding and configurable verbosity."""
+                return emojis(super().format(record))
+
         try:
+            # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
                 sys.stdout.reconfigure(encoding="utf-8")
+            # For environments where reconfigure is not available, wrap stdout in a TextIOWrapper
             elif hasattr(sys.stdout, "buffer"):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
             else:
-                sys.stdout.encoding = "utf-8"
+                formatter = CustomFormatter("%(message)s")
         except Exception as e:
             print(f"Creating custom formatter for non UTF-8 environments due to {e}")
+            formatter = CustomFormatter("%(message)s")
 
-            class CustomFormatter(logging.Formatter):
-                def format(self, record):
-                    """Sets up logging with UTF-8 encoding and configurable verbosity."""
-                    return emojis(super().format(record))
-
-            formatter = CustomFormatter("%(message)s")  # Use CustomFormatter to eliminate UTF-8 output as last recourse
-
-    # Create and configure the StreamHandler
+    # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
+    # Set up the logger
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
@@ -359,7 +364,7 @@ def yaml_load(file="data.yaml", append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
-    assert Path(file).suffix in (".yaml", ".yml"), f"Attempting to load non-YAML file {file} with yaml_load()"
+    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
@@ -866,7 +871,7 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, tb = hint["exc_info"]
-            if exc_type in (KeyboardInterrupt, FileNotFoundError) or "out of memory" in str(exc_value):
+            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
         event["tags"] = {
@@ -879,7 +884,7 @@ def set_sentry():
 
     if (
         SETTINGS["sync"]
-        and RANK in (-1, 0)
+        and RANK in {-1, 0}
         and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE

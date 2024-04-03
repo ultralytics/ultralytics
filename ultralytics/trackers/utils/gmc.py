@@ -94,7 +94,7 @@ class GMC:
             array([[1, 2, 3],
                    [4, 5, 6]])
         """
-        if self.method in ["orb", "sift"]:
+        if self.method in {"orb", "sift"}:
             return self.applyFeatures(raw_frame, detections)
         elif self.method == "ecc":
             return self.applyEcc(raw_frame)

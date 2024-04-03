@@ -761,13 +761,14 @@ class Exporter:
         check_requirements(
             (
                 "onnx>=1.12.0",
-                "onnx2tf>=1.15.4,<=1.17.5",
+                "onnx2tf>=1.19.12",
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support",
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
+                "tensorflow==2.15.0"
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",
         )  # onnx_graphsurgeon only on NVIDIA
@@ -775,7 +776,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,
-            "<=2.13.1",
+            "==2.15.0",
             name="tensorflow",
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",
@@ -834,7 +835,7 @@ class Exporter:
         param_replacement_file = {
             "detect": "ultralytics/utils/replace.json",
             "segment": "ultralytics/utils/replace.json",
-            "pose": "ultralytics/utils/pose_replace.json",
+            "pose": "",
             "classify": "",
         }
 

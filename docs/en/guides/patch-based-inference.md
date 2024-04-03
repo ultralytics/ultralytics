@@ -41,7 +41,7 @@ Interactive notebooks are provided to showcase the functionality of the library.
 
 
 ---
-## Examples:
+## Examples
 
 #### Detection example:
 <p align="center">
@@ -79,20 +79,20 @@ The output obtained from the process includes several attributes that can be lev
 | filtered_classes_id    | list[int]           | This attribute contains the class IDs assigned to each detected object.                               |
 | filtered_classes_names | list[str]           | These are the human-readable names corresponding to the class IDs.                                    |
 
-#### Import the required libraries
+#### Import the required libraries:
  
 ```python
 import cv2
 from patched_yolo_infer import MakeCropsDetectThem, CombineDetections
 ```
-#### Loading the image 
+#### Loading the image:
 
 ```python
 img_path = 'test_image.jpg'
 img = cv2.imread(img_path)
 ```
 
-#### Cropping and Inference 
+#### Cropping and Inference:
 Then you can create a class object implementing cropping and passing crops through a neural network for detection/segmentation.
 
 ```python
@@ -110,7 +110,7 @@ element_crops = MakeCropsDetectThem(
 )
 ```
 
-#### Getting the result
+#### Getting the result:
 Next, you need to create a class object that implements the combination of masks/boxes from multiple crops + NMS (Non-maximal suppression)
 
 ```python
@@ -179,7 +179,7 @@ from patched_yolo_infer import visualize_results
 # Assuming result is an instance of the CombineDetections class
 result = CombineDetections(...) 
 ```
-#### Using visualize_results
+#### Using visualize_results:
 ```python
 # Visualizing the results using the visualize_results function
 visualize_results(
@@ -193,7 +193,7 @@ visualize_results(
 )
 ```
 
-#### Possible arguments of the visualize_results function
+#### Possible arguments of the visualize_results function:
 
 | Argument                | Type            | Default       | Description                                                                                   |
 |-------------------------|-----------------|-----------    |-----------------------------------------------------------------------------------------------|
@@ -218,7 +218,7 @@ visualize_results(
 | random_object_colors    | bool            | False         | If true, colors for each object are selected randomly.                                        |
 | show_confidences        | bool            | False         | If true and show_class=True, confidences near class are visualized.                           |
 | axis_off                | bool            | True          | If true, axis is turned off in the final visualization.                                       |
-| show_classes_list       | list            |               | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
+| show_classes_list       | list            | []            | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
 
 

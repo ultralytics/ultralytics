@@ -8,9 +8,9 @@ keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9,
 # Ultralytics Docs: Using Patch-Based-Inference for segmenting and detecting small objects in images. 
 
 Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). 
-This library simplifies [SAHI](https://docs.ultralytics.com/ru/guides/sahi-tiled-inference/)-like inference for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
+This library simplifies [SAHI](https://docs.ultralytics.com/guides/sahi-tiled-inference/)-like inference for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
 
-Model Support: The library provides support for various ultralytics deep learning models, including [YOLOv8](https://docs.ultralytics.com/ru/models/yolov8/), [YOLOv9](https://docs.ultralytics.com/ru/models/yolov9/?query=YOLOv9#generalized-efficient-layer-aggregation-network-gelan), [FastSAM](https://docs.ultralytics.com/ru/models/fast-sam/#citations-and-acknowledgements), and [RTDETR](https://docs.ultralytics.com/ru/models/rtdetr/). Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
+Model Support: The library provides support for various ultralytics deep learning models, including [YOLOv8](https://docs.ultralytics.com/models/yolov8/), [YOLOv9](https://docs.ultralytics.com/models/yolov9/?query=YOLOv9#generalized-efficient-layer-aggregation-network-gelan), [FastSAM](https://docs.ultralytics.com/models/fast-sam/#citations-and-acknowledgements), and [RTDETR](https://docs.ultralytics.com/models/rtdetr/). Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
 
 The library also provides a sleek customization of the visualization of the inference results for all models, both in the standard approach (direct network run) and the unique patch-based variant.
 
@@ -79,18 +79,23 @@ The output obtained from the process includes several attributes that can be lev
 | filtered_classes_id    | list[int]           | This attribute contains the class IDs assigned to each detected object.                               |
 | filtered_classes_names | list[str]           | These are the human-readable names corresponding to the class IDs.                                    |
 
-#### Download Resources and cropping
-
-Here's how to import the necessary modules and download test image and create a class object implementing cropping and passing crops through a neural network for detection/segmentation.
-
+#### Import the required libraries
+ 
 ```python
 import cv2
 from patched_yolo_infer import MakeCropsDetectThem, CombineDetections
+```
+#### Loading the image 
 
-# Load the image 
+```python
 img_path = 'test_image.jpg'
 img = cv2.imread(img_path)
+```
 
+#### Cropping and Inference 
+Then you can create a class object implementing cropping and passing crops through a neural network for detection/segmentation.
+
+```python
 element_crops = MakeCropsDetectThem(
     image=img,
     model_path="yolov8m.pt",
@@ -104,8 +109,8 @@ element_crops = MakeCropsDetectThem(
     resize_initial_size=True,
 )
 ```
-#### Getting the result
 
+#### Getting the result
 Next, you need to create a class object that implements the combination of masks/boxes from multiple crops + NMS (Non-maximal suppression)
 
 ```python
@@ -123,7 +128,7 @@ classes_ids=result.filtered_classes_id
 classes_names=result.filtered_classes_names
 ```
 
-#### Explanation of possible input arguments:
+## Explanation of possible input arguments:
 
 **MakeCropsDetectThem**
 
@@ -164,6 +169,32 @@ Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum 
 
 Visualizes custom results of object detection or segmentation on an image.
 
+#### Example of using:
+
+Before using this function, you need an instance of the CombineDetections class, as we previously explained how to obtain it
+
+```python
+from patched_yolo_infer import visualize_results
+
+# Assuming result is an instance of the CombineDetections class
+result = CombineDetections(...) 
+```
+#### Using visualize_results
+```python
+# Visualizing the results using the visualize_results function
+visualize_results(
+    img=result.image,
+    confidences=result.filtered_confidences,
+    boxes=result.filtered_boxes,
+    masks=result.filtered_masks,
+    classes_ids=result.filtered_classes_id,
+    classes_names=result.filtered_classes_names,
+    segment=False,
+)
+```
+
+#### Possible arguments of the visualize_results function
+
 | Argument                | Type            | Default       | Description                                                                                   |
 |-------------------------|-----------------|-----------    |-----------------------------------------------------------------------------------------------|
 | img                     | numpy.ndarray   |               | The input image in BGR format.                                                                |
@@ -191,22 +222,3 @@ Visualizes custom results of object detection or segmentation on an image.
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
 
 
-Example of using:
-
-```python
-from patched_yolo_infer import visualize_results
-
-# Assuming result is an instance of the CombineDetections class
-result = CombineDetections(...) 
-
-# Visualizing the results using the visualize_results function
-visualize_results(
-    img=result.image,
-    confidences=result.filtered_confidences,
-    boxes=result.filtered_boxes,
-    masks=result.filtered_masks,
-    classes_ids=result.filtered_classes_id,
-    classes_names=result.filtered_classes_names,
-    segment=False,
-)
-```

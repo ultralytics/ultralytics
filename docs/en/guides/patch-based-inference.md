@@ -8,9 +8,9 @@ keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9,
 # Ultralytics Docs: Using Patch-Based-Inference for segmenting and detecting small objects in images. 
 
 Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). 
-This library simplifies [SAHI](https://docs.ultralytics.com/ru/guides/sahi-tiled-inference/)-like inference for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
+This library simplifies [SAHI](https://docs.ultralytics.com/guides/sahi-tiled-inference/)-like inference for instance segmentation tasks, enabling the detection of small objects in images. It caters to both object detection and instance segmentation tasks, supporting a wide range of Ultralytics models. 
 
-Model Support: The library provides support for various ultralytics deep learning models, including YOLOv8, YOLOv9, FastSAM, and RTDETR. Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
+Model Support: The library provides support for various ultralytics deep learning models, including [YOLOv8](https://docs.ultralytics.com/models/yolov8/), [YOLOv9](https://docs.ultralytics.com/models/yolov9/), [FastSAM](https://docs.ultralytics.com/models/fast-sam/), and [RTDETR](https://docs.ultralytics.com/models/rtdetr/). Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
 
 The library also provides a sleek customization of the visualization of the inference results for all models, both in the standard approach (direct network run) and the unique patch-based variant.
 
@@ -23,7 +23,7 @@ pip install patched_yolo_infer
 
 [![PyPI Version](https://img.shields.io/pypi/v/patched-yolo-infer.svg)](https://pypi.org/project/patched-yolo-infer/) - Click here to visit the PyPI page for `patched-yolo-infer`, where you can find more information and documentation.
 
-Note: If CUDA support is available, it's recommended to pre-install PyTorch with CUDA support before installing the library. Otherwise, the CPU version will be installed by default.
+Note: If CUDA support is available, it's recommended to pre-install [PyTorch](https://pytorch.org/) with CUDA support before installing the library. Otherwise, the CPU version will be installed by default.
 
 ---
 
@@ -44,16 +44,23 @@ Interactive notebooks are provided to showcase the functionality of the library.
 ## Examples:
 
 #### Detection example:
-![detection](https://github.com/Koldim2001/YOLO-Patch-Based-Inference/blob/main/readme_content/getection.gif)
+<p align="center">
+  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/blob/main/readme_content/getection.gif" alt="Detection example">
+</p>
 
 
 #### Instance Segmentation example 1:
-![segmentation](https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_1.gif)
+<p align="center">
+  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_1.gif" alt="Segmentation Example 1">
+</p>
+
 
 
 #### Instance Segmentation example 2:
-![segmentation](https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_2.gif)
 
+<p align="center">
+  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_2.gif" alt="Segmentation Example 2">
+</p>
 
 ---
 ## Usage
@@ -63,26 +70,32 @@ To carry out patch-based inference of YOLO models using our library, you need to
 
 The output obtained from the process includes several attributes that can be leveraged for further analysis or visualization:
 
-1. img: This attribute contains the original image on which the inference was performed. It provides context for the detected objects.
+| Attribute              | Type                | Description                                                                                           |
+|------------------------|---------------------|-------------------------------------------------------------------------------------------------------|
+| image                  | numpy.ndarray       | This attribute contains the original image on which the inference was performed.                      |
+| filtered_confidences   | list[numpy.float32] | This attribute holds the confidence scores associated with each detected object.                      |
+| filtered_boxes         | list[list[int]]     | These bounding boxes are represented as a list of lists, where each list contains four values: [x_min, y_min, x_max, y_max]. These values correspond to the coordinates of the top-left and bottom-right corners of each bounding box.|
+| filtered_masks         | list[numpy.ndarray] | If available, this attribute provides segmentation masks corresponding to the detected objects. These masks can be used to precisely delineate object boundaries. |
+| filtered_classes_id    | list[int]           | This attribute contains the class IDs assigned to each detected object.                               |
+| filtered_classes_names | list[str]           | These are the human-readable names corresponding to the class IDs.                                    |
 
-2. confidences: This attribute holds the confidence scores associated with each detected object. These scores indicate the model's confidence level in the accuracy of its predictions.
-
-3. boxes: These bounding boxes are represented as a list of lists, where each list contains four values: [x_min, y_min, x_max, y_max]. These values correspond to the coordinates of the top-left and bottom-right corners of each bounding box.
-
-4. masks: If available, this attribute provides segmentation masks corresponding to the detected objects. These masks can be used to precisely delineate object boundaries.
-
-5. classes_ids: This attribute contains the class IDs assigned to each detected object. These IDs correspond to specific object classes defined during the model training phase.
-
-6. classes_names: These are the human-readable names corresponding to the class IDs. They provide semantic labels for the detected objects, making the results easier to interpret.
-
+#### Import the required libraries
+ 
 ```python
 import cv2
 from patched_yolo_infer import MakeCropsDetectThem, CombineDetections
+```
+#### Loading the image 
 
-# Load the image 
+```python
 img_path = 'test_image.jpg'
 img = cv2.imread(img_path)
+```
 
+#### Cropping and Inference 
+Then you can create a class object implementing cropping and passing crops through a neural network for detection/segmentation.
+
+```python
 element_crops = MakeCropsDetectThem(
     image=img,
     model_path="yolov8m.pt",
@@ -95,8 +108,17 @@ element_crops = MakeCropsDetectThem(
     iou=0.7,
     resize_initial_size=True,
 )
-result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS')  
+```
 
+#### Getting the result
+Next, you need to create a class object that implements the combination of masks/boxes from multiple crops + NMS (Non-maximal suppression)
+
+```python
+result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS')  
+```
+#### Extracting the desired outcome of frame processing
+
+```python
 # Final Results:
 img=result.image
 confidences=result.filtered_confidences
@@ -106,75 +128,59 @@ classes_ids=result.filtered_classes_id
 classes_names=result.filtered_classes_names
 ```
 
-#### Explanation of possible input arguments:
+## Explanation of possible input arguments:
 
 **MakeCropsDetectThem**
-Class implementing cropping and passing crops through a neural network for detection/segmentation.\
-**Args:**
-- **image** (*np.ndarray*): Input image BGR.
-- **model_path** (*str*): Path to the YOLO model.
-- **model** (*ultralytics model*) Pre-initialized model object. If provided, the model will be used directly instead of loading from model_path.
-- **imgsz** (*int*): Size of the input image for inference YOLO.
-- **conf** (*float*): Confidence threshold for detections YOLO.
-- **iou** (*float*): IoU threshold for non-maximum suppression YOLOv8 of single crop.
-- **classes_list** (*List[int] or None*): List of classes to filter detections. If None, all classes are considered. Defaults to None.
-- **segment** (*bool*): Whether to perform segmentation (YOLOv8-seg).
-- **shape_x** (*int*): Size of the crop in the x-coordinate.
-- **shape_y** (*int*): Size of the crop in the y-coordinate.
-- **overlap_x** (*float*): Percentage of overlap along the x-axis.
-- **overlap_y** (*float*): Percentage of overlap along the y-axis.
-- **show_crops** (*bool*): Whether to visualize the cropping.
-- **resize_initial_size** (*bool*): Whether to resize the results to the original image size (ps: slow operation).
+
+Class implementing cropping and passing crops through a neural network for detection/segmentation.
+
+| **Argument**          | **Type**               | **Default**  | **Description**                                                                                                |
+|-----------------------|------------------------|--------------|----------------------------------------------------------------------------------------------------------------|
+| image                 | np.ndarray             |              | Input image BGR.                                                                                               |
+| model_path            | str                    | "yolov8m.pt" | Path to the YOLO model.                                                                                        |
+| model                 | ultralytics model      | None         | Pre-initialized model object. If provided, the model will be used directly instead of loading from model_path. |
+| imgsz                 | int                    | 640          | Size of the input image for inference YOLO.                                                                    |
+| conf                  | float                  | 0.5          | Confidence threshold for detections YOLO.                                                                      |
+| iou                   | float                  | 0.7          | IoU threshold for non-maximum suppression YOLOv8 of single  crop.                                              |
+| classes_list          | List[int] or None      | None         | List of classes to filter detections. If None, all classes are considered. Defaults to None.                   |
+| segment               | bool                   | False        | Whether to perform segmentation (YOLOv8-seg).                                                                  |
+| shape_x               | int                    | 700          | Size of the crop in the x-coordinate.                                                                          |
+| shape_y               | int                    | 700          | Size of the crop in the y-coordinate.                                                                          |
+| overlap_x             | float                  | 25           | Percentage of overlap along the x-axis.                                                                        |
+| overlap_y             | float                  | 25           | Percentage of overlap along the y-axis.                                                                        |
+| show_crops            | bool                   | False        | Whether to visualize the cropping.                                                                             |
+| resize_initial_size   | bool                   | False        | Whether to resize the results to the original image size (ps: slow operation).                                 |
+
 
 **CombineDetections**
-Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression).\
-**Args:**
-- **element_crops** (*MakeCropsDetectThem*): Object containing crop information.
-- **nms_threshold** (*float*): IoU/IoS threshold for non-maximum suppression.
-- **match_metric** (*str*): Matching metric, either 'IOU' or 'IOS'.
-- **intelligent_sorter** (*bool*): Enable sorting by area and rounded confidence parameter. 
-            If False, sorting will be done only by confidence (usual nms). (Dafault is True)
 
+Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression).\
+
+| **Argument**         | **Type**          | **Default** | **Description**                                                                                                         |
+|----------------------|-------------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
+| element_crops        |MakeCropsDetectThem|             | Object containing crop information.                                                                                     |
+| nms_threshold        | float             | 0.3         | IoU/IoS threshold for non-maximum suppression.                                                                          |
+| match_metric         | str               | IOS         | Matching metric, either 'IOU' or 'IOS'.                                                                                 |
+| intelligent_sorter   | bool              | True        | Enable sorting by area and rounded confidence parameter. If False, sorting will be done only by confidence (usual nms). |
 
 
 ---
 ### 2. Custom inference visualization:
+
 Visualizes custom results of object detection or segmentation on an image.
 
-**Args:**
-- **img** (*numpy.ndarray*): The input image in BGR format.
-- **boxes** (*list*): A list of bounding boxes in the format [x_min, y_min, x_max, y_max].
-- **classes_ids** (*list*): A list of class IDs for each detection.
-- **confidences** (*list*): A list of confidence scores corresponding to each bounding box. Default is an empty list.
-- **classes_names** (*list*): A list of class names corresponding to the class IDs. Default is an empty list.
-- **masks** (*list*): A list of masks. Default is an empty list.
-- **segment** (*bool*): Whether to perform instance segmentation. Default is False.
-- **show_boxes** (*bool*): Whether to show bounding boxes. Default is True.
-- **show_class** (*bool*): Whether to show class labels. Default is True.
-- **fill_mask** (*bool*): Whether to fill the segmented regions with color. Default is False.
-- **alpha** (*float*): The transparency of filled masks. Default is 0.3.
-- **color_class_background** (*tuple*): The background BGR color for class labels. Default is (0, 0, 255) (red).
-- **color_class_text** (*tuple*): The text color for class labels. Default is (255, 255, 255) (white).
-- **thickness** (*int*): The thickness of bounding box and text. Default is 4.
-- **font**: The font type for class labels. Default is cv2.FONT_HERSHEY_SIMPLEX.
-- **font_scale** (*float*): The scale factor for font size. Default is 1.5.
-- **delta_colors** (*int*): The random seed offset for color variation. Default is seed=0.
-- **dpi** (*int*): Final visualization size (plot is bigger when dpi is higher). Default is 150.
-- **random_object_colors** (*bool*): If true, colors for each object are selected randomly. Default is False.
-- **show_confidences** (*bool*): If true and show_class=True, confidences near class are visualized. Default is False.
-- **axis_off** (*bool*): If true, axis is turned off in the final visualization. Default is True.
-- **show_classes_list** (*list*): If empty, visualize all classes. Otherwise, visualize only classes in the list.
-- **return_image_array** (*bool*): If True, the function returns the image (BGR np.array) instead of displaying it. 
-                                   Default is False.
+#### Example of using:
 
+Before using this function, you need an instance of the CombineDetections class, as we previously explained how to obtain it
 
-Example of using:
 ```python
 from patched_yolo_infer import visualize_results
 
 # Assuming result is an instance of the CombineDetections class
 result = CombineDetections(...) 
-
+```
+#### Using visualize_results
+```python
 # Visualizing the results using the visualize_results function
 visualize_results(
     img=result.image,
@@ -186,3 +192,33 @@ visualize_results(
     segment=False,
 )
 ```
+
+#### Possible arguments of the visualize_results function
+
+| Argument                | Type            | Default       | Description                                                                                   |
+|-------------------------|-----------------|-----------    |-----------------------------------------------------------------------------------------------|
+| img                     | numpy.ndarray   |               | The input image in BGR format.                                                                |
+| boxes                   | list            |               | A list of bounding boxes in the format [x_min, y_min, x_max, y_max].                          |
+| classes_ids             | list            |               | A list of class IDs for each detection.                                                       |
+| confidences             | list            | []            | A list of confidence scores corresponding to each bounding box.                               |
+| classes_names           | list            | []            | A list of class names corresponding to the class IDs.                                         |
+| masks                   | list            | []            | A list of masks.                                                                              |
+| segment                 | bool            | False         | Whether to perform instance segmentation.                                                     |
+| show_boxes              | bool            | True          | Whether to show bounding boxes.                                                               |
+| show_class              | bool            | True          | Whether to show class labels.                                                                 |
+| fill_mask               | bool            | False         | Whether to fill the segmented regions with color.                                             |
+| alpha                   | float           | 0.3           | The transparency of filled masks.                                                             |
+| color_class_background  | tuple           | (0, 0, 255)   | The background BGR color for class labels.                                                    |
+| color_class_text        | tuple           |(255, 255, 255)| The text color for class labels.                                                              |
+| thickness               | int             | 4             | The thickness of bounding box and text.                                                       |
+| font                    |                 |cv2.FONT_HERSHEY_SIMPLEX | The font type for class labels.                                                     |
+| font_scale              | float           | 1.5           | The scale factor for font size.                                                               |
+| delta_colors            | int             | seed=0        | The random seed offset for color variation.                                                   |
+| dpi                     | int             | 150           | Final visualization size (plot is bigger when dpi is higher).                                 |
+| random_object_colors    | bool            | False         | If true, colors for each object are selected randomly.                                        |
+| show_confidences        | bool            | False         | If true and show_class=True, confidences near class are visualized.                           |
+| axis_off                | bool            | True          | If true, axis is turned off in the final visualization.                                       |
+| show_classes_list       | list            |               | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
+| return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
+
+

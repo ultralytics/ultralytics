@@ -245,7 +245,7 @@ class Predictor(BasePredictor):
         Returns:
             (tuple): A tuple containing segmented masks, confidence scores, and bounding boxes.
         """
-        import torchvision
+        import torchvision  # scope for faster ultralytics package import
 
         self.segment_all = True
         ih, iw = im.shape[2:]
@@ -450,7 +450,7 @@ class Predictor(BasePredictor):
                 - new_masks (torch.Tensor): The processed masks with small regions removed. Shape is (N, H, W).
                 - keep (List[int]): The indices of the remaining masks post-NMS, which can be used to filter the boxes.
         """
-        import torchvision
+        import torchvision  # scope for faster ultralytics package import
 
         if len(masks) == 0:
             return masks

@@ -58,7 +58,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def setup_model(self):
         """Load, create or download model for any task."""
-        import torchvision
+        import torchvision  # scope for faster ultralytics package import
 
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return

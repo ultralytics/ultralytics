@@ -140,7 +140,8 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             model = weights.to(device)
-            model = model.fuse(verbose=verbose) if fuse else model
+            if fuse:
+                model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
@@ -202,13 +203,10 @@ class AutoBackend(nn.Module):
             ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
             if ov_model.get_parameters()[0].get_layout().empty:
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
-            batch_dim = ov.get_batch(ov_model)
-            if batch_dim.is_static:
-                batch_size = batch_dim.get_length()
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch-size={batch_size} inference...")
+            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name="AUTO",  # AUTO selects best available device, do not modify
@@ -376,9 +374,9 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata:
             for k, v in metadata.items():
-                if k in ("stride", "batch"):
+                if k in {"stride", "batch"}:
                     metadata[k] = int(v)
-                elif k in ("imgsz", "names", "kpt_shape") and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -509,14 +507,9 @@ class AutoBackend(nn.Module):
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
-            ex = self.net.create_extractor()
-            input_names, output_names = self.net.input_names(), self.net.output_names()
-            ex.input(input_names[0], mat_in)
-            y = []
-            for output_name in output_names:
-                mat_out = self.pyncnn.Mat()
-                ex.extract(output_name, mat_out)
-                y.append(np.array(mat_out)[None])
+            with self.net.create_extractor() as ex:
+                ex.input(self.net.input_names()[0], mat_in)
+                y = [np.array(ex.extract(x)[1])[None] for x in self.net.output_names()]
 
         # NVIDIA Triton Inference Server
         elif self.triton:
@@ -538,8 +531,8 @@ class AutoBackend(nn.Module):
                     self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
-                integer = details["dtype"] in (np.int8, np.int16)  # is TFLite quantized int8 or int16 model
-                if integer:
+                is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
+                if is_int:
                     scale, zero_point = details["quantization"]
                     im = (im / scale + zero_point).astype(details["dtype"])  # de-scale
                 self.interpreter.set_tensor(details["index"], im)
@@ -547,10 +540,10 @@ class AutoBackend(nn.Module):
                 y = []
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output["index"])
-                    if integer:
+                    if is_int:
                         scale, zero_point = output["quantization"]
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
-                    if x.ndim > 2:  # if task is not classification
+                    if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         x[:, [0, 2]] *= w
@@ -611,7 +604,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
-        if not is_url(p, check=False) and not isinstance(p, str):
+        if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]

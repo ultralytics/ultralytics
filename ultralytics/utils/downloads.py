@@ -33,7 +33,7 @@ GITHUB_ASSETS_NAMES = (
 GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
-def is_url(url, check=True):
+def is_url(url, check=False):
     """
     Validates if the given string is a URL and optionally checks if the URL exists online.
 
@@ -43,7 +43,7 @@ def is_url(url, check=True):
             Defaults to True.
 
     Returns:
-        (bool): Returns True if the string is a valid URL. If 'check' is True, also returns True if the URL exists online.
+        (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
             Returns False otherwise.
 
     Example:
@@ -191,12 +191,13 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", sf=1.5, hard=True):
+def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
         url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
@@ -212,7 +213,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", sf=1.5, h
     # Check file size
     gib = 1 << 30  # bytes per GiB
     data = int(r.headers.get("Content-Length", 0)) / gib  # file size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage(Path.cwd()))  # bytes
+    total, used, free = (x / gib for x in shutil.disk_usage(path))  # bytes
 
     if data * sf < free:
         return True  # sufficient space
@@ -319,7 +320,7 @@ def safe_download(
         desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        check_disk_space(url)
+        check_disk_space(url, path=f.parent)
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue
@@ -355,13 +356,13 @@ def safe_download(
                     raise ConnectionError(emojis(f"❌  Download failure for {url}. Retry limit reached.")) from e
                 LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {url}...")
 
-    if unzip and f.exists() and f.suffix in ("", ".zip", ".tar", ".gz"):
+    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
 
         unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
-        elif f.suffix in (".tar", ".gz"):
+        elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
             subprocess.run(["tar", "xf" if f.suffix == ".tar" else "xfz", f, "--directory", unzip_dir], check=True)
         if delete:

@@ -10,7 +10,6 @@ import pytest
 import torch
 import yaml
 from PIL import Image
-import torchvision.transforms as T
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
@@ -108,10 +107,7 @@ def test_predict_img():
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference
-    im = cv2.imread(str(SOURCE))  # OpenCV
-    im = cv2.resize(im, (32, 32))
-    im = T.ToTensor()(im)
-    im = torch.stack([im, im, im, im])
+    im = torch.rand((4, 3, 32, 32))  # batch-size 4, FP32 0.0-1.0 RGB order
     results = model(im, imgsz=32)
     assert len(results) == im.shape[0]
     results = seg_model(im, imgsz=32)
@@ -608,7 +604,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
         hsv_v=0.4,
         force_color_jitter=force_color_jitter,
         erasing=erasing,
-        interpolation=T.InterpolationMode.BILINEAR,
     )
 
     transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))

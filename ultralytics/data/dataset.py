@@ -103,16 +103,16 @@ class YOLODataset(BaseDataset):
                 nc += nc_f
                 if im_file:
                     x["labels"].append(
-                        dict(
-                            im_file=im_file,
-                            shape=shape,
-                            cls=lb[:, 0:1],  # n, 1
-                            bboxes=lb[:, 1:],  # n, 4
-                            segments=segments,
-                            keypoints=keypoint,
-                            normalized=True,
-                            bbox_format="xywh",
-                        )
+                        {
+                            "im_file": im_file,
+                            "shape": shape,
+                            "cls": lb[:, 0:1],  # n, 1
+                            "bboxes": lb[:, 1:],  # n, 4
+                            "segments": segments,
+                            "keypoints": keypoint,
+                            "normalized": True,
+                            "bbox_format": "xywh",
+                        }
                     )
                 if msg:
                     msgs.append(msg)
@@ -447,15 +447,15 @@ class GroundingDataset(YOLODataset):
                     bboxes.append(box)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
             labels.append(
-                dict(
-                    im_file=im_file,
-                    shape=(h, w),
-                    cls=lb[:, 0:1],  # n, 1
-                    bboxes=lb[:, 1:],  # n, 4
-                    normalized=True,
-                    bbox_format="xywh",
-                    texts=texts,
-                )
+                {
+                    "im_file": im_file,
+                    "shape": (h, w),
+                    "cls": lb[:, 0:1],  # n, 1
+                    "bboxes": lb[:, 1:],  # n, 4
+                    "normalized": True,
+                    "bbox_format": "xywh",
+                    "texts": texts,
+                }
             )
         return labels
 

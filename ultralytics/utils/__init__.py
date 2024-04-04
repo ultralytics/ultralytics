@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import importlib.metadata
 import inspect
 import logging.config
 import os
@@ -44,7 +43,6 @@ LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
-TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
     Usage examples for running YOLOv8:
 

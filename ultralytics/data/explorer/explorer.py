@@ -446,12 +446,11 @@ class Explorer:
         """
         result = prompt_sql_query(query)
         try:
-            df = self.sql_query(result)
+            return self.sql_query(result)
         except Exception as e:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-        return df
 
     def visualize(self, result):
         """

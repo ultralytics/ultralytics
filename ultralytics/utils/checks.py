@@ -25,6 +25,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     LINUX,
     LOGGER,
+    PYTHON_VERSION,
     ONLINE,
     ROOT,
     USER_CONFIG_DIR,
@@ -45,8 +46,6 @@ from ultralytics.utils import (
     is_pip_package,
     url2file,
 )
-
-PYTHON_VERSION = platform.python_version()
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

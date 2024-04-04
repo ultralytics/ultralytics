@@ -9,7 +9,6 @@ try:
     import wandb as wb
 
     assert hasattr(wb, "__version__")  # verify package is not directory
-
     _processed_plots = {}
 
 except (ImportError, AssertionError):

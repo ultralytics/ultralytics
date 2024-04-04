@@ -11,7 +11,6 @@ check_requirements("shapely>=2.0.0")
 from shapely.geometry import LineString, Point, Polygon
 
 
-
 class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 

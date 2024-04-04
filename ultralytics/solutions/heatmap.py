@@ -178,7 +178,7 @@ class Heatmap:
             return im0
         self.heatmap *= self.decay_factor  # decay factor
         self.extract_results(tracks)
-        self.annotator = Annotator(self.im0, self.tf,None)
+        self.annotator = Annotator(self.im0, self.tf, None)
 
         if self.count_reg_pts is not None:
             # Draw counting region

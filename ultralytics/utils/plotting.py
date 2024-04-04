@@ -408,8 +408,7 @@ class Annotator:
         tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
 
-        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=self.sf,
-                                   thickness=self.tf)[0] for count in counts]
+        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=self.sf, thickness=self.tf)[0] for count in counts]
 
         max_text_width = max([size[0] for size in t_sizes])
         max_text_height = max([size[1] for size in t_sizes])
@@ -425,15 +424,27 @@ class Annotator:
             text_y_pos = text_y + i * dynamic_gap  # Adjust vertical position with dynamic gap
 
             # Draw the border
-            cv2.rectangle(self.im, (text_x_pos - (10 * tf), text_y_pos - (10 * tf)),
-                          (text_x_pos + max_text_width + (10 * tf), text_y_pos + max_text_height + (10 * tf)),
-                          count_bg_color, -1)
+            cv2.rectangle(
+                self.im,
+                (text_x_pos - (10 * tf), text_y_pos - (10 * tf)),
+                (text_x_pos + max_text_width + (10 * tf), text_y_pos + max_text_height + (10 * tf)),
+                count_bg_color,
+                -1,
+            )
 
             # Draw the count text
-            cv2.putText(self.im, str(count),(text_x_pos, text_y_pos + max_text_height),
-                        0, fontScale=self.sf, color=count_txt_color, thickness=self.tf,lineType=cv2.LINE_AA)
+            cv2.putText(
+                self.im,
+                str(count),
+                (text_x_pos, text_y_pos + max_text_height),
+                0,
+                fontScale=self.sf,
+                color=count_txt_color,
+                thickness=self.tf,
+                lineType=cv2.LINE_AA,
+            )
 
-            text_y_pos += (tf * max_text_height)
+            text_y_pos += tf * max_text_height
 
     @staticmethod
     def estimate_pose_angle(a, b, c):

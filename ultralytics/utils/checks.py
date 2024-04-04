@@ -18,7 +18,6 @@ import cv2
 import numpy as np
 import requests
 import torch
-from matplotlib import font_manager
 
 from ultralytics.utils import (
     ASSETS,
@@ -303,9 +302,10 @@ def check_font(font="Arial.ttf"):
     Returns:
         file (Path): Resolved font file path.
     """
-    name = Path(font).name
+    from matplotlib import font_manager
 
     # Check USER_CONFIG_DIR
+    name = Path(font).name
     file = USER_CONFIG_DIR / name
     if file.exists():
         return file

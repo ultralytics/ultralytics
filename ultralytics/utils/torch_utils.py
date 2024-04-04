@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
-from importlib.metadata import version
 
 import numpy as np
 import torch
@@ -16,7 +15,15 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, PYTHON_VERSION, colorstr, __version__
+from ultralytics.utils import (
+    DEFAULT_CFG_DICT,
+    DEFAULT_CFG_KEYS,
+    LOGGER,
+    PYTHON_VERSION,
+    TORCHVISION_VERSION,
+    colorstr,
+    __version__,
+)
 from ultralytics.utils.checks import check_version
 
 try:
@@ -25,7 +32,6 @@ except ImportError:
     thop = None
 
 # Version checks (all default to version>=min_version)
-TORCHVISION_VERSION = version("torchvision")  # faster than importing torchvision
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")

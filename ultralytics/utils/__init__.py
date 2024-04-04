@@ -486,7 +486,8 @@ def is_online() -> bool:
     return False
 
 
-ONLINE = is_online()
+YOLO_OFFLINE = str(os.getenv("YOLO_OFFLINE", False)).lower() == "true"
+ONLINE = False if YOLO_OFFLINE else is_online()
 
 
 def is_pip_package(filepath: str = __name__) -> bool:

@@ -28,6 +28,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     ONLINE,
     ROOT,
+    TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     Retry,
     SimpleNamespace,
@@ -418,14 +419,12 @@ def check_torchvision():
     Torchvision versions.
     """
 
-    import torchvision
-
     # Compatibility table
     compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
-    v_torchvision = ".".join(torchvision.__version__.split("+")[0].split(".")[:2])
+    v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import importlib.metadata
 import inspect
 import logging.config
 import os
@@ -17,7 +18,6 @@ from types import SimpleNamespace
 from typing import Union
 
 import cv2
-import importlib.metadata
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -479,7 +479,7 @@ def is_online() -> bool:
 
     for host in "1.1.1.1", "8.8.8.8", "223.5.5.5":  # Cloudflare, Google, AliDNS:
         try:
-            test_connection = socket.create_connection(address=(host, 53), timeout=2)
+            test_connection = socket.create_connection(address=(host, 80), timeout=2)
         except (socket.timeout, socket.gaierror, OSError):
             continue
         else:

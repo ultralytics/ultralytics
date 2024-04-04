@@ -43,7 +43,6 @@ from ultralytics.utils import (
     is_github_action_running,
     is_jupyter,
     is_kaggle,
-    is_online,
     is_pip_package,
     url2file,
 )
@@ -390,7 +389,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
-                assert is_online(), "AutoUpdate skipped (offline)"
+                assert ONLINE, "AutoUpdate skipped (offline)"
                 with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
                     LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
                 dt = time.time() - t

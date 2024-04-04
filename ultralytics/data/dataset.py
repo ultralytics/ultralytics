@@ -411,7 +411,7 @@ class ClassificationDataset:
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification and
                 debugging. Default is an empty string.
         """
-        import torchvision  # scope for faster ultralytics package import
+        import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
         self = torchvision.datasets.ImageFolder(root=root)

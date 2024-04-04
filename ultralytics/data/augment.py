@@ -1149,7 +1149,7 @@ def classify_transforms(
     Returns:
         (T.Compose): torchvision transforms
     """
-    import torchvision.transforms as T  # scope for faster ultralytics package import
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
@@ -1218,7 +1218,7 @@ def classify_augmentations(
         (T.Compose): torchvision transforms
     """
     # Transforms to apply if Albumentations not installed
-    import torchvision.transforms as T  # scope for faster ultralytics package import
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if not isinstance(size, int):
         raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")

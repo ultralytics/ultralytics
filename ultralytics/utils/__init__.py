@@ -474,9 +474,9 @@ def is_online() -> bool:
     """
     import socket
 
-    for host in "1.1.1.1", "8.8.8.8", "223.5.5.5":  # Cloudflare, Google, AliDNS:
+    for host in ("1.1.1.1", "8.8.8.8"):  # Cloudflare, Google
         try:
-            test_connection = socket.create_connection(address=(host, 80), timeout=2)
+            test_connection = socket.create_connection(address=(host, 80), timeout=1.5)
         except (socket.timeout, socket.gaierror, OSError):
             continue
         else:

@@ -166,7 +166,7 @@ from patched_yolo_infer import visualize_results
 # Assuming result is an instance of the CombineDetections class
 result = CombineDetections(...) 
 ```
-#### Using `visualize_results`:
+#### Using `visualize_results` function:
 ```python
 # Visualizing the results using the visualize_results function
 visualize_results(

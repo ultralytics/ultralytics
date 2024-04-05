@@ -339,6 +339,21 @@ class Annotator:
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
+    def get_bbox_dimension(self, bbox=None):
+        """
+        Calculate the area of a bounding box.
+
+        Args:
+            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
+
+        Returns:
+            angle (degree): Degree value of angle between three points
+        """
+        x_min, y_min, x_max, y_max = bbox
+        width = x_max - x_min
+        height = y_max - y_min
+        return width, height, width * height
+
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
         Draw region line.
@@ -364,13 +379,22 @@ class Annotator:
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
-        """Displays queue counts on an image centered at the points with customizable font size and colors."""
+        """
+        Displays queue counts on an image centered at the points with customizable font size and colors.
+
+        Args:
+            label (str): queue counts label
+            points (tuple): region points for center point calculation to display text
+            region_color (RGB): queue region color
+            txt_color (RGB): text display color
+            fontsize (float): text fontsize
+        """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)
         center_y = sum(y_values) // len(points)
 
-        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fontScale=fontsize, thickness=self.tf)[0]
+        text_size = cv2.getTextSize(label, 0, fontScale=fontsize, thickness=self.tf)[0]
         text_width = text_size[0]
         text_height = text_size[1]
 
@@ -388,7 +412,7 @@ class Annotator:
             self.im,
             label,
             (text_x, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
+            0,
             fontScale=fontsize,
             color=txt_color,
             thickness=self.tf,
@@ -595,30 +619,26 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Distance M: {distance_m:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
-        )
+        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, 0.8, 2)
         cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
         cv2.putText(
             self.im,
             f"Distance M: {distance_m:.2f}m",
             (20, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
+            0,
             0.8,
             (0, 0, 0),
             2,
             cv2.LINE_AA,
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(
-            f"Distance MM: {distance_mm:.2f}mm", cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
-        )
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, 0.8, 2)
         cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
         cv2.putText(
             self.im,
             f"Distance MM: {distance_mm:.2f}mm",
             (20, 100),
-            cv2.FONT_HERSHEY_SIMPLEX,
+            0,
             0.8,
             (0, 0, 0),
             2,

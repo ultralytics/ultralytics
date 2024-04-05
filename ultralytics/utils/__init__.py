@@ -483,6 +483,7 @@ def is_online() -> bool:
         return True
     return False
 
+
 ONLINE = is_online()
 
 

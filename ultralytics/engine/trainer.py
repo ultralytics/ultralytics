@@ -464,7 +464,7 @@ class BaseTrainer:
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
-        import pandas as pd  # scope for faster startup
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()

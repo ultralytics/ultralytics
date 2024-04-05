@@ -671,8 +671,8 @@ class Annotator:
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics."""
-    import pandas as pd
-    import seaborn as sn
+    import pandas  # scope for faster 'import ultralytics'
+    import seaborn  # scope for faster 'import ultralytics'
 
     # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
@@ -682,10 +682,10 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pd.DataFrame(boxes, columns=["x", "y", "width", "height"])
+    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
     # Seaborn correlogram
-    sn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+    seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
     plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
     plt.close()
 
@@ -700,8 +700,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
-    sn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
-    sn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
+    seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
+    seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
 
     # Rectangles
     boxes[:, 0:2] = 0.5  # center
@@ -933,7 +933,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         plot_results('path/to/results.csv', segment=True)
         ```
     """
-    import pandas as pd
+    import pandas as pd  # scope for faster 'import ultralytics'
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -1019,7 +1019,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
         >>> plot_tune_results('path/to/tune_results.csv')
     """
 
-    import pandas as pd
+    import pandas as pd  # scope for faster 'import ultralytics'
     from scipy.ndimage import gaussian_filter1d
 
     # Scatter plots for each hyperparameter

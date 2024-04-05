@@ -395,49 +395,56 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
-    def display_counts(
-        self, counts=None, tf=2, fontScale=0.6, line_color=(0, 0, 0), txt_color=(255, 255, 255), classwise_txtgap=55
-    ):
+    def display_counts(self, counts=None, count_bg_color=(0, 0, 0), count_txt_color=(255, 255, 255)):
         """
-        Display counts on im0.
+        Display counts on im0 with text background and border.
 
         Args:
             counts (str): objects count data
-            tf (int): text thickness for display
-            fontScale (float): text fontsize for display
-            line_color (RGB Color): counts highlighter color
-            txt_color (RGB Color): counts display color
-            classwise_txtgap (int): Gap between each class count data
+            count_bg_color (RGB Color): counts highlighter color
+            count_txt_color (RGB Color): counts display color
         """
 
-        tl = tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
+        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
         tf = max(tl - 1, 1)
 
-        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=0.8, thickness=tf)[0] for count in counts]
+        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=self.sf, thickness=self.tf)[0] for count in counts]
 
         max_text_width = max([size[0] for size in t_sizes])
         max_text_height = max([size[1] for size in t_sizes])
 
-        text_x = self.im.shape[1] - max_text_width - 20
-        text_y = classwise_txtgap
+        text_x = self.im.shape[1] - int(self.im.shape[1] * 0.025 + max_text_width)
+        text_y = int(self.im.shape[0] * 0.025)
+
+        # Calculate dynamic gap between each count value based on the width of the image
+        dynamic_gap = max(1, self.im.shape[1] // 100) * tf
 
         for i, count in enumerate(counts):
             text_x_pos = text_x
-            text_y_pos = text_y + i * classwise_txtgap
+            text_y_pos = text_y + i * dynamic_gap  # Adjust vertical position with dynamic gap
 
+            # Draw the border
+            cv2.rectangle(
+                self.im,
+                (text_x_pos - (10 * tf), text_y_pos - (10 * tf)),
+                (text_x_pos + max_text_width + (10 * tf), text_y_pos + max_text_height + (10 * tf)),
+                count_bg_color,
+                -1,
+            )
+
+            # Draw the count text
             cv2.putText(
                 self.im,
                 str(count),
-                (text_x_pos, text_y_pos),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=fontScale,
-                color=txt_color,
-                thickness=tf,
+                (text_x_pos, text_y_pos + max_text_height),
+                0,
+                fontScale=self.sf,
+                color=count_txt_color,
+                thickness=self.tf,
                 lineType=cv2.LINE_AA,
             )
 
-            line_y_pos = text_y_pos + max_text_height + 5
-            cv2.line(self.im, (text_x_pos, line_y_pos), (text_x_pos + max_text_width, line_y_pos), line_color, tf)
+            text_y_pos += tf * max_text_height
 
     @staticmethod
     def estimate_pose_angle(a, b, c):

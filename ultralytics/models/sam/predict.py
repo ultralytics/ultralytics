@@ -11,7 +11,6 @@ segmentation tasks.
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torchvision
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -246,6 +245,8 @@ class Predictor(BasePredictor):
         Returns:
             (tuple): A tuple containing segmented masks, confidence scores, and bounding boxes.
         """
+        import torchvision  # scope for faster 'import ultralytics'
+
         self.segment_all = True
         ih, iw = im.shape[2:]
         crop_regions, layer_idxs = generate_crop_boxes((ih, iw), crop_n_layers, crop_overlap_ratio)
@@ -449,6 +450,8 @@ class Predictor(BasePredictor):
                 - new_masks (torch.Tensor): The processed masks with small regions removed. Shape is (N, H, W).
                 - keep (List[int]): The indices of the remaining masks post-NMS, which can be used to filter the boxes.
         """
+        import torchvision  # scope for faster 'import ultralytics'
+
         if len(masks) == 0:
             return masks
 

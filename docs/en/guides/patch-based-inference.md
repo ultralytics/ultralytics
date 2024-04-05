@@ -3,8 +3,6 @@ comments: true
 description: A comprehensive guide on how to use Patch-Based-Inference in instance segmentation and object detection tasks.
 keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9, FastSAM, RTDETR, SAHI, Sliced Inference, Instance Segmentation, Object Detection, Ultralytics, Large Scale Image Analysis, Small Object Segmentation
 ---
-
-
 # Ultralytics Docs: Using Patch-Based-Inference for segmenting and detecting small objects in images. 
 
 Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). 
@@ -27,8 +25,6 @@ Note: If CUDA support is available, it's recommended to pre-install [PyTorch](ht
 
 ---
 
-</details>
-
 ## Notebooks
 
 Interactive notebooks are provided to showcase the functionality of the library. These notebooks cover batch-inference procedures for detection, instance segmentation, inference custom visualization, and more. Each notebook is paired with a tutorial on YouTube, making it easy to learn and implement features.
@@ -36,8 +32,8 @@ Interactive notebooks are provided to showcase the functionality of the library.
 
 | **Topic** | **Notebook** | **YouTube** |
 | ----- | -------- | ------- |
-| [Patch-Based-Inference Example](https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_patch_based_inference.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1FUao91GyB-ojGRN_okUxYyfagTT9tdsP?usp=sharing) | <p align="center"><a href="https://youtu.be/IfbNOLROym4"><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Youtube Video"></a></p> |
-| [Example of utilizing a function to visualize basic Ultralytics model inference results and managing overlapping image crops](https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_extra_functions.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1eM4o1e0AUQrS1mLDpcgK9HKInWEvnaMn?usp=sharing) | <p align="center"><a href="https://youtu.be/nBQuWa63188"><img width=30% src="https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png" alt="Youtube Video"></a></p> |
+| [Patch-Based-Inference Example][nb_example1] | [![Open In Colab][colab_badge]][colab_ex1] |<div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link1] |
+| [Example of utilizing a function to visualize basic Ultralytics model inference results and managing overlapping image crops][nb_example1] | [![Open In Colab][colab_badge]][colab_ex2] | <div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link2] |
 
 
 ---
@@ -66,7 +62,7 @@ Interactive notebooks are provided to showcase the functionality of the library.
 ## Usage
 
 ### 1. Patch-Based-Inference
-To carry out patch-based inference of YOLO models using our library, you need to follow a sequential procedure. First, you create an instance of the MakeCropsDetectThem class, providing all desired parameters related to YOLO inference and the patch segmentation principle.<br/> Subsequently, you pass the obtained object of this class to CombineDetections, which facilitates the consolidation of all predictions from each overlapping crop, followed by intelligent suppression of duplicates. <br/>Upon completion, you receive the result, from which you can extract the desired outcome of frame processing.
+To carry out patch-based inference of YOLO models using patched_yolo_infer library, you need to follow a sequential procedure. First, you create an instance of the `MakeCropsDetectThem` class, providing all desired parameters related to YOLO inference and the patch segmentation principle.<br/> Subsequently, you pass the obtained object of this class to `CombineDetections`, which facilitates the consolidation of all predictions from each overlapping crop, followed by intelligent suppression of duplicates. <br/>Upon completion, you receive the result, from which you can extract the desired outcome of frame processing.
 
 The output obtained from the process includes several attributes that can be leveraged for further analysis or visualization:
 
@@ -171,7 +167,7 @@ Visualizes custom results of object detection or segmentation on an image.
 
 #### Example of using:
 
-Before using this function, you need an instance of the CombineDetections class, as we previously explained how to obtain it
+Before using this function, you need an instance of the `CombineDetections` class, as we previously explained how to obtain it
 
 ```python
 from patched_yolo_infer import visualize_results
@@ -179,7 +175,7 @@ from patched_yolo_infer import visualize_results
 # Assuming result is an instance of the CombineDetections class
 result = CombineDetections(...) 
 ```
-#### Using visualize_results:
+#### Using `visualize_results`:
 ```python
 # Visualizing the results using the visualize_results function
 visualize_results(
@@ -220,3 +216,11 @@ visualize_results(
 | axis_off                | bool            | True          | If true, axis is turned off in the final visualization.                                       |
 | show_classes_list       | list            | []            | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
+
+[nb_example1]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_patch_based_inference.ipynb
+[colab_badge]: https://colab.research.google.com/assets/colab-badge.svg
+[colab_ex1]: https://colab.research.google.com/drive/1FUao91GyB-ojGRN_okUxYyfagTT9tdsP?usp=sharing
+[yt_link1]: https://youtu.be/IfbNOLROym4
+[nb_example1]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_extra_functions.ipynb
+[colab_ex2]: https://colab.research.google.com/drive/1eM4o1e0AUQrS1mLDpcgK9HKInWEvnaMn?usp=sharing
+[yt_link2]: https://youtu.be/nBQuWa63188

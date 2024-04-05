@@ -29,12 +29,10 @@ Note: If CUDA support is available, it's recommended to pre-install [PyTorch](ht
 
 Interactive notebooks are provided to showcase the functionality of the library. These notebooks cover batch-inference procedures for detection, instance segmentation, inference custom visualization, and more. Each notebook is paired with a tutorial on YouTube, making it easy to learn and implement features.
 
-
 | **Topic** | **Notebook** | **YouTube** |
 | ----- | -------- | ------- |
 | [Patch-Based-Inference Example][nb_example1] | [![Open In Colab][colab_badge]][colab_ex1] |<div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link1] |
 | [Example of utilizing a function to visualize basic Ultralytics model inference results and managing overlapping image crops][nb_example1] | [![Open In Colab][colab_badge]][colab_ex2] | <div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link2] |
-
 
 ---
 ## Examples
@@ -44,13 +42,10 @@ Interactive notebooks are provided to showcase the functionality of the library.
   <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/blob/main/readme_content/getection.gif" alt="Detection example">
 </p>
 
-
 #### Instance Segmentation example 1:
 <p align="center">
   <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_1.gif" alt="Segmentation Example 1">
 </p>
-
-
 
 #### Instance Segmentation example 2:
 
@@ -87,7 +82,6 @@ from patched_yolo_infer import MakeCropsDetectThem, CombineDetections
 img_path = 'test_image.jpg'
 img = cv2.imread(img_path)
 ```
-
 #### Cropping and Inference:
 Then you can create a class object implementing cropping and passing crops through a neural network for detection/segmentation.
 
@@ -105,7 +99,6 @@ element_crops = MakeCropsDetectThem(
     resize_initial_size=True,
 )
 ```
-
 #### Getting the result:
 Next, you need to create a class object that implements the combination of masks/boxes from multiple crops + NMS (Non-maximal suppression)
 
@@ -123,7 +116,6 @@ masks=result.filtered_masks
 classes_ids=result.filtered_classes_id
 classes_names=result.filtered_classes_names
 ```
-
 ## Explanation of possible input arguments:
 
 **MakeCropsDetectThem**
@@ -159,7 +151,6 @@ Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum 
 | match_metric         | str               | IOS         | Matching metric, either 'IOU' or 'IOS'.                                                                                 |
 | intelligent_sorter   | bool              | True        | Enable sorting by area and rounded confidence parameter. If False, sorting will be done only by confidence (usual nms). |
 
-
 ---
 ### 2. Custom inference visualization:
 
@@ -167,7 +158,7 @@ Visualizes custom results of object detection or segmentation on an image.
 
 #### Example of using:
 
-Before using this function, you need an instance of the `CombineDetections` class, as we previously explained how to obtain it
+Before using this function, you need an instance of the `CombineDetections` class, previously was explained how to obtain it
 
 ```python
 from patched_yolo_infer import visualize_results
@@ -188,7 +179,6 @@ visualize_results(
     segment=False,
 )
 ```
-
 #### Possible arguments of the visualize_results function:
 
 | Argument                | Type            | Default       | Description                                                                                   |
@@ -216,6 +206,8 @@ visualize_results(
 | axis_off                | bool            | True          | If true, axis is turned off in the final visualization.                                       |
 | show_classes_list       | list            | []            | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
+
+We extend our thanks to the patched_yolo_infer developers for creating and maintaining this invaluable resource for the computer vision community. For more information about patched_yolo_infer and its creators, visit the [patched_yolo_infer GitHub repository](https://github.com/Koldim2001/YOLO-Patch-Based-Inference).
 
 [nb_example1]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_patch_based_inference.ipynb
 [colab_badge]: https://colab.research.google.com/assets/colab-badge.svg

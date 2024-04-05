@@ -522,7 +522,7 @@ def entrypoint(debug=""):
     elif mode not in MODES:
         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
-    # Task
+
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
@@ -530,7 +530,7 @@ def entrypoint(debug=""):
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 
-    # Model
+    
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
         model = "yolov8n.pt"
@@ -545,7 +545,7 @@ def entrypoint(debug=""):
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam" in stem:
+    elif "sam" in stem
         from ultralytics import SAM
 
         model = SAM(model)
@@ -579,7 +579,7 @@ def entrypoint(debug=""):
             LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(**overrides)  # default args from model
+    getattr(model,mode)(**overrides)  # default args from model
 
     # Show help
     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")

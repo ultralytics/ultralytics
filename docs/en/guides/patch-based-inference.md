@@ -32,7 +32,7 @@ Interactive notebooks are provided to showcase the functionality of the library.
 | **Topic** | **Notebook** | **YouTube** |
 | ----- | -------- | ------- |
 | [Patch-Based-Inference Example][nb_example1] | [![Open In Colab][colab_badge]][colab_ex1] |<div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link1] |
-| [Example of utilizing a function to visualize basic Ultralytics model inference results and managing overlapping image crops][nb_example1] | [![Open In Colab][colab_badge]][colab_ex2] | <div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link2] |
+| [Example of utilizing a function to visualize basic Ultralytics model inference results and managing overlapping image crops][nb_example2] | [![Open In Colab][colab_badge]][colab_ex2] | <div align="center">[<img width=30% alt="Youtube Video" src=https://raw.githubusercontent.com/ultralytics/assets/main/social/logo-social-youtube-rect.png>][yt_link2] |
 
 ---
 ## Examples
@@ -213,6 +213,6 @@ We extend our thanks to the patched_yolo_infer developers for creating and maint
 [colab_badge]: https://colab.research.google.com/assets/colab-badge.svg
 [colab_ex1]: https://colab.research.google.com/drive/1FUao91GyB-ojGRN_okUxYyfagTT9tdsP?usp=sharing
 [yt_link1]: https://youtu.be/IfbNOLROym4
-[nb_example1]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_extra_functions.ipynb
+[nb_example2]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_extra_functions.ipynb
 [colab_ex2]: https://colab.research.google.com/drive/1eM4o1e0AUQrS1mLDpcgK9HKInWEvnaMn?usp=sharing
 [yt_link2]: https://youtu.be/nBQuWa63188

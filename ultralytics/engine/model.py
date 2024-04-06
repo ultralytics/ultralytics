@@ -10,18 +10,8 @@ import torch
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import (
-    ARGV,
-    ASSETS,
-    DEFAULT_CFG_DICT,
-    LOGGER,
-    RANK,
-    SETTINGS,
-    callbacks,
-    checks,
-    emojis,
-    yaml_load,
-)
+from ultralytics.utils import (ARGV, ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis,
+                               yaml_load)
 
 
 class Model(nn.Module):
@@ -321,8 +311,9 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        from ultralytics import __version__
         from datetime import datetime
+
+        from ultralytics import __version__
 
         updates = {
             "date": datetime.now().isoformat(),

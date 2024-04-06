@@ -2,6 +2,7 @@
 
 import sys
 from unittest import mock
+
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter

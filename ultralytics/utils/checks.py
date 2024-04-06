@@ -19,32 +19,10 @@ import numpy as np
 import requests
 import torch
 
-from ultralytics.utils import (
-    ASSETS,
-    AUTOINSTALL,
-    IS_COLAB,
-    IS_DOCKER,
-    IS_JUPYTER,
-    IS_KAGGLE,
-    IS_PIP_PACKAGE,
-    LINUX,
-    LOGGER,
-    PYTHON_VERSION,
-    ONLINE,
-    ROOT,
-    TORCHVISION_VERSION,
-    USER_CONFIG_DIR,
-    Retry,
-    SimpleNamespace,
-    ThreadingLocked,
-    TryExcept,
-    clean_url,
-    colorstr,
-    downloads,
-    emojis,
-    is_github_action_running,
-    url2file,
-)
+from ultralytics.utils import (ASSETS, AUTOINSTALL, IS_COLAB, IS_DOCKER, IS_JUPYTER, IS_KAGGLE, IS_PIP_PACKAGE, LINUX,
+                               LOGGER, ONLINE, PYTHON_VERSION, ROOT, TORCHVISION_VERSION, USER_CONFIG_DIR, Retry,
+                               SimpleNamespace, ThreadingLocked, TryExcept, clean_url, colorstr, downloads, emojis,
+                               is_github_action_running, url2file)
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

@@ -40,7 +40,7 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 
 <p align="center"><img width="428" src="https://user-images.githubusercontent.com/26833433/112467037-d2568c00-8d66-11eb-8796-55402ac0d62f.png" alt="Example label file"></p>
 
-When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](detect/coco8.md) example below.
+When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
 <p align="center"><img width="800" src="https://github.com/IvorZhu331/ultralytics/assets/26833433/a55ec82d-2bb5-40f9-ac5c-f935e7eb9f07" alt="Example dataset directory structure"></p>
 

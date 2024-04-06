@@ -2,6 +2,7 @@
 
 import sys
 from unittest import mock
+
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
@@ -52,7 +53,7 @@ def test_detect():
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     # Confirm there is no issue with sys.argv being empty.
-    with mock.patch.object(sys, 'argv', []):
+    with mock.patch.object(sys, "argv", []):
         result = pred(source=ASSETS, model=f"{MODEL}.pt")
         assert len(result), "predictor test failed"
 

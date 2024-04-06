@@ -15,11 +15,27 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
 
-from .augment import (Compose, Format, Instances, LetterBox, RandomLoadText, classify_augmentations,
-                      classify_transforms, v8_transforms)
+from .augment import (
+    Compose,
+    Format,
+    Instances,
+    LetterBox,
+    RandomLoadText,
+    classify_augmentations,
+    classify_transforms,
+    v8_transforms,
+)
 from .base import BaseDataset
-from .utils import (HELP_URL, LOGGER, get_hash, img2label_paths, load_dataset_cache_file, save_dataset_cache_file,
-                    verify_image, verify_image_label)
+from .utils import (
+    HELP_URL,
+    LOGGER,
+    get_hash,
+    img2label_paths,
+    load_dataset_cache_file,
+    save_dataset_cache_file,
+    verify_image,
+    verify_image_label,
+)
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"

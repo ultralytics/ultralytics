@@ -475,17 +475,12 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    import socket
+    with contextlib.suppress(Exception):
+        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
+        import socket
 
-    for host in "1.1.1.1", "8.8.8.8", "223.5.5.5":  # Cloudflare, Google, AliDNS:
-        try:
-            test_connection = socket.create_connection(address=(host, 80), timeout=2)
-        except (socket.timeout, socket.gaierror, OSError):
-            continue
-        else:
-            # If the connection was successful, close it to avoid a ResourceWarning
-            test_connection.close()
-            return True
+        socket.create_connection(address=("1.1.1.1", 80), timeout=1.0).close()  # check Cloudflare DNS
+        return True
     return False
 
 

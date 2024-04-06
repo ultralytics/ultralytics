@@ -664,6 +664,7 @@ IS_DOCKER = is_docker()
 IS_JUPYTER = is_jupyter()
 IS_KAGGLE = is_kaggle()
 IS_PIP_PACKAGE = is_pip_package()
+IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir

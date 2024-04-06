@@ -8,10 +8,10 @@ from pathlib import Path
 import requests
 
 from ultralytics.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
-from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
 from ultralytics.utils.errors import HUBModelError
 
-AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
+AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
 
 
 class HUBTrainingSession:

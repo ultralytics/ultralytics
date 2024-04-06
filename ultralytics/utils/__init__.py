@@ -648,6 +648,10 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 # Define constants (required below)
 ONLINE = is_online()
+IS_COLAB = is_colab()
+IS_DOCKER = is_docker()
+IS_JUPYTER = is_jupyter()
+IS_KAGGLE = is_kaggle()
 IS_PIP_PACKAGE = is_pip_package()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
@@ -1033,13 +1037,13 @@ WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
 ENVIRONMENT = (
     "Colab"
-    if is_colab()
+    if IS_COLAB
     else "Kaggle"
-    if is_kaggle()
+    if IS_KAGGLE
     else "Jupyter"
-    if is_jupyter()
+    if IS_JUPYTER
     else "Docker"
-    if is_docker()
+    if IS_DOCKER
     else platform.system()
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()

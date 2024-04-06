@@ -22,6 +22,10 @@ import torch
 from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
+    IS_COLAB,
+    IS_DOCKER,
+    IS_JUPYTER,
+    IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
@@ -38,11 +42,7 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     emojis,
-    is_colab,
-    is_docker,
     is_github_action_running,
-    is_jupyter,
-    is_kaggle,
     url2file,
 )
 
@@ -528,7 +528,7 @@ def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+            assert "DISPLAY" in os.environ and not IS_DOCKER and not IS_COLAB and not IS_KAGGLE
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -546,10 +546,10 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if is_jupyter():
+    if IS_JUPYTER:
         if check_requirements("wandb", install=False):
             os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if is_colab():
+        if IS_COLAB:
             shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:

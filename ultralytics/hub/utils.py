@@ -12,6 +12,7 @@ import requests
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
+    IS_COLAB,
     IS_GIT_DIR,
     IS_PIP_PACKAGE,
     LOGGER,
@@ -24,7 +25,6 @@ from ultralytics.utils import (
     __version__,
     colorstr,
     get_git_origin_url,
-    is_colab,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
@@ -48,7 +48,7 @@ def request_with_credentials(url: str) -> any:
     Raises:
         OSError: If the function is not run in a Google Colab environment.
     """
-    if not is_colab():
+    if not IS_COLAB:
         raise OSError("request_with_credentials() must run in a Colab environment")
     from google.colab import output  # noqa
     from IPython import display  # noqa

@@ -14,10 +14,17 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, __version__
-from ultralytics.utils.checks import PYTHON_VERSION, check_version
+from ultralytics.utils import (
+    DEFAULT_CFG_DICT,
+    DEFAULT_CFG_KEYS,
+    LOGGER,
+    PYTHON_VERSION,
+    TORCHVISION_VERSION,
+    colorstr,
+    __version__,
+)
+from ultralytics.utils.checks import check_version
 
 try:
     import thop
@@ -28,9 +35,9 @@ except ImportError:
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
-TORCHVISION_0_10 = check_version(torchvision.__version__, "0.10.0")
-TORCHVISION_0_11 = check_version(torchvision.__version__, "0.11.0")
-TORCHVISION_0_13 = check_version(torchvision.__version__, "0.13.0")
+TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
+TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
+TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 
 
 @contextmanager

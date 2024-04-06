@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-
 import cv2
 
 from ultralytics.utils.checks import check_imshow, check_requirements
@@ -47,7 +46,7 @@ class ObjectCounter:
         self.class_wise_count = {}
         self.count_txt_thickness = 0
         self.count_txt_color = (255, 255, 255)
-        self.line_color = (255, 255, 255)
+        self.count_bg_color = (255, 255, 255)
         self.cls_txtdisplay_gap = 50
         self.fontsize = 0.6
 
@@ -65,16 +64,14 @@ class ObjectCounter:
         classes_names,
         reg_pts,
         count_reg_color=(255, 0, 255),
+        count_txt_color=(0, 0, 0),
+        count_bg_color=(255, 255, 255),
         line_thickness=2,
         track_thickness=2,
         view_img=False,
         view_in_counts=True,
         view_out_counts=True,
         draw_tracks=False,
-        count_txt_thickness=3,
-        count_txt_color=(255, 255, 255),
-        fontsize=0.8,
-        line_color=(255, 255, 255),
         track_color=None,
         region_thickness=5,
         line_dist_thresh=15,
@@ -92,10 +89,8 @@ class ObjectCounter:
             classes_names (dict): Classes names
             track_thickness (int): Track thickness
             draw_tracks (Bool): draw tracks
-            count_txt_thickness (int): Text thickness for object counting display
             count_txt_color (RGB color): count text color value
-            fontsize (float): Text display font size
-            line_color (RGB color): count highlighter line color
+            count_bg_color (RGB color): count highlighter line color
             count_reg_color (RGB color): Color of object counting region
             track_color (RGB color): color for tracks
             region_thickness (int): Object counting Region thickness
@@ -125,10 +120,8 @@ class ObjectCounter:
 
         self.names = classes_names
         self.track_color = track_color
-        self.count_txt_thickness = count_txt_thickness
         self.count_txt_color = count_txt_color
-        self.fontsize = fontsize
-        self.line_color = line_color
+        self.count_bg_color = count_bg_color
         self.region_color = count_reg_color
         self.region_thickness = region_thickness
         self.line_dist_thresh = line_dist_thresh
@@ -171,6 +164,9 @@ class ObjectCounter:
 
         # Annotator Init and region drawing
         self.annotator = Annotator(self.im0, self.tf, self.names)
+
+        # Draw region or line
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
@@ -220,17 +216,14 @@ class ObjectCounter:
 
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
-                    is_inside = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0
-
-                    if prev_position is not None and is_inside and track_id not in self.count_ids:
+                    if prev_position is not None and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
-
                         if distance < self.line_dist_thresh and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["in"] += 1
+                                self.class_wise_count[self.names[cls]]["in"] += 2
                             else:
                                 self.out_counts += 1
                                 self.class_wise_count[self.names[cls]]["out"] += 1
@@ -254,17 +247,13 @@ class ObjectCounter:
         if label is not None:
             self.annotator.display_counts(
                 counts=label,
-                tf=self.count_txt_thickness,
-                fontScale=self.fontsize,
-                txt_color=self.count_txt_color,
-                line_color=self.line_color,
-                classwise_txtgap=self.cls_txtdisplay_gap,
+                count_txt_color=self.count_txt_color,
+                count_bg_color=self.count_bg_color,
             )
 
     def display_frames(self):
         """Display frame."""
         if self.env_check:
-            self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
             cv2.namedWindow(self.window_name)
             if len(self.reg_pts) == 4:  # only add mouse event If user drawn region
                 cv2.setMouseCallback(self.window_name, self.mouse_event_for_region, {"region_points": self.reg_pts})

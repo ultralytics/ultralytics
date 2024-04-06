@@ -42,7 +42,7 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 
 When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the example below.
 
-<p style="min-width:320px; max-width:500px;"><img src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png" alt="Example dataset directory structure"></p>
+<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png" alt="Example dataset directory structure"></p>
 
 ```
 dataset/

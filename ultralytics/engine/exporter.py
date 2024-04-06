@@ -75,6 +75,7 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
+    PYTHON_VERSION,
     ROOT,
     WINDOWS,
     __version__,
@@ -83,7 +84,7 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
-from ultralytics.utils.checks import PYTHON_VERSION, check_imgsz, check_is_path_safe, check_requirements, check_version
+from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -92,7 +93,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 
 def export_formats():
     """YOLOv8 export formats."""
-    import pandas
+    import pandas  # scope for faster 'import ultralytics'
 
     x = [
         ["PyTorch", "-", ".pt", True, True],

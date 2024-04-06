@@ -10,7 +10,6 @@ import pytest
 import torch
 import yaml
 from PIL import Image
-from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
@@ -108,20 +107,17 @@ def test_predict_img():
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference
-    im = cv2.imread(str(SOURCE))  # OpenCV
-    t = cv2.resize(im, (32, 32))
-    t = ToTensor()(t)
-    t = torch.stack([t, t, t, t])
-    results = model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = seg_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = cls_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = pose_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = obb_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
+    im = torch.rand((4, 3, 32, 32))  # batch-size 4, FP32 0.0-1.0 RGB order
+    results = model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = seg_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = cls_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = pose_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = obb_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
 
 
 def test_predict_grey_and_4ch():
@@ -592,8 +588,6 @@ def image():
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
     """Tests classification transforms during training with various augmentation settings."""
-    import torchvision.transforms as T
-
     from ultralytics.data.augment import classify_augmentations
 
     transform = classify_augmentations(
@@ -610,7 +604,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
         hsv_v=0.4,
         force_color_jitter=force_color_jitter,
         erasing=erasing,
-        interpolation=T.InterpolationMode.BILINEAR,
     )
 
     transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))

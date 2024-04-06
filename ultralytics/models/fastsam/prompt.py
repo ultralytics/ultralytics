@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
@@ -118,6 +117,8 @@ class FastSAMPrompt:
             retina (bool, optional): Whether to use retina mask. Defaults to False.
             with_contours (bool, optional): Whether to plot contours. Defaults to True.
         """
+        import matplotlib.pyplot as plt
+
         pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
@@ -202,6 +203,8 @@ class FastSAMPrompt:
             target_height (int, optional): Target height for resizing. Defaults to 960.
             target_width (int, optional): Target width for resizing. Defaults to 960.
         """
+        import matplotlib.pyplot as plt
+
         n, h, w = annotation.shape  # batch, height, width
 
         areas = np.sum(annotation, axis=(1, 2))

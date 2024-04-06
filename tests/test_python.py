@@ -651,9 +651,8 @@ def test_yolo_world():
     from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
-    data = dict(train=dict(yolo_data=["coco8.yaml"]), val=dict(yolo_data=["coco8.yaml"]))
     model.train(
-        data=data,
+        data={"train": {"yolo_data": ["coco8.yaml"]}, "val": {"yolo_data": ["coco8.yaml"]}},
         epochs=2,
         imgsz=32,
         cache="disk",

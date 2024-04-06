@@ -22,7 +22,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from .dataset import YOLODataset, YOLOMultiModalDataset, GroundingDataset
+from .dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from .utils import PIN_MEMORY
 
 

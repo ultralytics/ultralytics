@@ -15,7 +15,7 @@ import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-from .utils import HELP_URL, FORMATS_HELP_MSG, IMG_FORMATS
+from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):

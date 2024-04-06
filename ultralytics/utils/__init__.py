@@ -460,12 +460,23 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
-    file = Path("/proc/self/cgroup")
-    if file.exists():
-        with open(file) as f:
+    with contextlib.suppress(Exception):
+        with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    else:
-        return False
+    return False
+
+
+def is_raspberrypi() -> bool:
+    """
+    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+
+    Returns:
+        (bool): True if running on a Raspberry Pi, False otherwise.
+    """
+    with contextlib.suppress(Exception):
+        with open("/proc/device-tree/model") as f:
+            return "Raspberry Pi" in f.read()
+    return False
 
 
 def is_online() -> bool:

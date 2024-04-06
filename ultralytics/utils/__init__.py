@@ -495,9 +495,6 @@ def is_online() -> bool:
     return False
 
 
-ONLINE = is_online()
-
-
 def is_pip_package(filepath: str = __name__) -> bool:
     """
     Determines if the file at the given filepath is part of a pip package.
@@ -550,17 +547,6 @@ def is_github_action_running() -> bool:
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
 
-def is_git_dir():
-    """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
-    repository, returns None.
-
-    Returns:
-        (bool): True if current file is part of a git repository.
-    """
-    return get_git_dir() is not None
-
-
 def get_git_dir():
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
@@ -574,6 +560,17 @@ def get_git_dir():
             return d
 
 
+def is_git_dir():
+    """
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
+
+    Returns:
+        (bool): True if current file is part of a git repository.
+    """
+    return GIT_DIR is not None
+
+
 def get_git_origin_url():
     """
     Retrieves the origin URL of a git repository.
@@ -581,7 +578,7 @@ def get_git_origin_url():
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
     """
-    if is_git_dir():
+    if IS_GIT_DIR:
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
@@ -594,7 +591,7 @@ def get_git_branch():
     Returns:
         (str | None): The current git branch name or None if not a git directory.
     """
-    if is_git_dir():
+    if IS_GIT_DIR:
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
@@ -660,6 +657,16 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     return path
 
 
+# Define constants (required below)
+ONLINE = is_online()
+IS_COLAB = is_colab()
+IS_DOCKER = is_docker()
+IS_JUPYTER = is_jupyter()
+IS_KAGGLE = is_kaggle()
+IS_PIP_PACKAGE = is_pip_package()
+IS_RASPBERRYPI = is_raspberrypi()
+GIT_DIR = get_git_dir()
+IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
@@ -886,7 +893,7 @@ def set_sentry():
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
@@ -897,8 +904,8 @@ def set_sentry():
         and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE
-        and is_pip_package()
-        and not is_git_dir()
+        and IS_PIP_PACKAGE
+        and not IS_GIT_DIR
     ):
         # If sentry_sdk package is not installed then return and do not use Sentry
         try:
@@ -937,9 +944,8 @@ class SettingsManager(dict):
         from ultralytics.utils.checks import check_version
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        git_dir = get_git_dir()
-        root = git_dir or Path()
-        datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT_DIR or Path()
+        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version
@@ -1043,13 +1049,13 @@ WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
 ENVIRONMENT = (
     "Colab"
-    if is_colab()
+    if IS_COLAB
     else "Kaggle"
-    if is_kaggle()
+    if IS_KAGGLE
     else "Jupyter"
-    if is_jupyter()
+    if IS_JUPYTER
     else "Docker"
-    if is_docker()
+    if IS_DOCKER
     else platform.system()
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()

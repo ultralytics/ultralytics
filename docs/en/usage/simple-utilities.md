@@ -59,6 +59,28 @@ convert_coco(#(1)!
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco)
 
+### Get Bounding Box Dimensions
+
+```{.py .annotate }
+from ultralytics.utils.plotting import Annotator
+from ultralytics import YOLO
+import cv2
+
+model = YOLO('yolov8n.pt')  # Load pretrain or fine-tune model
+
+# Process the image
+source = cv2.imread('path/to/image.jpg')
+results = model(source)
+
+# Extract results
+annotator = Annotator(source, example=model.names)
+
+for box in results[0].boxes.xyxy.cpu():
+    width, height, area = annotator.get_bbox_dimension(box)
+    print("Bounding Box Width {}, Height {}, Area {}".format(
+        width.item(), height.item(), area.item()))
+```
+
 ### Convert Bounding Boxes to Segments
 
 With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. The files for images and annotations need to be organized like this:

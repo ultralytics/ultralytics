@@ -509,7 +509,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
         (bool): True if the file is part of a pip package, False otherwise.
     """
     import importlib.util
-    
+
     # Get the spec for the module
     spec = importlib.util.find_spec(filepath)
 

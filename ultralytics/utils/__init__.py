@@ -474,7 +474,7 @@ def is_raspberrypi() -> bool:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
     with contextlib.suppress(Exception):
-        with open("/sys/firmware/devicetree/base/model") as f:
+        with open("/proc/device-tree/model") as f:
             return "Raspberry Pi" in f.read()
     return False
 

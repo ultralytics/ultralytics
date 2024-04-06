@@ -100,7 +100,8 @@ class AIGym:
                     self.stage[ind] = "down"
                 if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
                     self.stage[ind] = "up"
-                    self.count[ind] += 1
+                    if k[int(self.kpts_to_check[0])].cpu()[1] > k[int(self.kpts_to_check[2])].cpu()[1]:
+                        self.count[ind] += 1
                 self.annotator.plot_angle_and_count_and_stage(
                     angle_text=self.angle[ind],
                     count_text=self.count[ind],

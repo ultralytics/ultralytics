@@ -15,7 +15,7 @@ from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks, USER_CONFIG_DIR
+from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -203,7 +203,8 @@ class Explorer:
         table = self.table.to_arrow()  # noqa NOTE: Don't comment this. This line is used by DuckDB
         if not query.startswith("SELECT") and not query.startswith("WHERE"):
             raise ValueError(
-                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}"
+                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE "
+                f"clause. found {query}"
             )
         if query.startswith("WHERE"):
             query = f"SELECT * FROM 'table' {query}"
@@ -318,13 +319,13 @@ class Explorer:
 
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
-            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
+            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit.
                            vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image, and columns
-                                include indices of similar images and their respective distances.
+            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image,
+                and columns include indices of similar images and their respective distances.
 
         Example:
             ```python

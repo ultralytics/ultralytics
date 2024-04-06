@@ -127,10 +127,10 @@ class Predictor(BasePredictor):
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
             bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixel coordinates.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 for foreground and 0 for background.
-            masks (np.ndarray, optional): Low-resolution masks from previous predictions. Shape should be (N, H, W). For SAM, H=W=256.
-            multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts. Defaults to False.
+            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
+            multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts.
 
         Returns:
             (tuple): Contains the following three elements.
@@ -156,10 +156,10 @@ class Predictor(BasePredictor):
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
             bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixel coordinates.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 for foreground and 0 for background.
-            masks (np.ndarray, optional): Low-resolution masks from previous predictions. Shape should be (N, H, W). For SAM, H=W=256.
-            multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts. Defaults to False.
+            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
+            multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts.
 
         Returns:
             (tuple): Contains the following three elements.
@@ -230,7 +230,7 @@ class Predictor(BasePredictor):
             im (torch.Tensor): Input tensor representing the preprocessed image with dimensions (N, C, H, W).
             crop_n_layers (int): Specifies the number of layers for additional mask predictions on image crops.
                                  Each layer produces 2**i_layer number of image crops.
-            crop_overlap_ratio (float): Determines the extent of overlap between crops. Scaled down in subsequent layers.
+            crop_overlap_ratio (float): Determines the overlap between crops. Scaled down in subsequent layers.
             crop_downscale_factor (int): Scaling factor for the number of sampled points-per-side in each layer.
             point_grids (list[np.ndarray], optional): Custom grids for point sampling normalized to [0,1].
                                                       Used in the nth crop layer.
@@ -240,7 +240,7 @@ class Predictor(BasePredictor):
             conf_thres (float): Confidence threshold [0,1] for filtering based on the model's mask quality prediction.
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on mask stability.
             stability_score_offset (float): Offset value for calculating stability score.
-            crop_nms_thresh (float): IoU cutoff for Non-Maximum Suppression (NMS) to remove duplicate masks between crops.
+            crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
 
         Returns:
             (tuple): A tuple containing segmented masks, confidence scores, and bounding boxes.
@@ -351,8 +351,8 @@ class Predictor(BasePredictor):
         """
         Post-processes SAM's inference outputs to generate object detection masks and bounding boxes.
 
-        The method scales masks and boxes to the original image size and applies a threshold to the mask predictions. The
-        SAM model uses advanced architecture and promptable segmentation tasks to achieve real-time performance.
+        The method scales masks and boxes to the original image size and applies a threshold to the mask predictions.
+        The SAM model uses advanced architecture and promptable segmentation tasks to achieve real-time performance.
 
         Args:
             preds (tuple): The output from SAM model inference, containing masks, scores, and optional bounding boxes.

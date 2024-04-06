@@ -15,8 +15,15 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, PYTHON_VERSION, TORCHVISION_VERSION,
-                               __version__, colorstr)
+from ultralytics.utils import (
+    DEFAULT_CFG_DICT,
+    DEFAULT_CFG_KEYS,
+    LOGGER,
+    PYTHON_VERSION,
+    TORCHVISION_VERSION,
+    __version__,
+    colorstr,
+)
 from ultralytics.utils.checks import check_version
 
 try:

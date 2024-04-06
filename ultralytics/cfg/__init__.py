@@ -8,9 +8,26 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, RANK, ROOT, RUNS_DIR,
-                               SETTINGS, SETTINGS_YAML, TESTS_RUNNING, IterableSimpleNamespace, __version__, checks,
-                               colorstr, deprecation_warn, yaml_load, yaml_print)
+from ultralytics.utils import (
+    ASSETS,
+    DEFAULT_CFG,
+    DEFAULT_CFG_DICT,
+    DEFAULT_CFG_PATH,
+    LOGGER,
+    RANK,
+    ROOT,
+    RUNS_DIR,
+    SETTINGS,
+    SETTINGS_YAML,
+    TESTS_RUNNING,
+    IterableSimpleNamespace,
+    __version__,
+    checks,
+    colorstr,
+    deprecation_warn,
+    yaml_load,
+    yaml_print,
+)
 
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}

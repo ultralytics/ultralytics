@@ -14,8 +14,20 @@ from PIL import Image
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
 from ultralytics.data.build import load_inference_source
-from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_PATH, LINUX, MACOS, ONLINE, ROOT, WEIGHTS_DIR, WINDOWS,
-                               Retry, checks, is_dir_writeable)
+from ultralytics.utils import (
+    ASSETS,
+    DEFAULT_CFG,
+    DEFAULT_CFG_PATH,
+    LINUX,
+    MACOS,
+    ONLINE,
+    ROOT,
+    WEIGHTS_DIR,
+    WINDOWS,
+    Retry,
+    checks,
+    is_dir_writeable,
+)
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
@@ -458,8 +470,19 @@ def test_utils_downloads():
 
 def test_utils_ops():
     """Test various operations utilities."""
-    from ultralytics.utils.ops import (ltwh2xywh, ltwh2xyxy, make_divisible, xywh2ltwh, xywh2xyxy, xywhn2xyxy,
-                                       xywhr2xyxyxyxy, xyxy2ltwh, xyxy2xywh, xyxy2xywhn, xyxyxyxy2xywhr)
+    from ultralytics.utils.ops import (
+        ltwh2xywh,
+        ltwh2xyxy,
+        make_divisible,
+        xywh2ltwh,
+        xywh2xyxy,
+        xywhn2xyxy,
+        xywhr2xyxyxyxy,
+        xyxy2ltwh,
+        xyxy2xywh,
+        xyxy2xywhn,
+        xyxyxyxy2xywhr,
+    )
 
     make_divisible(17, torch.tensor([8]))
 

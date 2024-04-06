@@ -484,9 +484,6 @@ def is_online() -> bool:
     return False
 
 
-ONLINE = is_online()
-
-
 def is_pip_package(filepath: str = __name__) -> bool:
     """
     Determines if the file at the given filepath is part of a pip package.
@@ -504,9 +501,6 @@ def is_pip_package(filepath: str = __name__) -> bool:
 
     # Return whether the spec is not None and the origin is not None (indicating it is a package)
     return spec is not None and spec.origin is not None
-
-
-IS_PIP_PACKAGE = is_pip_package()
 
 
 def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
@@ -555,9 +549,6 @@ def get_git_dir():
             return d
 
 
-GIT_DIR = get_git_dir()
-
-
 def is_git_dir():
     """
     Determines whether the current file is part of a git repository. If the current file is not part of a git
@@ -567,9 +558,6 @@ def is_git_dir():
         (bool): True if current file is part of a git repository.
     """
     return GIT_DIR is not None
-
-
-IS_GIT_DIR = is_git_dir()
 
 
 def get_git_origin_url():
@@ -658,6 +646,11 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     return path
 
 
+# Define constants (required below)
+ONLINE = is_online()
+IS_PIP_PACKAGE = is_pip_package()
+GIT_DIR = get_git_dir()
+IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 

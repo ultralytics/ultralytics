@@ -12,6 +12,8 @@ import requests
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
+    IS_GIT_DIR,
+    IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
     RANK,
@@ -23,8 +25,6 @@ from ultralytics.utils import (
     colorstr,
     get_git_origin_url,
     is_colab,
-    is_git_dir,
-    is_pip_package,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
@@ -189,7 +189,7 @@ class Events:
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
-            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
             "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             "version": __version__,
             "env": ENVIRONMENT,
@@ -201,7 +201,7 @@ class Events:
             and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
-            and (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+            and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
     def __call__(self, cfg):

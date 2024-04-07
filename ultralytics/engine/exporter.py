@@ -237,7 +237,7 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
-        if self.args.half and onnx and self.device.type != "cpu":
+        if self.args.half and (onnx or engine) and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings
@@ -664,7 +664,8 @@ class Exporter:
             import tensorrt as trt  # noqa
 
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
-
+        self.trt_version = trt.__version__.split(".")[0]
+        
         self.args.simplify = True
 
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
@@ -676,7 +677,10 @@ class Exporter:
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = int(self.args.workspace * (1 << 30))
+        if self.trt_version in ['7', '8']:
+            config.max_workspace_size = int(self.args.workspace * (1 << 30))
+        elif self.trt_version=='10':
+            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, self.args.workspace * 1 << 30)
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
         parser = trt.OnnxParser(network, logger)
@@ -709,14 +713,22 @@ class Exporter:
         torch.cuda.empty_cache()
 
         # Write file
-        with builder.build_engine(network, config) as engine, open(f, "wb") as t:
-            # Metadata
-            meta = json.dumps(self.metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-            # Model
-            t.write(engine.serialize())
-
+        if self.trt_version in ['7', '8']:        
+            with builder.build_engine(network, config) as engine, open(f, "wb") as t:
+                # Metadata
+                meta = json.dumps(self.metadata)
+                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+                t.write(meta.encode())
+                # Model
+                t.write(engine.serialize())
+        elif self.trt_version=='10':
+            with builder.build_serialized_network(network, config) as engine, open(f, "wb") as t:
+                # Metadata
+                meta = json.dumps(self.metadata)
+                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+                t.write(meta.encode())
+                # Model
+                t.write(engine)
         return f, None
 
     @try_export

@@ -78,7 +78,8 @@ class BaseDataset(Dataset):
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
-        self.cache = cache.lower() if isinstance(cache, str) else cache  # options are True, False, None, "ram", "disk"
+        cache = cache.lower() if isinstance(cache, str) else cache  # options are True, False, None, "ram", "disk"
+        self.cache = "ram" if cache is True else cache  # handle when cache=True
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
@@ -90,7 +91,7 @@ class BaseDataset(Dataset):
         # Cache images
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if self.cache and ((self.cache in ("ram", True) and self.check_cache_ram()) or self.cache == "disk"):
+        if (self.cache == 'ram' and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
 
         # Transforms
@@ -215,14 +216,12 @@ class BaseDataset(Dataset):
         mem = psutil.virtual_memory()
         success = mem_required < mem.available  # to cache or not to cache, that is the question
         if not success:
-            self.cache = None  # disable RAM caching
             LOGGER.info(
                 f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
                 f'with {int(safety_margin * 100)}% safety margin but only '
                 f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
                 f"{'caching images ✅' if success else 'not caching images ⚠️'}"
             )
-        self.cache = "ram"  # enable RAM caching
         return success
 
     def set_rectangle(self):

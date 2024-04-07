@@ -225,22 +225,32 @@ class AutoBackend(nn.Module):
                     check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
                 import tensorrt as trt  # noqa
             check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
-            self.trt_version = trt.__version__.split(".")[0]
-            if self.trt_version in ["7", "8"]:
-                if device.type == "cpu":
-                    device = torch.device("cuda:0")
-                Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
-                logger = trt.Logger(trt.Logger.INFO)
-                # Read file
-                with open(w, "rb") as f, trt.Runtime(logger) as runtime:
-                    meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
-                    metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
-                    model = runtime.deserialize_cuda_engine(f.read())  # read engine
+
+            if device.type == "cpu":
+                device = torch.device("cuda:0")
+            Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
+            logger = trt.Logger(trt.Logger.INFO)
+
+            # Read file
+            with open(w, "rb") as f, trt.Runtime(logger) as runtime:
+                meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
+                metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
+                model = runtime.deserialize_cuda_engine(f.read())  # read engine
+
+            # May fail on TRT version mismatch
+            try:
                 context = model.create_execution_context()
-                bindings = OrderedDict()
-                output_names = []
-                fp16 = False  # default updated below
-                dynamic = False
+            except Exception as e:
+                LOGGER.error(f"\nTensorRT version mismatch when trying to load model with TensorRT {trt.__version__}")
+                raise e
+
+            bindings = OrderedDict()
+            output_names = []
+            fp16 = False  # default updated below
+            dynamic = False
+
+            trt_version = int(trt.__version__.split(".")[0])
+            if trt_version in {7, 8}:
                 for i in range(model.num_bindings):
                     name = model.get_binding_name(i)
                     dtype = trt.nptype(model.get_binding_dtype(i))
@@ -255,34 +265,12 @@ class AutoBackend(nn.Module):
                     shape = tuple(context.get_binding_shape(i))
                     im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                     bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
-                binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
-                batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
-                self.output_names = output_names
-                self.fp16 = fp16
-                self.binding_addrs = binding_addrs
-                self.bindings = bindings
-                self.dynamic = dynamic
-                self.context = context
-            elif self.trt_version == "10":
-                if device.type == "cpu":
-                    device = torch.device("cuda:0")
-                Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
-                logger = trt.Logger(trt.Logger.INFO)
-                # Read file
-                with open(w, "rb") as f, trt.Runtime(logger) as runtime:
-                    meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
-                    metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
-                    model = runtime.deserialize_cuda_engine(f.read())  # read engine
-                context = model.create_execution_context()
-                bindings = OrderedDict()
-                output_names = []
-                fp16 = False  # default updated below
-                dynamic = False
+
+            elif trt_version >= 10:
                 for i in range(model.num_io_tensors):
                     name = model.get_tensor_name(i)
                     dtype = trt.nptype(model.get_tensor_dtype(name))
-                    mode = model.get_tensor_mode(name)
-                    if mode.value == 1:
+                    if model.get_tensor_mode(name).value == 1:
                         if -1 in tuple([model.get_tensor_dtype(name)]):  # dynamic
                             dynamic = True
                             context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, i)[2]))
@@ -293,14 +281,9 @@ class AutoBackend(nn.Module):
                     shape = tuple(context.get_tensor_shape(name))
                     im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                     bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
-                binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
-                batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
-                self.output_names = output_names
-                self.fp16 = fp16
-                self.binding_addrs = binding_addrs
-                self.bindings = bindings
-                self.dynamic = dynamic
-                self.context = context
+
+            binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
+            batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
 
         # CoreML
         elif coreml:
@@ -509,34 +492,25 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.trt_version in ["7", "8"]:
-                if self.dynamic and im.shape != self.bindings["images"].shape:
-                    i = self.model.get_binding_index("images")
-                    self.context.set_binding_shape(i, im.shape)  # reshape if dynamic
-                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+            k = "images"  # input images key
+            if self.dynamic and im.shape != self.bindings[k].shape:
+                if self.trt_version in {7, 8}:
+                    self.context.set_binding_shape(self.model.get_binding_index(k), im.shape)  # reshape if dynamic
+                    self.bindings[k] = self.bindings[k]._replace(shape=im.shape)
                     for name in self.output_names:
                         i = self.model.get_binding_index(name)
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
-                s = self.bindings["images"].shape
-                assert (
-                    im.shape == s
-                ), f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
-                self.binding_addrs["images"] = int(im.data_ptr())
-                self.context.execute_v2(list(self.binding_addrs.values()))
-                y = [self.bindings[x].data for x in sorted(self.output_names)]
-            elif self.trt_version == "10":
-                if self.dynamic and im.shape != self.bindings["images"].shape:
-                    self.context.set_input_shape("images", im.shape)  # reshape if dynamic
-                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                elif self.trt_version >= 10:
+                    self.context.set_input_shape(k, im.shape)  # reshape if dynamic
+                    self.bindings[k] = self.bindings[k]._replace(shape=im.shape)
                     for name in self.output_names:
                         self.bindings[name].data.resize_(tuple(self.context.get_tensor_shape(name)))
-                s = self.bindings["images"].shape
-                assert (
-                    im.shape == s
-                ), f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
-                self.binding_addrs["images"] = int(im.data_ptr())
-                self.context.execute_v2(list(self.binding_addrs.values()))
-                y = [self.bindings[x].data for x in sorted(self.output_names)]
+
+            s = self.bindings[k].shape
+            assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
+            self.binding_addrs[k] = int(im.data_ptr())
+            self.context.execute_v2(list(self.binding_addrs.values()))
+            y = [self.bindings[x].data for x in sorted(self.output_names)]
 
         # CoreML
         elif self.coreml:

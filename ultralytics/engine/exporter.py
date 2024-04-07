@@ -654,6 +654,7 @@ class Exporter:
     def export_engine(self, prefix=colorstr("TensorRT:")):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
+        self.args.simplify = True
         f_onnx, _ = self.export_onnx()  # run before trt import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
@@ -662,13 +663,10 @@ class Exporter:
             if LINUX:
                 check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
             import tensorrt as trt  # noqa
-
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
-        self.trt_version = trt.__version__.split(".")[0]
-
-        self.args.simplify = True
 
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
+        is_trt_10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
@@ -677,10 +675,11 @@ class Exporter:
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        if self.trt_version in ["7", "8"]:
-            config.max_workspace_size = int(self.args.workspace * (1 << 30))
-        elif self.trt_version == "10":
-            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, self.args.workspace * 1 << 30)
+        workspace = int(self.args.workspace * (1 << 30))
+        if is_trt_10:
+            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
+        else:  # TensorRT versions 7, 8
+            config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
         parser = trt.OnnxParser(network, logger)
@@ -703,32 +702,25 @@ class Exporter:
                 profile.set_shape(inp.name, (1, *shape[1:]), (max(1, shape[0] // 2), *shape[1:]), shape)
             config.add_optimization_profile(profile)
 
-        LOGGER.info(
-            f"{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}"
-        )
-        if builder.platform_has_fast_fp16 and self.args.half:
+        half = builder.platform_has_fast_fp16 and self.args.half
+        LOGGER.info(f"{prefix} building FP{16 if half else 32} engine as {f}")
+        if half:
             config.set_flag(trt.BuilderFlag.FP16)
 
+        # Free CUDA memory
         del self.model
         torch.cuda.empty_cache()
 
         # Write file
-        if self.trt_version in ["7", "8"]:
-            with builder.build_engine(network, config) as engine, open(f, "wb") as t:
-                # Metadata
-                meta = json.dumps(self.metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-                # Model
-                t.write(engine.serialize())
-        elif self.trt_version == "10":
-            with builder.build_serialized_network(network, config) as engine, open(f, "wb") as t:
-                # Metadata
-                meta = json.dumps(self.metadata)
-                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-                t.write(meta.encode())
-                # Model
-                t.write(engine)
+        build = builder.build_serialized_network if is_trt_10 else builder.build_engine
+        with build(network, config) as engine, open(f, "wb") as t:
+            # Metadata
+            meta = json.dumps(self.metadata)
+            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            t.write(meta.encode())
+            # Model
+            t.write(engine if is_trt_10 else engine.serialize())
+
         return f, None
 
     @try_export

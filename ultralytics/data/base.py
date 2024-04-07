@@ -91,7 +91,7 @@ class BaseDataset(Dataset):
         # Cache images
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if (self.cache == 'ram' and self.check_cache_ram()) or self.cache == "disk":
+        if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
 
         # Transforms

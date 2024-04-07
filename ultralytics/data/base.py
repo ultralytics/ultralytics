@@ -15,7 +15,7 @@ import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-from .utils import HELP_URL, FORMATS_HELP_MSG, IMG_FORMATS
+from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
@@ -122,9 +122,7 @@ class BaseDataset(Dataset):
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
-            # im_files = im_files[: round(len(im_files) * self.fraction)]
-            num_elements_to_select = round(len(im_files) * self.fraction)
-            im_files = random.sample(im_files, num_elements_to_select)
+            im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
         return im_files
 
     def update_labels(self, include_class: Optional[list]):

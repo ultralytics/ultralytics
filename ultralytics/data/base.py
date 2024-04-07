@@ -81,20 +81,17 @@ class BaseDataset(Dataset):
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
-        if isinstance(cache, str):
-            cache = cache.lower()
 
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
-        # Cache images
-        if cache == "ram" and not self.check_cache_ram():
-            cache = False
+        # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if cache:
-            self.cache_images(cache)
+        self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
+        if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
+            self.cache_images()
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
@@ -175,26 +172,27 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    if self.cache != "ram":
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
-    def cache_images(self, cache):
+    def cache_images(self):
         """Cache images to memory or disk."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        fcn = self.cache_images_to_disk if cache == "disk" else self.load_image
+        fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, range(self.ni))
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
-                if cache == "disk":
+                if self.cache == "disk":
                     b += self.npy_files[i].stat().st_size
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
-                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {cache})"
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
             pbar.close()
 
     def cache_images_to_disk(self, i):
@@ -213,15 +211,15 @@ class BaseDataset(Dataset):
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        cache = mem_required < mem.available  # to cache or not to cache, that is the question
-        if not cache:
+        success = mem_required < mem.available  # to cache or not to cache, that is the question
+        if not success:
+            self.cache = None
             LOGGER.info(
-                f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
-                f'with {int(safety_margin * 100)}% safety margin but only '
-                f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
-                f"{'caching images ✅' if cache else 'not caching images ⚠️'}"
+                f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
+                f"with {int(safety_margin * 100)}% safety margin but only "
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
             )
-        return cache
+        return success
 
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""

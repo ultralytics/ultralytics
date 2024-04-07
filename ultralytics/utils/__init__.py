@@ -479,6 +479,19 @@ def is_raspberrypi() -> bool:
     return False
 
 
+def is_jetson() -> bool:
+    """
+    Determines if the Python environment is running on a Jetson Nano or Jetson Orin device by checking the device model information.
+
+    Returns:
+        (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
+    """
+    with contextlib.suppress(Exception):
+        with open("/proc/device-tree/model") as f:
+            return "Jetson" in f.read()  # i.e. "Jetson Nano" or "Jetson Orin"
+    return False
+
+
 def is_online() -> bool:
     """
     Check internet connectivity by attempting to connect to a known online host.
@@ -661,6 +674,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_DOCKER = is_docker()
+IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_KAGGLE = is_kaggle()
 IS_PIP_PACKAGE = is_pip_package()

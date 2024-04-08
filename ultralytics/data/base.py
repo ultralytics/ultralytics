@@ -5,7 +5,6 @@ import math
 import os
 import random
 from copy import deepcopy
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Optional
 
@@ -14,7 +13,7 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils import DEFAULT_CFG, LOGGER
 from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
@@ -168,7 +167,7 @@ class BaseDataset(Dataset):
             # Add to buffer if training with augmentations
             if self.augment:
                 self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length and not self.cache_ram:
+                if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
                     if not self.cache_ram:
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None

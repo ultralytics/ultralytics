@@ -490,6 +490,9 @@ class BaseTrainer:
         )
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
+        if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
+            self.last_mosaic.write_bytes(serialized_ckpt)  # save last.pt
+
         # Save checkpoints
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:

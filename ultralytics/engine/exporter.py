@@ -237,7 +237,7 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
-        if self.args.half and (onnx or engine) and self.device.type != "cpu":
+        if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings
@@ -699,7 +699,10 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             for inp in inputs:
-                profile.set_shape(inp.name, (1, *shape[1:]), (max(1, shape[0] // 2), *shape[1:]), shape)
+                _min = (1, shape[1], 32, 32)
+                _opt = (max(1, shape[0] // 2), *shape[1:])
+                _max = (*shape[:2], *(self.args.workspace * d for d in shape[2:]))
+                profile.set_shape(inp.name, _min, _opt, _max)
             config.add_optimization_profile(profile)
 
         half = builder.platform_has_fast_fp16 and self.args.half

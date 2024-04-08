@@ -48,6 +48,7 @@ from .block import (
     Silence,
     C2f2,
     C3k2,
+    C3k3,
 )
 from .conv import (
     CBAM,
@@ -107,6 +108,7 @@ __all__ = (
     "C2f",
     "C2f2",
     "C3k2",
+    "C3k3",
     "C2fAttn",
     "C3x",
     "C3TR",

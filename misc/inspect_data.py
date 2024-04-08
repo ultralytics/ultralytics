@@ -2,6 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 import imagesize
+#import matplotlib
+#matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -50,8 +52,8 @@ def inspect_dataset(
  df['class_name'] = df['new_class_id'].map(class_names)
  return df
 
-df_val = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_dataset_v2', 'val')
-df_train = inspect_dataset('/data-fast/127-data2/ierregue/datasets/custom_dataset_v2', 'train')
+df_val = inspect_dataset('/data-fast/128-data1/ierregue/datasets/custom_dataset_v3', 'val')
+df_train = inspect_dataset('/data-fast/128-data1/ierregue/datasets/custom_dataset_v3', 'train')
 
 print(f"The number of objects is {len(df_val)}")
 print(f"The number of images is {len(df_val['img'].unique())}")
@@ -59,8 +61,12 @@ print(f"The number of images is {len(df_val['img'].unique())}")
 print(f"The number of objects is {len(df_train)}")
 print(f"The number of images is {len(df_train['img'].unique())}")
 
+# Save dataframes
+df_train.to_csv('./data/dataset_creation/dataframes/v3/df_train.csv', index=False)
+df_val.to_csv('./data/dataset_creation/dataframes/v3/df_val.csv', index=False)
+
 # Create dir to store plots
-save_dir = './data/dataset_creation/plots/v2'
+save_dir = './data/dataset_creation/plots/v3'
 if not os.path.isdir(save_dir):
     os.makedirs(save_dir)
 
@@ -199,7 +205,3 @@ ax.grid()
 #plt.legend()
 None
 fig.savefig(save_dir+f'/val_objsz_counts.png', bbox_inches = 'tight')
-
-# Save dataframes
-df_train.to_csv('./data/dataset_creation/dataframes/v2/df_train.csv', index=False)
-df_val.to_csv('./data/dataset_creation/dataframes/v2/df_val.csv', index=False)

@@ -20,10 +20,10 @@ import os
 from PIL import Image
 
 # Set the paths for the input and output directories
-# input_dir = '/data-fast/127-data2/ierregue/datasets/custom_dataset_v1'
-input_dir = '/Users/inaki-eab/Desktop/small-fast-detector/evaluation_tools/data/testing_data'
+input_dir = '/data-fast/128-data1/ierregue/datasets/custom_dataset_v3'
+#input_dir = '/Users/inaki-eab/Desktop/small-fast-detector/evaluation_tools/data/testing_data'
 output_dir = input_dir
-
+"""
 # Define the categories for the COCO dataset
 categories = [{"id": 0, "name": "person"},
               {"id": 1, "name": "bycicle"},
@@ -113,7 +113,7 @@ categories = [{"id": 0, "name": "person"},
               {"id": 3, "name": "uav"},
               {"id": 4, "name": "airplane"},
               {"id": 5, "name": "boat"}]
-"""
+
 
 # Define the COCO dataset dictionary
 coco_dataset = {

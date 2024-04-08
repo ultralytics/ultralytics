@@ -263,7 +263,9 @@ class AutoBackend(nn.Module):
                             model.get_profile_shape(0, i) if is_legacy else model.get_tensor_profile_shape(name, i)
                         )
                         # Set optimal shape
-                        context.set_binding_shape(i, tuple(profile_shape[1])) if is_legacy else context.set_input_shape(name, tuple(profile_shape[1]))
+                        context.set_binding_shape(i, tuple(profile_shape[1])) if is_legacy else context.set_input_shape(
+                            name, tuple(profile_shape[1])
+                        )
                     if dtype == np.float16:
                         fp16 = True
                 else:  # output
@@ -484,7 +486,7 @@ class AutoBackend(nn.Module):
             if self.dynamic or im.shape != self.bindings["images"].shape:
                 try:
                     i = self.model.get_binding_index("images")
-                    self.context.set_binding_shape(i, im.shape) # reshape if dynamic
+                    self.context.set_binding_shape(i, im.shape)  # reshape if dynamic
                 except:
                     self.context.set_input_shape("images", im.shape)
                 self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)

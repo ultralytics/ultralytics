@@ -81,19 +81,17 @@ class BaseDataset(Dataset):
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
+
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images
-        if isinstance(cache, str):
-            cache = cache.lower()
-        if cache == "ram" and not self.check_cache_ram():
-            cache = False
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
+        cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         self.cache_disk = cache == "disk"  # cache images on hard drive as uncompressed *.npy files
-        self.cache_ram = cache and not self.cache_disk  # cache images into RAM
+        self.cache_ram = cache == "ram" and self.check_cache_ram()  # cache images into RAM
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
@@ -121,9 +119,7 @@ class BaseDataset(Dataset):
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
-            # im_files = im_files[: round(len(im_files) * self.fraction)]
-            num_elements_to_select = round(len(im_files) * self.fraction)
-            im_files = random.sample(im_files, num_elements_to_select)
+            im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -174,7 +170,8 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if len(self.buffer) >= self.max_buffer_length and not self.cache_ram:
                     j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    if self.cache != "ram":
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
 
@@ -190,15 +187,14 @@ class BaseDataset(Dataset):
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        cache = mem_required < mem.available  # to cache or not to cache, that is the question
-        if not cache:
+        success = mem_required < mem.available  # to cache or not to cache, that is the question
+        if not success:
             LOGGER.info(
-                f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
-                f'with {int(safety_margin * 100)}% safety margin but only '
-                f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
-                f"{'caching images ✅' if cache else 'not caching images ⚠️'}"
+                f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
+                f"with {int(safety_margin * 100)}% safety margin but only "
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
             )
-        return cache
+        return success
 
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""

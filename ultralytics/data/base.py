@@ -170,7 +170,7 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if len(self.buffer) >= self.max_buffer_length and not self.cache_ram:
                     j = self.buffer.pop(0)
-                    if self.cache != "ram":
+                    if not self.cache_ram:
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]

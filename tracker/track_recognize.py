@@ -69,6 +69,8 @@ class VideoProcessor:
         print(f"Original video FPS: {self.video_info.fps}")
         print(f"Original video number of frames: {self.video_info.total_frames}\n")
 
+        #TODO: use get_stream_frames_generator instead of get_video_frames_generator for real-time processing
+        # https://www.youtube.com/watch?v=hAWpsIuem10
         frame_generator = sv.get_video_frames_generator(source_path=self.source_video_path)
 
         data_dict = {

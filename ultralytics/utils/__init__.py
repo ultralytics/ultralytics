@@ -407,7 +407,8 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
+    """
+    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
     is_raspberrypi().
 
     Returns:

@@ -406,6 +406,19 @@ DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
+def read_device_model() -> str:
+    """Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
+    is_raspberrypi().
+
+    Returns:
+        (str): Model file contents if read successfully or empty string otherwise.
+    """
+    with contextlib.suppress(Exception):
+        with open("/proc/device-tree/model") as f:
+            return f.read()
+    return ""
+
+
 def is_ubuntu() -> bool:
     """
     Check if the OS is Ubuntu.
@@ -473,10 +486,7 @@ def is_raspberrypi() -> bool:
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        with open("/proc/device-tree/model") as f:
-            return "Raspberry Pi" in f.read()
-    return False
+    return "Raspberry Pi" in PROC_DEVICE_MODEL
 
 
 def is_jetson() -> bool:
@@ -487,10 +497,7 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        with open("/proc/device-tree/model") as f:
-            return "Jetson" in f.read()  # i.e. "Jetson Nano" or "Jetson Orin"
-    return False
+    return "Jetson" in PROC_DEVICE_MODEL  # i.e. "Jetson Nano" or "Jetson Orin"
 
 
 def is_online() -> bool:
@@ -672,6 +679,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
+PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_DOCKER = is_docker()
@@ -711,8 +719,8 @@ def colorstr(*input):
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
 
     Examples:
-        >>> colorstr('blue', 'bold', 'hello world')
-        >>> '\033[34m\033[1mhello world\033[0m'
+        >>> colorstr("blue", "bold", "hello world")
+        >>> "\033[34m\033[1mhello world\033[0m"
     """
     *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {

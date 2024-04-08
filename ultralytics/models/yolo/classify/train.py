@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import torch
-import torchvision
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
@@ -59,6 +58,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def setup_model(self):
         """Load, create or download model for any task."""
+        import torchvision  # scope for faster 'import ultralytics'
+
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -68,7 +69,7 @@ class ClassificationTrainer(BaseTrainer):
             self.model, ckpt = attempt_load_one_weight(model, device="cpu")
             for p in self.model.parameters():
                 p.requires_grad = True  # for training
-        elif model.split(".")[-1] in ("yaml", "yml"):
+        elif model.split(".")[-1] in {"yaml", "yml"}:
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[model](weights="IMAGENET1K_V1" if self.args.pretrained else None)

@@ -234,14 +234,14 @@ class AutoBackend(nn.Module):
                 meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                 metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
+
+            # Model context
             try:
                 context = model.create_execution_context()
-            except AttributeError:  # model is None
-                # TensorRT <10 and >=10 incompatible
-                LOGGER.error(
-                    f"\nExport to .engine  using the same version of TensorRT installed; currently using {trt.__version__}\n"
-                )
-                raise err
+            except Exception as e:  # model is None
+                LOGGER.error(f"ERROR: TensorRT model exported with a different version than {trt.__version__}\n")
+                raise e
+
             bindings = OrderedDict()
             output_names = []
             fp16 = False  # default updated below

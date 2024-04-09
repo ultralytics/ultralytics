@@ -245,7 +245,7 @@ class AutoBackend(nn.Module):
             bindings = OrderedDict()
             output_names = []
             fp16 = False  # default updated below
-            self.dynamic = False
+            dynamic = False
             is_trt10 = not hasattr(model, "num_bindings")
             num = range(model.num_io_tensors) if is_trt10 else range(model.num_bindings)
             for i in num:
@@ -259,7 +259,7 @@ class AutoBackend(nn.Module):
                     is_input = model.binding_is_input(i)
                 if is_input:
                     if -1 in tuple(model.get_tensor_shape(name)):
-                        self.dynamic = True
+                        dynamic = True
                         profile_shape = model.get_tensor_profile_shape(name, 0)
                         context.set_input_shape(name, tuple(profile_shape[1]))
                         if dtype == np.float16:
@@ -480,7 +480,7 @@ class AutoBackend(nn.Module):
         # TensorRT
         elif self.engine:
             is_trt10 = hasattr(self.context, "update_device_memory_size_for_shapes")
-            if self.dynamic or im.shape != self.bindings["images"].shape:
+            if dynamic or im.shape != self.bindings["images"].shape:
                 if is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
@@ -495,7 +495,7 @@ class AutoBackend(nn.Module):
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
             s = self.bindings["images"].shape
-            assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
+            assert im.shape == s, f"input size {im.shape} {'>' if dynamic else 'not equal to'} max model size {s}"
             self.binding_addrs["images"] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]

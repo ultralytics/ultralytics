@@ -261,6 +261,7 @@ class AutoBackend(nn.Module):
                                 fp16 = True
                     else:
                         output_names.append(name)
+                    shape = tuple(context.get_tensor_shape(name))
                 else:  # TensorRT < 10.0
                     name = model.get_binding_name(i)
                     dtype = trt.nptype(model.get_binding_dtype(i))
@@ -273,7 +274,7 @@ class AutoBackend(nn.Module):
                             fp16 = True
                     else:
                         output_names.append(name)
-                shape = tuple(context.get_tensor_shape(name))
+                    shape = tuple(context.get_binding_shape(i))
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())

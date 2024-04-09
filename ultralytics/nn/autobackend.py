@@ -246,11 +246,17 @@ class AutoBackend(nn.Module):
             output_names = []
             fp16 = False  # default updated below
             self.dynamic = False
-            num = range(model.num_io_tensors)
+            is_trt10 = not hasattr(model, "num_bindings")
+            num = range(model.num_io_tensors) if is_trt10 else range(model.num_bindings)
             for i in num:
-                name = model.get_tensor_name(i)
-                dtype = trt.nptype(model.get_tensor_dtype(name))
-                is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
+                if is_trt10:
+                    name = model.get_tensor_name(i)
+                    dtype = trt.nptype(model.get_tensor_dtype(name))
+                    is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
+                else:
+                    name = model.get_binding_name(i)
+                    dtype = trt.nptype(model.get_binding_dtype(i))
+                    is_input = model.binding_is_input(i)
                 if is_input:
                     if -1 in tuple(model.get_tensor_shape(name)):
                         self.dynamic = True
@@ -473,11 +479,20 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
+            is_trt10 = hasattr(self.context, "update_device_memory_size_for_shapes")
             if self.dynamic or im.shape != self.bindings["images"].shape:
-                self.context.set_input_shape("images", im.shape)
-                self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
-                for name in self.output_names:
-                    self.bindings[name].data.resize_(tuple(self.context.get_tensor_shape(name)))
+                if is_trt10:
+                    self.context.set_input_shape("images", im.shape)
+                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                    for name in self.output_names:
+                        self.bindings[name].data.resize_(tuple(self.context.get_tensor_shape(name)))
+                else:
+                    i = self.model.get_binding_index("images")
+                    self.context.set_binding_shape(i, im.shape)
+                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                    for name in self.output_names:
+                        i = self.model.get_binding_index(name)
+                        self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
             s = self.bindings["images"].shape
             assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"

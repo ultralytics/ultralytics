@@ -253,19 +253,26 @@ class AutoBackend(nn.Module):
                     name = model.get_tensor_name(i)
                     dtype = trt.nptype(model.get_tensor_dtype(name))
                     is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
-                else:
+                    if is_input:
+                        if -1 in tuple(model.get_tensor_shape(name)):
+                            dynamic = True
+                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
+                            if dtype == np.float16:
+                                fp16 = True
+                    else:
+                        output_names.append(name)
+                else:  # TensorRT < 10.0
                     name = model.get_binding_name(i)
                     dtype = trt.nptype(model.get_binding_dtype(i))
                     is_input = model.binding_is_input(i)
-                if is_input:
-                    if -1 in tuple(model.get_tensor_shape(name)):
-                        dynamic = True
-                        profile_shape = model.get_tensor_profile_shape(name, 0)
-                        context.set_input_shape(name, tuple(profile_shape[1]))
+                    if model.binding_is_input(i):
+                        if -1 in tuple(model.get_binding_shape(i)):  # dynamic
+                            dynamic = True
+                            context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[1]))
                         if dtype == np.float16:
                             fp16 = True
-                else:
-                    output_names.append(name)
+                    else:
+                        output_names.append(name)
                 shape = tuple(context.get_tensor_shape(name))
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
@@ -480,7 +487,7 @@ class AutoBackend(nn.Module):
         # TensorRT
         elif self.engine:
             is_trt10 = hasattr(self.context, "update_device_memory_size_for_shapes")
-            if dynamic or im.shape != self.bindings["images"].shape:
+            if self.dynamic or im.shape != self.bindings["images"].shape:
                 if is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
@@ -495,7 +502,7 @@ class AutoBackend(nn.Module):
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
             s = self.bindings["images"].shape
-            assert im.shape == s, f"input size {im.shape} {'>' if dynamic else 'not equal to'} max model size {s}"
+            assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
             self.binding_addrs["images"] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]

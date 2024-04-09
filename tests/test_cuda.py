@@ -24,7 +24,7 @@ def test_checks():
 def test_export_engine():
     """Test exporting the YOLO model to NVIDIA TensorRT format."""
     f = YOLO(MODEL).export(format="engine", device=0)
-    YOLO(f)(BUS)
+    YOLO(f)(BUS, device=0)
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")

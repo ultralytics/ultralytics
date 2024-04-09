@@ -698,9 +698,9 @@ class Exporter:
             if shape[0] <= 1:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
-            min_shape = (1, shape[1], 32, 32)
-            opt_shape = (max(1, shape[0] // 2), *shape[1:])
-            max_shape = (*shape[:2], *(max(1, self.args.workspace) * d for d in shape[2:]))
+            min_shape = (1, shape[1], 32, 32)  # minimum input shape
+            opt_shape = (max(1, shape[0] // 2), *shape[1:])  # optimal input shape
+            max_shape = (*shape[:2], *(max(1, self.args.workspace) * d for d in shape[2:]))  # max input shape
             for inp in inputs:
                 profile.set_shape(inp.name, min_shape, opt_shape, max_shape)
             config.add_optimization_profile(profile)

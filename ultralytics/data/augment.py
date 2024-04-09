@@ -268,7 +268,7 @@ class Mosaic(BaseMixTransform):
                 x1b, y1b, x2b, y2b = 0, h - y2a + y1a, min(w, x2a - x1a), h
             elif i == 2:  # bottom left
                 x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
-                x1b, y1b, x2b, y2b = w - x2a + x1a), 0, w, min(y2a - y1a, h)
+                x1b, y1b, x2b, y2b = w - x2a + x1a, 0, w, min(y2a - y1a, h)
             elif i == 3:  # bottom right
                 x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
                 x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)

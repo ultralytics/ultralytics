@@ -245,7 +245,7 @@ class AutoBackend(nn.Module):
             bindings = OrderedDict()
             output_names = []
             fp16 = False  # default updated below
-            self.dynamic = False
+            dynamic = False
             num = range(model.num_io_tensors)
             for i in num:
                 name = model.get_tensor_name(i)
@@ -253,7 +253,7 @@ class AutoBackend(nn.Module):
                 is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
                 if is_input:
                     if -1 in tuple(model.get_tensor_shape(name)):
-                        self.dynamic = True
+                        dynamic = True
                         profile_shape = model.get_tensor_profile_shape(name, 0)
                         context.set_input_shape(name, tuple(profile_shape[1]))
                         if dtype == np.float16:

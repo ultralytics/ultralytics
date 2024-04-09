@@ -248,7 +248,6 @@ class AutoBackend(nn.Module):
             self.dynamic = False
             num = range(model.num_io_tensors)
             for i in num:
-                num = range(model.num_io_tensors)
                 name = model.get_tensor_name(i)
                 dtype = trt.nptype(model.get_tensor_dtype(name))
                 is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT

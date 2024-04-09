@@ -8,14 +8,14 @@ from ultralytics import YOLO
 
 # SETTING UP PARAMETERS
 # Better not to change these parameters
-dataset_root = './data/client_test/'
+dataset_root = './../../ultralytics/cfg/datasets/custom_dataset.yaml' #'./data/client_test/data.yaml'
 model_path = './models/8sp2_150.pt'
 outputs_root = './outputs'
 experiment_name = time.strftime("%Y%m%d-%H%M%S")
 # Can be changed
 imgsz = 640
-batch = 4
-device = 'cpu'
+batch = 32
+device = [6]
 
 
 #  START OF EVALUATION
@@ -27,7 +27,7 @@ model = YOLO(model_path, task='detect')
 print("🚀...INFERENCE MODE...🚀")
 print("📦...GETTING PREDICTIONS...📦")
 metrics = model.val(
-    data= dataset_root+'data.yaml',
+    data= dataset_root,
     imgsz=imgsz,
     batch=batch,
     device=device,

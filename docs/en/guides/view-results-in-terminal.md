@@ -62,7 +62,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     # Run inference on an image
     results = model.predict(source="ultralytics/assets/bus.jpg")
-    
+
     # Plot inference results
     plot = results[0].plot() #(1)!
     ```

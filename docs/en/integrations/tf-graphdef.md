@@ -1,7 +1,7 @@
 ---
 comments: true
 description: A guide that walks you step-by-step through how to export Ultralytics YOLOv8 models to TF GraphDef format for smooth deployment and efficient model performance.
-keywords: Ultralytics, YOLOv8, TF GraphDef Export, Model Deployment, TensorFlow Ecosystem, Cross-Platform Compatibility, Performance Optimization  
+keywords: Ultralytics, YOLOv8, TF GraphDef Export, Model Deployment, TensorFlow Ecosystem, Cross-Platform Compatibility, Performance Optimization
 ---
 
 # How to Export to TF GraphDef from YOLOv8 for Deployment
@@ -61,7 +61,7 @@ To install the required package, run:
 !!! Tip "Installation"
 
     === "CLI"
-    
+
         ```bash
         # Install the required package for YOLOv8
         pip install ultralytics

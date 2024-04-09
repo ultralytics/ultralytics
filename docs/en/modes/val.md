@@ -108,10 +108,10 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO('yolov8n.pt')
-        
+
         # Customize validation settings
         validation_results = model.val(data='coco8.yaml',
                                        imgsz=640,

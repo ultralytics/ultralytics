@@ -648,7 +648,7 @@ class Silence(nn.Module):
 
     def __init__(self):
         """Initializes the Silence module."""
-        super(Silence, self).__init__()
+        super().__init__()
 
     def forward(self, x):
         """Forward pass through Silence layer."""
@@ -660,7 +660,7 @@ class CBLinear(nn.Module):
 
     def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):
         """Initializes the CBLinear module, passing inputs unchanged."""
-        super(CBLinear, self).__init__()
+        super().__init__()
         self.c2s = c2s
         self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
 
@@ -675,7 +675,7 @@ class CBFuse(nn.Module):
 
     def __init__(self, idx):
         """Initializes CBFuse module with layer index for selective feature fusion."""
-        super(CBFuse, self).__init__()
+        super().__init__()
         self.idx = idx
 
     def forward(self, xs):

@@ -48,7 +48,7 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 !!! Note
 
-    For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed. 
+    For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
 
 ## Start with Docker
 

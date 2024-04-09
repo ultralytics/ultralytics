@@ -64,10 +64,10 @@ After installing the runtime, you need to plug in your Coral Edge TPU into a USB
 
     ```bash
     # If you installed the standard version
-    sudo apt remove libedgetpu1-std 
+    sudo apt remove libedgetpu1-std
 
     # If you installed the high frequency version
-    sudo apt remove libedgetpu1-max 
+    sudo apt remove libedgetpu1-max
     ```
 
 ## Export your model to a Edge TPU compatible model

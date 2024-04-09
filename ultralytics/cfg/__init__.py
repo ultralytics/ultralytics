@@ -115,6 +115,7 @@ CFG_FRACTION_KEYS = {
     "fliplr",
     "bgr",
     "mosaic",
+    "mosaic9",
     "mixup",
     "copy_paste",
     "conf",

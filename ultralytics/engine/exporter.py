@@ -666,7 +666,7 @@ class Exporter:
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
 
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
-        is_trt_10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
+        is_trt10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
@@ -676,7 +676,7 @@ class Exporter:
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
         workspace = int(self.args.workspace * (1 << 30))
-        if is_trt_10:
+        if is_trt10:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
         else:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
@@ -715,14 +715,14 @@ class Exporter:
         torch.cuda.empty_cache()
 
         # Write file
-        build = builder.build_serialized_network if is_trt_10 else builder.build_engine
+        build = builder.build_serialized_network if is_trt10 else builder.build_engine
         with build(network, config) as engine, open(f, "wb") as t:
             # Metadata
             meta = json.dumps(self.metadata)
             t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
             t.write(meta.encode())
             # Model
-            t.write(engine if is_trt_10 else engine.serialize())
+            t.write(engine if is_trt10 else engine.serialize())
 
         return f, None
 

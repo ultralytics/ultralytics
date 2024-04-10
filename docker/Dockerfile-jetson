@@ -13,7 +13,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages
 # libusb-1.0-0 required for 'tflite_support' package when exporting to TFLite
-# pkg-config and libhdf5-dev are needed to build 'h5py' wheel which is required by 'tensorflow'
+# pkg-config and libhdf5-dev are needed to build 'h5py==3.11.0' wheel which is required by 'tensorflow'
 RUN apt update \
     && apt install --no-install-recommends -y gcc git zip curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 pkg-config libhdf5-dev
 

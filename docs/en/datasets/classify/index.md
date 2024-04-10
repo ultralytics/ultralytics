@@ -32,9 +32,15 @@ root/
 
 In this folder structure, the `root` directory contains one subdirectory for each class in the dataset. Each subdirectory is named after the corresponding class and contains all the images for that class. Each image file is named uniquely and is typically in a common image file format such as JPEG or PNG.
 
+
+For YOLOv8 classification tasks it is necessary to add directly under the root directory two separate folders named `train` and `test`, each containing class folders with their respective images.
+Optionally it is possible to add a third `val` folder 
+
+
+
 ** Example **
 
-For example, in the CIFAR10 dataset, the folder structure would look like this:
+For example, as in the CIFAR10 dataset, the folder structure would look like this:
 
 ```
 cifar-10-/

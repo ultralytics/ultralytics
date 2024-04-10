@@ -749,17 +749,17 @@ class BaseTrainer:
                 )
                 scaling_layer_names = [f"model.{x}." for x in scaling_layer_list]
                 for param_name, param in module.named_parameters(recurse=False):
-                    fullname = f'{module_name}.{param_name}' if module_name else param_name
+                    fullname = f"{module_name}.{param_name}" if module_name else param_name
                     if any(x in module_name for x in scaling_layer_names):
                         LOGGER.info(f"scaling_layer '{fullname}'")
-                        if 'bias' in fullname:  # bias (no decay)
+                        if "bias" in fullname:  # bias (no decay)
                             g[2].append(param)
                         elif isinstance(module, bn):  # weight (no decay)
                             g[1].append(param)
                         else:  # weight (with decay)
                             g[0].append(param)
                     else:
-                        if 'bias' in fullname:  # bias (no decay)
+                        if "bias" in fullname:  # bias (no decay)
                             g_head[2].append(param)
                         elif isinstance(module, bn):  # weight (no decay)
                             g_head[1].append(param)
@@ -769,8 +769,8 @@ class BaseTrainer:
             else:
                 print("param_group is False")
                 for param_name, param in module.named_parameters(recurse=False):
-                    fullname = f'{module_name}.{param_name}' if module_name else param_name
-                    if 'bias' in fullname:  # bias (no decay)
+                    fullname = f"{module_name}.{param_name}" if module_name else param_name
+                    if "bias" in fullname:  # bias (no decay)
                         g[2].append(param)
                     elif isinstance(module, bn):  # weight (no decay)
                         g[1].append(param)
@@ -779,14 +779,25 @@ class BaseTrainer:
 
         if self.args.param_group and self.args.scaling_layer is not None:
             if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-                optimizer = getattr(optim, name, optim.Adam)([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
-                                    {'params': g_head[2]}], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+                optimizer = getattr(optim, name, optim.Adam)(
+                    [{"params": g[2], "lr": lr / self.args.scaling_ratio}, {"params": g_head[2]}],
+                    lr=lr,
+                    betas=(momentum, 0.999),
+                    weight_decay=0.0,
+                )
             elif name == "RMSProp":
-                optimizer = optim.RMSprop([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
-                                    {'params': g_head[2]}], lr=lr, momentum=momentum)
+                optimizer = optim.RMSprop(
+                    [{"params": g[2], "lr": lr / self.args.scaling_ratio}, {"params": g_head[2]}],
+                    lr=lr,
+                    momentum=momentum,
+                )
             elif name == "SGD":
-                optimizer = optim.SGD([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
-                                    {'params': g_head[2]}], lr=lr, momentum=momentum, nesterov=True)
+                optimizer = optim.SGD(
+                    [{"params": g[2], "lr": lr / self.args.scaling_ratio}, {"params": g_head[2]}],
+                    lr=lr,
+                    momentum=momentum,
+                    nesterov=True,
+                )
             else:
                 raise NotImplementedError(
                     f"Optimizer '{name}' not found in list of available optimizers "
@@ -794,10 +805,14 @@ class BaseTrainer:
                     "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
                 )
 
-            optimizer.add_param_group({'params': g[0], 'lr': lr / self.args.scaling_ratio, 'weight_decay': decay})  # add g0 with weight_decay
-            optimizer.add_param_group({'params': g_head[0],  'weight_decay': decay})  # add g0 with weight_decay
-            optimizer.add_param_group({'params': g[1], 'lr': lr / self.args.scaling_ratio, 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-            optimizer.add_param_group({'params': g_head[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+            optimizer.add_param_group(
+                {"params": g[0], "lr": lr / self.args.scaling_ratio, "weight_decay": decay}
+            )  # add g0 with weight_decay
+            optimizer.add_param_group({"params": g_head[0], "weight_decay": decay})  # add g0 with weight_decay
+            optimizer.add_param_group(
+                {"params": g[1], "lr": lr / self.args.scaling_ratio, "weight_decay": 0.0}
+            )  # add g1 (BatchNorm2d weights)
+            optimizer.add_param_group({"params": g_head[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
 
             LOGGER.info(
                 f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
@@ -821,7 +836,6 @@ class BaseTrainer:
 
             optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
             optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
-
 
             LOGGER.info(
                 f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

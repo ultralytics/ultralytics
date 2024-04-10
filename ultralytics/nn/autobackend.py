@@ -487,9 +487,8 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            is_trt10 = hasattr(self.context, "update_device_memory_size_for_shapes")
             if self.dynamic or im.shape != self.bindings["images"].shape:
-                if is_trt10:
+                if self.is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
                     for name in self.output_names:

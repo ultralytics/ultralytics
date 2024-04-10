@@ -75,6 +75,7 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
+    PYTHON_VERSION,
     ROOT,
     WINDOWS,
     __version__,
@@ -83,7 +84,7 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
-from ultralytics.utils.checks import PYTHON_VERSION, check_imgsz, check_is_path_safe, check_requirements, check_version
+from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -92,7 +93,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 
 def export_formats():
     """YOLOv8 export formats."""
-    import pandas
+    import pandas  # scope for faster 'import ultralytics'
 
     x = [
         ["PyTorch", "-", ".pt", True, True],
@@ -528,12 +529,12 @@ class Exporter:
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
-            _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
-            if assets:
+            try:
+                _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
                 url = [x for x in assets if f"{system}.zip" in x][0]
-            else:
+            except Exception as e:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240226/pnnx-20240226-{system}.zip"
-                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found, using default {url}")
+                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")
             asset = attempt_download_asset(url, repo="pnnx/pnnx", release="latest")
             if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
                 unzip_dir = Path(asset).with_suffix("")

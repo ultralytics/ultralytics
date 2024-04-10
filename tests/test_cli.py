@@ -39,7 +39,7 @@ def test_special_modes():
 
 
 @pytest.mark.skipif(not (ARM64 and MACOS), reason="Device is not Apple MPS.")
-def test_train():
+def test_train_mps():
     """Test YOLO training on Apple MPS devices."""
     run("yolo train model=yolov8n.pt imgsz=32 epochs=1 device=mps")
 

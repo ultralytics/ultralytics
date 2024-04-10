@@ -39,7 +39,7 @@ jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
     name: Push
-    runs-on: macos-14  # ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 6

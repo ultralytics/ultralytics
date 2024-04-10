@@ -341,7 +341,8 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires NCNN
+            # Bug in NCNN>=1.0.20240410
+            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn<=1.0.20240102")
             import ncnn as pyncnn
 
             net = pyncnn.Net()

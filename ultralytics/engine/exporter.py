@@ -513,7 +513,7 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements("ncnn")
+        check_requirements("ncnn<=1.0.20240102")  # bug in 1.0.20240410
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")

@@ -725,6 +725,7 @@ class BaseTrainer:
         """
 
         g = [], [], []  # optimizer parameter groups
+        g_head = [], [], []
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -738,32 +739,93 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         for module_name, module in model.named_modules():
-            for param_name, param in module.named_parameters(recurse=False):
-                fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if "bias" in fullname:  # bias (no decay)
-                    g[2].append(param)
-                elif isinstance(module, bn):  # weight (no decay)
-                    g[1].append(param)
-                else:  # weight (with decay)
-                    g[0].append(param)
+            if self.args.param_group and self.args.scaling_layer is not None:
+                scaling_layer_list = (
+                    self.args.scaling_layer
+                    if isinstance(self.args.scaling_layer, list)
+                    else range(self.args.scaling_layer)
+                    if isinstance(self.args.scaling_layer, int)
+                    else []
+                )
+                scaling_layer_names = [f"model.{x}." for x in scaling_layer_list]
+                for param_name, param in module.named_parameters(recurse=False):
+                    fullname = f'{module_name}.{param_name}' if module_name else param_name
+                    if any(x in module_name for x in scaling_layer_names):
+                        LOGGER.info(f"scaling_layer '{fullname}'")
+                        if 'bias' in fullname:  # bias (no decay)
+                            g[2].append(param)
+                        elif isinstance(module, bn):  # weight (no decay)
+                            g[1].append(param)
+                        else:  # weight (with decay)
+                            g[0].append(param)
+                    else:
+                        if 'bias' in fullname:  # bias (no decay)
+                            g_head[2].append(param)
+                        elif isinstance(module, bn):  # weight (no decay)
+                            g_head[1].append(param)
+                        else:  # weight (with decay)
+                            g_head[0].append(param)
 
-        if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-        elif name == "RMSProp":
-            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
-        elif name == "SGD":
-            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            else:
+                print("param_group is False")
+                for param_name, param in module.named_parameters(recurse=False):
+                    fullname = f'{module_name}.{param_name}' if module_name else param_name
+                    if 'bias' in fullname:  # bias (no decay)
+                        g[2].append(param)
+                    elif isinstance(module, bn):  # weight (no decay)
+                        g[1].append(param)
+                    else:  # weight (with decay)
+                        g[0].append(param)
+
+        if self.args.param_group and self.args.scaling_layer is not None:
+            if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
+                optimizer = getattr(optim, name, optim.Adam)([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
+                                    {'params': g_head[2]}], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            elif name == "RMSProp":
+                optimizer = optim.RMSprop([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
+                                    {'params': g_head[2]}], lr=lr, momentum=momentum)
+            elif name == "SGD":
+                optimizer = optim.SGD([{'params': g[2], 'lr': lr / self.args.scaling_ratio},
+                                    {'params': g_head[2]}], lr=lr, momentum=momentum, nesterov=True)
+            else:
+                raise NotImplementedError(
+                    f"Optimizer '{name}' not found in list of available optimizers "
+                    f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD, auto]."
+                    "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
+                )
+
+            optimizer.add_param_group({'params': g[0], 'lr': lr / self.args.scaling_ratio, 'weight_decay': decay})  # add g0 with weight_decay
+            optimizer.add_param_group({'params': g_head[0],  'weight_decay': decay})  # add g0 with weight_decay
+            optimizer.add_param_group({'params': g[1], 'lr': lr / self.args.scaling_ratio, 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+            optimizer.add_param_group({'params': g_head[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+
+            LOGGER.info(
+                f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
+                f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
+                f'{len(g_head[1])} weight(decay=0.0), {len(g_head[0])} weight(decay={decay}), {len(g_head[2])} bias(decay=0.0)'
+                f'param_group: {self.args.param_group}, scaling_ratio: {self.args.scaling_ratio}, scaling_layer: {self.args.scaling_layer}'
+            )
         else:
-            raise NotImplementedError(
-                f"Optimizer '{name}' not found in list of available optimizers "
-                f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD, auto]."
-                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
+            if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
+                optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            elif name == "RMSProp":
+                optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
+            elif name == "SGD":
+                optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            else:
+                raise NotImplementedError(
+                    f"Optimizer '{name}' not found in list of available optimizers "
+                    f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD, auto]."
+                    "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
+                )
+
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+            optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+
+
+            LOGGER.info(
+                f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
+                f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
             )
 
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
-        LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
-        )
         return optimizer

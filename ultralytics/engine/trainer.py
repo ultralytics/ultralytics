@@ -739,7 +739,7 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         for module_name, module in model.named_modules():
-            if self.args.param_group and self.args.scaling_layer is not None:
+            if self.args.lr_group and self.args.scaling_layer is not None:
                 scaling_layer_list = (
                     self.args.scaling_layer
                     if isinstance(self.args.scaling_layer, list)
@@ -767,7 +767,7 @@ class BaseTrainer:
                             g_head[0].append(param)
 
             else:
-                print("param_group is False")
+                print("lr_group is False")
                 for param_name, param in module.named_parameters(recurse=False):
                     fullname = f"{module_name}.{param_name}" if module_name else param_name
                     if "bias" in fullname:  # bias (no decay)
@@ -777,7 +777,7 @@ class BaseTrainer:
                     else:  # weight (with decay)
                         g[0].append(param)
 
-        if self.args.param_group and self.args.scaling_layer is not None:
+        if self.args.lr_group and self.args.scaling_layer is not None:
             if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
                 optimizer = getattr(optim, name, optim.Adam)(
                     [{"params": g[2], "lr": lr / self.args.scaling_ratio}, {"params": g_head[2]}],

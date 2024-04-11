@@ -11,6 +11,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 ![Pose sample image](https://user-images.githubusercontent.com/26833433/277141128-cd62d09e-1eb0-4d20-9938-c55239a5cb76.jpg)
 
 ## COCO-Pose Pretrained Models
+
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |------------------------------------------------------------------------------------------------------|-----------------------|-----------------------|--------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |

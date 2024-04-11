@@ -16,7 +16,7 @@
 # This approach allows for real-time code modifications without the need for re-installation.
 
 # Documentation:
-# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics_4bands.com
+# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics_MB.com
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
@@ -24,13 +24,13 @@ build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
 [project]
-name = "ultralytics_4bands"
+name = "ultralytics_MB"
 dynamic = ["version"]
-description = "ultralytics_4bands YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+description = "ultralytics_MB YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "ultralytics_4bands"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "ultralytics_MB"]
 authors = [
     { name = "Glenn Jocher" },
     { name = "Ayush Chaurasia" },
@@ -93,7 +93,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics_4bands-plugin>=0.0.43", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics_MB-plugin>=0.0.43", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
@@ -104,7 +104,7 @@ export = [
 ]
 explorer = [
     "lancedb", # vector search
-    "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics_4bands/ultralytics_4bands/pull/8181
+    "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics_MB/ultralytics_MB/pull/8181
     "streamlit", # visualizing with GUI
 ]
 # tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
@@ -112,7 +112,7 @@ explorer = [
 # nvidia-pyindex  # TensorRT export
 # nvidia-tensorrt  # TensorRT export
 logging = [
-    "comet", # https://docs.ultralytics_4bands.com/integrations/comet/
+    "comet", # https://docs.ultralytics_MB.com/integrations/comet/
     "tensorboard>=2.13.0",
     "dvclive>=2.12.0",
 ]
@@ -124,21 +124,21 @@ extra = [
 ]
 
 [project.urls]
-"Bug Reports" = "https://github.com/ultralytics_4bands/ultralytics_4bands/issues"
-"Funding" = "https://ultralytics_4bands.com"
-"Source" = "https://github.com/ultralytics_4bands/ultralytics_4bands/"
+"Bug Reports" = "https://github.com/ultralytics_MB/ultralytics_MB/issues"
+"Funding" = "https://ultralytics_MB.com"
+"Source" = "https://github.com/ultralytics_MB/ultralytics_MB/"
 
 [project.scripts]
-yolo = "ultralytics_4bands.cfg:entrypoint"
-ultralytics_4bands = "ultralytics_4bands.cfg:entrypoint"
+yolo = "ultralytics_MB.cfg:entrypoint"
+ultralytics_MB = "ultralytics_MB.cfg:entrypoint"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
-packages = { find = { where = ["."], include = ["ultralytics_4bands", "ultralytics_4bands.*"] } }
-package-data = { "ultralytics_4bands" = ["**/*.yaml"], "ultralytics_4bands.assets" = ["*.jpg"] }
+packages = { find = { where = ["."], include = ["ultralytics_MB", "ultralytics_MB.*"] } }
+package-data = { "ultralytics_MB" = ["**/*.yaml"], "ultralytics_MB.assets" = ["*.jpg"] }
 
 [tool.setuptools.dynamic]
-version = { attr = "ultralytics_4bands.__version__" }
+version = { attr = "ultralytics_MB.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --durations=30 --color=yes"
@@ -149,9 +149,9 @@ norecursedirs = [".git", "dist", "build"]
 
 
 [tool.coverage.run]
-source = ["ultralytics_4bands/"]
+source = ["ultralytics_MB/"]
 data_file = "tests/.coverage"
-omit = ["ultralytics_4bands/utils/callbacks/*"]
+omit = ["ultralytics_MB/utils/callbacks/*"]
 
 [tool.isort]
 line_length = 120
@@ -182,7 +182,7 @@ ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bl
 skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'
 
 [tool.poetry]
-name = "my-ultralytics_4bands"
+name = "my-ultralytics_MB"
 version =  "8.1.27"
 description = "A brief description of your project"
 authors = ["Glenn Jocher","Ayush Chaurasia","Jing Qiu","forked from ultralytics by Clemens langer (itisacloud)"]

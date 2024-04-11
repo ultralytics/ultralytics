@@ -751,7 +751,7 @@ class BaseTrainer:
                 for param_name, param in module.named_parameters(recurse=False):
                     fullname = f"{module_name}.{param_name}" if module_name else param_name
                     if any(x in module_name for x in scaling_layer_names):
-                        LOGGER.info(f"scaling_layer '{fullname}'")
+                        # LOGGER.info(f"scaling_layer '{fullname}'")
                         if "bias" in fullname:  # bias (no decay)
                             g[2].append(param)
                         elif isinstance(module, bn):  # weight (no decay)
@@ -767,7 +767,7 @@ class BaseTrainer:
                             g_head[0].append(param)
 
             else:
-                print("lr_group is False")
+                # print("lr_group is False")
                 for param_name, param in module.named_parameters(recurse=False):
                     fullname = f"{module_name}.{param_name}" if module_name else param_name
                     if "bias" in fullname:  # bias (no decay)

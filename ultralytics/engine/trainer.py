@@ -808,11 +808,11 @@ class BaseTrainer:
             optimizer.add_param_group(
                 {"params": g[0], "lr": lr / self.args.scaling_ratio, "weight_decay": decay}
             )  # add g0 with weight_decay
-            optimizer.add_param_group({"params": g_head[0], "weight_decay": decay})  # add g0 with weight_decay
+            optimizer.add_param_group({"params": g_head[0], "weight_decay": decay})  # add g_head0 with weight_decay
             optimizer.add_param_group(
                 {"params": g[1], "lr": lr / self.args.scaling_ratio, "weight_decay": 0.0}
             )  # add g1 (BatchNorm2d weights)
-            optimizer.add_param_group({"params": g_head[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+            optimizer.add_param_group({"params": g_head[1], "weight_decay": 0.0})  # add g_head1 (BatchNorm2d weights)
 
             LOGGER.info(
                 f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

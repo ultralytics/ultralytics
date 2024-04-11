@@ -739,7 +739,7 @@ class Exporter:
             version = "" if ARM64 else "<=2.13.1"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
-        if IS_RASPBERRYPI or IS_JETSON::
+        if IS_RASPBERRYPI or IS_JETSON:
             check_requirements("cmake")  # 'cmake' is needed to build onnxsim on Raspberry Pi and Jetson
         check_requirements(
             (

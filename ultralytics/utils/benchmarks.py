@@ -92,7 +92,9 @@ def benchmark(
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
             if i in {5}:  # CoreML
-                assert MACOS or not (IS_RASPBERRYPI or IS_JETSON), "export not supported on Raspberry Pi and NVIDIA Jetson"
+                assert MACOS or not (
+                    IS_RASPBERRYPI or IS_JETSON
+                ), "export not supported on Raspberry Pi and NVIDIA Jetson"
             if i in {6, 7, 8, 9, 10}:  # All TF formats
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle

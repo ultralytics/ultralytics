@@ -530,7 +530,15 @@ class Exporter:
                 "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
-            system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if IS_RASPBERRYPI or IS_JETSON else "linux"
+            system = (
+                "macos"
+                if MACOS
+                else "windows"
+                if WINDOWS
+                else "linux-aarch64"
+                if IS_RASPBERRYPI or IS_JETSON
+                else "linux"
+            )
             try:
                 _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
                 url = [x for x in assets if f"{system}.zip" in x][0]

@@ -83,6 +83,8 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
+    IS_RASPBERRYPI,
+    IS_JETSON,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
@@ -354,8 +356,8 @@ class Exporter:
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
             requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
-            if ARM64:
-                check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
+            if IS_RASPBERRYPI or IS_JETSON:
+                check_requirements("cmake")  # 'cmake' is needed to build onnxsim on Raspberry Pi and Jetson
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -528,7 +530,7 @@ class Exporter:
                 "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
-            system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
+            system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if IS_RASPBERRYPI or IS_JETSON else "linux"
             try:
                 _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
                 url = [x for x in assets if f"{system}.zip" in x][0]
@@ -737,8 +739,8 @@ class Exporter:
             version = "" if ARM64 else "<=2.13.1"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
-        if ARM64:
-            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
+        if if IS_RASPBERRYPI or IS_JETSON::
+            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on Raspberry Pi and Jetson
         check_requirements(
             (
                 "onnx>=1.12.0",
@@ -892,8 +894,9 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLOv8 TensorFlow.js export."""
         check_requirements("tensorflowjs")
-        if ARM64:
-            # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
+        if IS_RASPBERRYPI or IS_JETSON:
+            # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on Raspberry Pi
+            # Fix error: `np.bool` was a deprecated alias for the builtin `bool` when using TensorRT models on NVIDIA Jetson
             check_requirements("numpy==1.23.5")
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa

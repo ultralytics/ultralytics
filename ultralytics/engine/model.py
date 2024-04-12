@@ -640,8 +640,8 @@ class Model(nn.Module):
 
         checks.check_pip_update_available()
         # Check if a new cfg is provided, if so, load and merge it
-        if 'cfg' in kwargs and kwargs['cfg']:
-            new_config_path = kwargs['cfg']
+        if "cfg" in kwargs and kwargs["cfg"]:
+            new_config_path = kwargs["cfg"]
             # Use the check_yaml function to ensure the configuration file is valid
             new_overrides = yaml_load(checks.check_yaml(new_config_path))
             # Merge configurations: first copy the old ones, then update with the new ones

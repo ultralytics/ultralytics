@@ -4,12 +4,11 @@ import os
 from pathlib import Path
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.utils import TQDM
+from ultralytics.utils import TQDM, checks
 
 
 class FastSAMPrompt:
@@ -33,9 +32,7 @@ class FastSAMPrompt:
         try:
             import clip
         except ImportError:
-            from ultralytics.utils.checks import check_requirements
-
-            check_requirements("git+https://github.com/openai/CLIP.git")
+            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
         self.clip = clip
 
@@ -115,10 +112,13 @@ class FastSAMPrompt:
             points (list, optional): Points to be plotted. Defaults to None.
             point_label (list, optional): Labels for the points. Defaults to None.
             mask_random_color (bool, optional): Whether to use random color for masks. Defaults to True.
-            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality. Defaults to True.
+            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality.
+                Defaults to True.
             retina (bool, optional): Whether to use retina mask. Defaults to False.
             with_contours (bool, optional): Whether to plot contours. Defaults to True.
         """
+        import matplotlib.pyplot as plt
+
         pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
@@ -203,6 +203,8 @@ class FastSAMPrompt:
             target_height (int, optional): Target height for resizing. Defaults to 960.
             target_width (int, optional): Target width for resizing. Defaults to 960.
         """
+        import matplotlib.pyplot as plt
+
         n, h, w = annotation.shape  # batch, height, width
 
         areas = np.sum(annotation, axis=(1, 2))

@@ -744,7 +744,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if (IS_RASPBERRYPI or IS_JETSON) else "" if cuda else "-cpu"
-            version = "" if ARM64 else "<=2.13.1" # latest version of tensorflow works with RPi, Jetson, M-series Mac 
+            version = "" if ARM64 else "<=2.13.1"  # latest version of tensorflow works with RPi, Jetson, M-series Mac
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         if IS_RASPBERRYPI or IS_JETSON:

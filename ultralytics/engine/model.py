@@ -96,6 +96,7 @@ class Model(nn.Module):
         model: Union[str, Path] = "yolov8n.pt",
         task: str = None,
         verbose: bool = False,
+        inputCh = 3,
     ) -> None:
         """
         Initializes a new instance of the YOLO model class.
@@ -129,6 +130,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.inputCh = inputCh
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

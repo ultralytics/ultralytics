@@ -789,6 +789,10 @@ def plot_images(
     conf_thres=0.25,
 ):
     """Plot image grid with labels."""
+    if images.shape[1] != 3:
+        LOGGER.info("Skipping plotting validation samples for images that do not have 3 input channels.")
+        return
+
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
     if isinstance(cls, torch.Tensor):

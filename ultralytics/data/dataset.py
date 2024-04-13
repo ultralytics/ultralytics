@@ -191,6 +191,10 @@ class YOLODataset(BaseDataset):
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
             )
         )
+        if self.image_transforms:
+            LOGGER.info(f"Appending custom image transform: {self.image_transforms}")
+            transforms.append(self.image_transforms)
+        LOGGER.info(f'Complete list of transforms to be applied:\n{transforms}')
         return transforms
 
     def close_mosaic(self, hyp):
@@ -398,7 +402,7 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, prefix=""):
+    def __init__(self, root, args, augment=False, cache=False, prefix="", override_image_tranforms = None):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -427,22 +431,26 @@ class ClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-        self.torch_transforms = (
-            classify_augmentations(
-                size=args.imgsz,
-                scale=scale,
-                hflip=args.fliplr,
-                vflip=args.flipud,
-                erasing=args.erasing,
-                auto_augment=args.auto_augment,
-                hsv_h=args.hsv_h,
-                hsv_s=args.hsv_s,
-                hsv_v=args.hsv_v,
+        
+        if override_image_tranforms is not None:
+            self.torch_transforms = override_image_tranforms
+        else:
+            scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+            self.torch_transforms = (
+                classify_augmentations(
+                    size=args.imgsz,
+                    scale=scale,
+                    hflip=args.fliplr,
+                    vflip=args.flipud,
+                    erasing=args.erasing,
+                    auto_augment=args.auto_augment,
+                    hsv_h=args.hsv_h,
+                    hsv_s=args.hsv_s,
+                    hsv_v=args.hsv_v,
+                )
+                if augment
+                else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
             )
-            if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
-        )
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

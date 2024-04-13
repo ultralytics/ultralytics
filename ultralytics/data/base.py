@@ -61,9 +61,11 @@ class BaseDataset(Dataset):
         single_cls=False,
         classes=None,
         fraction=1.0,
+        image_transforms=None,
     ):
         """Initialize BaseDataset with given configuration and options."""
         super().__init__()
+        self.image_transforms = image_transforms
         self.img_path = img_path
         self.imgsz = imgsz
         self.augment = augment

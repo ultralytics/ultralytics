@@ -213,6 +213,9 @@ class Model(nn.Module):
             verbose (bool): display model info on load
         """
         cfg_dict = yaml_model_load(cfg)
+        if cfg_dict.get('ch', 3) == 4 and DEFAULT_CFG_DICT.get('rgba', False) == False or \
+            cfg_dict.get('ch', 3) != 4 and DEFAULT_CFG_DICT.get('rgba', False) == True:
+            raise ValueError(f"If the input image is in RGBA format, the parameter ch and rgba should be 4 and True respectively")
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
         self.model = (model or self._smart_load("model"))(cfg_dict, verbose=verbose and RANK == -1)  # build model

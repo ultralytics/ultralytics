@@ -64,6 +64,9 @@ classes: # (int | list[int], optional) filter results by class, i.e. classes=0, 
 retina_masks: False # (bool) use high-resolution segmentation masks
 embed: # (list[int], optional) return feature vectors/embeddings from given layers
 
+# Input image format settings -----------------------------------------------------------------------------------------------------
+rgba: True
+
 # Visualize settings ---------------------------------------------------------------------------------------------------
 show: False # (bool) show predicted images and videos if environment allows
 save_frames: False # (bool) save predicted individual video frames

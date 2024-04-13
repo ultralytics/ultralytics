@@ -14,8 +14,7 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-
+from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
@@ -152,9 +151,15 @@ class BaseDataset(Dataset):
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = cv2.imread(f)  # BGR
+                    if DEFAULT_CFG_DICT.get('rgba', False) == True:
+                        im = cv2.imread(f, cv2.IMREAD_UNCHANGED)
+                    else:
+                        im = cv2.imread(f)  # BGR
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                if DEFAULT_CFG_DICT.get('rgba', False) == True:
+                    im = cv2.imread(f, cv2.IMREAD_UNCHANGED)
+                else:
+                    im = cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

@@ -12,10 +12,7 @@ def on_pretrain_routine_end(trainer):
     session = getattr(trainer, "hub_session", None)
     if session:
         # Start timer for upload rate limit
-        session.timers = {
-            "metrics": time(),
-            "ckpt": time(),
-        }  # start timer on session.rate_limit
+        session.timers = {"metrics": time(), "ckpt": time()}  # start timer on session.rate_limit
 
 
 def on_fit_epoch_end(trainer):

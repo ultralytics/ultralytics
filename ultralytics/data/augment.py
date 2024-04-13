@@ -3,11 +3,12 @@
 import math
 import random
 from copy import deepcopy
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
 import torch
-import torchvision.transforms as T
+from PIL import Image
 
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
@@ -15,11 +16,12 @@ from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
+
 from .utils import polygons2masks, polygons2masks_overlap
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-DEFAULT_CROP_FTACTION = 1.0
+DEFAULT_CROP_FRACTION = 1.0
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -66,7 +68,7 @@ class Compose:
 
     def __init__(self, transforms):
         """Initializes the Compose object with a list of transforms."""
-        self.transforms = transforms
+        self.transforms = transforms if isinstance(transforms, list) else [transforms]
 
     def __call__(self, data):
         """Applies a series of transformations to input data."""
@@ -77,6 +79,29 @@ class Compose:
     def append(self, transform):
         """Appends a new transform to the existing list of transforms."""
         self.transforms.append(transform)
+
+    def insert(self, index, transform):
+        """Inserts a new transform to the existing list of transforms."""
+        self.transforms.insert(index, transform)
+
+    def __getitem__(self, index: Union[list, int]) -> "Compose":
+        """Retrieve a specific transform or a set of transforms using indexing."""
+        assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
+        index = [index] if isinstance(index, int) else index
+        return Compose([self.transforms[i] for i in index])
+
+    def __setitem__(self, index: Union[list, int], value: Union[list, int]) -> None:
+        """Retrieve a specific transform or a set of transforms using indexing."""
+        assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
+        if isinstance(index, list):
+            assert isinstance(
+                value, list
+            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+        if isinstance(index, int):
+            index, value = [index], [value]
+        for i, v in zip(index, value):
+            assert i < len(self.transforms), f"list index {i} out of range {len(self.transforms)}."
+            self.transforms[i] = v
 
     def tolist(self):
         """Converts the list of transforms to a standard Python list."""
@@ -118,6 +143,8 @@ class BaseMixTransform:
                 mix_labels[i] = self.pre_transform(data)
         labels["mix_labels"] = mix_labels
 
+        # Update cls and texts
+        labels = self._update_label_text(labels)
         # Mosaic or MixUp
         labels = self._mix_transform(labels)
         labels.pop("mix_labels", None)
@@ -130,6 +157,22 @@ class BaseMixTransform:
     def get_indexes(self):
         """Gets a list of shuffled indexes for mosaic augmentation."""
         raise NotImplementedError
+
+    def _update_label_text(self, labels):
+        """Update label text."""
+        if "texts" not in labels:
+            return labels
+
+        mix_texts = sum([labels["texts"]] + [x["texts"] for x in labels["mix_labels"]], [])
+        mix_texts = list({tuple(x) for x in mix_texts})
+        text2id = {text: i for i, text in enumerate(mix_texts)}
+
+        for label in [labels] + labels["mix_labels"]:
+            for i, cls in enumerate(label["cls"].squeeze(-1).tolist()):
+                text = label["texts"][int(cls)]
+                label["cls"][i] = text2id[tuple(text)]
+            label["texts"] = mix_texts
+        return labels
 
 
 class Mosaic(BaseMixTransform):
@@ -149,7 +192,7 @@ class Mosaic(BaseMixTransform):
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
-        assert n in (4, 9), "grid must be equal to 4 or 9."
+        assert n in {4, 9}, "grid must be equal to 4 or 9."
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
         self.imgsz = imgsz
@@ -320,6 +363,8 @@ class Mosaic(BaseMixTransform):
         final_labels["instances"].clip(imgsz, imgsz)
         good = final_labels["instances"].remove_zero_area_boxes()
         final_labels["cls"] = final_labels["cls"][good]
+        if "texts" in mosaic_labels[0]:
+            final_labels["texts"] = mosaic_labels[0]["texts"]
         return final_labels
 
 
@@ -641,7 +686,7 @@ class RandomFlip:
                 Default is 'horizontal'.
             flip_idx (array-like, optional): Index mapping for flipping keypoints, if any.
         """
-        assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
+        assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0
 
         self.p = p
@@ -931,17 +976,22 @@ class Format:
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
                 )
             labels["masks"] = masks
-        if self.normalize:
-            instances.normalize(w, h)
         labels["img"] = self._format_img(img)
         labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels["keypoints"] = torch.from_numpy(instances.keypoints)
+            if self.normalize:
+                labels["keypoints"][..., 0] /= w
+                labels["keypoints"][..., 1] /= h
         if self.return_obb:
             labels["bboxes"] = (
                 xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
             )
+        # NOTE: need to normalize obb in xywhr format for width-height consistency
+        if self.normalize:
+            labels["bboxes"][:, [0, 2]] /= w
+            labels["bboxes"][:, [1, 3]] /= h
         # Then we can use collate_fn
         if self.batch_idx:
             labels["batch_idx"] = torch.zeros(nl)
@@ -968,6 +1018,83 @@ class Format:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
         return masks, instances, cls
+
+
+class RandomLoadText:
+    """
+    Randomly sample positive texts and negative texts and update the class indices accordingly to the number of samples.
+
+    Attributes:
+        prompt_format (str): Format for prompt. Default is '{}'.
+        neg_samples (tuple[int]): A ranger to randomly sample negative texts, Default is (80, 80).
+        max_samples (int): The max number of different text samples in one image, Default is 80.
+        padding (bool): Whether to pad texts to max_samples. Default is False.
+        padding_value (str): The padding text. Default is "".
+    """
+
+    def __init__(
+        self,
+        prompt_format: str = "{}",
+        neg_samples: Tuple[int, int] = (80, 80),
+        max_samples: int = 80,
+        padding: bool = False,
+        padding_value: str = "",
+    ) -> None:
+        """Initializes the RandomLoadText class with given parameters."""
+        self.prompt_format = prompt_format
+        self.neg_samples = neg_samples
+        self.max_samples = max_samples
+        self.padding = padding
+        self.padding_value = padding_value
+
+    def __call__(self, labels: dict) -> dict:
+        """Return updated classes and texts."""
+        assert "texts" in labels, "No texts found in labels."
+        class_texts = labels["texts"]
+        num_classes = len(class_texts)
+        cls = np.asarray(labels.pop("cls"), dtype=int)
+        pos_labels = np.unique(cls).tolist()
+
+        if len(pos_labels) > self.max_samples:
+            pos_labels = set(random.sample(pos_labels, k=self.max_samples))
+
+        neg_samples = min(min(num_classes, self.max_samples) - len(pos_labels), random.randint(*self.neg_samples))
+        neg_labels = []
+        for i in range(num_classes):
+            if i not in pos_labels:
+                neg_labels.append(i)
+        neg_labels = random.sample(neg_labels, k=neg_samples)
+
+        sampled_labels = pos_labels + neg_labels
+        random.shuffle(sampled_labels)
+
+        label2ids = {label: i for i, label in enumerate(sampled_labels)}
+        valid_idx = np.zeros(len(labels["instances"]), dtype=bool)
+        new_cls = []
+        for i, label in enumerate(cls.squeeze(-1).tolist()):
+            if label not in label2ids:
+                continue
+            valid_idx[i] = True
+            new_cls.append([label2ids[label]])
+        labels["instances"] = labels["instances"][valid_idx]
+        labels["cls"] = np.array(new_cls)
+
+        # Randomly select one prompt when there's more than one prompts
+        texts = []
+        for label in sampled_labels:
+            prompts = class_texts[label]
+            assert len(prompts) > 0
+            prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
+            texts.append(prompt)
+
+        if self.padding:
+            valid_labels = len(pos_labels) + len(neg_labels)
+            num_padding = self.max_samples - valid_labels
+            if num_padding > 0:
+                texts += [self.padding_value] * num_padding
+
+        labels["texts"] = texts
+        return labels
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
@@ -1012,8 +1139,8 @@ def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
-    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
-    crop_fraction: float = DEFAULT_CROP_FTACTION,
+    interpolation=Image.BILINEAR,
+    crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
     """
     Classification transforms for evaluation/inference. Inspired by timm/data/transforms_factory.py.
@@ -1028,6 +1155,7 @@ def classify_transforms(
     Returns:
         (T.Compose): torchvision transforms
     """
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
@@ -1036,12 +1164,12 @@ def classify_transforms(
         scale_size = math.floor(size / crop_fraction)
         scale_size = (scale_size, scale_size)
 
-    # aspect ratio is preserved, crops center within image, no borders are added, image is lost
+    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
     if scale_size[0] == scale_size[1]:
-        # simple case, use torchvision built-in Resize w/ shortest edge mode (scalar size arg)
+        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
         tfl = [T.Resize(scale_size[0], interpolation=interpolation)]
     else:
-        # resize shortest edge to matching target dim for non-square target
+        # Resize the shortest edge to matching target dim for non-square target
         tfl = [T.Resize(scale_size)]
     tfl += [T.CenterCrop(size)]
 
@@ -1056,7 +1184,7 @@ def classify_transforms(
     return T.Compose(tfl)
 
 
-# Classification augmentations train ---------------------------------------------------------------------------------------
+# Classification training augmentations --------------------------------------------------------------------------------
 def classify_augmentations(
     size=224,
     mean=DEFAULT_MEAN,
@@ -1071,7 +1199,7 @@ def classify_augmentations(
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
-    interpolation: T.InterpolationMode = T.InterpolationMode.BILINEAR,
+    interpolation=Image.BILINEAR,
 ):
     """
     Classification transforms with augmentation for training. Inspired by timm/data/transforms_factory.py.
@@ -1095,7 +1223,9 @@ def classify_augmentations(
     Returns:
         (T.Compose): torchvision transforms
     """
-    # Transforms to apply if albumentations not installed
+    # Transforms to apply if Albumentations not installed
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
     if not isinstance(size, int):
         raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range

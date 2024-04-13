@@ -72,6 +72,8 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
+    IS_JETSON,
+    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -83,8 +85,6 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
-    IS_RASPBERRYPI,
-    IS_JETSON,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets

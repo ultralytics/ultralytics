@@ -1,0 +1,42 @@
+name: Merge main into PRs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  merge-main-into-prs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Merge main into PRs
+      run: |
+        # Get the list of open pull requests
+        PR_LIST=$(gh pr list --json number --jq '.[].number')
+
+        # Loop through each pull request
+        for PR_NUMBER in $PR_LIST; do
+          echo "Merging main into PR #$PR_NUMBER"
+
+          # Checkout the PR branch
+          git checkout "refs/remotes/origin/pull/$PR_NUMBER/head"
+
+          # Attempt to merge the main branch into the PR branch
+          if git merge origin/main; then
+            # Merge successful, push the changes back to the PR branch
+            git push origin "HEAD:refs/heads/pull/$PR_NUMBER/head"
+            echo "Merge successful for PR #$PR_NUMBER"
+          else
+            # Merge failed due to conflicts
+            git merge --abort
+            echo "Merge failed for PR #$PR_NUMBER due to conflicts"
+          fi
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -30,6 +30,7 @@ class Heatmap:
         self.imw = None
         self.imh = None
         self.im0 = None
+        self.tf = 2
         self.view_in_counts = True
         self.view_out_counts = True
 
@@ -56,11 +57,9 @@ class Heatmap:
         self.out_counts = 0
         self.count_ids = []
         self.class_wise_count = {}
-        self.count_txt_thickness = 0
-        self.count_txt_color = (255, 255, 255)
-        self.line_color = (255, 255, 255)
+        self.count_txt_color = (0, 0, 0)
+        self.count_bg_color = (255, 255, 255)
         self.cls_txtdisplay_gap = 50
-        self.fontsize = 0.6
 
         # Decay factor
         self.decay_factor = 0.99
@@ -79,16 +78,14 @@ class Heatmap:
         view_in_counts=True,
         view_out_counts=True,
         count_reg_pts=None,
-        count_txt_thickness=2,
-        count_txt_color=(255, 255, 255),
-        fontsize=0.8,
-        line_color=(255, 255, 255),
+        count_txt_color=(0, 0, 0),
+        count_bg_color=(255, 255, 255),
         count_reg_color=(255, 0, 255),
         region_thickness=5,
         line_dist_thresh=15,
+        line_thickness=2,
         decay_factor=0.99,
         shape="circle",
-        cls_txtdisplay_gap=50,
     ):
         """
         Configures the heatmap colormap, width, height and display parameters.
@@ -98,22 +95,21 @@ class Heatmap:
             imw (int): The width of the frame.
             imh (int): The height of the frame.
             classes_names (dict): Classes names
+            line_thickness (int): Line thickness for bounding boxes.
             heatmap_alpha (float): alpha value for heatmap display
             view_img (bool): Flag indicating frame display
             view_in_counts (bool): Flag to control whether to display the incounts on video stream.
             view_out_counts (bool): Flag to control whether to display the outcounts on video stream.
             count_reg_pts (list): Object counting region points
-            count_txt_thickness (int): Text thickness for object counting display
             count_txt_color (RGB color): count text color value
-            fontsize (float): Text display font size
-            line_color (RGB color): count highlighter line color
+            count_bg_color (RGB color): count highlighter line color
             count_reg_color (RGB color): Color of object counting region
             region_thickness (int): Object counting Region thickness
             line_dist_thresh (int): Euclidean Distance threshold for line counter
             decay_factor (float): value for removing heatmap area after object passed
             shape (str): Heatmap shape, rect or circle shape supported
-            cls_txtdisplay_gap (int): Display gap between each class count
         """
+        self.tf = line_thickness
         self.names = classes_names
         self.imw = imw
         self.imh = imh
@@ -141,16 +137,13 @@ class Heatmap:
         # Heatmap new frame
         self.heatmap = np.zeros((int(self.imh), int(self.imw)), dtype=np.float32)
 
-        self.count_txt_thickness = count_txt_thickness
         self.count_txt_color = count_txt_color
-        self.fontsize = fontsize
-        self.line_color = line_color
+        self.count_bg_color = count_bg_color
         self.region_color = count_reg_color
         self.region_thickness = region_thickness
         self.decay_factor = decay_factor
         self.line_dist_thresh = line_dist_thresh
         self.shape = shape
-        self.cls_txtdisplay_gap = cls_txtdisplay_gap
 
         # shape of heatmap, if not selected
         if self.shape not in {"circle", "rect"}:
@@ -185,7 +178,7 @@ class Heatmap:
             return im0
         self.heatmap *= self.decay_factor  # decay factor
         self.extract_results(tracks)
-        self.annotator = Annotator(self.im0, self.count_txt_thickness, None)
+        self.annotator = Annotator(self.im0, self.tf, None)
 
         if self.count_reg_pts is not None:
             # Draw counting region
@@ -239,11 +232,8 @@ class Heatmap:
 
                 # Count objects using line
                 elif len(self.count_reg_pts) == 2:
-                    is_inside = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0
-
-                    if prev_position is not None and is_inside and track_id not in self.count_ids:
+                    if prev_position is not None and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
-
                         if distance < self.line_dist_thresh and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
@@ -293,11 +283,8 @@ class Heatmap:
         if self.count_reg_pts is not None and label is not None:
             self.annotator.display_counts(
                 counts=label,
-                tf=self.count_txt_thickness,
-                fontScale=self.fontsize,
-                txt_color=self.count_txt_color,
-                line_color=self.line_color,
-                classwise_txtgap=self.cls_txtdisplay_gap,
+                count_txt_color=self.count_txt_color,
+                count_bg_color=self.count_bg_color,
             )
 
         self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)

@@ -65,7 +65,7 @@ retina_masks: False # (bool) use high-resolution segmentation masks
 embed: # (list[int], optional) return feature vectors/embeddings from given layers
 
 # Input image format settings -----------------------------------------------------------------------------------------------------
-rgba: True
+rgba: False
 
 # Visualize settings ---------------------------------------------------------------------------------------------------
 show: False # (bool) show predicted images and videos if environment allows

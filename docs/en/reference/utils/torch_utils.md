@@ -115,6 +115,10 @@ keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, 
 
 <br><br>
 
+## ::: ultralytics.utils.torch_utils.convert_optimizer_state_dict_to_fp16
+
+<br><br>
+
 ## ::: ultralytics.utils.torch_utils.profile
 
 <br><br>

@@ -7,16 +7,16 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 from matplotlib import pyplot as plt
-from pandas import DataFrame
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks, USER_CONFIG_DIR
+from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
+
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -172,7 +172,7 @@ class Explorer:
 
     def sql_query(
         self, query: str, return_type: str = "pandas"
-    ) -> Union[DataFrame, Any, None]:  # pandas.dataframe or pyarrow.Table
+    ) -> Union[Any, None]:  # pandas.DataFrame or pyarrow.Table
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
@@ -204,7 +204,8 @@ class Explorer:
         table = self.table.to_arrow()  # noqa NOTE: Don't comment this. This line is used by DuckDB
         if not query.startswith("SELECT") and not query.startswith("WHERE"):
             raise ValueError(
-                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}"
+                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE "
+                f"clause. found {query}"
             )
         if query.startswith("WHERE"):
             query = f"SELECT * FROM 'table' {query}"
@@ -247,7 +248,7 @@ class Explorer:
         idx: Union[int, List[int]] = None,
         limit: int = 25,
         return_type: str = "pandas",
-    ) -> Union[DataFrame, Any]:  # pandas.dataframe or pyarrow.Table
+    ) -> Any:  # pandas.DataFrame or pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -312,20 +313,20 @@ class Explorer:
         img = plot_query_result(similar, plot_labels=labels)
         return Image.fromarray(img)
 
-    def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> DataFrame:
+    def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> Any:  # pd.DataFrame
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are max_dist or closer to the image in the embedding space at a given index.
 
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
-            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
+            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit.
                            vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image, and columns
-                                include indices of similar images and their respective distances.
+            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image,
+                and columns include indices of similar images and their respective distances.
 
         Example:
             ```python
@@ -447,12 +448,11 @@ class Explorer:
         """
         result = prompt_sql_query(query)
         try:
-            df = self.sql_query(result)
+            return self.sql_query(result)
         except Exception as e:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-        return df
 
     def visualize(self, result):
         """

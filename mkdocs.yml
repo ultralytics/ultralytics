@@ -300,6 +300,7 @@ nav:
       - Conda Quickstart: guides/conda-quickstart.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Raspberry Pi: guides/raspberry-pi.md
+      - NVIDIA Jetson: guides/nvidia-jetson.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
@@ -317,6 +318,7 @@ nav:
           - VisionEye Mapping: guides/vision-eye.md
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
+          - Queue Management: guides/queue-management.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -353,6 +355,7 @@ nav:
       - TF GraphDef: integrations/tf-graphdef.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
+      - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
       - Comet ML: integrations/comet.md
@@ -510,6 +513,7 @@ nav:
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
+          - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md

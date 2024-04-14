@@ -10,7 +10,7 @@ import cv2
 from flask import Flask, Response, jsonify, render_template
 
 from ultralytics.utils import ROOT
-from ultralytics.utils.dashboard_utils import Analytics
+from ultralytics.utils.analytics_utils import Analytics
 from ultralytics.utils.plotting import Annotator
 
 # Application configuration

@@ -1,41 +1,52 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
-# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch
-FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
+FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
+RUN pip install --no-cache nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
 
 # Downloads to user config dir
-ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
 
 # Install linux packages
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt update
-RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
-# RUN alias python=python3
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+RUN apt update \
+    && apt install --no-install-recommends -y gcc git zip curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-RUN mkdir -p /usr/src/ultralytics
 WORKDIR /usr/src/ultralytics
 
 # Copy contents
-# COPY . /usr/src/app  (issues as not a .git directory)
-RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
+# COPY . /usr/src/ultralytics  # git permission issues inside container
+RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
+ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache '.[export]' albumentations comet gsutil notebook
+RUN pip install --no-cache -e ".[export]" albumentations comet pycocotools
+
+# Run exports to AutoInstall packages
+# Edge TPU export fails the first time so is run twice here
+RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
+# Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
+RUN pip install --no-cache paddlepaddle>=2.6.0 x2paddle
+# Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
+RUN pip install --no-cache numpy==1.23.5
+# Remove exported models
+RUN rm -rf tmp
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1
-
-# Cleanup
-ENV DEBIAN_FRONTEND teletype
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+ENV MKL_THREADING_LAYER=GNU
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
@@ -43,8 +54,11 @@ ENV DEBIAN_FRONTEND teletype
 # Build and Push
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
-# Pull and Run
+# Pull and Run with access to all GPUs
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+
+# Pull and Run with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

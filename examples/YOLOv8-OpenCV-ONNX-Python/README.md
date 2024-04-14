@@ -6,7 +6,7 @@ Just simply clone and run
 
 ```bash
 pip install -r requirements.txt
-python main.py
+python main.py --model yolov8n.onnx --img image.jpg
 ```
 
 If you start from scratch:

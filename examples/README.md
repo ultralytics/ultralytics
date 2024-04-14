@@ -1,22 +1,36 @@
-This is a list of real-world applications and walkthroughs. These can be folders of either python files or notebooks .
+## Ultralytics YOLOv8 Example Applications
 
-## Ultralytics YOLO example applications
+This repository features a collection of real-world applications and walkthroughs, provided as either Python files or notebooks. Explore the examples below to see how YOLOv8 can be integrated into various applications.
 
-| Title                                                                    | Format             | Contributor                                         |
-| ------------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
-| [YOLO ONNX detection Inference with C++](./YOLOv8-CPP-Inference)         | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
-| [YOLO OpenCV ONNX detection Python](./YOLOv8-OpenCV-ONNX-Python)         | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
-| [YOLO .Net ONNX detection C#](https://www.nuget.org/packages/Yolov8.Net) | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
+### Ultralytics YOLO Example Applications
 
-## How can you contribute ?
+| Title                                                                                                                                     | Format             | Contributor                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| [YOLO ONNX Detection Inference with C++](./YOLOv8-CPP-Inference)                                                                          | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)                                         |
+| [YOLO OpenCV ONNX Detection Python](./YOLOv8-OpenCV-ONNX-Python)                                                                          | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro)                                       |
+| [YOLOv8 .NET ONNX ImageSharp](https://github.com/dme-compunet/YOLOv8)                                                                     | C#/ONNX/ImageSharp | [Compunet](https://github.com/dme-compunet)                                               |
+| [YOLO .Net ONNX Detection C#](https://www.nuget.org/packages/Yolov8.Net)                                                                  | C# .Net            | [Samuel Stainback](https://github.com/sstainba)                                           |
+| [YOLOv8 on NVIDIA Jetson(TensorRT and DeepStream)](https://wiki.seeedstudio.com/YOLOv8-DeepStream-TRT-Jetson/)                            | Python             | [Lakshantha](https://github.com/lakshanthad)                                              |
+| [YOLOv8 ONNXRuntime Python](./YOLOv8-ONNXRuntime)                                                                                         | Python/ONNXRuntime | [Semih Demirel](https://github.com/semihhdemirel)                                         |
+| [YOLOv8 ONNXRuntime CPP](./YOLOv8-ONNXRuntime-CPP)                                                                                        | C++/ONNXRuntime    | [DennisJcy](https://github.com/DennisJcy), [Onuralp Sezer](https://github.com/onuralpszr) |
+| [RTDETR ONNXRuntime C#](https://github.com/Kayzwer/yolo-cs/blob/master/RTDETR.cs)                                                         | C#/ONNX            | [Kayzwer](https://github.com/Kayzwer)                                                     |
+| [YOLOv8 SAHI Video Inference](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-SAHI-Inference-Video/yolov8_sahi.py) | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
+| [YOLOv8 Region Counter](https://github.com/RizwanMunawar/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py)   | Python             | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar)                               |
+| [YOLOv8 Segmentation ONNXRuntime Python](./YOLOv8-Segmentation-ONNXRuntime-Python)                                                        | Python/ONNXRuntime | [jamjamjon](https://github.com/jamjamjon)                                                 |
+| [YOLOv8 LibTorch CPP](./YOLOv8-LibTorch-CPP-Inference)                                                                                    | C++/LibTorch       | [Myyura](https://github.com/Myyura)                                                       |
+| [YOLOv8 OpenCV INT8 TFLite Python](./YOLOv8-OpenCV-int8-tflite-Python)                                                                    | Python             | [Wamiq Raza](https://github.com/wamiqraza)                                                |
 
-We're looking for examples, applications and guides from the community. Here's how you can contribute:
+### How to Contribute
 
-- Make a PR with `[Example]` prefix in title after adding your project folder in the examples/ folder of the repository
-- The project should satisfy these conditions:
-  - It should use ultralytics framework
-  - It have a README.md with instructions to run the project
-  - It should avoid adding large assets or dependencies unless absolutely needed
-  - The contributor is expected to help out in issues related to their examples
+We greatly appreciate contributions from the community, including examples, applications, and guides. If you'd like to contribute, please follow these guidelines:
 
-If you're unsure about any of these requirements, make a PR and we'll happy to guide you
+1. Create a pull request (PR) with the title prefix `[Example]`, adding your new example folder to the `examples/` directory within the repository.
+2. Make sure your project adheres to the following standards:
+    - Makes use of the `ultralytics` package.
+    - Includes a `README.md` with clear instructions for setting up and running the example.
+    - Refrains from adding large files or dependencies unless they are absolutely necessary for the example.
+    - Contributors should be willing to provide support for their examples and address related issues.
+
+For more detailed information and guidance on contributing, please visit our [contribution documentation](https://docs.ultralytics.com/help/contributing).
+
+If you encounter any questions or concerns regarding these guidelines, feel free to open a PR or an issue in the repository, and we will assist you in the contribution process.

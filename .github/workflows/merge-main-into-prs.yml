@@ -5,10 +5,11 @@
 name: Merge main into PRs
 
 on:
-  push:
-    branches:
-      - main
-
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  
 jobs:
   Merge:
     if: github.repository == 'ultralytics/ultralytics'

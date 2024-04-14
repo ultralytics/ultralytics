@@ -8,7 +8,7 @@ This example demonstrates how to perform inference using YOLOv8 and YOLOv5 model
 git clone ultralytics
 cd ultralytics
 pip install .
-cd examples/cpp_
+cd examples/YOLOv8-CPP-Inference
 
 # Add a **yolov8\_.onnx** and/or **yolov5\_.onnx** model(s) to the ultralytics folder.
 # Edit the **main.cpp** to change the **projectBasePath** to match your user.

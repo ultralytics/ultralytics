@@ -42,7 +42,7 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops, DEFAULT_CFG_DICT
+from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
@@ -226,7 +226,7 @@ class BasePredictor:
             # Warmup model
             if not self.done_warmup:
                 ch = 3
-                if DEFAULT_CFG_DICT.get('rgba', False):
+                if DEFAULT_CFG_DICT.get("rgba", False):
                     ch = 4
                 self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, ch, *self.imgsz))
                 self.done_warmup = True

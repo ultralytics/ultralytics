@@ -907,10 +907,10 @@ def plot_images(
                 annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
-    
-    #compatible with 4 channels
+
+    # compatible with 4 channels
     if img_ch == 4:
-        fname = fname.with_suffix('.tiff')
+        fname = fname.with_suffix(".tiff")
     annotator.im.save(fname)  # save
     if on_plot:
         on_plot(fname)

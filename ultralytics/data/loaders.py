@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops, DEFAULT_CFG_DICT
+from ultralytics.utils import DEFAULT_CFG_DICT, IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -360,7 +360,7 @@ class LoadImagesAndVideos:
                         self._new_video(self.files[self.count])
             else:
                 self.mode = "image"
-                if DEFAULT_CFG_DICT.get('rgba', False):
+                if DEFAULT_CFG_DICT.get("rgba", False):
                     im0 = cv2.imread(path, cv2.IMREAD_UNCHANGED)  # BGRA
                 else:
                     im0 = cv2.imread(path)  # BGR
@@ -421,7 +421,7 @@ class LoadPilAndNumpy:
         """Validate and format an image to numpy array."""
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
-            if DEFAULT_CFG_DICT.get('rgba', False):
+            if DEFAULT_CFG_DICT.get("rgba", False):
                 im = np.asarray(im)  # BGRA
             else:
                 if im.mode != "RGB":

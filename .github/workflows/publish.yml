@@ -26,10 +26,10 @@ jobs:
         with:
           fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
       - name: Set up Python environment
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          cache: 'pip' # caching pip dependencies
+          python-version: "3.11"
+          cache: "pip" # caching pip dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel build twine
@@ -65,8 +65,10 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
         run: |
-          mkdocs build
+          export JUPYTER_PLATFORM_DIRS=1
+          python docs/build_docs.py
           git config --global user.name "Glenn Jocher"
           git config --global user.email "glenn.jocher@ultralytics.com"
           git clone https://github.com/ultralytics/docs.git docs-repo
@@ -74,9 +76,11 @@ jobs:
           git checkout gh-pages || git checkout -b gh-pages
           rm -rf *
           cp -R ../site/* .
+          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
           git add .
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
-          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
+          LATEST_HASH=$(git rev-parse --short=7 HEAD)
+          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -93,7 +97,7 @@ jobs:
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
       - name: Notify on Slack (Success)
         if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW 'ultralytics ${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
@@ -101,7 +105,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
       - name: Notify on Slack (Failure)
         if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}

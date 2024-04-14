@@ -37,7 +37,7 @@ class HungarianMatcher(nn.Module):
         """
         super().__init__()
         if cost_gain is None:
-            cost_gain = {'class': 1, 'bbox': 5, 'giou': 2, 'mask': 1, 'dice': 1}
+            cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
         self.cost_gain = cost_gain
         self.use_fl = use_fl
         self.with_mask = with_mask
@@ -86,7 +86,7 @@ class HungarianMatcher(nn.Module):
         # Compute the classification cost
         pred_scores = pred_scores[:, gt_cls]
         if self.use_fl:
-            neg_cost_class = (1 - self.alpha) * (pred_scores ** self.gamma) * (-(1 - pred_scores + 1e-8).log())
+            neg_cost_class = (1 - self.alpha) * (pred_scores**self.gamma) * (-(1 - pred_scores + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * (-(pred_scores + 1e-8).log())
             cost_class = pos_cost_class - neg_cost_class
         else:
@@ -99,9 +99,11 @@ class HungarianMatcher(nn.Module):
         cost_giou = 1.0 - bbox_iou(pred_bboxes.unsqueeze(1), gt_bboxes.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
 
         # Final cost matrix
-        C = self.cost_gain['class'] * cost_class + \
-            self.cost_gain['bbox'] * cost_bbox + \
-            self.cost_gain['giou'] * cost_giou
+        C = (
+            self.cost_gain["class"] * cost_class
+            + self.cost_gain["bbox"] * cost_bbox
+            + self.cost_gain["giou"] * cost_giou
+        )
         # Compute the mask cost and dice cost
         if self.with_mask:
             C += self._cost_mask(bs, gt_groups, masks, gt_mask)
@@ -111,10 +113,11 @@ class HungarianMatcher(nn.Module):
 
         C = C.view(bs, nq, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
-        gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
-        # (idx for queries, idx for gt)
-        return [(torch.tensor(i, dtype=torch.long), torch.tensor(j, dtype=torch.long) + gt_groups[k])
-                for k, (i, j) in enumerate(indices)]
+        gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)  # (idx for queries, idx for gt)
+        return [
+            (torch.tensor(i, dtype=torch.long), torch.tensor(j, dtype=torch.long) + gt_groups[k])
+            for k, (i, j) in enumerate(indices)
+        ]
 
     # This function is for future RT-DETR Segment models
     # def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
@@ -147,14 +150,9 @@ class HungarianMatcher(nn.Module):
     #     return C
 
 
-def get_cdn_group(batch,
-                  num_classes,
-                  num_queries,
-                  class_embed,
-                  num_dn=100,
-                  cls_noise_ratio=0.5,
-                  box_noise_scale=1.0,
-                  training=False):
+def get_cdn_group(
+    batch, num_classes, num_queries, class_embed, num_dn=100, cls_noise_ratio=0.5, box_noise_scale=1.0, training=False
+):
     """
     Get contrastive denoising training group. This function creates a contrastive denoising training group with positive
     and negative samples from the ground truths (gt). It applies noise to the class labels and bounding box coordinates,
@@ -180,7 +178,7 @@ def get_cdn_group(batch,
 
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    gt_groups = batch['gt_groups']
+    gt_groups = batch["gt_groups"]
     total_num = sum(gt_groups)
     max_nums = max(gt_groups)
     if max_nums == 0:
@@ -190,9 +188,9 @@ def get_cdn_group(batch,
     num_group = 1 if num_group == 0 else num_group
     # Pad gt to max_num of a batch
     bs = len(gt_groups)
-    gt_cls = batch['cls']  # (bs*num, )
-    gt_bbox = batch['bboxes']  # bs*num, 4
-    b_idx = batch['batch_idx']
+    gt_cls = batch["cls"]  # (bs*num, )
+    gt_bbox = batch["bboxes"]  # bs*num, 4
+    b_idx = batch["batch_idx"]
 
     # Each group has positive and negative queries.
     dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
@@ -245,16 +243,21 @@ def get_cdn_group(batch,
     # Reconstruct cannot see each other
     for i in range(num_group):
         if i == 0:
-            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
+            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), max_nums * 2 * (i + 1) : num_dn] = True
         if i == num_group - 1:
-            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * i * 2] = True
+            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), : max_nums * i * 2] = True
         else:
-            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
-            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
+            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), max_nums * 2 * (i + 1) : num_dn] = True
+            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), : max_nums * 2 * i] = True
     dn_meta = {
-        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split(list(gt_groups), dim=1)],
-        'dn_num_group': num_group,
-        'dn_num_split': [num_dn, num_queries]}
+        "dn_pos_idx": [p.reshape(-1) for p in pos_idx.cpu().split(list(gt_groups), dim=1)],
+        "dn_num_group": num_group,
+        "dn_num_split": [num_dn, num_queries],
+    }
 
-    return padding_cls.to(class_embed.device), padding_bbox.to(class_embed.device), attn_mask.to(
-        class_embed.device), dn_meta
+    return (
+        padding_cls.to(class_embed.device),
+        padding_bbox.to(class_embed.device),
+        attn_mask.to(class_embed.device),
+        dn_meta,
+    )

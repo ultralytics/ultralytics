@@ -5,7 +5,7 @@ from pathlib import Path
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
-from ultralytics.utils import yaml_load, ROOT
+from ultralytics.utils import ROOT, yaml_load
 
 
 class YOLO(Model):

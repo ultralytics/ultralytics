@@ -3,7 +3,6 @@
 import os
 import platform
 import random
-import sys
 import threading
 import time
 from pathlib import Path
@@ -11,7 +10,11 @@ from pathlib import Path
 import requests
 
 from ultralytics.utils import (
+    ARGV,
     ENVIRONMENT,
+    IS_COLAB,
+    IS_GIT_DIR,
+    IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
     RANK,
@@ -22,9 +25,6 @@ from ultralytics.utils import (
     __version__,
     colorstr,
     get_git_origin_url,
-    is_colab,
-    is_git_dir,
-    is_pip_package,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
@@ -48,7 +48,7 @@ def request_with_credentials(url: str) -> any:
     Raises:
         OSError: If the function is not run in a Google Colab environment.
     """
-    if not is_colab():
+    if not IS_COLAB:
         raise OSError("request_with_credentials() must run in a Colab environment")
     from google.colab import output  # noqa
     from IPython import display  # noqa
@@ -188,8 +188,8 @@ class Events:
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            "cli": Path(sys.argv[0]).name == "yolo",
-            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+            "cli": Path(ARGV[0]).name == "yolo",
+            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
             "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             "version": __version__,
             "env": ENVIRONMENT,
@@ -198,10 +198,10 @@ class Events:
         }
         self.enabled = (
             SETTINGS["sync"]
-            and RANK in (-1, 0)
+            and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
-            and (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+            and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
     def __call__(self, cfg):

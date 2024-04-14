@@ -95,6 +95,7 @@ class Tuner:
             "perspective": (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
+            "bgr": (0.0, 1.0),  # image channel bgr (probability)
             "mosaic": (0.0, 1.0),  # image mixup (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
@@ -217,7 +218,7 @@ class Tuner:
                 for ckpt in weights_dir.glob("*.pt"):
                     shutil.copy2(ckpt, self.tune_dir / "weights")
             elif cleanup:
-                shutil.rmtree(ckpt_file.parent)  # remove iteration weights/ dir to reduce storage space
+                shutil.rmtree(weights_dir, ignore_errors=True)  # remove iteration weights/ dir to reduce storage space
 
             # Plot tune results
             plot_tune_results(self.tune_csv)

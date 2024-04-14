@@ -58,7 +58,7 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
-        MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after the end of the training phase.
+        MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after the end of training.
     """
     global mlflow
 
@@ -108,7 +108,7 @@ def on_train_end(trainer):
         for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
             if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
                 mlflow.log_artifact(str(f))
-        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() in ("true")
+        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
         if keep_run_active:
             LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
         else:

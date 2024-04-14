@@ -28,11 +28,11 @@ class Conv2d_BN(torch.nn.Sequential):
         drop path.
         """
         super().__init__()
-        self.add_module('c', torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
+        self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
         bn = torch.nn.BatchNorm2d(b)
         torch.nn.init.constant_(bn.weight, bn_weight_init)
         torch.nn.init.constant_(bn.bias, 0)
-        self.add_module('bn', bn)
+        self.add_module("bn", bn)
 
 
 class PatchEmbed(nn.Module):
@@ -112,7 +112,7 @@ class PatchMerging(nn.Module):
         self.out_dim = out_dim
         self.act = activation()
         self.conv1 = Conv2d_BN(dim, out_dim, 1, 1, 0)
-        stride_c = 1 if out_dim in [320, 448, 576] else 2
+        stride_c = 1 if out_dim in {320, 448, 576} else 2
         self.conv2 = Conv2d_BN(out_dim, out_dim, 3, stride_c, 1, groups=out_dim)
         self.conv3 = Conv2d_BN(out_dim, out_dim, 1, 1, 0)
 
@@ -146,11 +146,11 @@ class ConvLayer(nn.Module):
         input_resolution,
         depth,
         activation,
-        drop_path=0.,
+        drop_path=0.0,
         downsample=None,
         use_checkpoint=False,
         out_dim=None,
-        conv_expand_ratio=4.,
+        conv_expand_ratio=4.0,
     ):
         """
         Initializes the ConvLayer with the given dimensions and settings.
@@ -173,18 +173,25 @@ class ConvLayer(nn.Module):
         self.use_checkpoint = use_checkpoint
 
         # Build blocks
-        self.blocks = nn.ModuleList([
-            MBConv(
-                dim,
-                dim,
-                conv_expand_ratio,
-                activation,
-                drop_path[i] if isinstance(drop_path, list) else drop_path,
-            ) for i in range(depth)])
+        self.blocks = nn.ModuleList(
+            [
+                MBConv(
+                    dim,
+                    dim,
+                    conv_expand_ratio,
+                    activation,
+                    drop_path[i] if isinstance(drop_path, list) else drop_path,
+                )
+                for i in range(depth)
+            ]
+        )
 
         # Patch merging layer
-        self.downsample = None if downsample is None else downsample(
-            input_resolution, dim=dim, out_dim=out_dim, activation=activation)
+        self.downsample = (
+            None
+            if downsample is None
+            else downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
+        )
 
     def forward(self, x):
         """Processes the input through a series of convolutional layers and returns the activated output."""
@@ -200,7 +207,7 @@ class Mlp(nn.Module):
     This layer takes an input with in_features, applies layer normalization and two fully-connected layers.
     """
 
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.0):
         """Initializes Attention module with the given parameters including dimension, key_dim, number of heads, etc."""
         super().__init__()
         out_features = out_features or in_features
@@ -232,12 +239,12 @@ class Attention(torch.nn.Module):
     """
 
     def __init__(
-            self,
-            dim,
-            key_dim,
-            num_heads=8,
-            attn_ratio=4,
-            resolution=(14, 14),
+        self,
+        dim,
+        key_dim,
+        num_heads=8,
+        attn_ratio=4,
+        resolution=(14, 14),
     ):
         """
         Initializes the Attention module.
@@ -256,7 +263,7 @@ class Attention(torch.nn.Module):
 
         assert isinstance(resolution, tuple) and len(resolution) == 2
         self.num_heads = num_heads
-        self.scale = key_dim ** -0.5
+        self.scale = key_dim**-0.5
         self.key_dim = key_dim
         self.nh_kd = nh_kd = key_dim * num_heads
         self.d = int(attn_ratio * key_dim)
@@ -279,13 +286,13 @@ class Attention(torch.nn.Module):
                     attention_offsets[offset] = len(attention_offsets)
                 idxs.append(attention_offsets[offset])
         self.attention_biases = torch.nn.Parameter(torch.zeros(num_heads, len(attention_offsets)))
-        self.register_buffer('attention_bias_idxs', torch.LongTensor(idxs).view(N, N), persistent=False)
+        self.register_buffer("attention_bias_idxs", torch.LongTensor(idxs).view(N, N), persistent=False)
 
     @torch.no_grad()
     def train(self, mode=True):
         """Sets the module in training mode and handles attribute 'ab' based on the mode."""
         super().train(mode)
-        if mode and hasattr(self, 'ab'):
+        if mode and hasattr(self, "ab"):
             del self.ab
         else:
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
@@ -306,8 +313,9 @@ class Attention(torch.nn.Module):
         v = v.permute(0, 2, 1, 3)
         self.ab = self.ab.to(self.attention_biases.device)
 
-        attn = ((q @ k.transpose(-2, -1)) * self.scale +
-                (self.attention_biases[:, self.attention_bias_idxs] if self.training else self.ab))
+        attn = (q @ k.transpose(-2, -1)) * self.scale + (
+            self.attention_biases[:, self.attention_bias_idxs] if self.training else self.ab
+        )
         attn = attn.softmax(dim=-1)
         x = (attn @ v).transpose(1, 2).reshape(B, N, self.dh)
         return self.proj(x)
@@ -322,9 +330,9 @@ class TinyViTBlock(nn.Module):
         input_resolution,
         num_heads,
         window_size=7,
-        mlp_ratio=4.,
-        drop=0.,
-        drop_path=0.,
+        mlp_ratio=4.0,
+        drop=0.0,
+        drop_path=0.0,
         local_conv_size=3,
         activation=nn.GELU,
     ):
@@ -350,7 +358,7 @@ class TinyViTBlock(nn.Module):
         self.dim = dim
         self.input_resolution = input_resolution
         self.num_heads = num_heads
-        assert window_size > 0, 'window_size must be greater than 0'
+        assert window_size > 0, "window_size must be greater than 0"
         self.window_size = window_size
         self.mlp_ratio = mlp_ratio
 
@@ -358,7 +366,7 @@ class TinyViTBlock(nn.Module):
         # self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.drop_path = nn.Identity()
 
-        assert dim % num_heads == 0, 'dim must be divisible by num_heads'
+        assert dim % num_heads == 0, "dim must be divisible by num_heads"
         head_dim = dim // num_heads
 
         window_resolution = (window_size, window_size)
@@ -377,7 +385,7 @@ class TinyViTBlock(nn.Module):
         """
         H, W = self.input_resolution
         B, L, C = x.shape
-        assert L == H * W, 'input feature has wrong size'
+        assert L == H * W, "input feature has wrong size"
         res_x = x
         if H == self.window_size and W == self.window_size:
             x = self.attn(x)
@@ -394,8 +402,11 @@ class TinyViTBlock(nn.Module):
             nH = pH // self.window_size
             nW = pW // self.window_size
             # Window partition
-            x = x.view(B, nH, self.window_size, nW, self.window_size,
-                       C).transpose(2, 3).reshape(B * nH * nW, self.window_size * self.window_size, C)
+            x = (
+                x.view(B, nH, self.window_size, nW, self.window_size, C)
+                .transpose(2, 3)
+                .reshape(B * nH * nW, self.window_size * self.window_size, C)
+            )
             x = self.attn(x)
             # Window reverse
             x = x.view(B, nH, nW, self.window_size, self.window_size, C).transpose(2, 3).reshape(B, pH, pW, C)
@@ -417,8 +428,10 @@ class TinyViTBlock(nn.Module):
         """Returns a formatted string representing the TinyViTBlock's parameters: dimension, input resolution, number of
         attentions heads, window size, and MLP ratio.
         """
-        return f'dim={self.dim}, input_resolution={self.input_resolution}, num_heads={self.num_heads}, ' \
-               f'window_size={self.window_size}, mlp_ratio={self.mlp_ratio}'
+        return (
+            f"dim={self.dim}, input_resolution={self.input_resolution}, num_heads={self.num_heads}, "
+            f"window_size={self.window_size}, mlp_ratio={self.mlp_ratio}"
+        )
 
 
 class BasicLayer(nn.Module):
@@ -431,9 +444,9 @@ class BasicLayer(nn.Module):
         depth,
         num_heads,
         window_size,
-        mlp_ratio=4.,
-        drop=0.,
-        drop_path=0.,
+        mlp_ratio=4.0,
+        drop=0.0,
+        drop_path=0.0,
         downsample=None,
         use_checkpoint=False,
         local_conv_size=3,
@@ -468,22 +481,29 @@ class BasicLayer(nn.Module):
         self.use_checkpoint = use_checkpoint
 
         # Build blocks
-        self.blocks = nn.ModuleList([
-            TinyViTBlock(
-                dim=dim,
-                input_resolution=input_resolution,
-                num_heads=num_heads,
-                window_size=window_size,
-                mlp_ratio=mlp_ratio,
-                drop=drop,
-                drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path,
-                local_conv_size=local_conv_size,
-                activation=activation,
-            ) for i in range(depth)])
+        self.blocks = nn.ModuleList(
+            [
+                TinyViTBlock(
+                    dim=dim,
+                    input_resolution=input_resolution,
+                    num_heads=num_heads,
+                    window_size=window_size,
+                    mlp_ratio=mlp_ratio,
+                    drop=drop,
+                    drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path,
+                    local_conv_size=local_conv_size,
+                    activation=activation,
+                )
+                for i in range(depth)
+            ]
+        )
 
         # Patch merging layer
-        self.downsample = None if downsample is None else downsample(
-            input_resolution, dim=dim, out_dim=out_dim, activation=activation)
+        self.downsample = (
+            None
+            if downsample is None
+            else downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
+        )
 
     def forward(self, x):
         """Performs forward propagation on the input tensor and returns a normalized tensor."""
@@ -493,7 +513,7 @@ class BasicLayer(nn.Module):
 
     def extra_repr(self) -> str:
         """Returns a string representation of the extra_repr function with the layer's parameters."""
-        return f'dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}'
+        return f"dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}"
 
 
 class LayerNorm2d(nn.Module):
@@ -549,8 +569,8 @@ class TinyViT(nn.Module):
         depths=[2, 2, 6, 2],
         num_heads=[3, 6, 12, 24],
         window_sizes=[7, 7, 14, 7],
-        mlp_ratio=4.,
-        drop_rate=0.,
+        mlp_ratio=4.0,
+        drop_rate=0.0,
         drop_path_rate=0.1,
         use_checkpoint=False,
         mbconv_expand_ratio=4.0,
@@ -564,9 +584,9 @@ class TinyViT(nn.Module):
             img_size (int, optional): The input image size. Defaults to 224.
             in_chans (int, optional): Number of input channels. Defaults to 3.
             num_classes (int, optional): Number of classification classes. Defaults to 1000.
-            embed_dims (List[int], optional): List of embedding dimensions for each layer. Defaults to [96, 192, 384, 768].
+            embed_dims (List[int], optional): List of embedding dimensions per layer. Defaults to [96, 192, 384, 768].
             depths (List[int], optional): List of depths for each layer. Defaults to [2, 2, 6, 2].
-            num_heads (List[int], optional): List of number of attention heads for each layer. Defaults to [3, 6, 12, 24].
+            num_heads (List[int], optional): List of number of attention heads per layer. Defaults to [3, 6, 12, 24].
             window_sizes (List[int], optional): List of window sizes for each layer. Defaults to [7, 7, 14, 7].
             mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension. Defaults to 4.
             drop_rate (float, optional): Dropout rate. Defaults to 0.
@@ -585,10 +605,9 @@ class TinyViT(nn.Module):
 
         activation = nn.GELU
 
-        self.patch_embed = PatchEmbed(in_chans=in_chans,
-                                      embed_dim=embed_dims[0],
-                                      resolution=img_size,
-                                      activation=activation)
+        self.patch_embed = PatchEmbed(
+            in_chans=in_chans, embed_dim=embed_dims[0], resolution=img_size, activation=activation
+        )
 
         patches_resolution = self.patch_embed.patches_resolution
         self.patches_resolution = patches_resolution
@@ -601,27 +620,30 @@ class TinyViT(nn.Module):
         for i_layer in range(self.num_layers):
             kwargs = dict(
                 dim=embed_dims[i_layer],
-                input_resolution=(patches_resolution[0] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer)),
-                                  patches_resolution[1] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer))),
+                input_resolution=(
+                    patches_resolution[0] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer)),
+                    patches_resolution[1] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer)),
+                ),
                 #   input_resolution=(patches_resolution[0] // (2 ** i_layer),
                 #                     patches_resolution[1] // (2 ** i_layer)),
                 depth=depths[i_layer],
-                drop_path=dpr[sum(depths[:i_layer]):sum(depths[:i_layer + 1])],
+                drop_path=dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
                 downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
                 use_checkpoint=use_checkpoint,
-                out_dim=embed_dims[min(i_layer + 1,
-                                       len(embed_dims) - 1)],
+                out_dim=embed_dims[min(i_layer + 1, len(embed_dims) - 1)],
                 activation=activation,
             )
             if i_layer == 0:
                 layer = ConvLayer(conv_expand_ratio=mbconv_expand_ratio, **kwargs)
             else:
-                layer = BasicLayer(num_heads=num_heads[i_layer],
-                                   window_size=window_sizes[i_layer],
-                                   mlp_ratio=self.mlp_ratio,
-                                   drop=drop_rate,
-                                   local_conv_size=local_conv_size,
-                                   **kwargs)
+                layer = BasicLayer(
+                    num_heads=num_heads[i_layer],
+                    window_size=window_sizes[i_layer],
+                    mlp_ratio=self.mlp_ratio,
+                    drop=drop_rate,
+                    local_conv_size=local_conv_size,
+                    **kwargs,
+                )
             self.layers.append(layer)
 
         # Classifier head
@@ -680,7 +702,7 @@ class TinyViT(nn.Module):
         def _check_lr_scale(m):
             """Checks if the learning rate scale attribute is present in module's parameters."""
             for p in m.parameters():
-                assert hasattr(p, 'lr_scale'), p.param_name
+                assert hasattr(p, "lr_scale"), p.param_name
 
         self.apply(_check_lr_scale)
 
@@ -698,7 +720,7 @@ class TinyViT(nn.Module):
     @torch.jit.ignore
     def no_weight_decay_keywords(self):
         """Returns a dictionary of parameter names where weight decay should not be applied."""
-        return {'attention_biases'}
+        return {"attention_biases"}
 
     def forward_features(self, x):
         """Runs the input through the model layers and returns the transformed output."""
@@ -710,7 +732,7 @@ class TinyViT(nn.Module):
         for i in range(start_i, len(self.layers)):
             layer = self.layers[i]
             x = layer(x)
-        B, _, C = x.size()
+        B, _, C = x.shape
         x = x.view(B, 64, 64, C)
         x = x.permute(0, 3, 1, 2)
         return self.neck(x)

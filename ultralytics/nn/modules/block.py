@@ -38,6 +38,7 @@ __all__ = (
     "CBLinear",
     "Silence",
     "C2f2",
+    "C2k2",
     "C3k2",
     "C3k3",
 )
@@ -264,6 +265,14 @@ class C2f2(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+
+class C2k2(C2f2):
+    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(C2(self.c, self.c, 2, shortcut, g) for _ in range(n))
 
 
 class C3k2(C2f2):

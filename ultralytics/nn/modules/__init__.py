@@ -47,6 +47,7 @@ from .block import (
     ResNetLayer,
     Silence,
     C2f2,
+    C2k2,
     C3k2,
     C3k3,
 )
@@ -107,6 +108,7 @@ __all__ = (
     "C3",
     "C2f",
     "C2f2",
+    "C2k2",
     "C3k2",
     "C3k3",
     "C2fAttn",

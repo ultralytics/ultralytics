@@ -39,7 +39,7 @@ pip install ultralytics[explorer]
 Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
 For example:
-In this VOC Exploration dashboard, user selects a couple aeroplane images like this:
+In this VOC Exploration dashboard, user selects a couple airplane images like this:
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3becdc1d-45dc-43b7-88ff-84ff0b443894">
 </p>

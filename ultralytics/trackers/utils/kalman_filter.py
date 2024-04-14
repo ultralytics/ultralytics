@@ -39,8 +39,8 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
-                the new track. Unobserved velocities are initialized to 0 mean.
+            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional)
+                of the new track. Unobserved velocities are initialized to 0 mean.
         """
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
@@ -235,8 +235,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             measurement (ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
 
         Returns:
-            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional) of
-                the new track. Unobserved velocities are initialized to 0 mean.
+            (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional)
+                of the new track. Unobserved velocities are initialized to 0 mean.
         """
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)

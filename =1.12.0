@@ -1,0 +1,8 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Collecting onnx
+  Using cached https://pypi.tuna.tsinghua.edu.cn/packages/49/5f/d8e1a24247f506a77cbe22341c72ca91bea3b468c5d6bca2047d885ea3c6/onnx-1.16.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (15.9 MB)
+Requirement already satisfied: numpy>=1.20 in /home/nan/mySoftware/anaconda3/envs/py10/lib/python3.10/site-packages (from onnx) (1.24.3)
+Collecting protobuf>=3.20.2 (from onnx)
+  Using cached https://pypi.tuna.tsinghua.edu.cn/packages/2c/2a/d2741cad35fa5f06d9c59dda3274e5727ca11075dfd7de3f69c100efdcad/protobuf-5.26.1-cp37-abi3-manylinux2014_x86_64.whl (302 kB)
+Installing collected packages: protobuf, onnx
+Successfully installed onnx-1.16.0 protobuf-5.26.1

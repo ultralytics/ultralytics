@@ -11,22 +11,24 @@ def get_class_ids_remapping(source_classes, target_classes):
     lookup_target_id = {v: k for k, v in target_classes.items()}
     return {
         class_id: lookup_target_id[class_name]
-        for class_id, class_name in source_classes.items() if class_name in lookup_target_id}
+        for class_id, class_name in source_classes.items()
+        if class_name in lookup_target_id
+    }
 
 
 def main():
-    path = 'data/coco'
+    path = "data/coco"
 
     dataset = datasets.CocoDetection(
-        root=f'{path}/val2017',
-        annFile=f'{path}/annotations/instances_val2017.json',
+        root=f"{path}/val2017",
+        annFile=f"{path}/annotations/instances_val2017.json",
     )
-    coco_classes = {cat['id']: cat['name'] for cat in dataset.coco.loadCats(dataset.coco.getCatIds())}
+    coco_classes = {cat["id"]: cat["name"] for cat in dataset.coco.loadCats(dataset.coco.getCatIds())}
 
     # domains = [ef.domains.NoiseVariability, ef.domains.GeometricVariability, ef.domains.ColorVariability]
-    model_names = ['n', 's', 'm', 'l', 'x']
+    model_names = ["n", "s", "m", "l", "x"]
     for model_name in model_names:
-        model = YOLO(f'yolov8{model_name}.pt')
+        model = YOLO(f"yolov8{model_name}.pt")
 
         report = ef.test_robustness(
             dataset=dataset,
@@ -39,8 +41,8 @@ def main():
             # hooks=[ef.hooks.show_sample], # uncomment to see generated samples
         )
 
-        report.plot(f'robustness_report_yolov8{model_name}.pdf')
+        report.plot(f"robustness_report_yolov8{model_name}.pdf")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

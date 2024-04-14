@@ -144,8 +144,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 0.1526                            | 0.0213                        | 0.3279                        |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 0.1576                            | 0.0279                        | 0.3351                        |
 
-- **vulnerability** values are for single-model single-scale on the first 1000 images from [COCO val2017](http://cocodataset.org) dataset. The value represents how vulnerable the model is to different input perturbations and is bound in \[-1,1\] (lower is better).
-  <br>Reproduce by `python examples/robustness_testing.py`
+- **vulnerability** values are for single-model single-scale on the first 1000 images from [COCO val2017](http://cocodataset.org) dataset. The value represents how vulnerable the model is to different input perturbations and is bound in \[-1,1\] (lower is better). <br>Reproduce by `python examples/robustness_testing.py`
 
 </details>
 

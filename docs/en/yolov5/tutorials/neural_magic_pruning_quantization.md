@@ -52,7 +52,7 @@ Sparse networks with compressed computation, executed depth-wise in cache, allow
 
 Neural Magic's open-source model repository, SparseZoo, contains pre-sparsified checkpoints of each YOLOv5 model. Using SparseML, which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/use-cases/object-detection/sparsifying).
+[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/computer-vision/object-detection/).
 
 ## DeepSparse Usage
 

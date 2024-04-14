@@ -118,15 +118,15 @@ jobs:
         run: |
           yolo checks
           pip list
+      - name: Benchmark ClassificationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark YOLOWorld DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
-      - name: Benchmark ClassificationModel
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.280
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
@@ -187,7 +187,8 @@ jobs:
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install mlflow pycocotools 'ray[tune]'
+              # WARNING bug in ray>=2.10.0
+              pip install mlflow pycocotools "ray[tune]<=2.9.3"
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
@@ -221,7 +222,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -239,6 +240,11 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
+      - name: Install Linux packages
+        run: |
+          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba

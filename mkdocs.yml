@@ -240,6 +240,7 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
+          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
@@ -249,6 +250,8 @@ nav:
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
           - Roboflow 100: datasets/detect/roboflow-100.md
+          - Brain-tumor: datasets/detect/brain-tumor.md
+          - African-wildlife: datasets/detect/african-wildlife.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -297,10 +300,12 @@ nav:
       - Conda Quickstart: guides/conda-quickstart.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Raspberry Pi: guides/raspberry-pi.md
+      - NVIDIA Jetson: guides/nvidia-jetson.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -313,6 +318,7 @@ nav:
           - VisionEye Mapping: guides/vision-eye.md
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
+          - Queue Management: guides/queue-management.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -345,8 +351,11 @@ nav:
       - OpenVINO: integrations/openvino.md
       - TensorRT: integrations/tensorrt.md
       - CoreML: integrations/coreml.md
+      - TF SavedModel: integrations/tf-savedmodel.md
+      - TF GraphDef: integrations/tf-graphdef.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
+      - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
       - Comet ML: integrations/comet.md
@@ -487,6 +496,9 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+              - world:
+                  - train: reference/models/yolo/world/train.md
+                  - train_world: reference/models/yolo/world/train_world.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
@@ -501,6 +513,7 @@ nav:
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
+          - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md

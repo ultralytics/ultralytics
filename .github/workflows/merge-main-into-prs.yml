@@ -49,11 +49,11 @@ jobs:
         for pr in open_pulls:
             try:                
                 # Attempt to merge main into the PR branch
-                message = f"Merge 'main' into PR by https://ultralytics.com/actions"
+                message = f"Merge 'main' into PR #{pr.number} by https://ultralytics.com/actions"
                 merge_commit = repo.merge(pr.head.ref, 'main', commit_message=message)
-                print(f'Merged main into {pr.head.ref} successfully.')
+                print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
             except Exception as e:
-                print(f'Could not merge main into {pr.head.ref}: {e}')
+                print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e}")
       env:
         GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}

@@ -640,15 +640,14 @@ class Model(nn.Module):
 
         checks.check_pip_update_available()
 
-        overrides = (
-            # 'model' and 'task' from model loading/creating have higher priority
-            {**yaml_load(checks.check_yaml(kwargs["cfg"])), "model": self.overrides["model"], "task": self.task}
-            if kwargs.get("cfg")
-            else self.overrides
-        )
-        # NOTE: handle the case when 'cfg' includes 'data'.
-        overrides["data"] = overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]
-        args = {**overrides, **kwargs, "mode": "train"}  # highest priority args on the right
+        overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
+        custom = {
+            # NOTE: handle the case when 'cfg' includes 'data'.
+            "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],
+            "model": self.overrides["model"],
+            "task": self.task,
+        }
+        args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 

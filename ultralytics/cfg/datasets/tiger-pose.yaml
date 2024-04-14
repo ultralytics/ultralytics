@@ -1,0 +1,24 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Tiger Pose dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/pose/tiger-pose/
+# Example usage: yolo train data=tiger-pose.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── tiger-pose  ← downloads here (75.3 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/tiger-pose # dataset root dir
+train: train # train images (relative to 'path') 210 images
+val: val # val images (relative to 'path') 53 images
+
+# Keypoints
+kpt_shape: [12, 2] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+flip_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+# Classes
+names:
+  0: tiger
+
+# Download script/URL (optional)
+download: https://ultralytics.com/assets/tiger-pose.zip

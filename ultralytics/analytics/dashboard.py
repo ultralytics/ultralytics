@@ -3,35 +3,35 @@
 # Example usage: yolo dashboard "path/to/custom_data.yaml"
 
 import os
-import cv2
 import sys
 import time
 
-from flask import Flask, render_template, Response, jsonify
+import cv2
+from flask import Flask, Response, jsonify, render_template
 
 from ultralytics.utils import ROOT
-from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.dashboard_utils import Analytics
+from ultralytics.utils.plotting import Annotator
 
 # Application configuration
-app = Flask(__name__, static_url_path='/static')
+app = Flask(__name__, static_url_path="/static")
 app.config["DEBUG"] = True
 
 # Initialize analytics class object
 analytics = Analytics()
 
-success = True             # bool variable for success
-fps = 0                     # store fps
-mode = None                 # store mode name
-in_counts = 0               # store in counts
-out_counts = 0              # store out counts
-start_time = time.time()    # store starting time
-total_detections = 0        # store total detection counts
-yaml_filepath = None        # Path to yaml file
+success = True  # bool variable for success
+fps = 0  # store fps
+mode = None  # store mode name
+in_counts = 0  # store in counts
+out_counts = 0  # store out counts
+start_time = time.time()  # store starting time
+total_detections = 0  # store total detection counts
+yaml_filepath = None  # Path to yaml file
 
 
 def detect_objects():
-    """function for detection, tracking and objects counting"""
+    """Function for detection, tracking and objects counting."""
     global total_detections, fps, in_counts, out_counts, success, start_time, mode
 
     # Load and process YAML file
@@ -55,8 +55,7 @@ def detect_objects():
                     total_detections = analytics.process_results(results, annotator)
 
                 elif mode == "count":
-                    total_detections, in_counts, out_counts = (
-                        analytics.process_results(results, annotator))
+                    total_detections, in_counts, out_counts = analytics.process_results(results, annotator)
 
             else:
                 results = model.predict(im0, show=False)
@@ -68,8 +67,9 @@ def detect_objects():
             start_time = elapsed_time
 
             # Yield frame
-            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
-                   cv2.imencode('.jpg', im0)[1].tobytes() + b'\r\n')
+            yield (
+                b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + cv2.imencode(".jpg", im0)[1].tobytes() + b"\r\n"
+            )
 
         else:
             break
@@ -79,43 +79,41 @@ def detect_objects():
     cv2.destroyAllWindows()
 
 
-@app.route('/detected_frame')
+@app.route("/detected_frame")
 def detected_frame():
-    return Response(detect_objects(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(detect_objects(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
-@app.route('/total_detections')
+@app.route("/total_detections")
 def total_detections_endpoint():
     """
-    Send total detections to webpage
+    Send total detections to webpage.
 
     Returns:
         response_data (json, optional): Return a JSON data
     """
     if success:
-
         response_data = {
-            'status': 'Detection complete',
-            'total_detections': total_detections,
-            'in_counts': in_counts,
-            'out_counts': out_counts,
-            'fps': fps,
-            'mode': mode,
-            'class_wise_dict': analytics.classwise_detections
+            "status": "Detection complete",
+            "total_detections": total_detections,
+            "in_counts": in_counts,
+            "out_counts": out_counts,
+            "fps": fps,
+            "mode": mode,
+            "class_wise_dict": analytics.classwise_detections,
         }
         return jsonify(response_data), 200
     else:
         sys.exit()
 
 
-
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def index():
-    return render_template('dashboard.html')
+    return render_template("dashboard.html")
 
 
-if __name__ == '__main__':
-    """Main function for app start and processing data"""
+if __name__ == "__main__":
+    """Main function for app start and processing data."""
     yaml_filepath = sys.argv[1]
 
     if not os.path.exists(yaml_filepath):

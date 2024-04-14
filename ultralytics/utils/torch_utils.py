@@ -21,8 +21,8 @@ from ultralytics.utils import (
     LOGGER,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
-    colorstr,
     __version__,
+    colorstr,
 )
 from ultralytics.utils.checks import check_version
 

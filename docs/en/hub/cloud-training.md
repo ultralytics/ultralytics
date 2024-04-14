@@ -64,6 +64,17 @@ Once the model and mode of training have been selected, you can monitor the trai
 
 ## Stopping and Resuming Your Training
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/H3qL8ImCSV8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Pause and Resume Model Training Using Ultralytics HUB
+</p>
+
 Once the training has started, you can `Stop` the training, which will also correspondingly pause the credit usage. You can then `Resume` the training from the point where it stopped.
 
 ![Pausing and Resuming Training](https://github.com/ultralytics/ultralytics/assets/19519529/b2707a93-fa5c-4ee2-8443-6be9e1c2857d)

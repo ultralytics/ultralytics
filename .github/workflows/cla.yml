@@ -1,4 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics Contributor License Agreement (CLA) action https://docs.ultralytics.com/help/CLA
+# This workflow automatically requests Pull Requests (PR) authors to sign the Ultralytics CLA before PRs can be merged
 
 name: CLA Assistant
 on:
@@ -21,7 +23,7 @@ jobs:
         uses: contributor-assistant/github-action@v2.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # must be repository secret token
+          # must be repository secret PAT
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: "signatures/version1/cla.json"

@@ -6,8 +6,13 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   schedule:
     - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
@@ -108,22 +113,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
-          # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          yolo export format=tflite imgsz=32 || true
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks
           pip list
-      #      - name: Benchmark DetectionModel
-      #        shell: bash
-      #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
-      - name: Benchmark SegmentationModel
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.281
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
+      - name: Benchmark YOLOWorld DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+      - name: Benchmark SegmentationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.280
       - name: Benchmark PoseModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
@@ -174,7 +177,7 @@ jobs:
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
-          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
@@ -184,7 +187,8 @@ jobs:
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install mlflow pycocotools 'ray[tune]'
+              # WARNING bug in ray>=2.10.0
+              pip install mlflow pycocotools "ray[tune]<=2.9.3"
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
@@ -218,7 +222,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -236,6 +240,11 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
+      - name: Install Linux packages
+        run: |
+          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba
@@ -244,7 +253,8 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0'
+          # CoreML must be installed before export due to protobuf error from AutoInstall
+          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
       - name: Check environment
         run: |
           conda list

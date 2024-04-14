@@ -34,3 +34,7 @@ keywords: Ultralytics, Data Converter, coco91_to_coco80_class, merge_multi_segme
 ## ::: ultralytics.data.converter.merge_multi_segment
 
 <br><br>
+
+## ::: ultralytics.data.converter.yolo_bbox2segment
+
+<br><br>

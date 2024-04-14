@@ -72,7 +72,7 @@ from ultralytics import YOLO
 
 model = YOLO('yolov8n.pt')  # initialize model
 results = model('path/to/image.jpg')  # perform inference
-results.show()  # display results
+results[0].show()  # display results for the first image
 ```
 
 ---

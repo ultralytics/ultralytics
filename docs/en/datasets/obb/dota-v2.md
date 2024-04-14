@@ -68,7 +68,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 ## Split DOTA images
 
-To train DOTA dataset, We split original DOTA images with high-resolution into images with 1024x1024 resolution in multi-scale way.
+To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way.
 
 !!! Example "Split images"
 
@@ -81,14 +81,14 @@ To train DOTA dataset, We split original DOTA images with high-resolution into i
         split_trainval(
             data_root='path/to/DOTAv1.0/',
             save_dir='path/to/DOTAv1.0-split/',
-            rates=[0.5, 1.0, 1.5],    # multi-scale
+            rates=[0.5, 1.0, 1.5],    # multiscale
             gap=500
         )
         # split test set, without labels.
         split_test(
             data_root='path/to/DOTAv1.0/',
             save_dir='path/to/DOTAv1.0-split/',
-            rates=[0.5, 1.0, 1.5],    # multi-scale
+            rates=[0.5, 1.0, 1.5],    # multiscale
             gap=500
         )
         ```
@@ -119,7 +119,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
         ```bash
         # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo detect train data=DOTAv1.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations

@@ -12,7 +12,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -36,7 +36,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 !!! Example "Object Counting using YOLOv8 Example"
 
-    === "Region"
+    === "Count in Region"
 
         ```python
         from ultralytics import YOLO
@@ -62,7 +62,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter.set_args(view_img=True,
                          reg_pts=region_points,
                          classes_names=model.names,
-                         draw_tracks=True)
+                         draw_tracks=True,
+                         line_thickness=2)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -78,8 +79,52 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer.release()
         cv2.destroyAllWindows()
         ```
+    
+    === "Count in Polygon"
 
-    === "Line"
+        ```python
+        from ultralytics import YOLO
+        from ultralytics.solutions import object_counter
+        import cv2
+        
+        model = YOLO("yolov8n.pt")
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        
+        # Define region points as a polygon with 5 points
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
+        
+        # Video writer
+        video_writer = cv2.VideoWriter("object_counting_output.avi",
+                               cv2.VideoWriter_fourcc(*'mp4v'),
+                               fps,
+                               (w, h))
+        
+        # Init Object Counter
+        counter = object_counter.ObjectCounter()
+        counter.set_args(view_img=True,
+                         reg_pts=region_points,
+                         classes_names=model.names,
+                         draw_tracks=True,
+                         line_thickness=2)
+        
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            tracks = model.track(im0, persist=True, show=False)
+        
+            im0 = counter.start_counting(im0, tracks)
+            video_writer.write(im0)
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+    
+    === "Count in Line"
 
         ```python
         from ultralytics import YOLO
@@ -105,7 +150,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter.set_args(view_img=True,
                          reg_pts=line_points,
                          classes_names=model.names,
-                         draw_tracks=True)
+                         draw_tracks=True,
+                         line_thickness=2)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -148,7 +194,8 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter.set_args(view_img=True,
                          reg_pts=line_points,
                          classes_names=model.names,
-                         draw_tracks=True)
+                         draw_tracks=True,
+                         line_thickness=2)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -172,23 +219,22 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name                | Type        | Default                    | Description                                   |
-|---------------------|-------------|----------------------------|-----------------------------------------------|
-| `view_img`            | `bool`      | `False`                    | Display frames with counts                    |
-| `view_in_counts`      | `bool`      | `True`                     | Display incounts only on video frame          |
-| `view_out_counts`     | `bool`      | `True`                     | Display outcounts only on video frame         |
-| `line_thickness`      | `int`       | `2`                        | Increase bounding boxes thickness             |
-| `reg_pts`             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area               |
-| `classes_names`       | `dict`      | `model.model.names`        | Dictionary of Class Names                     |
-| `region_color`        | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line   |
-| `track_thickness`     | `int`       | `2`                        | Thickness of Tracking Lines                   |
-| `draw_tracks`         | `bool`      | `False`                    | Enable drawing Track lines                    |
-| `track_color`         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                     |
-| `line_dist_thresh`    | `int`       | `15`                       | Euclidean Distance threshold for line counter |
-| `count_txt_thickness` | `int`       | `2`                        | Thickness of Object counts text               |
-| `count_txt_color`     | `RGB Color` | `(0, 0, 0)`                | Foreground color for Object counts text       |
-| `count_color`         | `RGB Color` | `(255, 255, 255)`          | Background color for Object counts text       |
-| `region_thickness`    | `int`       | `5`                        | Thickness for object counter region or line   |
+| Name                  | Type        | Default                    | Description                                      |
+|-----------------------|-------------|----------------------------|--------------------------------------------------|
+| `view_img`            | `bool`      | `False`                    | Display frames with counts                       |
+| `view_in_counts`      | `bool`      | `True`                     | Display in-counts only on video frame            |
+| `view_out_counts`     | `bool`      | `True`                     | Display out-counts only on video frame           |
+| `line_thickness`      | `int`       | `2`                        | Increase bounding boxes and count text thickness |
+| `reg_pts`             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area                  |
+| `classes_names`       | `dict`      | `model.model.names`        | Dictionary of Class Names                        |
+| `count_reg_color`     | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line      |
+| `track_thickness`     | `int`       | `2`                        | Thickness of Tracking Lines                      |
+| `draw_tracks`         | `bool`      | `False`                    | Enable drawing Track lines                       |
+| `track_color`         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                        |
+| `line_dist_thresh`    | `int`       | `15`                       | Euclidean Distance threshold for line counter    |
+| `count_txt_color`     | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text          |
+| `region_thickness`    | `int`       | `5`                        | Thickness for object counter region or line      |
+| `count_bg_color`      | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                          |
 
 ### Arguments `model.track`
 

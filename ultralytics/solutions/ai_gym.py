@@ -46,14 +46,15 @@ class AIGym:
         pose_type="pullup",
     ):
         """
-        Configures the AIGym line_thickness, save image and view image parameters
+        Configures the AIGym line_thickness, save image and view image parameters.
+
         Args:
             kpts_to_check (list): 3 keypoints for counting
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): display the im0
             pose_up_angle (float): Angle to set pose position up
             pose_down_angle (float): Angle to set pose position down
-            pose_type: "pushup", "pullup" or "abworkout"
+            pose_type (str): "pushup", "pullup" or "abworkout"
         """
         self.kpts_to_check = kpts_to_check
         self.tf = line_thickness
@@ -64,11 +65,12 @@ class AIGym:
 
     def start_counting(self, im0, results, frame_count):
         """
-        Function used to count the gym steps
+        Function used to count the gym steps.
+
         Args:
             im0 (ndarray): Current frame from the video stream.
-            results: Pose estimation data
-            frame_count: store current frame count
+            results (list): Pose estimation data
+            frame_count (int): store current frame count
         """
         self.im0 = im0
         if frame_count == 1:
@@ -78,16 +80,8 @@ class AIGym:
         self.keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=2)
 
-        num_keypoints = len(results[0])
-
-        # Resize self.angle, self.count, and self.stage if the number of keypoints has changed
-        if len(self.angle) != num_keypoints:
-            self.angle = [0] * num_keypoints
-            self.count = [0] * num_keypoints
-            self.stage = ["-" for _ in range(num_keypoints)]
-
         for ind, k in enumerate(reversed(self.keypoints)):
-            if self.pose_type in ["pushup", "pullup"]:
+            if self.pose_type in {"pushup", "pullup"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
                     k[int(self.kpts_to_check[0])].cpu(),
                     k[int(self.kpts_to_check[1])].cpu(),

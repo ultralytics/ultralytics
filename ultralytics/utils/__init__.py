@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import importlib.metadata
 import inspect
 import logging.config
 import os
@@ -9,6 +10,7 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import urllib
 import uuid
 from pathlib import Path
@@ -29,6 +31,7 @@ RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
 
 # Other Constants
+ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
@@ -39,7 +42,9 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
-ARM64 = platform.machine() in ("arm64", "aarch64")  # ARM64 booleans
+ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
+PYTHON_VERSION = platform.python_version()
+TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
     Usage examples for running YOLOv8:
 
@@ -112,12 +117,15 @@ class TQDM(tqdm_original):
 
     Args:
         *args (list): Positional arguments passed to original tqdm.
-        **kwargs (dict): Keyword arguments, with custom defaults applied.
+        **kwargs (any): Keyword arguments, with custom defaults applied.
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize custom Ultralytics tqdm class with different default arguments."""
-        # Set new default values (these can still be overridden when calling TQDM)
+        """
+        Initialize custom Ultralytics tqdm class with different default arguments.
+
+        Note these can still be overridden when calling TQDM.
+        """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
@@ -208,7 +216,7 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            if backend != original_backend:
+            if backend.lower() != original_backend.lower():
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
@@ -225,37 +233,42 @@ def plt_settings(rcparams=None, backend="Agg"):
     return decorator
 
 
-def set_logging(name=LOGGING_NAME, verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support."""
+def set_logging(name="LOGGING_NAME", verbose=True):
+    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
+    environments.
+    """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
-    # Configure the console (stdout) encoding to UTF-8
+    # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
     formatter = logging.Formatter("%(message)s")  # Default formatter
-    if WINDOWS and sys.stdout.encoding != "utf-8":
+    if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
+
+        class CustomFormatter(logging.Formatter):
+            def format(self, record):
+                """Sets up logging with UTF-8 encoding and configurable verbosity."""
+                return emojis(super().format(record))
+
         try:
+            # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
                 sys.stdout.reconfigure(encoding="utf-8")
+            # For environments where reconfigure is not available, wrap stdout in a TextIOWrapper
             elif hasattr(sys.stdout, "buffer"):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
             else:
-                sys.stdout.encoding = "utf-8"
+                formatter = CustomFormatter("%(message)s")
         except Exception as e:
             print(f"Creating custom formatter for non UTF-8 environments due to {e}")
+            formatter = CustomFormatter("%(message)s")
 
-            class CustomFormatter(logging.Formatter):
-                def format(self, record):
-                    """Sets up logging with UTF-8 encoding and configurable verbosity."""
-                    return emojis(super().format(record))
-
-            formatter = CustomFormatter("%(message)s")  # Use CustomFormatter to eliminate UTF-8 output as last recourse
-
-    # Create and configure the StreamHandler
+    # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
+    # Set up the logger
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
@@ -354,7 +367,7 @@ def yaml_load(file="data.yaml", append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
-    assert Path(file).suffix in (".yaml", ".yml"), f"Attempting to load non-YAML file {file} with yaml_load()"
+    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
@@ -377,7 +390,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
     Returns:
-        None
+        (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
     dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
@@ -391,6 +404,20 @@ for k, v in DEFAULT_CFG_DICT.items():
         DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
+
+
+def read_device_model() -> str:
+    """
+    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
+    is_raspberrypi().
+
+    Returns:
+        (str): Model file contents if read successfully or empty string otherwise.
+    """
+    with contextlib.suppress(Exception):
+        with open("/proc/device-tree/model") as f:
+            return f.read()
+    return ""
 
 
 def is_ubuntu() -> bool:
@@ -447,12 +474,31 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
-    file = Path("/proc/self/cgroup")
-    if file.exists():
-        with open(file) as f:
+    with contextlib.suppress(Exception):
+        with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    else:
-        return False
+    return False
+
+
+def is_raspberrypi() -> bool:
+    """
+    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+
+    Returns:
+        (bool): True if running on a Raspberry Pi, False otherwise.
+    """
+    return "Raspberry Pi" in PROC_DEVICE_MODEL
+
+
+def is_jetson() -> bool:
+    """
+    Determines if the Python environment is running on a Jetson Nano or Jetson Orin device by checking the device model
+    information.
+
+    Returns:
+        (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
+    """
+    return "NVIDIA" in PROC_DEVICE_MODEL  # i.e. "NVIDIA Jetson Nano" or "NVIDIA Orin NX"
 
 
 def is_online() -> bool:
@@ -462,21 +508,13 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    import socket
+    with contextlib.suppress(Exception):
+        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
+        import socket
 
-    for host in "1.1.1.1", "8.8.8.8", "223.5.5.5":  # Cloudflare, Google, AliDNS:
-        try:
-            test_connection = socket.create_connection(address=(host, 53), timeout=2)
-        except (socket.timeout, socket.gaierror, OSError):
-            continue
-        else:
-            # If the connection was successful, close it to avoid a ResourceWarning
-            test_connection.close()
-            return True
+        socket.create_connection(address=("1.1.1.1", 80), timeout=1.0).close()  # check Cloudflare DNS
+        return True
     return False
-
-
-ONLINE = is_online()
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -518,7 +556,7 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(sys.argv[0]).stem)
+    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(ARGV[0]).stem)
 
 
 def is_github_action_running() -> bool:
@@ -529,17 +567,6 @@ def is_github_action_running() -> bool:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
-
-
-def is_git_dir():
-    """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
-    repository, returns None.
-
-    Returns:
-        (bool): True if current file is part of a git repository.
-    """
-    return get_git_dir() is not None
 
 
 def get_git_dir():
@@ -555,6 +582,17 @@ def get_git_dir():
             return d
 
 
+def is_git_dir():
+    """
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
+
+    Returns:
+        (bool): True if current file is part of a git repository.
+    """
+    return GIT_DIR is not None
+
+
 def get_git_origin_url():
     """
     Retrieves the origin URL of a git repository.
@@ -562,7 +600,7 @@ def get_git_origin_url():
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
     """
-    if is_git_dir():
+    if IS_GIT_DIR:
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
@@ -575,7 +613,7 @@ def get_git_branch():
     Returns:
         (str | None): The current git branch name or None if not a git directory.
     """
-    if is_git_dir():
+    if IS_GIT_DIR:
         with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
@@ -610,7 +648,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Get the user config directory.
+    Return the appropriate config directory based on the environment operating system.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -618,7 +656,6 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     Returns:
         (Path): The path to the user config directory.
     """
-    # Return the appropriate config directory for each operating system
     if WINDOWS:
         path = Path.home() / "AppData" / "Roaming" / sub_dir
     elif MACOS:  # macOS
@@ -642,6 +679,18 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     return path
 
 
+# Define constants (required below)
+PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+ONLINE = is_online()
+IS_COLAB = is_colab()
+IS_DOCKER = is_docker()
+IS_JETSON = is_jetson()
+IS_JUPYTER = is_jupyter()
+IS_KAGGLE = is_kaggle()
+IS_PIP_PACKAGE = is_pip_package()
+IS_RASPBERRYPI = is_raspberrypi()
+GIT_DIR = get_git_dir()
+IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
@@ -671,8 +720,8 @@ def colorstr(*input):
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
 
     Examples:
-        >>> colorstr('blue', 'bold', 'hello world')
-        >>> '\033[34m\033[1mhello world\033[0m'
+        >>> colorstr("blue", "bold", "hello world")
+        >>> "\033[34m\033[1mhello world\033[0m"
     """
     *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {
@@ -719,9 +768,19 @@ def remove_colorstr(input_string):
 
 class TryExcept(contextlib.ContextDecorator):
     """
-    YOLOv8 TryExcept class.
+    Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
 
-    Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    Examples:
+        As a decorator:
+        >>> @TryExcept(msg="Error occurred in func", verbose=True)
+        >>> def func():
+        >>>    # Function logic here
+        >>>     pass
+
+        As a context manager:
+        >>> with TryExcept(msg="Error occurred in block", verbose=True):
+        >>>     # Code block here
+        >>>     pass
     """
 
     def __init__(self, msg="", verbose=True):
@@ -738,6 +797,65 @@ class TryExcept(contextlib.ContextDecorator):
         if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
+
+
+class Retry(contextlib.ContextDecorator):
+    """
+    Retry class for function execution with exponential backoff.
+
+    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
+    specified number of times with an exponentially increasing delay between retries.
+
+    Examples:
+        Example usage as a decorator:
+        >>> @Retry(times=3, delay=2)
+        >>> def test_func():
+        >>>     # Replace with function logic that may raise exceptions
+        >>>     return True
+
+        Example usage as a context manager:
+        >>> with Retry(times=3, delay=2):
+        >>>     # Replace with code block that may raise exceptions
+        >>>     pass
+    """
+
+    def __init__(self, times=3, delay=2):
+        """Initialize Retry class with specified number of retries and delay."""
+        self.times = times
+        self.delay = delay
+        self._attempts = 0
+
+    def __call__(self, func):
+        """Decorator implementation for Retry with exponential backoff."""
+
+        def wrapped_func(*args, **kwargs):
+            """Applies retries to the decorated function or method."""
+            self._attempts = 0
+            while self._attempts < self.times:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    self._attempts += 1
+                    print(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    if self._attempts >= self.times:
+                        raise e
+                    time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
+
+        return wrapped_func
+
+    def __enter__(self):
+        """Enter the runtime context related to this object."""
+        self._attempts = 0
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context related to this object with exponential backoff."""
+        if exc_type is not None:
+            self._attempts += 1
+            if self._attempts < self.times:
+                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
+                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
+                return True  # Suppresses the exception and retries
+        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):
@@ -793,25 +911,25 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, tb = hint["exc_info"]
-            if exc_type in (KeyboardInterrupt, FileNotFoundError) or "out of memory" in str(exc_value):
+            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
         event["tags"] = {
-            "sys_argv": sys.argv[0],
-            "sys_argv_name": Path(sys.argv[0]).name,
-            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+            "sys_argv": ARGV[0],
+            "sys_argv_name": Path(ARGV[0]).name,
+            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
 
     if (
         SETTINGS["sync"]
-        and RANK in (-1, 0)
-        and Path(sys.argv[0]).name == "yolo"
+        and RANK in {-1, 0}
+        and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE
-        and is_pip_package()
-        and not is_git_dir()
+        and IS_PIP_PACKAGE
+        and not IS_GIT_DIR
     ):
         # If sentry_sdk package is not installed then return and do not use Sentry
         try:
@@ -850,9 +968,8 @@ class SettingsManager(dict):
         from ultralytics.utils.checks import check_version
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        git_dir = get_git_dir()
-        root = git_dir or Path()
-        datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT_DIR or Path()
+        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version
@@ -886,14 +1003,24 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self["settings_version"], self.version)
+            help_msg = (
+                f"\nView settings with 'yolo settings' or at '{self.file}'"
+                "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+                "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
+            )
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    "with your settings or a recent ultralytics package update. "
-                    f"\nView settings with 'yolo settings' or at '{self.file}'"
-                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'."
+                    f"with your settings or a recent ultralytics package update. {help_msg}"
                 )
                 self.reset()
+
+            if self.get("datasets_dir") == self.get("runs_dir"):
+                LOGGER.warning(
+                    f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                    f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
+                    f"Please change one to avoid possible issues during training. {help_msg}"
+                )
 
     def load(self):
         """Loads settings from the YAML file."""
@@ -946,13 +1073,13 @@ WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
 ENVIRONMENT = (
     "Colab"
-    if is_colab()
+    if IS_COLAB
     else "Kaggle"
-    if is_kaggle()
+    if IS_KAGGLE
     else "Jupyter"
-    if is_jupyter()
+    if IS_JUPYTER
     else "Docker"
-    if is_docker()
+    if IS_DOCKER
     else platform.system()
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()

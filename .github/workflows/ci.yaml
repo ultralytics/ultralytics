@@ -6,30 +6,35 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   schedule:
-    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
     inputs:
       hub:
-        description: 'Run HUB'
+        description: "Run HUB"
         default: false
         type: boolean
       benchmarks:
-        description: 'Run Benchmarks'
+        description: "Run Benchmarks"
         default: false
         type: boolean
       tests:
-        description: 'Run Tests'
+        description: "Run Tests"
         default: false
         type: boolean
       gpu:
-        description: 'Run GPU'
+        description: "Run GPU"
         default: false
         type: boolean
       conda:
-        description: 'Run Conda'
+        description: "Run Conda"
         default: false
         type: boolean
 
@@ -41,15 +46,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
@@ -94,45 +99,46 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
+        os: [ubuntu-latest, macos-14]
+        python-version: ["3.11"]
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # Fix SavedModel issue "partially initialized module 'jax' has no attribute 'version' (most likely due to a circular import)" in https://github.com/google/jax/discussions/14036
-          # pip install -U 'jax!=0.4.15' 'jaxlib!=0.4.15'
-          yolo export format=tflite imgsz=32 || true
+          # yolo export format=tflite imgsz=32 || true
       - name: Check environment
         run: |
           yolo checks
           pip list
-      #      - name: Benchmark DetectionModel
-      #        shell: bash
-      #        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.318
-      - name: Benchmark SegmentationModel
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.286
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
+      - name: Benchmark YOLOWorld DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+      - name: Benchmark SegmentationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.280
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.183
+      - name: Benchmark OBBModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Benchmarks
         env:
@@ -149,44 +155,46 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
+        os: [ubuntu-latest, macos-14]
+        python-version: ["3.11"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: '3.8'  # torch 1.8.0 requires python >=3.6, <=3.8
-            torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
+            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
+            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - name: Install requirements
-        shell: bash  # for Windows compatibility
-        run: |  # CoreML must be installed before export due to protobuf error from AutoInstall
+        shell: bash # for Windows compatibility
+        run: |
+          # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
-          pip install -e . $torch pytest-cov "coremltools>=7.0" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
           pip list
       - name: Pytest tests
-        shell: bash  # for Windows compatibility
+        shell: bash # for Windows compatibility
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install mlflow pycocotools 'ray[tune]'
+              # WARNING bug in ray>=2.10.0
+              pip install mlflow pycocotools "ray[tune]<=2.9.3"
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: Tests
         env:
@@ -207,20 +215,20 @@ jobs:
       - name: Pytest tests
         run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: GPU
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule_disabled' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
+        python-version: ["3.11"]
     defaults:
       run:
         shell: bash -el {0}
@@ -232,6 +240,11 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
+      - name: Install Linux packages
+        run: |
+          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0
       - name: Install Libmamba
         run: |
           conda config --set solver libmamba
@@ -240,7 +253,8 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          pip install pytest 'coremltools>=7.0'
+          # CoreML must be installed before export due to protobuf error from AutoInstall
+          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
       - name: Check environment
         run: |
           conda list
@@ -272,7 +286,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}

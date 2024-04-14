@@ -14,3 +14,7 @@ keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, 
 ## ::: ultralytics.models.yolo.model.YOLO
 
 <br><br>
+
+## ::: ultralytics.models.yolo.model.YOLOWorld
+
+<br><br>

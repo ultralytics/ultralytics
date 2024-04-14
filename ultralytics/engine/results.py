@@ -14,7 +14,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box, determine_color
+from ultralytics.utils.plotting import Annotator, colors, determine_color, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 

@@ -1,0 +1,120 @@
+/* Ultralytics YOLO 🚀, AGPL-3.0 license */
+/* Documentation: https://docs.ultralytics.com/analytics/index.md*/
+/* Example usage: yolo dashboard "path/to/custom_data.yaml"*/
+
+body
+{
+    font-family: Archivo, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #111F68;
+}
+
+
+.main-container
+{
+    display: flex;
+    justify-content: space-between;
+    margin: 15px auto;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: #F3F3F3;
+    width: 95%;
+}
+
+img
+{
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.logo-img
+{
+    width: 15%;
+    margin: 0 auto; /* Horizontally center the div */
+    text-align: center;
+}
+
+.logo-img img
+{
+    display: block; /* Ensure the image is treated as a block element */
+}
+
+#inference-and-classwise-div
+{
+    width: 33%;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#analytics-and-ultralytics-div
+{
+    width: 66%;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stats-display
+{
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 10px;
+}
+
+.line-graph-div
+{
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px;
+    width: 90%;
+}
+
+.analytics-display-div
+{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+}
+
+h1
+{
+    text-align: center;
+    color: white;
+}
+
+h2, h3, h4
+{
+    text-align: center;
+    color: #111F68;
+    margin-bottom: 10px;
+}
+
+#dash-version
+{
+    color: white;
+}
+
+.text-display
+{
+    text-align: center;
+    font-size: 18px;
+    color: black;
+    margin-bottom: 10px;
+}
+
+
+.analytics-display-div .stats-display
+{
+    width: calc(50% - 20px);
+}

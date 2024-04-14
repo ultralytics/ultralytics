@@ -414,6 +414,17 @@ def handle_explorer():
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
 
 
+def handle_dashboard(yaml_filepath=ROOT / "cfg/analytics/dashboard.yaml"):
+    """
+    Open the Ultralytics Dashboard.
+
+    Args:
+        yaml_filepath (str): dashboard configuration YAML path
+    """
+    LOGGER.info("Ultralytics dashboard ... 😍")
+    subprocess.run(["python", ROOT / "analytics/dashboard.py", yaml_filepath])
+
+
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
     k, v = pair.split("=", 1)  # split on first '=' sign
@@ -467,6 +478,7 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(),
+        "dashboard": lambda: handle_dashboard(args[1]) if len(args) > 1 else handle_dashboard(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

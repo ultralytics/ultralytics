@@ -174,9 +174,11 @@ nav:
           - models/index.md
       - Datasets:
           - datasets/index.md
+      - NEW 🚀 Analytics:
+          - analytics/index.md
       - Guides:
           - guides/index.md
-      - NEW 🚀 Explorer:
+      - Explorer:
           - datasets/explorer/index.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
@@ -282,11 +284,13 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - NEW 🚀 Explorer:
+  - Explorer:
       - datasets/explorer/index.md
       - Explorer API: datasets/explorer/api.md
       - Explorer Dashboard Demo: datasets/explorer/dashboard.md
       - VOC Exploration Example: datasets/explorer/explorer.ipynb
+  - NEW 🚀 Analytics:
+      - analytics/index.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -515,6 +519,8 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+      - analytics:
+          - dashboard: reference/analytics/index.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

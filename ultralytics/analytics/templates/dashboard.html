@@ -1,0 +1,114 @@
+<!-- Ultralytics YOLO 🚀, AGPL-3.0 license-->
+<!-- Documentation: https://docs.ultralytics.com/analytics/index.md-->
+<!-- Example usage: yolo dashboard "path/to/custom_data.yaml"-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ultralytics Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <h1>Ultralytics Analytics Dashboard</h1>
+
+    <h4 id="dash-version">Beta (v0.1)</h4>
+
+    <div class="main-container">
+
+        <!-- Div for Inference and bargraph -->
+        <div id="inference-and-classwise-div">
+
+            <h2>Inference</h2>
+            <img src="{{ url_for('detected_frame') }}" alt="Detected Frame">
+
+            <!-- Display Classwise Detections -->
+            <div class="info-section-line-graph">
+                <h3>Class-wise Detections</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+
+        </div>
+
+        <!-- Second Div for Analytics -->
+        <div id="analytics-and-ultralytics-div">
+
+            <h2>Analytics</h2>
+
+            <div class="line-graph-div">
+
+                <h3>Average Objects x Time</h3>
+                <canvas id="lineChart"></canvas>
+
+            </div>
+
+            <div class="analytics-display-div">
+
+                <div class="stats-display">
+
+                    <h3>Average Objects</h3>
+                    <div class="text-display" id="detectionCount"></div>
+
+                </div>
+
+                <div class="stats-display">
+
+                    <h3>In Counts</h3>
+                    <div class="text-display" id="incounts"></div>
+
+                </div>
+
+                <div class="stats-display">
+
+                    <h3>Out Counts</h3>
+                    <div class="text-display" id="outcounts"></div>
+
+                </div>
+
+            </div>
+
+            <div class="analytics-display-div">
+
+                <div class="stats-display">
+
+                    <h3>FPS</h3>
+                    <div class="text-display" id="fps"></div>
+
+                </div>
+
+                <div class="stats-display">
+
+                    <h3>Mode</h3>
+                    <div class="text-display" id="mode"></div>
+
+                </div>
+
+                <div class="stats-display">
+
+                    <h3>Ultralytics</h3>
+                    <div class="logo-img">
+                        <img src="{{ url_for('static', filename='images/ultralytics.jpg') }}" alt="">
+                    </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

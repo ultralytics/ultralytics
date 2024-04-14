@@ -1,0 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Documentation: https://docs.ultralytics.com/analytics/index.md
+# Example usage: yolo dashboard "path/to/custom_data.yaml"
+
+mode: predict             # supported modes predict, count, track
+model: "yolov8n.pt"       # supported models yolov8s, yolov8m, yolov8l
+video_path: ""            # path to video file
+region_points: "[(20, 400), (1080, 404), (1080, 360), (20, 360)]"   # only supported for object counting

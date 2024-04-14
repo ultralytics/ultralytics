@@ -227,7 +227,7 @@ Here are some examples of what you can do with the table:
     print(embeddings)
     ```
 
-### Advanced Querying with pre and post filters
+### Advanced Querying with pre- and post-filters
 
 !!! Example
 

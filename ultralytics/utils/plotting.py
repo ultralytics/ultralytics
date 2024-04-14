@@ -13,8 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-
-
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
@@ -242,7 +240,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres = 0.25):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25):
         """
         Plot keypoints on the image.
 
@@ -492,7 +490,7 @@ class Annotator:
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2, conf_thres = 0.25):
+    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2, conf_thres=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
@@ -877,7 +875,7 @@ def plot_images(
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
                     if labels or conf[j] > conf_thres:
-                        annotator.kpts(kpts_[j], conf_thres = conf_thres)
+                        annotator.kpts(kpts_[j], conf_thres=conf_thres)
 
             # Plot masks
             if len(masks):

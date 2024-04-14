@@ -11,7 +11,7 @@ on:
 
 jobs:
   Merge:
-    if: github.repository == 'glenn-jocher/ultralytics'
+    if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
 
     steps:

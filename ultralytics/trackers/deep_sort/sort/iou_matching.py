@@ -2,7 +2,9 @@
 # Default Deepsort tracker settings available at https://github.com/nwojke/deep_sort
 
 from __future__ import absolute_import
+
 import numpy as np
+
 from . import linear_assignment
 
 

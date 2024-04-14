@@ -5,10 +5,9 @@ import numpy as np
 import torch
 
 from .deep.feature_extractor import Extractor
-from .sort.nn_matching import NearestNeighborDistanceMetric
 from .sort.detection import Detection
+from .sort.nn_matching import NearestNeighborDistanceMetric
 from .sort.tracker import Tracker
-
 
 __all__ = ["DeepSort"]
 

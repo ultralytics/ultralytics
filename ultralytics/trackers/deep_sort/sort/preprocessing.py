@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default Deepsort tracker settings available at https://github.com/nwojke/deep_sort
 
-import numpy as np
 import cv2
+import numpy as np
 
 
 def non_max_suppression(boxes, max_bbox_overlap, scores=None):

@@ -2,10 +2,10 @@
 # Default Deepsort tracker settings available at https://github.com/nwojke/deep_sort
 
 from __future__ import absolute_import
+
 import numpy as np
-from . import kalman_filter
-from . import linear_assignment
-from . import iou_matching
+
+from . import iou_matching, kalman_filter, linear_assignment
 from .track import Track
 
 

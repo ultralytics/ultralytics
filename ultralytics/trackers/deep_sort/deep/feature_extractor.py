@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default Deepsort tracker settings available at https://github.com/nwojke/deep_sort
 
+import logging
+
+import cv2
+import numpy as np
 import torch
 import torchvision.transforms as transforms
-import numpy as np
-import cv2
-import logging
 
 from .model import Net
 

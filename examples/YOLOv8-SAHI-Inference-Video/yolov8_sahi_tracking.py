@@ -1,22 +1,23 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import os
-import cv2
 import argparse
-import numpy as np
+import os
 from pathlib import Path
 
-from ultralytics.utils.files import increment_path
-from ultralytics.utils.plotting import Annotator
-from ultralytics.utils.downloads import download
-from ultralytics.utils.ops import xyxy2xywh
+import cv2
+import numpy as np
+
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.downloads import download
+from ultralytics.utils.files import increment_path
+from ultralytics.utils.ops import xyxy2xywh
+from ultralytics.utils.plotting import Annotator
 
 check_requirements("easydict")
-from ultralytics.trackers.deep_sort import DeepSort
-
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
 from sahi.utils.yolov8 import download_yolov8s_model
+
+from ultralytics.trackers.deep_sort import DeepSort
 
 
 def run(

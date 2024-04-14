@@ -40,9 +40,10 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 
 <p align="center"><img width="428" src="https://user-images.githubusercontent.com/26833433/112467037-d2568c00-8d66-11eb-8796-55402ac0d62f.png" alt="Example label file"></p>
 
-When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the example below.
+When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
-<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png" alt="Example dataset directory structure"></p>
+<p align="center"><img width="800" src="https://github.com/IvorZhu331/ultralytics/assets/26833433/a55ec82d-2bb5-40f9-ac5c-f935e7eb9f07" alt="Example dataset directory structure"></p>
+
 
 ## Usage
 
@@ -74,6 +75,7 @@ Here is a list of the supported datasets and a brief description for each:
 
 - [**Argoverse**](argoverse.md): A collection of sensor data collected from autonomous vehicles. It contains 3D tracking annotations for car objects.
 - [**COCO**](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [**LVIS**](lvis.md): LVIS is a large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [**COCO8**](coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
 - [**GlobalWheat2020**](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [**Objects365**](objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.

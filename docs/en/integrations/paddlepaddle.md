@@ -16,7 +16,7 @@ The ability to export to PaddlePaddle model format allows you to optimize your [
   <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png?raw=true" alt="PaddlePaddle Logo">
 </p>
 
-Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source deep learning platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.  
+Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source deep learning platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
 
 It offers tools and resources similar to popular frameworks like TensorFlow and PyTorch, making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 
@@ -26,11 +26,11 @@ By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap 
 
 PaddlePaddle models offer a range of key features that contribute to their flexibility, performance, and scalability across diverse deployment scenarios:
 
- - **Dynamic-to-Static Graph**: PaddlePaddle supports [dynamic-to-static compilation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/jit/index_en.html), where models can be translated into a static computational graph. This enables optimizations that reduce runtime overhead and boost inference performance.
+- **Dynamic-to-Static Graph**: PaddlePaddle supports [dynamic-to-static compilation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/jit/index_en.html), where models can be translated into a static computational graph. This enables optimizations that reduce runtime overhead and boost inference performance.
 
- - **Operator Fusion**: PaddlePaddle, like TensorRT, uses [operator fusion](https://developer.nvidia.com/gtc/2020/video/s21436-vid) to streamline computation and reduce overhead. The framework minimizes memory transfers and computational steps by merging compatible operations, resulting in faster inference.
+- **Operator Fusion**: PaddlePaddle, like TensorRT, uses [operator fusion](https://developer.nvidia.com/gtc/2020/video/s21436-vid) to streamline computation and reduce overhead. The framework minimizes memory transfers and computational steps by merging compatible operations, resulting in faster inference.
 
- - **Quantization**: PaddlePaddle supports [quantization techniques](https://www.paddlepaddle.org.cn/documentation/docs/en/api/paddle/quantization/PTQ_en.html), including post-training quantization and quantization-aware training. These techniques allow for the use of lower-precision data representations, effectively boosting performance and reducing model size.
+- **Quantization**: PaddlePaddle supports [quantization techniques](https://www.paddlepaddle.org.cn/documentation/docs/en/api/paddle/quantization/PTQ_en.html), including post-training quantization and quantization-aware training. These techniques allow for the use of lower-precision data representations, effectively boosting performance and reducing model size.
 
 ## Deployment Options in PaddlePaddle
 
@@ -103,7 +103,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLOv8 PaddlePaddle Models
 
-After successfully exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("./model_paddle_model") method, as outlined in the previous usage code snippet. 
+After successfully exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("./model_paddle_model") method, as outlined in the previous usage code snippet.
 
 However, for in-depth instructions on deploying your PaddlePaddle models in various other settings, take a look at the following resources:
 

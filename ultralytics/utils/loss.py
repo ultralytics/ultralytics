@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
@@ -157,7 +158,7 @@ class v8DetectionLoss:
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
-        self.no = m.no
+        self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
 

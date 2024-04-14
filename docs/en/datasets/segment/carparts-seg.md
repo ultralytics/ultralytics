@@ -10,6 +10,17 @@ The [Roboflow](https://roboflow.com/?ref=ultralytics) [Carparts Segmentation Dat
 
 Whether you're working on automotive research, developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing accuracy and efficiency in your projects.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eHuzCNZeu0g"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Carparts Instance Segmentation Using Ultralytics HUB
+</p>
+
 ## Dataset Structure
 
 The data distribution within the Carparts Segmentation Dataset is organized as outlined below:

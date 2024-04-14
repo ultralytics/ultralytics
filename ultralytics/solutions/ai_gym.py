@@ -81,7 +81,7 @@ class AIGym:
         self.annotator = Annotator(im0, line_width=2)
 
         for ind, k in enumerate(reversed(self.keypoints)):
-            if self.pose_type in ["pushup", "pullup"]:
+            if self.pose_type in {"pushup", "pullup"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
                     k[int(self.kpts_to_check[0])].cpu(),
                     k[int(self.kpts_to_check[1])].cpu(),

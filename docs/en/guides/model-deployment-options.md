@@ -240,9 +240,9 @@ PaddlePaddle is an open-source deep learning framework developed by Baidu. It is
 
 - **Hardware Acceleration**: Supports various hardware accelerations, including Baidu's own Kunlun chips.
 
-#### ncnn
+#### NCNN
 
-ncnn is a high-performance neural network inference framework optimized for the mobile platform. It stands out for its lightweight nature and efficiency, making it particularly well-suited for mobile and embedded devices where resources are limited.
+NCNN is a high-performance neural network inference framework optimized for the mobile platform. It stands out for its lightweight nature and efficiency, making it particularly well-suited for mobile and embedded devices where resources are limited.
 
 - **Performance Benchmarks**: Highly optimized for mobile platforms, offering efficient inference on ARM-based devices.
 
@@ -276,7 +276,7 @@ The following table provides a snapshot of the various deployment options availa
 | TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                  | Growing with Google and third-party resources | IoT devices requiring real-time processing | Improvements for new Edge TPU hardware      | Google's robust IoT security                      | Custom-designed for Google Coral   |
 | TF.js             | Reasonable in-browser performance               | High with web technologies                     | Web and Node.js developers support            | Interactive web applications               | TensorFlow team and community contributions | Web platform security model                       | Enhanced with WebGL and other APIs |
 | PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support      | Rapidly growing, especially in China          | Chinese market and language processing     | Focus on Chinese AI applications            | Emphasizes data privacy and security              | Including Baidu's Kunlun chips     |
-| ncnn              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                | Niche but active mobile/embedded ML community | Android and ARM systems efficiency         | High performance maintenance on ARM         | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
+| NCNN              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                | Niche but active mobile/embedded ML community | Android and ARM systems efficiency         | High performance maintenance on ARM         | On-device security advantages                     | ARM CPUs and GPUs optimizations    |
 
 This comparative analysis gives you a high-level overview. For deployment, it's essential to consider the specific requirements and constraints of your project, and consult the detailed documentation and resources available for each option.
 

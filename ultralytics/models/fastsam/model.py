@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from ultralytics.engine.model import Model
+
 from .predict import FastSAMPredictor
 from .val import FastSAMValidator
 
@@ -24,7 +25,7 @@ class FastSAM(Model):
         """Call the __init__ method of the parent class (YOLO) with the updated default model."""
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"
-        assert Path(model).suffix not in (".yaml", ".yml"), "FastSAM models only support pre-trained models."
+        assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM models only support pre-trained models."
         super().__init__(model=model, task="segment")
 
     @property

@@ -19,6 +19,13 @@ def test_checks():
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
 
+@pytest.mark.slow
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+def test_export_engine():
+    """Test exporting the YOLO model to NVIDIA TensorRT format."""
+    f = YOLO(MODEL).export(format="engine", device=0)
+    YOLO(f)(BUS, device=0)
+
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_train():

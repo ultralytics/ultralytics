@@ -6,35 +6,15 @@ keywords: Ultralytics, image classification, dataset, machine learning, CIFAR-10
 
 # Image Classification Datasets Overview
 
-## Dataset format
+### Dataset Structure for YOLO Classification Tasks
 
-The folder structure for classification datasets in torchvision typically follows a standard format:
+For [Ultralytics](https://ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-direcotry structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and testing (`test`) phases, with an optional directory for validation (`val`).
 
-```
-root/
-|-- class1/
-|   |-- img1.jpg
-|   |-- img2.jpg
-|   |-- ...
-|
-|-- class2/
-|   |-- img1.jpg
-|   |-- img2.jpg
-|   |-- ...
-|
-|-- class3/
-|   |-- img1.jpg
-|   |-- img2.jpg
-|   |-- ...
-|
-|-- ...
-```
+Each of these directories should contain one subdirectory for each class in the dataset. The subdirectories are named after the corresponding class and contain all the images for that class. Ensure that each image file is named uniquely and stored in a common format such as JPEG or PNG.
 
-In this folder structure, the `root` directory contains one subdirectory for each class in the dataset. Each subdirectory is named after the corresponding class and contains all the images for that class. Each image file is named uniquely and is typically in a common image file format such as JPEG or PNG.
+**Folder Structure Example**
 
-** Example **
-
-For example, in the CIFAR10 dataset, the folder structure would look like this:
+Consider the CIFAR-10 dataset as an example. The folder structure should look like this:
 
 ```
 cifar-10-/
@@ -74,9 +54,27 @@ cifar-10-/
 |   |   |-- ...
 |   |
 |   |-- ...
+|
+|-- val/ (optional)
+|   |-- airplane/
+|   |   |-- 105_airplane.png
+|   |   |-- 106_airplane.png
+|   |   |-- ...
+|   |
+|   |-- automobile/
+|   |   |-- 102_automobile.png
+|   |   |-- 103_automobile.png
+|   |   |-- ...
+|   |
+|   |-- bird/
+|   |   |-- 1045_bird.png
+|   |   |-- 1046_bird.png
+|   |   |-- ...
+|   |
+|   |-- ...
 ```
 
-In this example, the `train` directory contains subdirectories for each class in the dataset, and each class subdirectory contains all the images for that class. The `test` directory has a similar structure. The `root` directory also contains other files that are part of the CIFAR10 dataset.
+This structured approach ensures that the model can effectively learn from well-organized classes during the training phase and accurately evaluate performance during testing and validation phases.
 
 ## Usage
 

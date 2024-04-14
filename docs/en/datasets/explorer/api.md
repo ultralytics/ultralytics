@@ -192,8 +192,8 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
     exp.create_embeddings_table()
 
-    df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
-    print(df.head())
+    # plot the SQL Query
+    exp.plot_sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%' LIMIT 10")
     ```
 
 ## 4. Advanced - Working with Embeddings Table
@@ -227,7 +227,7 @@ Here are some examples of what you can do with the table:
     print(embeddings)
     ```
 
-### Advanced Querying with pre and post filters
+### Advanced Querying with pre- and post-filters
 
 !!! Example
 

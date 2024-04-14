@@ -10,7 +10,7 @@ Ultralytics Analytics offers a comprehensive dashboard that enables users to vis
 
 |                                               Ultralytics Analytics Dashboard (Beta v1.0)                                                |                                                                
 |:----------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Ultralytics Analytics Dashboard ](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3e948146-2005-4fa8-b7d2-de3e351322ee) |
+| ![Ultralytics Analytics Dashboard ](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/ea8ed16e-5426-4b7e-9b3d-1913e2f66051) |
 
 
 ## Dashboard Configuration

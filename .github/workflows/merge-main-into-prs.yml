@@ -13,24 +13,18 @@ jobs:
   Merge:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-        ref: ${{ github.head_ref || github.ref }}
         fetch-depth: 0
-
     - uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip" # caching pip dependencies
-
     - name: Install requirements
       run: |
         pip install pygithub
-
     - name: Merge main into PRs
       shell: python
       run: |
@@ -53,8 +47,7 @@ jobs:
                 merge_commit = repo.merge(pr.head.ref, 'main', commit_message=message)
                 print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
             except Exception as e:
-                print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e['message']}")
+                print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e}")
       env:
         GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-

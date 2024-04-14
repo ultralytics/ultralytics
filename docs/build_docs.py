@@ -23,6 +23,7 @@ Usage:
 Note:
 - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
+
 import os
 import re
 import shutil
@@ -115,7 +116,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
 
 
 def main():
-    # Build the docs
+    """Builds docs, updates titles and edit links, and prints local server command."""
     build_docs()
 
     # Update titles

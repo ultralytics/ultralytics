@@ -46,7 +46,7 @@ def multi_scale_deformable_attn_pytorch(
     attention_weights: torch.Tensor,
 ) -> torch.Tensor:
     """
-    Multi-scale deformable attention.
+    Multiscale deformable attention.
 
     https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """

@@ -23,7 +23,7 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         (bool): True if authentication is successful, False otherwise.
     """
-    checks.check_requirements("hub-sdk>=0.0.2")
+    checks.check_requirements("hub-sdk>=0.0.6")
     from hub_sdk import HUBClient
 
     api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # set the redirect URL
@@ -48,7 +48,7 @@ def login(api_key: str = None, save=True) -> bool:
         return True
     else:
         # Failed to authenticate with HUB
-        LOGGER.info(f"{PREFIX}Retrieve API key from {api_key_url}")
+        LOGGER.info(f"{PREFIX}Get API key from {api_key_url} and then run 'yolo hub login API_KEY'")
         return False
 
 

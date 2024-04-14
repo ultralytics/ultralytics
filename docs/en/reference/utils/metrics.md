@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics YOLO metrics tools - from confusion matrix, detection metrics, pose metrics to box IOU. Learn how to compute and plot precision-recall curves.
-keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detection metrics, pose metrics, box IOU, mask IOU, plot precision-recall curves, compute average precision
+description: Explore Ultralytics YOLO metrics tools - from confusion matrix, detection metrics, pose metrics to box IoU. Learn how to compute and plot precision-recall curves.
+keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detection metrics, pose metrics, box IoU, mask IoU, plot precision-recall curves, compute average precision
 ---
 
 # Reference for `ultralytics/utils/metrics.py`

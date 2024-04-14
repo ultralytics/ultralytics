@@ -70,6 +70,4 @@ https://github.com/nihui/opencv-mobile
 
 ## Reference：
 
-https://github.com/nihui/ncnn-android-nanodet
-https://github.com/Tencent/ncnn
-https://github.com/ultralytics/ultralytics/pull/3529
+https://github.com/nihui/ncnn-android-nanodet https://github.com/Tencent/ncnn https://github.com/ultralytics/ultralytics/pull/3529

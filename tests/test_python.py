@@ -24,10 +24,11 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
-    ARM64,
     Retry,
     checks,
     is_dir_writeable,
+    IS_RASPBERRYPI,
+    IS_JETSON,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
@@ -225,7 +226,7 @@ def test_export_openvino():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
-    if not (WINDOWS or not MACOS or ARM64):  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
+    if not (WINDOWS or IS_RASPBERRYPI or IS_JETSON):  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
         if MACOS:
             f = YOLO(MODEL).export(format="coreml")
             YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models

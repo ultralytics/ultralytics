@@ -10,7 +10,8 @@ on:
       - main
 
 jobs:
-  merge:
+  Merge:
+    if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +28,6 @@ jobs:
         cache: "pip" # caching pip dependencies
 
     - name: Install requirements
-      shell: bash # for Windows compatibility
       run: |
         pip install pygithub
 

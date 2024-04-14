@@ -647,7 +647,7 @@ class Model(nn.Module):
             else self.overrides
         )
         # NOTE: handle the case when 'cfg' includes 'data'.
-        overrides["data"] = overrides["data"] or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task] 
+        overrides["data"] = overrides["data"] or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]
         args = {**overrides, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path

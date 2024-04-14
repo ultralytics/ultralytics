@@ -4,10 +4,10 @@ import contextlib
 import shutil
 import subprocess
 import sys
+from inspect import signature
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
-from inspect import signature
 
 from ultralytics.utils import (
     ASSETS,

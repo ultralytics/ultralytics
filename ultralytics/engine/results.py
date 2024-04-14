@@ -561,7 +561,7 @@ class Masks(BaseTensor):
             for x in ops.masks2segments(self.data)
         ]
 
-    def drawMask(self, orig_img, color='red', opacity=0.5, show=False, savePath=None):
+    def drawMask(self, orig_img, color="red", opacity=0.5, show=False, savePath=None):
         """
         Draw the detection mask.
 

@@ -224,7 +224,7 @@ class ObjectCounter:
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["in"] += 2
+                                self.class_wise_count[self.names[cls]]["in"] += 1
                             else:
                                 self.out_counts += 1
                                 self.class_wise_count[self.names[cls]]["out"] += 1

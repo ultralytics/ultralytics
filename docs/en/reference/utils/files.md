@@ -38,3 +38,7 @@ keywords: Ultralytics, utility functions, file operations, working directory, fi
 ## ::: ultralytics.utils.files.get_latest_run
 
 <br><br>
+
+## ::: ultralytics.utils.files.update_models
+
+<br><br>

@@ -59,6 +59,10 @@ keywords: Ultralytics, Data Augmentation, BaseTransform, MixUp, RandomHSV, Lette
 
 <br><br>
 
+## ::: ultralytics.data.augment.RandomLoadText
+
+<br><br>
+
 ## ::: ultralytics.data.augment.ClassifyLetterBox
 
 <br><br>
@@ -79,10 +83,6 @@ keywords: Ultralytics, Data Augmentation, BaseTransform, MixUp, RandomHSV, Lette
 
 <br><br>
 
-## ::: ultralytics.data.augment.hsv2colorjitter
-
-<br><br>
-
-## ::: ultralytics.data.augment.classify_albumentations
+## ::: ultralytics.data.augment.classify_augmentations
 
 <br><br>

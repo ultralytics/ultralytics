@@ -81,8 +81,7 @@ python detect.py --weights yolov5s.pt --source path/to/images
 
 ## Notes on using a notebook
 
-Note that if you want to run these commands from a Notebook, you need to [create a new Kernel](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-access-terminal?view=azureml-api-2#add-new-kernels)
-and select your new Kernel on the top of your Notebook.
+Note that if you want to run these commands from a Notebook, you need to [create a new Kernel](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-access-terminal?view=azureml-api-2#add-new-kernels) and select your new Kernel on the top of your Notebook.
 
 If you create Python cells it will automatically use your custom environment, but if you add bash cells, you will need to run `source activate <your-env>` on each of these cells to make sure it uses your custom environment.
 

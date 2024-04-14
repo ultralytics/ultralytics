@@ -39,7 +39,7 @@ HUB is designed to be user-friendly and intuitive, with a drag-and-drop interfac
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -56,6 +56,6 @@ We hope that the resources here will help you get the most out of HUB. Please br
 - [**Models: Training and Exporting**](models.md). Train YOLOv5 and YOLOv8 models on your custom datasets and export them to various formats for deployment.
 - [**Integrations: Options**](integrations.md). Explore different integration options for your trained models, such as TensorFlow, ONNX, OpenVINO, CoreML, and PaddlePaddle.
 - [**Ultralytics HUB App**](app/index.md). Learn about the Ultralytics App for iOS and Android, which allows you to run models directly on your mobile device.
-    * [**iOS**](app/ios.md). Learn about YOLO CoreML models accelerated on Apple's Neural Engine on iPhones and iPads.
-    * [**Android**](app/android.md). Explore TFLite acceleration on mobile devices.
-- [**Inference API**](inference_api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.
+    - [**iOS**](app/ios.md). Learn about YOLO CoreML models accelerated on Apple's Neural Engine on iPhones and iPads.
+    - [**Android**](app/android.md). Explore TFLite acceleration on mobile devices.
+- [**Inference API**](inference-api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.

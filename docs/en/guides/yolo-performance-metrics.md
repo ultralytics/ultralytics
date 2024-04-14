@@ -10,6 +10,17 @@ keywords: YOLOv8, Performance metrics, Object detection, Intersection over Union
 
 Performance metrics are key tools to evaluate the accuracy and efficiency of object detection models. They shed light on how effectively a model can identify and localize objects within images. Additionally, they help in understanding the model's handling of false positives and false negatives. These insights are crucial for evaluating and enhancing the model's performance. In this guide, we will explore various performance metrics associated with YOLOv8, their significance, and how to interpret them.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/q7LwPoM7tSQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong>  Ultralytics YOLOv8 Performance Metrics | MAP, F1 Score, Precision, IoU & Accuracy
+</p>
+
 ## Object Detection Metrics
 
 Let’s start by discussing some metrics that are not only important to YOLOv8 but are broadly applicable across different object detection models.

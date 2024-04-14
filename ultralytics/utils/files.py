@@ -50,13 +50,13 @@ def spaces_in_path(path):
     """
 
     # If path has spaces, replace them with underscores
-    if ' ' in str(path):
+    if " " in str(path):
         string = isinstance(path, str)  # input type
         path = Path(path)
 
         # Create a temporary directory and construct the new path
         with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_path = Path(tmp_dir) / path.name.replace(' ', '_')
+            tmp_path = Path(tmp_dir) / path.name.replace(" ", "_")
 
             # Copy file/directory
             if path.is_dir():
@@ -82,7 +82,7 @@ def spaces_in_path(path):
         yield path
 
 
-def increment_path(path, exist_ok=False, sep='', mkdir=False):
+def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
     Increments a file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
@@ -102,11 +102,11 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:
-        path, suffix = (path.with_suffix(''), path.suffix) if path.is_file() else (path, '')
+        path, suffix = (path.with_suffix(""), path.suffix) if path.is_file() else (path, "")
 
         # Method 1
         for n in range(2, 9999):
-            p = f'{path}{sep}{n}{suffix}'  # increment path
+            p = f"{path}{sep}{n}{suffix}"  # increment path
             if not os.path.exists(p):
                 break
         path = Path(p)
@@ -119,14 +119,14 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
 def file_age(path=__file__):
     """Return days since last file update."""
-    dt = (datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime))  # delta
+    dt = datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime)  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
 def file_date(path=__file__):
     """Return human-readable file modification date, i.e. '2021-3-26'."""
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
-    return f'{t.year}-{t.month}-{t.day}'
+    return f"{t.year}-{t.month}-{t.day}"
 
 
 def file_size(path):
@@ -137,11 +137,52 @@ def file_size(path):
         if path.is_file():
             return path.stat().st_size / mb
         elif path.is_dir():
-            return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
+            return sum(f.stat().st_size for f in path.glob("**/*") if f.is_file()) / mb
     return 0.0
 
 
-def get_latest_run(search_dir='.'):
+def get_latest_run(search_dir="."):
     """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
-    last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
-    return max(last_list, key=os.path.getctime) if last_list else ''
+    last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
+    return max(last_list, key=os.path.getctime) if last_list else ""
+
+
+def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_names=False):
+    """
+    Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
+
+    Args:
+        model_names (tuple, optional): Model filenames to update, defaults to ("yolov8n.pt").
+        source_dir (Path, optional): Directory containing models and target subdirectory, defaults to current directory.
+        update_names (bool, optional): Update model names from a data YAML.
+
+    Example:
+        ```python
+        from ultralytics.utils.files import update_models
+
+        model_names = (f"rtdetr-{size}.pt" for size in "lx")
+        update_models(model_names)
+        ```
+    """
+    from ultralytics import YOLO
+    from ultralytics.nn.autobackend import default_class_names
+
+    target_dir = source_dir / "updated_models"
+    target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists
+
+    for model_name in model_names:
+        model_path = source_dir / model_name
+        print(f"Loading model from {model_path}")
+
+        # Load model
+        model = YOLO(model_path)
+        model.half()
+        if update_names:  # update model names from a dataset YAML
+            model.model.names = default_class_names("coco8.yaml")
+
+        # Define new save path
+        save_path = target_dir / model_name
+
+        # Save model using model.save()
+        print(f"Re-saving {model_name} model to {save_path}")
+        model.save(save_path, use_dill=False)

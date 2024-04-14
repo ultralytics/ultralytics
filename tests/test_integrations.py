@@ -34,6 +34,7 @@ def test_mlflow():
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow_keep_run_active():
     import os
+
     import mlflow
 
     """Test training with MLflow tracking enabled."""

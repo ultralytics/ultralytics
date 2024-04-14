@@ -58,21 +58,37 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
 **Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
 
-| Model                                                                                 | size<br><sup>(pixels) | AP<sup>val<br>50-95 | AP<sup>val<br>50 | AP<sup>val<br>75 | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|---------------------------------------------------------------------------------------|-----------------------|---------------------|------------------|------------------|--------------------|-------------------|
-| YOLOv9-S                                                                              | 640                   | 46.8                | 63.4             | 50.7             | 7.2                | 26.7              |
-| YOLOv9-M                                                                              | 640                   | 51.4                | 68.1             | 56.1             | 20.1               | 76.8              |
-| [YOLOv9-C](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c.pt) | 640                   | 53.0                | 70.2             | 57.8             | 25.5               | 102.8             |
-| [YOLOv9-E](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e.pt) | 640                   | 55.6                | 72.8             | 60.6             | 58.1               | 192.5             |
+??? question "When will other model scales be available?"
 
-YOLOv9's iterations, ranging from the smaller S variant to the extensive E model, demonstrate improvements not only in accuracy (AP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
+    Despite all metrics shown for the various model scales in the table below, **only** the configurations for `YOLOv9c` and `YOLOv9e` have been published. The Ultralytics Team will work swiftly to add other configurations as they become available, so be sure to check back here regularly for updates.
+
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        | Model                                                                                 | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |---------------------------------------------------------------------------------------|-----------------------|----------------------|-------------------|--------------------|-------------------|
+        | YOLOv9t                                                                               | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
+        | YOLOv9s                                                                               | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
+        | YOLOv9m                                                                               | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
+        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
+        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+
+    === "Segmentation (COCO)"
+
+        | Model                                                                                         | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------|-------------------|
+        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
+        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+
+YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
 
 Comparatively, YOLOv9 exhibits remarkable gains:
 
-- **Lightweight Models**: YOLOv9-S surpasses the YOLO MS-S in parameter efficiency and computational load while achieving an improvement of 0.4∼0.6% in AP.
-- **Medium to Large Models**: YOLOv9-M and YOLOv9-E show notable advancements in balancing the trade-off between model complexity and detection performance, offering significant reductions in parameters and computations against the backdrop of improved accuracy.
+- **Lightweight Models**: YOLOv9s surpasses the YOLO MS-S in parameter efficiency and computational load while achieving an improvement of 0.4∼0.6% in AP.
+- **Medium to Large Models**: YOLOv9m and YOLOv9e show notable advancements in balancing the trade-off between model complexity and detection performance, offering significant reductions in parameters and computations against the backdrop of improved accuracy.
 
-The YOLOv9-C model, in particular, highlights the effectiveness of the architecture's optimizations. It operates with 42% fewer parameters and 21% less computational demand than YOLOv7 AF, yet it achieves comparable accuracy, demonstrating YOLOv9's significant efficiency improvements. Furthermore, the YOLOv9-E model sets a new standard for large models, with 15% fewer parameters and 25% less computational need than [YOLOv8x](yolov8.md), alongside a substantial 1.7% improvement in AP.
+The YOLOv9c model, in particular, highlights the effectiveness of the architecture's optimizations. It operates with 42% fewer parameters and 21% less computational demand than YOLOv7 AF, yet it achieves comparable accuracy, demonstrating YOLOv9's significant efficiency improvements. Furthermore, the YOLOv9e model sets a new standard for large models, with 15% fewer parameters and 25% less computational need than [YOLOv8x](yolov8.md), alongside a incremental 1.7% improvement in AP.
 
 These results showcase YOLOv9's strategic advancements in model design, emphasizing its enhanced efficiency without compromising on the precision essential for real-time object detection tasks. The model not only pushes the boundaries of performance metrics but also emphasizes the importance of computational efficiency, making it a pivotal development in the field of computer vision.
 
@@ -125,12 +141,16 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model Type | Pre-trained Weights                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
-|------------|-----------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv9-C   | [yolov9c.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv9-E   | [yolov9e.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| Model      | Filenames                         | Tasks                                        | Inference | Validation | Training | Export |
+|------------|-----------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| YOLOv9     | `yolov9c.pt` `yolov9e.pt`         | [Object Detection](../tasks/detect.md)       | ✅         | ✅          | ✅        | ✅      |
+| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt` | [Instance Segmentation](../tasks/segment.md) | ✅         | ✅          | ✅        | ✅      |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.
+
+!!! note
+
+    Training YOLOv9 models will require _more_ resources **and** take longer than the equivalent sized [YOLOv8 model](yolov8.md).
 
 ## Citations and Acknowledgements
 

@@ -112,7 +112,7 @@ class PatchMerging(nn.Module):
         self.out_dim = out_dim
         self.act = activation()
         self.conv1 = Conv2d_BN(dim, out_dim, 1, 1, 0)
-        stride_c = 1 if out_dim in [320, 448, 576] else 2
+        stride_c = 1 if out_dim in {320, 448, 576} else 2
         self.conv2 = Conv2d_BN(out_dim, out_dim, 3, stride_c, 1, groups=out_dim)
         self.conv3 = Conv2d_BN(out_dim, out_dim, 1, 1, 0)
 
@@ -584,9 +584,9 @@ class TinyViT(nn.Module):
             img_size (int, optional): The input image size. Defaults to 224.
             in_chans (int, optional): Number of input channels. Defaults to 3.
             num_classes (int, optional): Number of classification classes. Defaults to 1000.
-            embed_dims (List[int], optional): List of embedding dimensions for each layer. Defaults to [96, 192, 384, 768].
+            embed_dims (List[int], optional): List of embedding dimensions per layer. Defaults to [96, 192, 384, 768].
             depths (List[int], optional): List of depths for each layer. Defaults to [2, 2, 6, 2].
-            num_heads (List[int], optional): List of number of attention heads for each layer. Defaults to [3, 6, 12, 24].
+            num_heads (List[int], optional): List of number of attention heads per layer. Defaults to [3, 6, 12, 24].
             window_sizes (List[int], optional): List of window sizes for each layer. Defaults to [7, 7, 14, 7].
             mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension. Defaults to 4.
             drop_rate (float, optional): Dropout rate. Defaults to 0.

@@ -639,20 +639,16 @@ class Model(nn.Module):
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
-        # Check if a new cfg is provided, if so, load and merge it
-        if "cfg" in kwargs and kwargs["cfg"]:
-            new_config_path = kwargs["cfg"]
-            # Use the check_yaml function to ensure the configuration file is valid
-            new_overrides = yaml_load(checks.check_yaml(new_config_path))
-            # Merge configurations: first copy the old ones, then update with the new ones
-            merged_overrides = {**self.overrides, **new_overrides}
-            self.overrides = merged_overrides
-        else:
-            # If no new cfg is provided, retain the current overrides
-            self.overrides = self.overrides
-        overrides = self.overrides
-        custom = {"data": DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]}  # method defaults
-        args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
+
+        overrides = (
+            # 'model' and 'task' from model loading/creating have higher priority
+            {**yaml_load(checks.check_yaml(kwargs["cfg"])), "model": self.overrides["model"], "task": self.task}
+            if kwargs.get("cfg")
+            else self.overrides
+        )
+        # NOTE: handle the case when 'cfg' includes 'data'.
+        overrides["data"] = overrides["data"] or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task] 
+        args = {**overrides, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 

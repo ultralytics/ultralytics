@@ -1,3 +1,7 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Automatically merges repository 'main' branch into all open PRs to keep them up-to-date
+# Action runs on updates to main branch so when one PR merges to main all others update
+
 name: Merge main into PRs
 
 on:
@@ -6,37 +10,51 @@ on:
       - main
 
 jobs:
-  merge-main-into-prs:
+  merge:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+        ref: ${{ github.head_ref || github.ref }}
         fetch-depth: 0
 
-    - name: Merge main into PRs
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: "pip" # caching pip dependencies
+
+    - name: Install requirements
+      shell: bash # for Windows compatibility
       run: |
-        # Get the list of open pull requests
-        PR_LIST=$(gh pr list --json number --jq '.[].number')
+        pip install pygithub
 
-        # Loop through each pull request
-        for PR_NUMBER in $PR_LIST; do
-          echo "Merging main into PR #$PR_NUMBER"
-
-          # Checkout the PR branch
-          git checkout "refs/remotes/origin/pull/$PR_NUMBER/head"
-
-          # Attempt to merge the main branch into the PR branch
-          if git merge origin/main; then
-            # Merge successful, push the changes back to the PR branch
-            git push origin "HEAD:refs/heads/pull/$PR_NUMBER/head"
-            echo "Merge successful for PR #$PR_NUMBER"
-          else
-            # Merge failed due to conflicts
-            git merge --abort
-            echo "Merge failed for PR #$PR_NUMBER due to conflicts"
-          fi
-        done
+    - name: Merge main into PRs
+      shell: python
+      run: |
+        from github import Github
+        import os
+        
+        # Authenticate with the GitHub Token
+        g = Github(os.getenv('GITHUB_TOKEN'))
+        
+        # Get the repository dynamically
+        repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
+        
+        # List all open pull requests
+        open_pulls = repo.get_pulls(state='open', sort='created')
+        
+        for pr in open_pulls:
+            try:                
+                # Attempt to merge main into the PR branch
+                message = f"Merge 'main' into PR by https://ultralytics.com/actions"
+                merge_commit = repo.merge(pr.head.ref, 'main', commit_message=message)
+                print(f'Merged main into {pr.head.ref} successfully.')
+            except Exception as e:
+                print(f'Could not merge main into {pr.head.ref}: {e}')
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+

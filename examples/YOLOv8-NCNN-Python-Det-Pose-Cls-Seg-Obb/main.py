@@ -1,10 +1,10 @@
-import os
-import yaml
 import argparse
+import os
 
-import numpy as np
 import cv2
 import ncnn
+import numpy as np
+import yaml
 
 
 # ultralytics.utils.plotting Colors

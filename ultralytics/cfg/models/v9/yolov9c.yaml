@@ -1,4 +1,6 @@
-# YOLOv9
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLOv9c
+# 618 layers, 25590912 parameters, 104.0 GFLOPs
 
 # parameters
 nc: 80  # number of classes
@@ -33,4 +35,4 @@ head:
   - [[-1, 9], 1, Concat, [1]]  # cat head P5
   - [-1, 1, RepNCSPELAN4, [512, 512, 256, 1]]  # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, Detect, [nc]]  # DDetect(P3, P4, P5)
+  - [[15, 18, 21], 1, Detect, [nc]]  # Detect(P3, P4, P5)

@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Model validation metrics."""
 
+import json
 import math
 import warnings
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
-
 import pandas as pd
-import json
+import torch
 
 from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 

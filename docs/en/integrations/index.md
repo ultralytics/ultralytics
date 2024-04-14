@@ -71,6 +71,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
 
+- [TF.js](tfjs.md): Developed by [Google](https://www.google.com) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models. 
+  
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
 
 - [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient neural network inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.

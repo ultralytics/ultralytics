@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torchvision
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import batch_probiou
@@ -206,6 +205,7 @@ def non_max_suppression(
             shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
             (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
     """
+    import torchvision  # scope for faster 'import ultralytics'
 
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"

@@ -69,8 +69,7 @@ def benchmark(
         benchmark(model='yolov8n.pt', imgsz=640)
         ```
     """
-
-    import pandas as pd
+    import pandas as pd  # scope for faster 'import ultralytics'
 
     pd.options.display.max_columns = 10
     pd.options.display.width = 120

@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data
 
     Ultralytics offers two licensing options:
 
-    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts.
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/licenses/) open-source license ideal for students and enthusiasts.
     - The [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
 
     For more details see [Ultralytics Licensing](https://ultralytics.com/license).
@@ -36,7 +36,6 @@ Universe is an online repository with over 250,000 vision datasets totalling ove
 </p>
 
 With a [free Roboflow account](https://app.roboflow.com/?ref=ultralytics), you can export any dataset available on Universe. To export a dataset, click the "Download this Dataset" button on any dataset.
-
 
 <p align="center">
 <img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800">

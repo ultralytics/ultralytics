@@ -23,7 +23,9 @@ keywords: YOLOv5, object detection, computer vision, CUDA, PyTorch tutorial, mul
 <br>
 
 Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" object detection model, is designed to deliver high-speed, high-accuracy results in real-time.
+
 <br><br>
+
 Built on PyTorch, this powerful deep learning framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your computer vision projects. Let's get started!
 
 </div>
@@ -32,22 +34,22 @@ Built on PyTorch, this powerful deep learning framework has garnered immense pop
 
 Here's a compilation of comprehensive tutorials that will guide you through different aspects of YOLOv5.
 
-* [Train Custom Data](tutorials/train_custom_data.md) 🚀 RECOMMENDED: Learn how to train the YOLOv5 model on your custom dataset.
-* [Tips for Best Training Results](tutorials/tips_for_best_training_results.md) ☘️: Uncover practical tips to optimize your model training process.
-* [Multi-GPU Training](tutorials/multi_gpu_training.md): Understand how to leverage multiple GPUs to expedite your training.
-* [PyTorch Hub](tutorials/pytorch_hub_model_loading.md) 🌟 NEW: Learn to load pre-trained models via PyTorch Hub.
-* [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model_export.md) 🚀: Understand how to export your model to different formats.
-* [NVIDIA Jetson platform Deployment](tutorials/running_on_jetson_nano.md) 🌟 NEW: Learn how to deploy your YOLOv5 model on NVIDIA Jetson platform.
-* [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
-* [Model Ensembling](tutorials/model_ensembling.md): Learn the strategy of combining multiple models for improved performance.
-* [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
-* [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated hyperparameter tuning for better model performance.
-* [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement transfer learning by freezing layers in YOLOv5.
-* [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model.
-* [Roboflow for Datasets](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and active learning.
-* [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate ClearML for efficient logging during your model training.
-* [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
-* [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize Comet for improved model training logging.
+- [Train Custom Data](tutorials/train_custom_data.md) 🚀 RECOMMENDED: Learn how to train the YOLOv5 model on your custom dataset.
+- [Tips for Best Training Results](tutorials/tips_for_best_training_results.md) ☘️: Uncover practical tips to optimize your model training process.
+- [Multi-GPU Training](tutorials/multi_gpu_training.md): Understand how to leverage multiple GPUs to expedite your training.
+- [PyTorch Hub](tutorials/pytorch_hub_model_loading.md) 🌟 NEW: Learn to load pre-trained models via PyTorch Hub.
+- [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model_export.md) 🚀: Understand how to export your model to different formats.
+- [NVIDIA Jetson platform Deployment](tutorials/running_on_jetson_nano.md) 🌟 NEW: Learn how to deploy your YOLOv5 model on NVIDIA Jetson platform.
+- [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
+- [Model Ensembling](tutorials/model_ensembling.md): Learn the strategy of combining multiple models for improved performance.
+- [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
+- [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated hyperparameter tuning for better model performance.
+- [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement transfer learning by freezing layers in YOLOv5.
+- [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model.
+- [Roboflow for Datasets](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and active learning.
+- [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate ClearML for efficient logging during your model training.
+- [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
+- [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize Comet for improved model training logging.
 
 ## Supported Environments
 
@@ -86,6 +88,6 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 Your journey with YOLOv5 doesn't have to be a solitary one. Join our vibrant community on [GitHub](https://github.com/ultralytics/yolov5), connect with professionals on [LinkedIn](https://www.linkedin.com/company/ultralytics/), share your results on [Twitter](https://twitter.com/ultralytics), and find educational resources on [YouTube](https://youtube.com/ultralytics). Follow us on [TikTok](https://www.tiktok.com/@ultralytics) and [Instagram](https://www.instagram.com/ultralytics/) for more engaging content.
 
-Interested in contributing? We welcome contributions of all forms; from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](https://github.com/ultralytics/yolov5/blob/master/CONTRIBUTING.md) for more information.
+Interested in contributing? We welcome contributions of all forms; from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](https://docs.ultralytics.com/help/contributing/) for more information.
 
 We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment, and revolutionize your computer vision projects! 🚀

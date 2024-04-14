@@ -12,7 +12,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -42,6 +42,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 !!! Example "Heatmaps using Ultralytics YOLOv8 Example"
 
     === "Heatmap"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -50,20 +51,22 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
-                             shape="circle")
+                             shape="circle",
+                             classes_names=model.names)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -82,6 +85,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Line Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -90,23 +94,25 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
-        line_points = [(256, 409), (694, 532)]  # line for object counting
+        line_points = [(20, 400), (1080, 404)]  # line for object counting
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle",
-                             count_reg_pts=line_points)
+                             count_reg_pts=line_points,
+                             classes_names=model.names)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -122,8 +128,54 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         video_writer.release()
         cv2.destroyAllWindows()
         ```
+    
+    === "Polygon Counting"
+        ```python
+        from ultralytics import YOLO
+        import heatmap
+        import cv2
+        
+        model = YOLO("yolov8n.pt")
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        
+        # Video writer
+        video_writer = cv2.VideoWriter("heatmap_output.avi",
+                                       cv2.VideoWriter_fourcc(*'mp4v'),
+                                       fps,
+                                       (w, h))
+        
+        # Define polygon points
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
+        
+        # Init heatmap
+        heatmap_obj = heatmap.Heatmap()
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
+                             view_img=True,
+                             shape="circle",
+                             count_reg_pts=region_points,
+                             classes_names=model.names)
+        
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            tracks = model.track(im0, persist=True, show=False)
+        
+            im0 = heatmap_obj.generate_heatmap(im0, tracks)
+            video_writer.write(im0)
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
 
     === "Region Counting"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -132,24 +184,26 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         # Define region points
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
                              shape="circle",
-                             count_reg_pts=region_points)
+                             count_reg_pts=region_points,
+                             classes_names=model.names)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -167,6 +221,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Im0"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -175,15 +230,16 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8s.pt")   # YOLOv8 custom/pretrained model
 
         im0 = cv2.imread("path/to/image.png")  # path to image file
-
+        h, w = im0.shape[:2]  # image height and width
+        
         # Heatmap Init
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                                     imw=im0.shape[0],  # should same as im0 width
-                                     imh=im0.shape[1],  # should same as im0 height
-                                     view_img=True,
-                                     shape="circle")
-
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
+                             view_img=True,
+                             shape="circle",
+                             classes_names=model.names)
 
         results = model.track(im0, persist=True)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -191,6 +247,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Specific Classes"
+
         ```python
         from ultralytics import YOLO
         from ultralytics.solutions import heatmap
@@ -199,22 +256,24 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("heatmap_output.avi",
                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                       int(cap.get(5)),
-                                       (int(cap.get(3)), int(cap.get(4))))
+                                       fps,
+                                       (w, h))
 
         classes_for_heatmap = [0, 2]  # classes for heatmap
 
         # Init heatmap
         heatmap_obj = heatmap.Heatmap()
-        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA ,
-                             imw=cap.get(4),  # should same as cap height
-                             imh=cap.get(3),  # should same as cap width
+        heatmap_obj.set_args(colormap=cv2.COLORMAP_PARULA,
+                             imw=w,
+                             imh=h,
                              view_img=True,
-                             shape="circle")
+                             shape="circle",
+                             classes_names=model.names)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -234,22 +293,26 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `set_args`
 
-| Name                | Type           | Default           | Description                                               |
-|---------------------|----------------|-------------------|-----------------------------------------------------------|
-| view_img            | `bool`         | `False`           | Display the frame with heatmap                            |
-| colormap            | `cv2.COLORMAP` | `None`            | cv2.COLORMAP for heatmap                                  |
-| imw                 | `int`          | `None`            | Width of Heatmap                                          |
-| imh                 | `int`          | `None`            | Height of Heatmap                                         |
-| heatmap_alpha       | `float`        | `0.5`             | Heatmap alpha value                                       |
-| count_reg_pts       | `list`         | `None`            | Object counting region points                             |
-| count_txt_thickness | `int`          | `2`               | Count values text size                                    |
-| count_txt_color     | `RGB Color`    | `(0, 0, 0)`       | Foreground color for Object counts text                   |
-| count_color         | `RGB Color`    | `(255, 255, 255)` | Background color for Object counts text                   |
-| count_reg_color     | `RGB Color`    | `(255, 0, 255)`   | Counting region color                                     |
-| region_thickness    | `int`          | `5`               | Counting region thickness value                           |
-| decay_factor        | `float`        | `0.99`            | Decay factor for heatmap area removal after specific time |
-| shape               | `str`          | `circle`          | Heatmap shape for display "rect" or "circle" supported    |
-| line_dist_thresh    | `int`          | `15`              | Euclidean Distance threshold for line counter             |
+| Name                 | Type           | Default             | Description                                               |
+|----------------------|----------------|---------------------|-----------------------------------------------------------|
+| `view_img`           | `bool`         | `False`             | Display the frame with heatmap                            |
+| `colormap`           | `cv2.COLORMAP` | `None`              | cv2.COLORMAP for heatmap                                  |
+| `imw`                | `int`          | `None`              | Width of Heatmap                                          |
+| `imh`                | `int`          | `None`              | Height of Heatmap                                         |
+| `line_thickness`     | `int`          | `2`                 | Increase bounding boxes and count text thickness          |
+| `view_in_counts`     | `bool`         | `True`              | Display in-counts only on video frame                     |
+| `view_out_counts`    | `bool`         | `True`              | Display out-counts only on video frame                    |
+| `classes_names`      | `dict`         | `model.model.names` | Dictionary of Class Names                                 |
+| `heatmap_alpha`      | `float`        | `0.5`               | Heatmap alpha value                                       |
+| `count_reg_pts`      | `list`         | `None`              | Object counting region points                             |
+| `count_txt_color`    | `RGB Color`    | `(0, 0, 0)`         | Foreground color for Object counts text                   |
+| `count_reg_color`    | `RGB Color`    | `(255, 0, 255)`     | Counting region color                                     |
+| `region_thickness`   | `int`          | `5`                 | Counting region thickness value                           |
+| `decay_factor`       | `float`        | `0.99`              | Decay factor for heatmap area removal after specific time |
+| `shape`              | `str`          | `circle`            | Heatmap shape for display "rect" or "circle" supported    |
+| `line_dist_thresh`   | `int`          | `15`                | Euclidean Distance threshold for line counter             |
+| `count_bg_color`     | `RGB Color`    | `(255, 255, 255)`   | Count highlighter color                                   |
+| `cls_txtdisplay_gap` | `int`          | `50`                | Display gap between each class count                      |
 
 ### Arguments `model.track`
 

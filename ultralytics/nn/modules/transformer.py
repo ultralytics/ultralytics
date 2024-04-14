@@ -11,8 +11,18 @@ from torch.nn.init import constant_, xavier_uniform_
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
-__all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP')
+__all__ = (
+    "TransformerEncoderLayer",
+    "TransformerLayer",
+    "TransformerBlock",
+    "MLPBlock",
+    "LayerNorm2d",
+    "AIFI",
+    "DeformableTransformerDecoder",
+    "DeformableTransformerDecoderLayer",
+    "MSDeformAttn",
+    "MLP",
+)
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -22,9 +32,11 @@ class TransformerEncoderLayer(nn.Module):
         """Initialize the TransformerEncoderLayer with specified parameters."""
         super().__init__()
         from ...utils.torch_utils import TORCH_1_9
+
         if not TORCH_1_9:
             raise ModuleNotFoundError(
-                'TransformerEncoderLayer() requires torch>=1.9 to use nn.MultiheadAttention(batch_first=True).')
+                "TransformerEncoderLayer() requires torch>=1.9 to use nn.MultiheadAttention(batch_first=True)."
+            )
         self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout, batch_first=True)
         # Implementation of Feedforward model
         self.fc1 = nn.Linear(c1, cm)
@@ -89,14 +101,13 @@ class AIFI(TransformerEncoderLayer):
     @staticmethod
     def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
         """Builds 2D sine-cosine position embedding."""
-        grid_w = torch.arange(int(w), dtype=torch.float32)
-        grid_h = torch.arange(int(h), dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing='ij')
-        assert embed_dim % 4 == 0, \
-            'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
+        assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
+        grid_w = torch.arange(w, dtype=torch.float32)
+        grid_h = torch.arange(h, dtype=torch.float32)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
-        omega = 1. / (temperature ** omega)
+        omega = 1.0 / (temperature**omega)
 
         out_w = grid_w.flatten()[..., None] @ omega[None]
         out_h = grid_h.flatten()[..., None] @ omega[None]
@@ -204,7 +215,7 @@ class LayerNorm2d(nn.Module):
 
 class MSDeformAttn(nn.Module):
     """
-    Multi-Scale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+    Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
@@ -213,10 +224,10 @@ class MSDeformAttn(nn.Module):
         """Initialize MSDeformAttn with the given parameters."""
         super().__init__()
         if d_model % n_heads != 0:
-            raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
+            raise ValueError(f"d_model must be divisible by n_heads, but got {d_model} and {n_heads}")
         _d_per_head = d_model // n_heads
         # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
-        assert _d_per_head * n_heads == d_model, '`d_model` must be divisible by `n_heads`'
+        assert _d_per_head * n_heads == d_model, "`d_model` must be divisible by `n_heads`"
 
         self.im2col_step = 64
 
@@ -234,21 +245,24 @@ class MSDeformAttn(nn.Module):
 
     def _reset_parameters(self):
         """Reset module parameters."""
-        constant_(self.sampling_offsets.weight.data, 0.)
+        constant_(self.sampling_offsets.weight.data, 0.0)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
         grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
-        grid_init = (grid_init / grid_init.abs().max(-1, keepdim=True)[0]).view(self.n_heads, 1, 1, 2).repeat(
-            1, self.n_levels, self.n_points, 1)
+        grid_init = (
+            (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
+            .view(self.n_heads, 1, 1, 2)
+            .repeat(1, self.n_levels, self.n_points, 1)
+        )
         for i in range(self.n_points):
             grid_init[:, :, i, :] *= i + 1
         with torch.no_grad():
             self.sampling_offsets.bias = nn.Parameter(grid_init.view(-1))
-        constant_(self.attention_weights.weight.data, 0.)
-        constant_(self.attention_weights.bias.data, 0.)
+        constant_(self.attention_weights.weight.data, 0.0)
+        constant_(self.attention_weights.bias.data, 0.0)
         xavier_uniform_(self.value_proj.weight.data)
-        constant_(self.value_proj.bias.data, 0.)
+        constant_(self.value_proj.bias.data, 0.0)
         xavier_uniform_(self.output_proj.weight.data)
-        constant_(self.output_proj.bias.data, 0.)
+        constant_(self.output_proj.bias.data, 0.0)
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
         """
@@ -288,7 +302,7 @@ class MSDeformAttn(nn.Module):
             add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
-            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {num_points}.')
+            raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
         output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         return self.output_proj(output)
 
@@ -301,7 +315,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
     """
 
-    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0., act=nn.ReLU(), n_levels=4, n_points=4):
+    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU(), n_levels=4, n_points=4):
         """Initialize the DeformableTransformerDecoderLayer with the given parameters."""
         super().__init__()
 
@@ -339,14 +353,16 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
-        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1),
-                             attn_mask=attn_mask)[0].transpose(0, 1)
+        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[
+            0
+        ].transpose(0, 1)
         embed = embed + self.dropout1(tgt)
         embed = self.norm1(embed)
 
         # Cross attention
-        tgt = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes,
-                              padding_mask)
+        tgt = self.cross_attn(
+            self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes, padding_mask
+        )
         embed = embed + self.dropout2(tgt)
         embed = self.norm2(embed)
 
@@ -370,16 +386,17 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
 
     def forward(
-            self,
-            embed,  # decoder embeddings
-            refer_bbox,  # anchor
-            feats,  # image features
-            shapes,  # feature shapes
-            bbox_head,
-            score_head,
-            pos_mlp,
-            attn_mask=None,
-            padding_mask=None):
+        self,
+        embed,  # decoder embeddings
+        refer_bbox,  # anchor
+        feats,  # image features
+        shapes,  # feature shapes
+        bbox_head,
+        score_head,
+        pos_mlp,
+        attn_mask=None,
+        padding_mask=None,
+    ):
         """Perform the forward pass through the entire decoder."""
         output = embed
         dec_bboxes = []

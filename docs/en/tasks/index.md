@@ -13,7 +13,7 @@ YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The 
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/NAs-cfq9BDw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/NAs-cfq9BDw"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -46,7 +46,7 @@ Pose/keypoint detection is a task that involves detecting specific points in an 
 
 [Pose Examples](pose.md){ .md-button }
 
-## [Obb](obb.md)
+## [OBB](obb.md)
 
 Oriented object detection goes a step further than regular object detection with introducing an extra angle to locate objects more accurate in an image. YOLOv8 can detect rotated objects in an image or video frame with high accuracy and speed.
 

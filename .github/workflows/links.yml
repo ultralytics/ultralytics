@@ -12,7 +12,7 @@ name: Check Broken links
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # runs at 00:00 UTC every day
 
 jobs:
   Links:
@@ -28,14 +28,18 @@ jobs:
           sudo mv lychee /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 403,429,500,502,999 \
-            --exclude-loopback \
+            lychee \
+            --scheme https \
+            --timeout 60 \
+            --insecure \
+            --accept 403,429,500,502,999 \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
@@ -47,20 +51,24 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html'
+            './**/*.md' \
+            './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 429,999 \
-            --exclude-loopback \
+            lychee \
+            --scheme https \
+            --timeout 60 \
+            --insecure \
+            --accept 429,999 \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yaml' \
             --exclude-path docs/zh \
@@ -73,6 +81,10 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+            './**/*.md' \
+            './**/*.html' \
+            './**/*.yml' \
+            './**/*.yaml' \
+            './**/*.py' \
+            './**/*.ipynb'

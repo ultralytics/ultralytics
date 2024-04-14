@@ -62,7 +62,8 @@ class TwoWayTransformer(nn.Module):
                     activation=activation,
                     attention_downsample_rate=attention_downsample_rate,
                     skip_first_layer_pe=(i == 0),
-                ))
+                )
+            )
 
         self.final_attn_token_to_image = Attention(embedding_dim, num_heads, downsample_rate=attention_downsample_rate)
         self.norm_final_attn = nn.LayerNorm(embedding_dim)
@@ -221,13 +222,13 @@ class Attention(nn.Module):
             downsample_rate (int, optional): The factor by which the internal dimensions are downsampled. Defaults to 1.
 
         Raises:
-            AssertionError: If 'num_heads' does not evenly divide the internal dimension (embedding_dim / downsample_rate).
+            AssertionError: If 'num_heads' does not evenly divide the internal dim (embedding_dim / downsample_rate).
         """
         super().__init__()
         self.embedding_dim = embedding_dim
         self.internal_dim = embedding_dim // downsample_rate
         self.num_heads = num_heads
-        assert self.internal_dim % num_heads == 0, 'num_heads must divide embedding_dim.'
+        assert self.internal_dim % num_heads == 0, "num_heads must divide embedding_dim."
 
         self.q_proj = nn.Linear(embedding_dim, self.internal_dim)
         self.k_proj = nn.Linear(embedding_dim, self.internal_dim)

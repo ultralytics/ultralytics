@@ -43,9 +43,9 @@ jobs:
         open_pulls = repo.get_pulls(state='open', sort='created')
         
         for pr in open_pulls:
-            # Compare PR head with main to see if it's behind
             try:
-                comparison = repo.compare(pr.base.ref, pr.head.ref)  # Ensure correct order of base and head
+                # Compare PR head with main to see if it's behind
+                comparison = repo.compare(pr.base.ref, pr.head.ref)  # ensure correct order of base and head
                 if comparison.behind_by > 0:
                     # Merge main into the PR branch
                     success = pr.update_branch()

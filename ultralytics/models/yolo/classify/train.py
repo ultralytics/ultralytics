@@ -28,14 +28,14 @@ class ClassificationTrainer(BaseTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
         if overrides.get("imgsz") is None:
             overrides["imgsz"] = 224
-        super().__init__(cfg, overrides, _callbacks, override_label_transforms)
+        super().__init__(cfg, overrides, _callbacks, override_label_transforms, append_label_transforms)
 
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""

@@ -87,7 +87,7 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None):
         """
         Initializes the BaseTrainer class.
 
@@ -96,6 +96,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.override_label_transforms = override_label_transforms
+        self.append_label_transforms = append_label_transforms
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)

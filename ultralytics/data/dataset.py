@@ -278,6 +278,8 @@ class YOLOMultiModalDataset(YOLODataset):
     def build_transforms(self, hyp=None):
         """Enhances data transformations with optional text augmentation for multi-modal training."""
         transforms = super().build_transforms(hyp)
+        if self.override_label_transforms != None:
+            return transforms
         if self.augment:
             # NOTE: hard-coded the args for now.
             transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))

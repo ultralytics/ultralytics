@@ -65,7 +65,7 @@ class BaseValidator:
         callbacks (dict): Dictionary to store various callback functions.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, label_transforms=None, inputCh=3):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None, inputCh=3):
         """
         Initializes a BaseValidator instance.
 
@@ -101,7 +101,8 @@ class BaseValidator:
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-        self.label_transforms = label_transforms
+        self.override_label_transforms = override_label_transforms
+        self.append_label_transforms = append_label_transforms
         self.inputCh = inputCh
 
     @smart_inference_mode()

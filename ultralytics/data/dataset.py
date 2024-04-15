@@ -172,6 +172,9 @@ class YOLODataset(BaseDataset):
 
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
+        if self.override_label_transforms != None:
+            return self.override_label_transforms
+        
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -191,9 +194,9 @@ class YOLODataset(BaseDataset):
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
             )
         )
-        if self.image_transforms:
-            LOGGER.info(f"Appending custom image transform: {self.image_transforms}")
-            transforms.append(self.image_transforms)
+        if self.append_label_transforms:
+            LOGGER.info(f"Appending custom image transform: {self.append_label_transforms}")
+            transforms.append(self.append_label_transforms)
         LOGGER.info(f'Complete list of transforms to be applied:\n{transforms}')
         return transforms
 
@@ -402,7 +405,7 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix="", override_label_tranforms = None):
+    def __init__(self, root, args, augment=False, cache=False, prefix="", override_label_tranforms = None, append_label_transforms = None):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -451,6 +454,8 @@ class ClassificationDataset:
                 if augment
                 else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
             )
+        if append_label_transforms != None:
+            self.torch_transforms = torchvision.transforms.Compose([self.torch_transforms, append_label_transforms])
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

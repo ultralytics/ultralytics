@@ -28,14 +28,14 @@ class ClassificationTrainer(BaseTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, label_transforms=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None):
         """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
         if overrides.get("imgsz") is None:
             overrides["imgsz"] = 224
-        super().__init__(cfg, overrides, _callbacks, label_transforms)
+        super().__init__(cfg, overrides, _callbacks, override_label_transforms)
 
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
@@ -117,7 +117,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
-        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, label_transforms=self.label_transforms, inputCh=self.inputCh, _callbacks=self.callbacks)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, label_transforms=self.override_label_transforms, inputCh=self.inputCh, _callbacks=self.callbacks)
     
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

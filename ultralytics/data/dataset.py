@@ -402,7 +402,7 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix="", override_image_tranforms = None):
+    def __init__(self, root, args, augment=False, cache=False, prefix="", override_label_tranforms = None):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -432,8 +432,8 @@ class ClassificationDataset:
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         
-        if override_image_tranforms is not None:
-            self.torch_transforms = override_image_tranforms
+        if override_label_tranforms is not None:
+            self.torch_transforms = override_label_tranforms
         else:
             scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
             self.torch_transforms = (

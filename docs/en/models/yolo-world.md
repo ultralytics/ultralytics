@@ -38,14 +38,14 @@ This section details the models available with their specific pre-trained weight
 
 | Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
 |-----------------|---------------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
+| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
 ## Zero-shot Transfer on COCO Dataset
 

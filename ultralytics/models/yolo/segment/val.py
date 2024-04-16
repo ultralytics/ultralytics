@@ -163,7 +163,7 @@ class SegmentationValidator(DetectionValidator):
             binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
         )
 
-        return unique_gt_cls, unique_pred_cls, iou
+        return unique_gt_cls.long(), unique_pred_cls, iou
 
     def update_metrics(self, preds, batch):
         """Metrics."""
@@ -208,15 +208,15 @@ class SegmentationValidator(DetectionValidator):
                     gt_masks, pred_masks, cls, predn[:, 5], overlap=self.args.overlap_mask
                 )
                 # add instances to list
-                self.gt_instances += unique_gt_cls.long().reshape(-1).bincount(minlength=self.nc)
+                self.gt_instances += unique_gt_cls.reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes
-                for iou_idx, ious in enumerate(iou_matrix):
+                for i, ious in enumerate(iou_matrix):
                     if ious.sum().item() > 0:
                         # just get predicted classes that having in gt classes
-                        if unique_gt_cls.long()[iou_idx] in unique_pred_cls:
-                            pred_idx = torch.where(unique_pred_cls == unique_gt_cls.long()[iou_idx])[0]
-                            self.iou_list[unique_gt_cls.long()[iou_idx]] += ious[pred_idx].sum().item()
+                        if unique_gt_cls[i] in unique_pred_cls:
+                            pred_idx = torch.where(unique_pred_cls == unique_gt_cls[i])[0]
+                            self.iou_list[unique_gt_cls[i]] += ious[pred_idx].sum().item()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)

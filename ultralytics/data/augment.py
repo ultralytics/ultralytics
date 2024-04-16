@@ -812,7 +812,7 @@ class CopyPaste:
         """
         import os
         self.p = p
-        self.iou_thres = os.getenv("COPY_PASTE", 0.30)
+        self.iou_thres = float(os.getenv("COPY_PASTE", 0.30))
 
     def __call__(self, labels):
         """

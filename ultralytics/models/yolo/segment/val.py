@@ -211,13 +211,11 @@ class SegmentationValidator(DetectionValidator):
                 self.gt_instances += unique_gt_cls.reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes
-                for i, ious in enumerate(iou_matrix):
-                    if ious.sum() <= 0:
-                        continue
-                    c = unique_gt_cls[i]
+                for i, c in enumerate(unique_gt_cls):
                     # just get predicted classes that having in gt classes
-                    if unique_gt_cls[i] in unique_pred_cls:
-                        self.iou_list[c] += ious[unique_pred_cls == c].sum()
+                    if c not in unique_pred_cls:
+                        continue
+                    self.iou_list[c] += iou_matrix[i, unique_pred_cls == c].squeeze_()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)

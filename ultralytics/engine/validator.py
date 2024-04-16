@@ -205,7 +205,8 @@ class BaseValidator:
         if self.args.task == "segment":
             self.mIoU_list = self.iou_list / self.gt_instances
             self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
-            self.mIoU = self.mIoU_list.mean()
+            # self.mIoU = self.mIoU_list.mean()
+            self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
 
         self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))

@@ -48,7 +48,7 @@ class HUBTrainingSession:
 
         self.rate_limits = {
             "metrics": 3.0,
-            "ckpt": 900.0,
+            "ckpt": 90.0,
             "heartbeat": 300.0,
         }  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
@@ -213,6 +213,7 @@ class HUBTrainingSession:
         thread=True,
         verbose=True,
         progress_total=None,
+        stream_reponse=None,
         *args,
         **kwargs,
     ):
@@ -232,6 +233,8 @@ class HUBTrainingSession:
 
                 if progress_total:
                     self._show_upload_progress(progress_total, response)
+                elif stream_reponse:
+                    self._iterate_content(response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
                     # if request related to metrics upload
@@ -335,6 +338,7 @@ class HUBTrainingSession:
                 timeout=3600,
                 thread=not final,
                 progress_total=progress_total,
+                stream_reponse=True,
             )
         else:
             LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
@@ -353,3 +357,16 @@ class HUBTrainingSession:
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
+
+    def _iterate_content(self, response: requests.Response) -> None:
+        """
+        Process the streamed HTTP response data.
+
+        Args:
+            response (requests.Response): The response object from the file download request.
+
+        Returns:
+            None
+        """
+        for data in response.iter_content(chunk_size=1024):
+            pass  # Do nothing with data chunks

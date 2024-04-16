@@ -24,6 +24,7 @@ from ultralytics.nn.modules import (
     C2f2,
     C2k2,
     C3k2,
+    C3m1,
     C3k3,
     C2fAttn,
     C3Ghost,
@@ -882,6 +883,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2k2,
             C3k2,
             C3k3,
+            C3m1,
             RepNCSPELAN4,
             ADown,
             SPPELAN,
@@ -904,7 +906,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C2k2, C3k2, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3):
+            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C2k2, C3k2, C3m1, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3):
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is AIFI:

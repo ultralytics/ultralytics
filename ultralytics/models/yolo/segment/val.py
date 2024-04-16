@@ -154,7 +154,7 @@ class SegmentationValidator(DetectionValidator):
         # If there are no ground truths that satisfy,
         # return a value of 0 for IoU and gt_cls.
         if len(new_unique_gt_cls) == 0:
-            return torch.tensor([]), unique_pred_cls, torch.zeros(self.nc)
+            return torch.tensor([], dtype=torch.long, device=unique_gt_cls.device), unique_pred_cls, torch.zeros(self.nc)
 
         unique_gt_cls = torch.stack([*new_unique_gt_cls], dim=0)
         binary_gt_masks = torch.stack([*new_binary_gt_masks], dim=0)

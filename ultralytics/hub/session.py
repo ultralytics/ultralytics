@@ -358,9 +358,7 @@ class HUBTrainingSession:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
 
-    def _iterate_content(
-        self, response: requests.Response
-    ) -> None:
+    def _iterate_content(self, response: requests.Response) -> None:
         """
         Process the streamed HTTP response data.
 

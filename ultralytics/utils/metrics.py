@@ -731,7 +731,7 @@ class Metric(SimpleClass):
         """Mean of results, return mp, mr, map50, map."""
         return [self.mp, self.mr, self.map50, self.map]
 
-    def class_result(self, i, c=None):
+    def class_result(self, i):
         """Class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
@@ -867,7 +867,7 @@ class DetMetrics(SimpleClass):
         """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
         return self.box.mean_results()
 
-    def class_result(self, i, c=None):
+    def class_result(self, i):
         """Return the result of evaluating the performance of an object detection model on a specific class."""
         return self.box.class_result(i)
 
@@ -1000,9 +1000,9 @@ class SegmentMetrics(SimpleClass):
         """Return the mean metrics for bounding box and segmentation results."""
         return self.box.mean_results() + self.seg.mean_results() + self.seg.mean_IoU()
 
-    def class_result(self, i, c=None):
+    def class_result(self, i):
         """Returns classification results for a specified class index."""
-        return self.box.class_result(i) + self.seg.class_result(i) + self.seg.mIoU_class_results(c)
+        return self.box.class_result(i) + self.seg.class_result(i) + self.seg.mIoU_class_results(i)
 
     @property
     def maps(self):
@@ -1142,7 +1142,7 @@ class PoseMetrics(SegmentMetrics):
         """Return the mean results of box and pose."""
         return self.box.mean_results() + self.pose.mean_results()
 
-    def class_result(self, i, c=None):
+    def class_result(self, i):
         """Return the class-wise detection results for a specific class i."""
         return self.box.class_result(i) + self.pose.class_result(i)
 
@@ -1267,7 +1267,7 @@ class OBBMetrics(SimpleClass):
         """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
         return self.box.mean_results()
 
-    def class_result(self, i, c=None):
+    def class_result(self, i):
         """Return the result of evaluating the performance of an object detection model on a specific class."""
         return self.box.class_result(i)
 

@@ -48,7 +48,7 @@ class HUBTrainingSession:
 
         self.rate_limits = {
             "metrics": 3.0,
-            "ckpt": 90.0,
+            "ckpt": 900.0,
             "heartbeat": 300.0,
         }  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload

@@ -126,7 +126,7 @@ class SegmentationValidator(DetectionValidator):
             torch.Tensor, torch.Tensor, torch.Tensor: Unique ground truth class labels, unique predicted class labels,
             and IoU scores.
         """
-        if overlap == True:
+        if overlap:
             nl = len(gt_cls)
             index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
             gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
@@ -135,24 +135,20 @@ class SegmentationValidator(DetectionValidator):
             gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
             gt_masks = gt_masks.gt_(0.5)
 
-        unique_gt_cls = gt_cls.unique().reshape(-1)
-        binary_gt_masks = torch.zeros(unique_gt_cls.shape[0], *gt_masks.shape[1:])
-        for i, cls in enumerate(unique_gt_cls):
-            binary_gt_masks[i] = gt_masks[gt_cls == cls].sum(dim=0).clamp(min=0, max=1)
+        unique_gt_cls = gt_cls.unique().view(-1)
+        binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
 
         unique_pred_cls = pred_cls.unique().reshape(-1)
-        binary_pred_masks = torch.zeros(unique_pred_cls.shape[0], *pred_masks.shape[1:])
-        for i, cls in enumerate(unique_pred_cls):
-            binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim=0).clamp(min=0, max=1)
+        binary_pred_masks = torch.stack([pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0)
 
         # Remove redundant classes if the number of classes in the trained model is less
         # than the number of classes in the validation dataset.
         new_unique_gt_cls = []
         new_binary_gt_masks = []
 
-        for i, cls in enumerate(unique_gt_cls):
-            if cls < self.nc:
-                new_unique_gt_cls.append(cls)
+        for i, c in enumerate(unique_gt_cls):
+            if c < self.nc:
+                new_unique_gt_cls.append(c)
                 new_binary_gt_masks.append(binary_gt_masks[i])
 
         # If there are no ground truths that satisfy,

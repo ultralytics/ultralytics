@@ -201,10 +201,8 @@ class BaseValidator:
 
         # calculate mIoU for segmentation task
         if self.args.task == "segment":
-            mean_iou = self.iou_list.sum() / self.gt_instances.sum()
-            mean_iou_list = self.iou_list / self.gt_instances
-            self.mIoU = mean_iou
-            self.mIoU_list = mean_iou_list
+            self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
+            self.mIoU_list = self.iou_list / self.gt_instances
 
         stats = self.get_stats()
         self.check_stats(stats)
@@ -217,8 +215,6 @@ class BaseValidator:
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
-            if self.args.task == "segment":
-                print("mIoU:", mean_iou.cpu().numpy())
             LOGGER.info(
                 "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"
                 % tuple(self.speed.values())

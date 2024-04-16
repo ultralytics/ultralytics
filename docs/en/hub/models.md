@@ -85,7 +85,7 @@ Ultralytics HUB offers three training options:
 
 To start training using Google Colab, follow the instructions on the Google Colab notebook.
 
-<a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
+<a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb" target="_blank">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
 </a>
 

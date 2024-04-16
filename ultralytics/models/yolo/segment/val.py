@@ -40,7 +40,6 @@ class SegmentationValidator(DetectionValidator):
         self.iou_list = []
         self.mIoU = 0
         self.mIoU_list = []
-        self.pred_instances = []
         self.gt_instances = []
 
     def preprocess(self, batch):
@@ -146,6 +145,24 @@ class SegmentationValidator(DetectionValidator):
         for i, cls in enumerate(unique_pred_cls):
             binary_pred_masks[i] = pred_masks[pred_cls == cls].sum(dim=0).clamp(min=0, max=1)
 
+        # Remove redundant classes if the number of classes in the trained model is less 
+        # than the number of classes in the validation dataset.
+        new_unique_gt_cls = []
+        new_binary_gt_masks = []
+
+        for i, cls in enumerate(unique_gt_cls):
+            if cls < self.nc:
+                new_unique_gt_cls.append(cls)
+                new_binary_gt_masks.append(binary_gt_masks[i])
+        
+        # If there are no ground truths that satisfy, 
+        # return a value of 0 for IoU and gt_cls.
+        if len(new_unique_gt_cls) == 0:
+            return torch.tensor([]), unique_pred_cls, torch.zeros(self.nc)
+
+        unique_gt_cls = torch.stack([*new_unique_gt_cls], dim = 0)
+        binary_gt_masks = torch.stack([*new_binary_gt_masks], dim = 0)
+        
         iou = mask_iou(
             binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
         )
@@ -195,7 +212,6 @@ class SegmentationValidator(DetectionValidator):
                     gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap=self.args.overlap_mask
                 )
                 # add instances to list
-                self.pred_instances += predn[:, 5].cpu().long().reshape(-1).bincount(minlength=self.nc)
                 self.gt_instances += unique_gt_cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes

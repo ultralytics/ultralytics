@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -368,9 +368,7 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            check_requirements(
-                "git+https://github.com/Tencent/ncnn.git" if IS_RASPBERRYPI or IS_JETSON else "ncnn"
-            )  # requires NCNN
+            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires NCNN
             import ncnn as pyncnn
 
             net = pyncnn.Net()

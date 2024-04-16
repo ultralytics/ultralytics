@@ -212,11 +212,12 @@ class SegmentationValidator(DetectionValidator):
 
                 # add IoU to list for all classes
                 for i, ious in enumerate(iou_matrix):
-                    if ious.sum().item() > 0:
-                        # just get predicted classes that having in gt classes
-                        if unique_gt_cls[i] in unique_pred_cls:
-                            pred_idx = torch.where(unique_pred_cls == unique_gt_cls[i])[0]
-                            self.iou_list[unique_gt_cls[i]] += ious[pred_idx].sum().item()
+                    if ious.sum() <= 0:
+                        continue
+                    c = unique_gt_cls[i]
+                    # just get predicted classes that having in gt classes
+                    if unique_gt_cls[i] in unique_pred_cls:
+                        self.iou_list[c] += ious[unique_pred_cls == c].sum()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)

@@ -14,7 +14,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.plotting import Annotator, colors, determine_color, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
@@ -187,6 +187,9 @@ class Results(SimpleClass):
         self,
         conf=True,
         line_width=None,
+        box_color=None,
+        mask_color=None,
+        font_color=None,
         font_size=None,
         font="Arial.ttf",
         pil=False,
@@ -208,6 +211,9 @@ class Results(SimpleClass):
         Args:
             conf (bool): Whether to plot the detection confidence score.
             line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
+            box_color (tuple | list, optional): BGR color(s) of the boxes. Defaults to Ultralytics palette if None.
+            mask_color (tuple | list, optional): BGR color(s) of the masks. Defaults to Ultralytics palette if None.
+            font_color (tuple, optional): BGR color of the font. Defaults to (255, 255, 255) if None.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
@@ -269,7 +275,8 @@ class Results(SimpleClass):
                     / 255
                 )
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            m_color = determine_color("mask", color=mask_color, mask_idxs=idx)
+            annotator.masks(pred_masks.data, colors=m_color, im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -278,13 +285,16 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+                b_color = determine_color("box", color=box_color, box_idx=c)
+                f_color = determine_color("font", color=font_color)
+                annotator.box_label(box, label, color=b_color, txt_color=f_color, rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
             text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            f_color = determine_color("font", color=font_color)
+            annotator.text([x, x], text, txt_color=f_color)
 
         # Plot Pose results
         if self.keypoints is not None:

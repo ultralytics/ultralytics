@@ -241,6 +241,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    # @TODO: Allow colors to be passed in
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
         """
         Plot keypoints on the image.
@@ -1119,3 +1120,42 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         plt.savefig(f, dpi=300, bbox_inches="tight")
         plt.close()
         np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
+
+# @TODO extend this to support kpts and pose color logic
+def determine_color(color_purpose, mask_idxs=None, box_idx=None, color=None):
+    """
+    Handles the complex parsing of color values for different purposes.
+
+    Args:
+        color_purpose (str): Purpose of the color value. Must be one of ['mask', 'box', 'font'].
+        mask_idxs (list): List of mask indexes. Required for mask color.
+        box_idx (int): Box index. Required for mask color
+        color (list or tuple, optional): Color value. If None is passed, default colors will be used. Defaults to None.
+    """
+
+    # Assumptions
+    assert color_purpose in ["mask", "box", "font"], f"color_purpose must be one of ['mask', 'box', 'font']"
+    assert color_purpose != "mask" or mask_idxs is not None, f"mask_idxs must be provided for color_purpose 'mask'"
+    assert color_purpose != "box" or box_idx is not None, f"box_idx must be provided for color_purpose 'box'"
+
+    if color is not None:
+        if isinstance(color, list):  # Palette passed in
+            if color_purpose == "mask":
+                parse_color = [color[int(i) % len(color)] for i in mask_idxs.tolist()]
+            elif color_purpose == "box":
+                parse_color = color[box_idx % len(color)]
+        else:  # Single color passed in
+            if color_purpose == "mask":
+                parse_color = [color for _ in mask_idxs]
+            elif color_purpose in ["box", "font"]:
+                parse_color = color
+    else:  # Defaults
+        if color_purpose == "mask":
+            parse_color = [colors(int(x), True) for x in mask_idxs.tolist()]
+        elif color_purpose == "box":
+            parse_color = colors(box_idx, True)
+        elif color_purpose == "font":
+            parse_color = (255, 255, 255)
+
+    return parse_color

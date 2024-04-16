@@ -169,8 +169,8 @@ class BaseValidator:
 
         # reset iou list for new epoch
         if self.args.task == "segment":
-            self.iou_list = torch.zeros((self.nc), dtype=torch.float32)
-            self.gt_instances = torch.zeros((self.nc), dtype=torch.int32)
+            self.iou_list = torch.zeros((self.nc), dtype=torch.float32, device=self.device)
+            self.gt_instances = torch.zeros((self.nc), dtype=torch.int32, device=self.device)
 
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")

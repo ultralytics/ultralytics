@@ -205,10 +205,10 @@ class SegmentationValidator(DetectionValidator):
                 )
 
                 unique_gt_cls, unique_pred_cls, iou_matrix = self.merge_masks_and_calculate_IoU(
-                    gt_masks.cpu(), pred_masks.cpu(), cls.cpu(), predn[:, 5].cpu(), overlap=self.args.overlap_mask
+                    gt_masks, pred_masks, cls, predn[:, 5], overlap=self.args.overlap_mask
                 )
                 # add instances to list
-                self.gt_instances += unique_gt_cls.cpu().long().reshape(-1).bincount(minlength=self.nc)
+                self.gt_instances += unique_gt_cls.long().reshape(-1).bincount(minlength=self.nc)
 
                 # add IoU to list for all classes
                 for iou_idx, ious in enumerate(iou_matrix):

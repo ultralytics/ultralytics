@@ -810,7 +810,9 @@ class CopyPaste:
             p (float, optional): The probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
                                  Default is 0.5.
         """
+        import os
         self.p = p
+        self.iou_thres = os.getenv("COPY_PASTE", 0.30)
 
     def __call__(self, labels):
         """
@@ -845,7 +847,7 @@ class CopyPaste:
             ins_flip.fliplr(w)
 
             ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
-            indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
+            indexes = np.nonzero((ioa < self.iou_thres).all(1))[0]  # (N, )
             n = len(indexes)
             for j in random.sample(list(indexes), k=round(self.p * n)):
                 cls = np.concatenate((cls, cls[[j]]), axis=0)

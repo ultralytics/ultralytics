@@ -103,18 +103,18 @@ jobs:
         python-version: ["3.11"]
         model: [yolov8n]
         include:
-          - os: rpi5-bookworm
+          - os: raspberry-pi
             model: yolov8n
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        if: matrix.os != 'rpi5-bookworm' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
+        if: matrix.os != 'raspberry-pi' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
       - name: Activate Python Virtual Environment for ARM64
-        if: matrix.os == 'rpi5-bookworm'
+        if: matrix.os == 'raspberry-pi'
         run: |
           python3.11 -m venv env
           source env/bin/activate
@@ -173,18 +173,18 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
-          - os: rpi5-bookworm
+          - os: raspberry-pi
             torch: latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        if: matrix.os != 'rpi5-bookworm' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
+        if: matrix.os != 'raspberry-pi' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
       - name: Activate Python Virtual Environment for ARM64
-        if: matrix.os == 'rpi5-bookworm'
+        if: matrix.os == 'raspberry-pi'
         run: |
           python3.11 -m venv env
           source env/bin/activate
@@ -207,7 +207,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ matrix.os }}" != "rpi5-bookworm" ]] && ([[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]); then
+          if [[ "${{ matrix.os }}" != "raspberry-pi" ]] && ([[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]); then
              # WARNING bug in ray>=2.10.0
              pip install mlflow pycocotools "ray[tune]<=2.9.3"
              slow="--slow"

@@ -512,8 +512,9 @@ def is_online() -> bool:
         assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
-        socket.create_connection(address=("1.1.1.1", 80), timeout=1.0).close()  # check Cloudflare DNS
-        return True
+        for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
+            socket.create_connection(address=(dns, 80), timeout=1.0).close()
+            return True
     return False
 
 

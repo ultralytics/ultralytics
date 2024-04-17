@@ -33,6 +33,10 @@ on:
         description: "Run GPU"
         default: false
         type: boolean
+      raspberrypi:
+        description: "Run Raspberry Pi"
+        default: false
+        type: boolean
       conda:
         description: "Run Conda"
         default: false
@@ -102,23 +106,12 @@ jobs:
         os: [ubuntu-latest, macos-14]
         python-version: ["3.11"]
         model: [yolov8n]
-        include:
-          - os: raspberry-pi
-            model: yolov8n
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        if: matrix.os != 'raspberry-pi' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
-      - name: Activate Python Virtual Environment for ARM64
-        if: matrix.os == 'raspberry-pi'
-        run: |
-          python3.11 -m venv env
-          source env/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -173,22 +166,12 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
-          - os: raspberry-pi
-            torch: latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        if: matrix.os != 'raspberry-pi' # no Python support for Debian running on Raspberry Pi https://github.com/actions/setup-python/issues/401#issuecomment-1150563156  
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
-      - name: Activate Python Virtual Environment for ARM64
-        if: matrix.os == 'raspberry-pi'
-        run: |
-          python3.11 -m venv env
-          source env/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -207,10 +190,10 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ matrix.os }}" != "raspberry-pi" ]] && ([[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]); then
-            # WARNING bug in ray>=2.10.0
-            pip install mlflow pycocotools "ray[tune]<=2.9.3"
-            slow="--slow"
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              # WARNING bug in ray>=2.10.0
+              pip install mlflow pycocotools "ray[tune]<=2.9.3"
+              slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
@@ -241,6 +224,28 @@ jobs:
           flags: GPU
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  RaspberryPi:
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    timeout-minutes: 60
+    runs-on: raspberry-pi
+    steps:
+      - name: Activate Virtual Environment
+        run: |
+          python3.11 -m venv env
+          source env/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3" --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          yolo checks
+          pip list
+      - name: Pytest tests
+        run: |
+          pytest --slow tests/
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
@@ -302,11 +307,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, Conda] # Add job names that you want to check for failure
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda] # Add job names that you want to check for failure
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |

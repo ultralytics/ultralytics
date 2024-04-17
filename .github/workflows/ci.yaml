@@ -230,6 +230,7 @@ jobs:
     timeout-minutes: 60
     runs-on: raspberry-pi
     steps:
+      - uses: actions/checkout@v4
       - name: Activate Virtual Environment
         run: |
           python3.11 -m venv env

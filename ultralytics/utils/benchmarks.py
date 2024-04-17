@@ -35,7 +35,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, WINDOWS
+from ultralytics.utils import ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
 from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
@@ -83,18 +83,16 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
+            if i == 5:  # CoreML
+                assert not (IS_RASPBERRYPI or IS_JETSON), "CoreML export not supported on Raspberry Pi or NVIDIA Jetson"
             if i == 9:  # Edge TPU
-                assert not (IS_RASPBERRYPI or IS_JETSON or MACOS or WINDOWS), "Edge TPU export only supported on Linux"
+                assert LINUX and not (IS_RASPBERRYPI or IS_JETSON), "Edge TPU export only supported on Linux"
             elif i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i in {5, 10}:  # CoreML and TF.js
                 assert MACOS or LINUX, "export only supported on macOS and Linux"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
-            if i in {5}:  # CoreML
-                assert MACOS or not (
-                    IS_RASPBERRYPI or IS_JETSON
-                ), "export not supported on Raspberry Pi and NVIDIA Jetson"
             if i in {6, 7, 8, 9, 10}:  # All TF formats
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle

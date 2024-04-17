@@ -770,8 +770,6 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         Image.fromarray(crop[..., ::-1]).save(f, quality=95, subsampling=0)  # save RGB
     return crop
 
-loggedCannotPlotImages = False
-
 @threaded
 def plot_images(
     images,
@@ -791,9 +789,6 @@ def plot_images(
 ):
     """Plot image grid with labels."""
     if images.shape[1] != 3:
-        if not loggedCannotPlotImages:
-            LOGGER.info("Skipping plotting validation samples for images that do not have 3 input channels.")
-            loggedCannotPlotImages = True
         return
 
     if isinstance(images, torch.Tensor):

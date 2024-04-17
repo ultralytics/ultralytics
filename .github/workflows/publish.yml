@@ -40,15 +40,23 @@ jobs:
           import os
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version
-
+          
           v_local = tuple(map(int, ultralytics.__version__.split('.')))
           v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
+          
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
+          
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # only publish if patch version increments by 1 or 2
+          
+          increment_patch = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # publish if patch version increments by 1 or 2
+          increment_minor = (d[0] == 0) and (d[1] == 1) and v_local[2] == 0  # publish if minor version increments
+          
+          increment = increment_patch or increment_minor
+          
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
+          
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi

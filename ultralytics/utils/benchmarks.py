@@ -86,7 +86,7 @@ def benchmark(
             if i == 5:  # CoreML
                 assert not (IS_RASPBERRYPI or IS_JETSON), "CoreML export not supported on Raspberry Pi or NVIDIA Jetson"
             if i == 9:  # Edge TPU
-                assert LINUX and not (IS_RASPBERRYPI or IS_JETSON), "Edge TPU export only supported on Linux"
+                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i in {5, 10}:  # CoreML and TF.js

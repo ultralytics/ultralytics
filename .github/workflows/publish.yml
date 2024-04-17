@@ -37,9 +37,6 @@ jobs:
       - name: Check PyPI version
         shell: python
         run: |
-      - name: Check PyPI version
-        shell: python
-        run: |
           import os
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version

@@ -167,11 +167,6 @@ class BaseValidator:
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
 
-        # reset iou list for new epoch
-        if self.args.task == "segment":
-            self.iou_list = torch.zeros((self.nc), dtype=torch.float32, device=self.device)
-            self.gt_instances = torch.zeros((self.nc), dtype=torch.int32, device=self.device)
-
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
@@ -200,15 +195,6 @@ class BaseValidator:
             self.run_callbacks("on_val_batch_end")
 
         stats = self.get_stats()
-
-        # calculate mIoU for segmentation task
-        if self.args.task == "segment":
-            self.mIoU_list = self.iou_list / self.gt_instances
-            if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
-                self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
-            # self.mIoU = self.mIoU_list.mean()
-            self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
-
         self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
         self.finalize_metrics()

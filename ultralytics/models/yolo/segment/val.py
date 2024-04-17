@@ -36,12 +36,6 @@ class SegmentationValidator(DetectionValidator):
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
-        # add mIoU metrics
-        self.iou_list = []
-        self.mIoU = 0
-        self.mIoU_list = []
-        self.gt_instances = []
-
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
@@ -58,6 +52,10 @@ class SegmentationValidator(DetectionValidator):
         else:
             self.process = ops.process_mask  # faster
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[])
+
+        # reset mIoU metrics
+        self.iou_list = torch.zeros((self.nc), dtype=torch.float32, device=self.device)
+        self.gt_instances = torch.zeros((self.nc), dtype=torch.int32, device=self.device)
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
@@ -241,6 +239,15 @@ class SegmentationValidator(DetectionValidator):
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+
+    def get_stats(self):
+        results_dict = super().get_stats()
+        self.mIoU_list = self.iou_list / self.gt_instances
+        if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
+            self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
+        # self.mIoU = self.mIoU_list.mean()
+        self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
+        return results_dict
 
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""

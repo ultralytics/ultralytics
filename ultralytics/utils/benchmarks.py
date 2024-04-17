@@ -35,7 +35,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
+from ultralytics.utils import ARM64, ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
 from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
@@ -83,8 +83,10 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
+            if i == 5:  # CoreML
+                assert not (IS_RASPBERRYPI or IS_JETSON), "CoreML export not supported on Raspberry Pi or NVIDIA Jetson"
             if i == 9:  # Edge TPU
-                assert LINUX, "Edge TPU export only supported on Linux"
+                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i in {5, 10}:  # CoreML and TF.js

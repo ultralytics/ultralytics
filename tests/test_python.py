@@ -277,12 +277,17 @@ def test_export_ncnn():
 
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations."""
-    for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
+    models = []
+    yamls = (ROOT / "cfg/models").rglob("*.yaml")
+    for y in yamls:
+        d = yaml.safe_load(y.read_text("utf-8"))
+        _ = [models.append(Path(f"{k}.yaml") if "yolo" in k.lower() else y) for k in d.keys()]
+    for m in sorted(set(models)):
         if "rtdetr" in m.name:
             if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
                 _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
         else:
-            YOLO(m.name)
+            YOLO(m.name)(SOURCE, imgsz=160)
 
 
 def test_workflow():

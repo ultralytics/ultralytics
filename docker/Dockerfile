@@ -26,7 +26,7 @@ WORKDIR /usr/src/ultralytics
 # Copy contents
 # COPY . /usr/src/ultralytics  # git permission issues inside container
 RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

@@ -35,6 +35,7 @@ class SegmentationValidator(DetectionValidator):
         self.process = None
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.use_miou = False
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
@@ -58,7 +59,7 @@ class SegmentationValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 11) % (
+        desc = ("%22s" + "%11s" * 10) % (
             "Class",
             "Images",
             "Instances",
@@ -69,9 +70,9 @@ class SegmentationValidator(DetectionValidator):
             "Mask(P",
             "R",
             "mAP50",
-            "mAP50-95)",
-            "mIoU",  # add mIoU metrics
+            "mAP50-95)"
         )
+        return desc + ("%11s" % "mIoU") if self.use_miou else desc
 
     def postprocess(self, preds):
         """Post-processes YOLO predictions and returns output detections with proto."""
@@ -162,22 +163,8 @@ class SegmentationValidator(DetectionValidator):
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def get_stats(self):
-        results_dict = super().get_stats()
-        self.mIoU_list = self.area[:, 0] / self.area[:, 1]
-        if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
-            self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
-        self.mIoU = self.mIoU_list.mean()
-
-        return results_dict
-
-    def finalize_metrics(self, *args, **kwargs):
-        """Sets speed and confusion matrix for evaluation metrics."""
-        self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
-
-        # add mIoU metrics to SegmentMetrics class
-        self.metrics.seg.mIoU = self.mIoU
-        self.metrics.seg.mIoU_list = self.mIoU_list
+        self.metrics.compute_iou(self.area)
+        return super().get_stats()
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -201,36 +188,37 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks = gt_masks.gt_(0.5)
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
 
-            pred_cls = detections[:, 5]
-            unique_gt_cls = gt_cls.unique().view(-1)
-            binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
+            if self.use_miou:
+                pred_cls = detections[:, 5]
+                unique_gt_cls = gt_cls.unique().view(-1)
+                binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
 
-            unique_pred_cls = pred_cls.unique().reshape(-1)
-            binary_pred_masks = torch.stack(
-                [pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0
-            )
+                unique_pred_cls = pred_cls.unique().reshape(-1)
+                binary_pred_masks = torch.stack(
+                    [pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0
+                )
 
-            h, w = binary_pred_masks.shape[1:]
-            gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
-            for i, c in enumerate(unique_gt_cls):
-                gt_masks_[binary_gt_masks[i].bool()] = c
-            pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
-            for i, c in enumerate(unique_pred_cls):
-                if c not in unique_gt_cls:
-                    continue
-                pred_masks_[binary_pred_masks[i].bool()] = c
+                h, w = binary_pred_masks.shape[1:]
+                gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
+                for i, c in enumerate(unique_gt_cls):
+                    gt_masks_[binary_gt_masks[i].bool()] = c
+                pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
+                for i, c in enumerate(unique_pred_cls):
+                    if c not in unique_gt_cls:
+                        continue
+                    pred_masks_[binary_pred_masks[i].bool()] = c
 
-            mask = gt_masks_ != 255
-            pred_masks_ = pred_masks_[mask]
-            gt_masks_ = gt_masks_[mask]
+                mask = gt_masks_ != 255
+                pred_masks_ = pred_masks_[mask]
+                gt_masks_ = gt_masks_[mask]
 
-            intersect = pred_masks_[pred_masks_ == gt_masks_]
-            area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
-            area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
-            area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
-            area_union = area_pred_label + area_label - area_intersect
-            self.area[:, 0] += area_intersect
-            self.area[:, 1] += area_union
+                intersect = pred_masks_[pred_masks_ == gt_masks_]
+                area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
+                area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
+                area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
+                area_union = area_pred_label + area_label - area_intersect
+                self.area[:, 0] += area_intersect
+                self.area[:, 1] += area_union
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 

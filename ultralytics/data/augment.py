@@ -18,8 +18,6 @@ from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 from .utils import polygons2masks, polygons2masks_overlap
 
-from numba import njit
-
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
 DEFAULT_CROP_FRACTION = 1.0
@@ -948,8 +946,6 @@ class Format:
         bgr=0.0,
     ):
         """Initializes the Format class with given parameters."""
-        if isinstance(bgr, tuple):
-            raise Exception("bgr should be a float, not a tuple.")
         self.bbox_format = bbox_format
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only

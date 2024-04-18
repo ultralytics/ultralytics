@@ -103,6 +103,15 @@ jobs:
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+      - name: Update Changelog
+        run: |
+          CHANGELOG="docs/en/Changelog.md"
+          echo -e "## Version ${{ steps.check_pypi.outputs.version }}\n{{RELEASE NOTES}}\n\n$(cat $CHANGELOG)" > $CHANGELOG
+          git config --global user.name "Glenn Jocher"
+          git config --global user.email "glenn.jocher@ultralytics.com"
+          git add $CHANGELOG
+          git commit -m "Update Changelog for version ${{ steps.check_pypi.outputs.version }}"
+          git push
       - name: Notify on Slack (Success)
         if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v1.25.0

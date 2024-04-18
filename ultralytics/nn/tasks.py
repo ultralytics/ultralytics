@@ -72,6 +72,7 @@ except ImportError:
 
 YAML_MODS = r"((-pose|-seg|-obb|-ghost|-rtdetr|-world(v\d)?|(-cls-resnet\d{2,3})|-cls)?(-p\d{1})?)?"
 
+
 class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
@@ -853,7 +854,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     ordered_layers = yaml_stack(d)
-    for i, (f, n, m, args) in enumerate(ordered_layers if any(ordered_layers) else (d["backbone"] + d["head"])):  # from, number, module, args
+    for i, (f, n, m, args) in enumerate(
+        ordered_layers if any(ordered_layers) else (d["backbone"] + d["head"])
+    ):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
@@ -1057,8 +1060,9 @@ def guess_model_task(model):
     )
     return "detect"  # assume detect
 
-def yaml_stack(m_dict:dict, model_key:str="") -> tuple[list,str|None]:
-    """Stack a model YAML dictionary into a sorted list of model layers"""
+
+def yaml_stack(m_dict: dict, model_key: str = "") -> tuple[list, str | None]:
+    """Stack a model YAML dictionary into a sorted list of model layers."""
     model_key = model_key or m_dict.get("model_key", "")
     model_cfg = m_dict.get(model_key, {})
     _ = model_cfg.pop("task") if "task" in model_cfg else None

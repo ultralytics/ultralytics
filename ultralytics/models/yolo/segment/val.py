@@ -150,7 +150,7 @@ class SegmentationValidator(DetectionValidator):
                 continue
             pred_masks_[binary_pred_masks[i].bool()] = c
 
-        mask = (gt_masks_ != 255)
+        mask = gt_masks_ != 255
         pred_masks_ = pred_masks_[mask]
         gt_masks_ = gt_masks_[mask]
 
@@ -199,6 +199,10 @@ class SegmentationValidator(DetectionValidator):
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
+                )
+
+                self.merge_masks_and_calculate_IoU(
+                    gt_masks, pred_masks, cls, predn[:, 5], overlap=self.args.overlap_mask
                 )
 
                 if self.args.plots:

@@ -605,8 +605,6 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-    @staticmethod
-    @njit()
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes
@@ -950,6 +948,8 @@ class Format:
         bgr=0.0,
     ):
         """Initializes the Format class with given parameters."""
+        if isinstance(bgr, tuple):
+            raise Exception("bgr should be a float, not a tuple.")
         self.bbox_format = bbox_format
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only

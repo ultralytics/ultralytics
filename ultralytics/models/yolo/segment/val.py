@@ -54,6 +54,7 @@ class SegmentationValidator(DetectionValidator):
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[])
 
         # reset mIoU metrics
+        self.area = torch.zeros((self.nc, 2), dtype=torch.float32, device=self.device)
         self.iou_list = torch.zeros((self.nc), dtype=torch.float32, device=self.device)
         self.gt_instances = torch.zeros((self.nc), dtype=torch.int32, device=self.device)
 
@@ -165,6 +166,28 @@ class SegmentationValidator(DetectionValidator):
             binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
         )
 
+        h, w = binary_pred_masks.shape[1:]
+        gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
+        for i, c in enumerate(unique_gt_cls):
+            gt_masks_[binary_gt_masks[i].bool()] = c
+        pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
+        for i, c in enumerate(unique_pred_cls):
+            if c not in unique_gt_cls:
+                continue
+            pred_masks_[binary_pred_masks[i].bool()] = c
+
+        mask = (gt_masks_ != 255)
+        pred_masks_ = pred_masks_[mask]
+        gt_masks_ = gt_masks_[mask]
+
+        intersect = pred_masks_[pred_masks_ == gt_masks_]
+        area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
+        area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
+        area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
+        area_union = area_pred_label + area_label - area_intersect
+        self.area[:, 0] += area_intersect
+        self.area[:, 1] += area_union
+
         return unique_gt_cls.long(), unique_pred_cls, iou
 
     def update_metrics(self, preds, batch):
@@ -242,11 +265,17 @@ class SegmentationValidator(DetectionValidator):
 
     def get_stats(self):
         results_dict = super().get_stats()
-        self.mIoU_list = self.iou_list / self.gt_instances
-        if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
-            self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
+        # self.mIoU_list = self.iou_list / self.gt_instances
+        # if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
+        #     self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
         # self.mIoU = self.mIoU_list.mean()
         self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
+
+        self.mIoU_list = self.area[:, 0] / self.area[:, 1]
+        if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
+            self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
+        self.mIoU = self.mIoU_list.mean()
+
         return results_dict
 
     def finalize_metrics(self, *args, **kwargs):

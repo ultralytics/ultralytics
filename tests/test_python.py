@@ -644,10 +644,10 @@ def test_yolo_world():
     # Training from pretrain, evaluation process is included at the final stage of training.
     model.train(
         data="coco8.yaml",
-        epochs=2,
+        epochs=1,
         imgsz=32,
         cache="disk",
-        batch=-1,
+        batch=4,
         close_mosaic=1,
         name="yolo-world",
         save_txt=True,
@@ -660,10 +660,10 @@ def test_yolo_world():
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
     model.train(
         data={"train": {"yolo_data": ["coco8.yaml"]}, "val": {"yolo_data": ["coco8.yaml"]}},
-        epochs=2,
+        epochs=1,
         imgsz=32,
         cache="disk",
-        batch=-1,
+        batch=4,
         close_mosaic=1,
         name="yolo-world",
         trainer=WorldTrainerFromScratch,

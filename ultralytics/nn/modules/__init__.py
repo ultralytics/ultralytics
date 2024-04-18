@@ -49,6 +49,7 @@ from .block import (
     C2f2,
     C2k2,
     C3k2,
+    C3K2,
     C3k3,
     C3m1
 )
@@ -111,6 +112,7 @@ __all__ = (
     "C2f2",
     "C2k2",
     "C3k2",
+    "C3K2",
     "C3k3",
     "C3m1",
     "C2fAttn",

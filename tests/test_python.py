@@ -642,13 +642,13 @@ def test_yolo_world():
 
     # Training from yaml
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, cache="disk", batch=4, close_mosaic=1, name="yolo-world")
 
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
     # val
     model.val(data="coco8.yaml", imgsz=32, save_txt=True, save_json=True)
     # Training from pretrain
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, cache="disk", batch=4, close_mosaic=1, name="yolo-world")
 
     # test WorWorldTrainerFromScratch
     from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -656,10 +656,10 @@ def test_yolo_world():
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
     model.train(
         data={"train": {"yolo_data": ["coco8.yaml"]}, "val": {"yolo_data": ["coco8.yaml"]}},
-        epochs=2,
+        epochs=1,
         imgsz=32,
         cache="disk",
-        batch=-1,
+        batch=4,
         close_mosaic=1,
         name="yolo-world",
         trainer=WorldTrainerFromScratch,

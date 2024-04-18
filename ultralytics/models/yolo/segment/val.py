@@ -55,8 +55,6 @@ class SegmentationValidator(DetectionValidator):
 
         # reset mIoU metrics
         self.area = torch.zeros((self.nc, 2), dtype=torch.float32, device=self.device)
-        self.iou_list = torch.zeros((self.nc), dtype=torch.float32, device=self.device)
-        self.gt_instances = torch.zeros((self.nc), dtype=torch.int32, device=self.device)
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""

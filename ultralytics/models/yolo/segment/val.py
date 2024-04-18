@@ -70,7 +70,7 @@ class SegmentationValidator(DetectionValidator):
             "Mask(P",
             "R",
             "mAP50",
-            "mAP50-95)"
+            "mAP50-95)",
         )
         return desc + ("%11s" % "mIoU") if self.use_miou else desc
 

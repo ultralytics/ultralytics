@@ -974,7 +974,7 @@ class SegmentMetrics(SimpleClass):
         if areas is None:
             return
         # Calculate iou for each class if 'areas' is given
-        self.iou = (areas[:, 0] / areas[:, 1])
+        self.iou = areas[:, 0] / areas[:, 1]
         self.iou = self.iou[~torch.isnan(self.iou)].tolist()
 
     @property
@@ -1000,7 +1000,7 @@ class SegmentMetrics(SimpleClass):
     def class_result(self, i):
         """Returns classification results for a specified class index."""
         class_result = self.box.class_result(i) + self.seg.class_result(i)
-        return class_result + (self.iou[i], ) if self.iou else class_result
+        return class_result + (self.iou[i],) if self.iou else class_result
 
     @property
     def maps(self):

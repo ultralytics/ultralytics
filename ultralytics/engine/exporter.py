@@ -50,8 +50,8 @@ TensorFlow.js:
     $ npm start
 """
 
-import json
 import gc
+import json
 import os
 import shutil
 import subprocess

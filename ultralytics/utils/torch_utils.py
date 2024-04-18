@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import math
 import gc
+import math
 import os
 import random
 import time

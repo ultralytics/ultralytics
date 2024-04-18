@@ -642,8 +642,9 @@ def test_yolo_world():
 
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
     # Training from pretrain, evaluation process is included at the final stage of training.
+    # Use dota8.yaml which has less categories to reduce the inference time of CLIP model
     model.train(
-        data="coco8.yaml",
+        data="dota8.yaml",
         epochs=1,
         imgsz=32,
         cache="disk",
@@ -659,7 +660,7 @@ def test_yolo_world():
 
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
     model.train(
-        data={"train": {"yolo_data": ["coco8.yaml"]}, "val": {"yolo_data": ["coco8.yaml"]}},
+        data={"train": {"yolo_data": ["dota8.yaml"]}, "val": {"yolo_data": ["dota8.yaml"]}},
         epochs=1,
         imgsz=32,
         cache="disk",

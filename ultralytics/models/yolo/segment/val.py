@@ -213,7 +213,7 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks_ = gt_masks_[mask]
 
                 intersect = pred_masks_[pred_masks_ == gt_masks_]
-                area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
+                area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1) if len(intersect) else 0
                 area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
                 area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
                 area_union = area_pred_label + area_label - area_intersect

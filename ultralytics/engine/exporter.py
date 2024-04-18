@@ -50,6 +50,7 @@ TensorFlow.js:
     $ npm start
 """
 
+import gc
 import json
 import os
 import shutil
@@ -713,6 +714,7 @@ class Exporter:
 
         # Free CUDA memory
         del self.model
+        gc.collect()
         torch.cuda.empty_cache()
 
         # Write file

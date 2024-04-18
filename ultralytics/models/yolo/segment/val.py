@@ -140,32 +140,6 @@ class SegmentationValidator(DetectionValidator):
         unique_pred_cls = pred_cls.unique().reshape(-1)
         binary_pred_masks = torch.stack([pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0)
 
-        # Remove redundant classes if the number of classes in the trained model is less
-        # than the number of classes in the validation dataset.
-        new_unique_gt_cls = []
-        new_binary_gt_masks = []
-
-        for i, c in enumerate(unique_gt_cls):
-            if c < self.nc:
-                new_unique_gt_cls.append(c)
-                new_binary_gt_masks.append(binary_gt_masks[i])
-
-        # If there are no ground truths that satisfy,
-        # return a value of 0 for IoU and gt_cls.
-        if len(new_unique_gt_cls) == 0:
-            return (
-                torch.tensor([], dtype=torch.long, device=unique_gt_cls.device),
-                unique_pred_cls,
-                torch.zeros(self.nc),
-            )
-
-        unique_gt_cls = torch.stack([*new_unique_gt_cls], dim=0)
-        binary_gt_masks = torch.stack([*new_binary_gt_masks], dim=0)
-
-        iou = mask_iou(
-            binary_gt_masks.view(binary_gt_masks.shape[0], -1), binary_pred_masks.view(binary_pred_masks.shape[0], -1)
-        )
-
         h, w = binary_pred_masks.shape[1:]
         gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
         for i, c in enumerate(unique_gt_cls):
@@ -187,8 +161,6 @@ class SegmentationValidator(DetectionValidator):
         area_union = area_pred_label + area_label - area_intersect
         self.area[:, 0] += area_intersect
         self.area[:, 1] += area_union
-
-        return unique_gt_cls.long(), unique_pred_cls, iou
 
     def update_metrics(self, preds, batch):
         """Metrics."""
@@ -228,19 +200,6 @@ class SegmentationValidator(DetectionValidator):
                 stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
-
-                unique_gt_cls, unique_pred_cls, iou_matrix = self.merge_masks_and_calculate_IoU(
-                    gt_masks, pred_masks, cls, predn[:, 5], overlap=self.args.overlap_mask
-                )
-                # add instances to list
-                self.gt_instances += unique_gt_cls.reshape(-1).bincount(minlength=self.nc)
-
-                # add IoU to list for all classes
-                for i, c in enumerate(unique_gt_cls):
-                    # just get predicted classes that having in gt classes
-                    if c not in unique_pred_cls:
-                        continue
-                    self.iou_list[c] += iou_matrix[i, unique_pred_cls == c].squeeze_()
 
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)

@@ -82,7 +82,7 @@ class ClassificationTrainer(BaseTrainer):
     def build_dataset(self, img_path, mode="train", batch=None):
         """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode, 
-        image_transforms=self.image_transforms)
+        override_label_tranforms=self.override_label_transforms, append_label_tranforms=self.append_label_transforms)
     
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
@@ -117,7 +117,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
-        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, label_transforms=self.override_label_transforms, inputCh=self.inputCh, _callbacks=self.callbacks)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, override_label_transforms=self.override_label_transforms, append_label_transforms=self.append_label_transforms, inputCh=self.inputCh, _callbacks=self.callbacks)
     
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

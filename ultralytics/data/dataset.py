@@ -181,6 +181,10 @@ class YOLODataset(BaseDataset):
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+        bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
+        if self.override_label_transforms != None:
+            LOGGER.info("Transformation override detected. Setting BGR flip probability to 0")
+            bgr = 0
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -191,7 +195,7 @@ class YOLODataset(BaseDataset):
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
-                bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
+                bgr=bgr
             )
         )
         if self.append_label_transforms:

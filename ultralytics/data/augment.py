@@ -18,6 +18,8 @@ from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 from .utils import polygons2masks, polygons2masks_overlap
 
+from numba import njit
+
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
 DEFAULT_CROP_FRACTION = 1.0
@@ -603,6 +605,8 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
+    @staticmethod
+    @njit()
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes

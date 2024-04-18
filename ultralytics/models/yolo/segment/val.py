@@ -101,65 +101,6 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
-    def merge_masks_and_calculate_IoU(
-        self,
-        gt_masks: torch.Tensor,
-        pred_masks: torch.Tensor,
-        gt_cls: torch.Tensor,
-        pred_cls: torch.Tensor,
-        overlap=False,
-    ):
-        """
-        Merge ground truth masks and predicted masks by class and calculate IoU.
-
-        Args:
-            gt_masks (torch.Tensor): Ground truth masks.
-            pred_masks (torch.Tensor): Predicted masks.
-            gt_cls (torch.Tensor): Ground truth class labels.
-            pred_cls (torch.Tensor): Predicted class labels.
-            overlap (bool, optional): Flag indicating whether the gt masks overlap. Defaults to False.
-
-        Returns:
-            torch.Tensor, torch.Tensor, torch.Tensor: Unique ground truth class labels, unique predicted class labels,
-            and IoU scores.
-        """
-        if overlap:
-            nl = len(gt_cls)
-            index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
-            gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
-            gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
-        if gt_masks.shape[1:] != pred_masks.shape[1:]:
-            gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
-            gt_masks = gt_masks.gt_(0.5)
-
-        unique_gt_cls = gt_cls.unique().view(-1)
-        binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
-
-        unique_pred_cls = pred_cls.unique().reshape(-1)
-        binary_pred_masks = torch.stack([pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0)
-
-        h, w = binary_pred_masks.shape[1:]
-        gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
-        for i, c in enumerate(unique_gt_cls):
-            gt_masks_[binary_gt_masks[i].bool()] = c
-        pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
-        for i, c in enumerate(unique_pred_cls):
-            if c not in unique_gt_cls:
-                continue
-            pred_masks_[binary_pred_masks[i].bool()] = c
-
-        mask = gt_masks_ != 255
-        pred_masks_ = pred_masks_[mask]
-        gt_masks_ = gt_masks_[mask]
-
-        intersect = pred_masks_[pred_masks_ == gt_masks_]
-        area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
-        area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
-        area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
-        area_union = area_pred_label + area_label - area_intersect
-        self.area[:, 0] += area_intersect
-        self.area[:, 1] += area_union
-
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
@@ -199,10 +140,6 @@ class SegmentationValidator(DetectionValidator):
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
 
-                self.merge_masks_and_calculate_IoU(
-                    gt_masks, pred_masks, cls, predn[:, 5], overlap=self.args.overlap_mask
-                )
-
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 
@@ -226,12 +163,6 @@ class SegmentationValidator(DetectionValidator):
 
     def get_stats(self):
         results_dict = super().get_stats()
-        # self.mIoU_list = self.iou_list / self.gt_instances
-        # if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
-        #     self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
-        # self.mIoU = self.mIoU_list.mean()
-        self.mIoU = self.iou_list.sum() / self.gt_instances.sum()
-
         self.mIoU_list = self.area[:, 0] / self.area[:, 1]
         if len(self.metrics.seg.ap_class_index) < len(self.mIoU_list):  # NOTE: to pass the FastSAM CI for now
             self.mIoU_list = self.mIoU_list[self.metrics.seg.ap_class_index]
@@ -269,6 +200,37 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
                 gt_masks = gt_masks.gt_(0.5)
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
+
+            pred_cls = detections[:, 5]
+            unique_gt_cls = gt_cls.unique().view(-1)
+            binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
+
+            unique_pred_cls = pred_cls.unique().reshape(-1)
+            binary_pred_masks = torch.stack(
+                [pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0
+            )
+
+            h, w = binary_pred_masks.shape[1:]
+            gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
+            for i, c in enumerate(unique_gt_cls):
+                gt_masks_[binary_gt_masks[i].bool()] = c
+            pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
+            for i, c in enumerate(unique_pred_cls):
+                if c not in unique_gt_cls:
+                    continue
+                pred_masks_[binary_pred_masks[i].bool()] = c
+
+            mask = gt_masks_ != 255
+            pred_masks_ = pred_masks_[mask]
+            gt_masks_ = gt_masks_[mask]
+
+            intersect = pred_masks_[pred_masks_ == gt_masks_]
+            area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1)
+            area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
+            area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
+            area_union = area_pred_label + area_label - area_intersect
+            self.area[:, 0] += area_intersect
+            self.area[:, 1] += area_union
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 

@@ -2,45 +2,106 @@
 # YOLOv3 object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/yolov3
 
 # Parameters
-nc: 80 # number of classes
+nc: &nc 80 # number of classes
 depth_multiple: 1.0 # model depth multiple
 width_multiple: 1.0 # layer channel multiple
 
 # darknet53 backbone
 backbone:
   # [from, number, module, args]
-  - [-1, 1, Conv, [32, 3, 1]] # 0
-  - [-1, 1, Conv, [64, 3, 2]] # 1-P1/2
-  - [-1, 1, Bottleneck, [64]]
-  - [-1, 1, Conv, [128, 3, 2]] # 3-P2/4
-  - [-1, 2, Bottleneck, [128]]
-  - [-1, 1, Conv, [256, 3, 2]] # 5-P3/8
-  - [-1, 8, Bottleneck, [256]]
-  - [-1, 1, Conv, [512, 3, 2]] # 7-P4/16
-  - [-1, 8, Bottleneck, [512]]
-  - [-1, 1, Conv, [1024, 3, 2]] # 9-P5/32
-  - [-1, 4, Bottleneck, [1024]] # 10
+  base: &base_bb
+    0:  [-1, 1, Conv, [32, 3, 1]] # 0
+    1:  [-1, 1, Conv, [64, 3, 2]] # 1-P1/2
+    2:  [-1, 1, Bottleneck, [64]]
+    3:  [-1, 1, Conv, [128, 3, 2]] # 3-P2/4
+    4:  [-1, 2, Bottleneck, [128]]
+    5:  [-1, 1, Conv, [256, 3, 2]] # 5-P3/8
+    6:  [-1, 8, Bottleneck, [256]]
+    7:  [-1, 1, Conv, [512, 3, 2]] # 7-P4/16
+    8:  [-1, 8, Bottleneck, [512]]
+    9:  [-1, 1, Conv, [1024, 3, 2]] # 9-P5/32
+    10: [-1, 4, Bottleneck, [1024]] # 10
+
+  tiny: &tiny_bb
+    0:  [-1, 1, Conv, [16, 3, 1]] # 0
+    1:  [-1, 1, nn.MaxPool2d, [2, 2, 0]] # 1-P1/2
+    2:  [-1, 1, Conv, [32, 3, 1]]
+    3:  [-1, 1, nn.MaxPool2d, [2, 2, 0]] # 3-P2/4
+    4:  [-1, 1, Conv, [64, 3, 1]]
+    5:  [-1, 1, nn.MaxPool2d, [2, 2, 0]] # 5-P3/8
+    6:  [-1, 1, Conv, [128, 3, 1]]
+    7:  [-1, 1, nn.MaxPool2d, [2, 2, 0]] # 7-P4/16
+    8:  [-1, 1, Conv, [256, 3, 1]]
+    9:  [-1, 1, nn.MaxPool2d, [2, 2, 0]] # 9-P5/32
+    10: [-1, 1, Conv, [512, 3, 1]]
+    11: [-1, 1, nn.ZeroPad2d, [[0, 1, 0, 1]]] # 11
+    12: [-1, 1, nn.MaxPool2d, [2, 1, 0]] # 12
 
 # YOLOv3 head
+neck:
+  base: &base_neck
+    13: [-1, 1, Bottleneck, [1024, False]]
+
+  norm: &norm
+    14: [-1, 1, Conv, [512, 1, 1]]
+
+  spp: &spp
+    14: [-1, 1, SPP, [512, [5, 9, 13]]]
+
+  core: &core_neck
+    15: [-1, 1, Conv, [1024, 3, 1]]
+    16: [-1, 1, Conv, [512, 1, 1]]
+    17: [-1, 1, Conv, [1024, 3, 1]] # 15 (P5/32-large)
+
+  tiny-core: &tiny_core
+    15: [-1, 1, Conv, [1024, 3, 1]]
+    16: [-1, 1, Conv, [256, 1, 1]]
+    17: [-1, 1, Conv, [512, 3, 1]] # 15 (P5/32-large)
+
+  shared-core: &shared_core
+    18: [-2, 1, Conv, [256, 1, 1]]
+    19: [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+    20: [[-1, 8], 1, Concat, [1]] # cat backbone P4
+  
+  tiny-tail: &tiny_tail
+    21: [-1, 1, Conv, [256, 3, 1]] # 19 (P4/16-medium)
+
+  core-tail: &core_tail
+    21: [-1, 1, Bottleneck, [512, False]]
+    22: [-1, 1, Bottleneck, [512, False]]
+    23: [-1, 1, Conv, [256, 1, 1]]
+    24: [-1, 1, Conv, [512, 3, 1]] # 22 (P4/16-medium)
+
+    25: [-2, 1, Conv, [128, 1, 1]]
+    26: [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+    27: [[-1, 6], 1, Concat, [1]] # cat backbone P3
+    28: [-1, 1, Bottleneck, [256, False]]
+    29: [-1, 2, Bottleneck, [256, False]] # 27 (P3/8-small)
+
+base-nk: &base_nk
+  <<: [*base_neck, *norm, *core_neck, *shared_core, *core_tail]
+
+spp-nk: &spp_nk
+  <<: [*base_neck, *spp, *core_neck, *shared_core, *core_tail]
+
+tiny-nk: &tiny_nk
+  <<: [*tiny_core, *shared_core, *tiny_tail]
+
 head:
-  - [-1, 1, Bottleneck, [1024, False]]
-  - [-1, 1, Conv, [512, 1, 1]]
-  - [-1, 1, Conv, [1024, 3, 1]]
-  - [-1, 1, Conv, [512, 1, 1]]
-  - [-1, 1, Conv, [1024, 3, 1]] # 15 (P5/32-large)
+  detect: &detect
+    30: [[27, 22, 15], 1, Detect, [*nc]] # Detect(P3, P4, P5)
+  
+  detect_tiny: &detect_tiny
+    30: [[19, 15], 1, Detect, [*nc]] # Detect(P4, P5)
 
-  - [-2, 1, Conv, [256, 1, 1]]
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 8], 1, Concat, [1]] # cat backbone P4
-  - [-1, 1, Bottleneck, [512, False]]
-  - [-1, 1, Bottleneck, [512, False]]
-  - [-1, 1, Conv, [256, 1, 1]]
-  - [-1, 1, Conv, [512, 3, 1]] # 22 (P4/16-medium)
+yolov3:
+  <<: [*base_bb, *base_nk, *detect]
+  task: "detect"
 
-  - [-2, 1, Conv, [128, 1, 1]]
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 6], 1, Concat, [1]] # cat backbone P3
-  - [-1, 1, Bottleneck, [256, False]]
-  - [-1, 2, Bottleneck, [256, False]] # 27 (P3/8-small)
+yolov3-spp:
+  <<: [*base_bb, *spp_nk, *detect]
+  task: "detect"
 
-  - [[27, 22, 15], 1, Detect, [nc]] # Detect(P3, P4, P5)
+yolov3-tiny:
+  <<: [*tiny_bb, *tiny_nk, *detect_tiny]
+  task: "detect"

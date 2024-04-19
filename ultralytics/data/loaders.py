@@ -30,7 +30,8 @@ class SourceTypes:
     from_img: bool = False
     tensor: bool = False
 
-def pre_transform(im:list[np.ndarray], imgsz:int, is_pt:bool, stride:int=32, model=None):
+
+def pre_transform(im: list[np.ndarray], imgsz: int, is_pt: bool, stride: int = 32, model=None):
     """
     Pre-transform input image before inference.
 
@@ -53,7 +54,9 @@ def pre_transform(im:list[np.ndarray], imgsz:int, is_pt:bool, stride:int=32, mod
     return [letterbox(image=x) for x in im]
 
 
-def infer_preprocess(im, device:str, imgsz:int, is_pt:bool, half:bool, stride:int=32, model=None) -> torch.Tensor:
+def infer_preprocess(
+    im, device: str, imgsz: int, is_pt: bool, half: bool, stride: int = 32, model=None
+) -> torch.Tensor:
     """
     Prepares input image before inference.
 
@@ -65,7 +68,7 @@ def infer_preprocess(im, device:str, imgsz:int, is_pt:bool, half:bool, stride:in
         half (bool): Whether to use half precision.
         stride (int): Stride for letter boxing.
         model (nn.Module): Optional; model object.
-    
+
     Returns:
         (torch.Tensor): Preprocessed image.
     """

@@ -205,17 +205,17 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         # Load a YOLOv8n PyTorch model
         model = YOLO('yolov8n.pt')
 
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        results = model.benchmarks(data='coco128.yaml', imgsz=640)
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        results = model.benchmarks(data='coco8.yaml', imgsz=640)
         ```
     === "CLI"
 
         ```bash
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        yolo benchmark model=yolov8n.pt data=coco128.yaml imgsz=640
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        yolo benchmark model=yolov8n.pt data=coco8.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
 
 !!! Note
 

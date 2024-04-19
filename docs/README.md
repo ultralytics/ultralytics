@@ -43,13 +43,13 @@ mkdocs serve
 
 - #### Command Breakdown:
 
-  - `mkdocs` is the main MkDocs command-line interface.
-  - `serve` is the subcommand to build and locally serve your documentation.
+    - `mkdocs` is the main MkDocs command-line interface.
+    - `serve` is the subcommand to build and locally serve your documentation.
 
 - 🧐 Note:
 
-  - Grasp changes to the docs in real-time as `mkdocs serve` supports live reloading.
-  - To stop the local server, press `CTRL+C`.
+    - Grasp changes to the docs in real-time as `mkdocs serve` supports live reloading.
+    - To stop the local server, press `CTRL+C`.
 
 ## 🌍 Building and Serving Multi-Language
 

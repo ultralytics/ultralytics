@@ -32,8 +32,8 @@ For example, users can load a model, train it, evaluate its performance on a val
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO('yolov8n.pt')
 
-    # Train the model using the 'coco128.yaml' dataset for 3 epochs
-    results = model.train(data='coco128.yaml', epochs=3)
+    # Train the model using the 'coco8.yaml' dataset for 3 epochs
+    results = model.train(data='coco8.yaml', epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()
@@ -66,7 +66,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         from ultralytics import YOLO
 
         model = YOLO('yolov8n.yaml')
-        results = model.train(data='coco128.yaml', epochs=5)
+        results = model.train(data='coco8.yaml', epochs=5)
         ```
 
     === "Resume"
@@ -90,7 +90,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
           from ultralytics import YOLO
 
           model = YOLO('yolov8n.yaml')
-          model.train(data='coco128.yaml', epochs=5)
+          model.train(data='coco8.yaml', epochs=5)
           model.val()  # It'll automatically evaluate the data you trained.
         ```
 
@@ -103,7 +103,7 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
           # It'll use the data YAML file in model.pt if you don't set data.
           model.val()
           # or you can set the data you want to val
-          model.val(data='coco128.yaml')
+          model.val(data='coco8.yaml')
         ```
 
 [Val Examples](../modes/val.md){ .md-button }
@@ -259,7 +259,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data='coco8.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
 
         similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
@@ -280,7 +280,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data='coco8.yaml', model='yolov8n.pt')
         exp.create_embeddings_table()
 
         similar = exp.get_similar(idx=1, limit=10)

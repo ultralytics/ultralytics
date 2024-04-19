@@ -44,7 +44,6 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 <p align="center"><img width="800" src="https://github.com/IvorZhu331/ultralytics/assets/26833433/a55ec82d-2bb5-40f9-ac5c-f935e7eb9f07" alt="Example dataset directory structure"></p>
 
-
 ## Usage
 
 Here's how you can use these formats to train your model:

@@ -246,8 +246,7 @@ jobs:
           pip list
       - name: Pytest tests
         run: |
-          # pytest --slow tests/  # WARNING: Slow tests fail on Explorer Tests https://github.com/ultralytics/ultralytics/actions/runs/8715976528/job/23908727539?pr=10097
-          pytest tests/
+          pytest --slow tests/
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

@@ -1,6 +1,9 @@
 import cv2
 import time
+import queue
 from threading import Thread, Lock
+import threading
+
 
 class WebcamStream:
     def __init__(self, stream_id=0):
@@ -45,6 +48,36 @@ class WebcamStream:
     def stop(self):
         self.stopped = True
         self.t.join()
+
+
+class FileVideoStream:
+    def __init__(self, filepath, queueSize=10):
+        self.filepath = filepath
+        self.capture = cv2.VideoCapture(self.filepath)
+        if not self.capture.isOpened():
+            raise ValueError("Error opening video file")
+        self.queue = queue.Queue(maxsize=queueSize)
+        self.stopped = False
+
+    def start(self):
+        threading.Thread(target=self.update, daemon=True).start()
+        return self
+
+    def update(self):
+        while not self.stopped:
+            if not self.queue.full():
+                ret, frame = self.capture.read()
+                if not ret:
+                    self.stop()
+                    break
+                self.queue.put(frame)
+
+    def read(self):
+        return self.queue.get() if not self.queue.empty() else None
+
+    def stop(self):
+        self.stopped = True
+        self.capture.release()
 
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ class SourceTypes:
     tensor: bool = False
 
 
-def pre_transform(im: list[np.ndarray], imgsz: int, is_pt: bool, stride: int = 32, model=None):
+def pre_transform(im: list, imgsz: int, is_pt: bool, stride: int = 32, model=None):
     """
     Pre-transform input image before inference.
 

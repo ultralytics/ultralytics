@@ -963,6 +963,8 @@ def yaml_model_load(path):
     d["scale"] = guess_model_scale(path)
     d["model_key"] = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", path.stem)
     d["task"] = d.get(d["model_key"], {}).get("task")
+    if d.get("task") == "classify":
+        d["nc"] = d.get(d["model_key"]).pop("nc")
     return d
 
 

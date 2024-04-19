@@ -81,7 +81,7 @@ When validating YOLO models, several arguments can be fine-tuned to optimize the
 
 | Argument      | Type    | Default | Description                                                                                                                                                   |
 |---------------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco128.yaml`). This file includes paths to validation data, class names, and number of classes. |
+| `data`        | `str`   | `None`  | Specifies the path to the dataset configuration file (e.g., `coco8.yaml`). This file includes paths to validation data, class names, and number of classes. |
 | `imgsz`       | `int`   | `640`   | Defines the size of input images. All images are resized to this dimension before processing.                                                                 |
 | `batch`       | `int`   | `16`    | Sets the number of images per batch. Use `-1` for AutoBatch, which automatically adjusts based on GPU memory availability.                                    |
 | `save_json`   | `bool`  | `False` | If `True`, saves the results to a JSON file for further analysis or integration with other tools.                                                             |

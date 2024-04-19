@@ -233,7 +233,7 @@ boxes.bboxes
 See the [`Bboxes` reference section](../reference/utils/instance.md#ultralytics.utils.instance.Bboxes) for more attributes and methods available.
 
 !!! tip
-    
+
     Many of the following functions (and more) can be accessed using the [`Bboxes` class](#bounding-box-horizontal-instances) but if you prefer to work with the functions directly, see the next subsections on how to import these independently.
 
 ### Scaling Boxes

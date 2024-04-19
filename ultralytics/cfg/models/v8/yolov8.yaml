@@ -2,8 +2,9 @@
 # YOLOv8 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
 
 # Parameters
-nc: &nc 80 # number of classes
+nc: 80 # number of classes
 kpt_shape: &kpt [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024] # YOLOv8n summary: 225 layers,  3157200 parameters,  3157184 gradients,   8.9 GFLOPs
@@ -12,7 +13,7 @@ scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call 
   l: [1.00, 1.00, 512] # YOLOv8l summary: 365 layers, 43691520 parameters, 43691504 gradients, 165.7 GFLOPs
   x: [1.00, 1.25, 512] # YOLOv8x summary: 365 layers, 68229648 parameters, 68229632 gradients, 258.5 GFLOPs
 
-# YOLOv8.0n backbone
+# YOLOv8.0 backbone
 backbone:
   core: &core_bb
      # [from, repeats, module, args]
@@ -250,55 +251,55 @@ head:
   
   detect: 
     base: &detect_base
-      30: [[15, 18, 21], 1, Detect, [*nc]] # Detect(P3, P4, P5)
+      30: [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)
 
     p2: &detect_p2
-      30: [[18, 21, 24, 27], 1, Detect, [*nc]] # Detect(P2, P3, P4, P5)
+      30: [[18, 21, 24, 27], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)
 
     p6: &detect_p6
-      33: [[20, 23, 26, 29], 1, Detect, [*nc]] # Detect(P3, P4, P5, P6)
+      33: [[20, 23, 26, 29], 1, Detect, [nc]] # Detect(P3, P4, P5, P6)
 
   segment: 
     base: &segment_base
-      30: [[15, 18, 21], 1, Segment, [*nc, 32, 256]] # Segment(P3, P4, P5)
+      30: [[15, 18, 21], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5)
 
     p2: &segment_p2
-      30: [[18, 21, 24, 27], 1, Segment, [*nc, 32, 256]] # Segment(P2, P3, P4, P5)
+      30: [[18, 21, 24, 27], 1, Segment, [nc, 32, 256]] # Segment(P2, P3, P4, P5)
 
     p6: &segment_p6
-      33: [[20, 23, 26, 29], 1, Segment, [*nc, 32, 256]] # Segment(P3, P4, P5, P6)
+      33: [[20, 23, 26, 29], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5, P6)
 
   pose: 
     base: &pose_base
-      30: [[15, 18, 21], 1, Pose, [*nc, *kpt]] # Pose(P3, P4, P5)
+      30: [[15, 18, 21], 1, Pose, [nc, *kpt]] # Pose(P3, P4, P5)
 
     p2: &pose_p2
-      30: [[18, 21, 24, 27], 1, Pose, [*nc, *kpt]] # Pose(P2, P3, P4, P5)
+      30: [[18, 21, 24, 27], 1, Pose, [nc, *kpt]] # Pose(P2, P3, P4, P5)
 
     p6: &pose_p6
-      33: [[20, 23, 26, 29], 1, Pose, [*nc, *kpt]] # Pose(P3, P4, P5, P6)
+      33: [[20, 23, 26, 29], 1, Pose, [nc, *kpt]] # Pose(P3, P4, P5, P6)
   
   cls: &cls
-    9: [-1, 1, Classify, [*nc]] # Classify
+    9: [-1, 1, Classify, [nc]] # Classify
   
   obb:
     base: &obb_base
-      30: [[15, 18, 21], 1, OBB, [*nc, 1]] # OBB(P3, P4, P5)
+      30: [[15, 18, 21], 1, OBB, [nc, 1]] # OBB(P3, P4, P5)
     
     p2: &obb_p2
-      30: [[18, 21, 24, 27], 1, OBB, [*nc, 1]] # OBB(P2, P3, P4, P5)
+      30: [[18, 21, 24, 27], 1, OBB, [nc, 1]] # OBB(P2, P3, P4, P5)
     
     p6: &obb_p6
-      33: [[20, 23, 26, 29], 1, OBB, [*nc, 1]] # OBB(P3, P4, P5, P6)
+      33: [[20, 23, 26, 29], 1, OBB, [nc, 1]] # OBB(P3, P4, P5, P6)
 
   world: &world
-    30: [[15, 19, 22], 1, WorldDetect, [*nc, 512, False]] # Detect(P3, P4, P5)
+    30: [[15, 19, 22], 1, WorldDetect, [nc, 512, False]] # Detect(P3, P4, P5)
 
   worldv2: &worldv2
-    30: [[15, 18, 21], 1, WorldDetect, [*nc, 512, True]] # Detect(P3, P4, P5)
+    30: [[15, 18, 21], 1, WorldDetect, [nc, 512, True]] # Detect(P3, P4, P5)
   
   rtdetr: &rtdetr
-    30: [[15, 18, 21], 1, RTDETRDecoder, [*nc]] # Detect(P3, P4, P5)
+    30: [[15, 18, 21], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
 
 # ---YOLOv8-Detect---
 yolov8:
@@ -369,15 +370,18 @@ yolov8-obb-p6:
 yolov8-cls:
   <<: [*base_bb, *cls]
   task: classify
+  nc: 1000
 
 # ---YOLOv8-Classify-resnet---
 yolov8-cls-resnet50:
   <<: [*resnet50_bb, *cls]
   task: classify
+  nc: 1000
 
 yolov8-cls-resnet101:
   <<: [*resnet101_bb, *cls]
   task: classify
+  nc: 1000
 
 # ---YOLOv8-Worldv1---
 yolov8-world:

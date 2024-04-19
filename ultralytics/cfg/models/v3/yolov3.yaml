@@ -2,7 +2,7 @@
 # YOLOv3 object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/yolov3
 
 # Parameters
-nc: &nc 80 # number of classes
+nc: 80 # number of classes
 depth_multiple: 1.0 # model depth multiple
 width_multiple: 1.0 # layer channel multiple
 
@@ -89,10 +89,10 @@ tiny-nk: &tiny_nk
 
 head:
   detect: &detect
-    30: [[27, 22, 15], 1, Detect, [*nc]] # Detect(P3, P4, P5)
+    30: [[27, 22, 15], 1, Detect, [nc]] # Detect(P3, P4, P5)
   
   detect_tiny: &detect_tiny
-    30: [[19, 15], 1, Detect, [*nc]] # Detect(P4, P5)
+    30: [[19, 15], 1, Detect, [nc]] # Detect(P4, P5)
 
 yolov3:
   <<: [*base_bb, *base_nk, *detect]

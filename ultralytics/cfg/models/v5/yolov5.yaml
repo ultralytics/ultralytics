@@ -2,7 +2,7 @@
 # YOLOv5 object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/yolov5
 
 # Parameters
-nc: &nc 80 # number of classes
+nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov5n.yaml' will call yolov5.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024]
@@ -94,10 +94,10 @@ neck:
 
 head:
   detect: &detect_base
-    33: [[17, 20, 23], 1, Detect, [*nc]] # Detect(P3, P4, P5)
+    33: [[17, 20, 23], 1, Detect, [nc]] # Detect(P3, P4, P5)
   
   detect-p6: &detect_p6
-    33: [[23, 26, 29, 32], 1, Detect, [*nc]] # Detect(P3, P4, P5, P6)
+    33: [[23, 26, 29, 32], 1, Detect, [nc]] # Detect(P3, P4, P5, P6)
 
 yolov5:
   <<: [*bb-base, *base_neck, *detect_base]

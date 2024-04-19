@@ -226,8 +226,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    # TEMPORARILY COMMENT LINE BELOW FOR TESTING THIS PR, UNCOMMENT BEFORE MERGING
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
     runs-on: raspberry-pi
     steps:

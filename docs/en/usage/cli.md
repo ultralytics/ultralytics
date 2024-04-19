@@ -90,7 +90,7 @@ Where:
 
 ## Train
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
+Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
 
 !!! Example "Example"
 
@@ -110,7 +110,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! Example "Example"
 

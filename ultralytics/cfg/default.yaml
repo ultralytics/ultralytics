@@ -85,6 +85,7 @@ simplify: False # (bool) ONNX: simplify model
 opset: # (int, optional) ONNX: opset version
 workspace: 4 # (int) TensorRT: workspace size (GB)
 nms: False # (bool) CoreML: add NMS
+trt_quant_algo: ENTROPY_CALIBRATION_2 # (str) TensorRT: INT8 quantization algorithm, choices=[LEGACY_CALIBRATION, ENTROPY_CALIBRATION, ENTROPY_CALIBRATION_2, MINMAX_CALIBRATION]
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)

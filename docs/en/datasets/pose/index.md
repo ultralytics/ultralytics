@@ -75,13 +75,13 @@ The `train` and `val` fields specify the paths to the directories containing the
         model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo detect train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets

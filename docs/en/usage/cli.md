@@ -37,7 +37,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
         ```bash
-        yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -51,7 +51,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
         Val a pretrained detection model at batch-size 1 and image size 640:
         ```bash
-        yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
@@ -90,15 +90,15 @@ Where:
 
 ## Train
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
+Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
 
 !!! Example "Example"
 
     === "Train"
 
-        Start training YOLOv8n on COCO128 for 100 epochs at image-size 640.
+        Start training YOLOv8n on COCO8 for 100 epochs at image-size 640.
         ```bash
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
     === "Resume"
@@ -110,7 +110,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! Example "Example"
 
@@ -196,7 +196,7 @@ Default arguments can be overridden by simply passing them as arguments in the C
 
         Train a detection model for `10 epochs` with `learning_rate` of `0.01`
         ```bash
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -210,7 +210,7 @@ Default arguments can be overridden by simply passing them as arguments in the C
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
         ```bash
-        yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo detect val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
 ## Overriding default config file

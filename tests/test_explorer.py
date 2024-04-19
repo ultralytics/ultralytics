@@ -10,7 +10,7 @@ from ultralytics.utils import ASSETS
 @pytest.mark.slow
 def test_similarity():
     """Test similarity calculations and SQL queries for correctness and response length."""
-    exp = Explorer()
+    exp = Explorer(data="coco8.yaml")
     exp.create_embeddings_table()
     similar = exp.get_similar(idx=1)
     assert len(similar) == 25

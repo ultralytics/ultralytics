@@ -1061,7 +1061,7 @@ def guess_model_task(model):
     return "detect"  # assume detect
 
 
-def yaml_stack(m_dict: dict, model_key: str = "") -> tuple[list, str]:
+def yaml_stack(m_dict: dict, model_key: str = ""):
     """Stack a model YAML dictionary into a sorted list of model layers."""
     model_key = model_key or m_dict.get("model_key", "")
     model_cfg = m_dict.get(model_key, {})

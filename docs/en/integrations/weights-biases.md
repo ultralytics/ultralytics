@@ -72,7 +72,7 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 
        # Step 2: Define the YOLOv8 Model and Dataset
        model_name = "yolov8n"
-       dataset_name = "coco128.yaml"
+       dataset_name = "coco8.yaml"
        model = YOLO(f"{model_name}.pt")
 
        # Step 3: Add W&B Callback for Ultralytics

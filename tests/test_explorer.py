@@ -10,18 +10,18 @@ from ultralytics.utils import ASSETS
 @pytest.mark.slow
 def test_similarity():
     """Test similarity calculations and SQL queries for correctness and response length."""
-    exp = Explorer()
+    exp = Explorer(data="coco8.yaml")
     exp.create_embeddings_table()
     similar = exp.get_similar(idx=1)
-    assert len(similar) == 25
-    similar = exp.get_similar(img=ASSETS / "zidane.jpg")
-    assert len(similar) == 25
-    similar = exp.get_similar(idx=[1, 2], limit=10)
-    assert len(similar) == 10
+    assert len(similar) == 4
+    similar = exp.get_similar(img=ASSETS / "bus.jpg")
+    assert len(similar) == 4
+    similar = exp.get_similar(idx=[1, 2], limit=2)
+    assert len(similar) == 2
     sim_idx = exp.similarity_index()
-    assert len(sim_idx) > 0
-    sql = exp.sql_query("WHERE labels LIKE '%person%'")
-    assert len(sql) > 0
+    assert len(sim_idx) == 4
+    sql = exp.sql_query("WHERE labels LIKE '%zebra%'")
+    assert len(sql) == 1
 
 
 @pytest.mark.slow

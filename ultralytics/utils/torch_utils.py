@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import gc
 import math
 import os
 import random
@@ -581,6 +582,7 @@ def profile(input, ops, n=10, device=None):
             except Exception as e:
                 LOGGER.info(e)
                 results.append(None)
+            gc.collect()  # attempt to free unused memory
             torch.cuda.empty_cache()
     return results
 

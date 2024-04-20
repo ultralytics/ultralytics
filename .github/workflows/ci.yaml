@@ -236,17 +236,17 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      # - name: Install requirements
-      #   run: |
-      #     python -m pip install --upgrade pip wheel
-      #     pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3" --extra-index-url https://download.pytorch.org/whl/cpu
-      # - name: Check environment
-      #   run: |
-      #     yolo checks
-      #     pip list
-      # - name: Pytest tests
-      #   run: |
-      #     pytest --slow tests/
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3" --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          yolo checks
+          pip list
+      - name: Pytest tests
+        run: |
+          pytest --slow tests/
       - name: Reboot # this is needed to clear hardware resources in the next run or else CI will hault in the middle
         run: |
           sudo bash -c "sleep 10; reboot" &

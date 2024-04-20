@@ -192,8 +192,8 @@ class SegmentationValidator(DetectionValidator):
             if self.use_miou:
                 pred_cls = detections[:, 5]
                 h, w = gt_masks.shape[1:]
-                gt_masks_cls = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
-                pred_masks_cls = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
+                gt_masks_cls = torch.full((h, w), 255, dtype=gt_masks.dtype, device=gt_masks.device)
+                pred_masks_cls = torch.full((h, w), 255, dtype=gt_masks.dtype, device=gt_masks.device)
                 for i, c in enumerate(gt_cls):
                     gt_masks_cls[gt_masks[i].bool()] = c
 

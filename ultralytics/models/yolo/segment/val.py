@@ -55,7 +55,7 @@ class SegmentationValidator(DetectionValidator):
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[])
 
         # reset mIoU metrics
-        self.area = torch.zeros((self.nc, 2), dtype=torch.float32, device=self.device)
+        self.area = torch.zeros((2, self.nc), dtype=torch.float32, device=self.device)
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
@@ -163,7 +163,8 @@ class SegmentationValidator(DetectionValidator):
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def get_stats(self):
-        self.metrics.compute_iou(self.area)
+        if self.use_miou:
+            self.metrics.iou = (self.area[0] / self.area[1]).tolist()
         return super().get_stats()
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
@@ -193,7 +194,7 @@ class SegmentationValidator(DetectionValidator):
                 unique_gt_cls = gt_cls.unique().view(-1)
                 binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
 
-                unique_pred_cls = pred_cls.unique().reshape(-1)
+                unique_pred_cls = pred_cls.unique().view(-1)
                 binary_pred_masks = torch.stack(
                     [pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0
                 )
@@ -202,7 +203,7 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
                 for i, c in enumerate(unique_gt_cls):
                     gt_masks_[binary_gt_masks[i].bool()] = c
-                pred_masks_ = torch.zeros((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device)
+                pred_masks_ = torch.ones((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device) * 255
                 for i, c in enumerate(unique_pred_cls):
                     if c not in unique_gt_cls:
                         continue
@@ -217,8 +218,8 @@ class SegmentationValidator(DetectionValidator):
                 area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
                 area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
                 area_union = area_pred_label + area_label - area_intersect
-                self.area[:, 0] += area_intersect
-                self.area[:, 1] += area_union
+                self.area[0] += area_intersect
+                self.area[1] += area_union
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 

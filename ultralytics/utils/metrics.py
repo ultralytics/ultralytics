@@ -970,12 +970,8 @@ class SegmentMetrics(SimpleClass):
         self.box.nc = len(self.names)
         self.box.update(results_box)
 
-    def compute_iou(self, areas=None):
-        if areas is None:
-            return
-        # Calculate iou for each class if 'areas' is given
-        self.iou = areas[:, 0] / areas[:, 1]
-        self.iou = self.iou[~torch.isnan(self.iou)].tolist()
+        if self.iou:
+            self.iou = [self.iou[i] for i in self.ap_class_index]
 
     @property
     def keys(self):

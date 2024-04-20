@@ -249,7 +249,7 @@ jobs:
           pytest --slow tests/
       - name: Reboot # this is needed to clear hardware resources in the next run or else CI will hault in the middle
         run: |
-          (sleep 10 && sudo reboot) &
+          (sleep 10 ; sudo reboot) &
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

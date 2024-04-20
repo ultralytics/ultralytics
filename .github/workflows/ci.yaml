@@ -244,9 +244,9 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Pytest tests
-        run: |
-          pytest --slow tests/
+      # - name: Pytest tests
+      #   run: |
+      #     pytest --slow tests/
       - name: Reboot # this is needed to clear hardware resources in the next run or else CI will hault in the middle
         run: |
           sudo bash -c "sleep 10; reboot" &

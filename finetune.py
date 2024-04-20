@@ -31,7 +31,7 @@ model.train(
     #fraction=0.5,
     save_json=True,
     plots=True,
-    device=[3,6,4,5],
+    device="cpu",
     project='fine-tune-cdv3',
     name=f'8sp2-{epochs}e-{batch}b',
     verbose=True,

@@ -192,27 +192,26 @@ class SegmentationValidator(DetectionValidator):
             if self.use_miou:
                 pred_cls = detections[:, 5]
                 h, w = gt_masks.shape[1:]
-                gt_masks_ = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
-                pred_masks_ = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
+                gt_masks_cls = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
+                pred_masks_cls = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
                 for i, c in enumerate(gt_cls):
-                    gt_masks_[gt_masks[i].bool()] = c
+                    gt_masks_cls[gt_masks[i].bool()] = c
 
                 for i, c in enumerate(pred_cls):
                     if c not in gt_cls:
                         continue
-                    pred_masks_[pred_masks[i].bool()] = c
+                    pred_masks_cls[pred_masks[i].bool()] = c
 
-                mask = gt_masks_ != 255
-                pred_masks_ = pred_masks_[mask]
-                gt_masks_ = gt_masks_[mask]
+                mask = gt_masks_cls != 255
+                pred_masks_cls, gt_masks_cls = pred_masks_cls[mask], gt_masks_cls[mask]
 
-                intersect = pred_masks_[pred_masks_ == gt_masks_]
-                area_intersect = torch.histc(intersect, bins=self.nc, min=0, max=self.nc - 1) if len(intersect) else 0
-                area_pred_label = torch.histc(pred_masks_, bins=self.nc, min=0, max=self.nc - 1)
-                area_label = torch.histc(gt_masks_, bins=self.nc, min=0, max=self.nc - 1)
-                area_union = area_pred_label + area_label - area_intersect
-                self.area[0] += area_intersect
-                self.area[1] += area_union
+                inter = pred_masks_cls[pred_masks_cls == gt_masks_cls]
+                inter_area = torch.histc(inter, bins=self.nc, min=0, max=self.nc - 1) if len(inter) else 0
+                pred_area = torch.histc(pred_masks_cls, bins=self.nc, min=0, max=self.nc - 1)
+                gt_area = torch.histc(gt_masks_cls, bins=self.nc, min=0, max=self.nc - 1)
+                union_area = pred_area + gt_area - inter_area
+                self.area[0] += inter_area
+                self.area[1] += union_area
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 

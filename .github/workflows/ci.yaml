@@ -226,7 +226,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
     runs-on: raspberry-pi
     steps:
@@ -249,7 +249,9 @@ jobs:
           pytest --slow tests/
       - name: Reboot # this is needed to clear hardware resources in the next run or else CI will hault in the middle
         run: |
-          sudo bash -c "sleep 10; reboot" &
+          # sudo bash -c "sleep 10; reboot" &
+          sleep 10
+          sudo reboot
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

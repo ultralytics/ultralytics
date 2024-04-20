@@ -43,11 +43,69 @@ Roboflow 100 is invaluable for various applications related to computer vision a
 
 For more ideas and inspiration on real-world applications, be sure to check out [our guides on real-world projects](../../guides/index.md).
 
+## Dataset YAML
+
+!!! note "Dataset Information"
+    
+    The Official Roboflow 100 dataset comprises 100 distinct datasets and can be accessed on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100).
+
+!!! tip "Ultralytics Support"
+
+    We added support for the 100 most common classes drawn within the Roboflow 100 dataset collection.
+
+A YAML file is used to specify the dataset configuration, including details such as the dataset's paths, classes, and other essential information. For the roboflow-100 dataset, you can find the `roboflow-100.yaml` at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/roboflow-100.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/roboflow-100.yaml).
+
+!!! Example "ultralytics/cfg/datasets/roboflow-100.yaml"
+
+    ```yaml
+    --8<-- "ultralytics/cfg/datasets/roboflow-100.yaml"
+    ```
+
 ## Usage
 
-The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100).
+To train a YOLOv8n model on the Roboflow 100 dataset for 100 epochs with an image size of 640, use the provided code snippets. For a comprehensive list of available arguments, refer to the model's [Training](../../modes/train.md) page.
 
-You can access it directly from the Roboflow 100 GitHub repository. In addition, on Roboflow Universe, you have the flexibility to download individual datasets by simply clicking the export button within each dataset.
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data='roboflow-100.yaml', epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=roboflow-100.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+!!! Example "Inference Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('path/to/best.pt')  # load a brain-tumor fine-tuned model
+
+        # Inference using the model
+        results = model.predict("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start prediction with a finetuned *.pt model
+        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/images/bus.jpgg"
+        ```
 
 ## Sample Data and Annotations
 

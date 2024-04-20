@@ -191,23 +191,16 @@ class SegmentationValidator(DetectionValidator):
 
             if self.use_miou:
                 pred_cls = detections[:, 5]
-                unique_gt_cls = gt_cls.unique().view(-1)
-                binary_gt_masks = torch.stack([gt_masks[gt_cls == c].sum(0).clamp_(0, 1) for c in unique_gt_cls], dim=0)
+                h, w = gt_masks.shape[1:]
+                gt_masks_ = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
+                pred_masks_ = torch.ones((h, w), dtype=gt_masks.dtype, device=gt_masks.device) * 255
+                for i, c in enumerate(gt_cls):
+                    gt_masks_[gt_masks[i].bool()] = c
 
-                unique_pred_cls = pred_cls.unique().view(-1)
-                binary_pred_masks = torch.stack(
-                    [pred_masks[pred_cls == c].sum(0).clamp_(0, 1) for c in unique_pred_cls], dim=0
-                )
-
-                h, w = binary_pred_masks.shape[1:]
-                gt_masks_ = torch.ones((h, w), dtype=binary_gt_masks.dtype, device=binary_gt_masks.device) * 255
-                for i, c in enumerate(unique_gt_cls):
-                    gt_masks_[binary_gt_masks[i].bool()] = c
-                pred_masks_ = torch.ones((h, w), dtype=binary_pred_masks.dtype, device=binary_pred_masks.device) * 255
-                for i, c in enumerate(unique_pred_cls):
-                    if c not in unique_gt_cls:
+                for i, c in enumerate(pred_cls):
+                    if c not in gt_cls:
                         continue
-                    pred_masks_[binary_pred_masks[i].bool()] = c
+                    pred_masks_[pred_masks[i].bool()] = c
 
                 mask = gt_masks_ != 255
                 pred_masks_ = pred_masks_[mask]

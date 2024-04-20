@@ -104,7 +104,7 @@ To train a YOLOv8n model on the Roboflow 100 dataset for 100 epochs with an imag
 
         ```bash
         # Start prediction with a finetuned *.pt model
-        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/images/bus.jpgg"
+        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Sample Data and Annotations

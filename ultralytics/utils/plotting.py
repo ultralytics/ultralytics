@@ -440,12 +440,9 @@ class Annotator:
         text_x = self.im.shape[1] - int(self.im.shape[1] * 0.025 + max_text_width)
         text_y = int(self.im.shape[0] * 0.025)
 
-        # Calculate dynamic gap between each count value based on the width of the image
-        dynamic_gap = max(1, self.im.shape[1] // 100) * tf
-
         for i, count in enumerate(counts):
             text_x_pos = text_x
-            text_y_pos = text_y + i * dynamic_gap  # Adjust vertical position with dynamic gap
+            text_y_pos = text_y + i * (max_text_height + 25 * tf)
 
             # Draw the border
             cv2.rectangle(
@@ -467,8 +464,6 @@ class Annotator:
                 thickness=self.tf,
                 lineType=cv2.LINE_AA,
             )
-
-            text_y_pos += tf * max_text_height
 
     @staticmethod
     def estimate_pose_angle(a, b, c):

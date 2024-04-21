@@ -276,11 +276,11 @@ def check_det_dataset(dataset, extension, autodownload=True):
         extract_dir, autodownload = file.parent, False
 
     # Read YAML
-    if extension=="yaml" or extension=="yml":
+    if extension == "yaml" or extension == "yml":
         data = yaml_load(file, append_filename=True)  # dictionary
 
     # Read JSON
-    if extension=="json":
+    if extension == "json":
         data = json.load(data)
 
     # Checks

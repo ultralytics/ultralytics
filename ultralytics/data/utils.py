@@ -250,7 +250,7 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def check_det_dataset(dataset, autodownload=True):
+def check_det_dataset(dataset, extension, autodownload=True):
     """
     Download, verify, and/or unzip a dataset if not found locally.
 
@@ -276,7 +276,12 @@ def check_det_dataset(dataset, autodownload=True):
         extract_dir, autodownload = file.parent, False
 
     # Read YAML
-    data = yaml_load(file, append_filename=True)  # dictionary
+    if extension=="yaml" or extension=="yml":
+        data = yaml_load(file, append_filename=True)  # dictionary
+
+    # Read JSON
+    if extension=="json":
+        data = json.load(data)
 
     # Checks
     for k in "train", "val":

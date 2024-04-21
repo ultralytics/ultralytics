@@ -247,6 +247,8 @@ jobs:
       - name: Pytest tests
         run: |
           pytest --slow tests/
+      - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
+        run: sudo bash -c "sleep 10; reboot" &
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

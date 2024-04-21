@@ -50,6 +50,8 @@ from .block import (
     C2k2,
     C3k2,
     C3K2,
+    C3n2,
+    C3s2,
     C3k3,
     C3m1
 )
@@ -114,6 +116,8 @@ __all__ = (
     "C3k2",
     "C3K2",
     "C3k3",
+    "C3s2",
+    "C3n2",
     "C3m1",
     "C2fAttn",
     "C3x",

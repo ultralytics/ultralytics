@@ -27,9 +27,9 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
+    is_dir_writeable,
     yaml_load,
     yaml_save,
-    is_dir_writeable,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

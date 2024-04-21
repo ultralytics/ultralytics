@@ -3,9 +3,10 @@
 Train a model on a dataset.
 
 Usage:
-    $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
+    $ yolo mode=train model=yolov8n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
+import gc
 import math
 import os
 import subprocess
@@ -437,6 +438,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
+            gc.collect()
             torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
@@ -458,12 +460,14 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
+        gc.collect()
         torch.cuda.empty_cache()
         self.run_callbacks("teardown")
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
+
         import pandas as pd  # scope for faster 'import ultralytics'
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)

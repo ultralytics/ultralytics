@@ -148,8 +148,8 @@ class PoseValidator(DetectionValidator):
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
                 file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, self.args.save_conf,  pbatch["ori_shape"] , file=file)
-                
+                self.save_one_txt(predn, self.args.save_conf, pbatch["ori_shape"], file=file)
+
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
         """
         Return correct prediction matrix.
@@ -218,11 +218,11 @@ class PoseValidator(DetectionValidator):
                     "score": round(p[4], 5),
                 }
             )
-            
+
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO pose predictions to a txt file in normalized coordinates in a specific format."""
         gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
-        box = (ops.xyxy2xywh(predn[:, :4]) / gn)
+        box = ops.xyxy2xywh(predn[:, :4]) / gn
         for p, b in zip(predn.tolist(), box.tolist()):
             bbox = [round(x, 3) for x in b]
             keypoints = p[6:]
@@ -234,7 +234,11 @@ class PoseValidator(DetectionValidator):
 
                 normalized_keypoints.extend([x_norm, y_norm, confidence])
 
-            line = (self.class_map[int(p[5])], *bbox, conf, *normalized_keypoints) if save_conf else (self.class_map[int(p[5])], *bbox, *normalized_keypoints) # label format
+            line = (
+                (self.class_map[int(p[5])], *bbox, conf, *normalized_keypoints)
+                if save_conf
+                else (self.class_map[int(p[5])], *bbox, *normalized_keypoints)
+            )  # label format
             with open(file, "a") as f:
                 f.write(("%g " * len(line)).rstrip() % line + "\n")
 

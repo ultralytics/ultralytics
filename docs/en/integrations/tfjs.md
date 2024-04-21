@@ -32,7 +32,7 @@ Here are the key features that make TF.js a powerful tool for developers:
 
 ## Deployment Options with TensorFlow.js
 
-Before we dive into the process of exporting YOLOv8 models to the TF.js format, let's explore some typical deployment scenarios where this format is used. 
+Before we dive into the process of exporting YOLOv8 models to the TF.js format, let's explore some typical deployment scenarios where this format is used.
 
 TF.js provides a range of options to deploy your machine learning models:
 

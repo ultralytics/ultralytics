@@ -80,7 +80,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         model = YOLO(f'{model_variant}.pt')
 
         # Step 4: Setting Up Training Arguments
-        args = dict(data="coco128.yaml", epochs=16)
+        args = dict(data="coco8.yaml", epochs=16)
         task.connect(args)
 
         # Step 5: Initiating Model Training
@@ -97,7 +97,7 @@ Let’s understand the steps showcased in the usage code snippet above.
 
 **Step 3: Loading the YOLOv8 Model**: The selected YOLOv8 model is loaded using Ultralytics' YOLO class, preparing it for training.
 
-**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco128.yaml`) and the number of epochs (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco8.yaml`) and the number of epochs (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
 
 **Step 5: Initiating Model Training**: The model training is started with the specified arguments. The results of the training process are captured in the `results` variable.
 

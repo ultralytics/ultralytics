@@ -2,15 +2,18 @@
 ###ZouJiu
 ###20240421
 ###1069679911@qq.com
-#https://zoujiu.blog.csdn.net/
-#https://zhihu.com/people/zoujiu1
-#https://github.com/ZouJiu1
+# https://zoujiu.blog.csdn.net/
+# https://zhihu.com/people/zoujiu1
+# https://github.com/ZouJiu1
 #############
 
-import cv2
 from queue import Queue
-from ultralytics import YOLO
 from threading import Thread
+
+import cv2
+
+from ultralytics import YOLO
+
 
 def predict_image(model, batch):
     images = []
@@ -22,10 +25,10 @@ def predict_image(model, batch):
                 image_que.task_done()
                 break
             images.append(image)
-        if len(images)==0:
+        if len(images) == 0:
             break
         # result = model.predict(images, batch = batch)
-        result = model.track(images, batch = batch, persist=True)
+        result = model.track(images, batch=batch, persist=True)
         result_que.put(result)
         for _ in range(len(images)):
             image_que.task_done()
@@ -33,6 +36,7 @@ def predict_image(model, batch):
         if isinstance(image, int):
             break
     result_que.put(0)
+
 
 def get_image(pth):
     cap = cv2.VideoCapture(pth)
@@ -53,6 +57,7 @@ def get_image(pth):
     cap.release()
     cv2.destroyAllWindows()
     image_que.put(0)
+
 
 def write_video(write_path):
     fps, frame_width, frame_height = informa_que.get()
@@ -76,20 +81,21 @@ def write_video(write_path):
             # frame = result[ind].orig_img
             video_writer.write(frame)
         result_que.task_done()
-    
+
+
 if __name__ == "__main__":
     # model = YOLO('yolov8n.pt')
     # model = YOLO('yolov8n-seg.pt')
-    model = YOLO('yolov8n-pose.pt')
+    model = YOLO("yolov8n-pose.pt")
     batch_size = 3
     Image_in_queue_maxsize = 900
     Result_in_queue_maxsize = 900
-    video_path = r'C:\Users\10696\Desktop\CV\MOT16-06-raw.mp4'
-    outpath = video_path.replace('.mp4', "_output.avi")
-    image_que = Queue(maxsize = Image_in_queue_maxsize)
-    result_que = Queue(maxsize = Result_in_queue_maxsize)
+    video_path = r"C:\Users\10696\Desktop\CV\MOT16-06-raw.mp4"
+    outpath = video_path.replace(".mp4", "_output.avi")
+    image_que = Queue(maxsize=Image_in_queue_maxsize)
+    result_que = Queue(maxsize=Result_in_queue_maxsize)
     informa_que = Queue(1)
-    t0 = Thread(target=get_image, args = (video_path,))
+    t0 = Thread(target=get_image, args=(video_path,))
     t1 = Thread(target=predict_image, args=(model, batch_size))
     t2 = Thread(target=write_video, args=(outpath,))
     t0.setDaemon(True)

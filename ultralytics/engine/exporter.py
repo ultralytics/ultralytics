@@ -71,7 +71,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,

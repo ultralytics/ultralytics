@@ -43,6 +43,11 @@ class VideoWriter:
     def start(self):
         self.stopped = False
         self.thread.start()
+
+    def write(self, frame):
+        if not self.stopped:
+            self.frame_queue.put(frame)
+
     def update(self):
         while not self.stopped or not self.frame_queue.empty():
             if not self.frame_queue.empty():

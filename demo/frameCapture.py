@@ -13,8 +13,11 @@ class FrameCapture:
         if not self.vcap.isOpened():
             print("[Exiting]: Error accessing webcam stream.")
             exit(0)
-        fps_input_stream = int(self.vcap.get(cv2.CAP_PROP_FPS))
-        print("FPS of webcam hardware/input stream: {}".format(fps_input_stream))
+        fps = int(self.vcap.get(cv2.CAP_PROP_FPS))
+        print("FPS of cam/video stream: {}".format(fps))
+        w = int(self.vcap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h = int(self.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.frame_size = (w, h)
 
         self.buffer_size = buffer_size
         self.frame_queue = queue.Queue(maxsize=self.buffer_size)
@@ -26,9 +29,11 @@ class FrameCapture:
         self.stopped = False
         self.thread = threading.Thread(target=self.update, args=())
         self.thread.daemon = True
+        self.frame_count = 0
 
     def start(self):
         self.stopped = False
+        self.frame_count = 0
         self.thread.start()
 
     def update(self):
@@ -43,13 +48,18 @@ class FrameCapture:
     def read(self):
         if not self.frame_queue.empty():
             self.grabbed, self.frame = self.frame_queue.get()
-        return self.frame.copy() if self.grabbed else None
+            self.frame_count += 1
+            print(f"Read frame {self.frame_count}")
+        return self.frame if self.grabbed else None
 
+    def get_frame_count(self):
+        return self.frame_count
     def stop(self):
         self.stopped = True
         if threading.current_thread() != self.thread:
             self.thread.join()
         self.vcap.release()
+        self.frame_count = 0
 
 if __name__ == '__main__':
     stream = FrameCapture('./videos/2.mp4')

@@ -52,6 +52,7 @@ class VideoProcessor:
         self.save_results = config["save_results"]
         self.csv_path = str(self.output_dir) + "/track_data.csv"
 
+
         self.class_names = {
             0: "person",
             1: "car",

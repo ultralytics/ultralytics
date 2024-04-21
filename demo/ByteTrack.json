@@ -1,8 +1,8 @@
 {
   "name": "qualitative",
 
-  "source_weights_path": "./models/8sp2_150.pt",
-  "source_video_path": "./data/test1.mp4",
+  "source_weights_path": "./models/8s_300e_128b.pt",
+  "source_video_path": "./videos/2.mp4",
 
   "device": "cpu",
   "video_stride": 1,
@@ -10,7 +10,7 @@
   "save_dir": "./outputs/",
   "save_results": false,
   "save_video": false,
-  "display": false,
+  "display": true,
 
   "img_size": 640,
   "conf_threshold": 0.1,

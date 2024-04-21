@@ -219,22 +219,22 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `set_args`
 
-| Name                  | Type        | Default                    | Description                                      |
-|-----------------------|-------------|----------------------------|--------------------------------------------------|
-| `view_img`            | `bool`      | `False`                    | Display frames with counts                       |
-| `view_in_counts`      | `bool`      | `True`                     | Display in-counts only on video frame            |
-| `view_out_counts`     | `bool`      | `True`                     | Display out-counts only on video frame           |
-| `line_thickness`      | `int`       | `2`                        | Increase bounding boxes and count text thickness |
-| `reg_pts`             | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area                  |
-| `classes_names`       | `dict`      | `model.model.names`        | Dictionary of Class Names                        |
-| `count_reg_color`     | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line      |
-| `track_thickness`     | `int`       | `2`                        | Thickness of Tracking Lines                      |
-| `draw_tracks`         | `bool`      | `False`                    | Enable drawing Track lines                       |
-| `track_color`         | `RGB Color` | `(0, 255, 0)`              | Color for each track line                        |
-| `line_dist_thresh`    | `int`       | `15`                       | Euclidean Distance threshold for line counter    |
-| `count_txt_color`     | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text          |
-| `region_thickness`    | `int`       | `5`                        | Thickness for object counter region or line      |
-| `count_bg_color`      | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                          |
+| Name               | Type        | Default                    | Description                                      |
+|--------------------|-------------|----------------------------|--------------------------------------------------|
+| `view_img`         | `bool`      | `False`                    | Display frames with counts                       |
+| `view_in_counts`   | `bool`      | `True`                     | Display in-counts only on video frame            |
+| `view_out_counts`  | `bool`      | `True`                     | Display out-counts only on video frame           |
+| `line_thickness`   | `int`       | `2`                        | Increase bounding boxes and count text thickness |
+| `reg_pts`          | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area                  |
+| `classes_names`    | `dict`      | `model.model.names`        | Dictionary of Class Names                        |
+| `count_reg_color`  | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line      |
+| `track_thickness`  | `int`       | `2`                        | Thickness of Tracking Lines                      |
+| `draw_tracks`      | `bool`      | `False`                    | Enable drawing Track lines                       |
+| `track_color`      | `RGB Color` | `(0, 255, 0)`              | Color for each track line                        |
+| `line_dist_thresh` | `int`       | `15`                       | Euclidean Distance threshold for line counter    |
+| `count_txt_color`  | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text          |
+| `region_thickness` | `int`       | `5`                        | Thickness for object counter region or line      |
+| `count_bg_color`   | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                          |
 
 ### Arguments `model.track`
 

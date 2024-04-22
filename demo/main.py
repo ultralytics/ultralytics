@@ -9,7 +9,7 @@ import queue
 import numpy as np
 from tqdm import tqdm
 
-from frameCapture import FrameCapture, FrameCaptureBuffer
+from frameCapture import FrameCapture
 from frameProcessing import VideoWriter
 import supervision as sv
 

@@ -29,10 +29,9 @@ class VideoDisplay:
 
 
 class VideoWriter:
-    def __init__(self, output_path, frame_queue, frame_size, fps=20):
+    def __init__(self, output_path, frame_size, fps=30):
         super().__init__()
         self.output_path = output_path
-        self.frame_queue = frame_queue
         self.stopped = False
         self.frame_size = frame_size
         self.fps = fps

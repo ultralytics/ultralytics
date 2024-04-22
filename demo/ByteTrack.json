@@ -1,10 +1,10 @@
 {
   "name": "qualitative",
 
-  "source_weights_path": "./models/8s_300e_128b.pt",
-  "source_video_path": "./videos/2.mp4",
+  "source_weights_path": "./models/8sp2_150e_64b.pt",
+  "source_stream_path": 0,
 
-  "device": "cpu",
+  "device": "mps",
   "video_stride": 1,
 
   "save_dir": "./outputs/",

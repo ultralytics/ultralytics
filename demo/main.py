@@ -9,7 +9,7 @@ import queue
 import numpy as np
 from tqdm import tqdm
 
-from frameCapture import FrameCapture
+from frameCapture import FrameCapture, FrameCaptureBuffer
 from frameProcessing import VideoWriter
 import supervision as sv
 
@@ -31,7 +31,7 @@ class VideoProcessor:
         self.img_size = config["img_size"]
         self.max_det = config["max_det"]
 
-        self.source_video_path = config["source_video_path"]
+        self.source_video_path = config["source_stream_path"]
 
         self.output_dir = config.save_dir
         self.target_video_path = str(self.output_dir / "annotated_video.mp4")
@@ -82,8 +82,7 @@ class VideoProcessor:
         print(f"Original video number of frames: {self.video_info.total_frames}\n")
 
         if self.save_video:
-            self.video_writer = VideoWriter(self.target_video_path, self.buffer, self.video_info.resolution_wh,
-                                            self.video_info.fps)
+            self.video_writer = VideoWriter(self.target_video_path, self.buffer, frame_size=self.frame_capture.frame_size, fps=self.frame_capture.fps)
             self.video_writer.start()
 
         fps_counter = FrameRateCounter()
@@ -105,13 +104,12 @@ class VideoProcessor:
             }
 
         while not self.frame_capture.stopped:
-            frame = self.frame_capture.read()
+            ret, frame = self.frame_capture.read()
             if frame is not None:
-                self.buffer.put(frame)
-                annotated_frame = self.process_frame(self.buffer.get(), self.frame_capture.get_frame_count(), fps_counter.value())
+                annotated_frame = self.process_frame(frame, self.frame_capture.get_frame_count(), fps_counter.value())
                 fps_counter.step()
                 if self.save_video and not self.display:
-                    self.video_writer.write(annotated_frame, framesize=self.frame_capture.frame_size, fps=self.frame_capture.fps)
+                    self.video_writer.write(annotated_frame)
                 if self.display:
                     cv2.imshow('Processed Video', annotated_frame)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -174,7 +172,7 @@ class VideoProcessor:
         annotated_frame = self.action_recognizer.annotate(annotated_frame, ar_results)
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
+        cv2.putText(annotated_frame, f"Buffer: {self.buffer.qsize()}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
 
     def display_frames(self, frame, fps, frame_count):

@@ -101,7 +101,7 @@ class TLCDetectionValidator(DetectionValidator):
         self._seen += batch_size
 
         if self._seen == len(self.dataloader.dataset):
-            self.metrics_writer.flush()
+            self.metrics_writer.finalize()
             metrics_infos = self.metrics_writer.get_written_metrics_infos()
             self._run.update_metrics(metrics_infos)
             self._seen = 0
@@ -246,7 +246,9 @@ def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
         if validator._settings.image_embeddings_dim > 0:
             metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
 
-        validator.metrics_writer = tlc.MetricsWriter(run_url=validator._run.url,
-                                                    dataset_url=dataset_url,
-                                                    dataset_name=dataset_name,
-                                                    override_column_schemas=metrics_column_schemas)
+        validator.metrics_writer = tlc.MetricsTableWriter(
+            run_url=validator._run.url,
+            foreign_table_url=dataset_url,
+            foreign_table_display_name=dataset_name,
+            column_schemas=metrics_column_schemas
+        )

@@ -7,6 +7,50 @@ import threading
 import cv2
 import time
 
+from vidgear.gears import VideoGear, CamGear
+
+class FrameCapture:
+    def __init__(self, source=0):
+        self.source = source
+        if isinstance(self.source, int):
+            # Use CamGear for optimized live stream handling
+            self.vcap = CamGear(source=self.source, stream_mode=True, logging=True).start()
+        else:
+            # Use VideoGear for general video file handling
+            self.vcap = VideoGear(source=self.source, stream_mode=False, logging=True).start()
+
+    def read(self):
+        # Simply read from the VidGear capture
+        return self.vcap.read()
+
+    def stop(self):
+        # Safely close the video stream
+        self.vcap.stop()
+
+class FrameCapturev2:
+    def __init__(self, source=0):
+        self.source = source
+        self.vcap = cv2.VideoCapture(self.source)
+        if not self.vcap.isOpened():
+            print("[Exiting]: Error accessing webcam stream.")
+            exit(0)
+
+        self.fps = int(self.vcap.get(cv2.CAP_PROP_FPS))
+        self.frame_size = (
+            int(self.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        )
+
+        print(f"FPS of cam/video stream: {self.fps}")
+        print(f"Frame size: {self.frame_size}")
+        self.frame_count = 0
+
+        self.stopped = False
+        self.vcap.set(cv2.CAP_PROP_FPS, 1)
+        self.thread = threading.Thread(target=self.update)
+        self.thread.daemon = True
+        self.frame = None
+        self.ret = None
 class FrameCapture:
     def __init__(self, source=0, buffer_size=300):
         self.source = source
@@ -28,6 +72,7 @@ class FrameCapture:
 
     def start(self):
         self.stopped = False
+        self.frame_count = 0
         self.thread.start()
 
     def update(self):
@@ -60,6 +105,7 @@ class FrameCapture:
 
     def stop(self):
         self.stopped = True
+        self.frame_count = 0
         if threading.current_thread() != self.thread:
             self.thread.join()
         self.vcap.release()

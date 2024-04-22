@@ -55,7 +55,7 @@ class VideoProcessor:
                                                  thickness=2)
 
         self.frame_capture = FrameCapture(self.source_video_path)
-        self.buffer = queue.Queue()
+        self.buffer = []
 
         self.display = config["display"]
         self.save_video = config["save_video"]
@@ -105,6 +105,7 @@ class VideoProcessor:
 
         while not self.frame_capture.stopped:
             ret, frame = self.frame_capture.read()
+            self.buffer.append(frame)
             if frame is not None:
                 annotated_frame = self.process_frame(frame, self.frame_capture.get_frame_count(), fps_counter.value())
                 fps_counter.step()
@@ -172,7 +173,7 @@ class VideoProcessor:
         annotated_frame = self.action_recognizer.annotate(annotated_frame, ar_results)
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(annotated_frame, f"Buffer: {self.buffer.qsize()}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(annotated_frame, f"Buffer: {len(self.buffer)}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
 
     def display_frames(self, frame, fps, frame_count):

@@ -11,7 +11,7 @@ To get started, simply browse through the models in this directory and find one 
 Model `*.yaml` files may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
-yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
+yolo task=detect mode=train model=yolov8n.yaml data=coco8.yaml epochs=100
 ```
 
 They may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
@@ -22,7 +22,7 @@ from ultralytics import YOLO
 model = YOLO("model.yaml")  # build a YOLOv8n model from scratch
 # YOLO("model.pt")  use pre-trained model if available
 model.info()  # display model information
-model.train(data="coco128.yaml", epochs=100)  # train the model
+model.train(data="coco8.yaml", epochs=100)  # train the model
 ```
 
 ## Pre-trained Model Architectures

@@ -15,6 +15,7 @@ try:
     # Imports below only required if TensorBoard enabled
     import warnings
     from copy import deepcopy
+
     from ultralytics.utils.torch_utils import de_parallel, torch
 
 except (ImportError, AssertionError, TypeError, AttributeError):

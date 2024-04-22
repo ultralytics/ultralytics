@@ -369,6 +369,7 @@ nav:
       - Gradio: integrations/gradio.md
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - Paperspace Gradient: integrations/paperspace.md
   - HUB:
       - Cloud:
           - hub/index.md

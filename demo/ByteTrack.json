@@ -1,16 +1,19 @@
 {
   "name": "qualitative",
-
-  "source_weights_path": "./models/8sp2_150e_64b.pt",
-  "source_stream_path": 0,
+  "source_weights_path": "./models/8s_300e_128b.pt",
+  "source_stream_path": "./videos/2.mp4",
+  "stabilize": false,
+  "logging": false,
+  "stream_mode": false,
 
   "device": "mps",
   "video_stride": 1,
 
   "save_dir": "./outputs/",
   "save_results": false,
-  "save_video": false,
-  "display": true,
+  "save_video": true,
+  "compression_mode": true,
+  "display": false,
 
   "img_size": 640,
   "conf_threshold": 0.1,

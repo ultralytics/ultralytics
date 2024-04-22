@@ -1,18 +1,13 @@
 import argparse
 import csv
-import os
 
 import cv2
-import time
-import queue
-
 import numpy as np
+import supervision as sv
 from tqdm import tqdm
 
 from frameCapture import FrameCapture
 from frameProcessing import VideoWriter
-import supervision as sv
-
 from tracker import ByteTrack
 from tracker.action_recognition import ActionRecognizer
 from tracker.utils.cfg.parse_config import ConfigParser
@@ -48,14 +43,15 @@ class VideoProcessor:
         # TODO: CHECK IF MAINTAIN THIS
         self.video_info = sv.VideoInfo.from_video_path(self.source_video_path)
 
+        # TODO : CHECK TO PUT IN A THREAD
         self.tracker = ByteTrack(config, frame_rate=self.video_info.fps)
 
         self.box_annotator = sv.BoxAnnotator(color=COLORS)
         self.trace_annotator = sv.TraceAnnotator(color=COLORS, position=sv.Position.CENTER, trace_length=100,
                                                  thickness=2)
 
-        self.frame_capture = FrameCapture(self.source_video_path)
-        self.buffer = []
+        self.frame_capture = FrameCapture(self.source_video_path, stabilize=config["stabilize"],
+                                          stream_mode=config["stream_mode"], logging=config["logging"])
 
         self.display = config["display"]
         self.save_video = config["save_video"]
@@ -82,7 +78,10 @@ class VideoProcessor:
         print(f"Original video number of frames: {self.video_info.total_frames}\n")
 
         if self.save_video:
-            self.video_writer = VideoWriter(self.target_video_path, self.buffer, frame_size=self.frame_capture.frame_size, fps=self.frame_capture.fps)
+            self.video_writer = VideoWriter(self.target_video_path, frame_size=self.frame_capture.frame_size,
+                                            compression_mode=config["compression_mode"],
+                                            logging=config["logging"],
+                                            fps=self.frame_capture.fps)
             self.video_writer.start()
 
         fps_counter = FrameRateCounter()
@@ -103,30 +102,30 @@ class VideoProcessor:
                 "y2": []
             }
 
-        while not self.frame_capture.stopped:
-            ret, frame = self.frame_capture.read()
-            self.buffer.append(frame)
-            if frame is not None:
-                annotated_frame = self.process_frame(frame, self.frame_capture.get_frame_count(), fps_counter.value())
-                fps_counter.step()
-                if self.save_video and not self.display:
-                    self.video_writer.write(annotated_frame)
-                if self.display:
-                    cv2.imshow('Processed Video', annotated_frame)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        print("Exiting on user request.")
-                        break
-                pbar.update(1)
-                # Append data to data_dict if saving results
-                if self.save_results:
-                    for track in self.tracker.tracked_stracks:
-                        data_dict["frame_id"].append(self.frame_capture.get_frame_count())
-                        data_dict["tracker_id"].append(track.track_id)
-                        data_dict["class_id"].append(track.class_id)
-                        data_dict["x1"].append(track.tlbr[0])
-                        data_dict["y1"].append(track.tlbr[1])
-                        data_dict["x2"].append(track.tlbr[2])
-                        data_dict["y2"].append(track.tlbr[3])
+        while True:
+            frame = self.frame_capture.read()
+            if frame is None:
+                break
+            annotated_frame = self.process_frame(frame, self.frame_capture.get_frame_count(), fps_counter.value())
+            fps_counter.step()
+            if self.save_video and not self.display:
+                self.video_writer.write_frame(annotated_frame)
+            if self.display:
+                cv2.imshow('Processed Video', annotated_frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    print("Exiting on user request.")
+                    break
+            pbar.update(1)
+            # Append data to data_dict if saving results
+            if self.save_results:
+                for track in self.tracker.tracked_stracks:
+                    data_dict["frame_id"].append(self.frame_capture.get_frame_count())
+                    data_dict["tracker_id"].append(track.track_id)
+                    data_dict["class_id"].append(track.class_id)
+                    data_dict["x1"].append(track.tlbr[0])
+                    data_dict["y1"].append(track.tlbr[1])
+                    data_dict["x2"].append(track.tlbr[2])
+                    data_dict["y2"].append(track.tlbr[3])
 
         if self.save_video:
             self.video_writer.stop()
@@ -162,7 +161,8 @@ class VideoProcessor:
         ar_results = self.action_recognizer.recognize_frame(tracks)
         return self.annotate_frame(frame, detections, ar_results, frame_number, fps)
 
-    def annotate_frame(self, annotated_frame: np.ndarray, detections: sv.Detections, ar_results: None, frame_number: int,
+    def annotate_frame(self, annotated_frame: np.ndarray, detections: sv.Detections, ar_results: None,
+                       frame_number: int,
                        fps: float) -> np.ndarray:
 
         labels = [f"#{tracker_id} {self.class_names[class_id]} {confidence:.2f}"
@@ -173,13 +173,13 @@ class VideoProcessor:
         annotated_frame = self.action_recognizer.annotate(annotated_frame, ar_results)
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(annotated_frame, f"Buffer: {len(self.buffer)}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
 
     def display_frames(self, frame, fps, frame_count):
         cv2.imshow('Frame', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):  # Ensure proper frame delay and quit functionality
             self.frame_capture.stop()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")

@@ -1,172 +1,45 @@
-import cv2
-import time
-import queue
-from threading import Thread, Lock
-import threading
-
-import cv2
 import time
 
+import cv2
 from vidgear.gears import VideoGear, CamGear
 
+
 class FrameCapture:
-    def __init__(self, source=0):
+    def __init__(self, source=0, stabilize=False, stream_mode=False, logging=False):
         self.source = source
         if isinstance(self.source, int):
             # Use CamGear for optimized live stream handling
-            self.vcap = CamGear(source=self.source, stream_mode=True, logging=True).start()
+            self.vcap = CamGear(source=self.source, stream_mode=stream_mode, logging=logging)
+            height, width, _ = self.vcap.frame.shape
+            self.fps = self.vcap.framerate
         else:
             # Use VideoGear for general video file handling
-            self.vcap = VideoGear(source=self.source, stream_mode=False, logging=True).start()
+            self.vcap = VideoGear(source=self.source, stabilize=stabilize, stream_mode=stream_mode, logging=logging)
+            height, width, _ = self.vcap.stream.frame.shape
+            self.fps = self.vcap.stream.framerate
+        self.frame_count = 0
+        self.frame_size = (width, height)
+        self.stopped = False
+    def start(self):
+        self.stopped = False
+        self.vcap.start()
 
     def read(self):
         # Simply read from the VidGear capture
-        return self.vcap.read()
+        if not self.stopped:
+            self.frame_count += 1
+            return self.vcap.read()
+
+    def get_frame_count(self):
+        return self.frame_count
 
     def stop(self):
         # Safely close the video stream
+        self.frame_count = 0
+        # self.vcap.release()
         self.vcap.stop()
-
-class FrameCapturev2:
-    def __init__(self, source=0):
-        self.source = source
-        self.vcap = cv2.VideoCapture(self.source)
-        if not self.vcap.isOpened():
-            print("[Exiting]: Error accessing webcam stream.")
-            exit(0)
-
-        self.fps = int(self.vcap.get(cv2.CAP_PROP_FPS))
-        self.frame_size = (
-            int(self.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            int(self.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        )
-
-        print(f"FPS of cam/video stream: {self.fps}")
-        print(f"Frame size: {self.frame_size}")
-        self.frame_count = 0
-
-        self.stopped = False
-        self.vcap.set(cv2.CAP_PROP_FPS, 1)
-        self.thread = threading.Thread(target=self.update)
-        self.thread.daemon = True
-        self.frame = None
-        self.ret = None
-class FrameCapture:
-    def __init__(self, source=0, buffer_size=300):
-        self.source = source
-        self.is_live_stream = isinstance(source, int)
-        self.vcap = cv2.VideoCapture(source)
-        if not self.vcap.isOpened():
-            print("[Exiting]: Error accessing video stream.")
-            exit(0)
-
-        self.buffer_size = buffer_size
-        self.frame_queue = queue.Queue(maxsize=self.buffer_size if not self.is_live_stream else 1)
-        self.stopped = False
-        self.thread = threading.Thread(target=self.update, daemon=True)
-        self.frame_count = 0
-        self.ret = None
-        self.frame = None
-
-        print(f"Is live stream: {self.is_live_stream}")
-
-    def start(self):
-        self.stopped = False
-        self.frame_count = 0
-        self.thread.start()
-
-    def update(self):
-        while not self.stopped:
-            if self.is_live_stream:
-                self.ret, self.frame = self.vcap.read()
-            else:
-                if not self.is_live_stream and self.frame_queue.full():
-                    time.sleep(0.01)  # Espera activa para videos si el buffer está lleno
-                    continue
-                ret, frame = self.vcap.read()
-                if not ret:
-                    self.stop()
-                    break
-                self.frame_queue.put((ret, frame))
-                if self.is_live_stream:
-                    time.sleep(1 / self.vcap.get(cv2.CAP_PROP_FPS))  # Controle la velocidad para stream en vivo
-
-    def read(self):
-        if self.is_live_stream:
-            return self.ret, self.frame
-        if not self.frame_queue.empty():
-            self.ret, self.frame = self.frame_queue.get()
-            self.frame_count += 1
-            return self.ret, self.frame
-        return False, None
-
-    def get_frame_count(self):
-        return self.frame_count
-
-    def stop(self):
         self.stopped = True
-        self.frame_count = 0
-        if threading.current_thread() != self.thread:
-            self.thread.join()
-        self.vcap.release()
-        self.clear_queue()
 
-    def clear_queue(self):
-        while not self.frame_queue.empty():
-            self.frame_queue.get()
-
-
-"""
-
-class FrameCapture:
-    def __init__(self, source=0):
-        self.source = source
-        self.vcap = cv2.VideoCapture(self.source)
-        if not self.vcap.isOpened():
-            print("[Exiting]: Error accessing webcam stream.")
-            exit(0)
-
-        self.fps = int(self.vcap.get(cv2.CAP_PROP_FPS))
-        self.frame_size = (
-            int(self.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            int(self.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        )
-
-        print(f"FPS of cam/video stream: {self.fps}")
-        print(f"Frame size: {self.frame_size}")
-        self.frame_count = 0
-
-        self.stopped = False
-        self.vcap.set(cv2.CAP_PROP_FPS, 1)
-        self.thread = threading.Thread(target=self.update)
-        self.thread.daemon = True
-        self.frame = None
-        self.ret = None
-
-    def start(self):
-        self.stopped = False
-        self.frame_count = 0
-        self.thread.start()
-
-    def update(self):
-        while not self.stopped:
-            self.ret, self.frame = self.vcap.read()
-            self.frame_count += 1
-            if not self.ret:
-                self.stop()
-                break
-    def read(self):
-        return self.ret, self.frame
-
-    def get_frame_count(self):
-        return self.frame_count
-    def stop(self):
-        self.stopped = True
-        if threading.current_thread() != self.thread:
-            self.thread.join()
-        self.vcap.release()
-        self.frame_count = 0
-"""
 
 if __name__ == '__main__':
     # Example usage:

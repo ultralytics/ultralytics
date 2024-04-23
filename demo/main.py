@@ -12,8 +12,7 @@ from PyQt6.QtCore import QThread, QMetaObject, Q_ARG, Qt, QTimer, pyqtSignal, QO
 from PyQt6.QtWidgets import QApplication
 from tqdm import tqdm
 
-from demo.x import FrameWorker, VideoDisplay
-from demo.y import VideoDisplayV2, FrameWorkerV2
+from demo.display import VideoDisplay
 from frameCapture import FrameCapture
 from frameProcessing import VideoWriter
 from tracker import ByteTrack
@@ -27,8 +26,10 @@ import os
 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 
+
 class VideoProcessor(QObject):
     frame_ready = pyqtSignal(QImage, float)
+
     def __init__(self, config) -> None:
         super(VideoProcessor, self).__init__()
         # Initialize the YOLO parameters
@@ -116,7 +117,8 @@ class VideoProcessor(QObject):
             frame = self.frame_capture.read()
             if frame is None:
                 break
-            annotated_frame = self.process_frame(frame, self.frame_capture.get_frame_count(), fps_counter.value())
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            annotated_frame = self.process_frame(frame_rgb, self.frame_capture.get_frame_count(), fps_counter.value())
             fps_counter.step()
             if self.save_video and not self.display:
                 self.video_writer.write_frame(annotated_frame)
@@ -177,8 +179,8 @@ class VideoProcessor(QObject):
         annotated_frame = self.trace_annotator.annotate(annotated_frame, detections)
         annotated_frame = self.box_annotator.annotate(annotated_frame, detections, labels)
         annotated_frame = self.action_recognizer.annotate(annotated_frame, ar_results)
-        cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
 
     def cleanup(self):
@@ -195,6 +197,7 @@ class ProcessorThread(QThread):
     def run(self):
         self.processor.process_video()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")
     parser.add_argument(
@@ -205,18 +208,17 @@ if __name__ == "__main__":
         help="config file path (default: None)",
     )
     config = ConfigParser.from_args(parser)
-    app = QApplication(sys.argv)
-    video_display = VideoDisplayV2()
-    video_display.show()
-
-    processor_thread = QThread()
-    video_processor = VideoProcessor(config)
-    video_processor.moveToThread(processor_thread)
-
-    # Conectar señales
-    video_processor.frame_ready.connect(video_display.update_display)
-
-    processor_thread.started.connect(video_processor.process_video)
-    processor_thread.start()
-
-    sys.exit(app.exec())
+    if config["display"]:
+        app = QApplication(sys.argv)
+        video_display = VideoDisplay()
+        video_display.show()
+        processor_thread = QThread()
+        video_processor = VideoProcessor(config)
+        video_processor.moveToThread(processor_thread)
+        video_processor.frame_ready.connect(video_display.update_display)
+        processor_thread.started.connect(video_processor.process_video)
+        processor_thread.start()
+        sys.exit(app.exec())
+    else:
+        video_processor = VideoProcessor(config)
+        video_processor.process_video()

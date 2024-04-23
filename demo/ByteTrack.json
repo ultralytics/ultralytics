@@ -1,7 +1,7 @@
 {
   "name": "qualitative",
   "source_weights_path": "./models/8s_300e_128b.pt",
-  "source_stream_path": "./videos/2.mp4",
+  "source_stream_path": "./videos/MOT16-03-raw.mp4",
   "stabilize": false,
   "logging": false,
   "stream_mode": false,

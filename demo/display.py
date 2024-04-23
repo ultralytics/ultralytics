@@ -40,7 +40,7 @@ class FrameWorker(QObject):
         self.paused = not self.paused
 
 class VideoDisplay(QGraphicsView):
-    def __init__(self, video_path):
+    def __init__(self, video_path=None):
         super(VideoDisplay, self).__init__()
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
@@ -53,11 +53,11 @@ class VideoDisplay(QGraphicsView):
         self.worker.frame_ready.connect(self.update_image)
         self.thread.start()
         """
-        self.timer = QTimer()
+        """self.timer = QTimer()
         self.timer.timeout.connect(self.worker.process_frames)
-        self.timer.start(int(1000 / 30))  # Assume 30 FPS
+        self.timer.start(int(1000 / 30))  # Assume 30 FPS"""
 
-    def update_image(self, q_image, fps):
+    def update_display(self, q_image, fps):
         # Draw FPS on the image using QPainter
         painter = QPainter(q_image)
         painter.setFont(QFont("Arial", 32))
@@ -75,7 +75,6 @@ class VideoDisplay(QGraphicsView):
         elif event.key() == Qt.Key.Key_Q:
             self.close()
             self.thread.quit()
-
 
 def main():
     app = QApplication(sys.argv)

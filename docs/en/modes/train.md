@@ -47,7 +47,7 @@ The following are some notable features of YOLOv8's Train mode:
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used. See Arguments section below for a full list of training arguments.
+Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
 !!! Example "Single-GPU and CPU Training Example"
 

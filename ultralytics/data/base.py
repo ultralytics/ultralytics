@@ -88,11 +88,9 @@ class BaseDataset(Dataset):
             assert self.batch_size is not None
             self.set_rectangle()
 
-        # Buffer thread for mosaic images
+        # a few images will be cached to memory even if cache is False
         self.buffer = []  # buffer size = batch size
-        self.max_buffer_length = (
-            min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
-        )  # image will be cached to memory up to this amount even if cache is False
+        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni

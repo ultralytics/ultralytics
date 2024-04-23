@@ -200,6 +200,11 @@ class Exporter:
             self.args.half = False
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
+        if self.args.int8 and engine:
+            self.args.dynamic = True  # enforce dynamic export when using INT8 for TensorRT export
+            if self.args.data is None:
+                LOGGER.warning("WARNING ⚠️ data argument required for TensorRT INT8 export, using data='coco128.yaml'")
+                self.args.data = self.args.data or "coco128.yaml"
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -700,7 +705,7 @@ class Exporter:
         half = builder.platform_has_fast_fp16 and self.args.half
         int8 = builder.platform_has_fast_int8 and self.args.int8
 
-        if self.args.dynamic or int8:  # always use dynamic with int8
+        if self.args.dynamic:
             shape = self.im.shape
             if shape[0] <= 1:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
@@ -716,6 +721,7 @@ class Exporter:
             from ultralytics.data import load_inference_source
             from ultralytics.data.loaders import infer_preprocess
 
+            config.set_calibration_profile(profile)  # set calibration profile
             preprocessor = partial(
                 infer_preprocess,
                 imgsz=self.imgsz,
@@ -774,14 +780,14 @@ class Exporter:
                         # Return [] or None, signal to TensorRT there is no calibration data remaining
                         return None
 
-                def read_calibration_cache(self) -> None:
+                def read_calibration_cache(self) -> bytes | None:
                     """
                     If there is a cache, use it instead of calibrating again.
 
                     Otherwise, implicitly return None.
                     """
                     if self.cache.exists() and self.cache.suffix == ".cache":
-                        _ = self.cache.read_bytes()
+                        return self.cache.read_bytes()
 
                 def write_calibration_cache(self, cache) -> None:
                     """Write calibration cache to disk."""
@@ -790,7 +796,7 @@ class Exporter:
             LOGGER.info(f"{prefix} building INT8 engine as {f}")
             data = check_det_dataset(self.args.data)
 
-            bsize = int(2 * self.args.batch)  # int8 calibration should use at least 2x batch size
+            bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
             dataset = load_inference_source(data["val"], batch=bsize)
             n = len(dataset) * bsize
             if n < 500:

@@ -27,6 +27,10 @@ class BaseDataset(Dataset):
         img_path (str): Path to the folder containing images.
         imgsz (int, optional): Image size. Defaults to 640.
         cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
+        mem_cache_limit (float, optional): Limit of memory cache to be used, only valid when cache is True or ram. 
+            Defaults to 0.7. For values between 0.0 and 1.0, set limit as `value * available memory`.
+            For values larger than 1.0, set limit as `value` (bytes).
+            For values less than 0.0, set limit as `0` (disable cache).
         augment (bool, optional): If True, data augmentation is applied. Defaults to True.
         hyp (dict, optional): Hyperparameters to apply data augmentation. Defaults to None.
         prefix (str, optional): Prefix to print in log messages. Defaults to ''.
@@ -52,6 +56,7 @@ class BaseDataset(Dataset):
         img_path,
         imgsz=640,
         cache=False,
+        mem_cache_limit=0.7,
         augment=True,
         hyp=DEFAULT_CFG,
         prefix="",
@@ -85,13 +90,19 @@ class BaseDataset(Dataset):
 
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
-        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
+        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0 # image will be cached to memory up to this amount even if cache is False
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
+        self.mem_cache_limit = mem_cache_limit
+        if self.cache == "ram":
+            self.mem_cache_bytes_used = 0 # actual used cache might be higher than limit because self.buffer contains a minimum set of cached image
+            self.mem_cache_limit_bytes = 0 # will be set properly in self.check_cache_ram()
+            self.check_cache_ram()
+            
+        if self.cache == "ram" or self.cache == "disk":
             self.cache_images()
 
         # Transforms
@@ -171,9 +182,14 @@ class BaseDataset(Dataset):
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
+                if self.cache == "ram":
+                    self.mem_cache_bytes_used += self.ims[i].nbytes
                 if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
                     if self.cache != "ram":
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    elif self.mem_cache_bytes_used > self.mem_cache_limit_bytes:
+                        self.mem_cache_bytes_used -= self.ims[j].nbytes
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
@@ -212,15 +228,14 @@ class BaseDataset(Dataset):
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        success = mem_required < mem.available  # to cache or not to cache, that is the question
-        if not success:
-            self.cache = None
+        self.mem_cache_limit_bytes = int(max(0, self.mem_cache_limit) * mem.available) if self.mem_cache_limit <= 1.0 else self.mem_cache_limit
+        fully_cacheable = mem_required <= self.mem_cache_limit_bytes
+        if not fully_cacheable:
             LOGGER.info(
                 f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
-                f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
+                f"but limit is {self.mem_cache_limit_bytes / gb:.1f}GB RAM, while only "
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, cache only partial dataset ⚠️"
             )
-        return success
 
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""

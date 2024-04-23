@@ -15,6 +15,7 @@ imgsz: 640 # (int | list) input images size as int for train and val modes, or l
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False # (bool) True/ram, disk or False. Use cache for data loading
+mem_cache_limit: 0.7 # (float, optional) Limit of memory cache. Fraction (0.0~1.0) of available memory or specified size (unit: byte)
 device: # (int | str | list, optional) device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
 workers: 8 # (int) number of worker threads for data loading (per RANK if DDP)
 project: # (str, optional) project name

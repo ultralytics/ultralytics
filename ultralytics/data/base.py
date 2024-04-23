@@ -27,7 +27,7 @@ class BaseDataset(Dataset):
         img_path (str): Path to the folder containing images.
         imgsz (int, optional): Image size. Defaults to 640.
         cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
-        mem_cache_limit (float, optional): Limit of memory cache to be used, only valid when cache is True or ram. 
+        mem_cache_limit (float, optional): Limit of memory cache to be used, only valid when cache is True or ram.
             Defaults to 0.7. For values between 0.0 and 1.0, set limit as `value * available memory`.
             For values larger than 1.0, set limit as `value` (bytes).
             For values less than 0.0, set limit as `0` (disable cache).
@@ -90,7 +90,9 @@ class BaseDataset(Dataset):
 
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
-        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0 # image will be cached to memory up to this amount even if cache is False
+        self.max_buffer_length = (
+            min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
+        )  # image will be cached to memory up to this amount even if cache is False
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
@@ -98,10 +100,10 @@ class BaseDataset(Dataset):
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         self.mem_cache_limit = mem_cache_limit
         if self.cache == "ram":
-            self.mem_cache_bytes_used = 0 # actual used cache might be higher than limit because self.buffer contains a minimum set of cached image
-            self.mem_cache_limit_bytes = 0 # will be set properly in self.check_cache_ram()
+            self.mem_cache_bytes_used = 0  # actual used cache might be higher than limit because self.buffer contains a minimum set of cached image
+            self.mem_cache_limit_bytes = 0  # will be set properly in self.check_cache_ram()
             self.check_cache_ram()
-            
+
         if self.cache == "ram" or self.cache == "disk":
             self.cache_images()
 
@@ -228,7 +230,9 @@ class BaseDataset(Dataset):
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        self.mem_cache_limit_bytes = int(max(0, self.mem_cache_limit) * mem.available) if self.mem_cache_limit <= 1.0 else self.mem_cache_limit
+        self.mem_cache_limit_bytes = (
+            int(max(0, self.mem_cache_limit) * mem.available) if self.mem_cache_limit <= 1.0 else self.mem_cache_limit
+        )
         fully_cacheable = mem_required <= self.mem_cache_limit_bytes
         if not fully_cacheable:
             LOGGER.info(

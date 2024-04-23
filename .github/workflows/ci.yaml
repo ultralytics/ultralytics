@@ -225,7 +225,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  RaspberryPi:
+  RaspberryPi-Benchmarks:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
     runs-on: raspberry-pi
@@ -239,7 +239,58 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]" "coverage[toml]"
+      - name: Check environment
+        run: |
+          yolo checks
+          pip list
+      - name: Benchmark ClassificationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
+      - name: Benchmark YOLOWorld DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+      - name: Benchmark SegmentationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.267
+      - name: Benchmark PoseModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
+      - name: Benchmark OBBModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
+      - name: Merge Coverage Reports
+        run: |
+          coverage xml -o coverage-benchmarks.xml
+      - name: Upload Coverage Reports to CodeCov
+        if: github.repository == 'ultralytics/ultralytics'
+        uses: codecov/codecov-action@v4
+        with:
+          flags: Benchmarks
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Benchmark Summary
+        run: |
+          cat benchmarks.log
+          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
+      - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
+        run: sudo bash -c "sleep 10; reboot" &
+
+  RaspberryPi-Tests:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    timeout-minutes: 60
+    runs-on: raspberry-pi
+    steps:
+      - uses: actions/checkout@v4
+      - name: Activate Virtual Environment
+        run: |
+          python3.11 -m venv env
+          source env/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3"
       - name: Check environment
         run: |
           yolo checks

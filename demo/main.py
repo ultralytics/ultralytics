@@ -1,9 +1,13 @@
+import sys
+
+from PyQt6 import QtWidgets
 import argparse
 import csv
 
 import cv2
 import numpy as np
 import supervision as sv
+from fastplotlib import Plot
 from tqdm import tqdm
 
 from frameCapture import FrameCapture
@@ -13,10 +17,9 @@ from tracker.action_recognition import ActionRecognizer
 from tracker.utils.cfg.parse_config import ConfigParser
 from tracker.utils.timer.utils import FrameRateCounter, Timer
 from ultralytics import YOLO
+import fastplotlib as fpl
 
 COLORS = sv.ColorPalette.default()
-
-
 class VideoProcessor:
     def __init__(self, config) -> None:
 
@@ -33,7 +36,7 @@ class VideoProcessor:
 
         self.device = config["device"]
         self.video_stride = config["video_stride"]
-        self.wait_time = 1
+        self.wait_time = int(1000 / 60)
         self.slow_factor = 1
 
         self.model = YOLO(config["source_weights_path"])
@@ -111,12 +114,9 @@ class VideoProcessor:
             if self.save_video and not self.display:
                 self.video_writer.write_frame(annotated_frame)
             if self.display:
-                cv2.imshow('Processed Video', annotated_frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    print("Exiting on user request.")
+                cv2.imshow("Annotated Frame", annotated_frame)
+                if cv2.waitKey(self.wait_time) & 0xFF == ord('q'):
                     break
-            pbar.update(1)
-            # Append data to data_dict if saving results
             if self.save_results:
                 for track in self.tracker.tracked_stracks:
                     data_dict["frame_id"].append(self.frame_capture.get_frame_count())
@@ -138,7 +138,7 @@ class VideoProcessor:
                 writer.writerows(zip(*data_dict.values()))
 
         if self.display:
-            cv2.destroyAllWindows()
+            self.display_screen.close()
         pbar.close()
         print(f"\nTracking complete over {self.video_info.total_frames} frames.")
         print(f"Total time: {timer.elapsed():.2f} seconds")
@@ -174,12 +174,6 @@ class VideoProcessor:
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
-
-    def display_frames(self, frame, fps, frame_count):
-        cv2.imshow('Frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):  # Ensure proper frame delay and quit functionality
-            self.frame_capture.stop()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")

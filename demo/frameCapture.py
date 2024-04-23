@@ -2,7 +2,7 @@ import time
 
 import cv2
 from vidgear.gears import VideoGear, CamGear
-
+import supervision as sv
 
 class FrameCapture:
     def __init__(self, source=0, stabilize=False, stream_mode=False, logging=False):
@@ -17,6 +17,7 @@ class FrameCapture:
             self.vcap = VideoGear(source=self.source, stabilize=stabilize, stream_mode=stream_mode, logging=logging)
             height, width, _ = self.vcap.stream.frame.shape
             self.fps = self.vcap.stream.framerate
+        self.video_info = sv.VideoInfo.from_video_path(self.source)
         self.frame_count = 0
         self.frame_size = (width, height)
         self.stopped = False

@@ -56,7 +56,11 @@ class TLCDetectionValidator(DetectionValidator):
             # Add TLCDetectionModel forward method to allow for embedding collection
             model.__class__ = TLCDetectionModel
 
-        return super().__call__(trainer, model)
+        self._run.set_status_collecting()
+        output = super().__call__(trainer, model)
+        self._run.set_status_running()
+        
+        return output
 
     def build_dataset(self, img_path, mode="val", batch=None):
         """

@@ -21,7 +21,7 @@ cd ultralytics
 python -m venv .venv
 source .venv/bin/activate # or .venv/Scripts/activate in Git Bash
 pip install -e . # install the local ultralytics fork package
-pip install tlc # your `tlc` install command here
+pip install 3lc # install 3lc
 ```
 
 In order to run training with the integration, instantiate `TLCYOLO` (instead of `YOLO`) and call the method `.train()` just like you are used to. The most simple example, which also shows how to specify 3LC settings, looks like this:

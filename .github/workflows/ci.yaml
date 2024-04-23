@@ -229,6 +229,10 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
     runs-on: raspberry-pi
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
       - name: Activate Virtual Environment
@@ -280,6 +284,8 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
     runs-on: raspberry-pi
+    strategy:
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - name: Activate Virtual Environment

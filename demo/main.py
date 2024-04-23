@@ -1,15 +1,17 @@
 import sys
 
-from PyQt6 import QtWidgets
+from PIL.ImageQt import QImage
 import argparse
 import csv
 
 import cv2
 import numpy as np
 import supervision as sv
-from fastplotlib import Plot
+from PyQt6.QtCore import QThread, QMetaObject, Q_ARG, Qt
+from PyQt6.QtWidgets import QApplication
 from tqdm import tqdm
 
+from demo.y import VideoDisplay, FrameWorkerV2
 from frameCapture import FrameCapture
 from frameProcessing import VideoWriter
 from tracker import ByteTrack
@@ -17,9 +19,12 @@ from tracker.action_recognition import ActionRecognizer
 from tracker.utils.cfg.parse_config import ConfigParser
 from tracker.utils.timer.utils import FrameRateCounter, Timer
 from ultralytics import YOLO
-import fastplotlib as fpl
 
 COLORS = sv.ColorPalette.default()
+import os
+
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+
 class VideoProcessor:
     def __init__(self, config) -> None:
 
@@ -73,6 +78,15 @@ class VideoProcessor:
         }
 
         self.action_recognizer = ActionRecognizer(config["action_recognition"], self.video_info)
+        if self.display:
+            self.app = QApplication(sys.argv)
+            self.display = VideoDisplay()
+            self.display.show()
+            self.worker = FrameWorkerV2()
+            self.thread = QThread()
+            self.worker.moveToThread(self.thread)
+            self.worker.frame_ready.connect(self.display.update_image)  # Connect signal to slot
+            self.thread.start()
 
     def process_video(self):
         print(f"Processing video: {self.source_video_path} ...")
@@ -104,7 +118,6 @@ class VideoProcessor:
                 "x2": [],
                 "y2": []
             }
-
         while True:
             frame = self.frame_capture.read()
             if frame is None:
@@ -114,9 +127,8 @@ class VideoProcessor:
             if self.save_video and not self.display:
                 self.video_writer.write_frame(annotated_frame)
             if self.display:
-                cv2.imshow("Annotated Frame", annotated_frame)
-                if cv2.waitKey(self.wait_time) & 0xFF == ord('q'):
-                    break
+                QMetaObject.invokeMethod(self.worker, "process_frames", Qt.ConnectionType.QueuedConnection,
+                                         Q_ARG(np.ndarray, frame), Q_ARG(float, fps_counter.value()))
             if self.save_results:
                 for track in self.tracker.tracked_stracks:
                     data_dict["frame_id"].append(self.frame_capture.get_frame_count())
@@ -137,8 +149,6 @@ class VideoProcessor:
                 writer.writerow(data_dict.keys())
                 writer.writerows(zip(*data_dict.values()))
 
-        if self.display:
-            self.display_screen.close()
         pbar.close()
         print(f"\nTracking complete over {self.video_info.total_frames} frames.")
         print(f"Total time: {timer.elapsed():.2f} seconds")
@@ -174,6 +184,13 @@ class VideoProcessor:
         cv2.putText(annotated_frame, f"Frame: {frame_number}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
+
+    def cleanup(self):
+        self.frame_capture.stop()
+        if self.save_video:
+            self.video_writer.stop()
+        if self.display:
+            sys.exit(self.app.exec())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")

@@ -4,7 +4,7 @@
 # Base ----------------------------------------
 matplotlib>=3.8.3
 numpy>=1.26.4 # pinned by Snyk to avoid a vulnerability
-opencv-python==4.8.1.78
+opencv-python>=4.8.1.78
 pillow>=7.1.2
 pyyaml>=5.3.1
 requests>=2.23.0
@@ -29,7 +29,7 @@ onnx>=1.15.0  # ONNX export
 onnxruntime>=1.16.3; python_version != '3.9' and sys_platform == 'darwin' and platform_machine != 'arm64'
 onnxruntime-coreml>=1.13.1; python_version == '3.9' and sys_platform == 'darwin' and platform_machine != 'arm64'
 onnxruntime-silicon>=1.16.0; sys_platform == 'darwin' and platform_machine == 'arm64'
-onnxruntime-gpu>=1.16.3; sys_platform != 'darwin'
+# onnxruntime-gpu>=1.16.3; sys_platform != 'darwin'
 onnxsim>=0.4.35
 onnxoptimizer>=0.3.13
 

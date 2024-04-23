@@ -194,6 +194,11 @@ def test_train_scratch():
     model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
     model(SOURCE)
 
+def test_train_scratch_low_ram_limit():
+    """Test training the YOLO model from scratch."""
+    model = YOLO(CFG)
+    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="ram", mem_cache_limit=0.0001, batch=-1, close_mosaic=1, name="model")
+    model(SOURCE)
 
 def test_train_pretrained():
     """Test training the YOLO model from a pre-trained state."""

@@ -361,11 +361,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda] # Add job names that you want to check for failure
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi-Benchmarks, RaspberryPi-Tests, Conda] # Add job names that you want to check for failure
     if: always() # This ensures the job runs even if previous jobs fail
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi-Benchmarks.result == 'failure' || needs.RaspberryPi-Tests.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |

@@ -228,10 +228,11 @@ jobs:
   RaspberryPi-Benchmarks:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
-    runs-on: raspberry-pi
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [rpios-bookworm]
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v4
@@ -283,9 +284,11 @@ jobs:
   RaspberryPi-Tests:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 60
-    runs-on: raspberry-pi
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      matrix:
+        os: [rpios-bookworm]
     steps:
       - uses: actions/checkout@v4
       - name: Activate Virtual Environment

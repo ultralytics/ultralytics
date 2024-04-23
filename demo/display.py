@@ -2,7 +2,7 @@ import sys
 import cv2
 import numpy as np
 from time import time
-from PyQt6.QtCore import QObject, pyqtSignal, QThread, QTimer, Qt, QRectF
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, QTimer, Qt, QRectF, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap, QKeyEvent, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
 import os
@@ -47,12 +47,12 @@ class VideoDisplay(QGraphicsView):
         self.pixmap_item = QGraphicsPixmapItem()
         self.scene.addItem(self.pixmap_item)
 
-        self.thread = QThread()
+        """self.thread = QThread()
         self.worker = FrameWorker(video_path)
         self.worker.moveToThread(self.thread)
         self.worker.frame_ready.connect(self.update_image)
         self.thread.start()
-
+        """
         self.timer = QTimer()
         self.timer.timeout.connect(self.worker.process_frames)
         self.timer.start(int(1000 / 30))  # Assume 30 FPS

@@ -1,5 +1,6 @@
 import sys
 
+import pylab as p
 from PIL.ImageQt import QImage
 import argparse
 import csv
@@ -7,11 +8,12 @@ import csv
 import cv2
 import numpy as np
 import supervision as sv
-from PyQt6.QtCore import QThread, QMetaObject, Q_ARG, Qt
+from PyQt6.QtCore import QThread, QMetaObject, Q_ARG, Qt, QTimer, pyqtSignal, QObject
 from PyQt6.QtWidgets import QApplication
 from tqdm import tqdm
 
-from demo.y import VideoDisplay, FrameWorkerV2
+from demo.x import FrameWorker, VideoDisplay
+from demo.y import VideoDisplayV2, FrameWorkerV2
 from frameCapture import FrameCapture
 from frameProcessing import VideoWriter
 from tracker import ByteTrack
@@ -25,9 +27,10 @@ import os
 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 
-class VideoProcessor:
+class VideoProcessor(QObject):
+    frame_ready = pyqtSignal(QImage, float)
     def __init__(self, config) -> None:
-
+        super(VideoProcessor, self).__init__()
         # Initialize the YOLO parameters
         self.conf_threshold = config["conf_threshold"]
         self.iou_threshold = config["iou_threshold"]
@@ -78,15 +81,6 @@ class VideoProcessor:
         }
 
         self.action_recognizer = ActionRecognizer(config["action_recognition"], self.video_info)
-        if self.display:
-            self.app = QApplication(sys.argv)
-            self.display = VideoDisplay()
-            self.display.show()
-            self.worker = FrameWorkerV2()
-            self.thread = QThread()
-            self.worker.moveToThread(self.thread)
-            self.worker.frame_ready.connect(self.display.update_image)  # Connect signal to slot
-            self.thread.start()
 
     def process_video(self):
         print(f"Processing video: {self.source_video_path} ...")
@@ -127,8 +121,10 @@ class VideoProcessor:
             if self.save_video and not self.display:
                 self.video_writer.write_frame(annotated_frame)
             if self.display:
-                QMetaObject.invokeMethod(self.worker, "process_frames", Qt.ConnectionType.QueuedConnection,
-                                         Q_ARG(np.ndarray, frame), Q_ARG(float, fps_counter.value()))
+                height, width, channel = annotated_frame.shape
+                bytes_per_line = 3 * width
+                q_image = QImage(annotated_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
+                self.frame_ready.emit(q_image, fps_counter.value())
             if self.save_results:
                 for track in self.tracker.tracked_stracks:
                     data_dict["frame_id"].append(self.frame_capture.get_frame_count())
@@ -138,7 +134,7 @@ class VideoProcessor:
                     data_dict["y1"].append(track.tlbr[1])
                     data_dict["x2"].append(track.tlbr[2])
                     data_dict["y2"].append(track.tlbr[3])
-
+            pbar.update(1)
         if self.save_video:
             self.video_writer.stop()
 
@@ -189,8 +185,15 @@ class VideoProcessor:
         self.frame_capture.stop()
         if self.save_video:
             self.video_writer.stop()
-        if self.display:
-            sys.exit(self.app.exec())
+
+
+class ProcessorThread(QThread):
+    def __init__(self, config):
+        super().__init__()
+        self.processor = VideoProcessor(config)
+
+    def run(self):
+        self.processor.process_video()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="YOLO and ByteTrack")
@@ -202,5 +205,18 @@ if __name__ == "__main__":
         help="config file path (default: None)",
     )
     config = ConfigParser.from_args(parser)
-    processor = VideoProcessor(config)
-    processor.process_video()
+    app = QApplication(sys.argv)
+    video_display = VideoDisplayV2()
+    video_display.show()
+
+    processor_thread = QThread()
+    video_processor = VideoProcessor(config)
+    video_processor.moveToThread(processor_thread)
+
+    # Conectar señales
+    video_processor.frame_ready.connect(video_display.update_display)
+
+    processor_thread.started.connect(video_processor.process_video)
+    processor_thread.start()
+
+    sys.exit(app.exec())

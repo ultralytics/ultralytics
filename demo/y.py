@@ -15,7 +15,6 @@ class FrameWorkerV2(QObject):
         self.paused = False
         self.last_timestamp = time()
 
-    @pyqtSlot(np.ndarray, float)
     def process_frames(self, frame_rgb, fps):
         if not self.paused:
             if frame_rgb is not None:
@@ -28,9 +27,9 @@ class FrameWorkerV2(QObject):
     def toggle_pause(self):
         self.paused = not self.paused
 
-class VideoDisplay(QGraphicsView):
+class VideoDisplayV2(QGraphicsView):
     def __init__(self, parent=None):
-        super(VideoDisplay, self).__init__(parent)
+        super(VideoDisplayV2, self).__init__(parent)
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self.pixmap_item = QGraphicsPixmapItem()
@@ -38,17 +37,17 @@ class VideoDisplay(QGraphicsView):
         self.thread = QThread()
         self.worker = FrameWorkerV2()
         self.worker.moveToThread(self.thread)
-        self.worker.frame_ready.connect(self.update_image)
+        self.worker.frame_ready.connect(self.update_display)
         self.thread.start()
 
-    def update_image(self, q_image, fps):
+    def update_display(self, q_image, fps):
         print("Update image called")  # Debug output
         if q_image.isNull():
             print("QImage is null")
         painter = QPainter(q_image)
         painter.setFont(QFont("Arial", 32))
         painter.setPen(QColor("yellow"))
-        painter.drawText(q_image.rect(), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, f"FPS: {fps:.2f}")
+        painter.drawText(q_image.rect(), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, f"FPS: {fps:.2f}")
         painter.end()
 
         pixmap = QPixmap.fromImage(q_image)

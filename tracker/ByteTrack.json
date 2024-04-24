@@ -1,15 +1,18 @@
 {
   "name": "qualitative",
+  "source_weights_path": "./models/8s_300e_128b.pt",
+  "source_stream_path": "./videos/13.mp4",
+  "stabilize": false,
+  "logging": false,
+  "stream_mode": false,
 
-  "source_weights_path": "./models/8sp2_150.pt",
-  "source_video_path": "./data/test1.mp4",
-
-  "device": "cpu",
+  "device": "mps",
   "video_stride": 1,
 
   "save_dir": "./outputs/",
   "save_results": false,
   "save_video": false,
+  "compression_mode": true,
   "display": false,
 
   "img_size": 640,
@@ -32,7 +35,7 @@
   "gmc_method": null,
 
   "action_recognition": {
-    "enabled": false,
+    "enabled": true,
     "speed_projection": [0.7, 1.5],
     "_comment": "",
 

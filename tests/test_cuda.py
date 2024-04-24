@@ -31,7 +31,7 @@ def test_export_engine():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_export_engine_dynamic():
     """Test exporting the YOLO model to NVIDIA TensorRT format with dynamic axes."""
-    f = YOLO(MODEL).export(format="engine", dyanmic=True, device=0)
+    f = YOLO(MODEL).export(format="engine", dynamic=True, device=0)
     YOLO(f)(BUS, device=0) # default imgsz
     YOLO(f)(BUS, device=0, imgsz=224) # smaller imgsz
 

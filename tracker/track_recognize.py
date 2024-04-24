@@ -44,8 +44,6 @@ class VideoProcessor(QObject):
 
         self.device = config["device"]
         self.video_stride = config["video_stride"]
-        self.wait_time = int(1000 / 60)
-        self.slow_factor = 1
 
         self.model = YOLO(config["source_weights_path"])
         self.model.fuse()

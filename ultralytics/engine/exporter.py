@@ -212,7 +212,8 @@ class Exporter:
             getattr(model, "pt_path", None) or getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")
         )
         if file.suffix in {".yaml", ".yml"}:
-            file = Path(file.name)
+            # file = Path(file.name)
+            file = Path(self.args.project + '/' + file.name if self.args.project is not None else file.name)
 
         # Update model
         model = deepcopy(model).to(self.device)

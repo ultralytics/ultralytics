@@ -1,3 +1,4 @@
+import cProfile
 import sys
 from PIL.ImageQt import QImage
 import argparse
@@ -432,10 +433,5 @@ if __name__ == "__main__":
          'args': {'imgsz': config['img_size'], 'half': False, 'dynamic': True, 'int8': True, 'simplify': True,
                   'workspace': 6}},
     ]
-    profiler = cProfile.Profile()
-    profiler.runcall(benchmark.run_benchmark, model_names, videos, export_configs)
-    profiler.dump_stats("profiling_results.prof")
-
-    """benchmark = VideoBenchmark(config)
+    benchmark = VideoBenchmark(config)
     benchmark.run_benchmark(model_names, videos, export_configs)
-"""

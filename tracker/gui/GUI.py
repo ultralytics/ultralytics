@@ -3,10 +3,13 @@ import sys
 import cv2
 import numpy as np
 from time import time
-from PyQt6.QtCore import QObject, pyqtSignal, QThread, QTimer, Qt, QRectF, pyqtSlot
-from PyQt6.QtGui import QImage, QPixmap, QKeyEvent, QPainter, QColor, QFont
-from PyQt6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
+
 import os
+
+from PIL.ImageQt import QPixmap
+from PyQt5.QtCore import (Qt, pyqtSignal, QObject, QThread, QTimer)
+from PyQt5.QtGui import QImage, QPainter, QFont, QColor, QKeyEvent
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 

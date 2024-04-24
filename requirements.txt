@@ -49,7 +49,6 @@ py-cpuinfo  # display CPU info
 # albumentations>=1.0.3  # training augmentations
 pycocotools>=2.0.7  # COCO mAP
 hub-sdk>=0.0.4  # PyTorch Hub
-fastplotlib
 vidgear[asyncio]
 simplejpeg
 

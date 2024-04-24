@@ -4,20 +4,18 @@ import sys
 
 import pandas as pd
 import torch
-from PIL.ImageQt import QImage
 import argparse
 import csv
 
 import cv2
 import numpy as np
 import supervision as sv
-from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtWidgets import QApplication
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import QImage
 from tqdm import tqdm
 
 from tracker import ByteTrack
 from tracker.action_recognition import ActionRecognizer
-from tracker.gui.GUI import VideoDisplay
 from tracker.gui.frameCapture import FrameCapture
 from tracker.gui.frameProcessing import VideoWriter
 from tracker.utils.cfg.parse_config import ConfigParser

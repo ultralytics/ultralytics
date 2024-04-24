@@ -6,7 +6,7 @@
   "logging": false,
   "stream_mode": false,
 
-  "device": "mps",
+  "device": "cuda",
   "video_stride": 1,
 
   "save_dir": "./outputs/",

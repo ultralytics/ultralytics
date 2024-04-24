@@ -84,9 +84,16 @@ def yolo_loss_schemas() -> dict[str, tlc.Schema]:
                                      display_importance=3006)
     return schemas
 
+def infer_embeddings_size(model) -> int:
+    sppf_index = next((i for i, m in enumerate(model.model) if "SPPF" in m.type), -1)
+
+    if sppf_index == -1:
+            raise ValueError("A SPPF layer is required for 3LC YOLOv8 embeddings, but the model does not have one.")
+    
+    return model.model[sppf_index]._modules['cv2']._modules['conv'].out_channels
 
 def yolo_image_embeddings_schema(activation_size=512) -> dict[str, tlc.Schema]:
-    """ Create a 3LC schema for YOLOv5 image embeddings.
+    """ Create a 3LC schema for YOLOv8 image embeddings.
 
     :param activation_size: The size of the activation tensor.
     :returns: The YOLO image embeddings schema.

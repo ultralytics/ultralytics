@@ -19,6 +19,7 @@ from ultralytics.utils.tlc.detect.utils import (
     construct_bbox_struct,
     get_metrics_collection_epochs,
     get_names_from_yolo_table,
+    infer_embeddings_size,
     training_phase_schema,
     yolo_image_embeddings_schema,
     yolo_predicted_bounding_box_schema,
@@ -39,6 +40,7 @@ class TLCDetectionValidator(DetectionValidator):
         self._seen = 0
         self._final_validation = True
         self._split = args.get('split', None)
+        self._embedding_size = None # Set the first time the model is seen
 
         _callbacks['on_val_start'].append(verify_settings)
         _callbacks['on_val_start'].append(set_up_metrics_writer)
@@ -56,7 +58,9 @@ class TLCDetectionValidator(DetectionValidator):
             # Add TLCDetectionModel forward method to allow for embedding collection
             model.__class__ = TLCDetectionModel
 
-        self._run.set_status_collecting()
+        if self._embedding_size is None and self._settings.image_embeddings_dim > 0:
+            self._embedding_size = infer_embeddings_size(model if model else trainer.model)
+
         output = super().__call__(trainer, model)
         self._run.set_status_running()
         
@@ -248,7 +252,7 @@ def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
         if validator._trainer:
             metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
         if validator._settings.image_embeddings_dim > 0:
-            metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=256))
+            metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=validator._embedding_size))
 
         validator.metrics_writer = tlc.MetricsTableWriter(
             run_url=validator._run.url,
@@ -256,3 +260,5 @@ def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
             foreign_table_display_name=dataset_name,
             column_schemas=metrics_column_schemas
         )
+
+        validator._run.set_status_collecting()

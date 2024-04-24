@@ -1,5 +1,9 @@
 import cProfile
+import json
 import sys
+
+import pandas as pd
+import torch
 from PIL.ImageQt import QImage
 import argparse
 import csv
@@ -208,7 +212,7 @@ class VideoBenchmark(QObject):
         for arch in archs:
             for config_export in export_configs:
                 self.load_model(path_model, arch)
-                _, n_p, _, flops = model_info(self.model.model)  # Get model info
+                n_l, n_p, n_g, flops = model_info(self.model.model)  # Get model info
                 export_filename = self.export_model(arch, config_export)
 
                 all_video_results = []  # Store results for each video for the current configuration
@@ -226,8 +230,8 @@ class VideoBenchmark(QObject):
                         'loaded_video_times': self.loaded_video_times,
                         'write_video_time_list': self.write_video_time_list,
                         'timer_load_frame_list': self.timer_load_frame_list,
-                        'FPS_model': [1 / (x / 1000) if x != 0 else 1 for x in self.model_times],
-                        'FPS_video': [self.video_fps],
+                        'FPS_model': np.mean([1 / (x / 1000) if x != 0 else 1 for x in self.model_times]),
+                        'FPS_video': self.video_fps,
                         'time_taken_seconds': self.time_taken
                     }
                     all_video_results.append(video_results)
@@ -242,11 +246,17 @@ class VideoBenchmark(QObject):
 
                 # Add the averages of all metrics across videos for the current model configuration
                 averaged_results.update({
-                    key: np.nanmean(
-                        [np.nanmean([x for x in v[key] if isinstance(x, (int, float))]) for v in all_video_results if
-                         v[key]])
-                    for key in all_video_results[0] if
-                    any(isinstance(item, (int, float)) for sublist in all_video_results for item in sublist[key])
+                    key: np.nanmean([
+                        np.nanmean([x for x in v[key] if isinstance(x, (int, float))])
+                        for v in all_video_results
+                        if isinstance(v[key], (list, tuple)) and v[key]  # Ensure v[key] is iterable and not empty
+                    ])
+                    for key in all_video_results[0]
+                    if any(
+                        isinstance(item, (int, float)) for sublist in all_video_results
+                        if isinstance(sublist[key], (list, tuple))  # Additional check for iterability
+                        for item in sublist[key]
+                    )
                 })
 
                 results.append(averaged_results)  # Append the averaged results for the current model configuration
@@ -284,9 +294,14 @@ class VideoBenchmark(QObject):
                 "x2": [],
                 "y2": []
             }
+        timer_load_frame_start = 0
         while True:
             if not self.paused:
                 frame = self.frame_capture.read()
+                timer_load_frame_end = time.perf_counter() if self.frame_capture.get_frame_count() != 0 else 0
+                timer_load_frame = timer_load_frame_end - timer_load_frame_start
+                self.timer_load_frame_list.append(timer_load_frame)
+                pbar.set_description(f"[FPS: {fps_counter.value():.2f}] ")
                 if frame is None:
                     break
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -294,7 +309,10 @@ class VideoBenchmark(QObject):
                                                      fps_counter.value(), config_export)
                 fps_counter.step()
                 if self.save_video and not self.display:
+                    start_time_write_video = time.perf_counter()
                     self.video_writer.write_frame(annotated_frame)
+                    write_video_time = time.perf_counter() - start_time_write_video
+                    self.write_video_time_list.append(write_video_time)
                 if self.display:
                     height, width, channel = annotated_frame.shape
                     bytes_per_line = 3 * width
@@ -310,6 +328,7 @@ class VideoBenchmark(QObject):
                         data_dict["x2"].append(track.tlbr[2])
                         data_dict["y2"].append(track.tlbr[3])
                 pbar.update(1)
+                timer_load_frame_start = time.perf_counter()
             if self.save_video:
                 self.video_writer.stop()
 
@@ -325,6 +344,8 @@ class VideoBenchmark(QObject):
         print(f"Total time: {timer.elapsed():.2f} seconds")
         avg_fps = self.video_info.total_frames / timer.elapsed()
         print(f"Average FPS: {avg_fps:.2f}")
+        self.video_fps = avg_fps
+        self.time_taken = timer.elapsed()
 
     def process_frame(self, frame: np.ndarray, frame_number: int, fps: float, config_export) -> np.ndarray:
         results = self.model.predict(

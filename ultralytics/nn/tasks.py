@@ -70,7 +70,7 @@ try:
 except ImportError:
     thop = None
 
-YAML_MODS = r"((-pose|-seg|-obb|-ghost|-rtdetr|-world(v\d)?|(-cls-resnet\d{2,3})|-cls)?(-p\d{1})?)?"
+YAML_MODS = r"((-pose|-seg|-obb|-cls))?"
 
 
 class BaseModel(nn.Module):
@@ -957,14 +957,14 @@ def yaml_model_load(path):
         LOGGER.warning(f"WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
-    unified_path = re.sub(rf"(\d+)([nslmx]|-tiny|-spp)?{YAML_MODS}(.+)?$", r"\1\8", str(path))
-    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
+    unified_path = re.sub(rf"(\d+)([nslmx]|-tiny|-spp)?{YAML_MODS}(.+)?$", r"\1\5", str(path))
+    key = re.sub(r"(.*)(\d+)([nslmx])(.+)?$", r"\1\2\4", path.stem)
+    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(key + ".yaml", hard=False) or check_yaml(path)
     d = yaml_load(yaml_file, append_filename=True)  # model dict
     d["scale"] = guess_model_scale(path)
-    d["model_key"] = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", path.stem)
-    d["task"] = d.get(d["model_key"], {}).get("task")
-    if d.get("task") == "classify":
-        d["nc"] = d.get(d["model_key"]).pop("nc")
+    d["model_key"] = key
+    d["task"] = d.get(key, {}).pop("task", "")
+    d["nc"] = d.get("nc") or d.get(key, {}).pop("nc", "")
     return d
 
 

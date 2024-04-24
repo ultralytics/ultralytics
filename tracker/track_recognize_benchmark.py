@@ -353,7 +353,7 @@ class VideoBenchmark(QObject):
             verbose=False,
             conf=self.conf_threshold,
             iou=self.iou_threshold,
-            imgsz=self.img_size,
+            imgsz=config_export.get('args', {}).get('imgsz'),
             device=self.device,
             max_det=self.max_det,
             half=config_export.get('args', {}).get('half', False),

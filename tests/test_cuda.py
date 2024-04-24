@@ -27,6 +27,26 @@ def test_export_engine():
     YOLO(f)(BUS, device=0)
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+def test_export_engine_dynamic():
+    """Test exporting the YOLO model to NVIDIA TensorRT format with dynamic axes."""
+    f = YOLO(MODEL).export(format="engine", dyanmic=True, device=0)
+    YOLO(f)(BUS, device=0) # default imgsz
+    YOLO(f)(BUS, device=0, imgsz=224) # smaller imgsz
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+def test_export_engine_int8():
+    """Test exporting the YOLO model to NVIDIA TensorRT format with INT8 quantization."""
+    # NOTE: int8 calibration will use/download COCO128 dataset for calibration
+    f = YOLO(MODEL).export(format="engine", int8=True, workspace=2, batch=4, device=0)
+    YOLO(f)(BUS, device=0) # normal
+    YOLO(f)(BUS, device=0, imgsz=224) # resized
+    YOLO(f)([BUS] * 4, device=0) # batch
+
+
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_train():
     """Test model training on a minimal dataset."""

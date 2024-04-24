@@ -1,6 +1,4 @@
 import sys
-
-import pylab as p
 from PIL.ImageQt import QImage
 import argparse
 import csv
@@ -8,7 +6,7 @@ import csv
 import cv2
 import numpy as np
 import supervision as sv
-from PyQt6.QtCore import QThread, QMetaObject, Q_ARG, Qt, QTimer, pyqtSignal, QObject
+from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 from tqdm import tqdm
 
@@ -51,6 +49,7 @@ class VideoProcessor(QObject):
         self.model = YOLO(config["source_weights_path"])
         self.model.fuse()
         self.model.to(self.device)
+        self.paused = False
 
         # TODO: CHECK IF MAINTAIN THIS
         self.video_info = sv.VideoInfo.from_video_path(self.source_video_path)
@@ -83,6 +82,7 @@ class VideoProcessor(QObject):
 
         self.action_recognizer = ActionRecognizer(config["action_recognition"], self.video_info)
 
+
     def process_video(self):
         print(f"Processing video: {self.source_video_path} ...")
         print(f"Original video size: {self.video_info.resolution_wh}")
@@ -90,10 +90,10 @@ class VideoProcessor(QObject):
         print(f"Original video number of frames: {self.video_info.total_frames}\n")
 
         if self.save_video:
-            self.video_writer = VideoWriter(self.target_video_path, frame_size=self.frame_capture.frame_size,
+            self.video_writer = VideoWriter(self.target_video_path, frame_size=self.frame_capture.get_frame_size(),
                                             compression_mode=config["compression_mode"],
                                             logging=config["logging"],
-                                            fps=self.frame_capture.fps)
+                                            fps=self.frame_capture.get_fps())
             self.video_writer.start()
 
         fps_counter = FrameRateCounter()
@@ -114,38 +114,39 @@ class VideoProcessor(QObject):
                 "y2": []
             }
         while True:
-            frame = self.frame_capture.read()
-            if frame is None:
-                break
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            annotated_frame = self.process_frame(frame_rgb, self.frame_capture.get_frame_count(), fps_counter.value())
-            fps_counter.step()
-            if self.save_video and not self.display:
-                self.video_writer.write_frame(annotated_frame)
-            if self.display:
-                height, width, channel = annotated_frame.shape
-                bytes_per_line = 3 * width
-                q_image = QImage(annotated_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
-                self.frame_ready.emit(q_image, fps_counter.value())
-            if self.save_results:
-                for track in self.tracker.tracked_stracks:
-                    data_dict["frame_id"].append(self.frame_capture.get_frame_count())
-                    data_dict["tracker_id"].append(track.track_id)
-                    data_dict["class_id"].append(track.class_id)
-                    data_dict["x1"].append(track.tlbr[0])
-                    data_dict["y1"].append(track.tlbr[1])
-                    data_dict["x2"].append(track.tlbr[2])
-                    data_dict["y2"].append(track.tlbr[3])
-            pbar.update(1)
-        if self.save_video:
-            self.video_writer.stop()
+            if not self.paused:
+                frame = self.frame_capture.read()
+                if frame is None:
+                    break
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                annotated_frame = self.process_frame(frame_rgb, self.frame_capture.get_frame_count(), fps_counter.value())
+                fps_counter.step()
+                if self.save_video and not self.display:
+                    self.video_writer.write_frame(annotated_frame)
+                if self.display:
+                    height, width, channel = annotated_frame.shape
+                    bytes_per_line = 3 * width
+                    q_image = QImage(annotated_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
+                    self.frame_ready.emit(q_image, fps_counter.value())
+                if self.save_results:
+                    for track in self.tracker.tracked_stracks:
+                        data_dict["frame_id"].append(self.frame_capture.get_frame_count())
+                        data_dict["tracker_id"].append(track.track_id)
+                        data_dict["class_id"].append(track.class_id)
+                        data_dict["x1"].append(track.tlbr[0])
+                        data_dict["y1"].append(track.tlbr[1])
+                        data_dict["x2"].append(track.tlbr[2])
+                        data_dict["y2"].append(track.tlbr[3])
+                pbar.update(1)
+            if self.save_video:
+                self.video_writer.stop()
 
-        if self.save_results:
-            # Write the collected data to a CSV file
-            with open(self.csv_path, 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(data_dict.keys())
-                writer.writerows(zip(*data_dict.values()))
+            if self.save_results:
+                # Write the collected data to a CSV file
+                with open(self.csv_path, 'w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(data_dict.keys())
+                    writer.writerows(zip(*data_dict.values()))
 
         pbar.close()
         print(f"\nTracking complete over {self.video_info.total_frames} frames.")
@@ -183,19 +184,13 @@ class VideoProcessor(QObject):
         # cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         return annotated_frame
 
+    def toggle_pause(self):
+        self.paused = not self.paused
+
     def cleanup(self):
         self.frame_capture.stop()
         if self.save_video:
             self.video_writer.stop()
-
-
-class ProcessorThread(QThread):
-    def __init__(self, config):
-        super().__init__()
-        self.processor = VideoProcessor(config)
-
-    def run(self):
-        self.processor.process_video()
 
 
 if __name__ == "__main__":
@@ -210,14 +205,8 @@ if __name__ == "__main__":
     config = ConfigParser.from_args(parser)
     if config["display"]:
         app = QApplication(sys.argv)
-        video_display = VideoDisplay()
+        video_display = VideoDisplay(processor=VideoProcessor(config))
         video_display.show()
-        processor_thread = QThread()
-        video_processor = VideoProcessor(config)
-        video_processor.moveToThread(processor_thread)
-        video_processor.frame_ready.connect(video_display.update_display)
-        processor_thread.started.connect(video_processor.process_video)
-        processor_thread.start()
         sys.exit(app.exec())
     else:
         video_processor = VideoProcessor(config)

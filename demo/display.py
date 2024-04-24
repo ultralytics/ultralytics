@@ -1,3 +1,4 @@
+import argparse
 import sys
 import cv2
 import numpy as np
@@ -8,6 +9,8 @@ from PyQt6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphi
 import os
 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+
+
 class FrameWorker(QObject):
     frame_ready = pyqtSignal(QImage, float)  # Emit both the QImage and the calculated FPS
 
@@ -39,23 +42,25 @@ class FrameWorker(QObject):
     def toggle_pause(self):
         self.paused = not self.paused
 
+
 class VideoDisplay(QGraphicsView):
-    def __init__(self, video_path=None):
+    def __init__(self, processor, sync_fps=False):
         super(VideoDisplay, self).__init__()
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self.pixmap_item = QGraphicsPixmapItem()
         self.scene.addItem(self.pixmap_item)
+        self.sync_fps = sync_fps
 
-        """self.thread = QThread()
-        self.worker = FrameWorker(video_path)
+        self.thread = QThread()
+        self.worker = processor
         self.worker.moveToThread(self.thread)
-        self.worker.frame_ready.connect(self.update_image)
+        self.worker.frame_ready.connect(self.update_display)
         self.thread.start()
-        """
-        """self.timer = QTimer()
-        self.timer.timeout.connect(self.worker.process_frames)
-        self.timer.start(int(1000 / 30))  # Assume 30 FPS"""
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.worker.process_video)
+        self.timer.start(0 if not self.sync_fps else int(1000 / self.worker.frame_capture.get_fps()))
 
     def update_display(self, q_image, fps):
         # Draw FPS on the image using QPainter
@@ -68,21 +73,16 @@ class VideoDisplay(QGraphicsView):
         pixmap = QPixmap.fromImage(q_image)
         self.pixmap_item.setPixmap(pixmap)
         self.fitInView(self.pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
+        if self.sync_fps:
+            self.timer.start(0 if not self.sync_fps else int(1000 / 30))
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_P:
             self.worker.toggle_pause()
+        elif event.key() == Qt.Key.Key_F:
+            self.sync_fps = not self.sync_fps
+            self.timer.start(0 if not self.sync_fps else int(1000 / self.worker.frame_capture.get_fps()))
         elif event.key() == Qt.Key.Key_Q:
             self.close()
+            self.worker.cleanup()
             self.thread.quit()
-
-def main():
-    app = QApplication(sys.argv)
-    video_path = "./videos/2.mp4"
-    display = VideoDisplay(video_path)
-    display.show()
-    display.resize(640, 360)  # Initial small window size
-    sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()

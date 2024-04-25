@@ -214,8 +214,9 @@ jobs:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
       - name: Update PowerShell
+        if: matrix.os == 'github-windows11-gpu-t4-4-core'
         run: |
-          winget install --id Microsoft.Powershell --source winget
+          choco upgrade powershell
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

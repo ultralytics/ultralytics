@@ -27,7 +27,7 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, model deployment, pre
   <br>
   <a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml">
     <img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a>
-  <a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb">
+  <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 </div>
 

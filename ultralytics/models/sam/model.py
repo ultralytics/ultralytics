@@ -18,6 +18,7 @@ from pathlib import Path
 
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
+
 from .build import build_sam
 from .predict import Predictor
 
@@ -41,7 +42,7 @@ class SAM(Model):
         Raises:
             NotImplementedError: If the model file extension is not .pt or .pth.
         """
-        if model and Path(model).suffix not in (".pt", ".pth"):
+        if model and Path(model).suffix not in {".pt", ".pth"}:
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
         super().__init__(model=model, task="segment")
 

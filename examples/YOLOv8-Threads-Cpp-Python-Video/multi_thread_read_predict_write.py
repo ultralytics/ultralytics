@@ -90,18 +90,11 @@ if __name__ == "__main__":
     batch_size = 3
     Image_in_queue_maxsize = 900
     Result_in_queue_maxsize = 900
-<<<<<<< HEAD
     video_path = r'C:\Users\10696\Desktop\CV\MOT16-06-raw.mp4'
     outpath = video_path.replace('.mp4', "_output.mp4")
     # outpath = video_path.replace('.mp4', "_output.avi")
     image_que = Queue(maxsize = Image_in_queue_maxsize)
     result_que = Queue(maxsize = Result_in_queue_maxsize)
-=======
-    video_path = r"C:\Users\10696\Desktop\CV\MOT16-06-raw.mp4"
-    outpath = video_path.replace(".mp4", "_output.avi")
-    image_que = Queue(maxsize=Image_in_queue_maxsize)
-    result_que = Queue(maxsize=Result_in_queue_maxsize)
->>>>>>> ad9458e8b8de980383114940cc1930503245904d
     informa_que = Queue(1)
     t0 = Thread(target=get_image, args=(video_path,))
     t1 = Thread(target=predict_image, args=(model, batch_size))

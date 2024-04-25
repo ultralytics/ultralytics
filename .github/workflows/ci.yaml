@@ -213,10 +213,13 @@ jobs:
       matrix:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
-      - name: View PowerShell Version
+      - name: Update PowerShell Version
         if: matrix.os == 'github-windows11-gpu-t4-4-core'
         run: |
-          $PSVersionTable
+          Install-PackageProvider -Name NuGet -Force | Out-Null
+          Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
+          Repair-WinGetPackageManager
+          winget install --id Microsoft.Powershell --source winget
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

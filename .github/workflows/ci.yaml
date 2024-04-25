@@ -213,10 +213,10 @@ jobs:
       matrix:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
-      - name: Update PowerShell
+      - name: View PowerShell Version
         if: matrix.os == 'github-windows11-gpu-t4-4-core'
         run: |
-          choco upgrade powershell
+          $PSVersionTable
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

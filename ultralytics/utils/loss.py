@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
@@ -140,7 +141,7 @@ class KeypointLoss(nn.Module):
         d = (pred_kpts[..., 0] - gt_kpts[..., 0]).pow(2) + (pred_kpts[..., 1] - gt_kpts[..., 1]).pow(2)
         kpt_loss_factor = kpt_mask.shape[1] / (torch.sum(kpt_mask != 0, dim=1) + 1e-9)
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
-        e = d / (2 * self.sigmas).pow(2) / (area + 1e-9) / 2  # from cocoeval
+        e = d / ((2 * self.sigmas).pow(2) * (area + 1e-9) * 2)  # from cocoeval
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
@@ -157,7 +158,7 @@ class v8DetectionLoss:
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
-        self.no = m.no
+        self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
 

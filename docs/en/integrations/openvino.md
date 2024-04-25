@@ -8,7 +8,7 @@ keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, expo
 
 <img width="1024" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/2b181f68-aa91-4514-ba09-497cc3c83b00" alt="OpenVINO Ecosystem">
 
-In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_CPU.html) speedup as well as accelerating on other Intel hardware ([iGPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_GPU.html), [dGPU](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_supported_plugins_GPU.html), [VPU](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_supported_plugins_VPU.html), etc.).
+In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
 OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
@@ -83,7 +83,7 @@ You can use these files to run inference with the OpenVINO Inference Engine.
 
 ## Using OpenVINO Export in Deployment
 
-Once you have the OpenVINO files, you can use the OpenVINO Runtime to run the model. The Runtime provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/nightly/openvino_docs_OV_UG_OV_Runtime_User_Guide.html).
+Once you have the OpenVINO files, you can use the OpenVINO Runtime to run the model. The Runtime provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/2024/openvino-workflow/running-inference.html).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -261,14 +261,14 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Load a YOLOv8n PyTorch model
         model = YOLO('yolov8n.pt')
 
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        results= model.benchmarks(data='coco128.yaml')
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        results= model.benchmarks(data='coco8.yaml')
         ```
     === "CLI"
 
         ```bash
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        yolo benchmark model=yolov8n.pt data=coco128.yaml
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        yolo benchmark model=yolov8n.pt data=coco8.yaml
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).

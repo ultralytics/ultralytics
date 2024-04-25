@@ -68,7 +68,7 @@ def torch_save(*args, use_dill=True, **kwargs):
     Args:
         *args (tuple): Positional arguments to pass to torch.save.
         use_dill (bool): Whether to try using dill for serialization if available. Defaults to True.
-        **kwargs (dict): Keyword arguments to pass to torch.save.
+        **kwargs (any): Keyword arguments to pass to torch.save.
     """
     try:
         assert use_dill

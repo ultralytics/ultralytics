@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torchvision
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import batch_probiou
@@ -212,6 +211,7 @@ def non_max_suppression(
         The second list contains a tensor of shape (num_boxes, num_classes) containing
         the scores for each class. It is returned only if return_all_scores is True.
     """
+    import torchvision  # scope for faster 'import ultralytics'
 
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"

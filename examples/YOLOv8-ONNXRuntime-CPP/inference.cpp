@@ -240,7 +240,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         }
         //Note:
         //ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
-        //https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt
+        //https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt
         //rowData = rowData.t();
 
         float* data = (float*)rawData.data;
@@ -301,12 +301,24 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         break;
     }
     case YOLO_CLS:
+    case YOLO_CLS_HALF:
     {
+        cv::Mat rawData;
+        if (modelType == YOLO_CLS) {
+            // FP32
+            rawData = cv::Mat(1, this->classes.size(), CV_32F, output);
+        } else {
+            // FP16
+            rawData = cv::Mat(1, this->classes.size(), CV_16F, output);
+            rawData.convertTo(rawData, CV_32F);
+        }
+        float *data = (float *) rawData.data;
+
         DL_RESULT result;
         for (int i = 0; i < this->classes.size(); i++)
         {
             result.classId = i;
-            result.confidence = output[i];
+            result.confidence = data[i];
             oResult.push_back(result);
         }
         break;

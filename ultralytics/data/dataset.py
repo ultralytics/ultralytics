@@ -172,6 +172,10 @@ class YOLODataset(BaseDataset):
 
     def build_transforms(self, hyp=None):
         """Builds and appends transforms to the list."""
+        if self.override_label_transforms != None or self.append_label_transforms != None:
+            LOGGER.info("Transformation override detected. Setting BGR flip probability to 0")
+            bgr = 0
+
         if self.override_label_transforms != None:
             return self.override_label_transforms
         
@@ -182,9 +186,7 @@ class YOLODataset(BaseDataset):
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         bgr=hyp.bgr if self.augment else 0.0  # only affect training.
-        if self.override_label_transforms != None:
-            LOGGER.info("Transformation override detected. Setting BGR flip probability to 0")
-            bgr = 0
+
         transforms.append(
             Format(
                 bbox_format="xywh",

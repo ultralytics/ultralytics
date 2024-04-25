@@ -36,6 +36,8 @@ class BaseDataset(Dataset):
         single_cls (bool, optional): If True, single class training is used. Defaults to False.
         classes (list): List of included classes. Default is None.
         fraction (float): Fraction of dataset to utilize. Default is 1.0 (use all data).
+        override_label_transforms (callable, optional): Override label transformation function.
+        append_label_transforms (callable, optional): Label transform function to run after default Ultralytics transformations.
 
     Attributes:
         im_files (list): List of image file paths.

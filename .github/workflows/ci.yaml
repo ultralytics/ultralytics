@@ -213,13 +213,11 @@ jobs:
       matrix:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
+      - name: Update PowerShell
+        run: |
+          winget install --id Microsoft.Powershell --source winget
       - uses: actions/checkout@v4
-      # - uses: actions/setup-python@v5
-      #   with:
-      #     python-version: "3.11"
-      #     cache: "pip" # caching pip dependencies
-      - name: Setup Python
-        uses: SMoraisAnsys/setup-python@test/no-pwshpath
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip" # caching pip dependencies

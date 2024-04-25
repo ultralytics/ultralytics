@@ -25,7 +25,7 @@ using namespace std;
 using namespace cv;
 using namespace cv::dnn;
 
-struct infor {
+struct info {
     double fps;
     int width;
     int height;
@@ -64,7 +64,7 @@ int Image_in_queue_maxsize = 390;
 int Result_in_queue_maxsize = 390;
 ThreadQueue<cv::Mat> image_que = ThreadQueue<cv::Mat>(Image_in_queue_maxsize);
 ThreadQueue<vector<Result>> result_que = ThreadQueue<vector<Result>>(Image_in_queue_maxsize);
-ThreadQueue<infor> informa_que = ThreadQueue<infor>((int)1);
+ThreadQueue<info> informa_que = ThreadQueue<info>((int)1);
 
 void yoloPostProcessing(
     std::vector<Mat>&& outs,
@@ -243,7 +243,7 @@ void read_video_image(string video_path) {
     double fps = cap.get(CAP_PROP_FPS);
     double frame_width = cap.get(CAP_PROP_FRAME_WIDTH);
     double frame_height = cap.get(CAP_PROP_FRAME_HEIGHT);
-    infor tp = { fps, (int)(frame_width), (int)(frame_height) };
+    info tp = { fps, (int)(frame_width), (int)(frame_height) };
     informa_que.put(std::move(tp));
     success = cap.read(img);
     int cnt = 0;
@@ -264,7 +264,7 @@ void write_to_video(string output_path) {
     cout << "in write_to_video function" << endl;
     int frame_width, frame_height;
     double fps;
-    infor inf;
+    info inf;
     informa_que.get(inf);
     fps = inf.fps;
     frame_width = inf.width;

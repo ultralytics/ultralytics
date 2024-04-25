@@ -213,6 +213,175 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
 
 - **[GitHub Repository for NVIDIA TensorRT:](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
 
+## Performance
+
+### Nvidia A100
+
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/detect/coco/), which include 80 pre-trained classes.
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict      | 1.01         | 0.46 \| 1.22       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 0.82         |                    | 0.37                 | 0.53              | 1       | 640                   |
+        | FP16      | Predict      | 0.53         | 0.29 \| 0.65       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 0.43         |                    | 0.37                 | 0.53              | 1       | 640                   |
+        | INT8      | Predict      | 0.46         | 0.24 \| 0.63       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.39         |                    | 0.33                 | 0.47              | 1       | 640                   |
+
+    === "Segmentation (COCO)"
+
+        See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/segment/coco/), which include 80 pre-trained classes.
+        
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-seg.engine`
+
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict      | 0.62         | 0.61 \| 0.68       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 0.62         |                    | 0.30                 | 0.49              | 1       | 640                   |
+        | FP16      | Predict      | 0.40         | 0.39 \| 0.45       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 0.41         |                    | 0.30                 | 0.49              | 1       | 640                   |
+        | INT8      | Predict      | 0.33         | 0.32 \| 0.41       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.34         |                    | 0.27                 | 0.43              | 1       | 640                   |
+
+    === "Classification (ImageNet)"
+
+        See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples with these models trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), which include 1000 pre-trained classes.
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-cls.engine`
+
+        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | acc<br><sup>top1 | acc<br><sup>top5 | `batch` | size<br><sup>(pixels) |
+        |-----------|------------------|--------------|--------------------|------------------|------------------|---------|-----------------------|
+        | FP32      | Predict          | 0.28         | 0.26 \| 0.32       |                  |                  | 8       | 640                   |
+        | FP32      | ImageNet<sup>val | 0.27         |                    | 0.35             | 0.61             | 1       | 640                   |
+        | FP16      | Predict          | 0.19         | 0.18 \| 0.42       |                  |                  | 8       | 640                   |
+        | FP16      | ImageNet<sup>val | 0.18         |                    | 0.35             | 0.61             | 1       | 640                   |
+        | INT8      | Predict          | 0.19         | 0.18 \| 0.20       |                  |                  | 8       | 640                   |
+        | INT8      | ImageNet<sup>val | 0.18         |                    | 0.35             | 0.61             | 1       | 640                   |
+
+    === "Pose (COCO)"
+
+        See [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/pose/coco/), which include 1 pre-trained class, 'person'.
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
+
+        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|----------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict        | 1.12         | 0.55 \| 1.26       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val   | 0.86         |                    | 0.51                 | 0.80              | 1       | 640                   |
+        | FP16      | Predict        | 0.60         | 0.3 \| 1.08        |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val   | 0.45         |                    | 0.51                 | 0.80              | 1       | 640                   |
+        | INT8      | Predict        | 0.53         | 0.26 \| 1.09       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val   | 0.39         |                    | 0.46                 | 0.77              | 1       | 640                   |
+
+    === "OBB (DOTAv1)"
+
+        See [Oriented Detection Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), which include 15 pre-trained classes.
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-obb.engine`
+
+        | Precision | Eval test       | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|-----------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict         | 0.52         | 0.51 \| 0.58       |                      |                   | 8       | 640                   |
+        | FP32      | DOTAv1<sup>val  | 0.70         |                    | 0.50                 | 0.36              | 1       | 640                   |
+        | FP16      | Predict         | 0.34         | 0.34 \| 0.38       |                      |                   | 8       | 640                   |
+        | FP16      | DOTAv1<sup>val  | 0.63         |                    | 0.50                 | 0.36              | 1       | 640                   |
+        | INT8      | Predict         | 0.29         | 0.28 \| 0.33       |                      |                   | 8       | 640                   |
+        | INT8      | DOTAv1<sup>val  | 0.47         |                    | 0.45                 | 0.32              | 1       | 640                   |
+
+#### Evaluation methods
+
+Expand sections below for information on how these models were exported and tested.
+
+??? example "Export configurations"
+
+    See [export mode](../modes/export.md) for details regarding export configuration arguments.
+
+    ```py
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+
+    # TensorRT FP32
+    out = model.export(
+        format="engine",
+        imgsz:640,
+        dynamic:True,
+        verbose:False,
+        batch:8,
+        workspace:2
+    )
+    
+    # TensorRT FP16
+    out = model.export(
+        format="engine",
+        imgsz:640,
+        dynamic:True,
+        verbose:False,
+        batch:8,
+        workspace:2,
+        half=True
+    )
+    
+    # TensorRT INT8
+    out = model.export(
+        format="engine",
+        imgsz:640,
+        dynamic:True,
+        verbose:False,
+        batch:8,
+        workspace:2,
+        int8=True,
+        data:"data.yaml"
+    )
+    ```
+
+??? example "Predict loop"
+
+    See [predict mode](../modes/predict.md) for additional information.
+
+    ```py
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.engine")
+    img = "path/to/image.jpg"
+
+    for _ in range(100):
+        result = model.predict(
+            [img] * 8,  # batch=8 of the same image
+            verbose=False,
+            device="cuda"
+        )
+    ```
+
+??? example "Validation configuration"
+
+    See [`val` mode](../modes/val.md) to learn more about validation configuration arguments.
+
+    ```py
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.engine", task="detect")
+    results = model.val(
+        data="data.yaml",
+        batch=1,
+        imgsz=640,
+        verbose=False,
+        device="cuda"
+    )
+    ```
+
+
 ## Summary
 
 In this guide, we focused on converting Ultralytics YOLOv8 models to NVIDIA's TensorRT model format. This conversion step is crucial for improving the efficiency and speed of YOLOv8 models, making them more effective and suitable for diverse deployment environments.

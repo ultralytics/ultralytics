@@ -85,7 +85,8 @@ if __name__ == "__main__":
     Image_in_queue_maxsize = 900
     Result_in_queue_maxsize = 900
     video_path = r'C:\Users\10696\Desktop\CV\MOT16-06-raw.mp4'
-    outpath = video_path.replace('.mp4', "_output.avi")
+    outpath = video_path.replace('.mp4', "_output.mp4")
+    # outpath = video_path.replace('.mp4', "_output.avi")
     image_que = Queue(maxsize = Image_in_queue_maxsize)
     result_que = Queue(maxsize = Result_in_queue_maxsize)
     informa_que = Queue(1)

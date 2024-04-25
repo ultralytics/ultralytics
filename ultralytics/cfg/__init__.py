@@ -414,6 +414,11 @@ def handle_explorer():
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
 
 
+def benchmark_rf100_dataset(api_key):
+    from ultralytics.utils.benchmarks import benchmark_rf100_dataset
+    benchmark_rf100_dataset(api_key=api_key)
+
+
 def parse_key_value_pair(pair):
     """Parse one 'key=value' pair and return key and value."""
     k, v = pair.split("=", 1)  # split on first '=' sign
@@ -467,6 +472,8 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(),
+        "benchmark-rf100": lambda: benchmark_rf100_dataset(args[1]) if len(args) > 1
+        else ValueError("API key required. Get it at https://app.roboflow.com/my-personal-workspace/settings/api")
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

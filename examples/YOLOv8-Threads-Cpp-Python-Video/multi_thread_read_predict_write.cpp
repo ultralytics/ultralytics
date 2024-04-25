@@ -36,7 +36,7 @@ struct Result {
     Mat img;
 };
 
-struct letterbox{
+struct letterbox {
     float paddingValue = 116 - 2;
     bool swapRB = false;
     int inpWidth = 640;
@@ -74,7 +74,7 @@ void yoloPostProcessing(
     float conf_threshold = 0.25,
     float iou_threshold = 0.7,
     const std::string& modeltype = "yolov8")
-{ // C:\ruanjian\opencv\opencv\sources\modules\dnn\test\test_onnx_importer.cpp
+{ // https://github.com/opencv/opencv/blob/4.x/modules/dnn/test/test_onnx_importer.cpp#L2666-L2750
 
     // Retrieve
     std::vector<int> classIds;
@@ -134,7 +134,7 @@ void yoloPostProcessing(
 }
 
 void drawPrediction(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
-{ //C:\ruanjian\opencv\opencv\sources\samples\dnn\object_detection.cpp
+{ // https://github.com/opencv/opencv/blob/4.x/samples/dnn/yolo_detector.cpp#L83-L101
     rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 255, 0));
 
     string label = cv::format("%.2f", conf);
@@ -174,7 +174,7 @@ void predict_image(Net&& net, const int batch_size) {
     net.getLayerShapes(MatShape(), 0, inLayerShapes, outLayerShapes);
     MatShape kk = inLayerShapes[0];
     if (inLayerShapes[0][0] != batch_size) {
-        cerr<<"";
+        cerr << "";
     }
     int cnt = 0;
     vector<Range> ranges(3, Range::all());
@@ -188,7 +188,7 @@ void predict_image(Net&& net, const int batch_size) {
         for (int i = 0; i < batch_size; i++) {
             image_que.get(img);
             img_width = img.size[1];
-            cout << "predict..." << cnt++ <<" " << img_width << endl;
+            cout << "predict..." << cnt++ << " " << img_width << endl;
             if (img_width < 9) {
                 image_que.task_done();
                 if (batch_size > 1) {
@@ -220,11 +220,11 @@ void predict_image(Net&& net, const int batch_size) {
             }
         }
         else {
-            ret.push_back({ std::move(outs), std::move(img)});
+            ret.push_back({ std::move(outs), std::move(img) });
             image_que.task_done();
         }
         result_que.put(std::move(ret));
-        
+
     }
 }
 
@@ -360,6 +360,7 @@ void getget() {
 
 void YoLoForward()
 {
+    // https://github.com/opencv/opencv/blob/4.x/modules/dnn/src/dnn_read.cpp#L13-L80
     /*
     thread tt(getget);
     thread tt1(putput);

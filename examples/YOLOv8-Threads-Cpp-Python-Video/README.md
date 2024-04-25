@@ -23,7 +23,7 @@ To export yolov8n.onnx model:
 ```
 from ultralytics import YOLO
 model = YOLO('yolov8n.pt')
-model.export(format=r"onnx", simplify=True)
+model.export(format=r"onnx", batch = 2, simplify=True) # batch=1, if your onnx input batch = 1
 ```
 
 #### 1. Window10
@@ -59,7 +59,7 @@ you should choose the Release not Debug, because opencv_world\*.lib don't suppor
 
 ## Run
 
-after you compile and generate the codes, you can run the program, you need do some modifications like directory path in multi_thread_read_predict_write.cpp the batch_size of the exported Onnx should be same with the batch_size below
+after you compile and generate the codes, you can run the program, you need do some modifications like directory path in multi_thread_read_predict_write.cpp. The batch size of the exported Onnx should be same with the batch_size in multi_thread_read_predict_write.cpp.
 
 if you have cuda which can be used in opencv, you should build opencv with cuda, and set GPU=true.
 

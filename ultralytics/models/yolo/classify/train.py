@@ -94,7 +94,7 @@ class ClassificationTrainer(BaseTrainer):
             augment=mode == "train",
             prefix=mode,
             override_label_tranforms=self.override_label_transforms,
-            append_label_tranforms=self.append_label_transforms,
+            append_label_transforms=self.append_label_transforms,
         )
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):

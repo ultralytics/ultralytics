@@ -3,7 +3,7 @@
 Check a model's accuracy on a test or val split of a dataset.
 
 Usage:
-    $ yolo mode=val model=yolov8n.pt data=coco128.yaml imgsz=640
+    $ yolo mode=val model=yolov8n.pt data=coco8.yaml imgsz=640
 
 Usage - formats:
     $ yolo mode=val model=yolov8n.pt                 # PyTorch

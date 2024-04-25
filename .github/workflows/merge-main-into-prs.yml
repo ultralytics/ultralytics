@@ -1,0 +1,58 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Automatically merges repository 'main' branch into all open PRs to keep them up-to-date
+# Action runs on updates to main branch so when one PR merges to main all others update
+
+name: Merge main into PRs
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  
+jobs:
+  Merge:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: main
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: "pip" # caching pip dependencies
+    - name: Install requirements
+      run: |
+        pip install pygithub
+    - name: Merge main into PRs
+      shell: python
+      run: |
+        from github import Github
+        import os
+        
+        # Authenticate with the GitHub Token
+        g = Github(os.getenv('GITHUB_TOKEN'))
+        
+        # Get the repository dynamically
+        repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
+        
+        # List all open pull requests
+        open_pulls = repo.get_pulls(state='open', sort='created')
+        
+        for pr in open_pulls:
+            try:
+                # Compare PR head with main to see if it's behind
+                comparison = repo.compare(pr.base.ref, pr.head.ref)  # ensure correct order of base and head
+                if comparison.behind_by > 0:
+                    # Merge main into the PR branch
+                    success = pr.update_branch()
+                    assert success, "Branch update failed"
+                    print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
+            except Exception as e:
+                print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e}")
+      env:
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}

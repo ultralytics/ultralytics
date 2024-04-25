@@ -36,8 +36,8 @@ This table presents the available models with their specific pre-trained weights
 
 | Model Type | Pre-trained Weights                                                                         | Tasks Supported                              | Inference | Validation | Training | Export |
 |------------|---------------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 
 ## Usage Examples
 

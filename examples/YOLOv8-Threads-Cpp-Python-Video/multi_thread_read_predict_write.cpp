@@ -20,6 +20,7 @@
 #include <opencv2/highgui.hpp>
 #include <thread>
 #include "thread_safe_Queue.hpp"
+#include <ctime>
 
 using namespace std;
 using namespace cv;
@@ -306,7 +307,7 @@ void write_to_video(string output_path) {
     while (true) {
         result.clear();
         result_que.get(result);
-        cout << "result_que.unfinished_tasks�� " << result.size() << endl;
+        cout << "result_que.unfinished_tasks: " << result.size() << endl;
         if (result.size() == 0) {
             result_que.task_done();
             video_writer.release();
@@ -392,6 +393,7 @@ void YoLoForward()
         net.setPreferableBackend(DNN_BACKEND_DEFAULT);
         net.setPreferableTarget(DNN_TARGET_CPU);
     }
+    clock_t prevTimestamp = 0;
 
     thread t0(read_video_image, video_path);
     thread t1(predict_image, std::move(net), batch_size);
@@ -404,6 +406,10 @@ void YoLoForward()
     image_que.join();
     result_que.join();
     cout << "\n\nAll finished......" << endl;
+    time_t time2(time_t * timer);
+
+    double ret = (clock() - prevTimestamp) / (double)CLOCKS_PER_SEC;
+    cout << "used time: " << ret << endl;
     return;
 }
 

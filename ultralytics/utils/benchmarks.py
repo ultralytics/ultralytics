@@ -173,6 +173,7 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
     import re
     import yaml
     from ..utils.downloads import safe_download
+    check_requirements("roboflow")
     from roboflow import Roboflow
 
     ds_cfg_list, ds_names = [], []
@@ -182,8 +183,7 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
     os.makedirs(root_dir, exist_ok=True)
     os.chdir(root_dir)
     os.makedirs("ultralytics-benchmarks", exist_ok=True)
-
-    safe_download("https://ultralytics.com/assets/datasets_links.txt") if not os.path.exists("datasets_links.txt") else None
+    safe_download("https://ultralytics.com/assets/datasets_links.txt")
 
     os.makedirs("datasets", exist_ok=True)
     os.chdir("datasets")
@@ -200,7 +200,7 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
                     rf.workspace(workspace).project(project).version(version).download("yolov8")
                 else:
                     print("Dataset already downloaded.")
-
+                print("YAML Path:", os.path.join(os.getcwd(), proj_version, 'data.yaml'))
                 ds_cfg_list.append(os.path.join(os.getcwd(), proj_version, 'data.yaml'))
             except Exception as e:
                 print(f"Error: {e}")
@@ -210,29 +210,39 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
 
     for ind, path in enumerate(ds_cfg_list):
         if os.path.exists(path):
-            print(f"Training Ultralytics YOLOv8 model on {ds_names[ind]} dataset...")
+            print("training ultralytics yolov8 model on {} dataset...".format(ds_names[ind]))
             os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
 
-            output_file = 'ultralytics-benchmarks/val_eval.txt'
-            print("Validation...")
-            os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > '
-                      f'{output_file} 2>&1')
+            output_file_path = f'ultralytics-benchmarks/val_eval.txt'
 
-            print("Evaluation...")
-            with open(path) as stream: class_names = yaml.safe_load(stream)["names"]
-            with open(output_file, "r") as f:
-                eval_lines = [dict(zip(val_metrics, line.split())) for line in f if any(
-                    key in line for key in ["all", *class_names]) and not any(
-                    phrase in line for phrase in ["(AP)", "(AR)"])]
+            print("Validation ...")
+            os.system(f'yolo detect val data={path} '
+                      f'model=runs/detect/train/weights/best.pt  > {output_file_path} 2>&1')
 
-            map_val = next(lst["map50"] for lst in eval_lines if lst["class"] == "all") \
-                if len(eval_lines) > 1 else eval_lines[0]["map50"]
+            print("Evaluation ...")
+            with open(path) as stream:
+                class_names = yaml.safe_load(stream)["names"]
+
+            with open(output_file_path, "r") as f:
+                eval_lines = [
+                    dict(zip(val_metrics, line.split())) for line in f
+                    if any(key in line for key in ["all", *class_names]) and
+                       not any(phrase in line for phrase in ["(AP)", "(AR)"])]
+
+            # Extract map50 values based on eval_lines length
+            map_val = eval_lines[0]["map50"] if len(eval_lines) == 1 else next(
+                lst["map50"] for lst in eval_lines if lst["class"] == "all")
+            res = ds_names[ind], ": ", map_val
+
+            # Dumpy output file
             with open("ultralytics-benchmarks/evaluation.txt", "a") as f:
-                f.write(f"{ds_names[ind]}: {map_val}\n")
+                f.write("".join(res))
+                f.write("\n")
 
         else:
             print("Unable to find dataset yaml")
             continue
+
         shutil.rmtree("runs")
     print("Benchmarking completed, please find results at ultralytics-benchmarks/evaluation.txt")
 

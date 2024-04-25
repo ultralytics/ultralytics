@@ -87,7 +87,14 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None):
+    def __init__(
+        self,
+        cfg=DEFAULT_CFG,
+        overrides=None,
+        _callbacks=None,
+        override_label_transforms=None,
+        append_label_transforms=None,
+    ):
         """
         Initializes the BaseTrainer class.
 

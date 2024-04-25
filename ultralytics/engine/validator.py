@@ -65,7 +65,17 @@ class BaseValidator:
         callbacks (dict): Dictionary to store various callback functions.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None, inputCh=3):
+    def __init__(
+        self,
+        dataloader=None,
+        save_dir=None,
+        pbar=None,
+        args=None,
+        _callbacks=None,
+        override_label_transforms=None,
+        append_label_transforms=None,
+        inputCh=3,
+    ):
         """
         Initializes a BaseValidator instance.
 

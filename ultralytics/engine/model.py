@@ -96,7 +96,7 @@ class Model(nn.Module):
         model: Union[str, Path] = "yolov8n.pt",
         task: str = None,
         verbose: bool = False,
-        inputCh = 3,
+        inputCh=3,
     ) -> None:
         """
         Initializes a new instance of the YOLO model class.

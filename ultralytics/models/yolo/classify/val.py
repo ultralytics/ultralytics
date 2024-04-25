@@ -26,9 +26,21 @@ class ClassificationValidator(BaseValidator):
         ```
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, override_label_transforms=None, append_label_transforms=None, inputCh=3):
+    def __init__(
+        self,
+        dataloader=None,
+        save_dir=None,
+        pbar=None,
+        args=None,
+        _callbacks=None,
+        override_label_transforms=None,
+        append_label_transforms=None,
+        inputCh=3,
+    ):
         """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks, override_label_transforms, append_label_transforms, inputCh)
+        super().__init__(
+            dataloader, save_dir, pbar, args, _callbacks, override_label_transforms, append_label_transforms, inputCh
+        )
         self.targets = None
         self.pred = None
         self.args.task = "classify"
@@ -78,7 +90,14 @@ class ClassificationValidator(BaseValidator):
 
     def build_dataset(self, img_path):
         """Creates and returns a ClassificationDataset instance using given image path and preprocessing parameters."""
-        return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split, override_label_tranforms=self.override_label_transforms, append_label_transforms=self.append_label_transforms)
+        return ClassificationDataset(
+            root=img_path,
+            args=self.args,
+            augment=False,
+            prefix=self.args.split,
+            override_label_tranforms=self.override_label_transforms,
+            append_label_transforms=self.append_label_transforms,
+        )
 
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""

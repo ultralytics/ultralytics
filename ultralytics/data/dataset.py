@@ -15,6 +15,7 @@ from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
+
 from .augment import (
     Compose,
     Format,
@@ -178,14 +179,14 @@ class YOLODataset(BaseDataset):
 
         if self.override_label_transforms != None:
             return self.override_label_transforms
-        
+
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
-        bgr=hyp.bgr if self.augment else 0.0  # only affect training.
+        bgr = hyp.bgr if self.augment else 0.0  # only affect training.
 
         transforms.append(
             Format(
@@ -197,13 +198,13 @@ class YOLODataset(BaseDataset):
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
-                bgr=bgr
+                bgr=bgr,
             )
         )
         if self.append_label_transforms:
             LOGGER.info(f"Appending custom image transform: {self.append_label_transforms}")
             transforms.append(self.append_label_transforms)
-        LOGGER.info(f'Complete list of transforms to be applied:\n{transforms}')
+        LOGGER.info(f"Complete list of transforms to be applied:\n{transforms}")
         return transforms
 
     def close_mosaic(self, hyp):
@@ -413,7 +414,16 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
     """
 
-    def __init__(self, root, args, augment=False, cache=False, prefix="", override_label_tranforms = None, append_label_transforms = None):
+    def __init__(
+        self,
+        root,
+        args,
+        augment=False,
+        cache=False,
+        prefix="",
+        override_label_tranforms=None,
+        append_label_transforms=None,
+    ):
         """
         Initialize YOLO object with root, image size, augmentations, and cache settings.
 
@@ -442,7 +452,7 @@ class ClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        
+
         if override_label_tranforms is not None:
             self.torch_transforms = override_label_tranforms
         else:

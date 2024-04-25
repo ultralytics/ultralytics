@@ -5,8 +5,8 @@ import random
 from copy import copy
 
 import numpy as np
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -41,7 +41,17 @@ class DetectionTrainer(BaseTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, override_label_transforms=self.override_label_transforms, append_label_transforms=self.append_label_transforms)
+        return build_yolo_dataset(
+            self.args,
+            img_path,
+            batch,
+            self.data,
+            mode=mode,
+            rect=mode == "val",
+            stride=gs,
+            override_label_transforms=self.override_label_transforms,
+            append_label_transforms=self.append_label_transforms,
+        )
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Construct and return dataloader."""
@@ -57,7 +67,11 @@ class DetectionTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
-        if batch['img'].dtype == torch.float32 or batch['img'].dtype == torch.float64 or batch['img'].dtype == torch.float16: # already a float
+        if (
+            batch["img"].dtype == torch.float32
+            or batch["img"].dtype == torch.float64
+            or batch["img"].dtype == torch.float16
+        ):  # already a float
             batch["img"] = batch["img"].to(self.device, non_blocking=True)
         else:
             batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
@@ -98,7 +112,11 @@ class DetectionTrainer(BaseTrainer):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         return yolo.detect.DetectionValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks, inputCh=self.inputCh
+            self.test_loader,
+            save_dir=self.save_dir,
+            args=copy(self.args),
+            _callbacks=self.callbacks,
+            inputCh=self.inputCh,
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):

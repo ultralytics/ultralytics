@@ -46,11 +46,15 @@ class DetectionValidator(BaseValidator):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         if self.args.half:
             batch["img"] = batch["img"].half()
-        elif batch['img'].dtype == torch.float32 or batch['img'].dtype == torch.float64 or batch['img'].dtype == torch.float16: # already a float
+        elif (
+            batch["img"].dtype == torch.float32
+            or batch["img"].dtype == torch.float64
+            or batch["img"].dtype == torch.float16
+        ):  # already a float
             pass
         else:
             batch["img"] = batch["img"].float() / 255.0
-        
+
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
@@ -224,7 +228,16 @@ class DetectionValidator(BaseValidator):
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride, override_label_transforms=self.override_label_transforms, append_label_transforms=self.append_label_transforms)
+        return build_yolo_dataset(
+            self.args,
+            img_path,
+            batch,
+            self.data,
+            mode=mode,
+            stride=self.stride,
+            override_label_transforms=self.override_label_transforms,
+            append_label_transforms=self.append_label_transforms,
+        )
 
     def get_dataloader(self, dataset_path, batch_size):
         """Construct and return dataloader."""

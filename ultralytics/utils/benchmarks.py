@@ -154,7 +154,7 @@ def benchmark(
 
 def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
     """
-    Benchmark Roboflow 100 dataset
+    Benchmark Roboflow 100 dataset.
 
     Args:
         root_dir (str): Directory for benchmarks
@@ -168,12 +168,14 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
         ```
     """
 
-    import shutil
     import os
     import re
+    import shutil
+
     import yaml
-    from ..utils.downloads import safe_download
     from roboflow import Roboflow
+
+    from ..utils.downloads import safe_download
 
     ds_cfg_list, ds_names = [], []
     val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
@@ -183,14 +185,16 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
     os.chdir(root_dir)
     os.makedirs("ultralytics-benchmarks", exist_ok=True)
 
-    safe_download("https://ultralytics.com/assets/datasets_links.txt") if not os.path.exists("datasets_links.txt") else None
+    safe_download("https://ultralytics.com/assets/datasets_links.txt") if not os.path.exists(
+        "datasets_links.txt"
+    ) else None
 
     os.makedirs("datasets", exist_ok=True)
     os.chdir("datasets")
 
     rf = Roboflow(api_key=api_key)
 
-    with open("../datasets_links.txt", 'r') as file:
+    with open("../datasets_links.txt", "r") as file:
         for line in file:
             try:
                 _, url, workspace, project, version = re.split("/+", line.strip())
@@ -201,7 +205,7 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
                 else:
                     print("Dataset already downloaded.")
 
-                ds_cfg_list.append(os.path.join(os.getcwd(), proj_version, 'data.yaml'))
+                ds_cfg_list.append(os.path.join(os.getcwd(), proj_version, "data.yaml"))
             except Exception as e:
                 print(f"Error: {e}")
                 continue
@@ -211,22 +215,28 @@ def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
     for ind, path in enumerate(ds_cfg_list):
         if os.path.exists(path):
             print(f"Training Ultralytics YOLOv8 model on {ds_names[ind]} dataset...")
-            os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
+            os.system(f"yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16")
 
-            output_file = 'ultralytics-benchmarks/val_eval.txt'
+            output_file = "ultralytics-benchmarks/val_eval.txt"
             print("Validation...")
-            os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > '
-                      f'{output_file} 2>&1')
+            os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > " f"{output_file} 2>&1")
 
             print("Evaluation...")
-            with open(path) as stream: class_names = yaml.safe_load(stream)["names"]
+            with open(path) as stream:
+                class_names = yaml.safe_load(stream)["names"]
             with open(output_file, "r") as f:
-                eval_lines = [dict(zip(val_metrics, line.split())) for line in f if any(
-                    key in line for key in ["all", *class_names]) and not any(
-                    phrase in line for phrase in ["(AP)", "(AR)"])]
+                eval_lines = [
+                    dict(zip(val_metrics, line.split()))
+                    for line in f
+                    if any(key in line for key in ["all", *class_names])
+                    and not any(phrase in line for phrase in ["(AP)", "(AR)"])
+                ]
 
-            map_val = next(lst["map50"] for lst in eval_lines if lst["class"] == "all") \
-                if len(eval_lines) > 1 else eval_lines[0]["map50"]
+            map_val = (
+                next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
+                if len(eval_lines) > 1
+                else eval_lines[0]["map50"]
+            )
             with open("ultralytics-benchmarks/evaluation.txt", "a") as f:
                 f.write(f"{ds_names[ind]}: {map_val}\n")
 

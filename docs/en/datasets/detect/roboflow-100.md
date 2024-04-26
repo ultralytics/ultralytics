@@ -48,11 +48,11 @@ Dataset benchmarking evaluates machine learning model performance on specific da
         ```python
         import os
         import shutil
-        from ultralytics.utils.benchmarks import rf100_benchmark
+        from ultralytics.utils.benchmarks import RF100_Benchmark
         
         api_key = "roboflow/api/key/string"
 
-        ultralytics_rf100_obj = rf100_benchmark() 
+        ultralytics_rf100_obj = RF100_Benchmark() 
         ultralytics_rf100_obj.set_key(api_key=api_key)   # set Roboflow API Key
         
         ds_names, ds_cfg_list = ultralytics_rf100_obj.parse_dataset()

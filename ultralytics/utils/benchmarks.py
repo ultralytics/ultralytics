@@ -28,10 +28,10 @@ import glob
 import platform
 import time
 from pathlib import Path
-import yaml
 
 import numpy as np
 import torch.cuda
+import yaml
 
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
@@ -163,21 +163,24 @@ class rf100_benchmark:
     def set_key(self, api_key):
         check_requirements("roboflow")
         from roboflow import Roboflow
+
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
-        import re
         import os
+        import re
         import shutil
+
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
 
         if not os.path.exists(ds_link_txt):
             from ..utils.downloads import safe_download
+
             safe_download("https://ultralytics.com/assets/datasets_links.txt")
 
-        with open(ds_link_txt, 'r') as file:
+        with open(ds_link_txt, "r") as file:
             for line in file:
                 try:
                     _, url, workspace, project, version = re.split("/+", line.strip())
@@ -187,29 +190,35 @@ class rf100_benchmark:
                         self.rf.workspace(workspace).project(project).version(version).download("yolov8")
                     else:
                         print("Dataset already downloaded.")
-                    self.ds_cfg_list.append(Path.cwd() / proj_version / 'data.yaml')
+                    self.ds_cfg_list.append(Path.cwd() / proj_version / "data.yaml")
                 except Exception:
                     continue
 
         return self.ds_names, self.ds_cfg_list
 
     def fix_yaml(self, path):
-        with open(path, 'r') as file:
+        with open(path, "r") as file:
             yaml_data = yaml.safe_load(file)
-        yaml_data['train'] = 'train/images'
-        yaml_data['val'] = 'valid/images'
-        with open(path, 'w') as file:
+        yaml_data["train"] = "train/images"
+        yaml_data["val"] = "valid/images"
+        with open(path, "w") as file:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, "r") as f:
-            eval_lines = [dict(zip(self.val_metrics, line.split())) for line in f
-                          if any(key in line for key in ["all", *class_names])
-                          and not any(phrase in line for phrase in ["(AP)", "(AR)"])]
-        map_val = (next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
-                   if len(eval_lines) > 1 else eval_lines[0]["map50"])
+            eval_lines = [
+                dict(zip(self.val_metrics, line.split()))
+                for line in f
+                if any(key in line for key in ["all", *class_names])
+                and not any(phrase in line for phrase in ["(AP)", "(AR)"])
+            ]
+        map_val = (
+            next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
+            if len(eval_lines) > 1
+            else eval_lines[0]["map50"]
+        )
         with open(eval_log_file, "a") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 

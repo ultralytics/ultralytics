@@ -155,18 +155,31 @@ def benchmark(
 
 class rf100_benchmark:
     def __init__(self):
+        """Function for initialization of rf100_benchmark"""
         self.ds_names = []
         self.ds_cfg_list = []
         self.rf = None
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key):
+        """
+        Set Roboflow API key for processing
+        Args:
+            api_key (str): api-key data
+        """
+
         check_requirements("roboflow")
         from roboflow import Roboflow
 
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
+        """
+        Parse dataset links and downloads datasets
+        Args:
+            ds_link_txt (str): path to dataset_links file
+        """
+
         import os
         import re
         import shutil
@@ -197,6 +210,12 @@ class rf100_benchmark:
         return self.ds_names, self.ds_cfg_list
 
     def fix_yaml(self, path):
+        """
+        Function to fix yaml train and val path
+        Args:
+            path (str): yaml file path
+        """
+
         with open(path, "r") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
@@ -205,6 +224,15 @@ class rf100_benchmark:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
+        """
+        Model evaluation on validation results
+        Args:
+            yaml_path (str): yaml file path
+            val_log_file (str): val_log_file path
+            eval_log_file (str): eval_log_file path
+            list_ind (int): Index for current dataset
+        """
+
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, "r") as f:

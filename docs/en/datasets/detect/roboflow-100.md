@@ -50,16 +50,16 @@ Dataset benchmarking evaluates machine learning model performance on specific da
         import shutil
         from ultralytics.utils.benchmarks import RF100Benchmark
         
-        api_key = "roboflow/api/key/string"
-
         benchmark = RF100Benchmark() 
-        benchmark.set_key(api_key=api_key)   # set Roboflow API Key
-        
-        ds_names, ds_cfg_list = benchmark.parse_dataset()
-        val_log_file = "ultralytics-benchmarks/validation.txt"  # folder name should be same, file name could be change
-        eval_log_file = "ultralytics-benchmarks/evaluation.txt" # folder name should be same, file name could be change
+        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")   # set API Key
 
-        for ind, path in enumerate(ds_cfg_list):
+        # Define file paths and configuration data
+        names, cfg_yamls = benchmark.parse_dataset()
+        val_log_file = "ultralytics-benchmarks/validation.txt"
+        eval_log_file = "ultralytics-benchmarks/evaluation.txt"
+
+        # Run benchmarks on each dataset in RF100
+        for ind, path in enumerate(cfg_yamls):
             if os.path.exists(path):
                 benchmark.fix_yaml(path)
                 os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')

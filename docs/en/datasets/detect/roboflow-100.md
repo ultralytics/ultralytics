@@ -46,31 +46,38 @@ Dataset benchmarking evaluates machine learning model performance on specific da
     === "Python"
 
         ```python
-        import os
+        from pathlib import Path
         import shutil
         from ultralytics.utils.benchmarks import RF100Benchmark
         
-        benchmark = RF100Benchmark() 
-        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")   # set API Key
-
-        # Define file paths and configuration data
+        # Initialize RF100Benchmark and set API key
+        benchmark = RF100Benchmark()
+        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
+        
+        # Parse dataset and define file paths
         names, cfg_yamls = benchmark.parse_dataset()
-        val_log_file = "ultralytics-benchmarks/validation.txt"
-        eval_log_file = "ultralytics-benchmarks/evaluation.txt"
-
+        val_log_file = Path("ultralytics-benchmarks") / "validation.txt"
+        eval_log_file = Path("ultralytics-benchmarks") / "evaluation.txt"
+        
         # Run benchmarks on each dataset in RF100
         for ind, path in enumerate(cfg_yamls):
-            if os.path.exists(path):
-                benchmark.fix_yaml(path)
-                os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
-                os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
-                benchmark.evaluate(path, val_log_file, eval_log_file, ind)
-        
-                runs_dir = os.path.join(os.getcwd(), "runs")
+            path = Path(path)
+            if path.exists():
+                # Fix YAML file and run training
+                benchmark.fix_yaml(str(path))
+                Path.cwd().system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
+                
+                # Run validation and evaluate
+                Path.cwd().system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
+                benchmark.evaluate(str(path), str(val_log_file), str(eval_log_file), ind)
+                
+                # Remove the 'runs' directory
+                runs_dir = Path.cwd() / "runs"
                 shutil.rmtree(runs_dir)
             else:
-                print("YAML file path not exists")
+                print("YAML file path does not exist")
                 continue
+        
         print("RF100 Benchmarking completed!")
         ```
 

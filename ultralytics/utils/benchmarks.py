@@ -230,7 +230,7 @@ class RF100_Benchmark:
             eval_log_file (str): eval_log_file path
             list_ind (int): Index for current dataset
         """
-        skip_symbols = ['🚀', '⚠️', '💡', '❌']
+        skip_symbols = ["🚀", "⚠️", "💡", "❌"]
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, "r", encoding="utf-8") as f:

@@ -73,7 +73,9 @@ class WorldTrainerFromScratch(WorldTrainer):
         data_mixed = self.args.data
         assert data_mixed.get("train", False)  # object365.yaml
         assert data_mixed.get("val", False)  # lvis.yaml
-        data = {k: [check_det_dataset(d, d.split(".")[-1]) for d in v.get("yolo_data", [])] for k, v in data_mixed.items()}
+        data = {
+            k: [check_det_dataset(d, d.split(".")[-1]) for d in v.get("yolo_data", [])] for k, v in data_mixed.items()
+        }
         assert len(data["val"]) == 1, f"Only support validating on 1 dataset for now, but got {len(data['val'])}."
         val_split = "minival" if "lvis" in data["val"][0]["val"] else "val"
         for d in data["val"]:

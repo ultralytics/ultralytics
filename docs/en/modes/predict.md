@@ -87,6 +87,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
         # Process results generator
         for result in results:
             boxes = result.boxes  # Boxes object for bounding box outputs
+            obb = result.obb  # Oriented boxes object for obb outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs

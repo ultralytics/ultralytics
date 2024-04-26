@@ -213,20 +213,9 @@ jobs:
       matrix:
         os: [gpu-latest, github-windows11-gpu-t4-4-core, github-linux-gpu-t4-4-core]
     steps:
-      - name: Fix Winget
-        if: matrix.os == 'github-windows11-gpu-t4-4-core'
-        run: |
-          Install-PackageProvider -Name NuGet -Force | Out-Null
-          Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
-          Repair-WinGetPackageManager
-          winget source reset --force
-          winget source update
-      - name: Update PowerShell
-        if: matrix.os == 'github-windows11-gpu-t4-4-core'
-        run: |
-            winget install --id Microsoft.Powershell --source winget
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # - uses: actions/setup-python@v5
+      - uses: SMoraisAnsys/setup-python@fix/windows_extract_cpython_release
         with:
           python-version: "3.11"
           cache: "pip" # caching pip dependencies

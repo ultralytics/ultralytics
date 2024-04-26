@@ -298,7 +298,25 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         | FP16      | DOTAv1<sup>val  | 0.63         |                    | 0.36                 | 0.50              | 1       | 640                   |
         | INT8      | Predict         | 0.29         | 0.28 \| 0.33       |                      |                   | 8       | 640                   |
         | INT8      | DOTAv1<sup>val  | 0.47         |                    | 0.45                 | 0.32              | 1       | 640                   |
-0.496      0.356
+
+### Consumer GPUs
+
+!!! tip "Detection Performance (COCO)"
+
+    === "RTX 3080 12 GB"
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 1.37         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | FP16      | Predict      | 0.62         | 0.75 \| 1.13       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 0.85         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.74         |                    | 0.33                 | 0.47              | 1       | 640                   |
+
 #### Evaluation methods
 
 Expand sections below for information on how these models were exported and tested.
@@ -351,10 +369,11 @@ Expand sections below for information on how these models were exported and test
     See [predict mode](../modes/predict.md) for additional information.
 
     ```py
+    import cv2
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.engine")
-    img = "path/to/image.jpg"
+    img = cv2.imread("path/to/image.jpg")
 
     for _ in range(100):
         result = model.predict(

@@ -183,15 +183,12 @@ class rf100_benchmark:
         import os
         import re
         import shutil
+        from ..utils.downloads import safe_download
 
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-
-        if not os.path.exists(ds_link_txt):
-            from ..utils.downloads import safe_download
-
-            safe_download("https://ultralytics.com/assets/datasets_links.txt")
+        safe_download("https://ultralytics.com/assets/datasets_links.txt")
 
         with open(ds_link_txt, "r") as file:
             for line in file:

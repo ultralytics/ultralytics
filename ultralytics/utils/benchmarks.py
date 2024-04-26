@@ -41,6 +41,7 @@ from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ARM64, ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
 from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
+from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import select_device
 
@@ -156,9 +157,9 @@ def benchmark(
     return df
 
 
-class RF100_Benchmark:
+class RF100Benchmark:
     def __init__(self):
-        """Function for initialization of rf100_benchmark."""
+        """Function for initialization of RF100Benchmark."""
         self.ds_names = []
         self.ds_cfg_list = []
         self.rf = None
@@ -184,8 +185,6 @@ class RF100_Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
-        from ..utils.downloads import safe_download
 
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")

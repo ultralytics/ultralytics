@@ -468,7 +468,6 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(),
     }
-
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
     # Define common misuses of special commands, i.e. -h, -help, --help

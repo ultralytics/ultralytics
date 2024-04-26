@@ -49,7 +49,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLOv8 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
 
-- [Google Collab](google-collab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
+- [Google Colab](google-colab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
 
 ## Deployment Integrations
 

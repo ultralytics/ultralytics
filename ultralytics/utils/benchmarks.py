@@ -164,7 +164,7 @@ class RF100_Benchmark:
     def set_key(self, api_key):
         """
         Set Roboflow API key for processing.
-        
+
         Args:
             api_key (str): The API key.
         """
@@ -211,7 +211,7 @@ class RF100_Benchmark:
     def fix_yaml(self, path):
         """
         Function to fix yaml train and val path.
-        
+
         Args:
             path (str): YAML file path.
         """
@@ -226,7 +226,7 @@ class RF100_Benchmark:
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
         """
         Model evaluation on validation results.
-        
+
         Args:
             yaml_path (str): YAML file path.
             val_log_file (str): val_log_file path.

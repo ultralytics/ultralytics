@@ -1,6 +1,6 @@
 ---
 comments: true
-description: A guide on how to train Ultralytics YOLOv8 models quickly, perform data processing directly in your web browser, and collaborate with others using Google Colab.
+description: A guide on how to train Ultralytics YOLOv8 models quickly, perform data processing directly in your web browser, and Colaborate with others using Google Colab.
 keywords: Ultralytics YOLOv8, Google Colab, CPU, GPU, TPU, Browser-based, Hardware Acceleration, Machine Learning, Google Colaboratory
 ---
 
@@ -12,17 +12,17 @@ You can use Google Colab to work on projects related to [Ultralytics YOLOv8](htt
 
 ## Google Colaboratory
 
-Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your machine learning and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Collab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
+Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your machine learning and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
 
 You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you’re good to go. 
 
 ## Training YOLOv8 Using Google Colaboratory
 
-Training YOLOv8 models on Google Colab is pretty straightforward. Thanks to the integration, you can access the [Google Collab YOLOv8 Notebook]](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+Training YOLOv8 models on Google Colab is pretty straightforward. Thanks to the integration, you can access the [Google Colab YOLOv8 Notebook]](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
 
 Sign in to your Google account and run the notebook's cells to train your model.
 
-![Training YOLOv8 Using Google Collab](https://github.com/ultralytics/ultralytics/assets/25847604/71779530-619e-4518-aced-5d56e1e8eab3)
+![Training YOLOv8 Using Google Colab](https://github.com/ultralytics/ultralytics/assets/25847604/71779530-619e-4518-aced-5d56e1e8eab3)
 
 Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Check out the guide below.
 
@@ -37,7 +37,7 @@ Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Chec
   <strong>Watch:</strong> How to Train Ultralytics YOLOv8 models on Your Custom Dataset in Google Colab | Episode 3
 </p>
 
-### Common Questions While Working with Google Collab
+### Common Questions While Working with Google Colab
 
 When working with Google Colab, you might have a few common questions. Let’s answer them. 
 
@@ -69,11 +69,11 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 ![Runtime Settings](https://github.com/ultralytics/ultralytics/assets/25847604/89a71a81-2784-4182-ad53-f024807d1dcc)
 
-- **Collaboration:** Google Colab makes collaborating and working with other developers easy. You can easily share your notebooks with others and perform edits in real-time.
+- **Colaboration:** Google Colab makes collaborating and working with other developers easy. You can easily share your notebooks with others and perform edits in real-time.
 
 - **Custom Environment:** Users can install dependencies, configure the system, and use shell commands directly in the notebook.
 
-- **Educational Resources:** Google Collab offers a range of tutorials and example notebooks to help users learn and explore various functionalities.
+- **Educational Resources:** Google Colab offers a range of tutorials and example notebooks to help users learn and explore various functionalities.
 
 ## Why Should You Use Google Colab for Your YOLOv8 Projects?
 
@@ -89,22 +89,22 @@ There are many options for training and evaluating YOLOv8 models, so what makes 
 
 - **Scheduled Execution:** Developers can set notebooks to run automatically at specified times.
 
-- **Extensions and Widgets:** Google Collab allows for adding functionality through third-party extensions and interactive widgets.
+- **Extensions and Widgets:** Google Colab allows for adding functionality through third-party extensions and interactive widgets.
 
-## Keep Learning about Google Collab
+## Keep Learning about Google Colab
 
 If you’d like to dive deeper into Google Colab, here are a few resources to guide you.
 
-- **[Training Custom Datasets with Ultralytics YOLOv8 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-collab)**: Learn how to train custom datasets with Ultralytics YOLOv8 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+- **[Training Custom Datasets with Ultralytics YOLOv8 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-Colab)**: Learn how to train custom datasets with Ultralytics YOLOv8 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
 
 - **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
-- **[Google Collab’s Medium Page](https://medium.com/google-colab)**: You can find tutorials, updates, and community contributions here that can help you better understand and utilize this tool.
+- **[Google Colab’s Medium Page](https://medium.com/google-colab)**: You can find tutorials, updates, and community contributions here that can help you better understand and utilize this tool.
 
 ## Summary
 
 We’ve dicsussed how you can easily experiment with Ultralytics YOLOv8 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks.
 
-For more details, visit [Google Collab’s FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+For more details, visit [Google Colab’s FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
 
 Interested in more YOLOv8 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects.

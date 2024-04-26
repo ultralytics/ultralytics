@@ -293,12 +293,12 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         | Precision | Eval test       | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
         |-----------|-----------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
         | FP32      | Predict         | 0.52         | 0.51 \| 0.58       |                      |                   | 8       | 640                   |
-        | FP32      | DOTAv1<sup>val  | 0.70         |                    | 0.50                 | 0.36              | 1       | 640                   |
+        | FP32      | DOTAv1<sup>val  | 0.70         |                    | 0.36                 | 0.50              | 1       | 640                   |
         | FP16      | Predict         | 0.34         | 0.34 \| 0.38       |                      |                   | 8       | 640                   |
-        | FP16      | DOTAv1<sup>val  | 0.63         |                    | 0.50                 | 0.36              | 1       | 640                   |
+        | FP16      | DOTAv1<sup>val  | 0.63         |                    | 0.36                 | 0.50              | 1       | 640                   |
         | INT8      | Predict         | 0.29         | 0.28 \| 0.33       |                      |                   | 8       | 640                   |
         | INT8      | DOTAv1<sup>val  | 0.47         |                    | 0.45                 | 0.32              | 1       | 640                   |
-
+0.496      0.356
 #### Evaluation methods
 
 Expand sections below for information on how these models were exported and tested.

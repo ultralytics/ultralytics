@@ -63,6 +63,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 <br><br>
 
+## ::: ultralytics.utils.read_device_model
+
+<br><br>
+
 ## ::: ultralytics.utils.is_ubuntu
 
 <br><br>
@@ -80,6 +84,14 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ## ::: ultralytics.utils.is_docker
+
+<br><br>
+
+## ::: ultralytics.utils.is_raspberrypi
+
+<br><br>
+
+## ::: ultralytics.utils.is_jetson
 
 <br><br>
 
@@ -103,11 +115,11 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 <br><br>
 
-## ::: ultralytics.utils.is_git_dir
+## ::: ultralytics.utils.get_git_dir
 
 <br><br>
 
-## ::: ultralytics.utils.get_git_dir
+## ::: ultralytics.utils.is_git_dir
 
 <br><br>
 

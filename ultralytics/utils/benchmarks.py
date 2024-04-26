@@ -28,6 +28,7 @@ import glob
 import platform
 import time
 from pathlib import Path
+import yaml
 
 import numpy as np
 import torch.cuda
@@ -152,99 +153,65 @@ def benchmark(
     return df
 
 
-def benchmark_rf100_dataset(root_dir="rf-100", api_key=str):
-    """
-    Benchmark Roboflow 100 dataset.
+class rf100_benchmark:
+    def __init__(self):
+        self.ds_names = []
+        self.ds_cfg_list = []
+        self.rf = None
+        self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
-    Args:
-        root_dir (str): Directory for benchmarks
-        api_key (str): Roboflow API key
+    def set_key(self, api_key):
+        check_requirements("roboflow")
+        from roboflow import Roboflow
+        self.rf = Roboflow(api_key=api_key)
 
-    Example:
-        ```python
-        from ultralytics.utils.benchmarks import benchmark_rf100_dataset
+    def parse_dataset(self, ds_link_txt="datasets_links.txt"):
+        import re
+        import os
+        import shutil
+        (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
+        os.chdir("rf-100")
+        os.mkdir("ultralytics-benchmarks")
 
-        benchmark_rf100_dataset(api_key="path/to/roboflow-api/key")
-        ```
-    """
+        if not os.path.exists(ds_link_txt):
+            from ..utils.downloads import safe_download
+            safe_download("https://ultralytics.com/assets/datasets_links.txt")
 
-    import os
-    import re
-    import shutil
+        with open(ds_link_txt, 'r') as file:
+            for line in file:
+                try:
+                    _, url, workspace, project, version = re.split("/+", line.strip())
+                    self.ds_names.append(project)
+                    proj_version = f"{project}-{version}"
+                    if not Path(proj_version).exists():
+                        self.rf.workspace(workspace).project(project).version(version).download("yolov8")
+                    else:
+                        print("Dataset already downloaded.")
+                    self.ds_cfg_list.append(Path.cwd() / proj_version / 'data.yaml')
+                except Exception:
+                    continue
 
-    import yaml
-    from roboflow import Roboflow
+        return self.ds_names, self.ds_cfg_list
 
-    from ..utils.downloads import safe_download
+    def fix_yaml(self, path):
+        with open(path, 'r') as file:
+            yaml_data = yaml.safe_load(file)
+        yaml_data['train'] = 'train/images'
+        yaml_data['val'] = 'valid/images'
+        with open(path, 'w') as file:
+            yaml.safe_dump(yaml_data, file)
 
-    ds_cfg_list, ds_names = [], []
-    val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
-
-    shutil.rmtree(root_dir) if os.path.exists(root_dir) else None
-    os.makedirs(root_dir, exist_ok=True)
-    os.chdir(root_dir)
-    os.makedirs("ultralytics-benchmarks", exist_ok=True)
-
-    safe_download("https://ultralytics.com/assets/datasets_links.txt") if not os.path.exists(
-        "datasets_links.txt"
-    ) else None
-
-    os.makedirs("datasets", exist_ok=True)
-    os.chdir("datasets")
-
-    rf = Roboflow(api_key=api_key)
-
-    with open("../datasets_links.txt", "r") as file:
-        for line in file:
-            try:
-                _, url, workspace, project, version = re.split("/+", line.strip())
-                ds_names.append(project)
-                proj_version = f"{project}-{version}"
-                if not os.path.exists(proj_version):
-                    rf.workspace(workspace).project(project).version(version).download("yolov8")
-                else:
-                    print("Dataset already downloaded.")
-
-                ds_cfg_list.append(os.path.join(os.getcwd(), proj_version, "data.yaml"))
-            except Exception as e:
-                print(f"Error: {e}")
-                continue
-
-    os.chdir("../")
-
-    for ind, path in enumerate(ds_cfg_list):
-        if os.path.exists(path):
-            print(f"Training Ultralytics YOLOv8 model on {ds_names[ind]} dataset...")
-            os.system(f"yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16")
-
-            output_file = "ultralytics-benchmarks/val_eval.txt"
-            print("Validation...")
-            os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > " f"{output_file} 2>&1")
-
-            print("Evaluation...")
-            with open(path) as stream:
-                class_names = yaml.safe_load(stream)["names"]
-            with open(output_file, "r") as f:
-                eval_lines = [
-                    dict(zip(val_metrics, line.split()))
-                    for line in f
-                    if any(key in line for key in ["all", *class_names])
-                    and not any(phrase in line for phrase in ["(AP)", "(AR)"])
-                ]
-
-            map_val = (
-                next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
-                if len(eval_lines) > 1
-                else eval_lines[0]["map50"]
-            )
-            with open("ultralytics-benchmarks/evaluation.txt", "a") as f:
-                f.write(f"{ds_names[ind]}: {map_val}\n")
-
-        else:
-            print("Unable to find dataset yaml")
-            continue
-        shutil.rmtree("runs")
-    print("Benchmarking completed, please find results at ultralytics-benchmarks/evaluation.txt")
+    def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
+        with open(yaml_path) as stream:
+            class_names = yaml.safe_load(stream)["names"]
+        with open(val_log_file, "r") as f:
+            eval_lines = [dict(zip(self.val_metrics, line.split())) for line in f
+                          if any(key in line for key in ["all", *class_names])
+                          and not any(phrase in line for phrase in ["(AP)", "(AR)"])]
+        map_val = (next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
+                   if len(eval_lines) > 1 else eval_lines[0]["map50"])
+        with open(eval_log_file, "a") as f:
+            f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
 
 class ProfileModels:

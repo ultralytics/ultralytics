@@ -101,7 +101,7 @@ class Explorer:
         if self.data is None:
             raise ValueError("Data must be provided to create embeddings table")
 
-        data_info = check_det_dataset(self.data)
+        data_info = check_det_dataset(self.data, str(self.args.data).split(".")[-1])
         if split not in data_info:
             raise ValueError(
                 f"Split {split} is not found in the dataset. Available keys in the dataset are {list(data_info.keys())}"

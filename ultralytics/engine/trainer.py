@@ -506,15 +506,16 @@ class BaseTrainer:
         Returns None if data format is not recognized.
         """
         try:
+            extension = str(self.args.data).split(".")[-1]
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
-            elif self.args.data.split(".")[-1] in {"yaml", "yml"} or self.args.task in {
+            elif extension in {"yaml", "yml", "json"} or self.args.task in {
                 "detect",
                 "segment",
                 "pose",
                 "obb",
             }:
-                data = check_det_dataset(self.args.data)
+                data = check_det_dataset(self.args.data, extension)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:

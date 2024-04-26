@@ -492,7 +492,7 @@ class HUBDatasetStats:
                 data = yaml_load(yaml_path)
                 data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
                 yaml_save(yaml_path, data)
-                data = check_det_dataset(yaml_path, autodownload)  # dict
+                data = check_det_dataset(yaml_path, ".yaml", autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e

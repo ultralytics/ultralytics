@@ -218,7 +218,8 @@ jobs:
         run: |
           Invoke-WebRequest -Uri 'https://www.7-zip.org/a/7z2404-x64.exe' -OutFile '7z.exe' -UseBasicParsing
           Start-Process -FilePath '7z.exe' -ArgumentList '/S' -Verb RunAs -Wait
-          Set-Alias -Name 7zip -Value "C:\Program Files\7-Zip\7z.exe"
+          $env:Path += ";C:\Program Files\7-Zip\7z.exe"
+          [System.Environment]::SetEnvironmentVariable("Path", "$([System.Environment]::GetEnvironmentVariable('Path'))")
       # - uses: actions/setup-python@v5
       - uses: SMoraisAnsys/setup-python@fix/windows_extract_cpython_release
         with:

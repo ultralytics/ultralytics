@@ -1,6 +1,6 @@
 ---
 comments: true
-description: A guide on how to train Ultralytics YOLOv8 models quickly, perform data processing directly in your web browser, and Colaborate with others using Google Colab.
+description: A guide on how to train Ultralytics YOLOv8 models quickly, perform data processing directly in your web browser, and collaborate with others using Google Colab.
 keywords: Ultralytics YOLOv8, Google Colab, CPU, GPU, TPU, Browser-based, Hardware Acceleration, Machine Learning, Google Colaboratory
 ---
 

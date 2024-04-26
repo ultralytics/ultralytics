@@ -28,6 +28,9 @@ import glob
 import platform
 import time
 from pathlib import Path
+import os
+import re
+import shutil
 
 import numpy as np
 import torch.cuda
@@ -176,14 +179,11 @@ class RF100_Benchmark:
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
         """
-        Parse dataset links and downloads datasets
+        Parse dataset links and downloads datasets.
+        
         Args:
-            ds_link_txt (str): path to dataset_links file
+            ds_link_txt (str): Path to dataset_links file.
         """
-
-        import os
-        import re
-        import shutil
 
         from ..utils.downloads import safe_download
 

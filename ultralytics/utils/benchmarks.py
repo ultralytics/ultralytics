@@ -234,17 +234,48 @@ class rf100_benchmark:
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, "r") as f:
-            eval_lines = [
-                dict(zip(self.val_metrics, line.split()))
-                for line in f
-                if any(key in line for key in ["all", *class_names])
-                and not any(phrase in line for phrase in ["(AP)", "(AR)"])
-            ]
-        map_val = (
-            next(lst["map50"] for lst in eval_lines if lst["class"] == "all")
-            if len(eval_lines) > 1
-            else eval_lines[0]["map50"]
-        )
+            lines = f.readlines()
+            eval_lines = []
+            for line in lines:
+                entries = line.split(" ")
+                entries = list(filter(lambda val: val != "", entries))
+                entries = [e.strip("\n") for e in entries]
+                start_class = False
+                for e in entries:
+                    if e == "all":
+                        if "(AP)" not in entries:
+                            if "(AR)" not in entries:
+                                # parse all
+                                eval = {}
+                                eval["class"] = entries[0]
+                                eval["images"] = entries[1]
+                                eval["targets"] = entries[2]
+                                eval["precision"] = entries[3]
+                                eval["recall"] = entries[4]
+                                eval["map50"] = entries[5]
+                                eval["map95"] = entries[6]
+                                eval_lines.append(eval)
+
+                    if e in class_names:
+                        eval = {}
+                        eval["class"] = entries[0]
+                        eval["images"] = entries[1]
+                        eval["targets"] = entries[2]
+                        eval["precision"] = entries[3]
+                        eval["recall"] = entries[4]
+                        eval["map50"] = entries[5]
+                        eval["map95"] = entries[6]
+                        eval_lines.append(eval)
+        map_val = 0.0
+        if len(eval_lines) > 1:
+            print("There's more dicts")
+            for lst in eval_lines:
+                if lst["class"] == "all":
+                    map_val = lst["map50"]
+        else:
+            print("There's only one dict res")
+            map_val = [res["map50"] for res in eval_lines][0]
+
         with open(eval_log_file, "a") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 

@@ -183,6 +183,7 @@ class rf100_benchmark:
         import os
         import re
         import shutil
+
         from ..utils.downloads import safe_download
 
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")

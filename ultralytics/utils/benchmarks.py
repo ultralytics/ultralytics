@@ -155,7 +155,7 @@ def benchmark(
 
 class rf100_benchmark:
     def __init__(self):
-        """Function for initialization of rf100_benchmark"""
+        """Function for initialization of rf100_benchmark."""
         self.ds_names = []
         self.ds_cfg_list = []
         self.rf = None

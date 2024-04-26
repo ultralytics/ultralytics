@@ -48,30 +48,30 @@ Dataset benchmarking evaluates machine learning model performance on specific da
         ```python
         import os
         import shutil
-        from ultralytics.utils.benchmarks import RF100_Benchmark
+        from ultralytics.utils.benchmarks import RF100Benchmark
         
         api_key = "roboflow/api/key/string"
 
-        ultralytics_rf100_obj = RF100_Benchmark() 
-        ultralytics_rf100_obj.set_key(api_key=api_key)   # set Roboflow API Key
+        benchmark = RF100Benchmark() 
+        benchmark.set_key(api_key=api_key)   # set Roboflow API Key
         
-        ds_names, ds_cfg_list = ultralytics_rf100_obj.parse_dataset()
+        ds_names, ds_cfg_list = benchmark.parse_dataset()
         val_log_file = "ultralytics-benchmarks/validation.txt"  # folder name should be same, file name could be change
         eval_log_file = "ultralytics-benchmarks/evaluation.txt" # folder name should be same, file name could be change
 
         for ind, path in enumerate(ds_cfg_list):
             if os.path.exists(path):
-                ultralytics_rf100_obj.fix_yaml(path)
+                benchmark.fix_yaml(path)
                 os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
                 os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
-                ultralytics_rf100_obj.evaluate(path, val_log_file, eval_log_file, ind)
+                benchmark.evaluate(path, val_log_file, eval_log_file, ind)
         
                 runs_dir = os.path.join(os.getcwd(), "runs")
                 shutil.rmtree(runs_dir)
             else:
                 print("YAML file path not exists")
                 continue
-        print("Benchmarking completed!!!")
+        print("RF100 Benchmarking completed!")
         ```
 
 ## Applications

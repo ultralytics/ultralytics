@@ -153,7 +153,7 @@ def benchmark(
     return df
 
 
-class rf100_benchmark:
+class RF100_Benchmark:
     def __init__(self):
         """Function for initialization of rf100_benchmark."""
         self.ds_names = []
@@ -230,13 +230,15 @@ class rf100_benchmark:
             eval_log_file (str): eval_log_file path
             list_ind (int): Index for current dataset
         """
-
+        skip_symbols = ['🚀', '⚠️', '💡', '❌']
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
-        with open(val_log_file, "r") as f:
+        with open(val_log_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             eval_lines = []
             for line in lines:
+                if any(symbol in line for symbol in skip_symbols):
+                    continue
                 entries = line.split(" ")
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]

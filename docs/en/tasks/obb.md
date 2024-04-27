@@ -103,7 +103,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 ## Val
 
 Validate trained YOLOv8n-obb model accuracy on the DOTA8 dataset. No argument need to passed as the `model`
-retains it's training `data` and arguments as model attributes.
+retains its training `data` and arguments as model attributes.
 
 !!! Example
 

@@ -29,6 +29,8 @@ Welcome to the Integrations guide for [Ultralytics HUB](https://hub.ultralytics.
 
 ### Export Integrations
 
+Available export formats are in the table below. You can predict or validate directly on exported models using the `ultralytics` Python package, i.e. `yolo predict model=yolov8n.onnx`.
+
 | Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                    |
 |---------------------------------------------------|-------------------|---------------------------|----------|--------------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅        | -                                                            |

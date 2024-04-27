@@ -194,4 +194,4 @@ Available YOLOv8-pose export formats are in the table below. You can predict or 
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅        | `imgsz`, `batch`                                             |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                     |
 
-See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.
+See full `export` details in the [Export](../modes/export.md) page.

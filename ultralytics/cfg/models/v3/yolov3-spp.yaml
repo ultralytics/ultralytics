@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv3 object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/yolov3
+# YOLOv3-SPP object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/yolov3
 
 # Parameters
 nc: 80 # number of classes
@@ -21,10 +21,10 @@ backbone:
   - [-1, 1, Conv, [1024, 3, 2]] # 9-P5/32
   - [-1, 4, Bottleneck, [1024]] # 10
 
-# YOLOv3 head
+# YOLOv3-SPP head
 head:
   - [-1, 1, Bottleneck, [1024, False]]
-  - [-1, 1, Conv, [512, 1, 1]]
+  - [-1, 1, SPP, [512, [5, 9, 13]]]
   - [-1, 1, Conv, [1024, 3, 1]]
   - [-1, 1, Conv, [512, 1, 1]]
   - [-1, 1, Conv, [1024, 3, 1]] # 15 (P5/32-large)

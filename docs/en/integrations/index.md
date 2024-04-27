@@ -48,7 +48,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
 - [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLOv8 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
-  
+
+- [Google Colab](google-colab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
+
 ## Deployment Integrations
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.

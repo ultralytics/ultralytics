@@ -95,7 +95,7 @@ There are many options for training and evaluating YOLOv8 models, so what makes 
 
 If you’d like to dive deeper into Google Colab, here are a few resources to guide you.
 
-- **[Training Custom Datasets with Ultralytics YOLOv8 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-Colab)**: Learn how to train custom datasets with Ultralytics YOLOv8 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+- **[Training Custom Datasets with Ultralytics YOLOv8 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLOv8 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
 
 - **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 

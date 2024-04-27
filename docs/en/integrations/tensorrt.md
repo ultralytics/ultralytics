@@ -219,6 +219,8 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
 
 !!! tip "Performance"
 
+    Tested on Ubuntu 22.04.3 LTS, `python 3.10.12`, `ultralytics==8.2.4`, `tensorrt==8.6.1.post1`
+
     === "Detection (COCO)"
 
         See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/detect/coco/), which include 80 pre-trained classes.
@@ -305,6 +307,8 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
 
     === "RTX 3080 12 GB"
 
+        Tested on Windows 10.0.19045, `python 3.10.9`, `ultralytics==8.2.4`, `tensorrt==10.0.0b6`
+
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
@@ -317,19 +321,21 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                   | 8       | 640                   |
         | INT8      | COCO<sup>val | 0.74         |                    | 0.33                 | 0.47              | 1       | 640                   |
 
-    === "RTX 3060 12 GB"
+    === "RTX 2060 6 GB"
+
+        Tested on Pop!_OS 22.04 LTS, `python 3.10.12`, `ultralytics==8.2.4`, `tensorrt==8.6.1.post1`
 
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
-        | FP32      | Predict      | 3.38         | 1.75 \| 4.63       |                      |                   | 8       | 640                   |
-        | FP32      | COCO<sup>val | 1.94         |                    | 0.37                 | 0.53              | 1       | 640                   |
-        | FP16      | Predict      | 2.42         | 0.88 \| 4.50       |                      |                   | 8       | 640                   |
-        | FP16      | COCO<sup>val | 1.49         |                    | 0.37                 | 0.53              | 1       | 640                   |
-        | INT8      | Predict      | 2.30         | 0.68 \| 4.00       |                      |                   | 8       | 640                   |
-        | INT8      | COCO<sup>val | 1.35         |                    | x.xx                 | x.xx              | 1       | 640                   |
+        | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 2.94         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | FP16      | Predict      | 1.09         | 1.09 \| 1.10       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 1.20         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | INT8      | Predict      | 0.75         | 0.74 \| 0.75       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.76         |                    | 0.33                 | 0.47              | 1       | 640                   |
 
 #### Evaluation methods
 

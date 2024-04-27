@@ -1,8 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv8 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
-
-# Parameters
-kpt_shape: &kpt [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+nc: 80
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024] # YOLOv8n summary: 225 layers,  3157200 parameters,  3157184 gradients,   8.9 GFLOPs
@@ -12,80 +8,72 @@ scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call 
   x: [1.00, 1.25, 512] # YOLOv8x summary: 365 layers, 68229648 parameters, 68229632 gradients, 258.5 GFLOPs
 
 # YOLOv8.0 backbone
-backbone:
-  core: &core_bb
-     # [from, repeats, module, args]
-    0: [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
-    1: [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-    2: [-1, 3, C2f, [128, True]]
-    3: [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-    4: [-1, 6, C2f, [256, True]]
-    5: [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
-    6: [-1, 6, C2f, [512, True]]
-    7: [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
-    8: [-1, 3, C2f, [1024, True]]
-
-  sppf: &sppf
-    9: [-1, 1, SPPF, [1024, 5]] # 9
-
-  bb: &bb
-    <<: [*core_bb, *sppf]
+backbone: &backbone # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, C2f, [256, True]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, C2f, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]]
 
 neck: &neck
-    10: [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-    11: [[-1, 6], 1, Concat, [1]] # cat backbone P4
-    12: [-1, 3, C2f, [512]] # 12
+  - [-1, 1, SPPF, [1024, 5]] # 9
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 3, C2f, [512]] # 12
 
-    13: [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-    14: [[-1, 4], 1, Concat, [1]] # cat backbone P3
-    15: [-1, 3, C2f, [256]] # 15 (P3/8-small)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 3, C2f, [256]] # 15 (P3/8-small)
 
-    16: [-1, 1, Conv, [256, 3, 2]]
-    17: [[-1, 12], 1, Concat, [1]] # cat head P4
-    18: [-1, 3, C2f, [512]] # 18 (P4/16-medium)
-    
-    19: [-1, 1, Conv, [512, 3, 2]]
-    20: [[-1, 9], 1, Concat, [1]] # cat head P5
-    21: [-1, 3, C2f, [1024]] # 21 (P5/32-large)
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]] # cat head P4
+  - [-1, 3, C2f, [512]] # 18 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]] # cat head P5
+  - [-1, 3, C2f, [1024]] # 21 (P5/32-large)
 
 head:
-  detect: &detect-head
-    22: [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)
+  detect: &detect
+    - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)
 
-  segment: &segment-head
-    22: [[15, 18, 21], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5)
+  segment: &segment
+    - [[15, 18, 21], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5)
 
-  pose: &pose-head
-    22: [[15, 18, 21], 1, Pose, [nc, *kpt]] # Pose(P3, P4, P5)
-  
-  cls: &classify
-    9: [-1, 1, Classify, [nc]] # Classify
-  
-  obb: &obb-head
-    22: [[15, 18, 21], 1, OBB, [nc, 1]] # OBB(P3, P4, P5)
+  pose: &pose
+    - [[15, 18, 21], 1, Pose, [nc, [17, 3]]] # Pose(P3, P4, P5)
+
+  obb: &obb
+    - [[15, 18, 21], 1, OBB, [nc, 1]] # OBB(P3, P4, P5)
+
+  cls: &cls
+    - [-1, 1, Classify, [nc]] # Classify
 
 # Models
 yolov8:
-  <<: [*bb, *neck, *detect-head]
-  task: detect
-  nc: 80
+  backbone: *backbone
+  neck: *neck
+  head: *detect
 
 yolov8-seg:
-  <<: [*bb, *neck, *segment-head]
-  task: segment
-  nc: 80
+  backbone: *backbone
+  neck: *neck
+  head: *segment
 
 yolov8-pose:
-  <<: [*bb, *neck, *pose-head]
-  task: pose
-  nc: 1
+  backbone: *backbone
+  neck: *neck
+  head: *pose
 
 yolov8-obb:
-  <<: [*bb, *neck, *obb-head]
-  task: obb
-  nc: 15
+  backbone: *backbone
+  neck: *neck
+  head: *obb
 
 yolov8-cls:
-  <<: [*core_bb, *classify]
-  task: classify
-  nc: 1000
+  backbone: *backbone
+  head: *cls

@@ -853,10 +853,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-    ordered_layers = yaml_stack(d)
-    for i, (f, n, m, args) in enumerate(
-        ordered_layers if any(ordered_layers) else (d["backbone"] + d["head"])
-    ):  # from, number, module, args
+    # ordered_layers = yaml_stack(d)
+    # for i, (f, n, m, args) in enumerate(
+    #     ordered_layers if any(ordered_layers) else (d["backbone"] + d["head"])
+    # ):  # from, number, module, args
+    for i, (f, n, m, args) in enumerate(d["backbone"] + d.get("neck", []) + d["head"]):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
@@ -961,10 +962,12 @@ def yaml_model_load(path):
     key = re.sub(r"(.*)(\d+)([nslmx])(.+)?$", r"\1\2\4", path.stem)
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(key + ".yaml", hard=False) or check_yaml(path)
     d = yaml_load(yaml_file, append_filename=True)  # model dict
+    if d.get(key):  # remove old keys
+        for x in ["backbone", "neck", "head"]:
+            d.pop(x)
+        d = {**d, **d[key]}
     d["scale"] = guess_model_scale(path)
-    d["model_key"] = key
-    d["task"] = d.get(key, {}).pop("task", "")
-    d["nc"] = d.get("nc") or d.get(key, {}).pop("nc", "")
+    d["yaml_file"] = str(path)
     return d
 
 

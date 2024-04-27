@@ -32,6 +32,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 

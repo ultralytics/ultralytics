@@ -853,10 +853,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-    # ordered_layers = yaml_stack(d)
-    # for i, (f, n, m, args) in enumerate(
-    #     ordered_layers if any(ordered_layers) else (d["backbone"] + d["head"])
-    # ):  # from, number, module, args
     for i, (f, n, m, args) in enumerate(d["backbone"] + d.get("neck", []) + d["head"]):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
         for j, a in enumerate(args):
@@ -1006,7 +1002,7 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
-        m = cfg.get("task") or cfg["head"][-1][-2].lower()  # output module name
+        m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
         if m == "detect":

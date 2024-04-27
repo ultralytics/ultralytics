@@ -317,6 +317,20 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                   | 8       | 640                   |
         | INT8      | COCO<sup>val | 0.74         |                    | 0.33                 | 0.47              | 1       | 640                   |
 
+    === "RTX 3060 12 GB"
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
+        | FP32      | Predict      | 3.38         | 1.75 \| 4.63       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 1.94         |                    | 0.37                 | 0.53              | 1       | 640                   |
+        | FP16      | Predict      | 2.42         | 0.88 \| 4.50       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 1.49         |                    | 0.37                 | 0.53              | 1       | 640                   |
+        | INT8      | Predict      | 2.30         | 0.68 \| 4.00       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 1.35         |                    | x.xx                 | x.xx              | 1       | 640                   |
+
 #### Evaluation methods
 
 Expand sections below for information on how these models were exported and tested.

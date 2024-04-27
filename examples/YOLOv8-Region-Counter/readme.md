@@ -50,7 +50,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weight
 # If you want to detect specific class (first class and third class)
 python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/model.pt"
 
-# If you dont want to save results
+# If you don't want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
 

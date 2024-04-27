@@ -51,16 +51,16 @@ neck: &neck
 
 head:
   detect: &detect
-    28: [[18, 21, 24, 27], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)
+    - [[18, 21, 24, 27], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)
 
   segment: &segment
-    28: [[18, 21, 24, 27], 1, Segment, [nc, 32, 256]] # Segment(P2, P3, P4, P5)
+    - [[18, 21, 24, 27], 1, Segment, [nc, 32, 256]] # Segment(P2, P3, P4, P5)
 
   pose: &pose
-    28: [[18, 21, 24, 27], 1, Pose, [nc, [17, 3]]] # Pose(P2, P3, P4, P5)
+    - [[18, 21, 24, 27], 1, Pose, [nc, [17, 3]]] # Pose(P2, P3, P4, P5)
 
   obb: &obb
-    28: [[18, 21, 24, 27], 1, OBB, [nc, 1]] # OBB(P2, P3, P4, P5)
+    - [[18, 21, 24, 27], 1, OBB, [nc, 1]] # OBB(P2, P3, P4, P5)
 
 # Models
 yolov8-p2:
@@ -82,7 +82,3 @@ yolov8-obb-p2:
   backbone: *backbone
   neck: *neck
   head: *obb
-
-yolov8-cls-p2:
-  backbone: *backbone
-  head: *cls

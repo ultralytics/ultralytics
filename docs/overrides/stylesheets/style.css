@@ -67,6 +67,8 @@ div.highlight {
   align-items: center;
 
   height: 64px;
+
+  overflow: hidden;
 }
 
 .banner-content {

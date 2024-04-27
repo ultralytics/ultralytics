@@ -958,7 +958,7 @@ def yaml_model_load(path):
         LOGGER.warning(f"WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
-    unified_path = re.sub(rf"(\d+)([nslmx]|-tiny|-spp)?{YAML_MODS}(.+)?$", r"\1\5", str(path))
+    unified_path = re.sub(rf"(\d+)([nslmx])?{YAML_MODS}(.+)?$", r"\1\5", str(path))
     key = re.sub(r"(.*)(\d+)([nslmx])(.+)?$", r"\1\2\4", path.stem)
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(key + ".yaml", hard=False) or check_yaml(path)
     d = yaml_load(yaml_file, append_filename=True)  # model dict
@@ -1064,11 +1064,3 @@ def guess_model_task(model):
         "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
     )
     return "detect"  # assume detect
-
-
-def yaml_stack(m_dict: dict, model_key: str = ""):
-    """Stack a model YAML dictionary into a sorted list of model layers."""
-    model_key = model_key or m_dict.get("model_key", "")
-    model_cfg = m_dict.get(model_key, {})
-    _ = model_cfg.pop("task") if "task" in model_cfg else None
-    return [model_cfg.get(k) for k in sorted(model_cfg.keys())]

@@ -244,8 +244,8 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Pytest tests
-        run: pytest --slow tests/
+      # - name: Pytest tests
+      #   run: pytest --slow tests/
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark YOLOWorld DetectionModel

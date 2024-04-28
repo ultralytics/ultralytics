@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
+import json
 from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
@@ -322,6 +323,32 @@ class ThreadingLocked:
                 return f(*args, **kwargs)
 
         return decorated
+
+
+def json_save(file="data.json", data=None, indent=None):
+    """
+    Save JSON data to a file.
+
+    Args:
+        file (str, optional): File name. Defaults to 'data.json'.
+        data (dict): Data to save in JSON format.
+        indent (int, optional): Indentation level for human-readable output. Defaults to None (compact).
+
+    Returns:
+        (None): Data is saved to the specified file.
+    """
+    if data is None:
+        data = {}
+    file = Path(file)
+    if not file.parent.exists():
+        # Create parent directories if they don't exist
+        file.parent.mkdir(parents=True, exist_ok=True)
+
+    # No need for type conversion as JSON handles most data types
+
+    # Dump data to file in JSON format
+    with open(file, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=indent)  # Add indent argument for readability
 
 
 def yaml_save(file="data.yaml", data=None, header=""):

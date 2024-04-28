@@ -30,6 +30,7 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
+    json_save
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -490,14 +491,23 @@ class HUBDatasetStats:
             data = check_cls_dataset(unzip_dir)
             data["path"] = unzip_dir
         else:  # detect, segment, pose
-            _, data_dir, yaml_path = self._unzip(Path(path))
+            _, data_dir, path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
-                data = yaml_load(yaml_path)
-                data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
-                yaml_save(yaml_path, data)
-                data = check_det_dataset(yaml_path, ".yaml", autodownload)  # dict
-                data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
+                if str(path.split(".")[-1]) == "yaml":
+                    data = yaml_load(path)
+                    data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
+                    yaml_save(path, data)
+                    data = check_det_dataset(path, "yaml", autodownload)  # dict
+                    data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
+                
+                elif str(path.split(".")[-1]) == "json":
+                    data = json.load(path)
+                    data["path"] = ""  # strip path since JSON should be in dataset root for all HUB datasets
+                    json_save(path, data)
+                    data = check_det_dataset(path, "json", autodownload)  # dict
+                    data["path"] = data_dir  # JSON path should be set to '' (relative) or parent (absolute)
+
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e
 

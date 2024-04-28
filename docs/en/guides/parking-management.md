@@ -77,7 +77,7 @@ root.mainloop()
             ret, im0 = cap.read()
             if not ret:
                 break
-            json_data = management.parking_regions_extraction("bounding_boxes.json")
+            json_data = management.parking_regions_extraction(polygon_json_path)
             results = management.model.track(im0, persist=True, show=False)
         
             if results[0].boxes.id is not None:

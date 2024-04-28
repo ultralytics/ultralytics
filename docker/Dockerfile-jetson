@@ -37,7 +37,7 @@ RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl onnxsim>=0.4.
 RUN pip install --no-cache tqdm matplotlib pyyaml psutil pandas onnx
 RUN pip install --no-cache -e ".[export]"
 
-# Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
+# Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests (onnxruntime-gpu installs it)
 RUN pip install --no-cache numpy==1.23.5
 
 # Set environment variables

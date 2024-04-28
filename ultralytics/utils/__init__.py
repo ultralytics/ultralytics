@@ -3,6 +3,7 @@
 import contextlib
 import importlib.metadata
 import inspect
+import json
 import logging.config
 import os
 import platform
@@ -22,7 +23,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
-import json
 from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__

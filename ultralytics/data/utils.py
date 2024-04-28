@@ -28,9 +28,9 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     is_dir_writeable,
+    json_save,
     yaml_load,
     yaml_save,
-    json_save
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -500,7 +500,7 @@ class HUBDatasetStats:
                     yaml_save(path, data)
                     data = check_det_dataset(path, "yaml", autodownload)  # dict
                     data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
-                
+
                 elif str(path.split(".")[-1]) == "json":
                     data = json.load(path)
                     data["path"] = ""  # strip path since JSON should be in dataset root for all HUB datasets

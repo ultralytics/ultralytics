@@ -1,12 +1,12 @@
-from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
 import json
-
-from ultralytics.utils.plotting import Annotator
-from ultralytics.utils.checks import check_imshow, check_requirements
+from tkinter import filedialog, messagebox
 
 import cv2
 import numpy as np
+from PIL import Image, ImageTk
+
+from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.utils.plotting import Annotator
 
 check_requirements("tkinter")
 import tkinter as tk
@@ -34,7 +34,7 @@ class ParkingPtsSelection:
         self.canvas_max_height = 720
 
     def initialize_ui(self):
-        """ Setup UI components. """
+        """Setup UI components."""
         # Setup buttons
         button_frame = tk.Frame(self.master)
         button_frame.pack(side=tk.TOP)
@@ -44,12 +44,12 @@ class ParkingPtsSelection:
         tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
 
         # Setup canvas for image display
-        self.canvas = tk.Canvas(self.master, bg='white')
+        self.canvas = tk.Canvas(self.master, bg="white")
         self.canvas.pack(side=tk.BOTTOM)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
     def upload_image(self):
-        """ Upload an image and resize it to fit canvas. """
+        """Upload an image and resize it to fit canvas."""
         self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if not self.image_path:
             return
@@ -78,7 +78,7 @@ class ParkingPtsSelection:
         self.current_box = []
 
     def on_canvas_click(self, event):
-        """ Handle mouse clicks on canvas to create points for bounding boxes. """
+        """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
 
         if len(self.current_box) == 4:
@@ -87,14 +87,14 @@ class ParkingPtsSelection:
             self.current_box = []
 
     def draw_bounding_box(self, box):
-        """ Draw bounding box on canvas. """
+        """Draw bounding box on canvas."""
         for i in range(4):
             x1, y1 = box[i]
             x2, y2 = box[(i + 1) % 4]
             self.canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
 
     def remove_last_bounding_box(self):
-        """ Remove the last drawn bounding box from canvas. """
+        """Remove the last drawn bounding box from canvas."""
         if self.bounding_boxes:
             self.bounding_boxes.pop()  # Remove the last bounding box
             self.canvas.delete("all")  # Clear the canvas
@@ -116,7 +116,7 @@ class ParkingPtsSelection:
         for box in self.bounding_boxes:
             print("Bounding Box ", bounding_boxes_data)
             rescaled_box = []
-            for (x, y) in box:
+            for x, y in box:
                 rescaled_x = int(x * width_scaling_factor)
                 rescaled_y = int(y * height_scaling_factor)
                 rescaled_box.append((rescaled_x, rescaled_y))
@@ -128,10 +128,15 @@ class ParkingPtsSelection:
 
 
 class ParkingManagement:
-    def __init__(self, model_path, txt_color=(0, 0, 0), bg_color=(255, 255, 255),
-                 occupied_region_color=(0, 255, 0), available_region_color=(0, 0, 255),
-                 margin=10):
-
+    def __init__(
+        self,
+        model_path,
+        txt_color=(0, 0, 0),
+        bg_color=(255, 255, 255),
+        occupied_region_color=(0, 255, 0),
+        available_region_color=(0, 0, 255),
+        margin=10,
+    ):
         # Model path and initialization
         self.model_path = model_path
         self.model = self.load_model()
@@ -153,24 +158,26 @@ class ParkingManagement:
     def load_model(self):
         """Load the Ultralytics YOLOv8 model for inference and analytics."""
         from ultralytics import YOLO
+
         self.model = YOLO(self.model_path)
         return self.model
 
     def parking_regions_extraction(self, json_file):
         """
         Extract parking regions from json file.
+
         Args:
             json_file (str): file that have all parking slot points
         """
 
-        with open(json_file, 'r') as json_file:
+        with open(json_file, "r") as json_file:
             json_data = json.load(json_file)
             return json_data
-
 
     def process_data(self, json_data, im0, boxes, clss):
         """
         Process the model data for parking lot management.
+
         Args:
             json_data (str): json data for parking lot management
             im0 (ndarray): inference image
@@ -185,7 +192,7 @@ class ParkingManagement:
         empty_slots = total_slots
 
         for region in json_data:
-            points = region['points']
+            points = region["points"]
             points_array = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
             region_occupied = False
 
@@ -194,8 +201,10 @@ class ParkingManagement:
                 y_center = int((box[1] + box[3]) / 2)
                 text = f"{self.model.names[int(cls)]}"
 
-                annotator.display_objects_labels(im0, text, self.txt_color, self.bg_color, x_center, y_center, self.margin)
-                dist = cv2.pointPolygonTest(points_array, (x_center, y_center),False)
+                annotator.display_objects_labels(
+                    im0, text, self.txt_color, self.bg_color, x_center, y_center, self.margin
+                )
+                dist = cv2.pointPolygonTest(points_array, (x_center, y_center), False)
                 if dist >= 0:
                     region_occupied = True
                     break
@@ -214,6 +223,7 @@ class ParkingManagement:
     def display_frames(self, im0):
         """
         Display frame.
+
         Args:
             im0 (ndarray): inference image
         """

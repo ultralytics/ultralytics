@@ -276,12 +276,7 @@ class Heatmap:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict is not None:
-            self.annotator.display_analytics(
-                self.im0,
-                labels_dict,
-                self.count_txt_color,
-                self.count_bg_color,
-                10)
+            self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
 
         self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 

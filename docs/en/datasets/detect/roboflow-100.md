@@ -33,6 +33,54 @@ The Roboflow 100 dataset is organized into seven categories, each with a distinc
 
 This structure enables a diverse and extensive testing ground for object detection models, reflecting real-world application scenarios.
 
+## Benchmarking
+
+Dataset benchmarking evaluates machine learning model performance on specific datasets using standardized metrics like accuracy, mean average precision and F1-score.
+
+!!! Tip "Benchmarking"
+
+    Benchmarking results will be stored in "ultralytics-benchmarks/evaluation.txt"
+
+!!! Example "Benchmarking example"
+
+    === "Python"
+
+        ```python
+        from pathlib import Path
+        import shutil
+        from ultralytics.utils.benchmarks import RF100Benchmark
+        
+        # Initialize RF100Benchmark and set API key
+        benchmark = RF100Benchmark()
+        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
+        
+        # Parse dataset and define file paths
+        names, cfg_yamls = benchmark.parse_dataset()
+        val_log_file = Path("ultralytics-benchmarks") / "validation.txt"
+        eval_log_file = Path("ultralytics-benchmarks") / "evaluation.txt"
+        
+        # Run benchmarks on each dataset in RF100
+        for ind, path in enumerate(cfg_yamls):
+            path = Path(path)
+            if path.exists():
+                # Fix YAML file and run training
+                benchmark.fix_yaml(str(path))
+                Path.cwd().system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
+                
+                # Run validation and evaluate
+                Path.cwd().system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
+                benchmark.evaluate(str(path), str(val_log_file), str(eval_log_file), ind)
+                
+                # Remove the 'runs' directory
+                runs_dir = Path.cwd() / "runs"
+                shutil.rmtree(runs_dir)
+            else:
+                print("YAML file path does not exist")
+                continue
+        
+        print("RF100 Benchmarking completed!")
+        ```
+
 ## Applications
 
 Roboflow 100 is invaluable for various applications related to computer vision and deep learning. Researchers and engineers can use this benchmark to:

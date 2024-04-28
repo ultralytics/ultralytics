@@ -89,6 +89,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
+    "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks

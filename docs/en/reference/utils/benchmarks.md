@@ -11,6 +11,10 @@ keywords: Ultralytics, ProfileModels, benchmarks, model profiling, performance o
 
 <br><br>
 
+## ::: ultralytics.utils.benchmarks.RF100Benchmark
+
+<br><br>
+
 ## ::: ultralytics.utils.benchmarks.ProfileModels
 
 <br><br>

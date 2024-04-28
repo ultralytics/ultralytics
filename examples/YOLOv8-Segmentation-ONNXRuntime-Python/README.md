@@ -36,7 +36,7 @@ yolo export model=yolov8s-seg.pt imgsz=640 format=onnx opset=12 simplify
 Perform inference with the exported ONNX model on your images.
 
 ```bash
-python main.py --model-path <MODEL_PATH> --source <IMAGE_PATH>
+python main.py --model <MODEL_PATH> --source <IMAGE_PATH>
 ```
 
 ### Example Output

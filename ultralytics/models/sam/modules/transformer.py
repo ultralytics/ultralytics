@@ -222,7 +222,7 @@ class Attention(nn.Module):
             downsample_rate (int, optional): The factor by which the internal dimensions are downsampled. Defaults to 1.
 
         Raises:
-            AssertionError: If 'num_heads' does not evenly divide the internal dimension (embedding_dim / downsample_rate).
+            AssertionError: If 'num_heads' does not evenly divide the internal dim (embedding_dim / downsample_rate).
         """
         super().__init__()
         self.embedding_dim = embedding_dim

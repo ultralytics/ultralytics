@@ -15,7 +15,15 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 <br><br>
 
-## ::: ultralytics.data.dataset.ClassificationDataset
+## ::: ultralytics.data.dataset.YOLOMultiModalDataset
+
+<br><br>
+
+## ::: ultralytics.data.dataset.GroundingDataset
+
+<br><br>
+
+## ::: ultralytics.data.dataset.YOLOConcatDataset
 
 <br><br>
 
@@ -23,10 +31,6 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 <br><br>
 
-## ::: ultralytics.data.dataset.load_dataset_cache_file
-
-<br><br>
-
-## ::: ultralytics.data.dataset.save_dataset_cache_file
+## ::: ultralytics.data.dataset.ClassificationDataset
 
 <br><br>

@@ -3,8 +3,6 @@
 import shutil
 from pathlib import Path
 
-import pytest
-
 TMP = Path(__file__).resolve().parent / "tmp"  # temp directory for test files
 
 
@@ -16,27 +14,6 @@ def pytest_addoption(parser):
         parser (pytest.config.Parser): The pytest parser object.
     """
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
-
-
-def pytest_configure(config):
-    """
-    Register custom markers to avoid pytest warnings.
-
-    Args:
-        config (pytest.config.Config): The pytest config object.
-    """
-    config.addinivalue_line("markers", "slow: mark test as slow to run")
-
-
-def pytest_runtest_setup(item):
-    """
-    Setup hook to skip tests marked as slow if the --slow option is not provided.
-
-    Args:
-        item (pytest.Item): The test item object.
-    """
-    if "slow" in item.keywords and not item.config.getoption("--slow"):
-        pytest.skip("skip slow tests unless --slow is set")
 
 
 def pytest_collection_modifyitems(config, items):

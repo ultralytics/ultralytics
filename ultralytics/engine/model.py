@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import inspect
-import sys
 from pathlib import Path
 from typing import Union
 
@@ -11,7 +10,18 @@ import torch
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
-from ultralytics.utils import ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, callbacks, checks, emojis, yaml_load
+from ultralytics.utils import (
+    ARGV,
+    ASSETS,
+    DEFAULT_CFG_DICT,
+    LOGGER,
+    RANK,
+    SETTINGS,
+    callbacks,
+    checks,
+    emojis,
+    yaml_load,
+)
 
 
 class Model(nn.Module):
@@ -119,29 +129,26 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
-        self.model_name = model = str(model).strip()  # strip spaces
+        model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
-            checks.check_requirements("hub-sdk>0.0.2")
+            checks.check_requirements("hub-sdk>=0.0.6")
             self.session = self._get_hub_session(model)
             model = self.session.model_file
 
         # Check if Triton Server model
         elif self.is_triton_model(model):
-            self.model = model
+            self.model_name = self.model = model
             self.task = task
             return
 
         # Load or create new YOLO model
-        model = checks.check_model_file_from_stem(model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        if Path(model).suffix in (".yaml", ".yml"):
+        if Path(model).suffix in {".yaml", ".yml"}:
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
-
-        self.model_name = model
 
     def __call__(
         self,
@@ -161,7 +168,7 @@ class Model(nn.Module):
                 Defaults to None.
             stream (bool, optional): If True, treats the input source as a continuous stream for predictions.
                 Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the prediction process.
+            **kwargs (any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, encapsulated in the Results class.
@@ -190,8 +197,8 @@ class Model(nn.Module):
         return any(
             (
                 model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
-                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
-                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODELID
+                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODEL
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODEL
             )
         )
 
@@ -215,6 +222,7 @@ class Model(nn.Module):
         # Below added to allow export from YAMLs
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
         self.model.task = self.task
+        self.model_name = cfg
 
     def _load(self, weights: str, task=None) -> None:
         """
@@ -224,19 +232,23 @@ class Model(nn.Module):
             weights (str): model checkpoint to be loaded
             task (str | None): model task
         """
-        suffix = Path(weights).suffix
-        if suffix == ".pt":
+        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
+            weights = checks.check_file(weights)  # automatically download and return local filename
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
+
+        if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args["task"]
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
-            weights = checks.check_file(weights)
+            weights = checks.check_file(weights)  # runs in all cases, not redundant with above call
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
+        self.model_name = weights
 
     def _check_is_pytorch_model(self) -> None:
         """Raises TypeError is model is not a PyTorch model."""
@@ -309,8 +321,9 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        from ultralytics import __version__
         from datetime import datetime
+
+        from ultralytics import __version__
 
         updates = {
             "date": datetime.now().isoformat(),
@@ -368,7 +381,7 @@ class Model(nn.Module):
             source (str | int | PIL.Image | np.ndarray): The source of the image for generating embeddings.
                 The source can be a file path, URL, PIL image, numpy array, etc. Defaults to None.
             stream (bool): If True, predictions are streamed. Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the embedding process.
+            **kwargs (any): Additional keyword arguments for configuring the embedding process.
 
         Returns:
             (List[torch.Tensor]): A list containing the image embeddings.
@@ -406,7 +419,7 @@ class Model(nn.Module):
             stream (bool, optional): Treats the input source as a continuous stream for predictions. Defaults to False.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor. Defaults to None.
-            **kwargs (dict): Additional keyword arguments for configuring the prediction process. These arguments allow
+            **kwargs (any): Additional keyword arguments for configuring the prediction process. These arguments allow
                 for further customization of the prediction behavior.
 
         Returns:
@@ -419,11 +432,11 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
-        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
-            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
+        is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
+            x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
-        custom = {"conf": 0.25, "save": is_cli, "mode": "predict"}  # method defaults
+        custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict"}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
 
@@ -460,7 +473,7 @@ class Model(nn.Module):
             source (str, optional): The input source for object tracking. It can be a file path, URL, or video stream.
             stream (bool, optional): Treats the input source as a continuous video stream. Defaults to False.
             persist (bool, optional): Persists the trackers between different calls to this method. Defaults to False.
-            **kwargs (dict): Additional keyword arguments for configuring the tracking process. These arguments allow
+            **kwargs (any): Additional keyword arguments for configuring the tracking process. These arguments allow
                 for further customization of the tracking behavior.
 
         Returns:
@@ -474,6 +487,7 @@ class Model(nn.Module):
 
             register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+        kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 
@@ -497,7 +511,7 @@ class Model(nn.Module):
         Args:
             validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
                 None, the method uses a default validator. Defaults to None.
-            **kwargs (dict): Arbitrary keyword arguments representing the validation configuration. These arguments are
+            **kwargs (any): Arbitrary keyword arguments representing the validation configuration. These arguments are
                 used to customize various aspects of the validation process.
 
         Returns:
@@ -531,7 +545,7 @@ class Model(nn.Module):
         configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs (dict): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
+            **kwargs (any): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
                 default configurations, model-specific arguments, and method defaults.
 
         Returns:
@@ -570,7 +584,7 @@ class Model(nn.Module):
         possible arguments, refer to the 'configuration' section in the documentation.
 
         Args:
-            **kwargs (dict): Arbitrary keyword arguments to customize the export process. These are combined with the
+            **kwargs (any): Arbitrary keyword arguments to customize the export process. These are combined with the
                 model's overrides and method defaults.
 
         Returns:
@@ -607,7 +621,7 @@ class Model(nn.Module):
         Args:
             trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
                 method uses a default trainer. Defaults to None.
-            **kwargs (dict): Arbitrary keyword arguments representing the training configuration. These arguments are
+            **kwargs (any): Arbitrary keyword arguments representing the training configuration. These arguments are
                 used to customize various aspects of the training process.
 
         Returns:
@@ -627,7 +641,12 @@ class Model(nn.Module):
         checks.check_pip_update_available()
 
         overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
-        custom = {"data": DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]}  # method defaults
+        custom = {
+            # NOTE: handle the case when 'cfg' includes 'data'.
+            "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],
+            "model": self.overrides["model"],
+            "task": self.task,
+        }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
@@ -653,7 +672,7 @@ class Model(nn.Module):
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training
-        if RANK in (-1, 0):
+        if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
             self.model, _ = attempt_load_one_weight(ckpt)
             self.overrides = self.model.args
@@ -679,7 +698,7 @@ class Model(nn.Module):
             use_ray (bool): If True, uses Ray Tune for hyperparameter tuning. Defaults to False.
             iterations (int): The number of tuning iterations to perform. Defaults to 10.
             *args (list): Variable length argument list for additional arguments.
-            **kwargs (dict): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
+            **kwargs (any): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.
@@ -720,7 +739,13 @@ class Model(nn.Module):
         """
         from ultralytics.nn.autobackend import check_class_names
 
-        return check_class_names(self.model.names) if hasattr(self.model, "names") else None
+        if hasattr(self.model, "names"):
+            return check_class_names(self.model.names)
+        else:
+            if not self.predictor:  # export formats will not have predictor defined until predict() is called
+                self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+                self.predictor.setup_model(model=self.model, verbose=False)
+            return self.predictor.model.names
 
     @property
     def device(self) -> torch.device:

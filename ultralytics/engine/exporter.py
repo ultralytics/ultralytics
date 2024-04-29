@@ -72,8 +72,8 @@ from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
-    IS_JETSON,
     DEFAULT_CFG,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -750,7 +750,9 @@ class Exporter:
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
-                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support", # fix ImportError `GLIBCXX_3.4.29' not found for Jetson
+                "tflite_support<=0.4.3"
+                if IS_JETSON
+                else "tflite_support",  # fix ImportError `GLIBCXX_3.4.29' not found for Jetson
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),

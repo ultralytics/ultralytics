@@ -49,9 +49,54 @@ div.highlight {
   max-height: 75vh;
 }
 
-/* Update the background of the banner (same as the one on the Ultralytics website) */
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://uploads-ssl.webflow.com/646dd1f1a3703e451ba81ecc/65e60cd6a4080bba757850a3_banner_ct.webp);
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/6627a0cab2de939ad35939ed_banner_82.webp);
   background-size: cover;
   background-position: center;
 }
+
+.md-banner__inner {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.banner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 64px;
+}
+
+.banner-content {
+  max-height: 64px;
+}
+
+.banner-content.desktop {
+  display: none;
+}
+
+.banner-arrow {
+  display: none;
+  max-height: 80px;
+  margin-left: -16px;
+  transition: transform ease-in-out 0.5s;
+}
+
+.banner-wrapper:hover > .banner-arrow {
+  transform: translateX(8px);
+}
+
+@media screen and (min-width: 768px) {
+  .banner-content.mobile {
+    display: none;
+  }
+  .banner-content.desktop {
+    display: revert;
+  }
+  .banner-arrow {
+    display: revert;
+  }
+}
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */

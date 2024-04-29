@@ -10,7 +10,6 @@ import pytest
 import torch
 import yaml
 from PIL import Image
-from torchvision.transforms import ToTensor
 
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA
@@ -28,6 +27,7 @@ from ultralytics.utils import (
     Retry,
     checks,
     is_dir_writeable,
+    IS_RASPBERRYPI,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
@@ -108,20 +108,17 @@ def test_predict_img():
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference
-    im = cv2.imread(str(SOURCE))  # OpenCV
-    t = cv2.resize(im, (32, 32))
-    t = ToTensor()(t)
-    t = torch.stack([t, t, t, t])
-    results = model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = seg_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = cls_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = pose_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
-    results = obb_model(t, imgsz=32)
-    assert len(results) == t.shape[0]
+    im = torch.rand((4, 3, 32, 32))  # batch-size 4, FP32 0.0-1.0 RGB order
+    results = model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = seg_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = cls_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = pose_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
+    results = obb_model(im, imgsz=32)
+    assert len(results) == im.shape[0]
 
 
 def test_predict_grey_and_4ch():
@@ -225,15 +222,17 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
-    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        if MACOS:
-            f = YOLO(MODEL).export(format="coreml")
-            YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
-        else:
-            YOLO(MODEL).export(format="coreml", nms=True)
+    if MACOS:
+        f = YOLO(MODEL).export(format="coreml")
+        YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+    else:
+        YOLO(MODEL).export(format="coreml", nms=True)
 
 
 def test_export_tflite(enabled=False):
@@ -351,7 +350,7 @@ def test_labels_and_crops():
         crop_dirs = [p for p in (save_path / "crops").iterdir()]
         crop_files = [f for p in crop_dirs for f in p.glob("*")]
         # Crop directories match detections
-        assert all([r.names.get(c) in [d.name for d in crop_dirs] for c in cls_idxs])
+        assert all([r.names.get(c) in {d.name for d in crop_dirs} for c in cls_idxs])
         # Same number of crops as detections
         assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
 
@@ -518,7 +517,8 @@ def test_utils_files():
 @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save throws RuntimeError."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
+
     from ultralytics.utils.patches import torch_save
 
     mock = MagicMock(side_effect=RuntimeError)
@@ -592,8 +592,6 @@ def image():
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
     """Tests classification transforms during training with various augmentation settings."""
-    import torchvision.transforms as T
-
     from ultralytics.data.augment import classify_augmentations
 
     transform = classify_augmentations(
@@ -610,7 +608,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
         hsv_v=0.4,
         force_color_jitter=force_color_jitter,
         erasing=erasing,
-        interpolation=T.InterpolationMode.BILINEAR,
     )
 
     transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))
@@ -643,3 +640,33 @@ def test_yolo_world():
     model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
     model.set_classes(["tree", "window"])
     model(ASSETS / "bus.jpg", conf=0.01)
+
+    model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
+    # Training from pretrain, evaluation process is included at the final stage of training.
+    # Use dota8.yaml which has less categories to reduce the inference time of CLIP model
+    model.train(
+        data="dota8.yaml",
+        epochs=1,
+        imgsz=32,
+        cache="disk",
+        batch=4,
+        close_mosaic=1,
+        name="yolo-world",
+        save_txt=True,
+        save_json=True,
+    )
+
+    # test WorWorldTrainerFromScratch
+    from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+
+    model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
+    model.train(
+        data={"train": {"yolo_data": ["dota8.yaml"]}, "val": {"yolo_data": ["dota8.yaml"]}},
+        epochs=1,
+        imgsz=32,
+        cache="disk",
+        batch=4,
+        close_mosaic=1,
+        name="yolo-world",
+        trainer=WorldTrainerFromScratch,
+    )

@@ -68,7 +68,7 @@ import torch
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_det_dataset, check_cls_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
@@ -719,7 +719,13 @@ class Exporter:
 
         if int8:
             from torch.utils.data import dataloader
-            from ultralytics.data import load_inference_source, build_yolo_dataset, ClassificationDataset, build_dataloader
+
+            from ultralytics.data import (
+                ClassificationDataset,
+                build_dataloader,
+                build_yolo_dataset,
+                load_inference_source,
+            )
             from ultralytics.data.loaders import infer_preprocess
 
             config.set_calibration_profile(profile)  # set calibration profile
@@ -795,7 +801,9 @@ class Exporter:
                     _ = self.cache.write_bytes(cache)
 
             LOGGER.info(f"{prefix} building INT8 engine as {f}")
-            data = check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
+            data = (
+                check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
+            )
 
             bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
             if self.args.task != "classify":

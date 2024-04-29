@@ -68,7 +68,7 @@ import torch
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_det_dataset, check_cls_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
@@ -718,7 +718,8 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         if int8:
-            from ultralytics.data import load_inference_source
+            from torch.utils.data import dataloader
+            from ultralytics.data import load_inference_source, build_yolo_dataset, ClassificationDataset, build_dataloader
             from ultralytics.data.loaders import infer_preprocess
 
             config.set_calibration_profile(profile)  # set calibration profile
@@ -794,10 +795,15 @@ class Exporter:
                     _ = self.cache.write_bytes(cache)
 
             LOGGER.info(f"{prefix} building INT8 engine as {f}")
-            data = check_det_dataset(self.args.data)
+            data = check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
 
             bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
-            dataset = load_inference_source(data["val"], batch=bsize)
+            if self.args.task != "classify":
+                dataset = load_inference_source(data["val"], batch=bsize)
+            else:
+                class_ds = ClassificationDataset(data["val"], self.args, augment=False)
+                dataset = load_inference_source([s[0] for s in class_ds.samples], batch=bsize)
+
             n = len(dataset) * bsize
             if n < 500:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >=500 images recommended for INT8 calibration, found {n} images.")
@@ -812,6 +818,7 @@ class Exporter:
                 str(self.args.trt_quant_algo).upper(),
                 cache_file,
             )
+
         elif half:
             LOGGER.info(f"{prefix} building FP16 engine as {f}")
             config.set_flag(trt.BuilderFlag.FP16)

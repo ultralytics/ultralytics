@@ -66,7 +66,7 @@ import torch
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_det_dataset, check_cls_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
@@ -460,7 +460,9 @@ class Exporter:
 
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-            data = check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
+            data = (
+                check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
+            )
             dataset = YOLODataset(data["val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False)
             n = len(dataset)
             if n < 300:

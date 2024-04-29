@@ -718,14 +718,7 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         if int8:
-            from torch.utils.data import dataloader
-
-            from ultralytics.data import (
-                ClassificationDataset,
-                build_dataloader,
-                build_yolo_dataset,
-                load_inference_source,
-            )
+            from ultralytics.data import ClassificationDataset, load_inference_source
             from ultralytics.data.loaders import infer_preprocess
 
             config.set_calibration_profile(profile)  # set calibration profile

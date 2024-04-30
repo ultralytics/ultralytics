@@ -464,7 +464,7 @@ class Exporter:
                 check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
             )
             dataset = YOLODataset(
-                data[self.args.data_split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False
+                data[self.args.split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False
             )
             n = len(dataset)
             if n < 300:

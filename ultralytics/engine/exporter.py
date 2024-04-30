@@ -463,7 +463,7 @@ class Exporter:
             data = (
                 check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
             )
-            dataset = YOLODataset(data["val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False)
+            dataset = YOLODataset(data[self.args.data_split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False)
             n = len(dataset)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")

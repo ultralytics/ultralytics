@@ -802,8 +802,8 @@ class Exporter:
             if self.args.task != "classify":
                 dataset = load_inference_source(data["val"], batch=bsize)
             else:
-                class_ds = ClassificationDataset(data["val"], self.args, augment=False)
-                dataset = load_inference_source([s[0] for s in class_ds.samples], batch=bsize)
+                files = [f.as_posix() for nf, f in enumerate(Path(data["val"]).rglob("*.*")) if nf < 5000]
+                dataset = load_inference_source(files, batch=bsize)
 
             n = len(dataset) * bsize
             if n < 500:

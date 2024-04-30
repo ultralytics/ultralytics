@@ -30,14 +30,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from tqdm import tqdm
 import yaml
+from tqdm import tqdm
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 EXPORT_TABLE = re.compile(r"(\| Export Format)(.*\|\n)+\|.*\|$", re.MULTILINE)
+
 
 def max_char_length(data: list[dict]) -> dict:
     """Return a dictionary containing the maximum length of each key and value in the data."""
@@ -52,28 +53,32 @@ def max_char_length(data: list[dict]) -> dict:
                     max_lengths[key] = len(value)
     return max_lengths
 
+
 def len_diff(entry: str, n: int) -> int:
     """Return the difference between the length of the entry and the target length `n`."""
     return abs(len(entry) - n)
+
 
 def pad_entry(entry: str, n: int) -> str:
     """Pad the entry with spaces to make it n characters long."""
     return " " + entry + " " * max(len_diff(entry, n) - 1, 1)
 
-def format_entry(row:dict, col, width:int) -> str:
+
+def format_entry(row: dict, col, width: int) -> str:
     """Format the entry to fit the column width."""
     return pad_entry(str(row.get(col, "-")), width)
 
-def generate_markdown_table(data:list[dict]) -> str:
+
+def generate_markdown_table(data: list[dict]) -> str:
     """
     Generate a markdown table from a list of dictionaries.
 
     Args:
         data (list[dict]): A list of dictionaries to be displayed in a table, should all use the same keys, key --> columns in the table, list entries --> rows.
-    
+
     Returns:
         A string containing the markdown formatted table.
-    
+
     Example:
         ```python
         from pathlib import Path
@@ -85,28 +90,31 @@ def generate_markdown_table(data:list[dict]) -> str:
 
         d = yaml.safe_load(file.read_text("utf-8"))
         table = generate_markdown_table(d)
-        
+
         output.write_text(table, "utf-8")
         # Open file to view table
         ```
-
     """
     table = ""
     max_width = max_char_length(data)
     if isinstance(data, list) and all(isinstance(item, dict) for item in data):
         # Extract column names from the first dictionary
         column_names = [pad_entry(k, max_width.get(k) + 2) for k in data[0].keys()]
-        
+
         # Generate table header
         table += "|" + "|".join(column_names) + "|\n"
         table += "|" + "|".join(["-" * (max_width.get(k.strip()) + 2) for k in column_names]) + "|\n"
-        
+
         # Generate table rows
         for row in data:
-            table += "|" + "|".join(format_entry(row, col.strip(), max_width.get(col.strip()) + 2) for col in column_names) + "|\n"
+            table += (
+                "|"
+                + "|".join(format_entry(row, col.strip(), max_width.get(col.strip()) + 2) for col in column_names)
+                + "|\n"
+            )
     else:
         table = "Invalid input. Expected a list of dictionaries."
-    
+
     return table
 
 
@@ -212,7 +220,7 @@ def main():
     for file in DOCS.rglob("*-table.yaml"):
         d = yaml.safe_load(file.read_text("utf-8"))
         tables.append(generate_markdown_table(d))
-    
+
     # Replace tables with YAML data
     for md in DOCS.rglob("*.md"):
         for new_table in tables:

@@ -85,7 +85,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
 
-| Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                    |
+| Export Format                                     | `format` Argument | Model                     | Metadata | Arguments                                                    |
 |---------------------------------------------------|-------------------|---------------------------|----------|--------------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅        | -                                                            |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                 |

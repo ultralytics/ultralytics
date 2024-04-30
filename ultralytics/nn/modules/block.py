@@ -297,7 +297,7 @@ class C3f(nn.Module):
 class C3f2(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
@@ -306,7 +306,7 @@ class C3f2(nn.Module):
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv((2 + n) * c_, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(C3k(c_, c_, 2, shortcut, g) for _ in range(n))
+        self.m = nn.ModuleList(C3k(c_, c_, nk, shortcut, g) for _ in range(n))
 
     def forward(self, x):
         """Forward pass through C2f layer."""

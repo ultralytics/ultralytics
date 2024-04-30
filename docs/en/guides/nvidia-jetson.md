@@ -54,7 +54,7 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 The fastest way to get started with Ultralytics YOLOv8 on NVIDIA Jetson is to run with pre-built docker image for Jetson.
 
-Execute the below command to pull the Docker containter and run on Jetson. This is based on [l4t-pytorch](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch) docker image which contains PyTorch and Torchvision in a Python3 environment.
+Execute the below command to pull the Docker container and run on Jetson. This is based on [l4t-pytorch](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch) docker image which contains PyTorch and Torchvision in a Python3 environment.
 
 ```sh
 t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

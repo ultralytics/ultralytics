@@ -226,7 +226,7 @@ def test_export_openvino(dynamic, int8, half, batch, data, imgsz):
             args["data"] = TASK2DATA.get(t)
         f = YOLO(m).export(format="openvino", **args)
         # YOLO(f, task=t)([SOURCE] * max(1, args.get("batch")))  # exported model inference
-        YOLO(f, task=t)(SOURCE)
+        YOLO(f, task=t)(SOURCE, imgsz=imgsz)
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

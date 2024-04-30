@@ -2,6 +2,7 @@
 
 import contextlib
 from copy import copy
+from itertools import product
 from pathlib import Path
 
 import cv2
@@ -12,7 +13,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA
+from ultralytics.cfg import TASK2DATA, TASK2MODEL
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -216,10 +217,15 @@ def test_export_onnx():
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-def test_export_openvino():
+@pytest.mark.parametrize("dynamic, int8, half, batch, data, imgsz", product([True, False], [False, True], [True, False], [4], [None], [1,160]))
+def test_export_openvino(dynamic, int8, half, batch, data, imgsz):
     """Test exporting the YOLO model to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino")
-    YOLO(f)(SOURCE)  # exported model inference
+    args = {"dynamic": dynamic, "int8": int8, "half": half, "batch": batch, "data": data, "imgsz": imgsz}
+    for t, m in TASK2MODEL.items():
+        if args.get("int8"):
+            args["data"] = TASK2DATA.get(t)
+        f = YOLO(m).export(format="openvino", **args)
+        YOLO(f, task=t)([SOURCE] * max(1, args.get("batch")))  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

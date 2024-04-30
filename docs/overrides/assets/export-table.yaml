@@ -1,0 +1,98 @@
+"{{ EXPORT.TABLE }}":
+  - 
+    Format: "[PyTorch](https://pytorch.org/)"
+    "`format` Argument": "-"
+    Model: "`yolov8n.pt`"
+    Metadata: ✅
+    Arguments: "-"
+
+  - 
+    Format: "[TorchScript](../integrations/torchscript.md)"
+    "`format` Argument": "`torchscript`"
+    Model: "`yolov8n.torchscript`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `optimize`, `batch`"
+
+  - 
+    Format: "[ONNX](../integrations/onnx.md)"
+    "`format` Argument": "`onnx`"
+    Model: "`yolov8n.onnx`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`"
+
+  - 
+    Format: "[OpenVINO](../integrations/openvino.md)"
+    "`format` Argument": "`openvino`"
+    Model: "`yolov8n_openvino_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `int8`, `batch`"
+
+  - 
+    Format: "[TensorFlow](../integrations/tensorflow.md)"
+    "`format` Argument": "`engine`"
+    Model: "`yolov8n.engine`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `batch`"
+
+  - 
+    Format: "[TensorRT](../integrations/tensorrt.md)"
+    "`format` Argument": "`engine`"
+    Model: "`yolov8n.mlpackage`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `keras`, `int8`, `batch`"
+
+  - 
+    Format: "[CoreML](../integrations/coreml.md)"
+    "`format` Argument": "`coreml`"
+    Model: "`yolov8n_saved_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `batch`"
+
+  - 
+    Format: "[TF SavedModel](../integrations/tf-savedmodel.md)"
+    "`format` Argument": "`saved_model`"
+    Model: "`yolov8n.pb`"
+    Metadata: ❌
+    Arguments: "`imgsz`, `half`, `int8`, `batch`"
+
+  - 
+    Format: "[TF GraphDef](../integrations/tf-graphdef.md)"
+    "`format` Argument": "`pb`"
+    Model: "`yolov8n.tflite`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `batch`"
+
+  - 
+    Format: "[TF Lite](../integrations/tflite.md)"
+    "`format` Argument": "`tflite`"
+    Model: "`yolov8n_edgetpu.tflite`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `int8`, `batch`"
+
+  - 
+    Format: "[TF Edge TPU](../integrations/edge-tpu.md)"
+    "`format` Argument": "`edgetpu`"
+    Model: "`yolov8n_web_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `batch`"
+
+  - 
+    Format: "[TF.js](../integrations/tfjs.md)"
+    "`format` Argument": "`tfjs`"
+    Model: "`yolov8n_paddle_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `int8`, `batch`"
+
+  - 
+    Format: "[PaddlePaddle](../integrations/paddlepaddle.md)"
+    "`format` Argument": "`paddle`"
+    Model: "`yolov8n_ncnn_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `batch`"
+
+  - 
+    Format: "[NCNN](../integrations/ncnn.md)"
+    "`format` Argument": "`ncnn`"
+    Model: "`yolov8n_ncnn_model/`"
+    Metadata: ✅
+    Arguments: "`imgsz`, `half`, `batch`"

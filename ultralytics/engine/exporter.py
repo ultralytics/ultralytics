@@ -718,8 +718,10 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         if int8:
-            from ultralytics.data import ClassificationDataset, load_inference_source
+            from ultralytics.data import load_inference_source
             from ultralytics.data.loaders import infer_preprocess
+            from ultralytics.data.utils import IMG_FORMATS
+            
 
             config.set_calibration_profile(profile)  # set calibration profile
             preprocessor = partial(
@@ -802,7 +804,7 @@ class Exporter:
             if self.args.task != "classify":
                 dataset = load_inference_source(data["val"], batch=bsize)
             else:
-                files = [f.as_posix() for nf, f in enumerate(Path(data["val"]).rglob("*.*")) if nf < 5000]
+                files = [f.as_posix() for nf, f in enumerate(Path(data["val"]).rglob("*.*")) if (nf < 5000 and f.suffix in IMG_FORMATS)]
                 dataset = load_inference_source(files, batch=bsize)
 
             n = len(dataset) * bsize

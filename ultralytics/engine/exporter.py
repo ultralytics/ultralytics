@@ -804,12 +804,7 @@ class Exporter:
                 dataset = load_inference_source(data["val"], batch=bsize)
             else:
                 dataset = ClassificationDataset(data["val"], self.args, augment=False)
-                # files = (
-                #     f.as_posix()
-                #     for nf, f in enumerate(Path(data["val"]).rglob("*.*"))
-                #     if (nf < 500 and f.suffix.strip(".").lower() in IMG_FORMATS)
-                # )
-                dataset = load_inference_source([s[0] for s in dataset.samples], batch=bsize)
+                dataset = load_inference_source([s[0] for s in dataset.samples][:500], batch=bsize)
 
             n = len(dataset) * bsize
             if n < 500:

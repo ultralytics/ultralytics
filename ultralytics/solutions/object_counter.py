@@ -181,9 +181,7 @@ class ObjectCounter:
 
                 # Store class info
                 if self.names[cls] not in self.class_wise_count:
-                    if len(self.names[cls]) > 5:
-                        self.names[cls] = self.names[cls][:5]
-                    self.class_wise_count[self.names[cls]] = {"in": 0, "out": 0}
+                    self.class_wise_count[self.names[cls]] = {"IN": 0, "OUT": 0}
 
                 # Draw Tracks
                 track_line = self.track_history[track_id]
@@ -210,10 +208,10 @@ class ObjectCounter:
 
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                             self.in_counts += 1
-                            self.class_wise_count[self.names[cls]]["in"] += 1
+                            self.class_wise_count[self.names[cls]]["IN"] += 1
                         else:
                             self.out_counts += 1
-                            self.class_wise_count[self.names[cls]]["out"] += 1
+                            self.class_wise_count[self.names[cls]]["OUT"] += 1
 
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
@@ -224,33 +222,26 @@ class ObjectCounter:
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["in"] += 1
+                                self.class_wise_count[self.names[cls]]["IN"] += 1
                             else:
                                 self.out_counts += 1
-                                self.class_wise_count[self.names[cls]]["out"] += 1
+                                self.class_wise_count[self.names[cls]]["OUT"] += 1
 
-        label = "Ultralytics Analytics \t"
+        labels_dict = {}
 
         for key, value in self.class_wise_count.items():
-            if value["in"] != 0 or value["out"] != 0:
+            if value["IN"] != 0 or value["OUT"] != 0:
                 if not self.view_in_counts and not self.view_out_counts:
-                    label = None
+                    continue
                 elif not self.view_in_counts:
-                    label += f"{str.capitalize(key)}: IN {value['in']} \t"
+                    labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
                 elif not self.view_out_counts:
-                    label += f"{str.capitalize(key)}: OUT {value['out']} \t"
+                    labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
                 else:
-                    label += f"{str.capitalize(key)}: IN {value['in']} OUT {value['out']} \t"
+                    labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
-        label = label.rstrip()
-        label = label.split("\t")
-
-        if label is not None:
-            self.annotator.display_counts(
-                counts=label,
-                count_txt_color=self.count_txt_color,
-                count_bg_color=self.count_bg_color,
-            )
+        if labels_dict is not None:
+            self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
 
     def display_frames(self):
         """Display frame."""

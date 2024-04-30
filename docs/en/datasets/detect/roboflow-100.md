@@ -48,6 +48,7 @@ Dataset benchmarking evaluates machine learning model performance on specific da
         ```python
         from pathlib import Path
         import shutil
+        import os
         from ultralytics.utils.benchmarks import RF100Benchmark
         
         # Initialize RF100Benchmark and set API key
@@ -65,10 +66,10 @@ Dataset benchmarking evaluates machine learning model performance on specific da
             if path.exists():
                 # Fix YAML file and run training
                 benchmark.fix_yaml(str(path))
-                Path.cwd().system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
+                os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
                 
                 # Run validation and evaluate
-                Path.cwd().system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
+                os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
                 benchmark.evaluate(str(path), str(val_log_file), str(eval_log_file), ind)
                 
                 # Remove the 'runs' directory

@@ -718,6 +718,7 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         if int8:
+            from random import shuffle
             from ultralytics.data import ClassificationDataset, load_inference_source
             from ultralytics.data.loaders import infer_preprocess
             from ultralytics.data.utils import IMG_FORMATS
@@ -803,8 +804,11 @@ class Exporter:
             if self.args.task != "classify":
                 dataset = load_inference_source(data["val"], batch=bsize)
             else:
+                # Randomly sample upto 500 images from classification dataset
                 dataset = ClassificationDataset(data["val"], self.args, augment=False)
-                dataset = load_inference_source([s[0] for s in dataset.samples][:500], batch=bsize)
+                samples = [s[0] for s in dataset.samples]
+                shuffle(samples)
+                dataset = load_inference_source(samples[:500], batch=bsize)
 
             n = len(dataset) * bsize
             if n < 500:

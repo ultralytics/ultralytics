@@ -37,7 +37,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
-EXPORT_TABLE = r"\|( Format).+\|(\s\|.+)+"
+EXPORT_TABLE = re.compile(r"(\| Export Format)(.*\|\n)+\|.*\|$", re.MULTILINE)
 
 def max_char_length(data: list[dict]) -> dict:
     """Return a dictionary containing the maximum length of each key and value in the data."""
@@ -207,19 +207,20 @@ def main():
     if any(script):
         update_html_head(script)
 
-    # Generate tables
-    tables = {}
+    # Generate tables from YAMLs
+    tables = []
     for file in DOCS.rglob("*-table.yaml"):
         d = yaml.safe_load(file.read_text("utf-8"))
-        tables.update({k:generate_markdown_table(v) for k,v in d.items()})
+        tables.append(generate_markdown_table(d))
     
-    # Replace tables with data
+    # Replace tables with YAML data
     for md in DOCS.rglob("*.md"):
-        for k,v in tables.items():
+        for new_table in tables:
             content = md.read_text("utf-8")
             table = re.search(EXPORT_TABLE, content)
             if table:
-                content = content.replace(table.string, v)
+                s = slice(table.start(), table.end())
+                content = content.replace(content[s], new_table)
                 md.write_text(content, "utf-8")
 
     # Show command to serve built website

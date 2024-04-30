@@ -806,7 +806,7 @@ class Exporter:
                 files = [
                     f.as_posix()
                     for nf, f in enumerate(Path(data["val"]).rglob("*.*"))
-                    if (nf < 5000 and f.suffix in IMG_FORMATS)
+                    if (nf < 5000 and f.suffix.strip(".").lower() in IMG_FORMATS)
                 ]
                 dataset = load_inference_source(files, batch=bsize)
 

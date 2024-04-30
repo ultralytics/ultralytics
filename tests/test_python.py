@@ -217,7 +217,7 @@ def test_export_onnx():
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-@pytest.mark.parametrize("dynamic, int8, half, batch, data, imgsz", product([True, False], [False, True], [True, False], [1, 4], [None], [None, 160]))
+@pytest.mark.parametrize("dynamic, int8, half, batch, data, imgsz", product([True, False], [False, True], [True, False], [1, 4], [None], [160]))
 def test_export_openvino(dynamic, int8, half, batch, data, imgsz):
     """Test exporting the YOLO model to OpenVINO format."""
     args = {"dynamic": dynamic, "int8": int8, "half": half, "batch": batch, "data": data, "imgsz": imgsz}

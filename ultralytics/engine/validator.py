@@ -37,6 +37,15 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 from numba import njit 
 
+@njit
+def make_2d(arraylist):
+    n = len(arraylist)
+    k = arraylist[0].shape[0]
+    a2d = np.zeros((n, k))
+    for i in range(n):
+        a2d[i] = arraylist[i]
+    return(a2d)
+
 class BaseValidator:
     """
     BaseValidator.
@@ -235,8 +244,8 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
-        for i, threshold in enumerate(self.iouv.cpu().tolist()):
-            if use_scipy:
+        if use_scipy:
+            for i, threshold in enumerate(self.iouv.cpu().tolist()):
                 # WARNING: known issue that reduces mAP in https://github.com/ultralytics/ultralytics/pull/4708
                 import scipy  # scope import to avoid importing for all commands
 
@@ -246,22 +255,23 @@ class BaseValidator:
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True
-            else:
-                correct = self._numba_match_predictions(iou, threshold, correct)
+        else:
+            correct = self._numba_match_predictions(self.iouv.cpu().tolist(), iou, correct)
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
     
     @staticmethod
-    @njit
-    def _numba_match_predictions(iou, threshold, correct):
-        matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
-        matches = np.array(matches).T
-        if matches.shape[0]:
-            if matches.shape[0] > 1:
-                matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                # matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-            correct[matches[:, 1].astype(int), i] = True
+    # @njit
+    def _numba_match_predictions(iouv, iou, correct):        
+        for i, threshold in enumerate(iouv):
+            matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
+            matches = np.array(matches).T
+            if matches.shape[0]:
+                if matches.shape[0] > 1:
+                    matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
+                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+                correct[matches[:, 1].astype(int), i] = True
+        return correct
 
     def add_callback(self, event: str, callback):
         """Appends the given callback."""

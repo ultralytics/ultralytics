@@ -37,6 +37,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
+EXPORT_TABLE = r"\|( Format).+\|(\s\|.+)+"
 
 def max_char_length(data: list[dict]) -> dict:
     """Return a dictionary containing the maximum length of each key and value in the data."""
@@ -216,8 +217,9 @@ def main():
     for md in DOCS.rglob("*.md"):
         for k,v in tables.items():
             content = md.read_text("utf-8")
-            if k in content:
-                content = content.replace(k, v)
+            table = re.search(EXPORT_TABLE, content)
+            if table:
+                content = content.replace(table.string, v)
                 md.write_text(content, "utf-8")
 
     # Show command to serve built website

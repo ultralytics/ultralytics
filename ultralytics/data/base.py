@@ -27,7 +27,7 @@ class BaseDataset(Dataset):
         img_path (str): Path to the folder containing images.
         imgsz (int, optional): Image size. Defaults to 640.
         cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
-        mem_cache_limit (float, optional): Limit of memory cache, in byte (1.0~), or fraction of available memory (0.0~1.0). Defaults to 0.7.
+        mem_cache_limit (float, optional): Limit of memory cache. Fraction (0.0~1.0) of available memory or specified size (unit: byte). Defaults to 0.7.
         augment (bool, optional): If True, data augmentation is applied. Defaults to True.
         hyp (dict, optional): Hyperparameters to apply data augmentation. Defaults to None.
         prefix (str, optional): Prefix to print in log messages. Defaults to ''.

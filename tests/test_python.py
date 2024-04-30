@@ -217,16 +217,21 @@ def test_export_onnx():
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-@pytest.mark.parametrize("dynamic, int8, half, batch, data, imgsz", product([True, False], [False, True], [True, False], [1, 4], [None], [None, 160]))
+@pytest.mark.parametrize(
+    "dynamic, int8, half, batch, data, imgsz",
+    product([True, False], [False, True], [True, False], [1, 4], [None], [None, 160]),
+)
 def test_export_openvino(dynamic, int8, half, batch, data, imgsz):
     """Test exporting the YOLO model to OpenVINO format."""
     args = {"dynamic": dynamic, "int8": int8, "half": half, "batch": batch, "data": data, "imgsz": imgsz}
     for t, m in TASK2MODEL.items():
         if args.get("int8"):
             args["data"] = TASK2DATA.get(t)
+        if not (args.get("dynamic") or args.get("imgsz")):
+            args["imgsz"] = 128  # default
         args = {k:v for k,v in args.items() if v is not None}
         f = YOLO(m).export(format="openvino", **args)
-        YOLO(f, task=t)([SOURCE] * batch)  # exported model inference
+        YOLO(f, task=t)([SOURCE] * batch, imgsz=(args.get("imgsz") or 192))  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

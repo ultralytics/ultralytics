@@ -82,7 +82,7 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/model.pt')  # Load a official model or custom model
+        model = YOLO('path/to/model.pt')  # Load an official model or custom model
 
         # Export the model
         model.export(format='edgetpu')
@@ -91,7 +91,7 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model.pt format=edgetpu  # Export a official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
         ```
 
 The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`.
@@ -108,7 +108,7 @@ After exporting your model, you can run inference with it using the following co
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/edgetpu_model.tflite')  # Load a official model or custom model
+        model = YOLO('path/to/edgetpu_model.tflite')  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")
@@ -117,7 +117,7 @@ After exporting your model, you can run inference with it using the following co
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load a official model or custom model
+        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load an official model or custom model
         ```
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.

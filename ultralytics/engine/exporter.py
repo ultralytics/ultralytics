@@ -718,7 +718,7 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         if int8:
-            from ultralytics.data import load_inference_source, ClassificationDataset
+            from ultralytics.data import ClassificationDataset, load_inference_source
             from ultralytics.data.loaders import infer_preprocess
             from ultralytics.data.utils import IMG_FORMATS
 

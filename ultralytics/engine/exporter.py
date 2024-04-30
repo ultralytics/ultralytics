@@ -719,6 +719,7 @@ class Exporter:
 
         if int8:
             from random import shuffle
+
             from ultralytics.data import ClassificationDataset, load_inference_source
             from ultralytics.data.loaders import infer_preprocess
             from ultralytics.data.utils import IMG_FORMATS

@@ -70,10 +70,14 @@ class Bboxes:
         self.bboxes = func(self.bboxes)
         self.format = format
 
-    def areas(self):
-        """Return box areas."""
+    def areas(self, revert_format=True):
+        """Return box areas, optionally reverting to original format."""
+        original_format = self.format
         self.convert("xyxy")
-        return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
+        areas = (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
+        if revert_format:
+            self.convert(original_format)
+        return areas
 
     # def denormalize(self, w, h):
     #    if not self.normalized:

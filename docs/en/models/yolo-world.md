@@ -166,8 +166,8 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
         # Create a YOLO-World model
         model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
 
-        # Track with a YOLO-World model on the video/image
-        results = model.track(source="path/to/video/file.mp4")
+        # Track with a YOLO-World model on a video
+        results = model.track(source="path/to/video.mp4")
         ```
 
     === "CLI"

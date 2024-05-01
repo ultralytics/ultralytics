@@ -162,7 +162,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
 Available YOLOv8-cls export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                    |
+| Export Format                                     | `format` Argument | Model                         | Metadata | Arguments                                                    |
 |---------------------------------------------------|-------------------|-------------------------------|----------|--------------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-cls.pt`              | ✅        | -                                                            |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-cls.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                 |
@@ -177,6 +177,5 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-cls_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                             |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅        | `imgsz`, `batch`                                             |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                     |
-
 
 See full `export` details in the [Export](../modes/export.md) page.

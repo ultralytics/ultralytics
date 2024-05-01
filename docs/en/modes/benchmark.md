@@ -87,7 +87,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 
 Benchmarks will attempt to run automatically on all possible export formats below.
 
-| Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                    |
+| Export Format                                     | `format` Argument | Model                     | Metadata | Arguments                                                    |
 |---------------------------------------------------|-------------------|---------------------------|----------|--------------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅        | -                                                            |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                 |
@@ -102,6 +102,5 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                             |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`, `batch`                                             |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                     |
-
 
 See full `export` details in the [Export](../modes/export.md) page.

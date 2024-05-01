@@ -85,7 +85,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
 
-| Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                    |
+| Export Format                                     | `format` Argument | Model                     | Metadata | Arguments                                                    |
 |---------------------------------------------------|-------------------|---------------------------|----------|--------------------------------------------------------------|
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅        | -                                                            |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                 |
@@ -100,7 +100,6 @@ We also support a variety of model export formats for deployment in different en
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                             |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`, `batch`                                             |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                     |
-
 
 Explore the links to learn more about each integration and how to get the most out of them with Ultralytics. See full `export` details in the [Export](../modes/export.md) page.
 

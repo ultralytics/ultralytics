@@ -122,15 +122,15 @@ markdown_extensions:
       alternate_style: true
 
 # Validation settings https://www.mkdocs.org/user-guide/configuration/#validation
-#validation:
-#  nav:
-#    omitted_files: info
-#    not_found: warn
-#    absolute_links: info
-#  links:
-#    absolute_links: relative_to_docs
-#    anchors: warn
-#    unrecognized_links: warn
+validation:
+  nav:
+    omitted_files: info
+    not_found: warn
+    absolute_links: info
+  links:
+    absolute_links: relative_to_docs
+    anchors: warn
+    unrecognized_links: warn
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:

@@ -109,7 +109,7 @@ def generate_markdown_table(data: list[dict]) -> str:
     if isinstance(data, list) and all(isinstance(item, dict) for item in data):
         # Extract column names from the first dictionary
         column_names = [pad_entry(k, max_width.get(k) + 2) for k in data[0].keys()]
-    
+
         # Generate table header
         table += "|" + "|".join(column_names) + "|\n"
         table += "|" + "|".join(["-" * (max_width.get(k.strip()) + 2) for k in column_names]) + "|\n"
@@ -126,7 +126,8 @@ def generate_markdown_table(data: list[dict]) -> str:
 
     return table
 
-def update_col_padding(table_text: str, pad_at: int,  marker: str = "| Model") -> str:
+
+def update_col_padding(table_text: str, pad_at: int, marker: str = "| Model") -> str:
     """Update the padding of the columns in a markdown table string."""
     # Split to get first two rows of table
     (hr0, hr1), data_rows = table_text.split("\n")[:2], table_text.split("\n")[2:]
@@ -136,9 +137,10 @@ def update_col_padding(table_text: str, pad_at: int,  marker: str = "| Model") -
     col = table_text[col_start:col_end]
     # Update the column and delimiter rows
     hr0 = hr0.replace(col, col + " " * pad_at)
-    hr1 = hr1[:col_start + 1] + "-" * pad_at + hr1[col_start + 1:]
-    
+    hr1 = hr1[: col_start + 1] + "-" * pad_at + hr1[col_start + 1 :]
+
     return "\n".join([hr0, hr1] + data_rows)
+
 
 def update_yolo_formats(table_text: str, file: Path) -> str:
     """Update YOLO formats in a markdown table string based on the task file name."""
@@ -150,7 +152,7 @@ def update_yolo_formats(table_text: str, file: Path) -> str:
                 replacement = re.sub(YOLO_NAME, rf"\1-{task}", match)
                 table_text = table_text.replace(match, replacement)
             table_text = update_col_padding(table_text, len(task) + 1)
-            
+
     return table_text
 
 

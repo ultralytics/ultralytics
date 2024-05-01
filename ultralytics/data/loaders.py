@@ -15,7 +15,6 @@ import requests
 import torch
 from PIL import Image
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
@@ -29,67 +28,6 @@ class SourceTypes:
     screenshot: bool = False
     from_img: bool = False
     tensor: bool = False
-
-
-def pre_transform(im: list, imgsz: int, is_pt: bool, stride: int = 32, model=None):
-    """
-    Pre-transform input image before inference.
-
-    Args:
-        im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
-        imgsz (int): Image size for inference.
-        is_pt (bool): Whether the model is PyTorch.
-        stride (int): Stride for letter boxing.
-        model (nn.Module): Optional; model object.
-
-    Returns:
-        (list): A list of transformed images.
-    """
-    same_shapes = len({x.shape for x in im}) == 1
-    if model:
-        stride = getattr(model, "stride", 32)
-        is_pt = getattr(model, "pt")
-        imgsz = getattr(model, "imgsz")
-    letterbox = LetterBox(imgsz, auto=same_shapes and is_pt, stride=stride)
-    return [letterbox(image=x) for x in im]
-
-
-def infer_preprocess(
-    im, device: str, imgsz: int, is_pt: bool, half: bool, stride: int = 32, model=None
-) -> torch.Tensor:
-    """
-    Prepares input image before inference.
-
-    Args:
-        im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
-        device (str): Device to use for inference.
-        imgsz (int): Image size for inference.
-        is_pt (bool): Whether the model is PyTorch.
-        half (bool): Whether to use half precision.
-        stride (int): Stride for letter boxing.
-        model (nn.Module): Optional; model object.
-
-    Returns:
-        (torch.Tensor): Preprocessed image.
-    """
-    if model:
-        device = getattr(model, "device", "cuda")
-        half = getattr(model, "fp16")
-        stride = getattr(model, "stride", 32)
-        imgsz = getattr(model, "imgsz")
-        is_pt = getattr(model, "pt")
-    not_tensor = not isinstance(im, torch.Tensor)
-    if not_tensor:
-        im = np.stack(pre_transform(im, imgsz, is_pt, stride, model))
-        im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
-        im = np.ascontiguousarray(im)  # contiguous
-        im = torch.from_numpy(im)
-
-    im = im.to(device)
-    im = im.half() if half else im.float()  # uint8 to fp16/32
-    if not_tensor:
-        im /= 255  # 0 - 255 to 0.0 - 1.0
-    return im
 
 
 class LoadStreams:

@@ -173,9 +173,8 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
     === "CLI"
 
         ```bash
-        # Track with a YOLO-World model on the video/image with a specified image size
-        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4" # video
-        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/image.png" # image
+        # Track with a YOLO-World model on the video with a specified image size
+        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
         ```
 
 !!! Note

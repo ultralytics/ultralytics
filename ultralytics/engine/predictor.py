@@ -40,7 +40,7 @@ import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
-from ultralytics.data.augment import classify_transforms, LetterBox
+from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
@@ -132,7 +132,6 @@ class BasePredictor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
         return im
 
-
     def inference(self, im, *args, **kwargs):
         """Runs inference on a given image using the specified model and arguments."""
         visualize = (
@@ -142,21 +141,19 @@ class BasePredictor:
         )
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
-
     def pre_transform(self, im):
-            """
-            Pre-transform input image before inference.
+        """
+        Pre-transform input image before inference.
 
-            Args:
-                im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+        Args:
+            im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
-            Returns:
-                (list): A list of transformed images.
-            """
-            same_shapes = len({x.shape for x in im}) == 1
-            letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
-            return [letterbox(image=x) for x in im]
-
+        Returns:
+            (list): A list of transformed images.
+        """
+        same_shapes = len({x.shape for x in im}) == 1
+        letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
+        return [letterbox(image=x) for x in im]
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions for an image and returns them."""

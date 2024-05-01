@@ -158,7 +158,8 @@ nav:
           - datasets/index.md
       - Guides:
           - guides/index.md
-      - NEW 🚀 Explorer:
+      - New 🚀 Parking Management: guides/parking-management.md
+      - Explorer:
           - datasets/explorer/index.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
@@ -301,6 +302,7 @@ nav:
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
           - Queue Management: guides/queue-management.md
+          - Parking Management: guides/parking-management.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -499,6 +501,7 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - parking_management: reference/solutions/parking_management.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

@@ -123,8 +123,10 @@ Please note that FastSAM only supports detection and segmentation of a single cl
 
 To perform object tracking on an image, use the `track` method as shown below:
 
- === "Python"
+!!! Example
 
+    === "Python"
+   
         ```python
         from ultralytics import FastSAM
 
@@ -133,7 +135,7 @@ To perform object tracking on an image, use the `track` method as shown below:
 
         results = model.track(source="path/to/video/file.mp4", imgsz=640)
         ```
-
+   
     === "CLI"
 
         ```bash

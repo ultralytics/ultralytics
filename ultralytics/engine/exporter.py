@@ -65,6 +65,7 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
+from ultralytics.data.build import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
@@ -451,8 +452,9 @@ class Exporter:
             check_requirements("nncf>=2.8.0")
             import nncf
 
-            def transform_fn(data_item):
+            def transform_fn(data_item) -> np.ndarray:
                 """Quantization transform function."""
+                data_item:torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
                 assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
@@ -460,20 +462,16 @@ class Exporter:
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
             data = (
-                check_det_dataset(self.args.data) if self.args.task != "classify" else check_cls_dataset(self.args.data)
+                (check_det_dataset if self.args.task != "classify" else check_cls_dataset)(self.args.data)
             )
             dataset = YOLODataset(
-                data[self.args.split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False
+                data[self.args.split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False, batch_size=self.args.batch,
             )
             n = len(dataset)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
 
-            # Batch for quantization
-            dataset = [
-                torch.stack([dataset[j]["img"] for j in range(i, i + self.args.batch)], 0)
-                for i in range(0, len(dataset), self.args.batch)
-            ]
+            dataset = build_dataloader(dataset, self.args.batch, 0,)
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
 
             ignored_scope = None

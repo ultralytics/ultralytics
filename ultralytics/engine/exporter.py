@@ -720,7 +720,7 @@ class Exporter:
             for inp in inputs:
                 profile.set_shape(inp.name, min_shape, opt_shape, max_shape)
             config.add_optimization_profile(profile)
-        
+
         if int8:
             config.set_flag(trt.BuilderFlag.INT8)
             config.set_calibration_profile(profile)
@@ -793,14 +793,21 @@ class Exporter:
             # Load dataset and builder (for batching)
             bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
             data = (check_det_dataset if self.args.task != "classify" else check_cls_dataset)(self.args.data)
-            dataset = YOLODataset(data[self.args.split or "val"], data=data, task=self.args.task, imgsz=self.imgsz[0], augment=False, batch_size=bsize)
+            dataset = YOLODataset(
+                data[self.args.split or "val"],
+                data=data,
+                task=self.args.task,
+                imgsz=self.imgsz[0],
+                augment=False,
+                batch_size=bsize,
+            )
             dataset = build_dataloader(dataset, batch=bsize, workers=0, shuffle=False)
 
             n = len(dataset) * bsize
             if n < 500:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >=500 images recommended for INT8 calibration, found {n} images.")
             cache_file = self.file.with_suffix(".cache")
-            
+
             # Calibrate
             config.int8_calibrator = EngineCalibrator(
                 dataset,

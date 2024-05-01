@@ -351,7 +351,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
 
         data_file_content = yaml.safe_load(data_file_url.read())
         splits = [
-            key for key in data_file_content if key not in ('path', 'names', 'download') and data_file_content[key]]
+            key for key in data_file_content if key not in ('path', 'names', 'download', 'nc') and data_file_content[key]]
 
         # Create 3LC tables, get root table if already registered
         tables = {split: get_or_create_tlc_table_from_yolo(data_file, split=split) for split in splits}

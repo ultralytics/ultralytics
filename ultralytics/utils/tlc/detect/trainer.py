@@ -55,9 +55,10 @@ class TLCDetectionTrainer(DetectionTrainer):
                 self._train_validator = self.get_validator(loader=train_val_loader)
         return self._train_validator
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", split="val"):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", split=None):
         """Construct and return dataloader."""
         assert mode in ["train", "val"]
+        split = split or mode
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size, split=split)
         #shuffle = mode == "train"

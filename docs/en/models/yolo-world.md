@@ -152,6 +152,31 @@ Model validation on a dataset is streamlined as follows:
         yolo val model=yolov8s-world.pt data=coco8.yaml imgsz=640
         ```
 
+### Track Usage
+
+Object tracking with YOLO-World model on a video/images is streamlined as follows:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Create a YOLO-World model
+        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+
+        # Track with a YOLO-World model on a video
+        results = model.track(source="path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Track with a YOLO-World model on the video with a specified image size
+        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
+        ```
+
 !!! Note
 
     The YOLO-World models provided by Ultralytics come pre-configured with [COCO dataset](../datasets/detect/coco.md) categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.

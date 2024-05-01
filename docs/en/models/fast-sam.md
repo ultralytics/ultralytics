@@ -133,7 +133,8 @@ To perform object tracking on an image, use the `track` method as shown below:
         # Create a FastSAM model
         model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
 
-        results = model.track(source="path/to/video/file.mp4", imgsz=640)
+        # Track with a FastSAM model on a video
+        results = model.track(source="path/to/video.mp4", imgsz=640)
         ```
    
     === "CLI"

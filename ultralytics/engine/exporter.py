@@ -50,6 +50,7 @@ TensorFlow.js:
     $ npm start
 """
 
+import gc
 import json
 import os
 import shutil
@@ -72,6 +73,7 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -530,8 +532,9 @@ class Exporter:
             )
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
-                _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
+                _, assets = get_github_assets(repo="pnnx/pnnx")
                 url = [x for x in assets if f"{system}.zip" in x][0]
+                assert url, "Unable to retrieve PNNX repo assets"
             except Exception as e:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240410/pnnx-20240410-{system}.zip"
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")
@@ -712,6 +715,7 @@ class Exporter:
 
         # Free CUDA memory
         del self.model
+        gc.collect()
         torch.cuda.empty_cache()
 
         # Write file
@@ -746,7 +750,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
-                "tflite_support",
+                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),

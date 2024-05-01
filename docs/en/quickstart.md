@@ -161,7 +161,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
         ```bash
-        yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -175,7 +175,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
         Val a pretrained detection model at batch-size 1 and image size 640:
         ```bash
-        yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
@@ -225,8 +225,8 @@ For example, users can load a model, train it, evaluate its performance on a val
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO('yolov8n.pt')
 
-    # Train the model using the 'coco128.yaml' dataset for 3 epochs
-    results = model.train(data='coco128.yaml', epochs=3)
+    # Train the model using the 'coco8.yaml' dataset for 3 epochs
+    results = model.train(data='coco8.yaml', epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()

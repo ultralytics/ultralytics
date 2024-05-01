@@ -27,6 +27,7 @@ from ultralytics.utils import (
     Retry,
     checks,
     is_dir_writeable,
+    IS_RASPBERRYPI,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
@@ -221,15 +222,17 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
-    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        if MACOS:
-            f = YOLO(MODEL).export(format="coreml")
-            YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
-        else:
-            YOLO(MODEL).export(format="coreml", nms=True)
+    if MACOS:
+        f = YOLO(MODEL).export(format="coreml")
+        YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+    else:
+        YOLO(MODEL).export(format="coreml", nms=True)
 
 
 def test_export_tflite(enabled=False):
@@ -634,30 +637,36 @@ def test_model_embeddings():
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 def test_yolo_world():
+    """Tests YOLO world models with different configurations, including classes, detection, and training scenarios."""
     model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
     model.set_classes(["tree", "window"])
     model(ASSETS / "bus.jpg", conf=0.01)
 
-    # Training from yaml
-    model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")
-
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
-    # val
-    model.val(data="coco8.yaml", imgsz=32, save_txt=True, save_json=True)
-    # Training from pretrain
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="yolo-world")
+    # Training from pretrain, evaluation process is included at the final stage of training.
+    # Use dota8.yaml which has less categories to reduce the inference time of CLIP model
+    model.train(
+        data="dota8.yaml",
+        epochs=1,
+        imgsz=32,
+        cache="disk",
+        batch=4,
+        close_mosaic=1,
+        name="yolo-world",
+        save_txt=True,
+        save_json=True,
+    )
 
     # test WorWorldTrainerFromScratch
     from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
     model = YOLO("yolov8s-worldv2.yaml")  # no YOLOv8n-world model yet
     model.train(
-        data={"train": {"yolo_data": ["coco8.yaml"]}, "val": {"yolo_data": ["coco8.yaml"]}},
-        epochs=2,
+        data={"train": {"yolo_data": ["dota8.yaml"]}, "val": {"yolo_data": ["dota8.yaml"]}},
+        epochs=1,
         imgsz=32,
         cache="disk",
-        batch=-1,
+        batch=4,
         close_mosaic=1,
         name="yolo-world",
         trainer=WorldTrainerFromScratch,

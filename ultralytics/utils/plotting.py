@@ -13,9 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-
-from .checks import check_font, check_version, is_ascii
-from .files import increment_path
+from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.files import increment_path
 
 
 class Colors:
@@ -241,7 +240,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25):
         """
         Plot keypoints on the image.
 
@@ -267,7 +266,7 @@ class Annotator:
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if len(k) == 3:
                     conf = k[2]
-                    if conf < 0.5:
+                    if conf < conf_thres:
                         continue
                 cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
@@ -279,7 +278,7 @@ class Annotator:
                 if ndim == 3:
                     conf1 = kpts[(sk[0] - 1), 2]
                     conf2 = kpts[(sk[1] - 1), 2]
-                    if conf1 < 0.5 or conf2 < 0.5:
+                    if conf1 < conf_thres or conf2 < conf_thres:
                         continue
                 if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
                     continue
@@ -420,56 +419,63 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
-    def display_counts(self, counts=None, count_bg_color=(0, 0, 0), count_txt_color=(255, 255, 255)):
+    ### Parking management utils
+    def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
         """
-        Display counts on im0 with text background and border.
+        Display the bounding boxes labels in parking management app.
 
         Args:
-            counts (str): objects count data
-            count_bg_color (RGB Color): counts highlighter color
-            count_txt_color (RGB Color): counts display color
+            im0 (ndarray): inference image
+            text (str): object/class name
+            txt_color (bgr color): display color for text foreground
+            bg_color (bgr color): display color for text background
+            x_center (float): x position center point for bounding box
+            y_center (float): y position center point for bounding box
+            margin (int): gap between text and rectangle for better display
         """
 
-        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
-        tf = max(tl - 1, 1)
+        text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
+        text_x = x_center - text_size[0] // 2
+        text_y = y_center + text_size[1] // 2
 
-        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=self.sf, thickness=self.tf)[0] for count in counts]
+        rect_x1 = text_x - margin
+        rect_y1 = text_y - text_size[1] - margin
+        rect_x2 = text_x + text_size[0] + margin
+        rect_y2 = text_y + margin
+        cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
+        cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
-        max_text_width = max([size[0] for size in t_sizes])
-        max_text_height = max([size[1] for size in t_sizes])
+    # Parking lot and object counting app
+    def display_analytics(self, im0, text, txt_color, bg_color, margin):
+        """
+        Display the overall statistics for parking lots
+        Args:
+            im0 (ndarray): inference image
+            text (dict): labels dictionary
+            txt_color (bgr color): display color for text foreground
+            bg_color (bgr color): display color for text background
+            margin (int): gap between text and rectangle for better display
+        """
 
-        text_x = self.im.shape[1] - int(self.im.shape[1] * 0.025 + max_text_width)
-        text_y = int(self.im.shape[0] * 0.025)
+        horizontal_gap = int(im0.shape[1] * 0.02)
+        vertical_gap = int(im0.shape[0] * 0.01)
 
-        # Calculate dynamic gap between each count value based on the width of the image
-        dynamic_gap = max(1, self.im.shape[1] // 100) * tf
+        text_y_offset = 0
 
-        for i, count in enumerate(counts):
-            text_x_pos = text_x
-            text_y_pos = text_y + i * dynamic_gap  # Adjust vertical position with dynamic gap
-
-            # Draw the border
-            cv2.rectangle(
-                self.im,
-                (text_x_pos - (10 * tf), text_y_pos - (10 * tf)),
-                (text_x_pos + max_text_width + (10 * tf), text_y_pos + max_text_height + (10 * tf)),
-                count_bg_color,
-                -1,
-            )
-
-            # Draw the count text
+        for label, value in text.items():
+            txt = f"{label}: {value}"
+            text_size = cv2.getTextSize(txt, 0, int(self.sf * 1.5), int(self.tf * 1.5))[0]
+            text_x = im0.shape[1] - text_size[0] - margin * 2 - horizontal_gap
+            text_y = text_y_offset + text_size[1] + margin * 2 + vertical_gap
+            rect_x1 = text_x - margin * 2
+            rect_y1 = text_y - text_size[1] - margin * 2
+            rect_x2 = text_x + text_size[0] + margin * 2
+            rect_y2 = text_y + margin * 2
+            cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
             cv2.putText(
-                self.im,
-                str(count),
-                (text_x_pos, text_y_pos + max_text_height),
-                0,
-                fontScale=self.sf,
-                color=count_txt_color,
-                thickness=self.tf,
-                lineType=cv2.LINE_AA,
+                im0, txt, (text_x, text_y), 0, int(self.sf * 1.5), txt_color, int(self.tf * 1.5), lineType=cv2.LINE_AA
             )
-
-            text_y_pos += tf * max_text_height
+            text_y_offset = rect_y2
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
@@ -491,7 +497,7 @@ class Annotator:
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
+    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2, conf_thres=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
@@ -507,7 +513,7 @@ class Annotator:
                 if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                     if len(k) == 3:
                         conf = k[2]
-                        if conf < 0.5:
+                        if conf < conf_thres:
                             continue
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
@@ -876,7 +882,7 @@ def plot_images(
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
                     if labels or conf[j] > conf_thres:
-                        annotator.kpts(kpts_[j])
+                        annotator.kpts(kpts_[j], conf_thres=conf_thres)
 
             # Plot masks
             if len(masks):

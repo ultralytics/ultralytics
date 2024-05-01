@@ -5,7 +5,7 @@ keywords: Ultralytics, coming soon, under construction, new features, AI updates
 
 # Under Construction 🏗️🌟
 
-Welcome to the Ultralytics "Under Construction" page! Here, we're hard at work developing the next generation of AI and ML innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
+Welcome to the [Ultralytics](https://ultralytics.com) "Under Construction" page! Here, we're hard at work developing the next generation of AI and ML innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
 
 ## Exciting New Features on the Way 🎉
 
@@ -23,7 +23,7 @@ This placeholder page is your first stop for upcoming developments. Keep an eye 
 
 ## We Value Your Input 🗣️
 
-Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/contact).
+Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/survey).
 
 ## Thank You, Community! 🌍
 

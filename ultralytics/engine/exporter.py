@@ -454,24 +454,31 @@ class Exporter:
 
             def transform_fn(data_item) -> np.ndarray:
                 """Quantization transform function."""
-                data_item:torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+                data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
                 assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 
             # Generate calibration data for integer quantization
             LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-            data = (
-                (check_det_dataset if self.args.task != "classify" else check_cls_dataset)(self.args.data)
-            )
+            data = (check_det_dataset if self.args.task != "classify" else check_cls_dataset)(self.args.data)
             dataset = YOLODataset(
-                data[self.args.split or "val"], data=data, task=self.model.task, imgsz=self.imgsz[0], augment=False, batch_size=self.args.batch,
+                data[self.args.split or "val"],
+                data=data,
+                task=self.model.task,
+                imgsz=self.imgsz[0],
+                augment=False,
+                batch_size=self.args.batch,
             )
             n = len(dataset)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
 
-            dataset = build_dataloader(dataset, self.args.batch, 0,)
+            dataset = build_dataloader(
+                dataset,
+                self.args.batch,
+                0,
+            )
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
 
             ignored_scope = None

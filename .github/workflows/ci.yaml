@@ -266,7 +266,7 @@ jobs:
       - name: Benchmark YOLOWorld DetectionModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model=yolov8n-seg.pt' imgsz=160 verbose=0.267
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark PoseModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel

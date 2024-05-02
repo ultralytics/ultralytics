@@ -19,11 +19,9 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
   <strong>Watch:</strong> YOLO World training workflow with LVIS dataset
 </p>
 
-
 <p align="center">
     <img width="640" src="https://github.com/ultralytics/ultralytics/assets/26833433/40230a80-e7bc-4310-a860-4cc0ef4bb02a" alt="LVIS Dataset example images">
 </p>
-
 
 ## Key Features
 

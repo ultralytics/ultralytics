@@ -69,6 +69,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs
+            obb = result.obb  # Oriented boxes object for OBB outputs
             result.show()  # display to screen
             result.save(filename='result.jpg')  # save to disk
         ```
@@ -90,6 +91,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects, or a m
             masks = result.masks  # Masks object for segmentation masks outputs
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs
+            obb = result.obb  # Oriented boxes object for OBB outputs
             result.show()  # display to screen
             result.save(filename='result.jpg')  # save to disk
         ```
@@ -404,7 +406,7 @@ The below table contains valid Ultralytics image formats.
 | Image Suffixes | Example Predict Command          | Reference                                                                     |
 |----------------|----------------------------------|-------------------------------------------------------------------------------|
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
-| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://helpx.adobe.com/camera-raw/digital-negative.html)         |
 | `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
 | `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
 | `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                    |

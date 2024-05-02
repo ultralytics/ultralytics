@@ -8,7 +8,7 @@ keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9,
 Welcome to the Ultralytics documentation on how to use [Patch-Based-Inference](https://github.com/Koldim2001/YOLO-Patch-Based-Inference). 
 This library simplifies [SAHI](patch-based-inference.md)-like inference for [instance segmentation](../tasks/segment.md) tasks, enabling the detection of small objects in images. It caters to both [object detection](../tasks/detect.md) and [instance segmentation](../tasks/segment.md) tasks, supporting a wide range of [Ultralytics models](../models/index.md). 
 
-Model Support: The library provides support for various ultralytics deep learning models, including [YOLOv8](../models/yolov8.md), [YOLOv9](../models/yolov9.md), [FastSAM](../models/fast-sam.md), and [RTDETR](../models/rtdetr.md). Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
+Model Support: The library provides support for various ultralytics deep learning models, including [YOLOv8](../tasks/detect.md), [YOLOv8-seg](../tasks/segment.md), [YOLOv9](../models/yolov9.md), [YOLOv9-seg](../models/yolov9.md), [FastSAM](../models/fast-sam.md) and [RTDETR](../models/rtdetr.md). Users can choose from pre-trained options or use custom-trained models to best suit their task requirements.
 
 The library also provides a sleek customization of the visualization of the inference results for all models, both in the standard approach (direct network run) and the unique patch-based variant.
 

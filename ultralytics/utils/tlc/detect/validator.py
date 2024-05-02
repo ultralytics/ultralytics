@@ -62,7 +62,8 @@ class TLCDetectionValidator(DetectionValidator):
             self._embedding_size = infer_embeddings_size(model if model else trainer.model)
 
         output = super().__call__(trainer, model)
-        self._run.set_status_running()
+        if self._run:
+            self._run.set_status_running()
         
         return output
 

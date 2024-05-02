@@ -1,6 +1,7 @@
-import numpy as np
 import ncnn
+import numpy as np
 import torch
+
 
 def test_inference():
     torch.manual_seed(0)
@@ -8,10 +9,10 @@ def test_inference():
     out = []
 
     with ncnn.Net() as net:
-         net.load_param("yolov8n_ncnn_model\model.ncnn.param")
-         net.load_model("yolov8n_ncnn_model\model.ncnn.bin")
+        net.load_param("yolov8n_ncnn_model\model.ncnn.param")
+        net.load_model("yolov8n_ncnn_model\model.ncnn.bin")
 
-         with net.create_extractor() as ex:
+        with net.create_extractor() as ex:
             ex.input("in0", ncnn.Mat(in0.squeeze(0).numpy()).clone())
 
             _, out0 = ex.extract("out0")

@@ -197,8 +197,6 @@ Using `CUDA` EP and dynamic image size `--height 640 --width 480`
 cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --source ../assets/images/bus.jpg --plot --height 640 --width 480
 ```
 
-![det](https://github.com/jamjamjon/ultralytics/assets/51357717/5d89a19d-0c96-4a59-875c-defab6887a2c)
-
 ### Pose Detection
 
 using `TensorRT` EP

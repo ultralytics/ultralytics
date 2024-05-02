@@ -81,6 +81,7 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+    os.sched_setaffinity(0, range(os.cpu_count()))
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

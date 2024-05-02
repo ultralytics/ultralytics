@@ -7,7 +7,8 @@ import numpy as np
 import tlc
 
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.utils import colorstr
+from ultralytics.utils import colorstr, ops
+from ultralytics.utils.tlc.detect.utils import infer_table_format
 
 
 def unpack_box(bbox: dict[str, int | float]) -> tuple[int | float]:
@@ -31,8 +32,14 @@ def unpack_boxes(bboxes: list[dict[str, int | float]]) -> tuple[np.ndarray, np.n
     return classes, boxes
 
 
-def tlc_table_row_to_yolo_label(row) -> dict[str, Any]:
+def tlc_table_row_to_yolo_label(row, table_format: str) -> dict[str, Any]:
     classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST])
+    
+    if table_format == "COCO":
+        # Convert from ltwh absolute to xywh relative
+        bboxes_xyxy = ops.ltwh2xyxy(bboxes)
+        bboxes = ops.xyxy2xywhn(bboxes_xyxy, w=row['width'], h=row['height'])
+
     return dict(
         im_file=tlc.Url(row[tlc.IMAGE]).to_absolute().to_str(),
         shape=(row['height'], row['width']),  # format: (height, width)
@@ -93,6 +100,7 @@ class TLCDataset(YOLODataset):
         assert task == "detect", f"Unsupported task: {task} for TLCDataset. Only 'detect' is supported."
         assert isinstance(table, tlc.Table), f"Expected table to be a tlc.Table, got {type(table)} instead."
         self.table = table
+        self._table_format = infer_table_format(table)
         if use_sampling_weights and kwargs['rect']:
             raise ValueError("Cannot use sampling weights with rect=True.")
         self._sampling_weights = self.get_sampling_weights() if use_sampling_weights else None
@@ -109,17 +117,17 @@ class TLCDataset(YOLODataset):
 
         :return: A list of absolute paths to the images.
         """
-        return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table]
+        return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table.table_rows]
 
     def get_labels(self) -> list[dict[str, Any]]:
         """Get the labels for the dataset.
 
         :return: A list of YOLOv8 labels.
         """
-        return [tlc_table_row_to_yolo_label(row) for row in self.table]
+        return [tlc_table_row_to_yolo_label(row, self._table_format) for row in self.table.table_rows]
 
     def get_sampling_weights(self) -> np.ndarray:
-        weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table])
+        weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table.table_rows])
         probabilities = weights / weights.sum()
         return probabilities
 

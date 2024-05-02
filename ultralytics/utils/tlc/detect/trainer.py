@@ -76,7 +76,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         :param img_path: Path to the folder containing images.
         :param mode: `train` mode or `val` mode, users are able to customize different augmentations for each mode.
         :param batch: Size of batches, this is for `rect`. Defaults to None.
-        :param split: Split of the dataset, defaults to "train".
+        :param split: Split of the dataset, defaults to `train`. Should correspond to a key in the dataset dictionary.
         :return: A YOLO dataset populated with 3LC values.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
@@ -89,6 +89,13 @@ class TLCDetectionTrainer(DetectionTrainer):
                                  stride=gs,
                                  table=self.data[split],
                                  use_sampling_weights=self._settings.sampling_weights)
+    
+    def get_dataset(self):
+        if self.args.task != "detect":
+            raise NotImplementedError("Only detection task is supported for now in the 3LC integration.")
+
+        self.data = check_det_dataset(self.args.data)
+        return self.data["train"], self.data.get("val") or self.data.get("test")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
@@ -134,6 +141,8 @@ class TLCDetectionTrainer(DetectionTrainer):
                     self.metrics = self.validator(trainer=self, model=f, final_validation=True)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")
+
+        tlc.close()
 
 
 ### CALLBACKS ############################################################################################################

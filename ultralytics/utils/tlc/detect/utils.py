@@ -245,59 +245,120 @@ def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str, split: str)
     return latest_table
 
 
-def get_tlc_table_from_url(table_url: tlc.Url, split: str) -> tlc.Table:
+def get_tlc_table_from_url(table_url: tlc.Url, split: str) -> tuple[tlc.Table, str]:
     """ Get a 3LC table from a URL.
 
     :param table_url: The Url of the table.
     :param split: The split the table corresponds to.
     :returns: The 3LC table.
     :raises: ValueError if the table does not exist.
-    :raises: ValueError if the table is not compatible with YOLOv5.
+    :raises: ValueError if the table is not compatible with YOLOv8.
     """
 
     try:
         table = tlc.Table.from_url(table_url)
-        LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {table_url}')
     except FileNotFoundError:
         raise ValueError(f'Could not find Table {table_url} for {split} split')
 
-    try:
-        check_table_compatibility(table)
-    except AssertionError as e:
-        raise ValueError(f'Table {table_url} is not compatible with YOLOv5') from e
+    is_yolo = _check_if_yolo_table(table)
+    is_coco = _check_if_coco_table(table)
+
+    if not is_yolo and not is_coco:
+        raise ValueError(f'Table {table_url} is not compatible with YOLOv8, needs to be a YOLO or COCO table.')
+    
+    format_name = "YOLO" if is_yolo else "COCO"
+    LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {table_url} with {format_name} format')
 
     table.ensure_fully_defined()
     return table
 
-def check_table_compatibility(table: tlc.Table) -> bool:
-    """Check that the 3LC Table is compatible with YOLOv5.
+def infer_table_format(table: tlc.Table) -> str:
+    """ Infer the format of a table.
 
-    :param table: The 3LC Table to check.
-    :returns: True if the Table is compatible, False otherwise.
+    :param table: The table to infer the format of.
+    :returns: The format of the table.
     """
+    if _check_if_yolo_table(table):
+        return "YOLO"
+    elif _check_if_coco_table(table):
+        return "COCO"
+    else:
+        raise ValueError(f'Table {table.url} is not compatible with YOLOv8, needs to be a YOLO or COCO table.')
 
+def _check_if_yolo_table(table: tlc.Table) -> tuple[bool, str]:
+    """Check if the table is a YOLO table.
+
+    :param table: The table to check.
+    :returns: True if the table is a YOLO table, False otherwise.
+    """
     row_schema = table.row_schema.values
-    assert tlc.IMAGE in row_schema
-    assert tlc.WIDTH in row_schema
-    assert tlc.HEIGHT in row_schema
-    assert tlc.BOUNDING_BOXES in row_schema
-    assert tlc.BOUNDING_BOX_LIST in row_schema[tlc.BOUNDING_BOXES].values
-    assert tlc.SAMPLE_WEIGHT in row_schema
-    assert tlc.LABEL in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
-    assert tlc.X0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
-    assert tlc.Y0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
-    assert tlc.X1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
-    assert tlc.Y1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
 
-    X0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X0]
-    Y0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y0]
-    X1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X1]
-    Y1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y1]
+    try:
+        assert tlc.IMAGE in row_schema
+        assert tlc.WIDTH in row_schema
+        assert tlc.HEIGHT in row_schema
+        assert tlc.BOUNDING_BOXES in row_schema
+        assert tlc.BOUNDING_BOX_LIST in row_schema[tlc.BOUNDING_BOXES].values
+        assert tlc.SAMPLE_WEIGHT in row_schema
+        assert tlc.LABEL in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.X0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.Y0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.X1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.Y1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
 
-    assert X0.value.number_role == tlc.NUMBER_ROLE_BB_CENTER_X
-    assert Y0.value.number_role == tlc.NUMBER_ROLE_BB_CENTER_Y
-    assert X1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_X
-    assert Y1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_Y
+        X0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X0]
+        Y0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y0]
+        X1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X1]
+        Y1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y1]
+
+        assert X0.value.number_role == tlc.NUMBER_ROLE_BB_CENTER_X
+        assert Y0.value.number_role == tlc.NUMBER_ROLE_BB_CENTER_Y
+        assert X1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_X
+        assert Y1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_Y
+
+        assert X0.value.unit == tlc.UNIT_RELATIVE
+        assert Y0.value.unit == tlc.UNIT_RELATIVE
+        assert X1.value.unit == tlc.UNIT_RELATIVE
+        assert Y1.value.unit == tlc.UNIT_RELATIVE
+
+    except AssertionError:
+        return False
+
+    return True
+
+def _check_if_coco_table(table: tlc.Table) -> bool:
+    """Check if the table is a COCO table.
+
+    :param table: The table to check.
+    :returns: True if the table is a COCO table, False otherwise.
+    """
+    row_schema = table.row_schema.values
+
+    try:
+        assert tlc.IMAGE in row_schema
+        assert tlc.WIDTH in row_schema
+        assert tlc.HEIGHT in row_schema
+        assert tlc.BOUNDING_BOXES in row_schema
+        assert tlc.BOUNDING_BOX_LIST in row_schema[tlc.BOUNDING_BOXES].values
+        assert tlc.SAMPLE_WEIGHT in row_schema
+        assert tlc.LABEL in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.X0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.Y0 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.X1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+        assert tlc.Y1 in row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values
+
+        X0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X0]
+        Y0 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y0]
+        X1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.X1]
+        Y1 = row_schema[tlc.BOUNDING_BOXES].values[tlc.BOUNDING_BOX_LIST].values[tlc.Y1]
+
+        assert X0.value.number_role == tlc.NUMBER_ROLE_BB_MIN_X
+        assert Y0.value.number_role == tlc.NUMBER_ROLE_BB_MIN_Y
+        assert X1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_X
+        assert Y1.value.number_role == tlc.NUMBER_ROLE_BB_SIZE_Y
+
+    except AssertionError:
+        return False
 
     return True
 

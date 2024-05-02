@@ -494,14 +494,14 @@ class HUBDatasetStats:
             _, data_dir, path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
-                if str(path.split(".")[-1]) == "yaml":
+                if str(path).split(".")[-1] == "yaml":
                     data = yaml_load(path)
                     data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
                     yaml_save(path, data)
                     data = check_det_dataset(path, "yaml", autodownload)  # dict
                     data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
 
-                elif str(path.split(".")[-1]) == "json":
+                elif str(path).split(".")[-1] == "json":
                     data = json.load(path)
                     data["path"] = ""  # strip path since JSON should be in dataset root for all HUB datasets
                     json_save(path, data)

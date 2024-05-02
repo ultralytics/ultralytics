@@ -683,9 +683,6 @@ class Exporter:
         if self.args.verbose:
             logger.min_severity = trt.Logger.Severity.VERBOSE
 
-        half = builder.platform_has_fast_fp16 and self.args.half
-        int8 = builder.platform_has_fast_int8 and self.args.int8
-
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
@@ -696,6 +693,8 @@ class Exporter:
             config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
+        half = builder.platform_has_fast_fp16 and self.args.half
+        int8 = builder.platform_has_fast_int8 and self.args.int8
         # Read ONNX file
         parser = trt.OnnxParser(network, logger)
         if not parser.parse_from_file(f_onnx):

@@ -203,13 +203,15 @@ def non_max_suppression(
         in_place (bool): If True, the input prediction tensor will be modified in place.
 
     Returns:
-        (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
-            shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
-            (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
-        or
-        (List[torch.Tensor], List[torch.Tensor]): The first list is the list mentioned above.
-        The second list contains a tensor of shape (num_boxes, num_classes) containing
-        the scores for each class. It is returned only if return_all_scores is True.
+        (List[torch.Tensor] | Tuple[List[torch.Tensor], List[torch.Tensor]]): A list of length batch_size,
+            where each element is a tensor of shape (num_boxes, 6 + num_masks) containing the kept boxes,
+            with columns (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
+
+            If the parameter return_all_scores is set to True,
+            the function will return a tuple consisting of two lists.
+            The first list is the aforementioned list.
+            The second list contains a tensor of shape (num_boxes, num_classes),
+            which holds the scores for each class.
     """
     import torchvision  # scope for faster 'import ultralytics'
 

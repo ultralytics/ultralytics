@@ -25,7 +25,6 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 </p>
 
 
-
 ## Key Features
 
 - LVIS contains 160k images and 2M instance annotations for object detection, segmentation, and captioning tasks.

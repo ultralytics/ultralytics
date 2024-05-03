@@ -20,8 +20,9 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import NUM_THREADS, RANK, colorstr, LINUX
+from ultralytics.utils import LINUX, NUM_THREADS, RANK, colorstr
 from ultralytics.utils.checks import check_file
+
 from .dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from .utils import PIN_MEMORY
 

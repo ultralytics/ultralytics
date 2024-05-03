@@ -343,11 +343,7 @@ class Instances:
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
     def remove_zero_area_boxes(self):
-        """
-        Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height.
-
-        This removes them.
-        """
+        """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height."""
         good = self.bbox_areas > 0
         if not all(good):
             self._bboxes = self._bboxes[good]

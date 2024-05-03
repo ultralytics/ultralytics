@@ -276,14 +276,14 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
 
-        | Precision | Eval test         | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
-        |-----------|-------------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict           | 0.54         | 0.53 \| 0.58       |                      |                         |                      |                         | 8       | 640                   |
-        | FP32      | COCO-Pose<sup>val | 0.55         |                    | 0.91                 | 0.69                    | 0.8                  | 0.51                    | 1       | 640                   |
-        | FP16      | Predict           | 0.37         | 0.35 \| 0.41       |                      |                         |                      |                         | 8       | 640                   |
-        | FP16      | COCO-Pose<sup>val | 0.36         |                    | 0.91                 | 0.69                    | 0.8                  | 0.51                    | 1       | 640                   |
-        | INT8      | Predict           | 0.29         | 0.28 \| 0.33       |                      |                         |                      |                         | 8       | 640                   |
-        | INT8      | COCO-Pose<sup>val | 0.3          |                    | 0.9                  | 0.68                    | 0.78                 | 0.47                    | 1       | 640                   |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
+        | FP32      | Predict      | 0.54         | 0.53 \| 0.58       |                      |                         |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 0.55         |                    | 0.91                 | 0.69                    | 0.8                  | 0.51                    | 1       | 640                   |
+        | FP16      | Predict      | 0.37         | 0.35 \| 0.41       |                      |                         |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 0.36         |                    | 0.91                 | 0.69                    | 0.8                  | 0.51                    | 1       | 640                   |
+        | INT8      | Predict      | 0.29         | 0.28 \| 0.33       |                      |                         |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.3          |                    | 0.9                  | 0.68                    | 0.78                 | 0.47                    | 1       | 640                   |
 
     === "OBB (DOTAv1)"
 
@@ -312,14 +312,31 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
-        | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                   | 8       | 640                   |
-        | FP32      | COCO<sup>val | 1.37         |                    | 0.37                 | 0.52              | 1       | 640                   |
-        | FP16      | Predict      | 0.62         | 0.75 \| 1.13       |                      |                   | 8       | 640                   |
-        | FP16      | COCO<sup>val | 0.85         |                    | 0.37                 | 0.52              | 1       | 640                   |
-        | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                   | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.74         |                    | 0.33                 | 0.47              | 1       | 640                   |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
+        | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 1.37         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | Predict      | 0.62         | 0.75 \| 1.13       |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 0.85         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.74         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+
+    === "RTX 3070 12 GB"
+
+        Tested on Windows 10.0.22631, `python 3.11.9`, `ultralytics==8.2.4`, `tensorrt==10.0.1`
+    
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+
+
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
+        | FP32      | Predict      | 1.76         | 1.69 \| 1.87       |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 1.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | Predict      | 0.86         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 1.43         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | INT8      | Predict      | 0.80         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 1.35         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
     === "RTX 2060 6 GB"
 
@@ -328,14 +345,34 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
+        | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 2.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | Predict      | 1.09         | 1.09 \| 1.10       |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 1.20         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | INT8      | Predict      | 0.75         | 0.74 \| 0.75       |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 0.76         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+
+### Embedded Devices
+
+!!! tip "Detection Performance (COCO)"
+
+    === "Jetson Orin NX 16GB"
+
+        JetPack 5.1.3 (L4T 35.5.0) Ubuntu 20.04.6 , `python 3.8.10`, `ultralytics==8.2.4`, `tensorrt==8.5.2.2`
+
+        !!! note 
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------|---------|-----------------------|
-        | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                   | 8       | 640                   |
-        | FP32      | COCO<sup>val | 2.94         |                    | 0.37                 | 0.52              | 1       | 640                   |
-        | FP16      | Predict      | 1.09         | 1.09 \| 1.10       |                      |                   | 8       | 640                   |
-        | FP16      | COCO<sup>val | 1.20         |                    | 0.37                 | 0.52              | 1       | 640                   |
-        | INT8      | Predict      | 0.75         | 0.74 \| 0.75       |                      |                   | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.76         |                    | 0.33                 | 0.47              | 1       | 640                   |
+        | FP32      | Predict      | 6.90         | 6.89 \| 6.93       |                      |                   | 8       | 640                   |
+        | FP32      | COCO<sup>val | 6.97         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | FP16      | Predict      | 3.36         | 3.35 \| 3.39       |                      |                   | 8       | 640                   |
+        | FP16      | COCO<sup>val | 3.39         |                    | 0.37                 | 0.52              | 1       | 640                   |
+        | INT8      | Predict      | 2.32         | 2.32 \| 2.34       |                      |                   | 8       | 640                   |
+        | INT8      | COCO<sup>val | 2.33         |                    | 0.33                 | 0.47              | 1       | 640                   |
 
 #### Evaluation methods
 
@@ -380,7 +417,7 @@ Expand sections below for information on how these models were exported and test
         batch:8,
         workspace:2,
         int8=True,
-        data:"data.yaml"
+        data:"data.yaml"  # depends on task
     )
     ```
 
@@ -412,7 +449,7 @@ Expand sections below for information on how these models were exported and test
 
     model = YOLO("yolov8n.engine", task="detect")
     results = model.val(
-        data="data.yaml",
+        data="data.yaml",  # depends on task
         batch=1,
         imgsz=640,
         verbose=False,

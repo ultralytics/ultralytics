@@ -72,8 +72,11 @@ class Bboxes:
 
     def areas(self):
         """Return box areas."""
-        self.convert("xyxy")
-        return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
+        return (
+            (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])  # format xyxy
+            if self.format == "xyxy"
+            else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
+        )
 
     # def denormalize(self, w, h):
     #    if not self.normalized:

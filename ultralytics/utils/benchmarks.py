@@ -30,6 +30,7 @@ import platform
 import re
 import shutil
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -132,19 +133,37 @@ def benchmark(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
-            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
+
+            # calculate effective FPS
+            fps = round((1000/speed), 2)
+
+            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"
             LOGGER.warning(f"ERROR ❌️ Benchmark failure for {name}: {e}")
-            y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
+            y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)"])
+    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
+    # create timestamp for log and csv file
+    now = datetime.now(timezone.utc)
+    timestamp_str = now.strftime('%Y-%m-%d_%H:%M:%S')
+
+    # get model name
     name = Path(model.ckpt_path).name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
+
+    # create file path
+    # note: will be relative to where you run tests from, I ran from root so I created
+    # the test_results folder in root.
+    file_path = (f"test_results/yolov8_benchmark_results_{name}_{imgsz}_{timestamp_str}.csv")
+
+    # save to csv file
+    df.to_csv(file_path, index=False)
+
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s) on {timestamp_str}\n{df}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)

@@ -321,7 +321,7 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
         | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                         | 8       | 640                   |
         | INT8      | COCO<sup>val | 0.74         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
-    === "RTX 3070 12 GB"
+    === "RTX 3060 12 GB"
 
         Tested on Windows 10.0.22631, `python 3.11.9`, `ultralytics==8.2.4`, `tensorrt==10.0.1`
     

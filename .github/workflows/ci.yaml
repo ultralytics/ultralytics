@@ -254,14 +254,27 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e . pytest mlflow pycocotools "ray[tune]<=2.9.3" --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]<=2.9.3"
       - name: Check environment
         run: |
           yolo checks
           pip list
       - name: Pytest tests
+        run: pytest --slow tests/
+      - name: Benchmark ClassificationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-cls.pt' imgsz=160 verbose=0.166
+      - name: Benchmark YOLOWorld DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+      - name: Benchmark SegmentationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-seg.pt' imgsz=160 verbose=0.267
+      - name: Benchmark PoseModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-pose.pt' imgsz=160 verbose=0.179
+      - name: Benchmark OBBModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-obb.pt' imgsz=160 verbose=0.472
+      - name: Benchmark Summary
         run: |
-          pytest --slow tests/
+          cat benchmarks.log
+          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
         run: sudo bash -c "sleep 10; reboot" &
 

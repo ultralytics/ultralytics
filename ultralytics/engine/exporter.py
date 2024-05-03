@@ -764,7 +764,7 @@ class Exporter:
                     """Get the batch size to use for calibration."""
                     return self.batch or 1
 
-                def get_batch(self, names) -> list[int] | None:
+                def get_batch(self, names) -> list:
                     """Get the next batch to use for calibration, as a list of device memory pointers."""
                     try:
                         im0s = next(self.data_iter)["img"] / 255.0
@@ -774,7 +774,7 @@ class Exporter:
                         # Return [] or None, signal to TensorRT there is no calibration data remaining
                         return None
 
-                def read_calibration_cache(self) -> bytes | None:
+                def read_calibration_cache(self) -> bytes:
                     """
                     If there is a cache, use it instead of calibrating again.
 

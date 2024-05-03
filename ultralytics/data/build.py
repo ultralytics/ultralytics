@@ -81,7 +81,7 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
-    if LINUX and hasattr(os, "sched_setaffinity"):
+    if LINUX and hasattr(os, "sched_setaffinity"):  # unsupported on macOS and Windows
         os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
 
 

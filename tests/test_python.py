@@ -643,8 +643,8 @@ def test_yolo_world():
     model(ASSETS / "bus.jpg", conf=0.01)
 
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
-    # Training from pretrain, evaluation process is included at the final stage of training.
-    # Use dota8.yaml which has less categories to reduce the inference time of CLIP model
+    # Training from a pretrained model. Eval is included at the final stage of training.
+    # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
     model.train(
         data="dota8.yaml",
         epochs=1,

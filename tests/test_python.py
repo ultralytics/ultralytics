@@ -345,12 +345,12 @@ def test_labels_and_crops():
         labels = save_path / f"labels/{im_name}.txt"
         assert labels.exists()
         # Check detections match label count
-        assert len(r.boxes.data) == len([l for l in labels.read_text().splitlines() if l])
+        assert len(r.boxes.data) == len([line for line in labels.read_text().splitlines() if line])
         # Check crops path and files
-        crop_dirs = [p for p in (save_path / "crops").iterdir()]
+        crop_dirs = list((save_path / "crops").iterdir())
         crop_files = [f for p in crop_dirs for f in p.glob("*")]
         # Crop directories match detections
-        assert all([r.names.get(c) in {d.name for d in crop_dirs} for c in cls_idxs])
+        assert all(r.names.get(c) in {d.name for d in crop_dirs} for c in cls_idxs)
         # Same number of crops as detections
         assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
 

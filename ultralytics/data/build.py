@@ -82,10 +82,9 @@ def seed_worker(worker_id):  # noqa
     np.random.seed(worker_seed)
     random.seed(worker_seed)
     try:
-        # fix https://github.com/ultralytics/ultralytics/pull/11195
-        os.sched_setaffinity(0, range(NUM_THREADS))
+        os.sched_setaffinity(0, range(NUM_THREADS)) # fix https://github.com/ultralytics/ultralytics/pull/11195
     except AttributeError:
-        pass
+        pass # <- CPU utilization may be suboptimal on Windows
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

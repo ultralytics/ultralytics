@@ -20,9 +20,8 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import NUM_THREADS, RANK, colorstr
+from ultralytics.utils import NUM_THREADS, RANK, colorstr, LINUX
 from ultralytics.utils.checks import check_file
-
 from .dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from .utils import PIN_MEMORY
 
@@ -81,10 +80,8 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
-    try:
+    if LINUX and hasattr(os, "sched_setaffinity"):
         os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
-    except AttributeError:
-        pass  # <- CPU utilization may be suboptimal on Windows
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

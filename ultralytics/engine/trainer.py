@@ -28,6 +28,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     LOGGER,
     RANK,
+    TESTS_RUNNING,
     TQDM,
     __version__,
     callbacks,
@@ -35,7 +36,6 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     yaml_save,
-    TESTS_RUNNING,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args

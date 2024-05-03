@@ -50,7 +50,14 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
     For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed. 
 
-## Start with Docker
+## Set Up Ultralytics
+
+There are 2 ways of setting up Ultralytics package on NVIDIA Jetson to build your next Computer Vision project. You can use either of them.
+
+- Start with Docker
+- Start without Docker
+
+### Start with Docker
 
 The fastest way to get started with Ultralytics YOLOv8 on NVIDIA Jetson is to run with pre-built docker image for Jetson.
 
@@ -60,14 +67,15 @@ Execute the below command to pull the Docker container and run on Jetson. This i
 t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
 ```
 
-## Start without Docker
+After this is done, skip to [this section](#use-tensorrt-on-nvidia-jetson).
 
-### Install Ultralytics Package
+### Start without Docker
+
+#### Install Ultralytics Package
 
 Here we will install ultralyics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](https://docs.ultralytics.com/integrations/tensorrt) because TensoRT will make sure we can get the maximum performance out of the Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
-
 ```sh
 sudo apt update
 sudo apt install python3-pip -y
@@ -75,29 +83,25 @@ pip install -U pip
 ```
 
 2. Install `ultralytics` pip package with optional dependencies
-
 ```sh
 pip install ultralytics[export]
 ```
 
 3. Reboot the device
-
 ```sh
 sudo reboot
 ```
 
-### Install PyTorch and Torchvision
+#### Install PyTorch and Torchvision
 
 The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
 
 1. Uninstall currently installed PyTorch and Torchvision
-
 ```sh
 pip uninstall torch torchvision
 ```
 
 2. Install PyTorch 2.1.0 according to JP5.1.3
-
 ```sh
 sudo apt-get install -y libopenblas-base libopenmpi-dev
 wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
@@ -105,7 +109,6 @@ pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
 ```
 
 3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
-
 ```sh
 sudo apt install -y libjpeg-dev zlib1g-dev
 git clone https://github.com/pytorch/vision torchvision
@@ -115,6 +118,17 @@ python3 setup.py install --user
 ```
 
 Visit [this page](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) to access all different versions of PyTorch for different JetPack versions. For a more detailed list on the PyTorch, Torchvision compatibility, please check [here](https://github.com/pytorch/vision).
+
+#### Install onnxruntime-gpu
+
+The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have **aarch64** binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+
+All different `onnxruntime-gpu` packages corresponsing to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support for the JetPack we are using for this guide.
+
+```sh
+wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -O onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
+pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
+```
 
 ## Use TensorRT on NVIDIA Jetson
 
@@ -163,31 +177,75 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
 
 ## NVIDIA Jetson Orin YOLOv8 Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on 3 different model formats measuring speed and accuracy: PyTorch, TorchScript and TensorRT. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 precision with default input image size of 640.
+YOLOv8 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF Graphdef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 precision with default input image size of 640.
+
+### Comparison Chart
+
+Eventhough all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
 
 <div style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/ultralytics/assets/20147381/202950fa-c24a-43ec-90c8-4d7b6a6c406e" alt="NVIDIA Jetson Ecosystem">
-</div>
+</div>   
 
-| Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|-------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.4473      | 14.3                   |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.4520      | 13.3                   |
-| YOLOv8n | TensorRT    | ✅      | 13.6      | 0.4520      | 8.7                    |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.5868      | 18                     |
-| YOLOv8s | TorchScript | ✅      | 43.0      | 0.5971      | 23.9                   |
-| YOLOv8s | TensorRT    | ✅      | 44.0      | 0.5965      | 14.82                  |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.6101      | 36.4                   |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.6125      | 53.34                  |
-| YOLOv8m | TensorRT    | ✅      | 100.3     | 0.6123      | 33.28                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.6588      | 61.3                   |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.6587      | 85.21                  |
-| YOLOv8l | TensorRT    | ✅      | 168.3     | 0.6591      | 51.34                  |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.6650      | 93                     |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.6651      | 135.3                  |
-| YOLOv8x | TensorRT    | ✅      | 261.8     | 0.6645      | 84.5                   |
+### Detailed Comparison Table
 
-This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across three different formats (PyTorch, TorchScript, TensorRT), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF Graphdef, TF Lite, PaddlePaddle, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+
+
+??? Benchmarks
+
+    | Model   | Format        | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    |---------|---------------|--------|-----------|-------------|------------------------|
+    | YOLOv8n | PyTorch       | ✅      | 6.2       | 0.6381      | 14.3                   |
+    | YOLOv8n | TorchScript   | ✅      | 12.4      | 0.6117      | 13.3                   |
+    | YOLOv8n | ONNX          | ✅      | 12.2      | 0.6092      | 70.6                   |
+    | YOLOv8n | OpenVINO      | ✅      | 12.3      | 0.6092      | 104.2                  |
+    | YOLOv8n | TensorRT      | ✅      | 13.6      | 0.6117      | 8.9                    |
+    | YOLOv8n | TF SavedModel | ✅      | 30.6      | 0.6092      | 141.74                 |
+    | YOLOv8n | TF GraphDef   | ✅      | 12.3      | 0.6092      | 199.93                 |
+    | YOLOv8n | TF Lite       | ✅      | 12.3      | 0.6092      | 349.18                 |
+    | YOLOv8n | PaddlePaddle  | ✅      | 24.4      | 0.6030      | 555                    |
+    | YOLOv8n | NCNN          | ✅      | 12.2      | 0.6092      | 32                     |
+    | YOLOv8s | PyTorch       | ✅      | 21.5      | 0.6967      | 18                     |
+    | YOLOv8s | TorchScript   | ✅      | 43.0      | 0.7136      | 23.81                  |
+    | YOLOv8s | ONNX          | ✅      | 42.8      | 0.7136      | 185.55                 |
+    | YOLOv8s | OpenVINO      | ✅      | 42.9      | 0.7136      | 243.97                 |
+    | YOLOv8s | TensorRT      | ✅      | 44.0      | 0.7136      | 14.82                  |
+    | YOLOv8s | TF SavedModel | ✅      | 107       | 0.7136      | 260.03                 |
+    | YOLOv8s | TF GraphDef   | ✅      | 42.8      | 0.7136      | 423.4                  |
+    | YOLOv8s | TF Lite       | ✅      | 42.8      | 0.7136      | 1046.64                |
+    | YOLOv8s | PaddlePaddle  | ✅      | 85.5      | 0.7140      | 1464                   |
+    | YOLOv8s | NCNN          | ✅      | 42.7      | 0.7200      | 63                     |
+    | YOLOv8m | PyTorch       | ✅      | 49.7      | 0.7370      | 36.4                   |
+    | YOLOv8m | TorchScript   | ✅      | 99.2      | 0.7285      | 53.58                  |
+    | YOLOv8m | ONNX          | ✅      | 99        | 0.7280      | 452.09                 |
+    | YOLOv8m | OpenVINO      | ✅      | 99.1      | 0.7280      | 544.36                 |
+    | YOLOv8m | TensorRT      | ✅      | 100.3     | 0.7285      | 33.21                  |
+    | YOLOv8m | TF SavedModel | ✅      | 247.5     | 0.7280      | 543.65                 |
+    | YOLOv8m | TF GraphDef   | ✅      | 99        | 0.7280      | 906.63                 |
+    | YOLOv8m | TF Lite       | ✅      | 99        | 0.7280      | 2758.08                |
+    | YOLOv8m | PaddlePaddle  | ✅      | 197.9     | 0.7280      | 3678                   |
+    | YOLOv8m | NCNN          | ✅      | 98.9      | 0.7260      | 135                    |
+    | YOLOv8l | PyTorch       | ✅      | 83.7      | 0.7768      | 61.3                   |
+    | YOLOv8l | TorchScript   | ✅      | 167.2     | 0.7554      | 87.9                   |
+    | YOLOv8l | ONNX          | ✅      | 166.8     | 0.7551      | 852.29                 |
+    | YOLOv8l | OpenVINO      | ✅      | 167       | 0.7551      | 1012.6                 |
+    | YOLOv8l | TensorRT      | ✅      | 168.4     | 0.7554      | 51.23                  |
+    | YOLOv8l | TF SavedModel | ✅      | 417.2     | 0.7551      | 990.45                 |
+    | YOLOv8l | TF GraphDef   | ✅      | 166.9     | 0.7551      | 1649.86                |
+    | YOLOv8l | TF Lite       | ✅      | 166.9     | 0.7551      | 5652.37                |
+    | YOLOv8l | PaddlePaddle  | ✅      | 333.6     | 0.7551      | 7114.67                |
+    | YOLOv8l | NCNN          | ✅      | 166.8     | 0.7685      | 231.9                  |
+    | YOLOv8x | PyTorch       | ✅      | 130.5     | 0.7759      | 93                     |
+    | YOLOv8x | TorchScript   | ✅      | 260.7     | 0.7472      | 135.1                  |
+    | YOLOv8x | ONNX          | ✅      | 260.4     | 0.7479      | 1296.13                |
+    | YOLOv8x | OpenVINO      | ✅      | 260.6     | 0.7479      | 1502.15                |
+    | YOLOv8x | TensorRT      | ✅      | 261.8     | 0.7469      | 84.53                  |
+    | YOLOv8x | TF SavedModel | ✅      | 651.1     | 0.7479      | 1451.76                |
+    | YOLOv8x | TF GraphDef   | ✅      | 260.5     | 0.7479      | 4029.36                |
+    | YOLOv8x | TF Lite       | ✅      | 260.4     | 0.7479      | 8772.86                |
+    | YOLOv8x | PaddlePaddle  | ✅      | 520.8     | 0.7479      | 10619.53               |
+    | YOLOv8x | NCNN          | ✅      | 260.4     | 0.7646      | 376.38                 |
 
 Visit [this link](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices) to explore more benchmarking efforts by Seeed Studio running on different versions of NVIDIA Jetson hardware.
 
@@ -216,10 +274,6 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
-
-!!! Note
-
-    Currently only PyTorch, Torchscript and TensorRT are working with the benchmarking tools. We will update it to support other exports in the future.
 
 ## Best Practices when using NVIDIA Jetson
 

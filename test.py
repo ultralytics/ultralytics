@@ -4,6 +4,6 @@
 
 from ultralytics.utils.benchmarks import ProfileModels, benchmark
 
-ProfileModels(['yolov8n.yaml']).profile()
+ProfileModels(["yolov8n.yaml"]).profile()
 
-df = benchmark(model='yolov8n.pt', imgsz=160)
+df = benchmark(model="yolov8n.pt", imgsz=160)

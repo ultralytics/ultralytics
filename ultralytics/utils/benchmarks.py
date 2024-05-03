@@ -135,7 +135,7 @@ def benchmark(
             metric, speed = results.results_dict[key], results.speed["inference"]
 
             # calculate effective FPS
-            fps = round((1000/speed), 2)
+            fps = round((1000 / speed), 2)
 
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
@@ -150,7 +150,7 @@ def benchmark(
 
     # create timestamp for log and csv file
     now = datetime.now(timezone.utc)
-    timestamp_str = now.strftime('%Y-%m-%d_%H:%M:%S')
+    timestamp_str = now.strftime("%Y-%m-%d_%H:%M:%S")
 
     # get model name
     name = Path(model.ckpt_path).name
@@ -158,7 +158,7 @@ def benchmark(
     # create file path
     # note: will be relative to where you run tests from, I ran from root so I created
     # the test_results folder in root.
-    file_path = (f"test_results/yolov8_benchmark_results_{name}_{imgsz}_{timestamp_str}.csv")
+    file_path = f"test_results/yolov8_benchmark_results_{name}_{imgsz}_{timestamp_str}.csv"
 
     # save to csv file
     df.to_csv(file_path, index=False)

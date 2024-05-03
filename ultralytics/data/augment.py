@@ -917,7 +917,6 @@ class Albumentations:
         return labels
 
 
-# TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
     """
     Formats image annotations for object detection, instance segmentation, and pose estimation tasks. The class

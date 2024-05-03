@@ -179,6 +179,7 @@ import threading
 
 
 def run(model, im):
+    """Performs inference on an image using a given model and saves the output; model must support `.save()` method."""
     results = model(im)
     results.save()
 

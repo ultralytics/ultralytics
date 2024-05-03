@@ -35,6 +35,7 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     yaml_save,
+    TESTS_RUNNING,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -122,7 +123,7 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        if self.device.type in {"cpu", "mps"}:
+        if self.device.type in {"cpu", "mps"} and not TESTS_RUNNING:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Model and Dataset

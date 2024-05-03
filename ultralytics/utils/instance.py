@@ -72,14 +72,11 @@ class Bboxes:
 
     def areas(self):
         """Return box areas."""
-        if self.format == "xyxy":
-            areas = (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
-        else:
-            # make a copy to avoid modifying the original data
-            bboxes = self.bboxes.copy()
-            bboxes.convert("xyxy")
-            areas = (bboxes[:, 2] - bboxes[:, 0]) * (bboxes[:, 3] - bboxes[:, 1])
-        return areas
+        return (
+            (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])  # format xyxy
+            if self.format == "xyxy"
+            else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
+        )
 
     # def denormalize(self, w, h):
     #    if not self.normalized:

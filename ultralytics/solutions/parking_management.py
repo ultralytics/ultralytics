@@ -14,7 +14,7 @@ import tkinter as tk
 
 class ParkingPtsSelection:
     def __init__(self, master):
-        # Initialize window and widgets.
+        """Initializes the UI for selecting parking zone points in a tkinter window."""
         self.master = master
         master.title("Ultralytics Parking Zones Points Selector")
         self.initialize_ui()
@@ -109,6 +109,7 @@ class ParkingPtsSelection:
             messagebox.showwarning("Warning", "No bounding boxes to remove.")
 
     def save_to_json(self):
+        """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
         canvas_width, canvas_height = self.canvas.winfo_width(), self.canvas.winfo_height()
         width_scaling_factor = self.img_width / canvas_width
         height_scaling_factor = self.img_height / canvas_height

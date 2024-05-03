@@ -302,7 +302,7 @@ class ThreadingLocked:
 
         @ThreadingLocked()
         def my_function():
-            # Your code here
+            """Thread-safe decorator that ensures the function is executed by only one thread at a time."""
             pass
         ```
     """

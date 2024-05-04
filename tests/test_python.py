@@ -235,38 +235,39 @@ def test_export_coreml():
         YOLO(MODEL).export(format="coreml", nms=True)
 
 
-def test_export_tflite(enabled=False):
+@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+def test_export_tflite():
     """
     Test exporting the YOLO model to TFLite format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
-    if enabled and LINUX:
-        model = YOLO(MODEL)
-        f = model.export(format="tflite")
-        YOLO(f)(SOURCE)
+    model = YOLO(MODEL)
+    f = model.export(format="tflite")
+    YOLO(f)(SOURCE)
 
 
-def test_export_pb(enabled=False):
+@pytest.mark.skipif(True, reason="Test disabled")
+@pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
+def test_export_pb():
     """
     Test exporting the YOLO model to *.pb format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
-    if enabled and LINUX:
-        model = YOLO(MODEL)
-        f = model.export(format="pb")
-        YOLO(f)(SOURCE)
+    model = YOLO(MODEL)
+    f = model.export(format="pb")
+    YOLO(f)(SOURCE)
 
 
-def test_export_paddle(enabled=False):
+@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
+def test_export_paddle():
     """
     Test exporting the YOLO model to Paddle format.
 
     Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
     """
-    if enabled:
-        YOLO(MODEL).export(format="paddle")
+    YOLO(MODEL).export(format="paddle")
 
 
 @pytest.mark.slow
@@ -436,12 +437,12 @@ def test_utils_checks():
     checks.git_describe(ROOT)
     checks.check_requirements()  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
-    checks.check_imshow()
+    checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
     checks.print_args()
-    # checks.check_imshow(warn=True)
 
 
+@pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")
 def test_utils_benchmarks():
     """Test model benchmarking."""
     from ultralytics.utils.benchmarks import ProfileModels

@@ -174,7 +174,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-14]
         python-version: ["3.11"]
         torch: [latest]
         include:

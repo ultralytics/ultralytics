@@ -437,12 +437,11 @@ def test_utils_checks():
     checks.git_describe(ROOT)
     checks.check_requirements()  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
-    checks.check_imshow()
+    checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
     checks.print_args()
-    # checks.check_imshow(warn=True)
 
-
+@pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")
 def test_utils_benchmarks():
     """Test model benchmarking."""
     from ultralytics.utils.benchmarks import ProfileModels

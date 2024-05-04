@@ -210,22 +210,22 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     """Test exporting the YOLO model to TorchScript format."""
-    f = YOLO(MODEL).export(format="torchscript", optimize=False)
-    YOLO(f)(SOURCE)  # exported model inference
+    f = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 def test_export_onnx():
     """Test exporting the YOLO model to ONNX format."""
-    f = YOLO(MODEL).export(format="onnx", dynamic=True)
-    YOLO(f)(SOURCE)  # exported model inference
+    f = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test exporting the YOLO model to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino")
-    YOLO(f)(SOURCE)  # exported model inference
+    f = YOLO(MODEL).export(format="openvino", imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 # @pytest.mark.slow
@@ -253,10 +253,10 @@ def test_export_openvino_long(task, dynamic, int8, half, batch):
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
     if MACOS:
-        f = YOLO(MODEL).export(format="coreml")
-        YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+        f = YOLO(MODEL).export(format="coreml", imgsz=32)
+        YOLO(f)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
     else:
-        YOLO(MODEL).export(format="coreml", nms=True)
+        YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
 
 
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
@@ -267,8 +267,8 @@ def test_export_tflite():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="tflite")
-    YOLO(f)(SOURCE)
+    f = model.export(format="tflite", imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -280,8 +280,8 @@ def test_export_pb():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="pb")
-    YOLO(f)(SOURCE)
+    f = model.export(format="pb", imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
@@ -291,14 +291,14 @@ def test_export_paddle():
 
     Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
     """
-    YOLO(MODEL).export(format="paddle")
+    YOLO(MODEL).export(format="paddle", imgsz=32)
 
 
 @pytest.mark.slow
 def test_export_ncnn():
     """Test exporting the YOLO model to NCNN format."""
-    f = YOLO(MODEL).export(format="ncnn")
-    YOLO(f)(SOURCE)  # exported model inference
+    f = YOLO(MODEL).export(format="ncnn", imgsz=32)
+    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 def test_all_model_yamls():

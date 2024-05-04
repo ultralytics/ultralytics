@@ -470,11 +470,9 @@ class Exporter:
                 batch_size=self.args.batch,
             )
             dataloader = build_dataloader(dataset, batch=self.args.batch, workers=0)  # required for batch loading
-
             n = len(dataloader)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-
             quantization_dataset = nncf.Dataset(dataloader, transform_fn)
 
             ignored_scope = None

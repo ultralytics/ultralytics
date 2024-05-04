@@ -9,8 +9,8 @@ from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
-TASK_MODEL_DATA = [(task, TASK2MODEL(task), TASK2DATA(task)) for task in TASKS]
-MODELS = [(TASK2MODEL(task),) for task in TASKS]
+TASK_MODEL_DATA = [(task, TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
+MODELS = [(TASK2MODEL[task],) for task in TASKS]
 
 
 def run(cmd):

@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import shutil
 from copy import copy
 from itertools import product
 from pathlib import Path

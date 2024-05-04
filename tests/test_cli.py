@@ -10,7 +10,7 @@ from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
-MODELS = [(WEIGHTS_DIR / TASK2MODEL[task],) for task in TASKS]
+MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 
 
 def run(cmd):
@@ -45,7 +45,7 @@ def test_predict(task, model, data):
     run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
 
 
-@pytest.mark.parametrize("model,", MODELS)
+@pytest.mark.parametrize("model", MODELS)
 def test_export(model):
     """Test exporting a YOLO model to different formats."""
     run(f"yolo export model={model} format=torchscript imgsz=32")

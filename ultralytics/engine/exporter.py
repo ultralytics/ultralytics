@@ -65,6 +65,7 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import TASK2DATA, get_cfg
+from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
@@ -468,11 +469,13 @@ class Exporter:
                 augment=False,
                 batch_size=self.args.batch,
             )
-            n = len(dataset)
+            dataloader = build_dataloader(dataset, batch=self.args.batch, workers=0)  # required for batch loading
+
+            n = len(dataloader)
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
 
-            quantization_dataset = nncf.Dataset(dataset, transform_fn)
+            quantization_dataset = nncf.Dataset(dataloader, transform_fn)
 
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):

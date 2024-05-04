@@ -28,7 +28,6 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     LOGGER,
     RANK,
-    TESTS_RUNNING,
     TQDM,
     __version__,
     callbacks,
@@ -123,7 +122,7 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        if self.device.type in {"cpu", "mps"} and not TESTS_RUNNING:
+        if self.device.type in {"cpu", "mps"}:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Model and Dataset

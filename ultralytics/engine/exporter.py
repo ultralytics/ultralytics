@@ -64,7 +64,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import get_cfg, TASK2DATA
 from ultralytics.data.build import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -212,7 +212,12 @@ class Exporter:
                 "(torchscript, onnx, openvino, engine, coreml) formats. "
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
-
+        if self.args.int8 and not self.args.data:
+            self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
+            LOGGER.warning(
+                "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
+                f"Using default 'data={self.args.data}'."
+            )
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
@@ -443,12 +448,6 @@ class Exporter:
         if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
-            if not self.args.data:
-                self.args.data = DEFAULT_CFG.data or "coco128.yaml"
-                LOGGER.warning(
-                    f"{prefix} WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
-                    f"Using default 'data={self.args.data}'."
-                )
             check_requirements("nncf>=2.8.0")
             import nncf
 

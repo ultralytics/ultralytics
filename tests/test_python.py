@@ -667,7 +667,7 @@ def test_yolo_world():
     """Tests YOLO world models with different configurations, including classes, detection, and training scenarios."""
     model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
     model.set_classes(["tree", "window"])
-    model(ASSETS / "bus.jpg", conf=0.01)
+    model(SOURCE, conf=0.01)
 
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
@@ -677,11 +677,7 @@ def test_yolo_world():
         epochs=1,
         imgsz=32,
         cache="disk",
-        batch=4,
         close_mosaic=1,
-        name="yolo-world",
-        save_txt=True,
-        save_json=True,
     )
 
     # test WorWorldTrainerFromScratch
@@ -693,8 +689,6 @@ def test_yolo_world():
         epochs=1,
         imgsz=32,
         cache="disk",
-        batch=4,
         close_mosaic=1,
-        name="yolo-world",
         trainer=WorldTrainerFromScratch,
     )

@@ -474,11 +474,7 @@ class Exporter:
             if n < 300:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
 
-            dataset = build_dataloader(
-                dataset,
-                self.args.batch,
-                0,
-            )
+            dataset = build_dataloader(dataset, self.args.batch, 0)
             quantization_dataset = nncf.Dataset(dataset, transform_fn)
 
             ignored_scope = None

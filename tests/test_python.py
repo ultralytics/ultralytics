@@ -232,7 +232,7 @@ def test_export_openvino():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
-def test_export_openvino_long(task, dynamic, int8, half, batch):
+def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
     f = YOLO(TASK2MODEL[task]).export(
         format="openvino",

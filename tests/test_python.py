@@ -441,6 +441,7 @@ def test_utils_checks():
     checks.check_version("ultralytics", "8.0.0")
     checks.print_args()
 
+
 @pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")
 def test_utils_benchmarks():
     """Test model benchmarking."""

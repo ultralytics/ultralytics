@@ -245,7 +245,6 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
         data=TASK2DATA[task],
     )
     YOLO(f)([SOURCE] * batch, imgsz=32)  # exported model inference
-    shutil.rmtree(f)  # cleanup
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

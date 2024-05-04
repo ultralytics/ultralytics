@@ -81,9 +81,8 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
-    os.sched_setaffinity(0, range(NUM_THREADS))  # NOTE testing for failure on GITHUB CI
-    # if LINUX and hasattr(os, "sched_setaffinity"):  # unsupported on macOS and Windows
-    #     os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
+    if LINUX and hasattr(os, "sched_setaffinity"):  # unsupported on macOS and Windows
+        os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

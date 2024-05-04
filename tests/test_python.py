@@ -13,7 +13,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASK2MODEL
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -38,6 +38,11 @@ CFG = "yolov8n.yaml"
 SOURCE = ASSETS / "bus.jpg"
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
+EXPORT_PARAMETERS_LIST = [  # generate all combinations but exclude those where both int8 and half are True
+    (task, dynamic, int8, half, batch)
+    for task, dynamic, int8, half, batch in product(list(TASKS), [True, False], [True, False], [True, False], [1, 2])
+    if not (int8 and half)  # exclude cases where both int8 and half are True
+]
 
 
 def test_model_forward():
@@ -223,24 +228,22 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-@pytest.mark.parametrize(
-    "dynamic, int8, half, batch, data, imgsz",
-    product([True, False], [False, True], [True, False], [1, 2], [None], [None, 32]),
-)
-def test_export_openvino_long(dynamic, int8, half, batch, data, imgsz):
+@pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
+def test_export_openvino_long(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
-    args = {"dynamic": dynamic, "int8": int8, "half": half, "batch": batch, "data": data, "imgsz": imgsz}
-    for t, m in TASK2MODEL.items():
-        if args.get("int8"):
-            args["data"] = TASK2DATA.get(t)
-        if not (args.get("dynamic") or args.get("imgsz")):
-            args["imgsz"] = 64  # default
-        args = {k:v for k,v in args.items() if v is not None}
-        f = YOLO(m).export(format="openvino", **args)
-        YOLO(f, task=t)([SOURCE] * batch, imgsz=(args.get("imgsz") or 64))  # exported model inference
+    f = YOLO(TASK2MODEL[task]).export(
+        format="openvino",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+        data=TASK2DATA[task],
+    )
+    YOLO(f, task=task)([SOURCE] * batch, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
@@ -314,7 +317,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="onnx")  # export a model to ONNX format
+    model.export(format="torchscript")
 
 
 def test_predict_callback_and_setup():

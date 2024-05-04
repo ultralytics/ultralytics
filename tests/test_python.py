@@ -40,7 +40,7 @@ TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
 EXPORT_PARAMETERS_LIST = [  # generate all combinations but exclude those where both int8 and half are True
     (task, dynamic, int8, half, batch)
-    for task, dynamic, int8, half, batch in product(list(TASKS), [True, False], [True, False], [True, False], [1, 2])
+    for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
     if not (int8 and half)  # exclude cases where both int8 and half are True
 ]
 

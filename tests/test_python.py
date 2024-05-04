@@ -235,8 +235,7 @@ def test_export_coreml():
         YOLO(MODEL).export(format="coreml", nms=True)
 
 
-@pytest.mark.skipif(True, reason="Test disabled")
-@pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """
     Test exporting the YOLO model to TFLite format.
@@ -261,8 +260,7 @@ def test_export_pb():
     YOLO(f)(SOURCE)
 
 
-@pytest.mark.skipif(True, reason="Test disabled")
-@pytest.mark.skipif(True, reason="Paddle protobuf requirements conflicting with onnx protobuf requirements.")
+@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
 def test_export_paddle():
     """
     Test exporting the YOLO model to Paddle format.

@@ -235,38 +235,41 @@ def test_export_coreml():
         YOLO(MODEL).export(format="coreml", nms=True)
 
 
-def test_export_tflite(enabled=False):
+@pytest.mark.skipif(True, reason="Test disabled")
+@pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
+def test_export_tflite():
     """
     Test exporting the YOLO model to TFLite format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
-    if enabled and LINUX:
-        model = YOLO(MODEL)
-        f = model.export(format="tflite")
-        YOLO(f)(SOURCE)
+    model = YOLO(MODEL)
+    f = model.export(format="tflite")
+    YOLO(f)(SOURCE)
 
 
-def test_export_pb(enabled=False):
+@pytest.mark.skipif(True, reason="Test disabled")
+@pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
+def test_export_pb():
     """
     Test exporting the YOLO model to *.pb format.
 
     Note TF suffers from install conflicts on Windows and macOS.
     """
-    if enabled and LINUX:
-        model = YOLO(MODEL)
-        f = model.export(format="pb")
-        YOLO(f)(SOURCE)
+    model = YOLO(MODEL)
+    f = model.export(format="pb")
+    YOLO(f)(SOURCE)
 
 
-def test_export_paddle(enabled=False):
+@pytest.mark.skipif(True, reason="Test disabled")
+@pytest.mark.skipif(True, reason="Paddle protobuf requirements conflicting with onnx protobuf requirements.")
+def test_export_paddle():
     """
     Test exporting the YOLO model to Paddle format.
 
     Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
     """
-    if enabled:
-        YOLO(MODEL).export(format="paddle")
+    YOLO(MODEL).export(format="paddle")
 
 
 @pytest.mark.slow

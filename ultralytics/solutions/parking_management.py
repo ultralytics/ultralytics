@@ -46,7 +46,6 @@ class ParkingPtsSelection:
         self.canvas_max_width = 1280
         self.canvas_max_height = 720
 
-
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
         self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
@@ -86,8 +85,8 @@ class ParkingPtsSelection:
     def on_canvas_click(self, event):
         """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
-        x0, y0 = event.x-3, event.y-3
-        x1, y1 = event.x+3, event.y+3
+        x0, y0 = event.x - 3, event.y - 3
+        x1, y1 = event.x + 3, event.y + 3
         self.canvas.create_oval(x0, y0, x1, y1, fill="red")
 
         if len(self.current_box) == 4:
@@ -98,6 +97,7 @@ class ParkingPtsSelection:
     def draw_bounding_box(self, box):
         """
         Draw bounding box on canvas.
+
         Args:
             box(list): Bounding box data
         """

@@ -753,7 +753,7 @@ class Exporter:
                     trt.IInt8Calibrator.__init__(self)
                     self.dataset = dataset
                     self.data_iter = iter(dataset)
-                    self.algo = self.fetch_algo(calibration_algo)
+                    self.algo = self.fetch_algo(str(calibration_algo).upper())
                     self.batch = batch
                     self.cache = Path(cache)
 
@@ -807,7 +807,7 @@ class Exporter:
             config.int8_calibrator = EngineCalibrator(
                 dataset = dataset,
                 batch = 2 * self.args.batch,
-                calibration_algo = str(self.args.trt_quant_algo).upper(),
+                calibration_algo = "ENTROPY_CALIBRATION_2",
                 cache = cache_file,
             )
 

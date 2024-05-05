@@ -805,10 +805,10 @@ class Exporter:
 
             # Calibrate
             config.int8_calibrator = EngineCalibrator(
-                dataset = dataset,
-                batch = 2 * self.args.batch,
-                calibration_algo = str(self.args.trt_quant_algo).upper(),
-                cache = cache_file,
+                dataset=dataset,
+                batch=2 * self.args.batch,
+                calibration_algo=str(self.args.trt_quant_algo).upper(),
+                cache=cache_file,
             )
 
         elif half:

@@ -338,7 +338,7 @@ class Exporter:
 
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
-    
+
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader suitable for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
@@ -492,10 +492,10 @@ class Exporter:
                 )
 
             quantized_ov_model = nncf.quantize(
-                model=ov_model, 
-                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn), 
-                preset=nncf.QuantizationPreset.MIXED, 
-                ignored_scope=ignored_scope
+                model=ov_model,
+                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
+                preset=nncf.QuantizationPreset.MIXED,
+                ignored_scope=ignored_scope,
             )
             serialize(quantized_ov_model, fq_ov)
             return fq, None

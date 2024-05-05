@@ -107,6 +107,8 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
+@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
     [  # generate all combinations but exclude those where both int8 and half are True

@@ -27,17 +27,13 @@ from ultralytics.utils import (
     WINDOWS,
     Retry,
     checks,
-    is_dir_writeable,
     IS_RASPBERRYPI,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from . import TMP, IS_TMP_WRITEABLE, MODEL, CFG, SOURCE
 
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
-CFG = "yolov8n.yaml"
-SOURCE = ASSETS / "bus.jpg"
-TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
-IS_TMP_WRITEABLE = is_dir_writeable(TMP)
+# Constants
 EXPORT_PARAMETERS_LIST = [  # generate all combinations but exclude those where both int8 and half are True
     (task, dynamic, int8, half, batch)
     for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])

@@ -6,9 +6,9 @@ import pytest
 
 from ultralytics.cfg import TASKS, TASK2DATA, TASK2MODEL
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from . import CUDA_IS_AVAILABLE, CUDA_DEVICE_COUNT
 
-CUDA_IS_AVAILABLE = checks.cuda_is_available()
-CUDA_DEVICE_COUNT = checks.cuda_device_count()
+# Constants
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
 MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 

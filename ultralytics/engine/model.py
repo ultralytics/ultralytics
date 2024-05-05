@@ -572,7 +572,7 @@ class Model(nn.Module):
     def export(
         self,
         **kwargs,
-    ):
+    ) -> str:
         """
         Exports the model to a different format suitable for deployment.
 
@@ -588,7 +588,7 @@ class Model(nn.Module):
                 model's overrides and method defaults.
 
         Returns:
-            (object): The exported model in the specified format, or an object related to the export process.
+            (str): The exported model filename in the specified format, or an object related to the export process.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.

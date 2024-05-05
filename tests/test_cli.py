@@ -4,24 +4,14 @@ import subprocess
 
 import pytest
 
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
-CUDA_IS_AVAILABLE = checks.cuda_is_available()
-CUDA_DEVICE_COUNT = checks.cuda_device_count()
-TASK_ARGS = [
-    ("detect", "yolov8n", "coco8.yaml"),
-    ("segment", "yolov8n-seg", "coco8-seg.yaml"),
-    ("classify", "yolov8n-cls", "imagenet10"),
-    ("pose", "yolov8n-pose", "coco8-pose.yaml"),
-    ("obb", "yolov8n-obb", "dota8.yaml"),
-]  # (task, model, data)
-EXPORT_ARGS = [
-    ("yolov8n", "torchscript"),
-    ("yolov8n-seg", "torchscript"),
-    ("yolov8n-cls", "torchscript"),
-    ("yolov8n-pose", "torchscript"),
-    ("yolov8n-obb", "torchscript"),
-]  # (model, format)
+from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
+
+# Constants
+TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
+MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 
 
 def run(cmd):
@@ -38,28 +28,28 @@ def test_special_modes():
     run("yolo cfg")
 
 
-@pytest.mark.parametrize("task,model,data", TASK_ARGS)
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_train(task, model, data):
     """Test YOLO training for a given task, model, and data."""
-    run(f"yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 cache=disk")
+    run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")
 
 
-@pytest.mark.parametrize("task,model,data", TASK_ARGS)
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task, model, data):
     """Test YOLO validation for a given task, model, and data."""
-    run(f"yolo val {task} model={WEIGHTS_DIR / model}.pt data={data} imgsz=32 save_txt save_json")
+    run(f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json")
 
 
-@pytest.mark.parametrize("task,model,data", TASK_ARGS)
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task, model, data):
     """Test YOLO prediction on sample assets for a given task and model."""
-    run(f"yolo predict model={WEIGHTS_DIR / model}.pt source={ASSETS} imgsz=32 save save_crop save_txt")
+    run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
 
 
-@pytest.mark.parametrize("model,format", EXPORT_ARGS)
-def test_export(model, format):
+@pytest.mark.parametrize("model", MODELS)
+def test_export(model):
     """Test exporting a YOLO model to different formats."""
-    run(f"yolo export model={WEIGHTS_DIR / model}.pt format={format} imgsz=32")
+    run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
 def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
@@ -129,10 +119,10 @@ def test_mobilesam():
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------
 @pytest.mark.slow
-@pytest.mark.parametrize("task,model,data", TASK_ARGS)
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason="DDP is not available")
 def test_train_gpu(task, model, data):
     """Test YOLO training on GPU(s) for various tasks and models."""
-    run(f"yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 device=0")  # single GPU
-    run(f"yolo train {task} model={model}.pt data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU
+    run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
+    run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU

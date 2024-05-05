@@ -338,6 +338,23 @@ class Exporter:
 
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
+    
+    def get_int8_calibration_dataloader(self, prefix=""):
+        """Build and return a dataloader suitable for calibration of INT8 models."""
+        LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        dataset = YOLODataset(
+            data[self.args.split or "val"],
+            data=data,
+            task=self.model.task,
+            imgsz=self.imgsz[0],
+            augment=False,
+            batch_size=self.args.batch,
+        )
+        n = len(dataset)
+        if n < 300:
+            LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
+        return build_dataloader(dataset, batch=self.args.batch, workers=0)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -459,27 +476,10 @@ class Exporter:
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 
             # Generate calibration data for integer quantization
-            LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-            data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-            dataset = YOLODataset(
-                data[self.args.split or "val"],
-                data=data,
-                task=self.model.task,
-                imgsz=self.imgsz[0],
-                augment=False,
-                batch_size=self.args.batch,
-            )
-            dataloader = build_dataloader(dataset, batch=self.args.batch, workers=0)  # required for batch loading
-            n = len(dataloader)
-            if n < 300:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-            quantization_dataset = nncf.Dataset(dataloader, transform_fn)
-
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
                 # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
                         f".*{head_module_name}/.*/Add",
@@ -492,7 +492,10 @@ class Exporter:
                 )
 
             quantized_ov_model = nncf.quantize(
-                ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope
+                model=ov_model, 
+                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn), 
+                preset=nncf.QuantizationPreset.MIXED, 
+                ignored_scope=ignored_scope
             )
             serialize(quantized_ov_model, fq_ov)
             return fq, None
@@ -794,11 +797,9 @@ class Exporter:
             verbosity = "info"
             if self.args.data:
                 # Generate calibration data for integer quantization
-                LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-                data = check_det_dataset(self.args.data)
-                dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
+                dataloader = self.get_int8_calibration_dataloader(prefix)
                 images = []
-                for i, batch in enumerate(dataset):
+                for i, batch in enumerate(dataloader):
                     if i >= 100:  # maximum number of calibration images
                         break
                     im = batch["img"].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC

@@ -49,6 +49,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup
+    Path(file).with_suffix(".cache").unlink() if int8 else None  # cleanup INT8 cache
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")

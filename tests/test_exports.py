@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import shutil
+import uuid
 from itertools import product
+from pathlib import Path
 
 import pytest
 
@@ -16,7 +18,6 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-
 from . import MODEL, SOURCE
 
 # Constants
@@ -53,7 +54,7 @@ def test_export_openvino():
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
-    f = YOLO(TASK2MODEL[task]).export(
+    file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
         dynamic=dynamic,
@@ -62,9 +63,14 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
     )
-    YOLO(f)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    if WINDOWS:
+        # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
+        # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
+        file = Path(file)
+        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     with Retry(times=3, delay=1):  # retry in case of potential lingering multi-threaded file usage errors
-        shutil.rmtree(f)
+        shutil.rmtree(file)
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

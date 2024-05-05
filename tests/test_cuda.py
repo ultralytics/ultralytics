@@ -1,10 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+from pathlib import Path
+from itertools import product
 
 import pytest
 import torch
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 
 from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 
@@ -25,22 +28,27 @@ def test_export_engine():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
-def test_export_engine_dynamic():
-    """Test exporting the YOLO model to NVIDIA TensorRT format with dynamic axes."""
-    f = YOLO(MODEL).export(format="engine", dynamic=True, device=0)
-    YOLO(f)(BUS, device=0) # default imgsz
-    YOLO(f)(BUS, device=0, imgsz=224) # smaller imgsz
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
-def test_export_engine_int8():
-    """Test exporting the YOLO model to NVIDIA TensorRT format with INT8 quantization."""
-    # NOTE: int8 calibration will use/download COCO128 dataset for calibration
-    f = YOLO(MODEL).export(format="engine", int8=True, workspace=2, batch=4, device=0)
-    YOLO(f)(BUS, device=0) # normal
-    YOLO(f)(BUS, device=0, imgsz=224) # resized
-    YOLO(f)([BUS] * 4, device=0) # batch
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
+        if not (int8 and half)  # exclude cases where both int8 and half are True
+    ],
+)
+def test_export_engine_matrix(task, dynamic, int8, half, batch):
+    """Test YOLO exports to TensorRT format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="engine",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+        data=TASK2DATA[task],
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    Path(file).unlink()  # cleanup
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")

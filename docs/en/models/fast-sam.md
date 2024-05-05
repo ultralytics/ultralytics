@@ -36,8 +36,8 @@ This table presents the available models with their specific pre-trained weights
 
 | Model Type | Pre-trained Weights                                                                         | Tasks Supported                              | Inference | Validation | Training | Export |
 |------------|---------------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
 
 ## Usage Examples
 
@@ -118,6 +118,30 @@ Validation of the model on a dataset can be done as follows:
         ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+
+### Track Usage
+
+To perform object tracking on an image, use the `track` method as shown below:
+
+!!! Example
+
+    === "Python"
+   
+        ```python
+        from ultralytics import FastSAM
+
+        # Create a FastSAM model
+        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+
+        # Track with a FastSAM model on a video
+        results = model.track(source="path/to/video.mp4", imgsz=640)
+        ```
+   
+    === "CLI"
+
+        ```bash
+        yolo segment track model=FastSAM-s.pt source="path/to/video/file.mp4" imgsz=640
+        ```
 
 ## FastSAM official Usage
 

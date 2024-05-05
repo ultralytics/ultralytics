@@ -1,18 +1,18 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import os
+import subprocess
+import time
 from pathlib import Path
 
 import pytest
 
 from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS, DATASETS_DIR, ROOT, SETTINGS, WEIGHTS_DIR
+from ultralytics.utils import DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
-CFG = "yolov8n.yaml"
-SOURCE = ASSETS / "bus.jpg"
-TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
+from . import MODEL, SOURCE, TMP
 
 
 @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
@@ -33,8 +33,6 @@ def test_mlflow():
 @pytest.mark.skipif(True, reason="Test failing in scheduled CI https://github.com/ultralytics/ultralytics/pull/8868")
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow_keep_run_active():
-    import os
-
     import mlflow
 
     """Test training with MLflow tracking enabled."""
@@ -67,9 +65,6 @@ def test_mlflow_keep_run_active():
 def test_triton():
     """Test NVIDIA Triton Server functionalities."""
     check_requirements("tritonclient[all]")
-    import subprocess
-    import time
-
     from tritonclient.http import InferenceServerClient  # noqa
 
     # Create variables
@@ -126,7 +121,7 @@ def test_pycocotools():
     from ultralytics.models.yolo.segment import SegmentationValidator
 
     # Download annotations after each dataset downloads first
-    url = "https://github.com/ultralytics/assets/releases/download/v8.1.0/"
+    url = "https://github.com/ultralytics/assets/releases/download/v8.2.0/"
 
     args = {"model": "yolov8n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
     validator = DetectionValidator(args=args)

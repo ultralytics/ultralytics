@@ -22,7 +22,7 @@ This table presents the available models with their specific pre-trained weights
 
 | Model Type | Pre-trained Weights                                                                           | Tasks Supported                              | Inference | Validation | Training | Export |
 |------------|-----------------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## Adapting from SAM to MobileSAM
 

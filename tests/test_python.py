@@ -234,6 +234,9 @@ def test_export_openvino():
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
+    if WINDOWS and task == "classify" and False:
+        # Bug https://github.com/ultralytics/ultralytics/actions/runs/8952795151/job/24590574452
+        return
     f = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
@@ -243,7 +246,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
     )
-    YOLO(f)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(f)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

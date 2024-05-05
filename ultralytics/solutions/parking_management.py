@@ -17,7 +17,20 @@ class ParkingPtsSelection:
         """Initializes the UI for selecting parking zone points in a tkinter window."""
         self.master = master
         master.title("Ultralytics Parking Zones Points Selector")
-        self.initialize_ui()
+
+        # Resizable false
+        master.resizable(False, False)
+
+        # Setup canvas for image display
+        self.canvas = tk.Canvas(master, bg="white")
+
+        # Setup buttons
+        button_frame = tk.Frame(master)
+        button_frame.pack(side=tk.TOP)
+
+        tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
+        tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(row=0, column=1)
+        tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
 
         # Initialize properties
         self.image_path = None
@@ -33,20 +46,6 @@ class ParkingPtsSelection:
         self.canvas_max_width = 1280
         self.canvas_max_height = 720
 
-    def initialize_ui(self):
-        """Setup UI components."""
-        # Setup buttons
-        button_frame = tk.Frame(self.master)
-        button_frame.pack(side=tk.TOP)
-
-        tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
-        tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(row=0, column=1)
-        tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
-
-        # Setup canvas for image display
-        self.canvas = tk.Canvas(self.master, bg="white")
-        self.canvas.pack(side=tk.BOTTOM)
-        self.canvas.bind("<Button-1>", self.on_canvas_click)
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
@@ -68,10 +67,17 @@ class ParkingPtsSelection:
             canvas_height = min(self.canvas_max_height, self.img_height)
             canvas_width = int(canvas_height * aspect_ratio)
 
-        self.canvas.config(width=canvas_width, height=canvas_height)
+        # Check if canvas is already initialized
+        if self.canvas:
+            self.canvas.destroy()  # Destroy previous canvas
+
+        self.canvas = tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
         resized_image = self.image.resize((canvas_width, canvas_height), Image.LANCZOS)
         self.canvas_image = ImageTk.PhotoImage(resized_image)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.canvas_image)
+
+        self.canvas.pack(side=tk.BOTTOM)
+        self.canvas.bind("<Button-1>", self.on_canvas_click)
 
         # Reset bounding boxes and current box
         self.bounding_boxes = []
@@ -80,6 +86,9 @@ class ParkingPtsSelection:
     def on_canvas_click(self, event):
         """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
+        x0, y0 = event.x-2, event.y-2
+        x1, y1 = event.x+2, event.y+2
+        self.canvas.create_oval(x0, y0, x1, y1, outline="red")
 
         if len(self.current_box) == 4:
             self.bounding_boxes.append(self.current_box)
@@ -115,7 +124,6 @@ class ParkingPtsSelection:
         height_scaling_factor = self.img_height / canvas_height
         bounding_boxes_data = []
         for box in self.bounding_boxes:
-            print("Bounding Box ", bounding_boxes_data)
             rescaled_box = []
             for x, y in box:
                 rescaled_x = int(x * width_scaling_factor)

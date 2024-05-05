@@ -393,19 +393,25 @@ class Results(SimpleClass):
 
         # Create list of detection dictionaries
         results = []
-        data = self.boxes.data.cpu().tolist()
+        data = (self.boxes or self.obb).data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {
-                "x1": round(row[0] / w, decimals),
-                "y1": round(row[1] / h, decimals),
-                "x2": round(row[2] / w, decimals),
-                "y2": round(row[3] / h, decimals),
-            }
+            box = (
+                {
+                    "x1": round(row[0] / w, decimals),
+                    "y1": round(row[1] / h, decimals),
+                    "x2": round(row[2] / w, decimals),
+                    "y2": round(row[3] / h, decimals),
+                }
+                if self.boxes
+                else {"TODO"}
+                if self.obb
+                else None
+            )
             conf = round(row[-2], decimals)
             class_id = int(row[-1])
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
-            if self.boxes.is_track:
+            if (self.boxes or self.obb).is_track:
                 result["track_id"] = int(row[-3])  # track ID
             if self.masks:
                 result["segments"] = {

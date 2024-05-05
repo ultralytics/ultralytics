@@ -344,22 +344,23 @@ class Exporter:
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 
-    def get_int8_calibration_dataloader(self, prefix=""):
+    def get_int8_calibration_dataloader(self, prefix="", batch_override=None):
         """Build and return a dataloader suitable for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        use_batch = self.args.batch if not batch_override else batch_override
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=self.args.batch,
+            batch_size=use_batch,
         )
         n = len(dataset)
         if n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=self.args.batch, workers=0)  # required for batch loading
+        return build_dataloader(dataset, batch=use_batch, workers=0)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -800,20 +801,7 @@ class Exporter:
 
             # Load dataset and builder (for batching)
             bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
-            data = (check_det_dataset if self.args.task != "classify" else check_cls_dataset)(self.args.data)
-            dataset = YOLODataset(
-                data[self.args.split or "val"],
-                data=data,
-                task=self.args.task,
-                imgsz=self.imgsz[0],
-                augment=False,
-                batch_size=bsize,
-            )
-            dataset = build_dataloader(dataset, batch=bsize, workers=0, shuffle=False)
-
-            n = len(dataset) * bsize
-            if n < 500:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ >=500 images recommended for INT8 calibration, found {n} images.")
+            dataset = self.get_int8_calibration_dataloader(prefix, batch_override=bsize)
             cache_file = self.file.with_suffix(".cache")
 
             # Calibrate

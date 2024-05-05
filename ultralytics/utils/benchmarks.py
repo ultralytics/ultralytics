@@ -132,10 +132,7 @@ def benchmark(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
-
-            # calculate effective FPS
-            fps = round((1000 / speed), 2)
-
+            fps = round((1000 / speed), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
             if verbose:
@@ -147,9 +144,7 @@ def benchmark(
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
-    # get model name
     name = Path(model.ckpt_path).name
-
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:

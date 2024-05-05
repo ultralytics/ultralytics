@@ -6,13 +6,8 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "mkdocs.yml"
   pull_request:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
   schedule:
     - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
@@ -174,7 +169,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-14]
         python-version: ["3.11"]
         torch: [latest]
         include:

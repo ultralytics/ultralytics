@@ -20,13 +20,6 @@ from ultralytics.utils import (
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 from . import MODEL, SOURCE
 
-# Constants
-EXPORT_PARAMETERS_LIST = [  # generate all combinations but exclude those where both int8 and half are True
-    (task, dynamic, int8, half, batch)
-    for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
-    if not (int8 and half)  # exclude cases where both int8 and half are True
-]
-
 
 def test_export_torchscript():
     """Test exporting the YOLO model to TorchScript format."""
@@ -51,7 +44,14 @@ def test_export_openvino():
 @pytest.mark.slow
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-@pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
+        if not (int8 and half)  # exclude cases where both int8 and half are True
+    ],
+)
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
     file = YOLO(TASK2MODEL[task]).export(
@@ -71,6 +71,22 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     with Retry(times=3, delay=1):  # retry in case of potential lingering multi-threaded file usage errors
         shutil.rmtree(file)
+
+
+# @pytest.mark.slow
+@pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [True, False], [False], [False], [1, 2]))
+def test_export_onnx_matrix(task, dynamic, int8, half, batch):
+    """Test exporting the YOLO model to ONNX format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="onnx",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    shutil.rmtree(file)
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

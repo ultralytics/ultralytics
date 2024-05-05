@@ -344,23 +344,22 @@ class Exporter:
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 
-    def get_int8_calibration_dataloader(self, prefix="", batch_override=None):
+    def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader suitable for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        use_batch = self.args.batch if not batch_override else batch_override
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=use_batch,
+            batch_size=self.args.batch * 2,
         )
         n = len(dataset)
         if n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=use_batch, workers=0)  # required for batch loading
+        return build_dataloader(dataset, batch=self.args.batch * 2, workers=0)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -801,16 +800,15 @@ class Exporter:
             LOGGER.info(f"{prefix} building INT8 engine as {f}")
 
             # Load dataset and builder (for batching)
-            bsize = int(2 * max(self.args.batch, 4))  # int8 calibration should use at least 2x batch size
-            dataset = self.get_int8_calibration_dataloader(prefix, batch_override=bsize)
+            dataset = self.get_int8_calibration_dataloader(prefix)
             cache_file = self.file.with_suffix(".cache")
 
             # Calibrate
             config.int8_calibrator = EngineCalibrator(
-                dataset,
-                bsize,
-                str(self.args.trt_quant_algo).upper(),
-                cache_file,
+                dataset = dataset,
+                batch = 2 * self.args.batch,
+                calibration_algo = str(self.args.trt_quant_algo).upper(),
+                cache = cache_file,
             )
 
         elif half:

@@ -86,9 +86,9 @@ class ParkingPtsSelection:
     def on_canvas_click(self, event):
         """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
-        x0, y0 = event.x-2, event.y-2
-        x1, y1 = event.x+2, event.y+2
-        self.canvas.create_oval(x0, y0, x1, y1, outline="red")
+        x0, y0 = event.x-3, event.y-3
+        x1, y1 = event.x+3, event.y+3
+        self.canvas.create_oval(x0, y0, x1, y1, fill="red")
 
         if len(self.current_box) == 4:
             self.bounding_boxes.append(self.current_box)
@@ -96,7 +96,12 @@ class ParkingPtsSelection:
             self.current_box = []
 
     def draw_bounding_box(self, box):
-        """Draw bounding box on canvas."""
+        """
+        Draw bounding box on canvas.
+        Args:
+            box(list): Bounding box data
+        """
+
         for i in range(4):
             x1, y1 = box[i]
             x2, y2 = box[(i + 1) % 4]

@@ -18,25 +18,17 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
-    LINUX,
-    MACOS,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
     Retry,
     checks,
-    is_dir_writeable,
-    IS_RASPBERRYPI,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_9
 
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
-CFG = "yolov8n.yaml"
-SOURCE = ASSETS / "bus.jpg"
-TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
-IS_TMP_WRITEABLE = is_dir_writeable(TMP)
+from . import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
 def test_model_forward():
@@ -202,81 +194,6 @@ def test_train_pretrained():
     model(SOURCE)
 
 
-def test_export_torchscript():
-    """Test exporting the YOLO model to TorchScript format."""
-    f = YOLO(MODEL).export(format="torchscript", optimize=False)
-    YOLO(f)(SOURCE)  # exported model inference
-
-
-def test_export_onnx():
-    """Test exporting the YOLO model to ONNX format."""
-    f = YOLO(MODEL).export(format="onnx", dynamic=True)
-    YOLO(f)(SOURCE)  # exported model inference
-
-
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
-def test_export_openvino():
-    """Test exporting the YOLO model to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino")
-    YOLO(f)(SOURCE)  # exported model inference
-
-
-@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
-@pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
-def test_export_coreml():
-    """Test exporting the YOLO model to CoreML format."""
-    if MACOS:
-        f = YOLO(MODEL).export(format="coreml")
-        YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
-    else:
-        YOLO(MODEL).export(format="coreml", nms=True)
-
-
-@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
-def test_export_tflite():
-    """
-    Test exporting the YOLO model to TFLite format.
-
-    Note TF suffers from install conflicts on Windows and macOS.
-    """
-    model = YOLO(MODEL)
-    f = model.export(format="tflite")
-    YOLO(f)(SOURCE)
-
-
-@pytest.mark.skipif(True, reason="Test disabled")
-@pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
-def test_export_pb():
-    """
-    Test exporting the YOLO model to *.pb format.
-
-    Note TF suffers from install conflicts on Windows and macOS.
-    """
-    model = YOLO(MODEL)
-    f = model.export(format="pb")
-    YOLO(f)(SOURCE)
-
-
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
-def test_export_paddle():
-    """
-    Test exporting the YOLO model to Paddle format.
-
-    Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
-    """
-    YOLO(MODEL).export(format="paddle")
-
-
-@pytest.mark.slow
-def test_export_ncnn():
-    """Test exporting the YOLO model to NCNN format."""
-    f = YOLO(MODEL).export(format="ncnn")
-    YOLO(f)(SOURCE)  # exported model inference
-
-
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
@@ -293,7 +210,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="onnx")  # export a model to ONNX format
+    model.export(format="torchscript")
 
 
 def test_predict_callback_and_setup():
@@ -641,7 +558,7 @@ def test_yolo_world():
     """Tests YOLO world models with different configurations, including classes, detection, and training scenarios."""
     model = YOLO("yolov8s-world.pt")  # no YOLOv8n-world model yet
     model.set_classes(["tree", "window"])
-    model(ASSETS / "bus.jpg", conf=0.01)
+    model(SOURCE, conf=0.01)
 
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
@@ -651,11 +568,7 @@ def test_yolo_world():
         epochs=1,
         imgsz=32,
         cache="disk",
-        batch=4,
         close_mosaic=1,
-        name="yolo-world",
-        save_txt=True,
-        save_json=True,
     )
 
     # test WorWorldTrainerFromScratch
@@ -667,8 +580,6 @@ def test_yolo_world():
         epochs=1,
         imgsz=32,
         cache="disk",
-        batch=4,
         close_mosaic=1,
-        name="yolo-world",
         trainer=WorldTrainerFromScratch,
     )

@@ -234,8 +234,9 @@ def test_export_openvino():
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", EXPORT_PARAMETERS_LIST)
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test exporting the YOLO model to OpenVINO format."""
-    if WINDOWS and task == "classify" and False:
-        # Bug https://github.com/ultralytics/ultralytics/actions/runs/8952795151/job/24590574452
+    if WINDOWS and task == "classify" and batch > 1:
+        # OpenVINO RuntimeError: Check 'bin_file' failed at src\core\src\pass\serialize.cpp:1210:
+        # https://github.com/ultralytics/ultralytics/actions/runs/8952795151/job/24590574452
         return
     f = YOLO(TASK2MODEL[task]).export(
         format="openvino",

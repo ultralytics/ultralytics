@@ -105,7 +105,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
     Path(file).unlink()  # cleanup
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

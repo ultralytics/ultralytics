@@ -99,7 +99,7 @@ class ParkingPtsSelection:
         Draw bounding box on canvas.
 
         Args:
-            box(list): Bounding box data
+            box (list): Bounding box data
         """
 
         for i in range(4):
@@ -176,7 +176,8 @@ class ParkingManagement:
         self.model = YOLO(self.model_path)
         return self.model
 
-    def parking_regions_extraction(self, json_file):
+    @staticmethod
+    def parking_regions_extraction(json_file):
         """
         Extract parking regions from json file.
 
@@ -185,8 +186,7 @@ class ParkingManagement:
         """
 
         with open(json_file, "r") as json_file:
-            json_data = json.load(json_file)
-            return json_data
+            return json.load(json_file)
 
     def process_data(self, json_data, im0, boxes, clss):
         """

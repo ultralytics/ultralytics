@@ -387,8 +387,8 @@ class Results(SimpleClass):
 
     def summary(self, normalize=False, decimals=5):
         """Convert the results to a summarized format."""
-        if self.probs is not None:
-            LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
+        if self.obb is not None or self.probs is not None:
+            LOGGER.warning("Warning: Classify and OBB results do not support the `summary()` method yet.")
             return
 
         # Create list of detection dictionaries

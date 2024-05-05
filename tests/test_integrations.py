@@ -11,7 +11,8 @@ import pytest
 from ultralytics import YOLO, download
 from ultralytics.utils import DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
-from . import TMP, MODEL, SOURCE
+
+from . import MODEL, SOURCE, TMP
 
 
 @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")

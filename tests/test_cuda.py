@@ -5,7 +5,8 @@ import torch
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from . import MODEL, SOURCE, CUDA_IS_AVAILABLE, CUDA_DEVICE_COUNT
+
+from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 
 
 def test_checks():

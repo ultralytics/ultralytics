@@ -132,16 +132,17 @@ def benchmark(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
-            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
+            fps = round((1000 / speed), 2)  # frames per second
+            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"
             LOGGER.warning(f"ERROR ❌️ Benchmark failure for {name}: {e}")
-            y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
+            y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)"])
+    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
     name = Path(model.ckpt_path).name
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"

@@ -75,7 +75,7 @@ def test_predict_txt():
     _ = YOLO(MODEL)(source=txt_file, imgsz=32)
 
 
-@pytest.mark.parametrize("model", MODELS)
+@pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO prediction on various types of image sources."""
     model = YOLO(WEIGHTS_DIR / model_name)

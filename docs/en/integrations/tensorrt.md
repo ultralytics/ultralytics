@@ -121,7 +121,7 @@ When processing implicitly quantized networks TensorRT uses `INT8` opportunistic
 
 #### Configuring INT8 Export
 
-The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) Nvidia discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/).
+The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) Nvidia discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"ENTROPY_CALIBRATION_2"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#enable_int8_c). Ultralytics tests found that `"ENTROPY_CALIBRATION_2"` was the best choice and exports are fixed to using this algorithm.
 
   - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
     
@@ -135,23 +135,11 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
     - <u><b>Remember</b> calibration for `INT8` is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
-  - `trt_quant_algo` : Specifies the algorithm to use for `INT8` quantization. The default is value is `trt_quant_algo="ENTROPY_CALIBRATION_2"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#enable_int8_c).
-
-    ??? info "Available Algorithms for TensorRT INT8 Calibration"
-
-        - `LEGACY_CALIBRATION`
-  
-        - `ENTROPY_CALIBRATION`
-  
-        - `ENTROPY_CALIBRATION_2`
-  
-        - `MINMAX_CALIBRATION`
-
-  - `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used but will not accept batches any larger than what is specified.
+  - `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
     
     !!! note
 
-        During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, `batch` will instead be set to `batch=4` and calibration will be run at `4 × 2` to reduce calibration scaling errors.
+        During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
 
 Experimentation by Nvidia led them to recommend using at least 500 calibration images that are representative of the data for your model, with `INT8` quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for `INT8` calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with `INT8` quantization, the default will be to use `coco128.yaml` instead of throwing an error.
 

@@ -12,7 +12,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA
+from ultralytics.cfg import TASK2DATA, MODELS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -27,7 +27,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
-
 from . import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
@@ -76,13 +75,10 @@ def test_predict_txt():
     _ = YOLO(MODEL)(source=txt_file, imgsz=32)
 
 
-def test_predict_img():
+@pytest.mark.parametrize("model", MODELS)
+def test_predict_img(model_name):
     """Test YOLO prediction on various types of image sources."""
-    model = YOLO(MODEL)
-    seg_model = YOLO(WEIGHTS_DIR / "yolov8n-seg.pt")
-    cls_model = YOLO(WEIGHTS_DIR / "yolov8n-cls.pt")
-    pose_model = YOLO(WEIGHTS_DIR / "yolov8n-pose.pt")
-    obb_model = YOLO(WEIGHTS_DIR / "yolov8n-obb.pt")
+    model = YOLO(WEIGHTS_DIR / model_name)
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
@@ -102,14 +98,6 @@ def test_predict_img():
     # Test tensor inference
     im = torch.rand((4, 3, 32, 32))  # batch-size 4, FP32 0.0-1.0 RGB order
     results = model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = seg_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = cls_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = pose_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = obb_model(im, imgsz=32)
     assert len(results) == im.shape[0]
 
 
@@ -236,19 +224,19 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-def test_results():
+@pytest.mark.parametrize("model", MODELS)
+def test_results(model):
     """Test various result formats for the YOLO model."""
-    for m in "yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt":
-        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
-        for r in results:
-            r = r.cpu().numpy()
-            r = r.to(device="cpu", dtype=torch.float32)
-            r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
-            r.save_crop(save_dir=TMP / "runs/tests/crops/")
-            r.tojson(normalize=True)
-            r.plot(pil=True)
-            r.plot(conf=True, boxes=True)
-            print(r, len(r), r.path)
+    results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
+    for r in results:
+        r = r.cpu().numpy()
+        r = r.to(device="cpu", dtype=torch.float32)
+        r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
+        r.save_crop(save_dir=TMP / "runs/tests/crops/")
+        r.tojson(normalize=True)
+        r.plot(pil=True)
+        r.plot(conf=True, boxes=True)
+        print(r, len(r), r.path)
 
 
 def test_labels_and_crops():

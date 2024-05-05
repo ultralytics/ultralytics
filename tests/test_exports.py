@@ -89,6 +89,22 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)
 
 
+# @pytest.mark.slow
+@pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [False], [False], [False], [1, 2]))
+def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
+    """Test exporting the YOLO model to TorchScript format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="torchscript",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+    )
+    YOLO(file)([SOURCE] * 3, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
+    shutil.rmtree(file)
+
+
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")

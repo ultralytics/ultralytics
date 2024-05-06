@@ -207,7 +207,7 @@ jobs:
           fi
           # pip install mlflow pycocotools "ray[tune]<=2.9.3"
           # pip install pycocotools "ray[tune]<=2.9.3" "mlflow; platform_system != 'Windows' and python_version <= '3.11'"
-          pip install "ray[tune]>=2.20.0"
+          pip install "ray[tune]"
           slow="--slow"
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov

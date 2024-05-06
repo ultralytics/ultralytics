@@ -201,10 +201,10 @@ jobs:
         run: |
           slow=""
           if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              pip install pycocotools mlflow "ray[tune]>=2.20.0"
+              pip install pycocotools mlflow "ray[tune]"
               slow="--slow"
           fi
-          pip install pycocotools mlflow "ray[tune]>=2.20.0"
+          pip install pycocotools mlflow "ray[tune]"
           slow="--slow"
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
@@ -250,7 +250,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]>=2.20.0"
+          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]"
       - name: Check environment
         run: |
           yolo checks

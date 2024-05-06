@@ -387,26 +387,32 @@ class Results(SimpleClass):
 
     def summary(self, normalize=False, decimals=5):
         """Convert the results to a summarized format."""
-        if self.probs is not None:
-            LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
-            return
-
         # Create list of detection dictionaries
         results = []
-        data = self.boxes.data.cpu().tolist()
+        if self.probs is not None:
+            class_id = self.probs.top1
+            results.append(
+                {
+                    "name": self.names[class_id],
+                    "class": class_id,
+                    "confidence": round(self.probs.top1conf.item(), decimals),
+                }
+            )
+            return results
+
+        data = self.boxes or self.obb
+        is_obb = self.obb is not None
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {
-                "x1": round(row[0] / w, decimals),
-                "y1": round(row[1] / h, decimals),
-                "x2": round(row[2] / w, decimals),
-                "y2": round(row[3] / h, decimals),
-            }
-            conf = round(row[-2], decimals)
-            class_id = int(row[-1])
-            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
-            if self.boxes.is_track:
-                result["track_id"] = int(row[-3])  # track ID
+            class_id, conf = int(row.cls), round(row.conf.item(), decimals)
+            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            xy = {}
+            for i, b in enumerate(box):
+                xy[f"x{i + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{i + 1}"] = round(b[1] / h, decimals)
+            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
+            if data.is_track:
+                result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
                     "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),

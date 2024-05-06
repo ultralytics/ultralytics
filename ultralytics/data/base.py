@@ -14,9 +14,8 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-
-from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):

@@ -30,7 +30,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e ".[export]" "albumentations<=1.4.4" comet pycocotools
+RUN pip install --no-cache -e ".[export]" "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here

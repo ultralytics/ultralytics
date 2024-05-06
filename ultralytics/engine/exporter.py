@@ -733,7 +733,6 @@ class Exporter:
             config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
             class EngineCalibrator(trt.IInt8Calibrator):
-
                 def __init__(
                     self,
                     dataset,  # ultralytics.data.build.InfiniteDataLoader
@@ -747,7 +746,6 @@ class Exporter:
                     self.algo = getattr(trt.CalibrationAlgoType, calibration_algo)
                     self.batch = batch
                     self.cache = Path(cache)
-
 
                 def get_algorithm(self) -> trt.CalibrationAlgoType:
                     """Get the calibration algorithm to use."""

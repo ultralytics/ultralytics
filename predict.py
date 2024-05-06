@@ -34,7 +34,7 @@ images = [
 img_names = [x.split('/')[-1].split('.')[0] for x in images]
 
 for idx, image in enumerate(images):
-    results = model.predict(image, imgsz=640)  # return a list of Results objects
+    results = model.predict(image, imgsz=640, conf=0.5)  # return a list of Results objects
 
     # Process results list
     for result in results:

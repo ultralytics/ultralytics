@@ -25,7 +25,7 @@ class Settings:
             'description':
             'Image embeddings dimension. 0 means no embeddings, 2 means 2D embeddings, 3 means 3D embeddings'})
     image_embeddings_reducer: str = field(
-        default='umap',
+        default='pacmap',
         metadata={
             'description':
             'Reduction algorithm for image embeddings. Options: pacmap and umap. Only used if IMAGE_EMBEDDINGS_DIM > 0'

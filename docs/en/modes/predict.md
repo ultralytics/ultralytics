@@ -731,7 +731,7 @@ When using YOLO models in a multi-threaded application, it's important to instan
     from threading import Thread
 
     def thread_safe_predict(image_path):
-        # Instantiate a new model inside the thread
+        """Performs thread-safe prediction on an image using a locally instantiated YOLO model."""
         local_model = YOLO("yolov8n.pt")
         results = local_model.predict(image_path)
         # Process results

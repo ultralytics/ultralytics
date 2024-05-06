@@ -165,7 +165,7 @@ class TLCDetectionValidator(DetectionValidator):
             for pi in range(len(predictions)):
                 annotations.append({
                     'score': conf[pi],
-                    'category_id': pred_cls[pi],
+                    'category_id': int(pred_cls[pi]),
                     'bbox': pred_xywh[pi, :].cpu().tolist(),
                     'iou': box_ious[pi], })
 

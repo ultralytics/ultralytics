@@ -780,8 +780,6 @@ class Exporter:
                     """Write calibration cache to disk."""
                     _ = self.cache.write_bytes(cache)
 
-            LOGGER.info(f"{prefix} building INT8 engine as {f}")
-
             # Load dataset and builder (for batching)
             dataset = self.get_int8_calibration_dataloader(prefix)
             cache_file = self.file.with_suffix(".cache")
@@ -795,7 +793,6 @@ class Exporter:
             )
 
         elif half:
-            LOGGER.info(f"{prefix} building FP16 engine as {f}")
             config.set_flag(trt.BuilderFlag.FP16)
 
         # Free CUDA memory

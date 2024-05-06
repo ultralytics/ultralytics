@@ -145,11 +145,9 @@ Providing invalid values (or combinations of values) will either log an appropri
 
 ### Image Embeddings
 
-Image embeddings can be collected by setting `TLC_IMAGE_EMBEDDINGS_DIM` to 2 or 3, and are based on the output of the spatial pooling function output from the YOLOv5 architectures. Similar images, as seen by the model, tend to be close to each other in this space. In the 3LC Dashboard these embeddings can be visualized, allowing you to find similar images, find duplicates, find imbalances in your dataset and determine if your validation set is representative of your training data (and vice-versa).
+Image embeddings can be collected by setting `image_embeddings_dim` to 2 or 3, and are based on the output of the spatial pooling function output from the YOLOv8 architectures. Similar images, as seen by the model, tend to be close to each other in this space. In the 3LC Dashboard these embeddings can be visualized, allowing you to find similar images, duplicates and imbalances in your dataset and determine if your validation set is representative of your training data (and vice-versa).
 
 ## Other output
-
-In addition to per-sample metrics, a separate metrics table is written with per-class metrics computed by YOLOv5. This is available as a second tab in the 3LC Dashboard when you open a YOLOv5 run.
 
 When viewing all your YOLOv8 runs in the 3LC Dashboard, charts will show up with per-epoch validation metrics for each run. This allows you to follow your runs in real-time, and compare them with each other.
 
@@ -159,7 +157,7 @@ When viewing all your YOLOv8 runs in the 3LC Dashboard, charts will show up with
 
 By default, the 3LC integration collects metrics only after training with the `best.pt` weights written by YOLOv8. These are the after training metrics.
 
-If a starting metrics collection epoch is provided (optionally with an interval), metrics are also collected during training, this time with the exponential moving average that YOLOv5 uses for its validation passes.
+If a starting metrics collection epoch is provided (optionally with an interval), metrics are also collected during training, this time with the exponential moving average that YOLOv8 uses for its validation passes.
 
 ## What happens if I use early stopping? Does it interfere with 3LC?
 

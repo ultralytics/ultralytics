@@ -34,7 +34,7 @@ def check_det_dataset(data: str) -> dict[str, tlc.Table | int | dict[int, str]]:
 
 
 def yolo_predicted_bounding_box_schema(categories: dict[int, str]) -> tlc.Schema:
-    """ Create a 3LC bounding box schema for YOLOv5
+    """ Create a 3LC bounding box schema for YOLOv8
 
     :param categories: Categories for the current dataset.
     :returns: The YOLO bounding box schema for predicted boxes.
@@ -377,7 +377,7 @@ def write_3lc_yaml(data_file: str, tables: dict[str, tlc.Table]):
 
     # Common path for train, val, test tables:
     #                                        v           <--          <--          *
-    # projects / yolov5-<dataset_name> / datasets / <dataset_name> / tables / <table_url> / files
+    # projects / yolov8-<dataset_name> / datasets / <dataset_name> / tables / <table_url> / files
     path = tables['train'].url.parent.parent.parent
 
     # Get relative paths for each table to write to YAML file

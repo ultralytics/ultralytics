@@ -180,7 +180,7 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if self.cache == "ram":
                     self.mem_cache_bytes_used += self.ims[i].nbytes
-                if len(self.buffer) >= self.max_buffer_length:
+                if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
                     if self.cache != "ram":
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None

@@ -145,7 +145,7 @@ class IOUTracker:
         frame_id (int): The current frame ID.
         args (namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
-        min_iou (float): Min iou overlap to match tracks
+        match_thresh (float): 1 - Min iou overlap to match tracks
 
     Methods: TODO
         update(results, img=None): Updates object tracker with new detections.
@@ -166,7 +166,7 @@ class IOUTracker:
         self.frame_id = 0
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
-        self.min_iou = args.min_iou
+        self.match_thresh = args.match_thresh
         self.reset_id()
 
     def update(self, results, img=None):
@@ -192,7 +192,7 @@ class IOUTracker:
 
         # matching
         dists = self.get_dists(self.tracked_ioutracks, detections)
-        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.min_iou)
+        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.match_thresh)
 
         for itracked, idet in matches:
             mtrack = self.tracked_ioutracks[itracked]
@@ -235,13 +235,13 @@ class IOUTracker:
         """Initialize object tracking with detections and scores using IOUTrack algorithm."""
         return [IOUTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
-    def get_dists(self, tracks, detections):
-        """Calculates the distance between tracks and detections using IoU and fuses scores."""
-        dists = matching.iou_distance(tracks, detections)
-        # TODO: mot20
-        # if not self.args.mot20:
-        dists = matching.fuse_score(dists, detections)
-        return dists
+    # def get_dists(self, tracks, detections):
+    #     """Calculates the distance between tracks and detections using IoU and fuses scores."""
+    #     dists = matching.iou_distance(tracks, detections)
+    #     # TODO: mot20
+    #     # if not self.args.mot20:
+    #     dists = matching.fuse_score(dists, detections)
+    #     return dists
 
     @staticmethod
     def reset_id():

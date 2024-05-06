@@ -2,9 +2,9 @@
 # Default YOLO tracker settings for IOU tracker https://github.com/ifzhang/ByteTrack
 
 tracker_type: ioutrack # tracker type, ['botsort', 'bytetrack', 'ioutrack', 'centroidtrack']
-min_iou: 0.5 # threshold for iou to match detections
+match_thresh: 0.5 # threshold for iou to match detections
 track_thresh: 0.6 # threshold for confidence of all detections to be considered for tracking
 track_buffer: 30 # buffer to calculate the time when to remove tracks
-match_thresh: 0.8 # threshold for matching tracks
+match_thresh: 0.8 # threshold for matching tracks (1-min IOU)
 # min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)
 # mot20: False  # for tracker evaluation(not used for now)

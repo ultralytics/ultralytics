@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 import math
-from equilib import equi2cube, cube2equi
+from equilib import equi2cube, cube2equi, equi2pers
 
 
 def cubemap_to_equirectangular(u, v, face_size, face_index, equirectangular_width, equirectangular_height):
@@ -380,72 +380,27 @@ for idx_conf in confs:
         cut_width = int(width / 4)
         cut_height = int(height / 3)
         equi_img = np.transpose(img, (2, 0, 1))
-        # rotations
-        rots = {
-            'roll': 0.,
-            'pitch': 0,  # rotate vertical
-            'yaw': 0,  # rotate horizontal
-        }
+        yaw = 0
+
         equi_img = torch.tensor(equi_img)
-        # Run equi2pers
-        cube_img = equi2cube(
-            equi=equi_img,
-            rots=rots,
-            w_face=cut_width,
-            cube_format='dice'
-        )
-        print(f'图片处理耗时{time.time() - now}s')
-        cube_result = np.ascontiguousarray(np.transpose(cube_img, (1, 2, 0)))
-        face_width = int(cube_result.shape[1] / 4)
-        face_height = int(cube_result.shape[0] / 3)
-        top = cube_result[0 * face_height: 1 * face_height, face_width: 2 * face_width]
-        bottom = cube_result[2 * face_height: 3 * face_height, face_width: 2 * face_width]
-        left = cube_result[face_height: 2 * face_height, 0: face_width]
-        front = cube_result[face_height: 2 * face_height, face_width: 2 * face_width]
-        right = cube_result[face_height: 2 * face_height, 2 * face_width: 3 * face_width]
-        back = cube_result[face_height: 2 * face_height, 3 * face_width: 4 * face_width]
-        now = time.time()
-        results = model.predict([top, bottom, left, front, right, back], conf=idx_conf,
-                                imgsz=640)  # return a list of Results objects
-        print(f'图片推理耗时{time.time() - now}s')
-        idx_face_dict = {
-            0: 'top',
-            1: 'bottom',
-            2: 'left',
-            3: 'front',
-            4: 'right',
-            5: 'back'
-        }
-        res = {}
-        img_PIL = Image.fromarray(img[..., ::-1])  # 转成 PIL 格式
-        draw = ImageDraw.Draw(img_PIL)  # 创建绘制对象
-        for idx, result in enumerate(results):
-            for cls, box, conf in zip(result.boxes.cls, result.boxes.xyxy, result.boxes.conf):
-
-                cls_np = int(cls.cpu().detach().numpy().item())
-                box_np = box.cpu().detach().numpy().squeeze()
-                if cls_np not in name_dict:
-                    continue
-                if cls_np not in res:
-                    res[cls_np] = []
-                conf_np = conf.cpu().detach().numpy().item()
-                p1 = map_cube(box_np[0], box_np[1], idx_face_dict[idx], face_width, width, height)
-                p2 = map_cube(box_np[2], box_np[3], idx_face_dict[idx], face_width, width, height)
-                left_top = (p1[0] if p1[0] < p2[0] else p2[0], p1[1] if p1[1] < p2[1] else p2[1])
-                right_bottom = (p2[0] if p2[0] > p1[0] else p1[0], p2[1] if p2[1] > p1[1] else p1[1])
-                draw.rectangle(xy=(left_top, right_bottom), fill=None, outline='red', width=10)
-                # cv2.rectangle(img=img, pt1=p1, pt2=p2, color=(0, 0, 255), thickness=10)
-                res[cls_np].append(
-                    {'points': [{'x': p1[0], 'y': p1[1]}, {'x': p2[0], 'y': p2[1]}], 'confidence': conf_np})
-                font = ImageFont.truetype(font='uming.ttc', size=40)  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
-                draw.rectangle(((left_top[0], left_top[1] - 50), (left_top[0] + 300, left_top[1])), fill=(255, 0, 0), )
-                name = f'{name_dict[cls_np]} {conf_np:.2f}'
-                draw.text(xy=(left_top[0], left_top[1] - font.size - 10), text=name, font=font, fill=(255, 255, 255))
-                img = cv2.cvtColor(np.asarray(img_PIL), cv2.COLOR_RGB2BGR)  # 再转成 OpenCV 的格式，记住 OpenCV 中通道排布是 BGR
-
-        # img_PIL.show()
-        print(res)
-        # cv2.imshow('img', img)
-        # cv2.waitKey(0)
-        # cv2.imwrite(f'cube_result_{img_idx}.jpg', img)
-        cv2.imwrite(image_url.split('/')[-1], img)
+        for i in range(20):
+            # rotations
+            rots = {
+                'roll': 0.,
+                'pitch': np.pi / 8,  # rotate vertical
+                'yaw': yaw,  # rotate horizontal
+            }
+            # Run equi2pers
+            pers_img = equi2pers(
+                equi=equi_img,
+                rots=rots,
+                height=480,
+                width=640,
+                fov_x=90.0,
+                mode="bilinear",
+            )
+            cube_result = np.ascontiguousarray(np.transpose(pers_img, (1, 2, 0)))
+            yaw += np.pi / 9
+            # cv2.imshow('img', cube_result)
+            # cv2.waitKey(0)
+            cv2.imwrite(f'rotate_{i}.jpg', cube_result)

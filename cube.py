@@ -84,61 +84,66 @@ def map_cube(x, y, side, cw, W, H):
     return _u * W, _v * H
 
 if __name__ == '__main__':
-    # res = requests.get(
-    #     'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/3702d9e2dc2143c89ea98510195047e9.jpg')
-    # Run equi2pers
+    imgurls = [
+        'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg',
+    ]
+    for imgurl in imgurls:
+        res = requests.get(
+            imgurl)
+        # Run equi2pers
 
-    #
-    # img = cv2.imdecode(np.fromstring(res.content, dtype=np.uint8), cv2.IMREAD_COLOR)
-    img = cv2.imread('/home/lixiang/PycharmProjects/ultralytics/conf_0.1/cube_result_83.jpg')
-    img = cv2.resize(img, (720, 1440))
-    cv2.imshow('cube', cv2.resize(img, (1440, 720)))
-    cv2.waitKey(0)
+        #
+        img = cv2.imdecode(np.fromstring(res.content, dtype=np.uint8), cv2.IMREAD_COLOR)
+        # img = cv2.imread('/home/lixiang/PycharmProjects/ultralytics/conf_0.1/cube_result_83.jpg')
+        # img = cv2.resize(img, (720, 1440))
+        # cv2.imshow('cube', cv2.resize(img, (1440, 720)))
+        # cv2.waitKey(0)
 
-    # img = e2c(img, face_w=int(img.shape[0] / 3))
-    (width, height, depth) = img.shape
-    pic = np.zeros((width, height, depth))
-    cut_width = int(width / 4)
-    cut_height = int(height / 3)
-    equi_img = np.transpose(img, (2, 0, 1))
-    # rotations
-    rots = {
-        'roll': 0.,
-        'pitch': 0,  # rotate vertical
-        'yaw': 0,  # rotate horizontal
-    }
+        # img = e2c(img, face_w=int(img.shape[0] / 3))
+        (height, width, depth) = img.shape
+        pic = np.zeros((height, width, depth))
+        cut_width = int(width / 4)
+        cut_height = int(height / 3)
+        equi_img = np.transpose(img, (2, 0, 1))
+        # rotations
+        rots = {
+            'roll': 0.,
+            'pitch': 0,  # rotate vertical
+            'yaw': 0,  # rotate horizontal
+        }
 
-    # Run equi2pers
-    cube_img = equi2cube(
-        equi=equi_img,
-        rots=rots,
-        w_face=cut_width,
-        cube_format='dice'
-    )
-    point = (cut_width + 100, 100)
-    transpose = np.transpose(cube_img, (1, 2, 0))
-    transpose = np.ascontiguousarray(transpose)
-    cv2.circle(transpose, point, 10, color=(255, 20, 0), thickness=-1)
-    cv2.imshow('cube', transpose)
-    cv2.waitKey(0)
-    cube_img = np.transpose(transpose, (2, 0, 1))
-    result = cube2equi(cube_img, 'dice', height=height, width=width)
-    result = np.transpose(result, (1, 2, 0))
-    (x, y) = map_cube(100, 100, 'top', cut_width, 1440, 720)
-    cv2.imshow('cube', result)
-    cv2.waitKey(0)
-    result = np.ascontiguousarray(result)
-    cv2.circle(result, (int(x), int(y)), 10, color=(0, 0, 255), thickness=-1)
-    cv2.imshow('cube', result)
-    cv2.waitKey(0)
-    result = np.transpose(result, (1, 0, 2))
-    cube_img = np.ascontiguousarray(np.transpose(cube_img, (2, 1, 0)))
-    (cube_width, cube_height, _) = transpose.shape
-    face_width = int(cube_height / 4)
-    face_height = int(cube_width / 3)
-    for i in range(3):
-        for j in range(4):
-            pic = transpose[i * face_width: (i + 1) * face_width, j * face_height: (j + 1) * face_height, :]
-            cv2.imshow('cube', pic)
-            cv2.waitKey(0)
-    # img = c2e(img, 360, 720)
+        # Run equi2pers
+        cube_img = equi2cube(
+            equi=equi_img,
+            rots=rots,
+            w_face=cut_width,
+            cube_format='dice'
+        )
+        point = (cut_width + 100, 100)
+        transpose = np.transpose(cube_img, (1, 2, 0))
+        transpose = np.ascontiguousarray(transpose)
+        cv2.imwrite(f"cubes/{imgurl.split('/')[-1]}", transpose)
+        # cv2.circle(transpose, point, 10, color=(255, 20, 0), thickness=-1)
+        # cv2.imshow('cube', transpose)
+        # cv2.waitKey(0)
+        # cube_img = np.transpose(transpose, (2, 0, 1))
+        # result = cube2equi(cube_img, 'dice', height=height, width=width)
+        # result = np.transpose(result, (1, 2, 0))
+        # (x, y) = map_cube(100, 100, 'top', cut_width, 1440, 720)
+        # cv2.imshow('cube', result)
+        # cv2.waitKey(0)
+        # result = np.ascontiguousarray(result)
+        # cv2.circle(result, (int(x), int(y)), 10, color=(0, 0, 255), thickness=-1)
+        # cv2.imshow('cube', result)
+        # cv2.waitKey(0)
+        # result = np.transpose(result, (1, 0, 2))
+        # cube_img = np.ascontiguousarray(np.transpose(cube_img, (2, 1, 0)))
+        # (cube_width, cube_height, _) = transpose.shape
+        # face_width = int(cube_height / 4)
+        # face_height = int(cube_width / 3)
+        # for i in range(3):
+        #     for j in range(4):
+        #         pic = transpose[i * face_width: (i + 1) * face_width, j * face_height: (j + 1) * face_height, :]
+        #         cv2.imshow('cube', pic)
+        #         cv2.waitKey(0)
+        # img = c2e(img, 360, 720)

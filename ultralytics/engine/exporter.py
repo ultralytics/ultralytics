@@ -201,7 +201,7 @@ class Exporter:
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and engine:
-            self.args.dynamic = True  # enforce dynamic export when using INT8 for TensorRT export
+            self.args.dynamic = True  # enforce dynamic to export TensorRT INT8; ensures ONNX is dynamic
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -351,7 +351,7 @@ class Exporter:
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=self.args.batch * 2,
+            batch_size=self.args.batch * 2,  # NOTE TensorRT INT8 calibration should use 2x batch size
         )
         n = len(dataset)
         if n < 300:
@@ -766,11 +766,7 @@ class Exporter:
                         return None
 
                 def read_calibration_cache(self) -> bytes:
-                    """
-                    If there is a cache, use it instead of calibrating again.
-
-                    Otherwise, implicitly return None.
-                    """
+                    """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
                     if self.cache.exists() and self.cache.suffix == ".cache":
                         return self.cache.read_bytes()
 
@@ -778,15 +774,12 @@ class Exporter:
                     """Write calibration cache to disk."""
                     _ = self.cache.write_bytes(cache)
 
-            # Load dataset and builder (for batching)
+            # Load dataset w/ builder (for batching) and calibrate
             dataset = self.get_int8_calibration_dataloader(prefix)
-            cache_file = self.file.with_suffix(".cache")
-
-            # Calibrate
             config.int8_calibrator = EngineCalibrator(
                 dataset=dataset,
                 batch=2 * self.args.batch,
-                cache=cache_file,
+                cache=self.file.with_suffix(".cache"),
             )
 
         elif half:

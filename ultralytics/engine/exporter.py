@@ -202,9 +202,6 @@ class Exporter:
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and engine:
             self.args.dynamic = True  # enforce dynamic export when using INT8 for TensorRT export
-            if self.args.data is None:
-                LOGGER.warning("WARNING ⚠️ data argument required for TensorRT INT8 export, using data='coco128.yaml'")
-                self.args.data = self.args.data or "coco128.yaml"
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -724,24 +721,18 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            opt_shape = tuple(shape)  # optimal input shape
             max_shape = (*shape[:2], *(max(1, self.args.workspace) * d for d in shape[2:]))  # max input shape
             for inp in inputs:
-                profile.set_shape(inp.name, min_shape, opt_shape, max_shape)
+                profile.set_shape(inp.name, min_shape, shape, max_shape)
             config.add_optimization_profile(profile)
 
+        LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {f}")
         if int8:
             config.set_flag(trt.BuilderFlag.INT8)
             config.set_calibration_profile(profile)
             config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
             class EngineCalibrator(trt.IInt8Calibrator):
-                TRT_INT8_CAL_ALGOS = {
-                    "LEGACY_CALIBRATION",
-                    "ENTROPY_CALIBRATION",
-                    "ENTROPY_CALIBRATION_2",
-                    "MINMAX_CALIBRATION",
-                }
 
                 def __init__(
                     self,
@@ -753,18 +744,10 @@ class Exporter:
                     trt.IInt8Calibrator.__init__(self)
                     self.dataset = dataset
                     self.data_iter = iter(dataset)
-                    self.algo = self.fetch_algo(str(calibration_algo).upper())
+                    self.algo = calibration_algo
                     self.batch = batch
                     self.cache = Path(cache)
 
-                def fetch_algo(self, algo: str = "ENTROPY_CALIBRATION_2") -> trt.CalibrationAlgoType:
-                    """Fetch the calibration algorithm to use."""
-                    if algo not in self.TRT_INT8_CAL_ALGOS:
-                        LOGGER.warning(f"Invalid calibration algorithm: {algo}, using 'ENTROPY_CALIBRATION_2' instead")
-                        self.algo = "ENTROPY_CALIBRATION_2"
-                    else:
-                        self.algo = algo
-                    return getattr(trt.CalibrationAlgoType, self.algo)
 
                 def get_algorithm(self) -> trt.CalibrationAlgoType:
                     """Get the calibration algorithm to use."""

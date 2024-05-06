@@ -82,7 +82,7 @@ class BboxLoss(nn.Module):
             loss_dfl = self._df_loss(pred_dist[fg_mask].view(-1, self.reg_max + 1), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
+            loss_dfl = torch.tensor(0.0, device=pred_dist.device)
 
         return loss_iou, loss_dfl
 

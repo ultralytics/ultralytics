@@ -260,10 +260,10 @@ class Mosaic(BaseMixTransform):
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
+            img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
 
             # Place img in img4
             if i == 0:  # top left
-                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -389,6 +389,20 @@ class MixUp(BaseMixTransform):
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
 
+@njit()
+def getXY(bboxes, perspective, M):
+    n = len(bboxes)
+    xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
+    xy[:, :2] = bboxes[:, np.array([0, 1, 2, 3, 0, 3, 2, 1])].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
+    xy = xy @ M.T  # transform
+    # xy = np.ascontiguousarray(xy)
+    xy = (xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2])
+    xy = np.ascontiguousarray(xy).reshape(n, 8)  # perspective rescale or affine
+
+    # Create new boxes
+    x = xy[:, np.array([0, 2, 4, 6])]
+    y = xy[:, np.array([1, 3, 5, 7])]
+    return x,y
 
 class RandomPerspective:
     """
@@ -442,10 +456,7 @@ class RandomPerspective:
         """
 
         # Center
-        C = np.eye(3, dtype=np.float32)
-
-        C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
-        C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
+        C = self._numba_GetCenter(img.shape[1], img.shape[0])
 
         # Perspective
         P = self._numba_GetPerspective(self.perspective)
@@ -474,6 +485,17 @@ class RandomPerspective:
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
         return img, M, s
     
+
+    @staticmethod
+    @njit
+    def _numba_GetCenter(width, height):
+        # Center
+        C = np.eye(3, dtype=np.float32)
+
+        C[0, 2] = -width / 2  # x translation (pixels)
+        C[1, 2] = -height / 2  # y translation (pixels)
+        return C
+
     @staticmethod
     @njit
     def _numba_GetPerspective(perspective):
@@ -512,19 +534,9 @@ class RandomPerspective:
         Returns:
             new_bboxes (ndarray): bboxes after affine, [num_bboxes, 4].
         """
-        n = len(bboxes)
-        if n == 0:
-            return bboxes
+        x,y = getXY(bboxes, self.perspective, M) # num boxes x 4 
+        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, len(bboxes)).T
 
-        xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
-        xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
-        xy = xy @ M.T  # transform
-        xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
-
-        # Create new boxes
-        x = xy[:, [0, 2, 4, 6]]
-        y = xy[:, [1, 3, 5, 7]]
-        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
         """
@@ -600,7 +612,9 @@ class RandomPerspective:
         # Scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
 
-        bboxes = self.apply_bboxes(instances.bboxes, M)
+        bboxes = instances.bboxes
+        if len(instances.bboxes) != 0:
+            bboxes = self.apply_bboxes(instances.bboxes, M)
 
         segments = instances.segments
         keypoints = instances.keypoints
@@ -615,7 +629,7 @@ class RandomPerspective:
         new_instances.clip(*self.size)
 
         # Filter instances
-        instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
+        instances.scaleSingle(scale=scale, bbox_only=True)
         # Make the bboxes have the same scale with new_bboxes
         i = self.box_candidates(
             box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
@@ -813,7 +827,7 @@ class LetterBox:
         """Update labels."""
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
-        labels["instances"].scale(*ratio)
+        labels["instances"].scaleWH(ratio[0], ratio[1])
         labels["instances"].add_padding(padw, padh)
         return labels
 
@@ -900,7 +914,7 @@ class Albumentations:
         prefix = colorstr("albumentations: ")
         try:
             import albumentations as A
-
+            
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
             # Transforms
@@ -1122,20 +1136,24 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
-    pre_transform = Compose(
-        [
-            Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
-            CopyPaste(p=hyp.copy_paste),
-            RandomPerspective(
-                degrees=hyp.degrees,
-                translate=hyp.translate,
-                scale=hyp.scale,
-                shear=hyp.shear,
-                perspective=hyp.perspective,
-                pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-            ),
-        ]
+    
+    pre_transform = []
+    if hyp.mosaic != 0:
+        pre_transform.append(Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic))
+    if hyp.copy_paste != 0:
+        pre_transform.append(CopyPaste(p=hyp.copy_paste))
+    pre_transform.append(
+        RandomPerspective(
+            degrees=hyp.degrees,
+            translate=hyp.translate,
+            scale=hyp.scale,
+            shear=hyp.shear,
+            perspective=hyp.perspective,
+            pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+        )
     )
+    pre_transform = Compose(pre_transform)
+
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation
     if dataset.use_keypoints:
         kpt_shape = dataset.data.get("kpt_shape", None)
@@ -1145,16 +1163,14 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         elif flip_idx and (len(flip_idx) != kpt_shape[0]):
             raise ValueError(f"data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}")
 
-    return Compose(
-        [
-            pre_transform,
-            MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
-            Albumentations(p=1.0),
-            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
-            RandomFlip(direction="vertical", p=hyp.flipud),
-            RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
-        ]
-    )  # transforms
+    transformList = [pre_transform]
+    if hyp.mixup != 0:
+        transformList.append(MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup))
+    transformList.append(Albumentations(p=1.0))
+    transformList.append(RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v))
+    transformList.append(RandomFlip(direction="vertical", p=hyp.flipud))
+    transformList.append(RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx))
+    return Compose(transformList)  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

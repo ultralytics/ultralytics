@@ -229,7 +229,7 @@ class Instances:
         """Calculate the area of bounding boxes."""
         return self._bboxes.areas()
 
-    def scale(self, scale_w, scale_h, bbox_only=False):
+    def scaleWH(self, scale_w, scale_h, bbox_only=False):
         """This might be similar with denormalize func but without normalized sign."""
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
@@ -240,6 +240,16 @@ class Instances:
         if self.keypoints is not None:
             self.keypoints[..., 0] *= scale_w
             self.keypoints[..., 1] *= scale_h
+
+    def scaleSingle(self, scale, bbox_only=False):
+        """This might be similar with denormalize func but without normalized sign."""
+        self._bboxes.bboxes[:, 0:4] *= scale
+        if bbox_only:
+            return
+        if self.segments is not None:
+            self.segments[..., 0:2] *= scale
+        if self.keypoints is not None:
+            self.keypoints[..., 0:2] *= scale
 
     def denormalize(self, w, h):
         """Denormalizes boxes, segments, and keypoints from normalized coordinates."""

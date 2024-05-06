@@ -79,7 +79,7 @@ class LetterBox:
 
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
-        labels["instances"].scale(*ratio)
+        labels["instances"].scaleWH(ratio[0], ratio[1])
         labels["instances"].add_padding(padw, padh)
         return labels
 

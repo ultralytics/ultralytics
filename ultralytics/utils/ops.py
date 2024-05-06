@@ -611,17 +611,18 @@ def xyxyxyxy2xywhr(corners):
     points = corners.cpu().numpy() if is_torch else corners
     points = points.reshape(len(corners), -1, 2)
     rboxes = []
-    for pts in points:
-        # NOTE: Use cv2.minAreaRect to get accurate xywhr,
-        # especially some objects are cut off by augmentations in dataloader.
-        (x, y), (w, h), angle = cv2.minAreaRect(pts)
-        rboxes.append([x, y, w, h, angle / 180 * np.pi])
-    return (
-        torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
-        if is_torch
-        else np.asarray(rboxes, dtype=points.dtype)
-    )  # rboxes
 
+    rboxes = [cv2.minAreaRect(pts) for pts in points]
+    rboxes = [[rbox[0][0], rbox[0][1], rbox[1][0], rbox[1][1], rbox[2]] for rbox in rboxes]
+    # NOTE: Use cv2.minAreaRect to get accurate xywhr,
+    # especially some objects are cut off by augmentations in dataloader.
+    if is_torch:
+        rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
+        rboxes[:, 4] *= torch.pi / 180  # degrees to radians
+    else:
+        np.array(rboxes, dtype=points.dtype)
+        rboxes[:, 4] *= np.pi / 180  # degrees to radians
+    return rboxes
 
 def xywhr2xyxyxyxy(rboxes):
     """
@@ -859,8 +860,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
     if padding:
         coords[..., 0] -= pad[0]  # x padding
         coords[..., 1] -= pad[1]  # y padding
-    coords[..., 0] /= gain
-    coords[..., 1] /= gain
+    coords[..., 0:2] /= gain
     coords = clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_shape[1]  # width

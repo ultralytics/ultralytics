@@ -39,6 +39,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
+        self.underlyingData = self.dataset
 
     def __len__(self):
         """Returns the length of the batch sampler's sampler."""

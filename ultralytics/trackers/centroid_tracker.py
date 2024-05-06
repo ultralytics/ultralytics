@@ -3,10 +3,10 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
+from ..utils import LOGGER
 from .basetrack import TrackState
 from .iou_tracker import IOUTrack
 from .utils import matching
-from ..utils import LOGGER
 
 
 class CentroidTrack(IOUTrack):

@@ -217,7 +217,9 @@ class Exporter:
         )
         if file.suffix in {".yaml", ".yml"}:
             file = Path(file.name)
-
+        
+        artifact_path = Path(self.args.artifact_path) if self.args.artifact_path else Path(".")
+ 
         # Update model
         model = deepcopy(model).to(self.device)
         for p in model.parameters():
@@ -249,6 +251,7 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
+        self.artifact_path = artifact_path
         self.output_shape = (
             tuple(y.shape)
             if isinstance(y, torch.Tensor)
@@ -308,6 +311,7 @@ class Exporter:
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
+
         if any(f):
             f = str(Path(f[-1]))
             square = self.imgsz[0] == self.imgsz[1]
@@ -361,7 +365,7 @@ class Exporter:
 
         opset_version = self.args.opset or get_latest_opset()
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
-        f = str(self.file.with_suffix(".onnx"))
+        f = str(self.artifact_path / self.file.with_suffix(".onnx"))
 
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
@@ -518,7 +522,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_ts = self.file.with_suffix(".torchscript")
+        f_ts = self.artifact_path / self.file.with_suffix(".torchscript")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
         pnnx = name if name.is_file() else ROOT / name
@@ -586,7 +590,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
-        f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
+        f = self.artifact_path / self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
@@ -669,7 +673,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
-        f = self.file.with_suffix(".engine")  # TensorRT engine file
+        f = self.artifact_path / self.file.with_suffix(".engine")  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
         if self.args.verbose:
             logger.min_severity = trt.Logger.Severity.VERBOSE
@@ -756,7 +760,7 @@ class Exporter:
         )
         import onnx2tf
 
-        f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
+        f = self.artifact_path / Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
@@ -827,7 +831,7 @@ class Exporter:
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        f = self.file.with_suffix(".pb")
+        f = self.artifact_path / self.file.with_suffix(".pb")
 
         m = tf.function(lambda x: keras_model(x))  # full model
         m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
@@ -842,7 +846,7 @@ class Exporter:
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
+        saved_model = self.artifact_path / Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if self.args.int8:
             f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
         elif self.args.half:
@@ -873,7 +877,7 @@ class Exporter:
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
-        f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
+        f = self.artifact_path / str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
 
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
@@ -892,8 +896,8 @@ class Exporter:
         import tensorflowjs as tfjs  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-        f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-        f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
+        f = self.artifact_path / str(self.file).replace(self.file.suffix, "_web_model")  # js dir
+        f_pb = self.artifact_path / str(self.file.with_suffix(".pb"))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, "rb") as file:
@@ -944,7 +948,7 @@ class Exporter:
         model_meta.license = self.metadata["license"]
 
         # Label file
-        tmp_file = Path(file).parent / "temp_meta.txt"
+        tmp_file = self.artifact_path / Path(file).parent / "temp_meta.txt"
         with open(tmp_file, "w") as f:
             f.write(str(self.metadata))
 

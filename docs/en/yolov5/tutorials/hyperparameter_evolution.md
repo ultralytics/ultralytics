@@ -65,7 +65,7 @@ Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness 
 
 ```python
 def fitness(x):
-    # Model fitness as a weighted combination of metrics
+    """Evaluates model fitness by summing weighted metrics [P, R, mAP@0.5, mAP@0.5:0.95], x is a numpy array of shape (n, 4)."""
     w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
     return (x[:, :4] * w).sum(1)
 ```

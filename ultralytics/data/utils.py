@@ -500,8 +500,8 @@ class HUBDatasetStats:
             elif self.task == "segment":
                 coordinates = [x.flatten() for x in labels["segments"]]
             elif self.task == "pose":
-                n = labels["keypoints"].shape[0]
-                coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, -1)), 1)
+                n, nk, nd = labels["keypoints"].shape
+                coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, nk * nd)), 1)
             else:
                 raise ValueError("Undefined dataset task.")
             zipped = zip(labels["cls"], coordinates)

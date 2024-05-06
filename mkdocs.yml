@@ -503,11 +503,11 @@ nav:
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - object_counter: reference/solutions/object_counter.md
+          - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
       - analytics:
           - dashboard: reference/analytics/index.md
-          - parking_management: reference/solutions/parking_management.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

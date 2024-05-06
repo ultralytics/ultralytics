@@ -744,7 +744,7 @@ class Exporter:
                     trt.IInt8Calibrator.__init__(self)
                     self.dataset = dataset
                     self.data_iter = iter(dataset)
-                    self.algo = calibration_algo
+                    self.algo = getattr(trt.CalibrationAlgoType, calibration_algo)
                     self.batch = batch
                     self.cache = Path(cache)
 

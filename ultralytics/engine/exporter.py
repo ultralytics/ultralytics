@@ -88,7 +88,7 @@ from ultralytics.utils import (
     yaml_save,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
+from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, is_url
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
@@ -544,7 +544,8 @@ class Exporter:
             try:
                 _, assets = get_github_assets(repo="pnnx/pnnx")
                 url = [x for x in assets if f"{system}.zip" in x][0]
-                assert url, "Unable to retrieve PNNX repo assets"
+                assert is_url(url), "Unable to retrieve PNNX repo assets"
+                LOGGER.info(f"Successfully retrieve PNNX repo asset URL {url}")
             except Exception as e:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240410/pnnx-20240410-{system}.zip"
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")

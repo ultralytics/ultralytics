@@ -111,13 +111,13 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Exporting TensorRT with INT8 Quantization
 
-Exporting Ultralytics YOLO models using TensorRT with `INT8` precision executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process. 
+Exporting Ultralytics YOLO models using TensorRT with INT8 precision executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process. 
 
-When processing implicitly quantized networks TensorRT uses `INT8` opportunistically to optimize layer execution time. If a layer runs faster in `INT8` and has assigned quantization scales on its data inputs and outputs, then a kernel with `INT8` precision is assigned to that layer, otherwise TensorRT selects a precision of either `FP32` or `FP16` for the kernel based on whichever results in faster execution time for that layer.
+When processing implicitly quantized networks TensorRT uses INT8 opportunistically to optimize layer execution time. If a layer runs faster in INT8 and has assigned quantization scales on its data inputs and outputs, then a kernel with INT8 precision is assigned to that layer, otherwise TensorRT selects a precision of either FP32 or FP16 for the kernel based on whichever results in faster execution time for that layer.
 
 !!! tip
 
-    It is **critical** to ensure that the same device that will use the TensorRT model weights for deployment is used for exporting with `INT8` precision, as the calibration results can vary across devices.
+    It is **critical** to ensure that the same device that will use the TensorRT model weights for deployment is used for exporting with INT8 precision, as the calibration results can vary across devices.
 
 #### Configuring INT8 Export
 
@@ -133,7 +133,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
     
     - If `workspace` is set to max value and calibration fails/crashes, consider reducing the values for `imgsz` and `batch` to reduce memory requirements.
 
-    - <u><b>Remember</b> calibration for `INT8` is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
+    - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
   - `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
     
@@ -141,7 +141,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
         During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
 
-Experimentation by Nvidia led them to recommend using at least 500 calibration images that are representative of the data for your model, with `INT8` quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for `INT8` calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with `INT8` quantization, the default will be to use `coco128.yaml` instead of throwing an error.
+Experimentation by Nvidia led them to recommend using at least 500 calibration images that are representative of the data for your model, with INT8 quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for INT8 calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with INT8 quantization, the default will be to use `coco128.yaml` instead of throwing an error.
 
 !!! example
 
@@ -173,7 +173,7 @@ Experimentation by Nvidia led them to recommend using at least 500 calibration i
 
 #### Advantages of using YOLO with TensorRT INT8
 
-- **Reduced model size:** Quantization from `FP32` to `INT8` can reduce the model size by 4x (on disk or in memory), leading to faster download times. lower storage requirements, and reduced memory footprint when deploying a model.
+- **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times. lower storage requirements, and reduced memory footprint when deploying a model.
 
 - **Lower power consumption:** Reduced precision operations (INT8) can consume less power compared to FP32 calculations, especially on battery-powered devices.
 
@@ -187,7 +187,7 @@ Experimentation by Nvidia led them to recommend using at least 500 calibration i
 
 - **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse.
 
-- **Increased development times:** Finding the "optimal" settings for `INT8` calibration for dataset and device can take a significant amount of testing.
+- **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
 - Calibration and performance gains could be highly hardware dependent and model weights are less transferrable.
 

@@ -192,7 +192,7 @@ def test_all_model_yamls():
 def test_workflow():
     """Test the complete workflow including training, validation, prediction, and exporting."""
     model = YOLO(MODEL)
-    model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD", fraction=0.25)  # single-image trainset
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
     model.export(format="torchscript")

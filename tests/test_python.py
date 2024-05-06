@@ -12,7 +12,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA
+from ultralytics.cfg import MODELS, TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -76,41 +76,26 @@ def test_predict_txt():
     _ = YOLO(MODEL)(source=txt_file, imgsz=32)
 
 
-def test_predict_img():
+@pytest.mark.parametrize("model_name", MODELS)
+def test_predict_img(model_name):
     """Test YOLO prediction on various types of image sources."""
-    model = YOLO(MODEL)
-    seg_model = YOLO(WEIGHTS_DIR / "yolov8n-seg.pt")
-    cls_model = YOLO(WEIGHTS_DIR / "yolov8n-cls.pt")
-    pose_model = YOLO(WEIGHTS_DIR / "yolov8n-pose.pt")
-    obb_model = YOLO(WEIGHTS_DIR / "yolov8n-obb.pt")
-    im = cv2.imread(str(SOURCE))
+    model = YOLO(WEIGHTS_DIR / model_name)
+    im = cv2.imread(str(SOURCE))  # uint8 numpy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
+    assert len(model(torch.rand((2, 3, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
     assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
-    assert len(model(torch.zeros(320, 640, 3).numpy(), imgsz=32)) == 1  # tensor to numpy
+    assert len(model(torch.zeros(320, 640, 3).numpy().astype(np.uint8), imgsz=32)) == 1  # tensor to numpy
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
         "https://ultralytics.com/images/zidane.jpg" if ONLINE else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
-        np.zeros((320, 640, 3)),
-    ]  # numpy
+        np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
+    ]
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
-
-    # Test tensor inference
-    im = torch.rand((4, 3, 32, 32))  # batch-size 4, FP32 0.0-1.0 RGB order
-    results = model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = seg_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = cls_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = pose_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
-    results = obb_model(im, imgsz=32)
-    assert len(results) == im.shape[0]
 
 
 def test_predict_grey_and_4ch():
@@ -236,19 +221,19 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-def test_results():
+@pytest.mark.parametrize("model", MODELS)
+def test_results(model):
     """Test various result formats for the YOLO model."""
-    for m in "yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt":
-        results = YOLO(WEIGHTS_DIR / m)([SOURCE, SOURCE], imgsz=160)
-        for r in results:
-            r = r.cpu().numpy()
-            r = r.to(device="cpu", dtype=torch.float32)
-            r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
-            r.save_crop(save_dir=TMP / "runs/tests/crops/")
-            r.tojson(normalize=True)
-            r.plot(pil=True)
-            r.plot(conf=True, boxes=True)
-            print(r, len(r), r.path)
+    results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
+    for r in results:
+        r = r.cpu().numpy()
+        r = r.to(device="cpu", dtype=torch.float32)
+        r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
+        r.save_crop(save_dir=TMP / "runs/tests/crops/")
+        r.tojson(normalize=True)
+        r.plot(pil=True)
+        r.plot(conf=True, boxes=True)
+        print(r, len(r), r.path)
 
 
 def test_labels_and_crops():

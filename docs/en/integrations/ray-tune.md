@@ -34,7 +34,7 @@ To install the required packages, run:
 
         ```bash
         # Install and update Ultralytics and Ray Tune packages
-        pip install -U ultralytics "ray[tune]<=2.9.3"
+        pip install -U ultralytics "ray[tune]"
 
         # Optionally install W&B for logging
         pip install wandb

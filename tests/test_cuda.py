@@ -4,14 +4,9 @@ import pytest
 import torch
 
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
-CUDA_IS_AVAILABLE = checks.cuda_is_available()
-CUDA_DEVICE_COUNT = checks.cuda_device_count()
-
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
-DATA = "coco8.yaml"
-BUS = ASSETS / "bus.jpg"
+from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 
 
 def test_checks():
@@ -25,14 +20,14 @@ def test_checks():
 def test_export_engine():
     """Test exporting the YOLO model to NVIDIA TensorRT format."""
     f = YOLO(MODEL).export(format="engine", device=0)
-    YOLO(f)(BUS, device=0)
+    YOLO(f)(SOURCE, device=0)
 
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_train():
     """Test model training on a minimal dataset."""
     device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
-    YOLO(MODEL).train(data=DATA, imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+    YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
 
 
 @pytest.mark.slow
@@ -42,22 +37,22 @@ def test_predict_multiple_devices():
     model = YOLO("yolov8n.pt")
     model = model.cpu()
     assert str(model.device) == "cpu"
-    _ = model(BUS)  # CPU inference
+    _ = model(SOURCE)  # CPU inference
     assert str(model.device) == "cpu"
 
     model = model.to("cuda:0")
     assert str(model.device) == "cuda:0"
-    _ = model(BUS)  # CUDA inference
+    _ = model(SOURCE)  # CUDA inference
     assert str(model.device) == "cuda:0"
 
     model = model.cpu()
     assert str(model.device) == "cpu"
-    _ = model(BUS)  # CPU inference
+    _ = model(SOURCE)  # CPU inference
     assert str(model.device) == "cpu"
 
     model = model.cuda()
     assert str(model.device) == "cuda:0"
-    _ = model(BUS)  # CUDA inference
+    _ = model(SOURCE)  # CUDA inference
     assert str(model.device) == "cuda:0"
 
 
@@ -93,10 +88,10 @@ def test_predict_sam():
     model.info()
 
     # Run inference
-    model(BUS, device=0)
+    model(SOURCE, device=0)
 
     # Run inference with bboxes prompt
-    model(BUS, bboxes=[439, 437, 524, 709], device=0)
+    model(SOURCE, bboxes=[439, 437, 524, 709], device=0)
 
     # Run inference with points prompt
     model(ASSETS / "zidane.jpg", points=[900, 370], labels=[1], device=0)

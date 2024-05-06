@@ -11,10 +11,10 @@ keywords: Ultralytics YOLO, object tracking software, real-time counting solutio
 
 <br><br>
 
-## ::: ultralytics.solutions.parking_management.ParkingManagement
+## ::: ultralytics.solutions.parking_management.ParkingPtsSelection
 
 <br><br>
 
-## ::: ultralytics.solutions.parking_management.ParkingPtsSelection
+## ::: ultralytics.solutions.parking_management.ParkingManagement
 
 <br><br>

@@ -204,8 +204,6 @@ jobs:
               pip install pycocotools mlflow "ray[tune]"
               slow="--slow"
           fi
-          pip install pycocotools mlflow "ray[tune]"
-          slow="--slow"
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'

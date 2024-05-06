@@ -737,13 +737,12 @@ class Exporter:
                     self,
                     dataset,  # ultralytics.data.build.InfiniteDataLoader
                     batch: int,
-                    calibration_algo: str = "ENTROPY_CALIBRATION_2",
                     cache: str = "",
                 ) -> None:
                     trt.IInt8Calibrator.__init__(self)
                     self.dataset = dataset
                     self.data_iter = iter(dataset)
-                    self.algo = getattr(trt.CalibrationAlgoType, calibration_algo)
+                    self.algo = trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2
                     self.batch = batch
                     self.cache = Path(cache)
 
@@ -786,7 +785,6 @@ class Exporter:
             config.int8_calibrator = EngineCalibrator(
                 dataset=dataset,
                 batch=2 * self.args.batch,
-                calibration_algo="ENTROPY_CALIBRATION_2",
                 cache=cache_file,
             )
 

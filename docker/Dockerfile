@@ -16,6 +16,10 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 RUN apt update \
     && apt install --no-install-recommends -y gcc git zip curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 
+# libsm6 is a requirement needed by libqxcb to create the QT based windows for the visualization of the detected objects.
+# To test the support for QT plugins in the container, the environment variable 'QT_DEBUG_PLUGINS=1' can be added using the -e  option
+RUN apt-get install -y libsm6
+
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
 RUN apt upgrade --no-install-recommends -y openssl tar

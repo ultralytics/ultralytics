@@ -49,7 +49,7 @@ After your project is created, you will be able to access it from the Projects p
 
 ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_5.jpg)
 
-Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) inside your project.
+Next, [train a model](./models.md#train-model) inside your project.
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_6.jpg)
 

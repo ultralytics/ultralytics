@@ -20,6 +20,81 @@ def get_theta_phi(_x, _y, _z):
     return theta, phi
 
 
+def viewport_to_unit_vector(x, y, width, height, pitch, yaw):
+    """
+    将视口坐标系中的点坐标转换为单位向量
+    """
+    # 将点坐标归一化到范围 [-1, 1]
+    x_normalized = (2 * x / width) - 1
+    y_normalized = (2 * y / height) - 1
+
+    # 计算 z 分量，根据球的半径为1，可以直接计算
+    z = 1
+
+    unit_vector = np.array([x_normalized, y_normalized, z])
+    # 对单位向量进行旋转，根据pitch和yaw的值
+    rotation_matrix = np.array([
+        [np.cos(pitch) * np.cos(yaw), -np.sin(pitch), np.cos(pitch) * np.sin(yaw)],
+        [np.sin(pitch) * np.cos(yaw), np.cos(pitch), np.sin(pitch) * np.sin(yaw)],
+        [-np.sin(yaw), 0, np.cos(yaw)]
+    ])
+
+    # 进行向量旋转
+    rotated_unit_vector = np.dot(rotation_matrix, unit_vector)
+    return rotated_unit_vector
+
+
+def unit_vector_to_spherical_coordinates(unit_vector):
+    """
+    将单位向量转换为球面坐标系中的经度和纬度
+    """
+    # 计算经度
+    theta = np.arctan2(unit_vector[1], unit_vector[0])
+
+    # 计算纬度
+    phi = np.arcsin(unit_vector[2])
+
+    return theta, phi
+
+def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch, equi_width, equi_height):
+    # 将屏幕坐标(x, y)转换到NDC坐标(-1 to 1)
+    nx = (x / screen_width) * 2 - 1
+    ny = (y / screen_height) * 2 - 1
+
+    # FOV的一半的切线值，用于计算z坐标
+    t = np.tan(np.radians(fov / 2))
+
+    # 逆向计算出对应的方向向量
+    direction = np.array([t * nx, t * ny, 1])
+    direction = direction / np.linalg.norm(direction)
+
+    # 建立旋转矩阵，考虑偏航角和俯仰角
+    cos_yaw, sin_yaw = np.cos(np.radians(yaw)), np.sin(np.radians(yaw))
+    cos_pitch, sin_pitch = np.cos(np.radians(pitch)), np.sin(np.radians(pitch))
+
+    rotation_matrix = np.array([
+        [cos_yaw, 0, -sin_yaw],
+        [0, 1, 0],
+        [sin_yaw, 0, cos_yaw]
+    ]) @ np.array([
+        [1, 0, 0],
+        [0, cos_pitch, sin_pitch],
+        [0, -sin_pitch, cos_pitch]
+    ])
+
+    # 将方向向量旋转到最终的方向
+    final_dir = rotation_matrix @ direction
+
+    # 计算球面坐标
+    longitude = np.arctan2(final_dir[0], final_dir[2])
+    latitude = np.arcsin(final_dir[1])
+
+    # 转换为等距平面坐标
+    ex = (longitude + np.pi) / (2 * np.pi) * equi_width
+    ey = (latitude + np.pi / 2) / np.pi * equi_height
+
+    return int(ex), int(ey)
+
 # x,y position in cubemap
 # cw  cube width
 # W,H size of equirectangular image
@@ -130,8 +205,13 @@ for idx_conf in confs:
             point[0] = point[0] + width if point[0] < 0 else point[0]
             point = [a for a in point]
             print(f'offset point: {point}')
-            cv2.circle(img, center_equi_pos, 10, (0, 0, 255), -1)
-            cv2.circle(img, point, 10, (0, 0, 255), -1)
+            # cv2.circle(img, center_equi_pos, 10, (0, 0, 255), -1)
+            # cv2.circle(img, point, 10, (0, 0, 255), -1)
+
+            equi_point = screen_to_equirectangular(10, 10, pers_width, pers_height, fov_deg,
+                                                        math.degrees(yaw), math.degrees(pitch), width, height)
+            print(f'equi_pos: {equi_point}')
+            cv2.circle(img, equi_point, 10, (0, 0, 255), -1)
             cv2.imshow('img', cv2.resize(img, (int(width / 4), int(height / 4))))
             cv2.waitKey(0)
             yaw -= np.pi / 18

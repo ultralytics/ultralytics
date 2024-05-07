@@ -30,7 +30,7 @@ from ultralytics import YOLO
 
 
 def on_predict_batch_end(predictor):
-    # Retrieve the batch data
+    """Handle prediction batch end by combining results with corresponding frames; modifies predictor results."""
     _, image, _, _ = predictor.batch
 
     # Ensure that image is a list

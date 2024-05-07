@@ -10,6 +10,17 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ult
 
 ![YOLO-World Model architecture overview](https://github.com/ultralytics/ultralytics/assets/26833433/31105058-78c1-43ef-9573-4f41b06df531)
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/cfTKj96TjSE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO World training workflow on custom dataset
+</p>
+
 ## Overview
 
 YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome Transformer models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-language modeling and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
@@ -150,6 +161,31 @@ Model validation on a dataset is streamlined as follows:
         ```bash
         # Validate a YOLO-World model on the COCO8 dataset with a specified image size
         yolo val model=yolov8s-world.pt data=coco8.yaml imgsz=640
+        ```
+
+### Track Usage
+
+Object tracking with YOLO-World model on a video/images is streamlined as follows:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Create a YOLO-World model
+        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+
+        # Track with a YOLO-World model on a video
+        results = model.track(source="path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Track with a YOLO-World model on the video with a specified image size
+        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
         ```
 
 !!! Note

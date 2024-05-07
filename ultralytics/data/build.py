@@ -9,6 +9,7 @@ import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
+from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -19,12 +20,9 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
+from ultralytics.utils import LINUX, NUM_THREADS, RANK, colorstr
 from ultralytics.utils.checks import check_file
-
-from .dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
-from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -82,6 +80,8 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+    if LINUX and hasattr(os, "sched_setaffinity"):  # unsupported on macOS and Windows
+        os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

@@ -88,7 +88,7 @@ from ultralytics.utils import (
     yaml_save,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, is_url
+from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
@@ -543,19 +543,20 @@ class Exporter:
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
                 _, assets = get_github_assets(repo="pnnx/pnnx")
-                url = [x for x in assets if f"{system}.zip" in x][0]
-                assert is_url(url), "Unable to retrieve PNNX repo assets"
-                LOGGER.info(f"Successfully retrieve PNNX repo asset URL {url}")
+                asset = [x for x in assets if f"{system}.zip" in x][0]
+                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
+                LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
+                asset = attempt_download_asset(asset, repo="pnnx/pnnx", release="latest")
             except Exception as e:
                 url = f"https://github.com/pnnx/pnnx/releases/download/20240410/pnnx-20240410-{system}.zip"
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")
-            asset = attempt_download_asset(url, repo="pnnx/pnnx", release="latest")
+                asset = safe_download(url)
             if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
                 unzip_dir = Path(asset).with_suffix("")
                 (unzip_dir / name).rename(pnnx)  # move binary to ROOT
-                shutil.rmtree(unzip_dir)  # delete unzip dir
-                Path(asset).unlink()  # delete zip
                 pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
+                shutil.rmtree(unzip_dir)  # delete unzip dir
+                Path(asset).unlink(missing_ok=True)  # delete zip
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',

@@ -260,10 +260,10 @@ class Mosaic(BaseMixTransform):
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch.pop("resized_shape")
-            img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
 
             # Place img in img4
             if i == 0:  # top left
+                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -1166,10 +1166,14 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     transformList = [pre_transform]
     if hyp.mixup != 0:
         transformList.append(MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup))
+
     transformList.append(Albumentations(p=1.0))
     transformList.append(RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v))
-    transformList.append(RandomFlip(direction="vertical", p=hyp.flipud))
-    transformList.append(RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx))
+
+    if hyp.flipud != 0:
+        transformList.append(RandomFlip(direction="vertical", p=hyp.flipud))
+    if hyp.fliplr != 0:
+        transformList.append(RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx))
     return Compose(transformList)  # transforms
 
 

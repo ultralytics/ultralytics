@@ -8,6 +8,7 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 import torch
+from numba import njit
 from PIL import Image
 
 from ultralytics.utils import LOGGER, colorstr
@@ -18,8 +19,6 @@ from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 from .utils import polygons2masks, polygons2masks_overlap
-
-from numba import njit
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -369,6 +368,7 @@ class Mosaic(BaseMixTransform):
             final_labels["texts"] = mosaic_labels[0]["texts"]
         return final_labels
 
+
 class MixUp(BaseMixTransform):
     """Class for applying MixUp augmentation to the dataset."""
 
@@ -389,6 +389,7 @@ class MixUp(BaseMixTransform):
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
 
+
 @njit()
 def getXY(bboxes, perspective, M):
     n = len(bboxes)
@@ -396,13 +397,14 @@ def getXY(bboxes, perspective, M):
     xy[:, :2] = bboxes[:, np.array([0, 1, 2, 3, 0, 3, 2, 1])].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
     xy = xy @ M.T  # transform
     # xy = np.ascontiguousarray(xy)
-    xy = (xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2])
+    xy = xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2]
     xy = np.ascontiguousarray(xy).reshape(n, 8)  # perspective rescale or affine
 
     # Create new boxes
     x = xy[:, np.array([0, 2, 4, 6])]
     y = xy[:, np.array([1, 3, 5, 7])]
-    return x,y
+    return x, y
+
 
 class RandomPerspective:
     """
@@ -484,7 +486,6 @@ class RandomPerspective:
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
         return img, M, s
-    
 
     @staticmethod
     @njit
@@ -534,9 +535,8 @@ class RandomPerspective:
         Returns:
             new_bboxes (ndarray): bboxes after affine, [num_bboxes, 4].
         """
-        x,y = getXY(bboxes, self.perspective, M) # num boxes x 4 
+        x, y = getXY(bboxes, self.perspective, M)  # num boxes x 4
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, len(bboxes)).T
-
 
     def apply_segments(self, segments, M):
         """
@@ -565,7 +565,7 @@ class RandomPerspective:
         segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
-    def apply_keypoints(self, keypoints:np.ndarray, M):
+    def apply_keypoints(self, keypoints: np.ndarray, M):
         """
         Apply affine to keypoints.
 
@@ -662,6 +662,7 @@ class RandomPerspective:
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
+
 
 class RandomHSV:
     """
@@ -914,7 +915,7 @@ class Albumentations:
         prefix = colorstr("albumentations: ")
         try:
             import albumentations as A
-            
+
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
             # Transforms
@@ -1136,7 +1137,7 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
-    
+
     pre_transform = []
     if hyp.mosaic != 0:
         pre_transform.append(Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic))

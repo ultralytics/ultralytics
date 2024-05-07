@@ -241,7 +241,9 @@ class YOLODataset(BaseDataset):
             new_batch[k] = value
 
         new_batch["batch_idx"] = list(new_batch["batch_idx"])
-        new_batch["batch_idx"] = [new_batch["batch_idx"][i] + i for i in range(len(new_batch["batch_idx"]))]  # add target image index for build_targets()
+        new_batch["batch_idx"] = [
+            new_batch["batch_idx"][i] + i for i in range(len(new_batch["batch_idx"]))
+        ]  # add target image index for build_targets()
         new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         return new_batch
 
@@ -444,7 +446,7 @@ class ClassificationDataset:
             if augment
             else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
         )
-        
+
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image

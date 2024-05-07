@@ -6,10 +6,10 @@ from numbers import Number
 from typing import List
 
 import numpy as np
+from numba import njit
 
 from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
-from numba import njit
 
 def _ntuple(n):
     """From PyTorch internals."""
@@ -234,7 +234,7 @@ class Instances:
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
             return
-        if self.segments is  not None:
+        if self.segments is not None:
             self.segments[..., 0] *= scale_w
             self.segments[..., 1] *= scale_h
         if self.keypoints is not None:
@@ -333,7 +333,9 @@ class Instances:
 
     def flipud(self, h):
         """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
-        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_flipud(self.bboxes, h, self._bboxes.format, self.keypoints, self.segments)
+        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_flipud(
+            self.bboxes, h, self._bboxes.format, self.keypoints, self.segments
+        )
 
     @staticmethod
     @njit()
@@ -353,7 +355,9 @@ class Instances:
 
     def fliplr(self, w):
         """Reverses the order of the bounding boxes and segments horizontally."""
-        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_fliplr(self.bboxes, w, self._bboxes.format, self.keypoints, self.segments)
+        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_fliplr(
+            self.bboxes, w, self._bboxes.format, self.keypoints, self.segments
+        )
 
     def clip(self, w, h):
         """Clips bounding boxes, segments, and keypoints values to stay within image boundaries."""

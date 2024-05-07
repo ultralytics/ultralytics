@@ -271,6 +271,7 @@ class BaseTrainer:
         # Batch size
         if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")

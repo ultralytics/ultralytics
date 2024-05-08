@@ -27,7 +27,7 @@ Ultralytics HUB datasets are just like YOLOv5 and YOLOv8 🚀 datasets. They use
 
 Before you upload a dataset to Ultralytics HUB, make sure to **place your dataset YAML file inside the dataset root directory** and that **your dataset YAML, directory and ZIP have the same name**, as shown in the example below, and then zip the dataset directory.
 
-For example, if your dataset is called "coco8", as our [COCO8](https://docs.ultralytics.com/datasets/detect/coco8) example dataset, then you should have a `coco8.yaml` inside your `coco8/` directory, which will create a `coco8.zip` when zipped:
+For example, if your dataset is called "coco8", as our [COCO8](../datasets/detect/coco8.md) example dataset, then you should have a `coco8.yaml` inside your `coco8/` directory, which will create a `coco8.zip` when zipped:
 
 ```bash
 zip -r coco8.zip coco8
@@ -91,7 +91,7 @@ Also, you can analyze your dataset by click on the **Overview** tab.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Overview tab](https://github.com/ultralytics/ultralytics/assets/19519529/5eaacd5d-fedf-4332-9091-1418c9f333cb)
 
-Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on your dataset.
+Next, [train a model](./models.md#train-model) on your dataset.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://github.com/ultralytics/ultralytics/assets/19519529/cb709e5f-a10b-478f-a81d-a48f61c193fe)
 

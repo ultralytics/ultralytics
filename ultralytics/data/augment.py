@@ -1385,8 +1385,11 @@ class ToTensor:
 
 class RandomRotation90:
     """
-    Applies a 90 degree rotation to the image. Clockwise or counter-clockwise randomly.
+    Applies a 90 degree rotation to the image.
+
+    Clockwise or counter-clockwise randomly.
     """
+
     def __init__(self, p: float = 0.0):
         """
         Initializes the RandomRotation90 class with probability.

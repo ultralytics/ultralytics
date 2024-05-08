@@ -7,7 +7,7 @@ keywords: Ultralytics YOLO, YOLO, Detection Trainer, Model Training, Machine Lea
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/detect/train.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/train.py). If you spot a problem please help fix it by [contributing](../../../../help/contributing.md/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/detect/train.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

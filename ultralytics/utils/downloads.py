@@ -418,7 +418,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset('yolov5s.pt', repo='ultralytics/assets', release='latest')
+        file_path = attempt_download_asset('yolov8n.pt', repo='ultralytics/assets', release='latest')
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import

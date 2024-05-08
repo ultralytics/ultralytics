@@ -528,7 +528,7 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):

@@ -335,9 +335,9 @@ class C2k2(C2f2):
 class C3k2(C2f2):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
         super().__init__(c1, c2, n, shortcut, g, e)
-        self.m = nn.ModuleList(C3k(self.c, self.c, 2, shortcut, g) for _ in range(n))
+        self.m = nn.ModuleList(C3k(self.c, self.c, nk, shortcut, g) for _ in range(n))
 
 
 class C3k3(C2f2):

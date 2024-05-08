@@ -32,6 +32,9 @@ from ultralytics.utils.tlc.detect.settings import Settings
 
 # Set 3LC specific settings
 settings = Settings(
+    project_name="my_yolo_project",
+    run_name="my_yolo_run",
+    run_description="my_yolo_run_description",
     image_embeddings_dim=2,
     collection_epoch_start=0,
     collection_epoch_interval=2,

@@ -33,9 +33,10 @@ class TLCDetectionTrainer(DetectionTrainer):
         self._collection_epochs = get_metrics_collection_epochs(self._settings.collection_epoch_start, self.args.epochs,
                                                                 self._settings.collection_epoch_interval,
                                                                 self._settings.collection_disable)
+        
+        project_name = self._settings.project_name if self._settings.project_name else self.data["train"].project_name
 
-        self._run = tlc.init(
-            project_name=self.data["train"].project_name) if not self._settings.collection_disable else None
+        self._run = tlc.init(project_name, self._settings.run_name, self._settings.run_description) if not self._settings.collection_disable else None
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
         self.add_callback("on_train_end", _reduce_embeddings)

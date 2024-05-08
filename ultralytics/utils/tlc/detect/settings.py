@@ -19,6 +19,9 @@ class Settings:
     """
     conf_thres: float = field(default=0.1, metadata={'description': 'Confidence threshold for detections'})
     max_det: int = field(default=300, metadata={'description': 'Maximum number of detections collected per image'})
+    project_name: str | None = field(default=None, metadata={'description': 'The name of the 3LC project'})
+    run_name: str | None = field(default=None, metadata={'description': 'The name of the 3LC run'})
+    run_description: str | None = field(default=None, metadata={'description': 'The description of the 3LC run'})
     image_embeddings_dim: int = field(
         default=0,
         metadata={

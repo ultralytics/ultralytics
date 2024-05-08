@@ -10,7 +10,7 @@ Embarking on the journey of artificial intelligence and machine learning can be 
 
 🆓 Plus, if you're a fresh GCP user, you’re in luck with a [$300 free credit offer](https://cloud.google.com/free/docs/gcp-free-tier#free-trial) to kickstart your projects.
 
-In addition to GCP, explore other accessible quickstart options for YOLOv5, like our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> for a browser-based experience, or the scalability of [Amazon AWS](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial). Furthermore, container aficionados can utilize our official Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"> for an encapsulated environment.
+In addition to GCP, explore other accessible quickstart options for YOLOv5, like our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> for a browser-based experience, or the scalability of [Amazon AWS](./aws_quickstart_tutorial.md). Furthermore, container aficionados can utilize our official Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"> for an encapsulated environment.
 
 ## Step 1: Create and Configure Your Deep Learning VM
 
@@ -84,4 +84,4 @@ Congratulations! You are now empowered to harness the capabilities of YOLOv5 wit
 
 Do remember to document your journey, share insights with the Ultralytics community, and leverage the collaborative arenas such as [GitHub discussions](https://github.com/ultralytics/yolov5/discussions) to grow further. Now, go forth and innovate with YOLOv5 and GCP! 🌟
 
-Want to keep improving your ML skills and knowledge? Dive into our [documentation and tutorials](https://docs.ultralytics.com/) for more resources. Let your AI adventure continue!
+Want to keep improving your ML skills and knowledge? Dive into our [documentation and tutorials](../../index.md) for more resources. Let your AI adventure continue!

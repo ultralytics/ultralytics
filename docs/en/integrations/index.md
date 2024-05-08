@@ -109,6 +109,6 @@ We're always excited to see how the community integrates Ultralytics YOLO with o
 
 By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community. It's an excellent way to contribute to the growing ecosystem around Ultralytics YOLO.
 
-To contribute, please check out our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
+To contribute, please check out our [Contributing Guide](../help/contributing.md) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
 
 Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feature-rich 🙏!

@@ -10,7 +10,7 @@ This document outlines how to use the 3LC integration available for YOLOv8 objec
 
 3LC is free for non-commercial use.
 
-<img src="https://docs.3lc.ai/3lc/2.2/_images/run_assign1.jpg">
+<img src="https://docs.3lc.ai/3lc/latest/_images/2_hardhat_run1.PNG">
 
 ## Getting Started
 
@@ -137,7 +137,7 @@ val: my_val_table:latest # resolves to the latest revision of my_val_table, whic
 
 ## 3LC Settings
 
-The integration offers a rich set of settings and features which can be set with environment variables. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
+The integration offers a rich set of settings and features which can be set through an instance of `Settings`. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
 
 The available 3LC settings can be seen in the `Settings` class in [settings.py](detect/settings.py).
 
@@ -146,6 +146,8 @@ Providing invalid values (or combinations of values) will either log an appropri
 ### Image Embeddings
 
 Image embeddings can be collected by setting `image_embeddings_dim` to 2 or 3, and are based on the output of the spatial pooling function output from the YOLOv8 architectures. Similar images, as seen by the model, tend to be close to each other in this space. In the 3LC Dashboard these embeddings can be visualized, allowing you to find similar images, duplicates and imbalances in your dataset and determine if your validation set is representative of your training data (and vice-versa).
+
+Note that when collecting image embeddings for validation only runs, `reduce_all_embeddings()` must be called at the end to produce embeddings which can be visualized in the Dashboard.
 
 ## Other output
 
@@ -169,4 +171,4 @@ Embeddings collection has an extra dependency for the library used for reduction
 
 ## How do I collect embeddings for each bounding box?
 
-In order to collect embeddings (or other additional metrics) for each bounding box, refer to the [3LC Bounding Box Example Notebooks](https://docs.3lc.ai/3lc/2.2/public-notebooks/bounding-box-notebooks/index.html).
+In order to collect embeddings (or other additional metrics) for each bounding box, refer to the [3LC Bounding Box Example Notebooks](https://docs.3lc.ai/3lc/latest/public-notebooks/add-bb-embeddings.html).

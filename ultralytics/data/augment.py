@@ -1128,6 +1128,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
+            RandomRotation90(p=hyp.rotate90),
         ]
     )  # transforms
 
@@ -1380,3 +1381,34 @@ class ToTensor:
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0-255 to 0.0-1.0
         return im
+
+
+class RandomRotation90:
+    """
+    Applies a 90 degree rotation to the image. Clockwise or counter-clockwise randomly.
+    """
+    def __init__(self, p: float = 0.0):
+        """
+        Initializes the RandomRotation90 class with probability.
+
+        Args:
+            p (float, optional): The probability of applying the rotation.
+            Must be between 0 and 1, default is 0.0.
+        """
+        self.p = p
+
+    def __call__(self, labels):
+        """
+        Applies a 90 degree rotation to the image. Clockwise or counter-clockwise randomly.
+
+        Args:
+            labels (dict): A dictionary containing the keys 'img'. 'img' is the image to be rotated.
+
+        Returns:
+            (dict): The same dict with the rotated image and updated instance under the 'img' key.
+        """
+        img = labels["img"]
+        if random.random() < self.p:
+            img = np.rot90(img, k=random.choice([1, 3]))
+        labels["img"] = np.ascontiguousarray(img)
+        return labels

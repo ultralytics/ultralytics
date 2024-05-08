@@ -3,9 +3,10 @@
 This repository provides a Rust demo for performing YOLOv8 tasks like `Classification`, `Segmentation`, `Detection`, `Pose Detection` and `OBB` using ONNXRuntime.
 
 ## Recently Updated
-- Add YOLOv8-OBB demo  
+
+- Add YOLOv8-OBB demo
 - Update ONNXRuntime to 1.17.x
-  
+
 Newly updated YOLOv8 example code is located in this repository (https://github.com/jamjamjon/usls/tree/main/examples/yolov8)
 
 ## Features

@@ -133,7 +133,7 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 

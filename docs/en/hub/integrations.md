@@ -57,7 +57,7 @@ Available export formats are in the table below. You can predict or validate dir
 
 While we're in the process of creating detailed guides:
 
-- Browse through other [HUB Docs](https://docs.ultralytics.com/hub/) for detailed guides and tutorials.
+- Browse through other [HUB Docs](./index.md) for detailed guides and tutorials.
 - Raise an issue on our [GitHub](https://github.com/ultralytics/hub/) for technical support.
 - Join our [Discord Community](https://ultralytics.com/discord/) for live discussions and community support.
 

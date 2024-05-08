@@ -32,6 +32,7 @@ def test_export_engine():
     "task, dynamic, int8, half, batch",
     [  # generate all combinations but exclude those where both int8 and half are True
         (task, dynamic, int8, half, batch)
+        # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
         # for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
         for task, dynamic, int8, half, batch in product(TASKS, [True], [True], [False], [2])
         if not (int8 and half)  # exclude cases where both int8 and half are True

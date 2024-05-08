@@ -73,7 +73,7 @@ After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorr
 
 #### Install Ultralytics Package
 
-Here we will install ultralyics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](https://docs.ultralytics.com/integrations/tensorrt) because TensoRT will make sure we can get the maximum performance out of the Jetson devices.
+Here we will install ultralyics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensoRT will make sure we can get the maximum performance out of the Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -144,7 +144,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 ## Use TensorRT on NVIDIA Jetson
 
-Out of all the model export formats supported by Ultralytics, TensorRT delivers the best inference performance when working with NVIDIA Jetson devices and our recommendation is to use TensorRT with Jetson. We also have a detailed document on TensorRT [here](https://docs.ultralytics.com/integrations/tensorrt).
+Out of all the model export formats supported by Ultralytics, TensorRT delivers the best inference performance when working with NVIDIA Jetson devices and our recommendation is to use TensorRT with Jetson. We also have a detailed document on TensorRT [here](../integrations/tensorrt.md).
 
 ## Convert Model to TensorRT and Run Inference
 
@@ -181,7 +181,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
 
 !!! Note
 
-    Visit the [Export page](https://docs.ultralytics.com/modes/export/#arguments) to access additional arguments when exporting models to different model formats
+    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
 ## NVIDIA Jetson Orin YOLOv8 Benchmarks
 

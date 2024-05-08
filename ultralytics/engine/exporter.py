@@ -533,7 +533,7 @@ class Exporter:
         f_ts = self.file.with_suffix(".torchscript")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
-        pnnx = name if name.is_file() else ROOT / name
+        pnnx = name if name.is_file() else (ROOT / name)
         if not pnnx.is_file():
             LOGGER.warning(
                 f"{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from "
@@ -542,21 +542,19 @@ class Exporter:
             )
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
-                _, assets = get_github_assets(repo="pnnx/pnnx")
+                release, assets = get_github_assets(repo="pnnx/pnnx")
                 asset = [x for x in assets if f"{system}.zip" in x][0]
                 assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
-                asset = attempt_download_asset(asset, repo="pnnx/pnnx", release="latest")
             except Exception as e:
-                url = f"https://github.com/pnnx/pnnx/releases/download/20240410/pnnx-20240410-{system}.zip"
-                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {url}")
-                asset = safe_download(url)
-            if check_is_path_safe(Path.cwd(), asset):  # avoid path traversal security vulnerability
-                unzip_dir = Path(asset).with_suffix("")
+                release = "20240410"
+                asset = f"pnnx-{release}-{system}.zip"
+                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {asset}")
+            unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
+            if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
                 (unzip_dir / name).rename(pnnx)  # move binary to ROOT
                 pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
                 shutil.rmtree(unzip_dir)  # delete unzip dir
-                Path(asset).unlink(missing_ok=True)  # delete zip
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',

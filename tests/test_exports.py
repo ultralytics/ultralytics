@@ -179,6 +179,7 @@ def test_export_paddle():
     """
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
+
 @pytest.mark.slow
 def test_export_ncnn():
     """Test YOLO exports to NCNN format."""

@@ -195,7 +195,7 @@ threading.Thread(target=run, args=[model1, 'https://ultralytics.com/images/bus.j
 
 ### Training
 
-To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](https://docs.ultralytics.com/yolov5/tutorials/train_custom_data) for model training.
+To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](./train_custom_data.md) for model training.
 
 ```python
 import torch
@@ -338,7 +338,7 @@ model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', sourc
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](https://docs.ultralytics.com/yolov5/tutorials/model_export) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model_export.md) for details on exporting models.
 
 💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)

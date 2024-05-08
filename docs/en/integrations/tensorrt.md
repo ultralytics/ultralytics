@@ -145,27 +145,42 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 !!! example
 
-    ```{ .py .annotate }
-    from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
-    model.export(
-        format="engine",
-        dynamic=True, #(1)!
-        batch=8, #(2)!
-        workspace=4, #(3)!
-        int8=True,
-        data="coco.yaml", #(4)!
-    )
+    === "Python"
 
-    model = YOLO("yolov8n.engine", task="detect") # load the model
+        ```{ .py .annotate }
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")
+        model.export(
+            format="engine",
+            dynamic=True, #(1)!
+            batch=8, #(2)!
+            workspace=4, #(3)!
+            int8=True,
+            data="coco.yaml", #(4)!
+        )
+
+        model = YOLO("yolov8n.engine", task="detect") # load the model
+        
+        ```
+        
+        1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
+        2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 *×* 8` to avoid scaling errors during calibration.
+        3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
+        4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
+
     
-    ```
-    
-    1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
-    2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 *×* 8` to avoid scaling errors during calibration.
-    3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
-    4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 calibration
+        yolo export model=yolov8n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+
+        # Run inference with the exported model
+        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
 
 ???+ warning "Calibration Cache"
 
@@ -240,12 +255,12 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels) |
         |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
-        | FP32      | Predict          | 0.26         | 0.25 \| 0.28       | 0.35  | 0.61  | 8       | 640                   |
-        | FP32      | ImageNet<sup>val | 0.26         |                    |       |       | 1       | 640                   |
-        | FP16      | Predict          | 0.18         | 0.17 \| 0.19       | 0.35  | 0.61  | 8       | 640                   |
-        | FP16      | ImageNet<sup>val | 0.18         |                    |       |       | 1       | 640                   |
-        | INT8      | Predict          | 0.16         | 0.15 \| 0.57       | 0.32  | 0.59  | 8       | 640                   |
-        | INT8      | ImageNet<sup>val | 0.15         |                    |       |       | 1       | 640                   |
+        | FP32      | Predict          | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                   |
+        | FP32      | ImageNet<sup>val | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | FP16      | Predict          | 0.18         | 0.17 \| 0.19       |       |       | 8       | 640                   |
+        | FP16      | ImageNet<sup>val | 0.18         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | INT8      | Predict          | 0.16         | 0.15 \| 0.57       |       |       | 8       | 640                   |
+        | INT8      | ImageNet<sup>val | 0.15         |                    | 0.32  | 0.59  | 1       | 640                   |
 
     === "Pose (COCO)"
 

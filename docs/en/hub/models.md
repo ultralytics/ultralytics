@@ -45,7 +45,7 @@ Select the dataset for training and click **Continue**.
 
 ### 2. Model
 
-Choose the project, model name, and architecture. Read more about available architectures in our [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) documentation.
+Choose the project, model name, and architecture. Read more about available architectures in our [YOLOv8](../models/yolov8.md) (and [YOLOv5](../models/yolov5.md)) documentation.
 
 Click **Continue** when satisfied with the configuration.
 
@@ -53,7 +53,7 @@ Click **Continue** when satisfied with the configuration.
 
 !!! note "Note"
 
-    By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset) to reduce training time.
+    By default, your model will use a pre-trained model (trained on the [COCO](../datasets/detect/coco.md) dataset) to reduce training time.
 
     Advanced options are available to modify this behavior.
 

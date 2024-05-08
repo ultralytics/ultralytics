@@ -92,7 +92,12 @@ sudo docker pull $t
 ## Running Ultralytics in Docker Container
 
 Here's how to execute the Ultralytics Docker container:
-
+### Using only the CPU
+```bash
+# Run with all GPUs
+sudo docker run -it --ipc=host $t
+```
+### Using GPUs
 ```bash
 # Run with all GPUs
 sudo docker run -it --ipc=host --gpus all $t
@@ -102,6 +107,52 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 ```
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
+
+### Visualize Ultralytics' Object detection in your GNU-Linux Display Server
+
+The following instructions are highly experimental. Sharing a X11 socket with a docker container can raise security concerns, and as such this solution should be tested only in a controlled environment. 
+
+Firstly, there is the need to allow the docker container to access the X11 socket of your GNU-Linux Display Server. There is also the need to mount the socket in the container and have the `DISPLAY` environment variable set to point to it.
+
+Secondly there is the need to grant access to the X11 Server. For that there is the need to allow connections from the Docker container into the host. A restrictive way to do it is :
+```bash
+xhost +local:docker
+```
+This allows connections from the `docker` group into the X11 Server. 
+
+A simple way to validate that the docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the ultralytics docker container to test the access to the X11 Server of you GNU-Linux Display Server .
+
+Below there are presented two examples on how to run the Ultralytics Object detection container in  in both Xorg and Wayland in interact mode `-it`. You can run the commands to start the docker container with using a [GPU](#using-gpus)
+#### Xorg
+1. Open a terminal and run:
+
+```bash
+docker run -e DISPLAY=$DISPLAY -e QT_DEBUG_PLUGINS=1  -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority -it $t
+```
+2. Open another terminal and run:
+```bash
+xhost +local:docker
+```
+3. Test the connection to the X11 Server inside the docker terminal:
+```bash
+yolo predict show=True
+```
+#### Wayland
+1. Open a terminal and use the following command to run the container:
+```bash
+docker run --env DISPLAY=$DISPLAY --volume $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY -e QT_DEBUG_PLUGINS=1 --net=host -it $t  
+#Note: Wayland also supports running the command.
+```
+
+2. Open another terminal and run:
+```bash
+xhost +local:docker
+#Note: You may need to rerun the command each time that the X11 Server session closes. 
+```
+3. Test the connection to the X11 Server inside the docker terminal:
+```bash
+yolo predict show=True
+```
 
 ### Note on File Accessibility
 

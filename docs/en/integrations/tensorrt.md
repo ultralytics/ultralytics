@@ -145,7 +145,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 !!! example
 
-
     === "Python"
 
         ```{ .py .annotate }
@@ -161,12 +160,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             data="coco.yaml", #(4)!
         )
 
-        model = YOLO("yolov8n.engine", task="detect") # load the model
-        
+        # Load the exported TensorRT INT8 model
+        model = YOLO("yolov8n.engine", task="detect")
+        # Run inference
+        result = model.predict("https://ultralytics.com/images/bus.jpg")
         ```
         
         1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
-        2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 *×* 8` to avoid scaling errors during calibration.
+        2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 * 8` to avoid scaling errors during calibration.
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
 
@@ -174,10 +175,10 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 calibration
+        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 quantization
         yolo export model=yolov8n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
 
-        # Run inference with the exported model
+        # Run inference with the exported TensorRT quantized model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 

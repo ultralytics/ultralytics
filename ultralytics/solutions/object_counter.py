@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+
 import cv2
 
 from ultralytics.utils.checks import check_imshow, check_requirements

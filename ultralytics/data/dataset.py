@@ -14,6 +14,7 @@ from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
+
 from .augment import (
     Compose,
     Format,
@@ -30,10 +31,10 @@ from .utils import (
     LOGGER,
     get_hash,
     img2label_paths,
-    verify_image,
-    verify_image_label,
     load_dataset_cache_file,
     save_dataset_cache_file,
+    verify_image,
+    verify_image_label,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8

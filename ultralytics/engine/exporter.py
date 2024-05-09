@@ -217,9 +217,9 @@ class Exporter:
         )
         if file.suffix in {".yaml", ".yml"}:
             file = Path(file.name)
-        
+
         artifact_path = Path(self.args.artifact_path) / Path(file.name) if self.args.artifact_path else file
- 
+
         # Update model
         model = deepcopy(model).to(self.device)
         for p in model.parameters():

@@ -492,8 +492,8 @@ class Exporter:
             serialize(quantized_ov_model, fq_ov)
             return fq, None
 
-        f = str(self.artifact_path).replace(self.file.suffix, f"_openvino_model{os.sep}")
-        f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
+        f = str(self.artifact_path).replace(self.artifact_path.suffix, f"_openvino_model{os.sep}")
+        f_ov = str(Path(f) / self.artifact_path.with_suffix(".xml").name)
 
         serialize(ov_model, f_ov)
         return f, None
@@ -506,7 +506,7 @@ class Exporter:
         from x2paddle.convert import pytorch2paddle  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
-        f = str(self.artifact_path).replace(self.file.suffix, f"_paddle_model{os.sep}")
+        f = str(self.artifact_path).replace(self.artifact_path.suffix, f"_paddle_model{os.sep}")
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -521,7 +521,7 @@ class Exporter:
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
-        f = Path(str(self.artifact_path).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
+        f = Path(str(self.artifact_path).replace(self.artifact_path.suffix, f"_ncnn_model{os.sep}"))
         f_ts = self.artifact_path.with_suffix(".torchscript")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
@@ -760,7 +760,7 @@ class Exporter:
         )
         import onnx2tf
 
-        f = Path(str(self.artifact_path).replace(self.file.suffix, "_saved_model"))
+        f = Path(str(self.artifact_path).replace(self.artifact_path.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
@@ -846,13 +846,13 @@ class Exporter:
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        saved_model = Path(str(self.artifact_path).replace(self.file.suffix, "_saved_model"))
+        saved_model = Path(str(self.artifact_path).replace(self.artifact_path.suffix, "_saved_model"))
         if self.args.int8:
-            f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
+            f = saved_model / f"{self.artifact_path.stem}_int8.tflite"  # fp32 in/out
         elif self.args.half:
-            f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
+            f = saved_model / f"{self.artifact_path.stem}_float16.tflite"  # fp32 in/out
         else:
-            f = saved_model / f"{self.file.stem}_float32.tflite"
+            f = saved_model / f"{self.artifact_path.stem}_float32.tflite"
         return str(f), None
 
     @try_export
@@ -877,7 +877,7 @@ class Exporter:
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
-        f = self.artifact_path / str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
+        f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
 
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
         LOGGER.info(f"{prefix} running '{cmd}'")
@@ -896,8 +896,8 @@ class Exporter:
         import tensorflowjs as tfjs  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-        f = self.artifact_path / str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-        f_pb = self.artifact_path / str(self.file.with_suffix(".pb"))  # *.pb path
+        f = str(self.artifact_path).replace(self.artifact_path.suffix, "_web_model")  # js dir
+        f_pb = str(self.artifact_path.with_suffix(".pb"))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
         with open(f_pb, "rb") as file:
@@ -948,7 +948,7 @@ class Exporter:
         model_meta.license = self.metadata["license"]
 
         # Label file
-        tmp_file = self.artifact_path / Path(file).parent / "temp_meta.txt"
+        tmp_file = Path(file).parent / "temp_meta.txt"
         with open(tmp_file, "w") as f:
             f.write(str(self.metadata))
 

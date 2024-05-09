@@ -1382,11 +1382,14 @@ class ToTensor:
         im /= 255.0  # 0-255 to 0.0-1.0
         return im
 
+
 class RandomRotation90:
     """
     Applies a 90 degree rotation to the image and labels (bboxes, segments, keypoints).
+
     Clockwise or counter-clockwise randomly.
     """
+
     def __init__(self, p: float = 0.0):
         """
         Initializes the RandomRotation90 class with probability.
@@ -1448,7 +1451,7 @@ class RandomRotation90:
                 self.apply_segments(instances.segments, k),
                 self.apply_keypoints(instances.keypoints, k),
                 bbox_format="xyxy",
-                normalized=True
+                normalized=True,
             )
             labels["instances"] = new_instances
         return labels

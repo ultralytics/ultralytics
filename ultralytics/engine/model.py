@@ -649,7 +649,13 @@ class Model(nn.Module):
             "task": self.task,
         }  # method defaults
         pretrained = self.overrides["pretrained"] if overrides["pretrained"] else False
-        args = {**overrides, **custom, **kwargs, "mode": "train", "pretrained": pretrained}  # highest priority args on the right
+        args = {
+            **overrides,
+            **custom,
+            **kwargs,
+            "mode": "train",
+            "pretrained": pretrained,
+        }  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 

@@ -274,8 +274,9 @@ def test_export_paddle(enabled=False):
 @pytest.mark.slow
 def test_export_ncnn():
     """Test exporting the YOLO model to NCNN format."""
-    f = YOLO(MODEL).export(format="ncnn")
-    YOLO(f)(SOURCE)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="ncnn", artifact_path=tmp_dir)
+        YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_all_model_yamls():

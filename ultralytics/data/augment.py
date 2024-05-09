@@ -404,6 +404,7 @@ def getXY(bboxes, perspective, M):
     y = xy[:, np.array([1, 3, 5, 7])]
     return x, y
 
+
 class RandomPerspective:
     """
     Implements random perspective and affine transformations on images and corresponding bounding boxes, segments, and

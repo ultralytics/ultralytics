@@ -204,8 +204,9 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     """Test exporting the YOLO model to TorchScript format."""
-    f = YOLO(MODEL).export(format="torchscript", optimize=False)
-    YOLO(f)(SOURCE)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="torchscript", optimize=False, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_onnx():
@@ -219,19 +220,21 @@ def test_export_onnx():
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test exporting the YOLO model to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino")
-    YOLO(f)(SOURCE)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="openvino", artifact_path=tmp_dir)
+        YOLO(f)(SOURCE)  # exported model inference
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test exporting the YOLO model to CoreML format."""
-    if not WINDOWS:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
-        if MACOS:
-            f = YOLO(MODEL).export(format="coreml")
-            YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
-        else:
-            YOLO(MODEL).export(format="coreml", nms=True)
+    if not WINDOWS:
+        with tempfile.TemporaryDirectory() as tmp_dir:  # RuntimeError: BlobWriter not loaded with coremltools 7.0 on windows
+            if MACOS:
+                f = YOLO(MODEL).export(format="coreml", artifact_path=tmp_dir)
+                YOLO(f)(SOURCE)  # model prediction only supported on macOS for nms=False models
+            else:
+                YOLO(MODEL).export(format="coreml", nms=True, artifact_path=tmp_dir)
 
 
 def test_export_tflite(enabled=False):

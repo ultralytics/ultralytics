@@ -26,7 +26,7 @@ def check_det_dataset(data: str, settings: Settings | None = None) -> dict[str, 
     :param settings: The settings containing the run info.
     :returns: A YOLO-style data dict with 3LC tables instead of paths.
     """
-    tables = tlc_check_dataset(data, settings)
+    tables = tlc_check_dataset(data, settings=settings)
     names = get_names_from_yolo_table(tables["train"])
     return {
         "train": tables["train"],

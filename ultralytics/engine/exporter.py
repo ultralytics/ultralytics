@@ -218,7 +218,7 @@ class Exporter:
         if file.suffix in {".yaml", ".yml"}:
             file = Path(file.name)
         
-        artifact_path = Path(self.args.artifact_path) if self.args.artifact_path else Path(".")
+        artifact_path = Path(self.args.artifact_path) / Path(file.name) if self.args.artifact_path else file
  
         # Update model
         model = deepcopy(model).to(self.device)
@@ -339,7 +339,7 @@ class Exporter:
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
         """YOLOv8 TorchScript model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
-        f = self.file.with_suffix(".torchscript")
+        f = self.artifact_path.with_suffix(".torchscript")
 
         ts = torch.jit.trace(self.model, self.im, strict=False)
         extra_files = {"config.txt": json.dumps(self.metadata)}  # torch._C.ExtraFilesMap()
@@ -365,7 +365,7 @@ class Exporter:
 
         opset_version = self.args.opset or get_latest_opset()
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
-        f = str(self.artifact_path / self.file.with_suffix(".onnx"))
+        f = str(self.artifact_path.with_suffix(".onnx"))
 
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
@@ -492,7 +492,7 @@ class Exporter:
             serialize(quantized_ov_model, fq_ov)
             return fq, None
 
-        f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
+        f = str(self.artifact_path).replace(self.file.suffix, f"_openvino_model{os.sep}")
         f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
 
         serialize(ov_model, f_ov)
@@ -506,7 +506,7 @@ class Exporter:
         from x2paddle.convert import pytorch2paddle  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
-        f = str(self.file).replace(self.file.suffix, f"_paddle_model{os.sep}")
+        f = str(self.artifact_path).replace(self.file.suffix, f"_paddle_model{os.sep}")
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -521,8 +521,8 @@ class Exporter:
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
-        f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_ts = self.artifact_path / self.file.with_suffix(".torchscript")
+        f = Path(str(self.artifact_path).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
+        f_ts = self.artifact_path.with_suffix(".torchscript")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
         pnnx = name if name.is_file() else ROOT / name
@@ -590,7 +590,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
-        f = self.artifact_path / self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
+        f = self.artifact_path.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
@@ -673,7 +673,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
-        f = self.artifact_path / self.file.with_suffix(".engine")  # TensorRT engine file
+        f = self.artifact_path.with_suffix(".engine")  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
         if self.args.verbose:
             logger.min_severity = trt.Logger.Severity.VERBOSE
@@ -760,7 +760,7 @@ class Exporter:
         )
         import onnx2tf
 
-        f = self.artifact_path / Path(str(self.file).replace(self.file.suffix, "_saved_model"))
+        f = Path(str(self.artifact_path).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
@@ -831,7 +831,7 @@ class Exporter:
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        f = self.artifact_path / self.file.with_suffix(".pb")
+        f = self.artifact_path.with_suffix(".pb")
 
         m = tf.function(lambda x: keras_model(x))  # full model
         m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
@@ -846,7 +846,7 @@ class Exporter:
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        saved_model = self.artifact_path / Path(str(self.file).replace(self.file.suffix, "_saved_model"))
+        saved_model = Path(str(self.artifact_path).replace(self.file.suffix, "_saved_model"))
         if self.args.int8:
             f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
         elif self.args.half:

@@ -140,7 +140,7 @@ yolo predict show=True
 #### Wayland
 1. Open a terminal and use the following command to run the container:
 ```bash
-docker run --env DISPLAY=$DISPLAY --volume $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY -e QT_DEBUG_PLUGINS=1 --net=host -it $t  
+docker run -e DISPLAY=$DISPLAY -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY -e QT_DEBUG_PLUGINS=1 --net=host -it $t  
 #Note: Wayland also supports running the command.
 ```
 

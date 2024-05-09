@@ -18,7 +18,8 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Setting up Docker with NVIDIA support
 - Installing Ultralytics Docker images
-- Running Ultralytics in a Docker container
+- Running Ultralytics in a Docker container with CPU or GPU support
+- Visualize Ultralytics' Object detection from the Docker container
 - Mounting local directories into the container
 
 ---
@@ -110,7 +111,9 @@ The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to intera
 
 ### Visualize Ultralytics' Object detection in your GNU-Linux Display Server
 
-The following instructions are highly experimental. Sharing a X11 socket with a docker container can raise security concerns, and as such this solution should be tested only in a controlled environment. 
+???+ warning "Highly Experimental"
+   The following instructions are highly experimental. Sharing a X11 socket with a docker container can raise security concerns, and as such this solution should be tested only in a controlled environment. 
+   More information on the subject [here](http://users.stat.umn.edu/~geyer/secure.html)
 
 Firstly, there is the need to allow the docker container to access the X11 socket of your GNU-Linux Display Server. There is also the need to mount the socket in the container and have the `DISPLAY` environment variable set to point to it.
 
@@ -120,14 +123,21 @@ xhost +local:docker
 ```
 This allows connections from the `docker` group into the X11 Server. 
 
-A simple way to validate that the docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the ultralytics docker container to test the access to the X11 Server of you GNU-Linux Display Server .
+You can later restore the access control with: 
+```bash
+xhost -local:docker
+```
 
-Below there are presented two examples on how to run the Ultralytics Object detection container in  in both Xorg and Wayland in interact mode `-it`. You can run the commands to start the docker container with using a [GPU](#using-gpus)
+A simple way to validate that the docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the ultralytics docker container to test the access to the X11 Server of your GNU-Linux Display Server .
+
+Below, two examples are presented on how to run the Ultralytics Object detection container in both Xorg and Wayland using the interact mode `-it`. You can run the commands to start the docker container using a [GPU](#using-gpus)
 #### Xorg
 1. Open a terminal and run:
 
 ```bash
-docker run -e DISPLAY=$DISPLAY -e QT_DEBUG_PLUGINS=1  -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority -it $t
+#Note 1: To debug the QT Plugins you can add the following flag to the command: -e QT_DEBUG_PLUGINS=1 
+#Note 2: Wayland also supports running the Xorg command.
+docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority -it $t
 ```
 2. Open another terminal and run:
 ```bash
@@ -140,8 +150,9 @@ yolo predict show=True
 #### Wayland
 1. Open a terminal and use the following command to run the container:
 ```bash
-docker run -e DISPLAY=$DISPLAY -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY -e QT_DEBUG_PLUGINS=1 --net=host -it $t  
-#Note: Wayland also supports running the command.
+# To debug the QT Plugins you can add the following flag to the command: -e QT_DEBUG_PLUGINS=1 
+docker run -e DISPLAY=$DISPLAY -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY --net=host -it $t  
+
 ```
 
 2. Open another terminal and run:

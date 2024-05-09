@@ -9,52 +9,51 @@ import cv2
 import numpy as np
 import math
 from equilib import equi2pers
-
-def get_theta_phi(_x, _y, _z):
-    dv = math.sqrt(_x * _x + _y * _y + _z * _z)
-    x = _x / dv
-    y = _y / dv
-    z = _z / dv
-    theta = math.atan2(y, x)
-    phi = math.asin(z)
-    return theta, phi
+from PIL import Image, ImageDraw, ImageFont
 
 
-def viewport_to_unit_vector(x, y, width, height, pitch, yaw):
-    """
-    将视口坐标系中的点坐标转换为单位向量
-    """
-    # 将点坐标归一化到范围 [-1, 1]
-    x_normalized = (2 * x / width) - 1
-    y_normalized = (2 * y / height) - 1
-
-    # 计算 z 分量，根据球的半径为1，可以直接计算
-    z = 1
-
-    unit_vector = np.array([x_normalized, y_normalized, z])
-    # 对单位向量进行旋转，根据pitch和yaw的值
-    rotation_matrix = np.array([
-        [np.cos(pitch) * np.cos(yaw), -np.sin(pitch), np.cos(pitch) * np.sin(yaw)],
-        [np.sin(pitch) * np.cos(yaw), np.cos(pitch), np.sin(pitch) * np.sin(yaw)],
-        [-np.sin(yaw), 0, np.cos(yaw)]
-    ])
-
-    # 进行向量旋转
-    rotated_unit_vector = np.dot(rotation_matrix, unit_vector)
-    return rotated_unit_vector
+class PersImage:
+    def __init__(self, pitch, yaw, pers_img):
+        self.pitch = pitch
+        self.yaw = yaw
+        self.pers_img = pers_img
 
 
-def unit_vector_to_spherical_coordinates(unit_vector):
-    """
-    将单位向量转换为球面坐标系中的经度和纬度
-    """
-    # 计算经度
-    theta = np.arctan2(unit_vector[1], unit_vector[0])
+class Rectangle:
+    def __init__(self, p1, p2, cls, conf, pitch, yaw):
+        self.p1 = p1
+        self.p2 = p2
+        self.cls = cls
+        self.conf = conf
+        self.pitch = pitch
+        self.yaw = yaw
 
-    # 计算纬度
-    phi = np.arcsin(unit_vector[2])
+    def intersect_with(self, other):
+        r1_lft_btm_x = self.p1[0]
+        r1_lft_btm_y = self.p2[1]
+        r1_rt_top_x = self.p2[0]
+        r1_rt_top_y = self.p1[1]
 
-    return theta, phi
+        r2_lft_btm_x = other.p1[0]
+        r2_lft_btm_y = other.p2[1]
+        r2_rt_top_x = other.p2[0]
+        r2_rt_top_y = other.p1[1]
+
+        cx1 = max(r1_lft_btm_x, r2_lft_btm_x)
+        cy1 = max(r1_lft_btm_y, r2_lft_btm_y)
+        cx2 = min(r1_rt_top_x, r2_rt_top_x)
+        cy2 = min(r1_rt_top_y, r2_rt_top_y)
+
+        # cy1 >= cy2的判断是因为坐标系是left top，y轴向下增长
+        return self.cls == other.cls and cx1 <= cx2 and cy1 >= cy2
+
+    def union(self, other):
+        self.p1[0] = min(self.p1[0], other.p1[0])
+        self.p1[1] = min(self.p1[1], other.p1[1])
+        self.p2[0] = max(self.p2[0], other.p2[0])
+        self.p2[1] = max(self.p2[1], other.p2[1])
+        self.conf = max(self.conf, other.conf)
+
 
 def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch, equi_width, equi_height):
     # 将屏幕坐标(x, y)转换到NDC坐标(-1 to 1)
@@ -93,39 +92,16 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     ex = (longitude + np.pi) / (2 * np.pi) * equi_width
     ey = (latitude + np.pi / 2) / np.pi * equi_height
 
-    return int(ex), int(ey)
-
-# x,y position in cubemap
-# cw  cube width
-# W,H size of equirectangular image
-def map_cube(x, y, side, cw, W, H):
-    u = 2 * (float(x) / cw - 0.5)
-    v = 2 * (float(y) / cw - 0.5)
-
-    if side == "front":
-        theta, phi = get_theta_phi(1, u, v)
-    elif side == "right":
-        theta, phi = get_theta_phi(-u, 1, v)
-    elif side == "left":
-        theta, phi = get_theta_phi(u, -1, v)
-    elif side == "back":
-        theta, phi = get_theta_phi(-1, -u, v)
-    elif side == "bottom":
-        theta, phi = get_theta_phi(-v, u, 1)
-    elif side == "top":
-        theta, phi = get_theta_phi(v, u, -1)
-
-    _u = 0.5 + 0.5 * (theta / math.pi)
-    _v = 0.5 + (phi / math.pi)
-    return int(_u * W), int(_v * H)
-
+    return [int(ex), int(ey)]
 
 # Load a model
 model = YOLO('runs/detect/train33/weights/best.pt')  # pretrained YOLOv8n model
 # Run batched inference on a list of images
 images = [
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/52f3a0273dfb466e85e6bf59ade05c2e.jpg',
-
+    # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/52f3a0273dfb466e85e6bf59ade05c2e.jpg',
+    # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/6176dca744e64bd6bf8a02dd92f466eb.jpg',
+    # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/057c166dcc8648e69cba69009a8535b4.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/0b3f8b79969940528ab1cf6a43ca83a9.jpg'
 ]
 
 img_names = [x.split('/')[-1].split('.')[0] for x in images]
@@ -134,18 +110,24 @@ name_dict = {
     0: '路面破损',
     # 1: '沿街晾晒',
     # 2: '垃圾满冒',
-    3: '乱扔垃圾',
+    # 3: '乱扔垃圾',
     # 4: '垃圾正常盛放',
 }
 
 confs = [0.1]
 
-unit = 180 / math.pi
+
+def cvt_coord(yaw, pitch):
+    _u = 0.5 + 0.5 * (-yaw / math.pi)
+    _v = 0.5 + (pitch / math.pi)
+    return _u, _v
+
 
 for idx_conf in confs:
     if not os.path.exists(f'conf_{idx_conf}'):
         os.mkdir(f'conf_{idx_conf}')
     for img_idx, image_url in enumerate(images):
+        begin = time.time()
         now = time.time()
         res = requests.get(image_url)
         img = cv2.imdecode(np.fromstring(res.content, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -157,61 +139,138 @@ for idx_conf in confs:
         # img = e2c(img, face_w=int(img.shape[0] / 3))
         now = time.time()
         (height, width, depth) = img.shape
-        pic = np.zeros((height, width, depth))
-        cut_width = int(width / 4)
-        cut_height = int(height / 3)
         equi_img = np.transpose(img, (2, 0, 1))
-        yaw = math.pi
-
         equi_img = torch.tensor(equi_img)
         pers_should_height = height / 4
         pers_should_width = width / 4
-        for i in range(36):
-            print(math.degrees(yaw))
-            # rotations
-            # pitch = np.pi / 8
-            pitch = 0
-            rots = {
-                'roll': 0.,
-                'pitch': pitch,  # rotate vertical
-                'yaw': yaw,  # rotate horizontal
-            }
-            # Run equi2pers
-            fov_deg = 90.0
-            pers_height = 480
-            pers_width = 640
-            pers_img = equi2pers(
-                equi=equi_img,
-                rots=rots,
-                height=pers_height,
-                width=pers_width,
-                fov_x=fov_deg,
-                mode="bilinear",
-            )
-            cube_result = np.ascontiguousarray(np.transpose(pers_img, (1, 2, 0)))
-            cv2.circle(cube_result, (10, 10), 10, (0, 0, 255), -1)
-            cv2.imshow('img', cube_result)
-            cv2.waitKey(0)
-            # cv2.imwrite(f'rotate_{i}.jpg', cube_result)
-            _u = 0.5 + 0.5 * (-yaw / math.pi)
-            _v = 0.5 + (pitch / math.pi)
-            center = np.array([int(pers_width / 2), int(pers_height / 2)])
-            vec = np.array([10 - center[0], 10 - center[1]])
-            vec = [int(vec[0] * pers_should_width / pers_width), int(vec[1] * pers_should_height / pers_height)]
-            center_equi_pos = np.array([int(_u * width), int(_v * height)])
-            print(f'center_equi_pos: {center_equi_pos}')
-            print(f'vec: {vec}')
-            point = center_equi_pos + vec
-            point[0] = point[0] + width if point[0] < 0 else point[0]
-            point = [a for a in point]
-            print(f'offset point: {point}')
-            # cv2.circle(img, center_equi_pos, 10, (0, 0, 255), -1)
-            # cv2.circle(img, point, 10, (0, 0, 255), -1)
+        pers_height = 480
+        pers_width = 640
+        pitch = math.radians(0)
+        fov_deg = 90.0
+        rectangles = []
+        img_PIL = Image.fromarray(img[..., ::-1])  # 转成 PIL 格式
+        draw = ImageDraw.Draw(img_PIL)  # 创建绘制对象
+        # 俯仰角从0到30度，每次转动5度
+        for j in range(7):
+            now = time.time()
+            yaw = math.pi
+            pers_imgs = []
+            # 偏航角每次转
+            # 动10度
+            dir = f'pitch_{math.ceil(math.degrees(pitch))}'
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            if not os.path.exists(os.path.join(dir, '标注图')):
+                os.mkdir(os.path.join(dir, '标注图'))
+            if not os.path.exists(os.path.join(dir, '原图')):
+                os.mkdir(os.path.join(dir, '原图'))
+            for i in range(36):
+                rots = {
+                    'roll': 0.,
+                    'pitch': pitch,  # rotate vertical
+                    'yaw': yaw,  # rotate horizontal
+                }
+                # Run equi2pers
+                fov_deg = 90.0
+                pers_height = 480
+                pers_width = 640
+                pers_img = equi2pers(
+                    equi=equi_img,
+                    rots=rots,
+                    height=pers_height,
+                    width=pers_width,
+                    fov_x=fov_deg,
+                    mode="bilinear",
+                )
+                cube_result = np.ascontiguousarray(np.transpose(pers_img, (1, 2, 0)))
+                pers_imgs.append(PersImage(pitch, yaw, cube_result))
+                _u, _v = cvt_coord(yaw, pitch)
+                center = np.array([int(pers_width / 2), int(pers_height / 2)])
+                vec = np.array([10 - center[0], 10 - center[1]])
+                vec = [int(vec[0] * pers_should_width / pers_width), int(vec[1] * pers_should_height / pers_height)]
+                # 得到当前视角中心点在等矩平面上的坐标
+                center_equi_pos = np.array([int(_u * width), int(_v * height)])
+                point = center_equi_pos + vec
+                point[0] = point[0] + width if point[0] < 0 else point[0]
+                point = [a for a in point]
+                yaw -= np.pi / 18
+                # cv2.imshow('img', cube_result)
+                # cv2.waitKey(0)
+            pitch += math.radians(5)
+            print(f'转动视角耗时{time.time() - now}秒')
 
-            equi_point = screen_to_equirectangular(10, 10, pers_width, pers_height, fov_deg,
-                                                        math.degrees(yaw), math.degrees(pitch), width, height)
-            print(f'equi_pos: {equi_point}')
-            cv2.circle(img, equi_point, 10, (0, 0, 255), -1)
-            cv2.imshow('img', cv2.resize(img, (int(width / 4), int(height / 4))))
-            cv2.waitKey(0)
-            yaw -= np.pi / 18
+            results = model.predict([elem.pers_img for elem in pers_imgs], conf=0.3, imgsz=640)
+            for idx, result in enumerate(results):
+                pers_image = pers_imgs[idx]
+                orig_image = Image.fromarray(pers_image.pers_img[..., ::-1])  # 转成 PIL 格式
+                orig_draw = ImageDraw.Draw(orig_image)
+                cv2.imwrite(f'{dir}/原图/origin_img_{idx}.jpg', pers_image.pers_img)
+                for cls, box, conf in zip(result.boxes.cls, result.boxes.xyxy, result.boxes.conf):
+                    cls_np = int(cls.cpu().detach().numpy().item())
+                    if cls_np not in name_dict.keys():
+                        continue
+                    box_np = box.cpu().detach().numpy().squeeze()
+                    conf_np = conf.cpu().detach().numpy().item()
+                    p1 = (box_np[0], box_np[1])
+                    p2 = (box_np[2], box_np[3])
+                    left_top = screen_to_equirectangular(box_np[0], box_np[1], pers_width, pers_height, fov_deg,
+                                                         math.degrees(pers_image.yaw), math.degrees(pers_image.pitch), width, height)
+                    right_bottom = screen_to_equirectangular(box_np[2], box_np[3], pers_width, pers_height, fov_deg,
+                                                             math.degrees(pers_image.yaw), math.degrees(pers_image.pitch), width, height)
+                    if left_top[0] > right_bottom[0]:
+                        # 如果x1大于x2且它俩之间的距离相差大于一屏，则说明标注框跨过了接缝，需要将x1进行偏移
+                        if left_top[0] - right_bottom[0] > pers_should_width:
+                            left_top[0] -= width
+                        else:
+                            left_top[0], right_bottom[0] = right_bottom[0], left_top[0]
+                    if left_top[1] > right_bottom[1]:
+                        left_top[1], right_bottom[1] = right_bottom[1], left_top[1]
+                    # cv2.imshow('img', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
+                    # cv2.waitKey(0)
+
+                    orig_draw.rectangle(xy=(p1, p2), fill=None, outline='red', width=5)
+                    # cv2.rectangle(img=img, pt1=p1, pt2=p2, color=(0, 0, 255), thickness=10)
+                    font = ImageFont.truetype(font='wqy-zenhei.ttc', size=40)  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
+                    orig_draw.rectangle(((p1[0], p1[1] - 50), (p1[0] + 300, p1[1])),
+                                        fill=(255, 0, 0), )
+                    name = f'{name_dict[cls_np]} {conf_np:.2f}'
+                    orig_draw.text(xy=(p1[0], p1[1] - font.size - 10), text=name, font=font,
+                                   fill=(255, 255, 255))
+                    # cv2.imshow('img', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
+                    # cv2.waitKey(0)
+                    r = Rectangle(left_top, right_bottom, cls_np, conf_np, pers_image.pitch, pers_image.yaw)
+                    r.img_idx = idx
+                    r.pers_p1 = [box_np[0], box_np[1]]
+                    r.pers_p2 = [box_np[2], box_np[3]]
+                    rectangles.append(r)
+                print(f'保存标注图第{idx}张')
+                cv2.imwrite(f'{dir}/标注图/labeled_img_{idx}.jpg', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
+        # merged = []
+        # for rect1 in rectangles:
+        #     # 如果该矩形已被其他矩形合并过则不需要再处理
+        #     if rect1 in merged:
+        #         continue
+        #     for rect2 in rectangles:
+        #         if rect2 in merged or rect1 == rect2:
+        #             continue
+        #         # 如果两个矩形相交则合并，被合并的矩形标记为已被合并
+        #         if rect1.intersect_with(rect2):
+        #             rect1.union(rect2)
+        #             merged.append(rect2)
+        # rectangles = list(filter(lambda rect: rect not in merged, rectangles))
+        for rectangle in rectangles:
+            pitch = rectangle.pitch
+            yaw = rectangle.yaw
+            draw.rectangle(xy=((rectangle.p1[0], rectangle.p1[1]), (rectangle.p2[0], rectangle.p2[1])), fill=None,
+                           outline='red', width=10)
+            # cv2.rectangle(img=img, pt1=p1, pt2=p2, color=(0, 0, 255), thickness=10)
+            font = ImageFont.truetype(font='wqy-zenhei.ttc', size=40)  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
+            draw.rectangle(((rectangle.p1[0], rectangle.p1[1] - 50), (rectangle.p1[0] + 300, rectangle.p1[1])),
+                           fill=(255, 0, 0), )
+            # print(left_top, right_bottom)
+            name = f'{name_dict[rectangle.cls]} {rectangle.conf:.2f}'
+            draw.text(xy=(rectangle.p1[0], rectangle.p1[1] - font.size - 10), text=name, font=font,
+                      fill=(255, 255, 255))
+        img = cv2.cvtColor(np.asarray(img_PIL), cv2.COLOR_RGB2BGR)  # 再转成 OpenCV 的格式，记住 OpenCV 中通道排布是 BGR
+        cv2.imwrite('result.jpg', img)
+        print(f'总耗时:{time.time() - begin}秒')

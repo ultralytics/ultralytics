@@ -540,10 +540,9 @@ def xyxyxyxy2xywhr(corners):
     # especially some objects are cut off by augmentations in dataloader.
     if is_torch:
         rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
-        rboxes[:, 4] *= torch.pi / 180  # degrees to radians
     else:
         np.array(rboxes, dtype=points.dtype)
-        rboxes[:, 4] *= np.pi / 180  # degrees to radians
+    rboxes[:, 4] *= np.pi / 180  # degrees to radians
     return rboxes
 
 

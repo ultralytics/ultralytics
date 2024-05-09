@@ -61,6 +61,7 @@ class Profile(contextlib.ContextDecorator):
             torch.cuda.synchronize(self.device)
         return time.time()
 
+
 def segment2box(segment, width=640, height=640):
     """
     Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy).
@@ -82,6 +83,7 @@ def segment2box(segment, width=640, height=640):
         if any(x)
         else np.zeros(4, dtype=segment.dtype)
     )  # xyxy
+
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True, xywh=False):
     """
@@ -299,6 +301,7 @@ def non_max_suppression(
 
     return output
 
+
 def clip_boxes(boxes, shape):
     """
     Takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the shape.
@@ -319,6 +322,7 @@ def clip_boxes(boxes, shape):
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
     return boxes
+
 
 def clip_coords(coords, shape):
     """
@@ -374,6 +378,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     return masks
 
+
 def xyxy2xywh(x):
     """
     Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is the
@@ -392,6 +397,7 @@ def xyxy2xywh(x):
     y[..., 2] = x[..., 2] - x[..., 0]  # width
     y[..., 3] = x[..., 3] - x[..., 1]  # height
     return y
+
 
 def xywh2xyxy(x):
     """
@@ -414,6 +420,7 @@ def xywh2xyxy(x):
     y[..., 3] = x[..., 1] + dh  # bottom right y
     return y
 
+
 def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
     """
     Convert normalized bounding box coordinates to pixel coordinates.
@@ -435,6 +442,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
     y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
     y[..., 3] = h * (x[..., 1] + x[..., 3] / 2) + padh  # bottom right y
     return y
+
 
 def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
@@ -493,6 +501,7 @@ def xyxy2ltwh(x):
     y[..., 3] = x[..., 3] - x[..., 1]  # height
     return y
 
+
 def ltwh2xywh(x):
     """
     Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
@@ -507,6 +516,7 @@ def ltwh2xywh(x):
     y[..., 0] = x[..., 0] + x[..., 2] / 2  # center x
     y[..., 1] = x[..., 1] + x[..., 3] / 2  # center y
     return y
+
 
 def xyxyxyxy2xywhr(corners):
     """
@@ -579,6 +589,7 @@ def ltwh2xyxy(x):
     y[..., 2] = x[..., 2] + x[..., 0]  # width
     y[..., 3] = x[..., 3] + x[..., 1]  # height
     return y
+
 
 def segments2boxes(segments):
     """

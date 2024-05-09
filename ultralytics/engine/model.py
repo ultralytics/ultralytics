@@ -648,7 +648,7 @@ class Model(nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
-        pretrained = self.overrides["pretrained"] if overrides["pretrained"] else False
+        pretrained = self.overrides["pretrained"] if overrides.get("pretrained") else False
         args = {
             **overrides,
             **custom,

@@ -95,7 +95,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         if self.args.task != "detect":
             raise NotImplementedError("Only detection task is supported for now in the 3LC integration.")
 
-        self.data = check_det_dataset(self.args.data)
+        self.data = check_det_dataset(self.args.data, self._settings)
         return self.data["train"], self.data.get("val") or self.data.get("test")
 
     def get_model(self, cfg=None, weights=None, verbose=True):

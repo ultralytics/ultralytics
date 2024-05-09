@@ -15,16 +15,18 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tlc.constants import TLC_COLORSTR, TLC_PREFIX, TRAINING_PHASE
+from ultralytics.utils.tlc.detect.settings import Settings
 
 
-def check_det_dataset(data: str) -> dict[str, tlc.Table | int | dict[int, str]]:
+def check_det_dataset(data: str, settings: Settings) -> dict[str, tlc.Table | int | dict[int, str]]:
     """Check if the dataset is compatible with the 3LC. Use to patch the YOLOv8 check_det_dataset
     to have 3LC parse the dataset.
 
     :param data: The path to the dataset YAML file.
+    :param settings: The settings containing the run info.
     :returns: A YOLO-style data dict with 3LC tables instead of paths.
     """
-    tables = tlc_check_dataset(data)
+    tables = tlc_check_dataset(data, settings)
     names = get_names_from_yolo_table(tables["train"])
     return {
         "train": tables["train"],
@@ -190,7 +192,7 @@ def create_tlc_info_string_before_training(metrics_collection_epochs: list[int])
 
     return tlc_mc_string
 
-def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str, split: str) -> tlc.Table:
+def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str,  settings: Settings, split: str) -> tlc.Table:
     """ Get or create a 3LC table from a YOLO YAML file.
 
     :param yolo_yaml_file: The path to the YOLO YAML file.
@@ -202,7 +204,7 @@ def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str, split: str)
     # Resolving logic for YOLO YAML file
     dataset_name_base = Path(yolo_yaml_file).stem
     dataset_name = dataset_name_base + '-' + split
-    project_name = 'yolov8-' + dataset_name_base
+    project_name = settings.project_name if settings and settings.project_name else "yolov8-" + dataset_name_base
 
     yolo_yaml_file = str(Path(yolo_yaml_file).resolve())  # Ensure absolute path for resolving Table Url
 
@@ -394,11 +396,12 @@ def write_3lc_yaml(data_file: str, tables: dict[str, tlc.Table]):
                 f' add a 3LC prefix: "3LC://{str(new_yaml_url)}".')
 
 
-def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val')) -> dict[str, tlc.Table]:
+def tlc_check_dataset(data_file: str, settings: Settings, get_splits: tuple | list = ('train', 'val')) -> dict[str, tlc.Table]:
     """ Parse the data file and get or create corresponding 3LC tables. If no 3LC YAML exists,
     create one.
 
     :param data_file: The path to the original YOLO YAML file.
+    :param settings: The settings containing the run info.
     :param get_splits: The splits to get tables for.
     :returns: The 3LC tables.
     :raises: FileNotFoundError if the YAML file does not exist.
@@ -415,7 +418,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
             key for key in data_file_content if key not in ('path', 'names', 'download', 'nc') and data_file_content[key]]
 
         # Create 3LC tables, get root table if already registered
-        tables = {split: get_or_create_tlc_table_from_yolo(data_file, split=split) for split in splits}
+        tables = {split: get_or_create_tlc_table_from_yolo(data_file, settings=settings, split=split) for split in splits}
 
         # Write all tables to the 3LC YAML file
         write_3lc_yaml(data_file, tables)

@@ -404,7 +404,6 @@ def getXY(bboxes, perspective, M):
     y = xy[:, np.array([1, 3, 5, 7])]
     return x, y
 
-
 class RandomPerspective:
     """
     Implements random perspective and affine transformations on images and corresponding bounding boxes, segments, and
@@ -457,10 +456,15 @@ class RandomPerspective:
         """
 
         # Center
-        C = self._numba_GetCenter(img.shape[1], img.shape[0])
+        C = np.eye(3, dtype=np.float32)
+
+        C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
+        C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
 
         # Perspective
-        P = self._numba_GetPerspective(self.perspective)
+        P = np.eye(3, dtype=np.float32)
+        P[2, 0] = random.uniform(-self.perspective, self.perspective)  # x perspective (about y)
+        P[2, 1] = random.uniform(-self.perspective, self.perspective)  # y perspective (about x)
 
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
@@ -471,10 +475,14 @@ class RandomPerspective:
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
 
         # Shear
-        S = self._numba_GetShear(self.shear)
+        S = np.eye(3, dtype=np.float32)
+        S[0, 1] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # x shear (deg)
+        S[1, 0] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # y shear (deg)
 
         # Translation
-        T = self._numba_GetTranslation(self.translate, self.size[0], self.size[1])
+        T = np.eye(3, dtype=np.float32)
+        T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[0]  # x translation (pixels)
+        T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[1]  # y translation (pixels)
 
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
@@ -485,43 +493,6 @@ class RandomPerspective:
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
         return img, M, s
-
-    @staticmethod
-    @njit
-    def _numba_GetCenter(width, height):
-        # Center
-        C = np.eye(3, dtype=np.float32)
-
-        C[0, 2] = -width / 2  # x translation (pixels)
-        C[1, 2] = -height / 2  # y translation (pixels)
-        return C
-
-    @staticmethod
-    @njit
-    def _numba_GetPerspective(perspective):
-        # Perspective
-        P = np.eye(3, dtype=np.float32)
-        P[2, 0] = random.uniform(-perspective, perspective)  # x perspective (about y)
-        P[2, 1] = random.uniform(-perspective, perspective)  # y perspective (about x)
-        return P
-
-    @staticmethod
-    @njit
-    def _numba_GetShear(shear):
-        # Shear
-        S = np.eye(3, dtype=np.float32)
-        S[0, 1] = math.tan(random.uniform(-shear, shear) * math.pi / 180)  # x shear (deg)
-        S[1, 0] = math.tan(random.uniform(-shear, shear) * math.pi / 180)  # y shear (deg)
-        return S
-
-    @staticmethod
-    @njit
-    def _numba_GetTranslation(translate, width, height):
-        # Translation
-        T = np.eye(3, dtype=np.float32)
-        T[0, 2] = random.uniform(0.5 - translate, 0.5 + translate) * width  # x translation (pixels)
-        T[1, 2] = random.uniform(0.5 - translate, 0.5 + translate) * height  # y translation (pixels)
-        return T
 
     def apply_bboxes(self, bboxes, M):
         """
@@ -534,8 +505,19 @@ class RandomPerspective:
         Returns:
             new_bboxes (ndarray): bboxes after affine, [num_bboxes, 4].
         """
-        x, y = getXY(bboxes, self.perspective, M)  # num boxes x 4
-        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, len(bboxes)).T
+        n = len(bboxes)
+        if n == 0:
+            return bboxes
+
+        xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
+        xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
+        xy = xy @ M.T  # transform
+        xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
+
+        # Create new boxes
+        x = xy[:, [0, 2, 4, 6]]
+        y = xy[:, [1, 3, 5, 7]]
+        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
         """
@@ -564,7 +546,7 @@ class RandomPerspective:
         segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
-    def apply_keypoints(self, keypoints: np.ndarray, M):
+    def apply_keypoints(self, keypoints, M):
         """
         Apply affine to keypoints.
 
@@ -611,9 +593,7 @@ class RandomPerspective:
         # Scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
 
-        bboxes = instances.bboxes
-        if len(instances.bboxes) != 0:
-            bboxes = self.apply_bboxes(instances.bboxes, M)
+        bboxes = self.apply_bboxes(instances.bboxes, M)
 
         segments = instances.segments
         keypoints = instances.keypoints
@@ -639,9 +619,7 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-    @staticmethod
-    @njit
-    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute box candidates based on a set of thresholds. This method compares the characteristics of the boxes
         before and after augmentation to decide whether a box is a candidate for further processing.

@@ -6,7 +6,6 @@ from numbers import Number
 from typing import List
 
 import numpy as np
-from numba import njit
 
 from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
@@ -318,49 +317,31 @@ class Instances:
             normalized=self.normalized,
         )
 
-    @staticmethod
-    @njit()
-    def _numba_flipud(bboxes, h, format, keypoints, segments):
-        """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
-        if format == "xyxy":
-            y1 = bboxes[:, 1].copy()
-            y2 = bboxes[:, 3].copy()
-            bboxes[:, 1] = h - y2
-            bboxes[:, 3] = h - y1
-        else:
-            bboxes[:, 1] = h - bboxes[:, 1]
-        segments[..., 1] = h - segments[..., 1]
-        if keypoints is not None:
-            keypoints[..., 1] = h - keypoints[..., 1]
-        return bboxes, keypoints, segments
-
     def flipud(self, h):
         """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
-        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_flipud(
-            self.bboxes, h, self._bboxes.format, self.keypoints, self.segments
-        )
-
-    @staticmethod
-    @njit()
-    def _numba_fliplr(bboxes, w, format, keypoints, segments):
-        """Reverses the order of the bounding boxes and segments horizontally."""
-        if format == "xyxy":
-            x1 = bboxes[:, 0].copy()
-            x2 = bboxes[:, 2].copy()
-            bboxes[:, 0] = w - x2
-            bboxes[:, 2] = w - x1
+        if self._bboxes.format == "xyxy":
+            y1 = self.bboxes[:, 1].copy()
+            y2 = self.bboxes[:, 3].copy()
+            self.bboxes[:, 1] = h - y2
+            self.bboxes[:, 3] = h - y1
         else:
-            bboxes[:, 0] = w - bboxes[:, 0]
-        segments[..., 0] = w - segments[..., 0]
-        if keypoints is not None:
-            keypoints[..., 0] = w - keypoints[..., 0]
-        return bboxes, keypoints, segments
+            self.bboxes[:, 1] = h - self.bboxes[:, 1]
+        self.segments[..., 1] = h - self.segments[..., 1]
+        if self.keypoints is not None:
+            self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
     def fliplr(self, w):
         """Reverses the order of the bounding boxes and segments horizontally."""
-        self._bboxes.bboxes, self.keypoints, self.segments = self._numba_fliplr(
-            self.bboxes, w, self._bboxes.format, self.keypoints, self.segments
-        )
+        if self._bboxes.format == "xyxy":
+            x1 = self.bboxes[:, 0].copy()
+            x2 = self.bboxes[:, 2].copy()
+            self.bboxes[:, 0] = w - x2
+            self.bboxes[:, 2] = w - x1
+        else:
+            self.bboxes[:, 0] = w - self.bboxes[:, 0]
+        self.segments[..., 0] = w - self.segments[..., 0]
+        if self.keypoints is not None:
+            self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
     def clip(self, w, h):
         """Clips bounding boxes, segments, and keypoints values to stay within image boundaries."""
@@ -370,9 +351,8 @@ class Instances:
         self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
         if ori_format != "xyxy":
             self.convert_bbox(format=ori_format)
-        if len(self.segments):
-            self.segments[..., 0] = self.segments[..., 0].clip(0, w)
-            self.segments[..., 1] = self.segments[..., 1].clip(0, h)
+        self.segments[..., 0] = self.segments[..., 0].clip(0, w)
+        self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)

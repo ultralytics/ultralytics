@@ -3,6 +3,7 @@
 import contextlib
 from copy import copy
 from pathlib import Path
+import tempfile
 
 import cv2
 import numpy as np
@@ -209,8 +210,9 @@ def test_export_torchscript():
 
 def test_export_onnx():
     """Test exporting the YOLO model to ONNX format."""
-    f = YOLO(MODEL).export(format="onnx", dynamic=True)
-    YOLO(f)(SOURCE)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="onnx", dynamic=True, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE)  # exported model inference
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")

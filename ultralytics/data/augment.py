@@ -8,7 +8,6 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 import torch
-from numba import njit
 from PIL import Image
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
@@ -387,23 +386,6 @@ class MixUp(BaseMixTransform):
         labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
-
-
-@njit()
-def getXY(bboxes, perspective, M):
-    n = len(bboxes)
-    xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
-    xy[:, :2] = bboxes[:, np.array([0, 1, 2, 3, 0, 3, 2, 1])].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
-    xy = xy @ M.T  # transform
-    # xy = np.ascontiguousarray(xy)
-    xy = xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2]
-    xy = np.ascontiguousarray(xy).reshape(n, 8)  # perspective rescale or affine
-
-    # Create new boxes
-    x = xy[:, np.array([0, 2, 4, 6])]
-    y = xy[:, np.array([1, 3, 5, 7])]
-    return x, y
-
 
 class RandomPerspective:
     """

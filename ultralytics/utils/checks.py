@@ -22,6 +22,11 @@ import torch
 from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
+    IS_COLAB,
+    IS_DOCKER,
+    IS_JUPYTER,
+    IS_KAGGLE,
+    IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
     ONLINE,
@@ -37,12 +42,7 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     emojis,
-    is_colab,
-    is_docker,
     is_github_action_running,
-    is_jupyter,
-    is_kaggle,
-    is_pip_package,
     url2file,
 )
 
@@ -277,7 +277,7 @@ def check_pip_update_available():
     Returns:
         (bool): True if an update is available, False otherwise.
     """
-    if ONLINE and is_pip_package():
+    if ONLINE and IS_PIP_PACKAGE:
         with contextlib.suppress(Exception):
             from ultralytics import __version__
 
@@ -419,7 +419,14 @@ def check_torchvision():
     """
 
     # Compatibility table
-    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+    compatibility_table = {
+        "2.3": ["0.18"],
+        "2.2": ["0.17"],
+        "2.1": ["0.16"],
+        "2.0": ["0.15"],
+        "1.13": ["0.14"],
+        "1.12": ["0.13"],
+    }
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
@@ -521,14 +528,14 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+            assert "DISPLAY" in os.environ and not IS_DOCKER and not IS_COLAB and not IS_KAGGLE
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -546,10 +553,10 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if is_jupyter():
+    if IS_JUPYTER:
         if check_requirements("wandb", install=False):
             os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if is_colab():
+        if IS_COLAB:
             shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
@@ -574,7 +581,7 @@ def collect_system_info():
 
     import psutil
 
-    from ultralytics.utils import ENVIRONMENT, is_git_dir
+    from ultralytics.utils import ENVIRONMENT, IS_GIT_DIR
     from ultralytics.utils.torch_utils import get_cpu_info
 
     ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
@@ -583,7 +590,7 @@ def collect_system_info():
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
         f"{'Python':<20}{PYTHON_VERSION}\n"
-        f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
+        f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
         f"{'RAM':<20}{ram_info:.2f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
         f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n"

@@ -19,7 +19,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
   <strong>Watch:</strong> Workouts Monitoring using Ultralytics YOLOv8 | Pushups, Pullups, Ab Workouts
 </p>
 
-
 ## Advantages of Workouts Monitoring?
 
 - **Optimized Performance:** Tailoring workouts based on monitoring data for better results.

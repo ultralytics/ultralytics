@@ -106,14 +106,14 @@ def get_export(model_id="", format="torchscript"):
     return r.json()
 
 
-def check_dataset(path="", task="detect"):
+def check_dataset(path:str, task:str) -> None:
     """
     Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
     to the HUB. Usage examples are given below.
 
     Args:
-        path (str, optional): Path to data.zip (with data.yaml inside data.zip). Defaults to ''.
-        task (str, optional): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Defaults to 'detect'.
+        path (str): Path to data.zip (with data.yaml inside data.zip).
+        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify', 'obb'.
 
     Example:
         ```python

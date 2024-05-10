@@ -10,7 +10,7 @@ keywords: YOLOv8, VSCode, Terminal, Remote Development, Ultralytics, SSH, Object
   <img width="800" src="https://raw.githubusercontent.com/saitoha/libsixel/data/data/sixel.gif" alt="Sixel example of image in Terminal">
 </p>
 
-Image from the the [libsixel](https://saitoha.github.io/libsixel/) website.
+Image from the [libsixel](https://saitoha.github.io/libsixel/) website.
 
 ## Motivation
 

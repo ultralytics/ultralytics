@@ -108,7 +108,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
-    2. Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
+    2. Here the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
 
     3. The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
 
@@ -145,7 +145,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5. Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 

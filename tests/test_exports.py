@@ -4,6 +4,7 @@ import shutil
 import uuid
 from itertools import product
 from pathlib import Path
+import tempfile
 
 import pytest
 
@@ -24,22 +25,25 @@ from . import MODEL, SOURCE
 
 def test_export_torchscript():
     """Test YOLO exports to TorchScript format."""
-    f = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 def test_export_onnx():
     """Test YOLO exports to ONNX format."""
-    f = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test YOLO exports to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="openvino", imgsz=32, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
@@ -55,55 +59,57 @@ def test_export_openvino():
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     """Test YOLO exports to OpenVINO format."""
-    file = YOLO(TASK2MODEL[task]).export(
-        format="openvino",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-        data=TASK2DATA[task],
-    )
-    if WINDOWS:
-        # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
-        # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
-        file = Path(file)
-        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
-    with Retry(times=3, delay=1):  # retry in case of potential lingering multi-threaded file usage errors
-        shutil.rmtree(file)
-
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file = YOLO(TASK2MODEL[task]).export(
+            format="openvino",
+            imgsz=32,
+            dynamic=dynamic,
+            int8=int8,
+            half=half,
+            batch=batch,
+            data=TASK2DATA[task],
+            artifact_path=tmp_dir
+        )
+        if WINDOWS:
+            # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
+            # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
+            file = Path(file)
+            file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
+        YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    
 
 @pytest.mark.slow
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [True, False], [False], [False], [1, 2]))
 def test_export_onnx_matrix(task, dynamic, int8, half, batch):
     """Test YOLO exports to ONNX format."""
-    file = YOLO(TASK2MODEL[task]).export(
-        format="onnx",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-    )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
-    Path(file).unlink()  # cleanup
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file = YOLO(TASK2MODEL[task]).export(
+            format="onnx",
+            imgsz=32,
+            dynamic=dynamic,
+            int8=int8,
+            half=half,
+            batch=batch,
+            artifact_path=tmp_dir
+        )
+        YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [False], [False], [False], [1, 2]))
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
     """Test YOLO exports to TorchScript format."""
-    file = YOLO(TASK2MODEL[task]).export(
-        format="torchscript",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-    )
-    YOLO(file)([SOURCE] * 3, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
-    Path(file).unlink()  # cleanup
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file = YOLO(TASK2MODEL[task]).export(
+            format="torchscript",
+            imgsz=32,
+            dynamic=dynamic,
+            int8=int8,
+            half=half,
+            batch=batch,
+            artifact_path=tmp_dir
+        )
+        YOLO(file)([SOURCE] * 3, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
 
 
 @pytest.mark.slow
@@ -120,16 +126,17 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     """Test YOLO exports to TorchScript format."""
-    file = YOLO(TASK2MODEL[task]).export(
-        format="coreml",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-    )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
-    shutil.rmtree(file)  # cleanup
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file = YOLO(TASK2MODEL[task]).export(
+            format="coreml",
+            imgsz=32,
+            dynamic=dynamic,
+            int8=int8,
+            half=half,
+            batch=batch,
+            artifact_path=tmp_dir
+        )
+        YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
@@ -138,11 +145,12 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test YOLO exports to CoreML format."""
-    if MACOS:
-        f = YOLO(MODEL).export(format="coreml", imgsz=32)
-        YOLO(f)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
-    else:
-        YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        if MACOS:
+            f = YOLO(MODEL).export(format="coreml", imgsz=32, artifact_path=tmp_dir)
+            YOLO(f)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
+        else:
+            YOLO(MODEL).export(format="coreml", nms=True, imgsz=32, artifact_path=tmp_dir)
 
 
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
@@ -153,8 +161,9 @@ def test_export_tflite():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="tflite", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = model.export(format="tflite", imgsz=32, artifact_path=tmp_dir) 
+        YOLO(f)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -166,8 +175,9 @@ def test_export_pb():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="pb", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = model.export(format="pb", imgsz=32, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
@@ -177,11 +187,13 @@ def test_export_paddle():
 
     Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
     """
-    YOLO(MODEL).export(format="paddle", imgsz=32)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        YOLO(MODEL).export(format="paddle", imgsz=32, artifact_path=tmp_dir)
 
 
 @pytest.mark.slow
 def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
-    f = YOLO(MODEL).export(format="ncnn", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        f = YOLO(MODEL).export(format="ncnn", imgsz=32, artifact_path=tmp_dir)
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference

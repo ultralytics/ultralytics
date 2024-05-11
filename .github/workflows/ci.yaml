@@ -226,7 +226,7 @@ jobs:
           yolo checks
           pip list
       - name: Pytest tests
-        run:
+        run: |
           slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"

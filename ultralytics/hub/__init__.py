@@ -106,7 +106,7 @@ def get_export(model_id="", format="torchscript"):
     return r.json()
 
 
-def check_dataset(path:str, task:str) -> None:
+def check_dataset(path: str, task: str) -> None:
     """
     Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
     to the HUB. Usage examples are given below.

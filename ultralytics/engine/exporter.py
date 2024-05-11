@@ -200,7 +200,7 @@ class Exporter:
             self.args.half = False
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.int8 and engine:
+        if self.args.int8 and (engine or xml):
             self.args.dynamic = True  # enforce dynamic to export TensorRT INT8; ensures ONNX is dynamic
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"

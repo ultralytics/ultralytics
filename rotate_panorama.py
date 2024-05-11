@@ -1,3 +1,4 @@
+import io
 import os.path
 import time
 
@@ -10,6 +11,7 @@ import numpy as np
 import math
 from equilib import equi2pers
 from PIL import Image, ImageDraw, ImageFont
+from mmseg.apis import MMSegInferencer
 
 
 class PersImage:
@@ -61,10 +63,11 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     ny = (y / screen_height) * 2 - 1
 
     # FOV的一半的切线值，用于计算z坐标
-    t = np.tan(np.radians(fov / 2))
+    t = 1
 
     # 逆向计算出对应的方向向量
     direction = np.array([t * nx, t * ny, 1])
+    # 转为单位向量
     direction = direction / np.linalg.norm(direction)
 
     # 建立旋转矩阵，考虑偏航角和俯仰角
@@ -95,14 +98,45 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     return [int(ex), int(ey)]
 
 # Load a model
-model = YOLO('runs/detect/train33/weights/best.pt')  # pretrained YOLOv8n model
+model = YOLO('runs/detect/train55/weights/best.pt')  # pretrained YOLOv8n model
+inferencer = MMSegInferencer(model='deeplabv3plus_r18-d8_4xb2-80k_cityscapes-512x1024')
+
+def predict_result(image):
+    ndarr = image
+    classes = inferencer.visualizer.dataset_meta['classes']
+    num_classes = len(classes)
+    palette = inferencer.visualizer.dataset_meta['palette']
+    ids = np.unique(ndarr)[::-1]
+    legal_indices = ids < num_classes
+    ids = ids[legal_indices]
+    labels = np.array(ids, dtype=np.int64)
+
+    colors = [palette[label] for label in labels]
+    shape = np.append(np.array(ndarr.shape), 3)
+    result = np.empty(shape, np.uint8)
+    for i in range(ndarr.shape[0]):
+        for j in range(ndarr.shape[1]):
+            pred_category = ndarr[i, j]
+            result[i, j] = palette[pred_category]
+    mask = Image.fromarray(result)
+    return mask
 # Run batched inference on a list of images
 images = [
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/52f3a0273dfb466e85e6bf59ade05c2e.jpg',
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/6176dca744e64bd6bf8a02dd92f466eb.jpg',
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/057c166dcc8648e69cba69009a8535b4.jpg',
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/0b3f8b79969940528ab1cf6a43ca83a9.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/9cf26a02681f44f68b718762cd0f5494.jpg'
+    # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/9cf26a02681f44f68b718762cd0f5494.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/aa00a97db0a34c0e90eea6d393cedde2.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/723fbb77ae71495e8407265cb3d8f7db.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/33fa8f17405f415195055f6a714f4c09.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/809d5a96fee24fc294fb4a8d5445412a.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d5c8a742f7464f96979633f0dc2f10aa.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/e1e599f026834cd0ae7f0a714123175d.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d92593ffbcf74d80aa12afaa43a26584.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/74483c83efb84cf7a41f55c314bffcb8.jpg',
+    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/61523fb326234be194e5d41afa06b17b.jpg'
 ]
 
 img_names = [x.split('/')[-1].split('.')[0] for x in images]
@@ -136,6 +170,7 @@ for idx_conf in confs:
         if img is None:
             continue
         # img = cv2.imread(image_url)
+        # cv2.imwrite(f'det/{img_names[img_idx]}_orig_result.jpg', img)
         print(f'下载图片耗时{time.time() - now:.2f}s')
         # img = e2c(img, face_w=int(img.shape[0] / 3))
         now = time.time()
@@ -158,9 +193,9 @@ for idx_conf in confs:
             pers_imgs = []
             # 偏航角每次转
             # 动10度
-            dir = f'pitch_{math.ceil(math.degrees(pitch))}'
+            dir = f'pitch_{math.ceil(math.degrees(pitch))}/{img_names[img_idx]}'
             if not os.path.exists(dir):
-                os.mkdir(dir)
+                os.makedirs(dir)
             if not os.path.exists(os.path.join(dir, '标注图')):
                 os.mkdir(os.path.join(dir, '标注图'))
             if not os.path.exists(os.path.join(dir, '原图')):
@@ -200,7 +235,7 @@ for idx_conf in confs:
             pitch += math.radians(5)
             print(f'转动视角耗时{time.time() - now}秒')
 
-            results = model.predict([elem.pers_img for elem in pers_imgs], conf=0.3, imgsz=640)
+            results = model.predict([elem.pers_img for elem in pers_imgs], conf=0.5, imgsz=640)
             for idx, result in enumerate(results):
                 pers_image = pers_imgs[idx]
                 orig_image = Image.fromarray(pers_image.pers_img[..., ::-1])  # 转成 PIL 格式
@@ -214,6 +249,8 @@ for idx_conf in confs:
                     conf_np = conf.cpu().detach().numpy().item()
                     p1 = (box_np[0], box_np[1])
                     p2 = (box_np[2], box_np[3])
+                    if (p2[0] - p1[0]) * (p2[1] - p1[1]) < 100:
+                        continue
                     left_top = screen_to_equirectangular(box_np[0], box_np[1], pers_width, pers_height, fov_deg,
                                                          math.degrees(pers_image.yaw), math.degrees(pers_image.pitch), width, height)
                     right_bottom = screen_to_equirectangular(box_np[2], box_np[3], pers_width, pers_height, fov_deg,
@@ -273,5 +310,13 @@ for idx_conf in confs:
             draw.text(xy=(rectangle.p1[0], rectangle.p1[1] - font.size - 10), text=name, font=font,
                       fill=(255, 255, 255))
         img = cv2.cvtColor(np.asarray(img_PIL), cv2.COLOR_RGB2BGR)  # 再转成 OpenCV 的格式，记住 OpenCV 中通道排布是 BGR
-        cv2.imwrite('result.jpg', img)
+        # cv2.imwrite(f'det_merged/{img_names[img_idx]}_det_result.jpg', img)
+        cv2.imwrite(f'det_result.jpg', img)
+
+        # seg_img = requests.get(image_url + '?x-oss-process=image/resize,h_1024,m_lfit')
+        # seg_img_arr = np.array(Image.open(io.BytesIO(seg_img.content)))
+        # mask = predict_result(inferencer(seg_img_arr, show=False)['predictions'])
+        # mask.save(f'seg/{img_names[img_idx]}_seg_result.jpg')
+
+
         print(f'总耗时:{time.time() - begin}秒')

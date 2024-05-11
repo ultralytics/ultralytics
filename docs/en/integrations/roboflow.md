@@ -22,7 +22,7 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 - Gather data for training a custom YOLOv8 model
 - Upload, convert and label data for YOLOv8 format
 - Pre-process and augment data for model robustness
-- Dataset management for [YOLOv8](https://docs.ultralytics.com/models/yolov8/)
+- Dataset management for [YOLOv8](../models/yolov8.md)
 - Export data in 40+ formats for model training
 - Upload custom YOLOv8 model weights for testing and deployment
 - Gather Data for Training a Custom YOLOv8 Model
@@ -157,7 +157,7 @@ When your dataset version has been generated, you can export your data into a ra
 <img src="https://media.roboflow.com/ultralytics/rf_export_data.png" alt="Exporting a dataset" width="800">
 </p>
 
-You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
+You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](../modes/train.md).
 
 ## Upload Custom YOLOv8 Model Weights for Testing and Deployment
 

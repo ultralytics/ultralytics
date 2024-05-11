@@ -16,6 +16,17 @@ The entire process of training a model is detailed on our [Cloud Training Page](
 
 ## Train Model
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YVlkq5H2tAQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics HUB Training and Validation Overview
+</p>
+
 Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on the **Models** button in the sidebar.
 
 Training a model using HUB is a 4-step process:

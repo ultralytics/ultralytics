@@ -200,7 +200,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               pip install pycocotools mlflow "ray[tune]"
               slow="--slow"
           fi
@@ -215,7 +215,7 @@ jobs:
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
-    timeout-minutes: 60
+    timeout-minutes: 360
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v4
@@ -226,7 +226,12 @@ jobs:
           yolo checks
           pip list
       - name: Pytest tests
-        run: pytest --cov=ultralytics/ --cov-report xml tests/test_cuda.py
+        run: |
+          slow="--slow"
+          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
+            slow="--slow"
+          fi
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v4
         with:

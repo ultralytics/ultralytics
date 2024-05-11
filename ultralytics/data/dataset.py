@@ -36,6 +36,7 @@ from .utils import (
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
+    verify_image_label_seg_pose,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
@@ -57,6 +58,7 @@ class YOLODataset(BaseDataset):
     def __init__(self, *args, data=None, task="detect", **kwargs):
         """Initializes the YOLODataset with optional configurations for segments and keypoints."""
         self.use_segments = task == "segment"
+        self.use_segments_keypoints = task == "segment_pose"
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
@@ -85,7 +87,7 @@ class YOLODataset(BaseDataset):
             )
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(
-                func=verify_image_label,
+                func=verify_image_label if not self.use_segments_keypoints else verify_image_label_seg_pose,
                 iterable=zip(
                     self.im_files,
                     self.label_files,
@@ -183,8 +185,8 @@ class YOLODataset(BaseDataset):
             Format(
                 bbox_format="xywh",
                 normalize=True,
-                return_mask=self.use_segments,
-                return_keypoint=self.use_keypoints,
+                return_mask=self.use_segments or self.use_segments_keypoints,
+                return_keypoint=self.use_keypoints or self.use_segments_keypoints,
                 return_obb=self.use_obb,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,

@@ -227,7 +227,7 @@ jobs:
           pip list
       - name: Pytest tests
         run: |
-          slow="--slow"
+          slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"
           fi

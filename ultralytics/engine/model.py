@@ -2,7 +2,7 @@
 
 import inspect
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -401,7 +401,7 @@ class Model(nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs,
-    ) -> list[Results]:
+    ) -> List[Results]:
         """
         Performs predictions on the given image source using the YOLO model.
 
@@ -459,7 +459,7 @@ class Model(nn.Module):
         stream: bool = False,
         persist: bool = False,
         **kwargs,
-    ) -> list[Results]:
+    ) -> List[Results]:
         """
         Conducts object tracking on the specified input source using the registered trackers.
 

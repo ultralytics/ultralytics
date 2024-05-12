@@ -407,9 +407,9 @@ class Results(SimpleClass):
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
-            for i, b in enumerate(box):
-                xy[f"x{i + 1}"] = round(b[0] / w, decimals)
-                xy[f"y{i + 1}"] = round(b[1] / h, decimals)
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID

@@ -98,6 +98,12 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
 
+@pytest.mark.parametrize("model", MODELS)
+def test_predict_visualize(model):
+    """Test various result formats for the YOLO model."""
+    YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
+    
+
 def test_predict_grey_and_4ch():
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""
     im = Image.open(SOURCE)

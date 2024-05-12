@@ -306,7 +306,7 @@ def model_info_for_loggers(trainer):
     return results
 
 
-def get_flop_with_thop(model, imgsz=640):
+def get_flops_with_thop(model, imgsz=640):
     """Return a YOLO model's FLOPs (deprecated to eliminate thop dependency)"""
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs

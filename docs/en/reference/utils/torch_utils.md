@@ -63,7 +63,7 @@ keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, 
 
 <br><br>
 
-## ::: ultralytics.utils.torch_utils.get_flop_with_thop
+## ::: ultralytics.utils.torch_utils.get_flops_with_thop
 
 <br><br>
 

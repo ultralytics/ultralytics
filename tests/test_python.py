@@ -12,7 +12,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA
+from ultralytics.cfg import MODELS, TASKS, TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -273,7 +273,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    for task in "detect", "segment", "pose", "classify":
+    for task in TASKS:
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)

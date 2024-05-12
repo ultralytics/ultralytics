@@ -331,7 +331,7 @@ def get_flops_with_thop(model, imgsz=640):
 
 
 def get_flops(model, imgsz=640):
-    """Compute model FLOPs (thop package replacement)."""
+    """Compute model FLOPs (thop package alternative, but 2-10x slower unfortunately)."""
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
     model = de_parallel(model)

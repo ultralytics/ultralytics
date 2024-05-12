@@ -304,7 +304,6 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
-            self.overrides["pretrained"] = weights
             weights, self.ckpt = attempt_load_one_weight(weights)
         self.model.load(weights)
         return self
@@ -649,14 +648,7 @@ class Model(nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
-        pretrained = self.overrides["pretrained"] if overrides.get("pretrained") else False
-        args = {
-            **overrides,
-            **custom,
-            **kwargs,
-            "mode": "train",
-            "pretrained": pretrained,
-        }  # highest priority args on the right
+        args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 

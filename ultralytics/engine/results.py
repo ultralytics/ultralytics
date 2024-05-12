@@ -337,7 +337,7 @@ class Results(SimpleClass):
         boxes = self.boxes
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
-        if (probs is not None and len(probs.data.shape) == 1):  # When classify task. len()=2 implies detect task.
+        if probs is not None and len(probs.data.shape) == 1:  # When classify task. len()=2 implies detect task.
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes:
             for c in boxes.cls.unique():

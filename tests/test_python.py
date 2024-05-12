@@ -100,7 +100,7 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
-    """Test various result formats for the YOLO model."""
+    """Test model predict methods with 'visualize=True' arguments."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
     
 

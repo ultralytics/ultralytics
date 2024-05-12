@@ -13,12 +13,12 @@ import time
 from importlib import metadata
 from pathlib import Path
 from typing import Optional
-from packaging import version
 
 import cv2
 import numpy as np
 import requests
 import torch
+from packaging import version
 
 from ultralytics.utils import (
     ASSETS,

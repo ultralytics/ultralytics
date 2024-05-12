@@ -126,7 +126,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True, xyw
 
     # Scale the boxes down
     boxes /= gain
-    
+
     return clip_boxes(boxes, img0_shape)
 
 

@@ -11,6 +11,8 @@ IS_TMP_WRITEABLE = is_dir_writeable(TMP)
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
 
+TMP_DIR_KWARGS = {"ignore_cleanup_errors": True} if checks.IS_PYTHON_GE_3_10 else {}
+
 __all__ = (
     "MODEL",
     "CFG",
@@ -19,4 +21,5 @@ __all__ = (
     "IS_TMP_WRITEABLE",
     "CUDA_IS_AVAILABLE",
     "CUDA_DEVICE_COUNT",
+    "TMP_DIR_KWARGS"
 )

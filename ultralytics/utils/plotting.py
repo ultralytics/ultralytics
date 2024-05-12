@@ -911,6 +911,7 @@ def plot_images(
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
                 annotator.fromarray(im)
+
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save

@@ -88,6 +88,7 @@ This table details the configurations and options available for exporting YOLO m
 | `workspace` | `float`          | `4.0`           | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance.                                                       |
 | `nms`       | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.                                         |
 | `batch`     | `int`            | `1`             | Specifies export model batch inference size  or the max number of images the exported model will process concurrently in `predict` mode.                         |
+| `artifact_path` | `str`        | `None`          | Specifies custom location of exported artifact(s). If not set, exports to the location of the input model file.                                                    |
 
 Adjusting these parameters allows for customization of the export process to fit specific requirements, such as deployment environment, hardware constraints, and performance targets. Selecting the appropriate format and settings is essential for achieving the best balance between model size, speed, and accuracy.
 

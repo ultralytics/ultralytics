@@ -418,7 +418,7 @@ def get_latest_opset():
     elif check_version(current_version, "1.8.0"):
         return 12
     else:
-        return 9  # default opset of all torch version
+        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
 
 
 def intersect_dicts(da, db, exclude=()):

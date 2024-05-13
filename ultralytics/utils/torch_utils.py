@@ -406,6 +406,8 @@ def get_latest_opset():
         return 12
     elif check_version(current_version, "1.8.0"):
         return 12
+    else:
+        return 9  # default opset of all torch version
 
 
 def intersect_dicts(da, db, exclude=()):

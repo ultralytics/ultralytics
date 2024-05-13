@@ -235,24 +235,27 @@ def get_or_create_tlc_table_from_yolo(yolo_yaml_file: tlc.Url | str, split: str,
             if_exists='reuse',
             add_weight_column=True,
         )
-        LOGGER.info(f'{TLC_COLORSTR}Using existing {split} table for YAML file {yolo_yaml_file}')
+
+        latest_table = table.latest()
+
+        if latest_table == table:
+            LOGGER.info(f"{TLC_COLORSTR}Using existing {split} table {table.url} for YAML file {yolo_yaml_file}.")
+        else:
+            LOGGER.info(f"{TLC_COLORSTR}Using latest {split} table {latest_table.url} from YAML file {yolo_yaml_file}.")
+
+        table = latest_table # Always use latest table when reusing through YOLO YAML file
 
     table.ensure_fully_defined()
-    # Always get latest when going from YAML file
-    previous_table = table
-    latest_table = table.latest()
-
-    if previous_table.url != latest_table.url:
-        LOGGER.info(f'  Using latest {split} table {table.url} from YAML file {yolo_yaml_file}')
 
     return latest_table
 
 
-def get_tlc_table_from_url(table_url: tlc.Url, split: str) -> tuple[tlc.Table, str]:
+def get_tlc_table_from_url(table_url: tlc.Url, split: str, latest: bool) -> tuple[tlc.Table, str]:
     """ Get a 3LC table from a URL.
 
     :param table_url: The Url of the table.
     :param split: The split the table corresponds to.
+    :param latest: Whether to use the latest revision of the table.
     :returns: The 3LC table.
     :raises: ValueError if the table does not exist.
     :raises: ValueError if the table is not compatible with YOLOv8.
@@ -270,7 +273,13 @@ def get_tlc_table_from_url(table_url: tlc.Url, split: str) -> tuple[tlc.Table, s
         raise ValueError(f'Table {table_url} is not compatible with YOLOv8, needs to be a YOLO or COCO table.')
     
     format_name = "YOLO" if is_yolo else "COCO"
-    LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {table_url} with {format_name} format')
+    
+    # Use the latest if specificed
+    if latest:
+        table = table.latest()
+        LOGGER.info(f'{TLC_COLORSTR}Using latest revision for {split} set: {table.url}.')
+    else:
+        LOGGER.info(f'{TLC_COLORSTR}Using {split} revision {table_url} with {format_name} format')
 
     table.ensure_fully_defined()
     return table
@@ -419,6 +428,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
             key for key in data_file_content if key not in ('path', 'names', 'download', 'nc') and data_file_content[key]]
 
         # Create 3LC tables, get root table if already registered
+        LOGGER.info(f'{TLC_COLORSTR}Parsing YOLO YAML file: {data_file_url}')
         tables = {split: get_or_create_tlc_table_from_yolo(data_file, settings=settings, split=split) for split in splits}
 
         # Write all tables to the 3LC YAML file
@@ -439,6 +449,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
         path = data_config.get('path')
         splits = [key for key in data_config if key != 'path']
 
+        LOGGER.info(f'{TLC_COLORSTR}Parsing 3LC YAML file: {data_file_url}')
         tables = {}
         for split in splits:
             if split not in get_splits:
@@ -451,14 +462,7 @@ def tlc_check_dataset(data_file: str, get_splits: tuple | list = ('train', 'val'
                 raise ValueError(f'Found more than one : in the split path {split_path} for split {split}')
             url = tlc.Url(path) / split_path if path else tlc.Url(split_path)
 
-            table = get_tlc_table_from_url(table_url=url, split=split)
-
-            # Use latest revision if :latest is specified
-            if latest:
-                prev_url = url
-                table = table.latest()
-                if prev_url != table.url:
-                    LOGGER.info(f'{TLC_COLORSTR}Using latest revision for {split} set: {table.url}.')
+            table = get_tlc_table_from_url(table_url=url, split=split, latest=latest)
 
             tables[split] = table
 

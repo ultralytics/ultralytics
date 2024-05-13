@@ -399,26 +399,13 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """
-    Return second-most (for maturity) recently supported ONNX opset by this version of torch.
-
-    Because "torch.onnx" import symbolic_opset after torch1.13,can't get latest opset by "vars" before it.
-    """
-    current_version: str = torch.onnx.producer_version
+    """Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity."""
     if TORCH_1_13:
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
-    elif check_version(current_version, "1.12.0"):
-        return 15
-    elif check_version(current_version, "1.11.0"):
-        return 14
-    elif check_version(current_version, "1.10.0"):
-        return 13
-    elif check_version(current_version, "1.9.0"):
-        return 12
-    elif check_version(current_version, "1.8.0"):
-        return 12
-    else:
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
+        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
+        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
+    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
+    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
+    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
 
 
 def intersect_dicts(da, db, exclude=()):

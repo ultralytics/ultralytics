@@ -78,8 +78,11 @@ class DetectionValidator(BaseValidator):
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
         self.seen = 0
         self.jdict = []
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[]) \
-            if self.args.per_class_img else dict(tp=[], conf=[], pred_cls=[], target_cls=[])
+        self.stats = (
+            dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+            if self.args.per_class_img
+            else dict(tp=[], conf=[], pred_cls=[], target_cls=[])
+        )
 
     def get_desc(self):
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -194,8 +197,15 @@ class DetectionValidator(BaseValidator):
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
-                LOGGER.info(pf % (self.names[c], self.nt_per_image[c] if self.args.per_class_img else self.seen,
-                                  self.nt_per_class[c], *self.metrics.class_result(i)))
+                LOGGER.info(
+                    pf
+                    % (
+                        self.names[c],
+                        self.nt_per_image[c] if self.args.per_class_img else self.seen,
+                        self.nt_per_class[c],
+                        *self.metrics.class_result(i),
+                    )
+                )
 
         if self.args.plots:
             for normalize in True, False:

@@ -390,7 +390,9 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """Return second-most (for maturity) recently supported ONNX opset by this version of torch.
+    """
+    Return second-most (for maturity) recently supported ONNX opset by this version of torch.
+
     Because "torch.onnx" import symbolic_opset after torch1.13,can't get latest opset by "vars" before it.
     """
     current_version: str = torch.onnx.producer_version

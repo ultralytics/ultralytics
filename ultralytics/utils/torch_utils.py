@@ -405,7 +405,7 @@ def get_latest_opset():
     Because "torch.onnx" import symbolic_opset after torch1.13,can't get latest opset by "vars" before it.
     """
     current_version: str = torch.onnx.producer_version
-    if check_version(current_version, "1.13.0"):
+    if TORCH_1_13:
         return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
     elif check_version(current_version, "1.12.0"):
         return 15

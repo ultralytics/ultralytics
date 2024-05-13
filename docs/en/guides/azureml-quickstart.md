@@ -74,7 +74,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 Train a detection model for 10 epochs with an initial learning_rate of 0.01:
 
 ```bash
-yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
 You can find more [instructions to use the Ultralytics CLI here](../quickstart.md#use-ultralytics-with-cli).
@@ -131,7 +131,7 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")  # load an official YOLOv8n model
 
 # Use the model
-model.train(data="coco128.yaml", epochs=3)  # train the model
+model.train(data="coco8.yaml", epochs=3)  # train the model
 metrics = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format

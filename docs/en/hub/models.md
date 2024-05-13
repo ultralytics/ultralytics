@@ -16,6 +16,17 @@ The entire process of training a model is detailed on our [Cloud Training Page](
 
 ## Train Model
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YVlkq5H2tAQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics HUB Training and Validation Overview
+</p>
+
 Navigate to the [Models](https://hub.ultralytics.com/models) page by clicking on the **Models** button in the sidebar.
 
 Training a model using HUB is a 4-step process:
@@ -45,7 +56,7 @@ Select the dataset for training and click **Continue**.
 
 ### 2. Model
 
-Choose the project, model name, and architecture. Read more about available architectures in our [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) documentation.
+Choose the project, model name, and architecture. Read more about available architectures in our [YOLOv8](../models/yolov8.md) (and [YOLOv5](../models/yolov5.md)) documentation.
 
 Click **Continue** when satisfied with the configuration.
 
@@ -53,7 +64,7 @@ Click **Continue** when satisfied with the configuration.
 
 !!! note "Note"
 
-    By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset) to reduce training time.
+    By default, your model will use a pre-trained model (trained on the [COCO](../datasets/detect/coco.md) dataset) to reduce training time.
 
     Advanced options are available to modify this behavior.
 
@@ -85,7 +96,7 @@ Ultralytics HUB offers three training options:
 
 To start training using Google Colab, follow the instructions on the Google Colab notebook.
 
-<a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
+<a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb" target="_blank">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
 </a>
 

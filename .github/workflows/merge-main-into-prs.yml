@@ -19,6 +19,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: main
     - uses: actions/setup-python@v5
       with:
         python-version: "3.11"
@@ -42,11 +43,14 @@ jobs:
         open_pulls = repo.get_pulls(state='open', sort='created')
         
         for pr in open_pulls:
-            try:                
-                # Attempt to merge main into the PR branch
-                message = f"Merge 'main' into PR #{pr.number} by https://ultralytics.com/actions"
-                merge_commit = repo.merge(pr.head.ref, 'main', commit_message=message)
-                print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
+            try:
+                # Compare PR head with main to see if it's behind
+                comparison = repo.compare(pr.base.ref, pr.head.ref)  # ensure correct order of base and head
+                if comparison.behind_by > 0:
+                    # Merge main into the PR branch
+                    success = pr.update_branch()
+                    assert success, "Branch update failed"
+                    print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
             except Exception as e:
                 print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e}")
       env:

@@ -268,6 +268,7 @@ from ultralytics import YOLO
 
 
 def run_tracker_in_thread(filename, model):
+    """Starts multi-thread tracking on video from `filename` using `model` and displays results frame by frame."""
     video = cv2.VideoCapture(filename)
     frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     for _ in range(frames):

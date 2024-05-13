@@ -72,8 +72,11 @@ class Bboxes:
 
     def areas(self):
         """Return box areas."""
-        self.convert("xyxy")
-        return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
+        return (
+            (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])  # format xyxy
+            if self.format == "xyxy"
+            else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
+        )
 
     # def denormalize(self, w, h):
     #    if not self.normalized:
@@ -340,11 +343,7 @@ class Instances:
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
     def remove_zero_area_boxes(self):
-        """
-        Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height.
-
-        This removes them.
-        """
+        """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height."""
         good = self.bbox_areas > 0
         if not all(good):
             self._bboxes = self._bboxes[good]

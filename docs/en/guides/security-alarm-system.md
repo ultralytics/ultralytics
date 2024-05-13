@@ -67,6 +67,7 @@ server.login(from_email, password)
 
 ```python
 def send_email(to_email, from_email, object_detected=1):
+    """Sends an email notification indicating the number of objects detected; defaults to 1 object."""
     message = MIMEMultipart()
     message['From'] = from_email
     message['To'] = to_email
@@ -83,7 +84,7 @@ def send_email(to_email, from_email, object_detected=1):
 ```python
 class ObjectDetection:
     def __init__(self, capture_index):
-        # default parameters
+        """Initializes an ObjectDetection instance with a given camera index."""
         self.capture_index = capture_index
         self.email_sent = False
 
@@ -99,10 +100,12 @@ class ObjectDetection:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     def predict(self, im0):
+        """Run prediction using a YOLO model for the input image `im0`."""
         results = self.model(im0)
         return results
 
     def display_fps(self, im0):
+        """Displays the FPS on an image `im0` by calculating and overlaying as white text on a black rectangle."""
         self.end_time = time()
         fps = 1 / np.round(self.end_time - self.start_time, 2)
         text = f'FPS: {int(fps)}'
@@ -112,6 +115,7 @@ class ObjectDetection:
         cv2.putText(im0, text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
     def plot_bboxes(self, results, im0):
+        """Plots bounding boxes on an image given detection results; returns annotated image and class IDs."""
         class_ids = []
         self.annotator = Annotator(im0, 3, results[0].names)
         boxes = results[0].boxes.xyxy.cpu()
@@ -123,6 +127,7 @@ class ObjectDetection:
         return im0, class_ids
 
     def __call__(self):
+        """Executes object detection on video frames from a specified camera index, plotting bounding boxes and returning modified frames."""
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)

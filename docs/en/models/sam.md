@@ -175,7 +175,7 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
-Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](https://docs.ultralytics.com/datasets/segment) using a pre-trained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
+Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pre-trained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
 
 ### Generate Your Segmentation Dataset Using a Detection Model
 

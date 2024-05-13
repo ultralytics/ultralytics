@@ -12,6 +12,17 @@ keywords: Ultralytics, YOLO, custom, function, workflow, utility, support,
 
 The `ultralytics` package comes with a myriad of utilities that can support, enhance, and speed up your workflows. There are many more available, but here are some that will be useful for most developers. They're also a great reference point to use when learning to program.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/1bPY2LRG590"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics Utilities | Auto Annotation, Explorer API and Dataset Conversion
+</p>
+
 ## Data
 
 ### YOLO Data Explorer
@@ -154,7 +165,7 @@ for f in Path('path/to/dataset').rglob('*.jpg'):
 
 ### Auto-split Dataset
 
-Automatically split a dataset into `train`/`val`/`test` splits and save the resulting splits into `autosplit_*.txt` files. This function will use random sampling, which is not included when using [`fraction` argument for training](../modes/train.md#arguments).
+Automatically split a dataset into `train`/`val`/`test` splits and save the resulting splits into `autosplit_*.txt` files. This function will use random sampling, which is not included when using [`fraction` argument for training](../modes/train.md#train-settings).
 
 ```{ .py .annotate }
 from ultralytics.data.utils import autosplit

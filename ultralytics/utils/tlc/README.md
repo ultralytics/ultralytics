@@ -10,7 +10,7 @@ This document outlines how to use the 3LC integration available for YOLOv8 objec
 
 3LC is free for non-commercial use.
 
-<img src="https://docs.3lc.ai/3lc/latest/_images/2_hardhat_run1.PNG">
+![3LC Dashboard Overview](_static/dashboard.png)
 
 ## Getting Started
 

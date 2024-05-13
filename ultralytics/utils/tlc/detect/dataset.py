@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterator
 
 import numpy as np
 import tlc
@@ -60,9 +60,12 @@ def build_tlc_dataset(cfg,
                       rect=False,
                       stride=32,
                       table=None,
-                      use_sampling_weights=False):
+                      use_sampling_weights=False,
+                      exclude_zero_weights=False):
     """Build TLC Dataset."""
     assert table is not None
+    if mode != "train" and use_sampling_weights:
+        raise ValueError("Cannot use sampling weights in validation mode.")
     return TLCDataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -80,13 +83,21 @@ def build_tlc_dataset(cfg,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
         table=table,
-        use_sampling_weights=mode == "train" and use_sampling_weights,
+        use_sampling_weights=use_sampling_weights,
+        exclude_zero_weights=exclude_zero_weights,
     )
 
 
 class TLCDataset(YOLODataset):
     """ A 3LC dataset for YOLO training and validation. Populates the dataset with samples from a 3LC table
     and supports sampling weights.
+
+    :param table: The 3LC Table to use to populate the dataset. It should adhere to the same schema as a `TableFromYolo`
+        or `TableFromCoco`.
+    :param use_sampling_weights: Whether to use the sampling weights from the table. If True, each epoch will sample
+        samples with probability according to the relative weights of the samples.
+    :param exclude_zero_weights: Whether to exclude samples with zero weights from the dataset. If True, samples with
+        zero weight are not included, and the dataset size is reduced accordingly.
 
     """
 
@@ -96,16 +107,33 @@ class TLCDataset(YOLODataset):
                  task="detect",
                  table: tlc.Table = None,
                  use_sampling_weights: bool = False,
+                 exclude_zero_weights: bool = False,
                  **kwargs) -> None:
         assert task == "detect", f"Unsupported task: {task} for TLCDataset. Only 'detect' is supported."
         assert isinstance(table, tlc.Table), f"Expected table to be a tlc.Table, got {type(table)} instead."
+
         self.table = table
         self._table_format = infer_table_format(table)
+
+        self._exclude_zero_weights = exclude_zero_weights
+
         if use_sampling_weights and kwargs['rect']:
             raise ValueError("Cannot use sampling weights with rect=True.")
-        self._sampling_weights = self.get_sampling_weights() if use_sampling_weights else None
-        self._indices = np.arange(len(self.table))
+        
+        if use_sampling_weights and tlc.SAMPLE_WEIGHT not in self.table.table_rows[0]:
+            raise ValueError("Cannot use sampling weights with no sample weights in the table.")
+        
+        # TODO: Warn here, but continue?
+        # if exclude_zero_weights and tlc.SAMPLE_WEIGHT not in self.table.table_rows[0]:
+        #     raise ValueError("Cannot exclude zero weights with no sample weights in the table.")
+        
+        self._example_ids = [] # Table example ids in the dataset
+        self._weights = [] # The weights of the samples
         super().__init__(*args, data=data, task=task, **kwargs)
+
+        self._indices = np.arange(len(self._example_ids)) # The indices of the samples in the dataset
+
+        self._sampling_weights = self.get_sampling_weights() if use_sampling_weights else None # The probability of sampling each sample
 
     def resample_indices(self) -> None:
         """Resample the indices inplace using the sampling weights."""
@@ -117,18 +145,41 @@ class TLCDataset(YOLODataset):
 
         :return: A list of absolute paths to the images.
         """
-        return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for sample in self.table.table_rows]
+        rows = self._get_table_rows(exclude_zero_weight=self._exclude_zero_weights)
+        return [tlc.Url(sample[tlc.IMAGE]).to_absolute().to_str() for example_id, sample in rows]
 
     def get_labels(self) -> list[dict[str, Any]]:
-        """Get the labels for the dataset.
+        """Get the labels for the dataset. Iterates over the 3LC rows and converts them to YOLOv8 labels, possibly
+        excluding samples with zero weight.
 
-        :return: A list of YOLOv8 labels.
+        :return: A list of YOLOv8 labels for the 3LC table.
         """
-        return [tlc_table_row_to_yolo_label(row, self._table_format) for row in self.table.table_rows]
+        labels = []
+
+        rows = self._get_table_rows(exclude_zero_weight=self._exclude_zero_weights)
+        for example_id, row in rows:
+            self._example_ids.append(example_id)
+            if tlc.SAMPLE_WEIGHT in row:
+                self._weights.append(row[tlc.SAMPLE_WEIGHT])
+
+            labels.append(tlc_table_row_to_yolo_label(row, self._table_format))
+
+        self._weights = np.array(self._weights, dtype=np.float32)
+        self._example_ids = np.array(self._example_ids, dtype=np.int32)
+
+        return labels
+    
+    def _get_table_rows(self, exclude_zero_weight: bool) -> Iterator[tuple[int, dict[str, Any]]]:
+        """ Get an iterator over the example ids and table rows, optionally excluding samples with zero weight.
+        
+        """
+        if exclude_zero_weight:
+            return ((i, row) for i, row in enumerate(self.table.table_rows) if row[tlc.SAMPLE_WEIGHT] > 0)
+        else:
+            return enumerate(self.table.table_rows)
 
     def get_sampling_weights(self) -> np.ndarray:
-        weights = np.array([row[tlc.SAMPLE_WEIGHT] for row in self.table.table_rows])
-        probabilities = weights / weights.sum()
+        probabilities = self._weights / self._weights.sum()
         return probabilities
 
     def set_rectangle(self) -> None:
@@ -141,6 +192,7 @@ class TLCDataset(YOLODataset):
         irect = ar.argsort()
         self.im_files = [self.im_files[i] for i in irect]
         self.labels = [self.labels[i] for i in irect]
+        self._example_ids = self._example_ids[irect]
         ar = ar[irect]
         self.irect = irect.copy()
 

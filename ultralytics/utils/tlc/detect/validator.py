@@ -77,14 +77,17 @@ class TLCDetectionValidator(DetectionValidator):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         table = self.data[self._split]
-        return build_tlc_dataset(self.args,
-                                 img_path,
-                                 batch,
-                                 self.data,
-                                 mode=mode,
-                                 stride=self.stride,
-                                 table=table,
-                                 use_sampling_weights=False)
+        return build_tlc_dataset(
+            self.args,
+            img_path,
+            batch,
+            self.data,
+            mode=mode,
+            stride=self.stride,
+            table=table,
+            use_sampling_weights=False,
+            exclude_zero_weights=self._settings.exclude_zero_weight_collection
+        )
 
     def _collect_metrics(self, predictions: list[torch.Tensor]) -> None:
         """Collects metrics for the current batch of predictions.
@@ -92,13 +95,14 @@ class TLCDetectionValidator(DetectionValidator):
         :param predictions: The batch of predictions.
         """
         batch_size = len(predictions)
-        example_index = np.arange(self._seen, self._seen + batch_size)
-        example_ids = self.dataloader.dataset.irect[example_index] if hasattr(self.dataloader.dataset,
-                                                                              'irect') else example_index
+        example_indices = np.arange(self._seen, self._seen + batch_size)
+        example_ids = self.dataloader.dataset._example_ids[example_indices]
 
         metrics = {
             tlc.EXAMPLE_ID: example_ids,
-            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions), }
+            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions), 
+        }
+
         if self.epoch is not None:
             metrics[tlc.EPOCH] = [self.epoch] * batch_size
             metrics[TRAINING_PHASE] = [1 if self._final_validation else 0] * batch_size

@@ -9,7 +9,7 @@ import tlc
 import ultralytics
 from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, IterableSimpleNamespace
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.tlc.detect.dataset import TLCDataset, build_tlc_dataset
 from ultralytics.utils.tlc.detect.model import TLCDetectionModel
 from ultralytics.utils.tlc.detect.settings import Settings
@@ -81,15 +81,24 @@ class TLCDetectionTrainer(DetectionTrainer):
         :return: A YOLO dataset populated with 3LC values.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_tlc_dataset(self.args,
-                                 img_path,
-                                 batch,
-                                 self.data,
-                                 mode=mode,
-                                 rect=mode == "val",
-                                 stride=gs,
-                                 table=self.data[split],
-                                 use_sampling_weights=self._settings.sampling_weights)
+
+        if mode == "train":
+            exclude_zero_weights = self._settings.exclude_zero_weight_training
+        else:
+            exclude_zero_weights = self._settings.exclude_zero_weight_collection
+        
+        return build_tlc_dataset(
+            self.args,
+            img_path,
+            batch,
+            self.data,
+            mode=mode,
+            rect=mode == "val",
+            stride=gs,
+            table=self.data[split],
+            use_sampling_weights=self._settings.sampling_weights,
+            exclude_zero_weights=exclude_zero_weights,
+        )
     
     def get_dataset(self):
         if self.args.task != "detect":

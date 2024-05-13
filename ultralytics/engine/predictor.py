@@ -29,6 +29,7 @@ Usage - formats:
                               yolov8n_ncnn_model         # NCNN
 """
 
+import os
 import platform
 import re
 import threading
@@ -37,7 +38,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-import os
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -47,7 +47,6 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, co
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
-
 
 START_TIME = 0
 

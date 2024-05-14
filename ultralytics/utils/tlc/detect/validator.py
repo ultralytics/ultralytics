@@ -59,7 +59,7 @@ class TLCDetectionValidator(DetectionValidator):
             model.__class__ = TLCDetectionModel
 
         if self._embedding_size is None and self._settings.image_embeddings_dim > 0:
-            self._embedding_size = infer_embeddings_size(model if model else trainer.model)
+            self._embedding_size = infer_embeddings_size(trainer.model if trainer else model)
 
         output = super().__call__(trainer, model)
         if self._run:

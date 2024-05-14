@@ -301,7 +301,7 @@ class Results(SimpleClass):
                             f"{h.race[cls_race]} {conf_race:.2f}"
                         ]
                     )
-                    annotator.text([int(box[0]), int(box[1])], text, txt_color=(255, 255, 255))
+                    annotator.text([int(box[0]), int(box[1])], text, txt_color=colors(c, True))
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

@@ -74,6 +74,7 @@ class Results(SimpleClass):
         masks (Masks, optional): Object containing detection masks.
         probs (Probs, optional): Object containing class probabilities for classification tasks.
         keypoints (Keypoints, optional): Object containing detected keypoints for each object.
+        human (Human, optional): Object containing detected human attributes for each object.
         speed (dict): Dictionary of preprocess, inference, and postprocess speeds (ms/image).
         names (dict): Dictionary of class names.
         path (str): Path to the image file.
@@ -94,7 +95,7 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, human=None) -> None:
         """
         Initialize the Results class.
 
@@ -115,11 +116,12 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.human = Human(human) if human is not None else None
         self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "human"
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -132,7 +134,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None, obb=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None, human=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -142,6 +144,8 @@ class Results(SimpleClass):
             self.probs = probs
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
+        if human is not None:
+            self.human = Human(human)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -747,3 +751,67 @@ class OBB(BaseTensor):
         y2 = self.xyxyxyxy[..., 1].max(1).values
         xyxy = [x1, y1, x2, y2]
         return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)
+
+
+class Human(BaseTensor):
+    """
+    A class for storing and manipulating Human attributes (YOLO-Human).
+
+    Args:
+        attributes (torch.Tensor | numpy.ndarray): A tensor or numpy array with shape (N, 11) for human attributes
+            containing weight(0), height(1), age(2), gender(3-5), race(5-11).
+
+    Attributes:
+        weight (torch.Tensor | numpy.ndarray): The values of human weight.
+        height (torch.Tensor | numpy.ndarray): The values of human height.
+        age (torch.Tensor | numpy.ndarray): The values of human age.
+        cls_gender (torch.Tensor | numpy.ndarray): The index of predicted gender, female or male.
+        cls_race (torch.Tensor | numpy.ndarray): The index of predicted human race, should be one of
+            [asian, white, middle eastern, indian, latino, black] for now.
+        conf_gender (torch.Tensor | numpy.ndarray): The confidence score of the predicted gender.
+        conf_race (torch.Tensor | numpy.ndarray): The confidence score of the predicted human race.
+        data (torch.Tensor): The raw attributes tensor.
+
+    Methods:
+        cpu(): Move the object to CPU memory.
+        numpy(): Convert the object to a numpy array.
+        cuda(): Move the object to CUDA memory.
+        to(*args, **kwargs): Move the object to the specified device.
+    """
+
+    def __init__(self, attributes, orig_shape=None) -> None:
+        if attributes.ndim == 1:
+            attributes = attributes[None, :]
+        n = attributes.shape[-1]
+        assert n == 11, f"Expected 11 values but got {n}"  # weight(0), height(1), age(2), gender(3-5), race(5-11)
+        super().__init__(attributes, orig_shape=orig_shape)
+        self.gender = ["female", "male"]
+        self.race = ["asian", "white", "middle eastern", "indian", "latino", "black"]
+
+    @property
+    def weight(self):
+        return self.data[:, 0]
+
+    @property
+    def height(self):
+        return self.data[:, 1]
+
+    @property
+    def age(self):
+        return self.data[:, 2]
+
+    @property
+    def cls_gender(self):
+        return self.data[:, 3:5].argmax(1)
+
+    @property
+    def cls_race(self):
+        return self.data[:, 5:].argmax(1)
+
+    @property
+    def conf_gender(self):
+        return self.data[:, 3:5].max(1)
+
+    @property
+    def conf_race(self):
+        return self.data[:, 5:].max(1)

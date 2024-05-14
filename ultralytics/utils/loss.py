@@ -170,13 +170,14 @@ class v8DetectionLoss:
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
-        if targets.shape[0] == 0:
-            out = torch.zeros(batch_size, 0, 5, device=self.device)
+        nl, ne = targets.shape
+        if nl == 0:
+            out = torch.zeros(batch_size, 0, ne - 1, device=self.device)
         else:
             i = targets[:, 0]  # image index
             _, counts = i.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), 5, device=self.device)
+            out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
             for j in range(batch_size):
                 matches = i == j
                 n = matches.sum()
@@ -714,3 +715,77 @@ class v8OBBLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
+
+
+class v8HumanLoss(v8DetectionLoss):
+    """Criterion class for computing training losses."""
+
+    def __init__(self, model):
+        super().__init__(model)
+        self.bce_gender = nn.BCEWithLogitsLoss()
+        self.bce_race = nn.BCEWithLogitsLoss()
+
+    def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+        loss = torch.zeros(8, device=self.device)
+        feats, attributes = preds if isinstance(preds[0], list) else preds[1]
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc), 1
+        )
+
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+        pred_attributes = [x.permute(0, 2, 1).contiguous() for x in attributes]
+
+        dtype = pred_scores.dtype
+        batch_size = pred_scores.shape[0]
+        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+
+        # Targets
+        targets = torch.cat(
+            (batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"], batch["attributes"]), 1
+        )
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        gt_labels, gt_bboxes, gt_attributes = targets.split((1, 4), 2)  # cls, xyxy
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+
+        # Pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+            pred_scores.detach().sigmoid(),
+            (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            anchor_points * stride_tensor,
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        # Cls loss
+        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+
+        # Bbox loss
+        if fg_mask.sum():
+            target_bboxes /= stride_tensor
+            loss[0], loss[2] = self.bbox_loss(
+                pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
+            )
+
+            # attributes losses
+            target_gt_idx = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
+            gt_attributes = gt_attributes.gather(1, target_gt_idx.expand(-1, -1, gt_attributes.shape[1]))[fg_mask]
+            loss[3] = BboxLoss._df_loss(pred_attributes["weight"], gt_attributes[:, 0] / 12.5) * self.hyp.dfl
+            loss[4] = BboxLoss._df_loss(pred_attributes["height"], gt_attributes[:, 1] / 16) * self.hyp.dfl
+            loss[5] = self.bce_gender(pred_attributes["gender"], gt_attributes[:, 2]) * self.hyp.cls
+            loss[6] = BboxLoss._df_loss(pred_attributes["height"], gt_attributes[:, 1] / 6.25) * self.hyp.dfl
+            loss[7] = self.bce_race(pred_attributes["race"], gt_attributes[:, -1]) * self.hyp.cls
+
+        loss[0] *= self.hyp.box  # box gain
+        loss[1] *= self.hyp.cls  # cls gain
+        loss[2] *= self.hyp.dfl  # dfl gain
+
+        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)

@@ -287,12 +287,12 @@ class HumanDetect(Detect):
         age = torch.cat([self.cv7[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
         gender = torch.cat([self.cv6[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
         race = torch.cat([self.cv8[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
-        attributes = [weight, height, age, gender, race]
+        attributes = dict(weight=weight, height=height, age=age, gender=gender, race=race)
         # boxes
         x = Detect.forward(self, x)
         if self.training:
             return x, attributes
-        pred_attributes = self.decode_attributes(*attributes)
+        pred_attributes = self.decode_attributes(**attributes)
         return (
             torch.cat([x, pred_attributes], 1)
             if self.export

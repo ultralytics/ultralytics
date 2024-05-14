@@ -399,8 +399,13 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """Return second-most (for maturity) recently supported ONNX opset by this version of torch."""
-    return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
+    """Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity."""
+    if TORCH_1_13:
+        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
+        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
+    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
+    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
+    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
 
 
 def intersect_dicts(da, db, exclude=()):

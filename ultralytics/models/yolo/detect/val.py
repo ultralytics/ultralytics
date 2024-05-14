@@ -78,11 +78,7 @@ class DetectionValidator(BaseValidator):
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
         self.seen = 0
         self.jdict = []
-        self.stats = (
-            dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
-            if self.args.per_class_img
-            else dict(tp=[], conf=[], pred_cls=[], target_cls=[])
-        )
+        self.stats = (dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[]))
 
     def get_desc(self):
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -135,8 +131,7 @@ class DetectionValidator(BaseValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
-            if self.args.per_class_img:
-                stat["target_img"] = torch.unique(cls)
+            stat["target_img"] = torch.unique(cls)
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -175,16 +170,15 @@ class DetectionValidator(BaseValidator):
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
         stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
-        if self.args.per_class_img:
-            self.nt_per_image = np.bincount(
-                stats["target_img"].astype(int), minlength=self.nc
-            )  # number of targets per image
-            stats.pop("target_img", None)
-        if len(stats) and stats["tp"].any():
-            self.metrics.process(**stats)
+        self.nt_per_image = np.bincount(
+            stats["target_img"].astype(int), minlength=self.nc
+        )  # number of targets per image
         self.nt_per_class = np.bincount(
             stats["target_cls"].astype(int), minlength=self.nc
         )  # number of targets per class
+        stats.pop("target_img", None)
+        if len(stats) and stats["tp"].any():
+            self.metrics.process(**stats)
         return self.metrics.results_dict
 
     def print_results(self):
@@ -197,15 +191,8 @@ class DetectionValidator(BaseValidator):
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
-                LOGGER.info(
-                    pf
-                    % (
-                        self.names[c],
-                        self.nt_per_image[c] if self.args.per_class_img else self.seen,
-                        self.nt_per_class[c],
-                        *self.metrics.class_result(i),
-                    )
-                )
+                LOGGER.info(pf %
+                            (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i)))
 
         if self.args.plots:
             for normalize in True, False:

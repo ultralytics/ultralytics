@@ -35,8 +35,6 @@ class HumanValidator(DetectionValidator):
             stride=int(self.stride),
             pad=0.0 if mode == "train" else 0.5,
             prefix=colorstr(f"{mode}: "),
-            task=cfg.task,
             classes=cfg.classes,
-            data=self.data,
             fraction=cfg.fraction if mode == "train" else 1.0,
         )

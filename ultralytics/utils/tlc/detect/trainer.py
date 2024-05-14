@@ -37,7 +37,7 @@ class TLCDetectionTrainer(DetectionTrainer):
         project_name = self._settings.project_name if self._settings.project_name else self.data["train"].project_name
 
         self._run = tlc.init(project_name, self._settings.run_name, self._settings.run_description) if not self._settings.collection_disable else None
-        self._run.set_parameters(vars(cfg))
+        self._run.set_parameters(vars(self.args))
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
         self.add_callback("on_train_end", _reduce_embeddings)

@@ -37,7 +37,11 @@ class TLCDetectionTrainer(DetectionTrainer):
         project_name = self._settings.project_name if self._settings.project_name else self.data["train"].project_name
 
         self._run = tlc.init(project_name, self._settings.run_name, self._settings.run_description) if not self._settings.collection_disable else None
-        self._run.set_parameters(vars(self.args))
+
+        # Save hyperparameters to the 3LC Run
+        settings_dict = {f"3lc_{k}": str(v) for k,v in vars(self._settings).items() if not k.startswith("_")}
+        parameters = {**vars(self.args), **settings_dict}
+        self._run.set_parameters(parameters)
 
         self.add_callback("on_train_epoch_start", _resample_train_dataset)
         self.add_callback("on_train_end", _reduce_embeddings)

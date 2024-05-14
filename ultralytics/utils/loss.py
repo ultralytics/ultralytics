@@ -781,7 +781,7 @@ class v8HumanLoss(v8DetectionLoss):
             loss[3] = BboxLoss._df_loss(pred_attributes["weight"], gt_attributes[:, 0] / 12.5) * self.hyp.dfl
             loss[4] = BboxLoss._df_loss(pred_attributes["height"], gt_attributes[:, 1] / 16) * self.hyp.dfl
             loss[5] = self.bce_gender(pred_attributes["gender"], gt_attributes[:, 2]) * self.hyp.cls
-            loss[6] = BboxLoss._df_loss(pred_attributes["height"], gt_attributes[:, 1] / 6.25) * self.hyp.dfl
+            loss[6] = BboxLoss._df_loss(pred_attributes["age"], gt_attributes[:, 1] / 6.25) * self.hyp.dfl
             loss[7] = self.bce_race(pred_attributes["race"], gt_attributes[:, -1]) * self.hyp.cls
 
         loss[0] *= self.hyp.box  # box gain

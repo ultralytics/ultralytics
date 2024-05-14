@@ -19,8 +19,12 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Setting up Docker with NVIDIA support
 - Installing Ultralytics Docker images
 - Running Ultralytics in a Docker container with CPU or GPU support
-- Visualize Ultralytics' Object detection from the Docker container
+- Using a Display Server with Docker to Show Ultralytics Detection Results
 - Mounting local directories into the container
+
+
+??? info "View Results in terminal"
+            If you're interested in viewing the results in your terminal, refer to the following [page](./view-results-in-terminal.md)
 
 ---
 
@@ -110,83 +114,91 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
 
 
-        ## Running Ultralytics in Docker Container
-        
-        Here's how to execute the Ultralytics Docker container:
-        ### Using only the CPU
+## Running Ultralytics in Docker Container
+
+Here's how to execute the Ultralytics Docker container:
+
+### Using only the CPU
+
+```bash
+# Run with all GPUs
+sudo docker run -it --ipc=host $t
+```
+
+### Using GPUs
+
+```bash
+# Run with all GPUs
+sudo docker run -it --ipc=host --gpus all $t
+
+# Run specifying which GPUs to use
+sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
+```
+
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
+
+## Run graphical user interface (GUI) applications in a Docker Container
+
+!!! danger "Highly Experimental - User Assumes All Risk"
+
+    The following instructions are experimental. Sharing a X11 socket with a docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use xhost[1](http://users.stat.umn.edu/~geyer/secure.html)[2](https://linux.die.net/man/1/xhost).
+    
+
+Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: X11 and Wayland. Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
+
+```bash
+env | grep -E -i 'x11|xorg|wayland'
+```
+
+!!! example
+
+    ??? info "Use GPUs"
+            If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
+    
+    === "X11"
+
+        If you're using X11, you can run the following command to allow the Docker container to access the X11 socket:
+
         ```bash
-        # Run with all GPUs
-        sudo docker run -it --ipc=host $t
+        xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v ~/.Xauthority:/root/.Xauthority \
+        -it --ipc=host $t
+
         ```
-        ### Using GPUs
+
+        This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
+
+
+    === "Wayland"
+
+        For Wayland, use the following command:
+
         ```bash
-        # Run with all GPUs
-        sudo docker run -it --ipc=host --gpus all $t
-        
-        # Run specifying which GPUs to use
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
+        xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
+        -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
+        --net=host -it --ipc=host $t
         ```
-        
-        The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
-        
-        ### Run graphical user interface (GUI) applications in a Docker Container
-        
-        ???+ danger "Caution: Highly Experimental"
-        
-            The following instructions are experimental. Sharing a X11 socket with a docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to this [resource](http://users.stat.umn.edu/~geyer/secure.html).
-        
-        Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: X11 and Wayland. Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
-        
-        ```bash
-        env | grep -E -i 'x11|xorg|wayland'
-        ```
-        
-        !!! example ""
-        
-            === "X11"
-        
-                If you're using X11, you can run the following command to allow the Docker container to access the X11 socket:
-        
-                ```bash
-                xhost +local:docker && docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority -it --ipc=host $t
-        
-                ```
-        
-                This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
-        
-                ??? info "Use GPUs"
-                    If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
-        
-        
-            === "Wayland"
-        
-                For Wayland, use the following command:
-        
-                ```bash
-                xhost +local:docker && docker run -e DISPLAY=$DISPLAY -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY --net=host -it --ipc=host $t
-                ```
-        
-                This command sets the `DISPLAY` environment variable to the host's display, mounts the Wayland socket, and allows the Docker container to access the Wayland server.
-        
-                ??? info "Use GPUs"
-                    If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
-        
-        Now you can display graphical applications inside your docker container. For example, you can run the following command to visualize the predictions of the YOLO model:
-        
-        ```bash
-        yolo predict show=True
-        ```
-        
-        ???+ warning "Revoke access"
-        
-            In both cases, don't forget to revoke access from the docker group when you're done.
-            ```bash
-            xhost -local:docker
-            ```
-        
-        ??? info "Testing"
-        
-            A simple way to validate that the docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the ultralytics docker container to test the access to the X11 server of your GNU-Linux Display Server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. This action enables the output of debugging information, aiding in the troubleshooting process.
+
+        This command sets the `DISPLAY` environment variable to the host's display, mounts the Wayland socket, and allows the Docker container to access the Wayland server.
+
+Now you can display graphical applications inside your docker container. For example, you can run the following command to visualize the predictions of the YOLO model:
+
+```bash
+yolo predict show=True
+```
+
+!!!+ warning "Revoke access"
+
+    In both cases, don't forget to revoke access from the docker group when you're done.
+    ```bash
+    xhost -local:docker
+    ```
+
+??? info "Testing"
+
+    A simple way to validate that the docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the Ultralytics docker container to test the access to the X11 server of your GNU-Linux Display Server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. This action enables the output of debugging information, aiding in the troubleshooting process.
+
 ### Note on File Accessibility
 
 To work with files on your local machine within the container, you can use Docker volumes:

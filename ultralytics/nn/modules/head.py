@@ -262,7 +262,7 @@ class HumanDetect(Detect):
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
         c4 = max((16, ch[0] // 4, self.reg_max))
-        c5 = max(ch[0], 64)
+        c5 = max(ch[0], 32)
         # weight(kg), 0-200
         self.cv4 = nn.ModuleList(
             nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
@@ -273,7 +273,7 @@ class HumanDetect(Detect):
         )
         # gender, 2 classes
         self.cv6 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
-        # age
+        # age, 0-100
         self.cv7 = nn.ModuleList(
             nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
         )
@@ -281,9 +281,29 @@ class HumanDetect(Detect):
         self.cv8 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 6, 1)) for x in ch)
 
     def forward(self, x):
+        bs = x[0].shape[0]  # batch size
+        weight = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        height = torch.cat([self.cv5[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        age = torch.cat([self.cv7[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        gender = torch.cat([self.cv6[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
+        race = torch.cat([self.cv8[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
+        attributes = [weight, height, age, gender, race]
         # boxes
         x = Detect.forward(self, x)
-        # todo
+        if self.training:
+            return (x,)
+        pred_attributes = self.decode_attributes(*attributes)
+        return (
+            torch.cat([x, pred_attributes], 1)
+            if self.export
+            else (torch.cat([x[0], pred_attributes], 1), (x[1], attributes))
+        )
+
+    def decode_attributes(self, weight, height, age, gender, race):
+        weight = self.dfl(weight) * 12.5  # 0-200kg
+        height = self.dfl(height) * 16  # 0-250cm
+        age = self.dfl(age) * 6.25  # 0-100
+        return torch.cat([weight, height, age, gender.sigmoid(), race.sigmoid()], dim=1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

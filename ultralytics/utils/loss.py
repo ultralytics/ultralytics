@@ -776,13 +776,20 @@ class v8HumanLoss(v8DetectionLoss):
             )
 
             # attributes losses
-            target_gt_idx = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
-            gt_attributes = gt_attributes.gather(1, target_gt_idx.expand(-1, -1, gt_attributes.shape[1]))[fg_mask]
-            loss[3] = BboxLoss._df_loss(pred_attributes["weight"], gt_attributes[:, 0] / 12.5) * self.hyp.dfl
-            loss[4] = BboxLoss._df_loss(pred_attributes["height"], gt_attributes[:, 1] / 16) * self.hyp.dfl
-            loss[5] = self.bce_gender(pred_attributes["gender"], gt_attributes[:, 2]) * self.hyp.cls
-            loss[6] = BboxLoss._df_loss(pred_attributes["age"], gt_attributes[:, 1] / 6.25) * self.hyp.dfl
-            loss[7] = self.bce_race(pred_attributes["race"], gt_attributes[:, -1]) * self.hyp.cls
+            target_gt_idx = target_gt_idx.unsqueeze(-1)
+            gt_attributes = gt_attributes.gather(1, target_gt_idx.expand(-1, -1, gt_attributes.shape[-1]))[fg_mask]
+
+            # one-hot
+            gt_gender = torch.zeros((len(gt_attributes), 2), dtype=torch.float32, device=gt_attributes.device)
+            gt_gender.scatter_(1, gt_attributes[:, 2:3].long(), 1)
+            gt_race = torch.zeros((len(gt_attributes), 6), dtype=torch.float32, device=gt_attributes.device)
+            gt_race.scatter_(1, gt_attributes[:, -1:].long(), 1)
+
+            loss[3] = BboxLoss._df_loss(pred_attributes["weight"][fg_mask], gt_attributes[:, 0] / 12.5) * self.hyp.dfl
+            loss[4] = BboxLoss._df_loss(pred_attributes["height"][fg_mask], gt_attributes[:, 1] / 16) * self.hyp.dfl
+            loss[5] = self.bce_gender(pred_attributes["gender"][fg_mask], gt_gender) * self.hyp.cls
+            loss[6] = BboxLoss._df_loss(pred_attributes["age"][fg_mask], gt_attributes[:, 3] / 6.25) * self.hyp.dfl
+            loss[7] = self.bce_race(pred_attributes["race"][fg_mask], gt_race) * self.hyp.cls
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

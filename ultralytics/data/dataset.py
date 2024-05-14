@@ -228,7 +228,7 @@ class YOLODataset(BaseDataset):
         return label
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, concat_keys={"masks", "keypoints", "bboxes", "cls", "segments", "obb"}):
         """Collates data samples into batches."""
         new_batch = {}
         keys = batch[0].keys()
@@ -237,7 +237,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+            if k in concat_keys:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch["batch_idx"] = list(new_batch["batch_idx"])
@@ -547,3 +547,15 @@ class HumanDataset(YOLODataset):
                 }
             )
         return labels
+
+    def update_labels_info(self, label):
+        """Custom your label format here."""
+        attributes = label.pop("attributes", None)
+        label = super().update_labels_info(label)
+        label["instances"].attributes = attributes
+        return label
+
+    @staticmethod
+    def collate_fn(batch):
+        """Collates data samples into batches."""
+        return YOLODataset.collate_fn(batch, concat_keys={"bboxes", "cls", "attributes"})

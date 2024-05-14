@@ -41,7 +41,6 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
         """Return an instance of HumanValidator for validation of YOLO model."""
         self.loss_names = (
             "box_loss",
-            "seg_loss",
             "cls_loss",
             "dfl_loss",
             "w_loss",

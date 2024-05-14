@@ -95,7 +95,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, human=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, human=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -249,6 +251,7 @@ class Results(SimpleClass):
 
         names = self.names
         is_obb = self.obb is not None
+        has_human = self.human is not None
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
@@ -257,7 +260,7 @@ class Results(SimpleClass):
             line_width,
             font_size,
             font,
-            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            pil or (pred_probs is not None and show_probs) or has_human,  # Classify tasks default to pil=True
             example=names,
         )
 
@@ -277,12 +280,28 @@ class Results(SimpleClass):
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
-            for d in reversed(pred_boxes):
+            for i, d in enumerate(reversed(pred_boxes)):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+                # Plot Human results
+                if has_human:
+                    h = self.human[len(pred_boxes) - 1 - i]  # reversed
+                    weight, height, age = float(h.weight), float(h.height), int(h.age)
+                    cls_gender, conf_gender = int(h.cls_gender), float(h.conf_gender)
+                    cls_race, conf_race = int(h.cls_race), float(h.conf_race)
+                    text = "\n".join(
+                        [
+                            f"{weight:.2f}kg",
+                            f"{height:.2f}cm",
+                            f"{age} years old",
+                            f"{h.gender[cls_gender]} {conf_gender:.2f}",
+                            f"{h.race[cls_race]} {conf_race:.2f}"
+                        ]
+                    )
+                    annotator.text([int(box[0]), int(box[1])], text, txt_color=(255, 255, 255))
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -810,8 +829,8 @@ class Human(BaseTensor):
 
     @property
     def conf_gender(self):
-        return self.data[:, 3:5].max(1)
+        return self.data[:, 3:5].max(1).values
 
     @property
     def conf_race(self):
-        return self.data[:, 5:].max(1)
+        return self.data[:, 5:].max(1).values

@@ -38,3 +38,9 @@ class HumanValidator(DetectionValidator):
             classes=cfg.classes,
             fraction=cfg.fraction if mode == "train" else 1.0,
         )
+
+    def preprocess(self, batch):
+        """Preprocesses batch by converting masks to float and sending to device."""
+        batch = super().preprocess(batch)
+        batch["attributes"] = batch["attributes"].to(self.device).float()
+        return batch

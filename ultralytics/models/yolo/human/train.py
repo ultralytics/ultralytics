@@ -4,7 +4,9 @@ from copy import copy
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
-from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
+from ultralytics.utils.torch_utils import de_parallel
+from ultralytics.data.dataset import HumanDataset
 
 
 class HumanTrainer(yolo.detect.DetectionTrainer):
@@ -56,3 +58,24 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
         """Plots training/val metrics."""
         # TODO
         pass
+
+    def build_dataset(self, img_path, mode="train", batch=None):
+        cfg = self.args
+        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        return HumanDataset(
+            img_path=img_path,
+            imgsz=cfg.imgsz,
+            batch_size=batch,
+            augment=mode == "train",  # augmentation
+            hyp=cfg,
+            rect=cfg.rect or mode == "val",  # rectangular batches
+            cache=cfg.cache or None,
+            single_cls=cfg.single_cls or False,
+            stride=int(gs),
+            pad=0.0 if mode == "train" else 0.5,
+            prefix=colorstr(f"{mode}: "),
+            task=cfg.task,
+            classes=cfg.classes,
+            data=self.data,
+            fraction=cfg.fraction if mode == "train" else 1.0,
+        )

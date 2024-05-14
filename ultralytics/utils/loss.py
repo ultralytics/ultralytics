@@ -735,7 +735,7 @@ class v8HumanLoss(v8DetectionLoss):
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
-        pred_attributes = [x.permute(0, 2, 1).contiguous() for x in attributes]
+        pred_attributes = {k: v.permute(0, 2, 1).contiguous() for k, v in attributes.items()}
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -747,7 +747,7 @@ class v8HumanLoss(v8DetectionLoss):
             (batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"], batch["attributes"]), 1
         )
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-        gt_labels, gt_bboxes, gt_attributes = targets.split((1, 4), 2)  # cls, xyxy
+        gt_labels, gt_bboxes, gt_attributes = targets.split((1, 4, 5), 2)  # cls, xyxy, attributes
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
         # Pboxes

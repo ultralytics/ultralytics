@@ -258,6 +258,47 @@ class WorldDetect(Detect):
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
+class HumanDetect(Detect):
+    def __init__(self, nc=80, ch=()):
+        super().__init__(nc, ch)
+        c4 = max((16, ch[0] // 4, self.reg_max))
+        c5 = max(ch[0], 64)
+        # weight(kg), 0-200
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # height(cm), 0-250
+        self.cv5 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # gender, 2 classes
+        self.cv6 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
+        # age
+        self.cv7 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # race, 6 classes
+        self.cv8 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 6, 1)) for x in ch)
+
+    def forward(self, x):
+        # boxes
+        x = Detect.forward(self, x)
+        # todo
+
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        m = self  # self.model[-1]  # Detect() module
+        for b, w, h, a in zip(m.cv2, m.cv4, m.cv5, m.cv7):
+            b[-1].bias.data[:] = 1.0  # box
+            w[-1].bias.data[:] = 1.0  # weight
+            h[-1].bias.data[:] = 1.0  # height
+            a[-1].bias.data[:] = 1.0  # age
+        for c, g, r, s in zip(m.cv3, m.cv6, m.cv8, m.stride):  # from
+            c[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+            g[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+            r[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+
+
 class RTDETRDecoder(nn.Module):
     """
     Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.

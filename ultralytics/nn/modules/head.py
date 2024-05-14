@@ -14,7 +14,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "HumanDetect"
 
 
 class Detect(nn.Module):
@@ -261,8 +261,8 @@ class WorldDetect(Detect):
 class HumanDetect(Detect):
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
-        c4 = max((16, ch[0] // 4, self.reg_max))
-        c5 = max(ch[0], 32)
+        c4 = 32
+        c5 = 64
         # weight(kg), 0-200
         self.cv4 = nn.ModuleList(
             nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
@@ -291,7 +291,7 @@ class HumanDetect(Detect):
         # boxes
         x = Detect.forward(self, x)
         if self.training:
-            return (x,)
+            return x, attributes
         pred_attributes = self.decode_attributes(*attributes)
         return (
             torch.cat([x, pred_attributes], 1)

@@ -360,32 +360,6 @@ class OBBModel(DetectionModel):
         """Initialize the loss criterion for the model."""
         return v8OBBLoss(self)
 
-class OBBWithHtpModel(DetectionModel):
-    """YOLOv8 Oriented Bounding Box (OBB) model."""
-
-    def __init__(self, cfg="yolov8-obbwithhtp.yaml", ch=3, nc=None, data_kpt_shape=(None,None),verbose=True):
-        """Initialize YOLOv8 OBB model with given config and parameters."""
-        if not isinstance(cfg, dict):
-            cfg = yaml_model_load(cfg)  # load model YAML
-        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg["kpt_shape"]):
-            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
-            cfg["kpt_shape"] = data_kpt_shape
-        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-
-    def init_criterion(self):
-        """Initialize the loss criterion for the model."""
-        return v8OBBWithHtpLoss(self)
-
-class OBBWithKptModel(OBBWithHtpModel):
-    """YOLOv8 Oriented Bounding Box (OBB) model."""
-
-    def __init__(self, cfg="yolov8-obbwithkpt.yaml", ch=3, nc=None, data_kpt_shape=(None,None),verbose=True):
-        """Initialize YOLOv8 OBB model with given config and parameters."""
-        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-
-    def init_criterion(self):
-        """Initialize the loss criterion for the model."""
-        return v8OBBWithKptLoss(self)
 
 class SegmentationModel(DetectionModel):
     """YOLOv8 segmentation model."""
@@ -941,12 +915,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, OBBWithHtp, OBBWithKpt):
+        elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m is OBBWithHtp:
-                args[3] = make_divisible(min(args[3], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
@@ -1036,10 +1008,6 @@ def guess_model_task(model):
             return "pose"
         if m == "obb":
             return "obb"
-        if m == "obbwithhtp":
-            return "obbwithhtp"
-        if m == "obbwithkpt":
-            return "obbwithkpt"
 
     # Guess from model cfg
     if isinstance(model, dict):

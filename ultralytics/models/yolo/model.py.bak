@@ -56,20 +56,6 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
-            "obbwithhtp":
-            {
-                "model": OBBWithHtpModel,
-                "trainer": yolo.obbwithkpt.OBBWithHtpTrainer,
-                "validator": yolo.obbwithkpt.OBBWithHtpValidator,
-                "predictor": yolo.obbwithkpt.OBBWithHtpPredictor,
-            },
-            "obbwithkpt":
-            {
-                "model": OBBWithKptModel,
-                "trainer": yolo.obbwithkpt.OBBWithKptTrainer,
-                "validator": yolo.obbwithkpt.OBBWithKptValidator,
-                "predictor": yolo.obbwithkpt.OBBWithKptPredictor,
-            }
         }
 
 

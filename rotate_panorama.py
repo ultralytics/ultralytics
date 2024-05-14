@@ -208,8 +208,8 @@ for idx_conf in confs:
                 }
                 # Run equi2pers
                 fov_deg = 90.0
-                pers_height = 480
-                pers_width = 640
+                pers_height = 320
+                pers_width = 320
                 # pers_height = pers_should_height
                 # pers_width = pers_should_width
                 pers_img = equi2pers(

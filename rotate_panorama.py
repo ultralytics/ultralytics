@@ -11,7 +11,7 @@ import numpy as np
 import math
 from equilib import equi2pers
 from PIL import Image, ImageDraw, ImageFont
-from mmseg.apis import MMSegInferencer
+# from mmseg.apis import MMSegInferencer
 
 
 class PersImage:
@@ -63,7 +63,7 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     ny = (y / screen_height) * 2 - 1
 
     # FOV的一半的切线值，用于计算z坐标
-    t = np.tan(np.radians(fov / 2))
+    t = 1
 
     # 逆向计算出对应的方向向量
     direction = np.array([t * nx, t * ny, 1])
@@ -97,29 +97,33 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
 
     return [int(ex), int(ey)]
 
+
 # Load a model
-model = YOLO('runs/detect/train33/weights/best.pt')  # pretrained YOLOv8n model
-inferencer = MMSegInferencer(model='deeplabv3plus_r18-d8_4xb2-80k_cityscapes-512x1024')
+model = YOLO('runs/detect/train55/weights/best.pt')  # pretrained YOLOv8n model
+# inferencer = MMSegInferencer(model='deeplabv3plus_r18-d8_4xb2-80k_cityscapes-512x1024')
 
-def predict_result(image):
-    ndarr = image
-    classes = inferencer.visualizer.dataset_meta['classes']
-    num_classes = len(classes)
-    palette = inferencer.visualizer.dataset_meta['palette']
-    ids = np.unique(ndarr)[::-1]
-    legal_indices = ids < num_classes
-    ids = ids[legal_indices]
-    labels = np.array(ids, dtype=np.int64)
 
-    colors = [palette[label] for label in labels]
-    shape = np.append(np.array(ndarr.shape), 3)
-    result = np.empty(shape, np.uint8)
-    for i in range(ndarr.shape[0]):
-        for j in range(ndarr.shape[1]):
-            pred_category = ndarr[i, j]
-            result[i, j] = palette[pred_category]
-    mask = Image.fromarray(result)
-    return mask
+# def predict_result(image):
+#     ndarr = image
+#     classes = inferencer.visualizer.dataset_meta['classes']
+#     num_classes = len(classes)
+#     palette = inferencer.visualizer.dataset_meta['palette']
+#     ids = np.unique(ndarr)[::-1]
+#     legal_indices = ids < num_classes
+#     ids = ids[legal_indices]
+#     labels = np.array(ids, dtype=np.int64)
+#
+#     colors = [palette[label] for label in labels]
+#     shape = np.append(np.array(ndarr.shape), 3)
+#     result = np.empty(shape, np.uint8)
+#     for i in range(ndarr.shape[0]):
+#         for j in range(ndarr.shape[1]):
+#             pred_category = ndarr[i, j]
+#             result[i, j] = palette[pred_category]
+#     mask = Image.fromarray(result)
+#     return mask
+
+
 # Run batched inference on a list of images
 images = [
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/52f3a0273dfb466e85e6bf59ade05c2e.jpg',
@@ -321,6 +325,5 @@ for idx_conf in confs:
         # seg_img_arr = np.array(Image.open(io.BytesIO(seg_img.content)))
         # mask = predict_result(inferencer(seg_img_arr, show=False)['predictions'])
         # mask.save(f'seg/{img_names[img_idx]}_seg_result.jpg')
-
 
         print(f'总耗时:{time.time() - begin}秒')

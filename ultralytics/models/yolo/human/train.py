@@ -37,7 +37,17 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of HumanValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss", "w_loss", "h_loss", "g_loss", "a_loss", "r_loss"
+        self.loss_names = (
+            "box_loss",
+            "seg_loss",
+            "cls_loss",
+            "dfl_loss",
+            "w_loss",
+            "h_loss",
+            "g_loss",
+            "a_loss",
+            "r_loss",
+        )
         return yolo.human.HumanValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

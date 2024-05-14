@@ -52,7 +52,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Detection (COCO)"
 
-        See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/detect/coco/), which include 80 pre-trained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
         | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -64,7 +64,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Detection (Open Images V7)"
 
-        See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/), which include 600 pre-trained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Image V7](../datasets/detect/open-images-v7.md), which include 600 pre-trained classes.
 
         | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -76,7 +76,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Segmentation (COCO)"
 
-        See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/segment/coco/), which include 80 pre-trained classes.
+        See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
 
         | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -88,7 +88,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Classification (ImageNet)"
 
-        See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples with these models trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), which include 1000 pre-trained classes.
+        See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
         | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
         | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
@@ -100,7 +100,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Pose (COCO)"
 
-        See [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/pose/coco/), which include 1 pre-trained class, 'person'.
+        See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, 'person'.
 
         | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -113,7 +113,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "OBB (DOTAv1)"
 
-        See [Oriented Detection Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), which include 15 pre-trained classes.
+        See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
         | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50   | Speed<br><sup>CPU ONNX<br>(ms)   | Speed<br><sup>A100 TensorRT<br>(ms)   | params<br><sup>(M)   | FLOPs<br><sup>(B) |
         |----------------------------------------------------------------------------------------------|-----------------------| -------------------- | -------------------------------- | ------------------------------------- | -------------------- | ----------------- |

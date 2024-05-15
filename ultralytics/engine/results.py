@@ -418,6 +418,8 @@ class Results(SimpleClass):
                     "name": self.names[class_id],
                     "class": class_id,
                     "confidence": round(self.probs.top1conf.item(), decimals),
+                    "top5": self.probs.top5,
+                    "top5confidences": [round(c.item(), decimals) for c in self.probs.top5conf],
                 }
             )
             return results
@@ -676,19 +678,13 @@ class Probs(BaseTensor):
     @lru_cache(maxsize=1)
     def top1conf(self):
         """Return the confidence of top 1."""
-        if isinstance(self.data, torch.Tensor):
-            return self.data.max(axis=-1).values
-        else:
-            return self.data.max(axis=-1)
+        return self.data.max(axis=-1).values
 
     @property
     @lru_cache(maxsize=1)
     def top5conf(self):
         """Return the confidences of top 5."""
-        if isinstance(self.data, torch.Tensor):
-            return self.data.topk(5, dim=-1).values
-        else:
-            return np.take_along_axis(self.data, np.int64(self.top5), axis=-1)
+        return self.data.topk(5, dim=-1).values
 
 
 class OBB(BaseTensor):

@@ -337,7 +337,7 @@ class Results(SimpleClass):
         boxes = self.boxes
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
-        if (probs is not None and len(probs.data.shape) == 1):  # When classify task. len()=2 implies detect task.
+        if probs is not None and len(probs.data.shape) == 1:  # When classify task. len()=2 implies detect task.
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes:
             for c in boxes.cls.unique():
@@ -431,9 +431,9 @@ class Results(SimpleClass):
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
-            for i, b in enumerate(box):
-                xy[f"x{i + 1}"] = round(b[0] / w, decimals)
-                xy[f"y{i + 1}"] = round(b[1] / h, decimals)
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID

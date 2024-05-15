@@ -1316,11 +1316,11 @@ class HumanMetric(DetMetrics):
             "metrics/recall(B)",
             "metrics/mAP50(B)",
             "metrics/mAP50-95(B)",
-            "metrics/Accracy(W)",
-            "metrics/Accracy(H)",
-            "metrics/Accracy(G)",
-            "metrics/Accracy(A)",
-            "metrics/Accracy(R)",
+            "metrics/accracy(W)",
+            "metrics/accracy(H)",
+            "metrics/accracy(G)",
+            "metrics/accracy(A)",
+            "metrics/accracy(R)",
         ]
 
     def mean_results(self):

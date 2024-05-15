@@ -2,13 +2,14 @@
 
 from copy import copy
 
+import numpy as np
+
+from ultralytics.data.dataset import HumanDataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
-from ultralytics.utils.plotting import plot_results, plot_attributes
+from ultralytics.utils.plotting import plot_attributes, plot_results
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.data.dataset import HumanDataset
-import numpy as np
 
 
 class HumanTrainer(yolo.detect.DetectionTrainer):

@@ -1301,7 +1301,7 @@ class HumanMetric(DetMetrics):
             if len(v) == 0:
                 continue
             self.attrs_accuracy[k] = torch.cat(v).mean().item()
-            self.attrs_stats[k].clear()   # reset stats
+            self.attrs_stats[k].clear()  # reset stats
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
@@ -1316,11 +1316,11 @@ class HumanMetric(DetMetrics):
             "metrics/recall(B)",
             "metrics/mAP50(B)",
             "metrics/mAP50-95(B)",
-            "metrics/accracy(W)",
-            "metrics/accracy(H)",
-            "metrics/accracy(G)",
-            "metrics/accracy(A)",
-            "metrics/accracy(R)",
+            "metrics/accuracy(W)",
+            "metrics/accuracy(H)",
+            "metrics/accuracy(G)",
+            "metrics/accuracy(A)",
+            "metrics/accuracy(R)",
         ]
 
     def mean_results(self):

@@ -7,11 +7,11 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
     DetectionModel,
+    HumanModel,
     OBBModel,
     PoseModel,
     SegmentationModel,
     WorldModel,
-    HumanModel,
 )
 from ultralytics.utils import ROOT, yaml_load
 

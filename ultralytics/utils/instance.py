@@ -208,7 +208,9 @@ class Instances:
         This class does not perform input validation, and it assumes the inputs are well-formed.
     """
 
-    def __init__(self, bboxes, segments=None, keypoints=None, attributes=None, bbox_format="xywh", normalized=True) -> None:
+    def __init__(
+        self, bboxes, segments=None, keypoints=None, attributes=None, bbox_format="xywh", normalized=True
+    ) -> None:
         """
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].

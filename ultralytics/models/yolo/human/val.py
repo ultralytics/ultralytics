@@ -1,12 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.data.dataset import HumanDataset
-from ultralytics.utils.metrics import HumanMetric
-from ultralytics.engine.results import Human
-from ultralytics.utils import colorstr
-from ultralytics.utils.metrics import box_iou
 from pathlib import Path
+
 import torch
+
+from ultralytics.data.dataset import HumanDataset
+from ultralytics.engine.results import Human
+from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.utils import colorstr
+from ultralytics.utils.metrics import HumanMetric, box_iou
 
 
 class HumanValidator(DetectionValidator):
@@ -118,12 +119,13 @@ class HumanValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou), iou
 
     def _process_attributes(self, pred_attrs, gt_attrs, iou, iou_thres=0.5):
-        """Process Human Attributes and compute the accuracy.
+        """
+        Process Human Attributes and compute the accuracy.
 
         Args:
             predn_attrs (torch.Tensor): The predictions of attributes with shape [M, 11].
             gt_attrs (torch.Tensor): The grounding truth of attributes with shape [N, 5].
-            iou (torch.Tensor): The iou values bewteen gt boxes and predicted human boxes with shape [N, M],
+            iou (torch.Tensor): The iou values between gt boxes and predicted human boxes with shape [N, M],
                 and it's used to choose the true positive to evaluate attributes.
             iou_thres (float): The iou threshold to determine true positive samples, default: 0.5.
 

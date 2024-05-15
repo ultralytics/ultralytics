@@ -32,7 +32,6 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
-    HumanDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -40,6 +39,7 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
+    HumanDetect,
     ImagePoolingAttn,
     Pose,
     RepC3,
@@ -56,10 +56,10 @@ from ultralytics.utils.checks import check_requirements, check_suffix, check_yam
 from ultralytics.utils.loss import (
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8HumanLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    v8HumanLoss,
 )
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (

@@ -30,13 +30,13 @@ from .base import BaseDataset
 from .utils import (
     HELP_URL,
     LOGGER,
+    exif_size,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
-    exif_size,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8

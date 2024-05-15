@@ -919,7 +919,7 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, human=False, on_plot=None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -930,6 +930,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
         pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
         classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
+        human (bool, optional): Flag to indicate if the data is for YOLO-Human. Defaults to False.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
             Defaults to None.
 
@@ -953,6 +954,11 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+    elif human:
+        fig, ax = plt.subplots(5, 5, figsize=(12, 15), tight_layout=True)
+        detection = [1, 2, 3, 9, 10, 18, 19, 20, 11, 12]
+        attributes = [4, 5, 6, 7, 8, 21, 22, 23, 24, 25, 13, 14, 15, 16, 17]
+        index = detection + attributes
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]

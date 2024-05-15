@@ -5,6 +5,7 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
+from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.data.dataset import HumanDataset
 
@@ -54,9 +55,8 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
         )
 
     def plot_metrics(self):
-        """Plots training/val metrics."""
-        # TODO
-        pass
+        """Plots metrics from a CSV file."""
+        plot_results(file=self.csv, on_plot=self.on_plot, human=True)  # save results.png
 
     def build_dataset(self, img_path, mode="train", batch=None):
         cfg = self.args

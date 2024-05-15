@@ -142,7 +142,6 @@ The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to intera
 !!! danger "Highly Experimental - User Assumes All Risk"
 
     The following instructions are experimental. Sharing a X11 socket with a Docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use `xhost`<sup>[(1)](http://users.stat.umn.edu/~geyer/secure.html)[(2)](https://linux.die.net/man/1/xhost)</sup>.
-    
 
 Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: X11 and Wayland. Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
 
@@ -164,7 +163,6 @@ env | grep -E -i 'x11|xorg|wayland'
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -v ~/.Xauthority:/root/.Xauthority \
         -it --ipc=host $t
-
         ```
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.

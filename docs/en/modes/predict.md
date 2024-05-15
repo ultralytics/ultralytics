@@ -614,16 +614,18 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
 
 Here's a table summarizing the methods and properties for the `Probs` class:
 
-| Name       | Type                      | Description                                                             |
-|------------|---------------------------|-------------------------------------------------------------------------|
-| `cpu()`    | Method                    | Returns a copy of the probs tensor on CPU memory.                       |
-| `numpy()`  | Method                    | Returns a copy of the probs tensor as a numpy array.                    |
-| `cuda()`   | Method                    | Returns a copy of the probs tensor on GPU memory.                       |
-| `to()`     | Method                    | Returns a copy of the probs tensor with the specified device and dtype. |
-| `top1`     | Property (`int`)          | Index of the top 1 class.                                               |
-| `top5`     | Property (`list[int]`)    | Indices of the top 5 classes.                                           |
-| `top1conf` | Property (`torch.Tensor`) | Confidence of the top 1 class.                                          |
-| `top5conf` | Property (`torch.Tensor`) | Confidences of the top 5 classes.                                       |
+| Name       | Type                                     | Description                                                             |
+|------------|------------------------------------------|-------------------------------------------------------------------------|
+| `cpu()`    | Method                                   | Returns a copy of the probs tensor on CPU memory.                       |
+| `numpy()`  | Method                                   | Returns a copy of the probs tensor as a numpy array.                    |
+| `cuda()`   | Method                                   | Returns a copy of the probs tensor on GPU memory.                       |
+| `to()`     | Method                                   | Returns a copy of the probs tensor with the specified device and dtype. |
+| `top1`     | Property (`int\|list[int]`)              | Index of the top 1 class.                                               |
+| `top5`     | Property (`list[int]\|list[list[int]]`)  | Indices of the top 5 classes.                                           |
+| `top1conf` | Property (`torch.Tensor`)                | Confidence of the top 1 class.                                          |
+| `top5conf` | Property (`torch.Tensor`)                | Confidences of the top 5 classes.                                       |
+
+The `Probs` object is also available in the detection task, providing information about the confidences of all classes for each bounding box. In that case `.top1` is a list and `top5` is a list of list (for each box, the 5 classes with the highest confidence).
 
 For more details see the [`Probs` class documentation](../reference/engine/results.md#ultralytics.engine.results.Probs).
 

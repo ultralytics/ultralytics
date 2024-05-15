@@ -22,10 +22,6 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Using a Display Server with Docker to Show Ultralytics Detection Results
 - Mounting local directories into the container
 
-
-??? info "View Results in terminal"
-            If you're interested in viewing the results in your terminal, refer to the following [page](./view-results-in-terminal.md)
-
 ---
 
 ## Prerequisites
@@ -137,17 +133,30 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
 
+### Note on File Accessibility
+
+To work with files on your local machine within the container, you can use Docker volumes:
+
+```bash
+# Mount a local directory into the container
+sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+```
+
+Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
+
 ## Run graphical user interface (GUI) applications in a Docker Container
 
 !!! danger "Highly Experimental - User Assumes All Risk"
 
     The following instructions are experimental. Sharing a X11 socket with a Docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use `xhost`<sup>[(1)](http://users.stat.umn.edu/~geyer/secure.html)[(2)](https://linux.die.net/man/1/xhost)</sup>.
 
-Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: X11 and Wayland. Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
+Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: X11 or X Window System and Wayland. Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
 
 ```bash
 env | grep -E -i 'x11|xorg|wayland'
 ```
+
+### Running a Docker Container with a GUI
 
 !!! example
 
@@ -180,11 +189,19 @@ env | grep -E -i 'x11|xorg|wayland'
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the Wayland socket, and allows the Docker container to access the Wayland server.
 
-Now you can display graphical applications inside your Docker container. For example, you can run the following command to visualize the predictions of the YOLO model:
+### Using Docker with a GUI
+
+Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLOv8 model](../models/yolov8.md):
 
 ```bash
-yolo predict show=True
+yolo predict model=yolov8n.pt show=True
 ```
+
+??? info "Testing"
+
+    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux Display Server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. This action enables the output of debugging information, aiding in the troubleshooting process.
+
+### When finished with Docker GUI
 
 !!! warning "Revoke access"
 
@@ -194,20 +211,9 @@ yolo predict show=True
     xhost -local:docker
     ```
 
-??? info "Testing"
+??? question "Want to view image results directly in the Terminal?"
 
-    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like `xclock` or `xeyes`. Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux Display Server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. This action enables the output of debugging information, aiding in the troubleshooting process.
-
-### Note on File Accessibility
-
-To work with files on your local machine within the container, you can use Docker volumes:
-
-```bash
-# Mount a local directory into the container
-sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
-```
-
-Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
+    Refer to the following guide on [viewing the image results using a terminal](./view-results-in-terminal.md)
 
 ---
 

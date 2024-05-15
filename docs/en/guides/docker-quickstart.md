@@ -188,9 +188,10 @@ Now you can display graphical applications inside your Docker container. For exa
 yolo predict show=True
 ```
 
-!!!+ warning "Revoke access"
+!!! warning "Revoke access"
 
     In both cases, don't forget to revoke access from the Docker group when you're done.
+
     ```bash
     xhost -local:docker
     ```

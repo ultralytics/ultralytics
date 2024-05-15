@@ -5,9 +5,10 @@ from copy import copy
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
-from ultralytics.utils.plotting import plot_results
+from ultralytics.utils.plotting import plot_results, plot_attributes
 from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.data.dataset import HumanDataset
+import numpy as np
 
 
 class HumanTrainer(yolo.detect.DetectionTrainer):
@@ -76,3 +77,8 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
             classes=cfg.classes,
             fraction=cfg.fraction if mode == "train" else 1.0,
         )
+
+    def plot_training_labels(self):
+        attributes = np.concatenate([lb["attributes"] for lb in self.train_loader.dataset.labels], 0)
+        plot_attributes(attributes, save_dir=self.save_dir, on_plot=self.on_plot)
+        return super().plot_training_labels()

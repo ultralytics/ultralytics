@@ -145,10 +145,10 @@ class HumanValidator(DetectionValidator):
         acc_a = 1 - (pred_attrs.age - age).abs() / age
         acc_r = (pred_attrs.cls_race == race).float()
 
-        self.metrics.attrs_stats["weight"].append(acc_w.clip(max=1))
-        self.metrics.attrs_stats["height"].append(acc_h.clip(max=1))
+        self.metrics.attrs_stats["weight"].append(acc_w.clip(0, 1))
+        self.metrics.attrs_stats["height"].append(acc_h.clip(0, 1))
         self.metrics.attrs_stats["gender"].append(acc_g)
-        self.metrics.attrs_stats["age"].append(acc_a.clip(max=1))
+        self.metrics.attrs_stats["age"].append(acc_a.clip(0, 1))
         self.metrics.attrs_stats["race"].append(acc_r)
 
     def get_desc(self):

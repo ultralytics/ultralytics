@@ -23,7 +23,6 @@ class SpeedEstimator:
 
         # Region information
         self.reg_pts = [(20, 400), (1260, 400)]
-        self.region_thickness = 3
 
         # Predict/track information
         self.clss = None
@@ -31,7 +30,7 @@ class SpeedEstimator:
         self.boxes = None
         self.trk_ids = None
         self.trk_pts = None
-        self.line_thickness = 2
+        self.tf = 2
         self.trk_history = defaultdict(list)
 
         # Speed estimator information
@@ -51,7 +50,6 @@ class SpeedEstimator:
         names,
         view_img=False,
         line_thickness=2,
-        region_thickness=5,
         spdl_dist_thresh=10,
     ):
         """
@@ -62,7 +60,6 @@ class SpeedEstimator:
             names (dict): object detection classes names
             view_img (bool): Flag indicating frame display
             line_thickness (int): Line thickness for bounding boxes.
-            region_thickness (int): Speed estimation region thickness
             spdl_dist_thresh (int): Euclidean distance threshold for speed line
         """
         if reg_pts is None:
@@ -71,8 +68,7 @@ class SpeedEstimator:
             self.reg_pts = reg_pts
         self.names = names
         self.view_img = view_img
-        self.line_thickness = line_thickness
-        self.region_thickness = region_thickness
+        self.tf = line_thickness
         self.spdl_dist_thresh = spdl_dist_thresh
 
     def extract_tracks(self, tracks):
@@ -171,7 +167,7 @@ class SpeedEstimator:
         self.extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.region_thickness)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)

@@ -32,7 +32,6 @@ class QueueManager:
         self.im0 = None
         self.tf = None
         self.view_img = False
-        self.view_queue_counts = True
         self.fontsize = 0.6
 
         self.names = None  # Classes names
@@ -60,7 +59,6 @@ class QueueManager:
         track_thickness=2,
         view_img=False,
         region_color=(255, 0, 255),
-        view_queue_counts=True,
         draw_tracks=False,
         count_txt_color=(255, 255, 255),
         track_color=None,
@@ -73,7 +71,6 @@ class QueueManager:
         Args:
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): Flag to control whether to display the video stream.
-            view_queue_counts (bool): Flag to control whether to display the counts on video stream.
             reg_pts (list): Initial list of points defining the counting region.
             classes_names (dict): Classes names
             region_color (RGB color): Color of queue region
@@ -86,7 +83,6 @@ class QueueManager:
         """
         self.tf = line_thickness
         self.view_img = view_img
-        self.view_queue_counts = view_queue_counts
         self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
         self.region_color = region_color

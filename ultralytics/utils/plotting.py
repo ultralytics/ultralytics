@@ -90,7 +90,7 @@ class Colors:
     @staticmethod
     def hex2rgb(h):
         """Converts hex color codes to RGB values (i.e. default PIL order)."""
-        return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
+        return tuple(int(h[1 + i: 1 + i + 2], 16) for i in (0, 2, 4))
 
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
@@ -445,7 +445,8 @@ class Annotator:
         cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
         cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
-    # Parking lot and object counting app
+    # ----------- Ultralytics solutions utils -----------
+    # Parking management, object counting, heatmaps
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
         """
         Display the overall statistics for parking lots
@@ -459,12 +460,12 @@ class Annotator:
 
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)
-
         text_y_offset = 0
-
         for label, value in text.items():
             txt = f"{label}: {value}"
-            text_size = cv2.getTextSize(txt, 0, int(self.sf * 1.5), int(self.tf * 1.5))[0]
+            text_size = cv2.getTextSize(txt, 0, self.sf, self.tf)[0]
+            if text_size[0] < 5 or text_size[1] < 5:
+                text_size = (5, 5)
             text_x = im0.shape[1] - text_size[0] - margin * 2 - horizontal_gap
             text_y = text_y_offset + text_size[1] + margin * 2 + vertical_gap
             rect_x1 = text_x - margin * 2
@@ -473,9 +474,34 @@ class Annotator:
             rect_y2 = text_y + margin * 2
             cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
             cv2.putText(
-                im0, txt, (text_x, text_y), 0, int(self.sf * 1.5), txt_color, int(self.tf * 1.5), lineType=cv2.LINE_AA
+                im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA
             )
             text_y_offset = rect_y2
+
+    # Object counting, heatmaps
+    def line_counter(self, points, bg_color, txt_color, margin=10, text=0, gap=10):
+        global center_x, center_y
+        if len(points) >= 3:
+            center_x = sum(point[0] for point in points) // len(points)
+            center_y = sum(point[1] for point in points) // len(points)
+        elif len(points) == 2:
+            center_x = (points[0][0] + points[1][0]) // 2
+            center_y = (points[0][1] + points[1][1]) // 2
+
+        line_vector = [points[1][0] - points[0][0], points[1][1] - points[0][1]]
+        length = (line_vector[0] ** 2 + line_vector[1] ** 2) ** 0.5
+        line_unit_vector = [line_vector[0] / length, line_vector[1] / length]
+        gap_dx, gap_dy = gap * line_unit_vector[1], gap * -line_unit_vector[0]
+
+        line_start = (int(points[0][0] + gap_dx), int(points[0][1] + gap_dy))
+        line_end = (int(points[1][0] + gap_dx), int(points[1][1] + gap_dy))
+        cv2.line(self.im, line_start, line_end, bg_color, thickness=self.tf)
+        text_size = cv2.getTextSize(str(text), cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)[0]
+        text_x, text_y = center_x - text_size[0] // 2, center_y + text_size[1] // 2
+        cv2.rectangle(self.im, (text_x - margin, text_y - text_size[1] - margin),
+                      (text_x + text_size[0] + margin, text_y + margin), bg_color, -1)
+        cv2.putText(self.im, str(text), (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX,
+                    self.sf, txt_color, self.tf)
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
@@ -672,6 +698,7 @@ class Annotator:
         cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
         cv2.circle(self.im, center_bbox, pins_radius, color, -1)
         cv2.line(self.im, center_point, center_bbox, color, thickness)
+    # ---------------------------------------------------
 
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
@@ -769,7 +796,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
     xyxy = ops.clip_boxes(xyxy, im.shape)
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR else -1)]
+    crop = im[int(xyxy[0, 1]): int(xyxy[0, 3]), int(xyxy[0, 0]): int(xyxy[0, 2]), :: (1 if BGR else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))
@@ -780,20 +807,20 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
 
 @threaded
 def plot_images(
-    images,
-    batch_idx,
-    cls,
-    bboxes=np.zeros(0, dtype=np.float32),
-    confs=None,
-    masks=np.zeros(0, dtype=np.uint8),
-    kpts=np.zeros((0, 51), dtype=np.float32),
-    paths=None,
-    fname="images.jpg",
-    names=None,
-    on_plot=None,
-    max_subplots=16,
-    save=True,
-    conf_thres=0.25,
+        images,
+        batch_idx,
+        cls,
+        bboxes=np.zeros(0, dtype=np.float32),
+        confs=None,
+        masks=np.zeros(0, dtype=np.uint8),
+        kpts=np.zeros((0, 51), dtype=np.float32),
+        paths=None,
+        fname="images.jpg",
+        names=None,
+        on_plot=None,
+        max_subplots=16,
+        save=True,
+        conf_thres=0.25,
 ):
     """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
@@ -812,7 +839,7 @@ def plot_images(
     max_size = 1920  # max image size
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
-    ns = np.ceil(bs**0.5)  # number of subplots (square)
+    ns = np.ceil(bs ** 0.5)  # number of subplots (square)
     if np.max(images[0]) <= 1:
         images *= 255  # de-normalise (optional)
 
@@ -820,7 +847,7 @@ def plot_images(
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        mosaic[y: y + h, x: x + w, :] = images[i].transpose(1, 2, 0)
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -907,8 +934,8 @@ def plot_images(
                         else:
                             mask = image_masks[j].astype(bool)
                         with contextlib.suppress(Exception):
-                            im[y : y + h, x : x + w, :][mask] = (
-                                im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
+                            im[y: y + h, x: x + w, :][mask] = (
+                                    im[y: y + h, x: x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
                 annotator.fromarray(im)
     if not save:

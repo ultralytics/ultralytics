@@ -127,7 +127,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | Name                | Type        | Default                    | Description                                 |
 |---------------------|-------------|----------------------------|---------------------------------------------|
 | `view_img`          | `bool`      | `False`                    | Display frames with counts                  |
-| `view_queue_counts` | `bool`      | `True`                     | Display Queue counts only on video frame    |
 | `line_thickness`    | `int`       | `2`                        | Increase bounding boxes thickness           |
 | `reg_pts`           | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area             |
 | `classes_names`     | `dict`      | `model.model.names`        | Dictionary of Class Names                   |

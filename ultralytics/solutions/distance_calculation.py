@@ -15,84 +15,9 @@ class DistanceCalculation:
         """Initializes the distance calculation class with default values for Visual, Image, track and distance
         parameters.
         """
-
-        # Visual & im0 information
         self.im0 = None
         self.annotator = None
-        self.view_img = False
-        self.line_color = (255, 255, 0)
-        self.centroid_color = (255, 0, 255)
-
-        # Predict/track information
-        self.clss = None
-        self.names = None
-        self.boxes = None
-        self.line_thickness = 2
-        self.trk_ids = None
-
-        # Distance calculation information
-        self.centroids = []
-        self.pixel_per_meter = 10
-
-        # Mouse event
-        self.left_mouse_count = 0
-        self.selected_boxes = {}
-
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        names,
-        pixels_per_meter=10,
-        view_img=False,
-        line_thickness=2,
-        line_color=(255, 255, 0),
-        centroid_color=(255, 0, 255),
-    ):
-        """
-        Configures the distance calculation and display parameters.
-
-        Args:
-            names (dict): object detection classes names
-            pixels_per_meter (int): Number of pixels in meter
-            view_img (bool): Flag indicating frame display
-            line_thickness (int): Line thickness for bounding boxes.
-            line_color (RGB): color of centroids line
-            centroid_color (RGB): colors of bbox centroids
-        """
-        self.names = names
-        self.pixel_per_meter = pixels_per_meter
-        self.view_img = view_img
-        self.line_thickness = line_thickness
-        self.line_color = line_color
-        self.centroid_color = centroid_color
-
-    def mouse_event_for_distance(self, event, x, y, flags, param):
-        """
-        This function is designed to move region with mouse events in a real-time video stream.
-
-        Args:
-            event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
-            x (int): The x-coordinate of the mouse pointer.
-            y (int): The y-coordinate of the mouse pointer.
-            flags (int): Any flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY,
-                cv2.EVENT_FLAG_SHIFTKEY, etc.).
-            param (dict): Additional parameters you may want to pass to the function.
-        """
-        global selected_boxes
-        global left_mouse_count
-        if event == cv2.EVENT_LBUTTONDOWN:
-            self.left_mouse_count += 1
-            if self.left_mouse_count <= 2:
-                for box, track_id in zip(self.boxes, self.trk_ids):
-                    if box[0] < x < box[2] and box[1] < y < box[3] and track_id not in self.selected_boxes:
-                        self.selected_boxes[track_id] = []
-                        self.selected_boxes[track_id] = box
-
-        if event == cv2.EVENT_RBUTTONDOWN:
-            self.selected_boxes = {}
-            self.left_mouse_count = 0
+        self.window_name = "Ultralytics Distance Calculator"
 
     def extract_tracks(self, tracks):
         """
@@ -157,7 +82,7 @@ class DistanceCalculation:
 
             distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
             self.annotator.plot_distance_and_line(
-                distance_m, distance_mm, self.centroids, self.line_color, self.centroid_color
+                distance_m, distance_mm, self.centroids, self.line_color, self.line_color
             )
 
         self.centroids = []

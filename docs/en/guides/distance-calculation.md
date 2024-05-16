@@ -92,7 +92,6 @@ Measuring the gap between two objects is known as distance calculation within a 
 | `view_img`       | `bool` | `False`         | Display frames with counts                             |
 | `line_thickness` | `int`  | `2`             | Increase bounding boxes thickness                      |
 | `line_color`     | `RGB`  | `(255, 255, 0)` | Line Color for centroids mapping on two bounding boxes |
-| `centroid_color` | `RGB`  | `(255, 0, 255)` | Centroid color for each bounding box                   |
 
 ### Arguments `model.track`
 

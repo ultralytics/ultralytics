@@ -254,8 +254,8 @@ def non_max_suppression(
         box, cls, mask = x.split((4, nc, nm), 1)
 
         if multi_label:
-            i, j = torch.where(cls > conf_thres)#n_obj,nc
-            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)#(n_obj,4+conf+cls+mask)
+            i, j = torch.where(cls > conf_thres)  # n_obj,nc
+            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)  # (n_obj,4+conf+cls+mask)
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
             x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
@@ -666,18 +666,20 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.5)
 
+
 def process_kpt_on_heatmap(protos, masks_in, shape, kpt_shape):
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
-    nkpt,ndim = kpt_shape
-    stride = ih//mh
-    masks = (masks_in @ protos.float().view(c, -1)).sigmoid()#.view(-1, mh, mw)  # CHW
+    nkpt, ndim = kpt_shape
+    stride = ih // mh
+    masks = (masks_in @ protos.float().view(c, -1)).sigmoid()  # .view(-1, mh, mw)  # CHW
 
-    #kpts = masks.argmax(1)
-    max_val,max_index = torch.topk(masks,nkpt)#(n_obj,nkpt),(n_obj,nkpt)
-    kpts = torch.unravel_index(max_index,(mh, mw))#2,n_obj,nkpt
-    kpts = torch.stack(kpts,0).permute(1,2,0) * stride #n_obj,nkpt,2
+    # kpts = masks.argmax(1)
+    max_val, max_index = torch.topk(masks, nkpt)  # (n_obj,nkpt),(n_obj,nkpt)
+    kpts = torch.unravel_index(max_index, (mh, mw))  # 2,n_obj,nkpt
+    kpts = torch.stack(kpts, 0).permute(1, 2, 0) * stride  # n_obj,nkpt,2
     return kpts.to(torch.float32)
+
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     """

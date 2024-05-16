@@ -119,12 +119,14 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x)-nkpt*ndim > 6 for x in lb):# and (not keypoint):  # is segment
+                if any(len(x) - nkpt * ndim > 6 for x in lb):  # and (not keypoint):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:-nkpt*ndim], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                    segments = [
+                        np.array(x[1 : -nkpt * ndim], dtype=np.float32).reshape(-1, 2) for x in lb
+                    ]  # (cls, xy1...)
                     if keypoint:
-                        kpts = np.array([x[-nkpt*ndim:] for x in lb],dtype=np.float32)
-                        lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments),kpts), 1)  # (cls, xywh)
+                        kpts = np.array([x[-nkpt * ndim :] for x in lb], dtype=np.float32)
+                        lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments), kpts), 1)  # (cls, xywh)
                     else:
                         lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)
                 lb = np.array(lb, dtype=np.float32)

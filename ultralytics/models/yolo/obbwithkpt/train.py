@@ -7,6 +7,7 @@ from ultralytics.nn.tasks import OBBWithHtpModel, OBBWithKptModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images, plot_results
 
+
 class OBBWithHtpTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
@@ -30,7 +31,9 @@ class OBBWithHtpTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return OBBModel initialized with specified config and weights."""
-        model = OBBWithHtpModel(cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"],verbose=verbose and RANK == -1)
+        model = OBBWithHtpModel(
+            cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose and RANK == -1
+        )
         if weights:
             model.load(weights)
 
@@ -40,7 +43,7 @@ class OBBWithHtpTrainer(yolo.detect.DetectionTrainer):
         """Return an instance of OBBValidator for validation of YOLO model."""
         self.loss_names = "box_loss", "cls_loss", "kpt_loss", "dfl_loss"
         return yolo.obbwithkpt.OBBWithHtpValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
-    
+
     def set_model_attributes(self):
         """Sets keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
@@ -76,11 +79,13 @@ class OBBWithKptTrainer(OBBWithHtpTrainer):
         if overrides is None:
             overrides = {}
         overrides["task"] = "obbwithkpt"
-        super(OBBWithHtpTrainer,self).__init__(cfg, overrides, _callbacks)
-    
+        super(OBBWithHtpTrainer, self).__init__(cfg, overrides, _callbacks)
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return OBBModel initialized with specified config and weights."""
-        model = OBBWithKptModel(cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"],verbose=verbose and RANK == -1)
+        model = OBBWithKptModel(
+            cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose and RANK == -1
+        )
         if weights:
             model.load(weights)
 

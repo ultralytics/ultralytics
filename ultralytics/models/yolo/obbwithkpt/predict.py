@@ -5,8 +5,6 @@ from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 
 
-
-
 class OBBWithHtpPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
@@ -38,7 +36,7 @@ class OBBWithHtpPredictor(DetectionPredictor):
             nc=len(self.model.names),
             classes=self.args.classes,
             rotated=True,
-        )# bs*n_obj*4+conf+cls+angle+nm
+        )  # bs*n_obj*4+conf+cls+angle+nm
         proto = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
@@ -50,12 +48,13 @@ class OBBWithHtpPredictor(DetectionPredictor):
             rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)
             # xywh, r, conf, cls
             obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
-            pred_kpts = ops.process_kpt_on_heatmap(proto,pred[7:],img.shape[2:],self.model.kpt_shape)
+            pred_kpts = ops.process_kpt_on_heatmap(proto, pred[7:], img.shape[2:], self.model.kpt_shape)
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
 
             results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb, keypoints=pred_kpts))
         return results
-    
+
+
 class OBBWithKptPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
@@ -87,7 +86,7 @@ class OBBWithKptPredictor(DetectionPredictor):
             nc=len(self.model.names),
             classes=self.args.classes,
             rotated=True,
-        )# bs*n_obj*4+conf+cls+angle+nm
+        )  # bs*n_obj*4+conf+cls+angle+nm
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

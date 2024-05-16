@@ -112,7 +112,8 @@ class Segment(Detect):
         if self.training:
             return x, mc, p
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
-    
+
+
 class OBBWithHtp(Detect):
     """YOLOv8 OBB detection head for detection with rotation models."""
 
@@ -120,7 +121,7 @@ class OBBWithHtp(Detect):
         """Initialize OBB with number of classes `nc` and layer channels `ch`."""
         super().__init__(nc, ch)
         self.ne = ne  # number of extra parameters
-        
+
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)
@@ -146,11 +147,16 @@ class OBBWithHtp(Detect):
         x = Detect.forward(self, x)
         if self.training:
             return x, angle, mc, p
-        return (torch.cat([x, angle, mc], 1),p) if self.export else (torch.cat([x[0], angle, mc], 1), (x[1], angle, mc, p))
+        return (
+            (torch.cat([x, angle, mc], 1), p)
+            if self.export
+            else (torch.cat([x[0], angle, mc], 1), (x[1], angle, mc, p))
+        )
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
+
 
 class OBBWithKpt(Detect):
     """YOLOv8 OBB detection head for detection with rotation models."""
@@ -159,7 +165,7 @@ class OBBWithKpt(Detect):
         """Initialize OBB with number of classes `nc` and layer channels `ch`."""
         super().__init__(nc, ch)
         self.ne = ne  # number of extra parameters
-        
+
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
 
@@ -185,7 +191,11 @@ class OBBWithKpt(Detect):
         if self.training:
             return x, angle, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
-        return torch.cat([x, angle, pred_kpt], 1) if self.export else (torch.cat([x[0], angle, pred_kpt], 1), (x[1], angle,kpt))
+        return (
+            torch.cat([x, angle, pred_kpt], 1)
+            if self.export
+            else (torch.cat([x[0], angle, pred_kpt], 1), (x[1], angle, kpt))
+        )
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode rotated bounding boxes."""

@@ -4,4 +4,11 @@ from .predict import OBBWithHtpPredictor, OBBWithKptPredictor
 from .train import OBBWithHtpTrainer, OBBWithKptTrainer
 from .val import OBBWithHtpValidator, OBBWithKptValidator
 
-__all__ = "OBBWithHtpTrainer","OBBWithHtpPredictor","OBBWithHtpValidator","OBBWithKptTrainer","OBBWithKptPredictor","OBBWithKptValidator"
+__all__ = (
+    "OBBWithHtpTrainer",
+    "OBBWithHtpPredictor",
+    "OBBWithHtpValidator",
+    "OBBWithKptTrainer",
+    "OBBWithKptPredictor",
+    "OBBWithKptValidator",
+)

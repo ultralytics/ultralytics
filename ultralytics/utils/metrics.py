@@ -1288,6 +1288,7 @@ class OBBMetrics(SimpleClass):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
 
+
 class OBBWithHtpMetrics(SimpleClass):
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
         self.save_dir = save_dir
@@ -1330,14 +1331,16 @@ class OBBWithHtpMetrics(SimpleClass):
     @property
     def keys(self):
         """Returns a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", 
-                "metrics/recall(B)", 
-                "metrics/mAP50(B)",
-                "metrics/mAP50-95(B)",
-                "metrics/precision(P)",
-                "metrics/recall(P)",
-                "metrics/mAP50(P)",
-                "metrics/mAP50-95(P)",]
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",
+            "metrics/precision(P)",
+            "metrics/recall(P)",
+            "metrics/mAP50(P)",
+            "metrics/mAP50-95(P)",
+        ]
 
     def mean_results(self):
         """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""

@@ -763,20 +763,32 @@ class BaseTrainer:
             f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
         )
         return optimizer
-    
-    def update_train_state(self,pbar):
-        """Updates the training state."""
-        elapsed = pbar.last_print_t-pbar.start_t if pbar.n!=0 else '?'
-        speed = elapsed/pbar.n if pbar.n!=0 else '?'
-        remaining = speed*(pbar.total-pbar.n) if pbar.n!=0 else '?'
 
-        if hasattr(self,'state'):
-            self.state.update({k:v for k,v in zip(self.progress_string().strip().split(),pbar.desc[:-1].strip().split()) if k in ('Epoch','GPU_mem','Size')})#添加一个用于状态查询的缓存区
-            self.state.update({'progress':f'{pbar.n}/{pbar.total}',
-                            'elapsed':f'{round(elapsed,2)} s' if elapsed != '?' else '?',
-                            'remaining':f'{round(remaining,2)} s' if remaining != '?' else '?',
-                            'speed':f'{round(speed,2)} s/iter' if speed != '?' else '?',
-                            'datasets':str(self.data['path']).split('usrdata')[1] if str(self.data['path']).find('usrdata')!=-1 else str(self.data['path']),
-                            'lr': {f'lr/pg{ir}': '{:.4e}'.format(x['lr']) for ir, x in enumerate(self.optimizer.param_groups)},
-                            'batchsz':self.batch_size,
-                            'classes':self.data['names']})
+    def update_train_state(self, pbar):
+        """Updates the training state."""
+        elapsed = pbar.last_print_t - pbar.start_t if pbar.n != 0 else "?"
+        speed = elapsed / pbar.n if pbar.n != 0 else "?"
+        remaining = speed * (pbar.total - pbar.n) if pbar.n != 0 else "?"
+
+        if hasattr(self, "state"):
+            self.state.update(
+                {
+                    k: v
+                    for k, v in zip(self.progress_string().strip().split(), pbar.desc[:-1].strip().split())
+                    if k in ("Epoch", "GPU_mem", "Size")
+                }
+            )  # 添加一个用于状态查询的缓存区
+            self.state.update(
+                {
+                    "progress": f"{pbar.n}/{pbar.total}",
+                    "elapsed": f"{round(elapsed,2)} s" if elapsed != "?" else "?",
+                    "remaining": f"{round(remaining,2)} s" if remaining != "?" else "?",
+                    "speed": f"{round(speed,2)} s/iter" if speed != "?" else "?",
+                    "datasets": str(self.data["path"]).split("usrdata")[1]
+                    if str(self.data["path"]).find("usrdata") != -1
+                    else str(self.data["path"]),
+                    "lr": {f"lr/pg{ir}": "{:.4e}".format(x["lr"]) for ir, x in enumerate(self.optimizer.param_groups)},
+                    "batchsz": self.batch_size,
+                    "classes": self.data["names"],
+                }
+            )

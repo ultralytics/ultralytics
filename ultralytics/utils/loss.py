@@ -714,7 +714,7 @@ class v8OBBLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
-    
+
 
 class v8OBBWithHtpLoss(v8DetectionLoss):
     def __init__(self, model):
@@ -748,17 +748,17 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl, mask
-        feats, pred_angle, pred_heatmap,proto = preds if isinstance(preds[0], list) else preds[1]
+        feats, pred_angle, pred_heatmap, proto = preds if isinstance(preds[0], list) else preds[1]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1
         )
 
         # b, grids, ..
-        pred_scores = pred_scores.permute(0, 2, 1).contiguous()#bs,8400,nc
-        pred_distri = pred_distri.permute(0, 2, 1).contiguous()#bs,8400,64
-        pred_angle = pred_angle.permute(0, 2, 1).contiguous()#bs,8400,1
-        pred_heatmap = pred_heatmap.permute(0, 2, 1).contiguous()#bs,8400,32
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()  # bs,8400,nc
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()  # bs,8400,64
+        pred_angle = pred_angle.permute(0, 2, 1).contiguous()  # bs,8400,1
+        pred_heatmap = pred_heatmap.permute(0, 2, 1).contiguous()  # bs,8400,32
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -813,10 +813,10 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
 
-            #heatmap = self.heatmap_generator(keypoints,imgsz,-1)
+            # heatmap = self.heatmap_generator(keypoints,imgsz,-1)
 
             loss[2] = self.calculate_keypoints_on_heatmap_loss(
-                fg_mask, keypoints,target_gt_idx, batch_idx, proto, pred_heatmap,target_bboxes,imgsz
+                fg_mask, keypoints, target_gt_idx, batch_idx, proto, pred_heatmap, target_bboxes, imgsz
             )
 
         else:
@@ -829,29 +829,26 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def heatmap_generator(self,keypoints:torch.tensor,output_size,sigma):#把n,1,3 -> n,h,w
+    def heatmap_generator(self, keypoints: torch.tensor, output_size, sigma):  # 把n,1,3 -> n,h,w
+        num_obj, _, _ = keypoints.shape
+        hms = torch.zeros((num_obj, int(output_size[0]), int(output_size[1])), dtype=torch.float32, device=self.device)
+        if sigma < 0:
+            sigma = output_size[0] // 64
 
-        num_obj,_,_ = keypoints.shape
-        hms = torch.zeros((num_obj,int(output_size[0]),int(output_size[1])),
-                       dtype=torch.float32,device=self.device)
-        if sigma<0:
-            sigma = output_size[0]//64
-        
         def get_gaussian_kernel(sigma):
-            size = 6*sigma + 3
-            x = torch.arange(0, size, 1, dtype = torch.float32, device = self.device)
+            size = 6 * sigma + 3
+            x = torch.arange(0, size, 1, dtype=torch.float32, device=self.device)
             y = x[:, None]
-            x0, y0 = 3*sigma + 1, 3*sigma + 1
-            g = torch.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+            x0, y0 = 3 * sigma + 1, 3 * sigma + 1
+            g = torch.exp(-((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma**2))
             return g
-        
+
         for p in keypoints:
             g = get_gaussian_kernel(sigma)
             for idx, pt in enumerate(p):
                 if pt[2] > 0:
                     x, y = int(pt[0]), int(pt[1])
-                    if x < 0 or y < 0 or \
-                       x >= 1 or y >= 1:
+                    if x < 0 or y < 0 or x >= 1 or y >= 1:
                         continue
 
                     ul = int(round(x - 3 * sigma - 1)), int(round(y - 3 * sigma - 1))
@@ -862,11 +859,10 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
 
                     cc, dd = max(0, ul[0]), min(br[0], output_size[0])
                     aa, bb = max(0, ul[1]), min(br[1], output_size[1])
-                    hms[idx, aa:bb, cc:dd] = torch.maximum(
-                        hms[idx, aa:bb, cc:dd], g[a:b, c:d])
+                    hms[idx, aa:bb, cc:dd] = torch.maximum(hms[idx, aa:bb, cc:dd], g[a:b, c:d])
         return hms
 
-    def single_keypoint_on_heatmap_loss(self,gt_heatmap,pred,proto,area):
+    def single_keypoint_on_heatmap_loss(self, gt_heatmap, pred, proto, area):
         """
         Compute the keypoint_on_heatmap loss for a single image.
 
@@ -884,10 +880,10 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
             predicted masks from the prototype masks and predicted mask coefficients.
         """
         pred_mask = torch.einsum("in,nhw->ihw", pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        loss_fn = nn.MSELoss(reduction='mean')
+        loss_fn = nn.MSELoss(reduction="mean")
         loss = loss_fn(pred_mask, gt_heatmap)
-        return loss #(loss.mean(dim=(1, 2))/area).sum() #还需要除以面积吗，面积越大，偏移的容忍度会高一些，面积越小，偏移的容忍度会小
-    
+        return loss  # (loss.mean(dim=(1, 2))/area).sum() #还需要除以面积吗，面积越大，偏移的容忍度会高一些，面积越小，偏移的容忍度会小
+
     def calculate_keypoints_on_heatmap_loss(
         self,
         fg_mask: torch.Tensor,
@@ -897,7 +893,7 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
         proto: torch.Tensor,
         pred_masks: torch.Tensor,
         target_bboxes,
-        imgsz: torch.Tensor
+        imgsz: torch.Tensor,
     ) -> torch.Tensor:
         """
         Calculate the loss for instance segmentation.
@@ -943,28 +939,28 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
         # Use target_gt_idx_expanded to select keypoints from batched_keypoints
         selected_keypoints = batched_keypoints.gather(
             1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2])
-        )#bs,8400,1,3
-        
+        )  # bs,8400,1,3
+
         _, _, mask_h, mask_w = proto.shape
         loss = 0
         # Divide coordinates by stride
-        selected_keypoints[...,0] /= (imgsz[0]/mask_w) #proto 是4倍下采样 bs,8400,1,3
-        selected_keypoints[...,1] /= (imgsz[1]/mask_h) #proto 是4倍下采样 bs,8400,1,3
-        
+        selected_keypoints[..., 0] /= imgsz[0] / mask_w  # proto 是4倍下采样 bs,8400,1,3
+        selected_keypoints[..., 1] /= imgsz[1] / mask_h  # proto 是4倍下采样 bs,8400,1,3
+
         # Normalize to 0-1
-        target_bboxes_normalized = target_bboxes[...,:4] / imgsz[[1, 0, 1, 0]]
+        target_bboxes_normalized = target_bboxes[..., :4] / imgsz[[1, 0, 1, 0]]
 
         # Areas of target bboxes
         marea = target_bboxes_normalized[..., 2:-1].prod(2)
 
-        for i, single_i in enumerate(zip(fg_mask, pred_masks, proto,selected_keypoints, marea)):
+        for i, single_i in enumerate(zip(fg_mask, pred_masks, proto, selected_keypoints, marea)):
             fg_mask_i, pred_masks_i, proto_i, selected_keypoints_i, marea_i = single_i
             if fg_mask_i.any():
-                selected_keypoints_i = selected_keypoints_i[fg_mask_i]#n,1,3
-                gt_heatmap = self.heatmap_generator(selected_keypoints_i,(mask_h,mask_w),mask_h//64)#n,h,w
+                selected_keypoints_i = selected_keypoints_i[fg_mask_i]  # n,1,3
+                gt_heatmap = self.heatmap_generator(selected_keypoints_i, (mask_h, mask_w), mask_h // 64)  # n,h,w
 
                 loss += self.single_keypoint_on_heatmap_loss(
-                    gt_heatmap, pred_masks_i[fg_mask_i], proto_i,marea_i[fg_mask_i]
+                    gt_heatmap, pred_masks_i[fg_mask_i], proto_i, marea_i[fg_mask_i]
                 )
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
@@ -989,7 +985,7 @@ class v8OBBWithHtpLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
-    
+
 
 class v8OBBWithKptLoss(v8OBBWithHtpLoss):
     def __init__(self, model):
@@ -999,7 +995,7 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
         Note model must be de-paralleled.
         """
         super().__init__(model)
-        #self.calculate_keypoints_loss = v8PoseLoss.calculate_keypoints_loss
+        # self.calculate_keypoints_loss = v8PoseLoss.calculate_keypoints_loss
         self.kpts_decode = v8PoseLoss.kpts_decode
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
@@ -1008,7 +1004,7 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
 
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
-    
+
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, mask
@@ -1019,10 +1015,10 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
         )
 
         # b, grids, ..
-        pred_scores = pred_scores.permute(0, 2, 1).contiguous()#bs,8400,nc
-        pred_distri = pred_distri.permute(0, 2, 1).contiguous()#bs,8400,64
-        pred_angle = pred_angle.permute(0, 2, 1).contiguous()#bs,8400,1
-        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()#bs,8400,1*3(17*3)
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()  # bs,8400,nc
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()  # bs,8400,64
+        pred_angle = pred_angle.permute(0, 2, 1).contiguous()  # bs,8400,1
+        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()  # bs,8400,1*3(17*3)
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -1078,9 +1074,9 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
 
-            #heatmap = self.heatmap_generator(keypoints,imgsz,-1)
+            # heatmap = self.heatmap_generator(keypoints,imgsz,-1)
 
-            loss[2],loss[3] = self.calculate_keypoints_loss(
+            loss[2], loss[3] = self.calculate_keypoints_loss(
                 fg_mask, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts
             )
 
@@ -1134,15 +1130,15 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
         # Fill batched_keypoints with keypoints based on batch_idx
         for i in range(batch_size):
             keypoints_i = keypoints[batch_idx == i]
-            batched_keypoints[i, : keypoints_i.shape[0]] = keypoints_i #bs,kpt_max_count,17,3
+            batched_keypoints[i, : keypoints_i.shape[0]] = keypoints_i  # bs,kpt_max_count,17,3
 
         # Expand dimensions of target_gt_idx to match the shape of batched_keypoints
-        target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)#bs,8400,1,1
+        target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)  # bs,8400,1,1
 
         # Use target_gt_idx_expanded to select keypoints from batched_keypoints
         selected_keypoints = batched_keypoints.gather(
             1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2])
-        )#bs,8400,17,3   target_kpt
+        )  # bs,8400,17,3   target_kpt
 
         # Divide coordinates by stride
         selected_keypoints /= stride_tensor.view(1, -1, 1, 1)
@@ -1151,9 +1147,9 @@ class v8OBBWithKptLoss(v8OBBWithHtpLoss):
         kpts_obj_loss = 0
 
         if masks.any():
-            gt_kpt = selected_keypoints[masks] #bs,n,17,3
+            gt_kpt = selected_keypoints[masks]  # bs,n,17,3
             area = target_bboxes[masks][:, 2:-1].prod(1, keepdim=True)
-            pred_kpt = pred_kpts[masks] #bs,n,17,3
+            pred_kpt = pred_kpts[masks]  # bs,n,17,3
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
             kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 

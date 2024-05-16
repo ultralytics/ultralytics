@@ -17,6 +17,7 @@ class Heatmap:
         self.annotator = None
         self.heatmap_im0 = None
         self.window_name = "Ultralytics Heatmaps"
+        print("Heatmap app initialized...")
 
     def generate_heatmap(self, im0, tracks):
         """

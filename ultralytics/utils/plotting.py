@@ -378,7 +378,7 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
+    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
@@ -394,7 +394,7 @@ class Annotator:
         center_x = sum(x_values) // len(points)
         center_y = sum(y_values) // len(points)
 
-        text_size = cv2.getTextSize(label, 0, fontScale=fontsize, thickness=self.tf)[0]
+        text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_width = text_size[0]
         text_height = text_size[1]
 
@@ -413,7 +413,7 @@ class Annotator:
             label,
             (text_x, text_y),
             0,
-            fontScale=fontsize,
+            fontScale=self.sf,
             color=txt_color,
             thickness=self.tf,
             lineType=cv2.LINE_AA,

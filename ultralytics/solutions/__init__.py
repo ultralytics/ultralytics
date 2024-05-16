@@ -32,7 +32,7 @@ display_in: bool = True,
 display_out: bool = True,
 d_thresh = 14,
 rg_pts = None,
-enable_count = False,
+enable_count = True,
 colormap = cv2.COLORMAP_JET,
 h_alpha = 0.5,
 h_decay = 0.99,
@@ -50,7 +50,7 @@ def configure(
         draw_tracks=True,
         view_in_counts=True,
         view_out_counts=True,
-        enable_counting=False,
+        enable_counting=True,
         region_pts=None,
         counts_type="line",
         names=None,
@@ -78,15 +78,16 @@ def configure(
     display_out = view_out_counts
     enable_count = enable_counting
 
-    if enable_counting:
-        if cls_names is None:
-            print("Model classes name required for Ultralytics solutions i.e object counting, heatmaps")
-            sys.exit()
-        rg_pts = [(20, 400), (1260, 400)] if region_pts is None else region_pts
-        configure_region(rg_pts)
+    rg_pts = [(20, 400), (1260, 400)] if region_pts is None else region_pts
+    configure_region(rg_pts)
 
     count_type = counts_type
+
     cls_names = names
+    if cls_names is None:
+        print("Model classes name required, you can pass as argument to sol.configure function i.e cls_names=model.names !!!")
+        sys.exit()
+
     bg_color_rgb = bg_color
     txt_color_rgb = txt_color
     tf = line_thickness
@@ -114,17 +115,15 @@ def configure(
     env_check = check_imshow(warn=True)
     track_history = defaultdict(list)
 
-    from . import object_counter, speed_estimation, heatmap, distance_calculation
+    from . import object_counter, speed_estimation, heatmap, distance_calculation, queue_management
 
 
 def configure_region(rg_pts):
     global counting_region
     if len(rg_pts) == 2:
-        print("Line Counter Initiated.")
         rg_pts = rg_pts
         counting_region = LineString(rg_pts)
     elif len(rg_pts) >= 3:
-        print("Polygon Counter Initiated.")
         rg_pts = rg_pts
         counting_region = Polygon(rg_pts)
     else:

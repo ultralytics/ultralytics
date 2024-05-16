@@ -7,8 +7,6 @@ from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
                txt_color_rgb, draw_region, extract_tracks, object_counts, env_check)
 
 
-
-
 class DistanceCalculation:
     """A class to calculate distance between two objects in real-time video stream based on their tracks."""
 
@@ -19,6 +17,33 @@ class DistanceCalculation:
         self.im0 = None
         self.annotator = None
         self.window_name = "Ultralytics Distance Calculator"
+
+    def mouse_event_for_distance(self, event, x, y, flags, param):
+        """
+        This function is designed to move region with mouse events in a real-time video stream.
+
+        Args:
+            event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
+            x (int): The x-coordinate of the mouse pointer.
+            y (int): The y-coordinate of the mouse pointer.
+            flags (int): Any flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY,
+                cv2.EVENT_FLAG_SHIFTKEY, etc.).
+            param (dict): Additional parameters you may want to pass to the function.
+        """
+        global selected_boxes
+        global left_mouse_count
+        if event == cv2.EVENT_LBUTTONDOWN:
+            left_mouse_count += 1
+            if left_mouse_count <= 2:
+                for box, track_id in zip(self.boxes, self.trk_ids):
+                    if box[0] < x < box[2] and box[1] < y < box[3] and track_id not in self.selected_boxes:
+                        self.selected_boxes[track_id] = []
+                        self.selected_boxes[track_id] = box
+
+        if event == cv2.EVENT_RBUTTONDOWN:
+            selected_boxes = {}
+            left_mouse_count = 0
+
 
     def calculate_centroid(self, box):
         """
@@ -58,7 +83,7 @@ class DistanceCalculation:
         self.annotator = Annotator(self.im0, line_width=2)
 
         for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
-            self.annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
+            self.annotator.box_label(box, color=colors(int(cls), True), label=cls_names[cls])
 
             if len(self.selected_boxes) == 2:
                 for trk_id, _ in self.selected_boxes.items():

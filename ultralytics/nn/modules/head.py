@@ -292,8 +292,8 @@ class HumanDetect(Detect):
         race = torch.cat([self.cv8[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
         x_a = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max * 3, -1) for i in range(self.nl)], -1)
         weight = x_a[:, : self.reg_max]
-        height = x_a[:, self.reg_max: 2 * self.reg_max]
-        age = x_a[:, 2 * self.reg_max:]
+        height = x_a[:, self.reg_max : 2 * self.reg_max]
+        age = x_a[:, 2 * self.reg_max :]
         attributes = dict(weight=weight, height=height, age=age, gender=gender, race=race)
         # boxes
         x = Detect.forward(self, x)

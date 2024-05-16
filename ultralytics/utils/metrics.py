@@ -1325,3 +1325,10 @@ class HumanMetric(DetMetrics):
 
     def mean_results(self):
         return super().mean_results() + [v for _, v in self.attrs_accuracy.items()]
+
+    @property
+    def fitness(self):
+        """Model fitness as a weighted combination of metrics."""
+        # weights for [P, R, mAP@0.5, mAP@0.5:0.95, acc_w, acc_h, acc_g, acc_a, acc_r]
+        w = [0.0, 0.0, 0.0, 0.2, 0.16, 0.16, 0.16, 0.16, 0.16]
+        return (np.array(self.mean_results()) * w).sum()

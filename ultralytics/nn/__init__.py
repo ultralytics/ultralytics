@@ -5,6 +5,7 @@ from .tasks import (
     ClassificationModel,
     DetectionModel,
     SegmentationModel,
+    SegmentationPoseModel,
     attempt_load_one_weight,
     attempt_load_weights,
     guess_model_scale,
@@ -24,6 +25,7 @@ __all__ = (
     "torch_safe_load",
     "DetectionModel",
     "SegmentationModel",
+    "SegmentationPoseModel",
     "ClassificationModel",
     "BaseModel",
 )

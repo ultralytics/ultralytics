@@ -166,6 +166,48 @@ def verify_image_label(args):
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
+def verify_image_label_seg_pose(args):
+    """Verify one image-label pair."""
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    # Number (missing, found, empty, corrupt), message, segments, keypoints
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
+    try:
+        # Verify images
+        im = Image.open(im_file)
+        im.verify()  # PIL verify
+        shape = exif_size(im)  # image size
+        shape = (shape[1], shape[0])  # hw
+        assert (shape[0] > 9) & (shape[1] > 9), f'image size {shape} <10 pixels'
+        assert im.format.lower() in IMG_FORMATS, f'invalid image format {im.format}'
+        if im.format.lower() in ('jpg', 'jpeg'):
+            with open(im_file, 'rb') as f:
+                f.seek(-2, 2)
+                if f.read() != b'\xff\xd9':  # corrupt JPEG
+                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, 'JPEG', subsampling=0, quality=100)
+                    msg = f'{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved'
+        # Verify labels
+        if os.path.isfile(lb_file):
+            nf = 1  # label found
+            with open(lb_file) as f:         
+                lb = [x.split() for x in f.read().strip().splitlines() if len(x)]  
+                nl = len(lb)      
+                if nl > 0:        
+                    segments = [np.array(x[1+4+3*17:], dtype=np.float32).reshape(-1, 2) for x in lb]                    
+                    lb = [lbx[:1+4+3*17] for lbx in lb]     
+                    lb = np.array(lb, dtype=np.float32)
+                else:
+                    ne = 1  # label empty
+                    lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
+                        (0, 5), dtype=np.float32)
+        keypoints = lb[:, 5:5+3*17].reshape(-1, nkpt, ndim)
+        lb = lb[:, :5]
+        return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
+    except Exception as e:
+        nc = 1
+        msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
+        return [None, None, None, None, None, nm, nf, ne, nc, msg]
+
+
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Convert a list of polygons to a binary mask of the specified image size.

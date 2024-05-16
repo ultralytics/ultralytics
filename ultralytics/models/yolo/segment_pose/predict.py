@@ -42,6 +42,7 @@ class SegmentationPosePredictor(DetectionPredictor):
 
         results = []
         proto = preds[1][-2] if isinstance(preds[1], tuple) else preds[1]  # tuple if PyTorch model or array if exported
+        nkpt, ndim = self.model.kpt_shape[0], self.model.kpt_shape[1]
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i]
             img_path = self.batch[0][i]
@@ -49,11 +50,11 @@ class SegmentationPosePredictor(DetectionPredictor):
                 masks = None
             elif self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-                masks = ops.process_mask_native(proto[i], pred[:, 6:-17*3], pred[:, :4], orig_img.shape[:2])  # HWC
+                masks = ops.process_mask_native(proto[i], pred[:, 6:-nkpt*ndim], pred[:, :4], orig_img.shape[:2])  # HWC
             else:
-                masks = ops.process_mask(proto[i], pred[:, 6:-17*3], pred[:, :4], img.shape[2:], upsample=True)  # HWC
+                masks = ops.process_mask(proto[i], pred[:, 6:-nkpt*ndim], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-            pred_kpts = pred[:, -17*3:].view(len(pred), 17, 3) if len(pred) else pred[:, -17*3:]
+            pred_kpts = pred[:, -nkpt*ndim:].view(len(pred), nkpt, ndim) if len(pred) else pred[:, -nkpt*ndim:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks, keypoints=pred_kpts))
         return results

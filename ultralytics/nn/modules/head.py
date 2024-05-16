@@ -261,31 +261,39 @@ class WorldDetect(Detect):
 class HumanDetect(Detect):
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
-        c4, c5 = 32, 64
-        # weight(kg), 0-200
+        c4, c5 = max((16, ch[0] // 4, self.reg_max * 3)), 64
         self.cv4 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max * 3, 1)) for x in ch
         )
-        # height(cm), 0-250
-        self.cv5 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
-        )
+
+        # # weight(kg), 0-200
+        # self.cv4 = nn.ModuleList(
+        #     nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        # )
+        # # height(cm), 0-250
+        # self.cv5 = nn.ModuleList(
+        #     nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        # )
         # gender, 2 classes
         self.cv6 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
         # age, 0-100
-        self.cv7 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
-        )
+        # self.cv7 = nn.ModuleList(
+        #     nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        # )
         # race, 6 classes
         self.cv8 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 6, 1)) for x in ch)
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        weight = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
-        height = torch.cat([self.cv5[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
-        age = torch.cat([self.cv7[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        # weight = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        # height = torch.cat([self.cv5[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        # age = torch.cat([self.cv7[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
         gender = torch.cat([self.cv6[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
         race = torch.cat([self.cv8[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
+        x_a = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max * 3, -1) for i in range(self.nl)], -1)
+        weight = x_a[:, : self.reg_max]
+        height = x_a[:, self.reg_max: 2 * self.reg_max]
+        age = x_a[:, 2 * self.reg_max:]
         attributes = dict(weight=weight, height=height, age=age, gender=gender, race=race)
         # boxes
         x = Detect.forward(self, x)
@@ -307,11 +315,14 @@ class HumanDetect(Detect):
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         m = self  # self.model[-1]  # Detect() module
-        for b, w, h, a in zip(m.cv2, m.cv4, m.cv5, m.cv7):
+        for b, w in zip(m.cv2, m.cv4):
             b[-1].bias.data[:] = 1.0  # box
-            w[-1].bias.data[:] = 1.0  # weight
-            h[-1].bias.data[:] = 1.0  # height
-            a[-1].bias.data[:] = 1.0  # age
+            w[-1].bias.data[:] = 1.0  # weight, height, age
+        # for b, w, h, a in zip(m.cv2, m.cv4, m.cv5, m.cv7):
+        #     b[-1].bias.data[:] = 1.0  # box
+        #     w[-1].bias.data[:] = 1.0  # weight
+        #     h[-1].bias.data[:] = 1.0  # height
+        #     a[-1].bias.data[:] = 1.0  # age
         for c, g, r, s in zip(m.cv3, m.cv6, m.cv8, m.stride):  # from
             c[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
             g[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)

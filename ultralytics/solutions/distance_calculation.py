@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import math
-
 import cv2
 
-from ultralytics.utils.checks import check_imshow
-from ultralytics.utils.plotting import Annotator, colors
+from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
+               track_history, display_img, display_in, display_out, clswise_dict,
+               txt_color_rgb, draw_region, extract_tracks, object_counts, env_check)
+
+
 
 
 class DistanceCalculation:
@@ -18,17 +19,6 @@ class DistanceCalculation:
         self.im0 = None
         self.annotator = None
         self.window_name = "Ultralytics Distance Calculator"
-
-    def extract_tracks(self, tracks):
-        """
-        Extracts results from the provided data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     def calculate_centroid(self, box):
         """
@@ -63,7 +53,7 @@ class DistanceCalculation:
             if self.view_img:
                 self.display_frames()
             return
-        self.extract_tracks(tracks)
+        boxes, clss, track_ids = extract_tracks(tracks)
 
         self.annotator = Annotator(self.im0, line_width=2)
 
@@ -87,20 +77,9 @@ class DistanceCalculation:
 
         self.centroids = []
 
-        if self.view_img and self.env_check:
-            self.display_frames()
+        display_frames(self.im0, self.window_name)
 
         return im0
-
-    def display_frames(self):
-        """Display frame."""
-        cv2.namedWindow("Ultralytics Distance Estimation")
-        cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
-        cv2.imshow("Ultralytics Distance Estimation", self.im0)
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
-
 
 if __name__ == "__main__":
     DistanceCalculation()

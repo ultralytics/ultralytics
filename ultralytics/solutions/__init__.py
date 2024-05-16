@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from collections import defaultdict
 
+from ..utils.plotting import Annotator, colors
 from ultralytics.utils.checks import check_imshow, check_requirements
 
 check_requirements("shapely>=2.0.0")

@@ -302,7 +302,7 @@ class HumanDetect(Detect):
         weight = self.dfl(weight) * 12.5  # 0-200kg
         height = self.dfl(height) * 16  # 0-250cm
         age = self.dfl(age) * 6.25  # 0-100
-        return torch.cat([weight, height, age, gender.sigmoid(), race.sigmoid()], dim=1)
+        return torch.cat([weight, height, age, gender.softmax(1), race.softmax(1)], dim=1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

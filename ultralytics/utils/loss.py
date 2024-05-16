@@ -598,7 +598,7 @@ class v8ClassificationLoss:
 
     def __call__(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
-        loss = torch.nn.functional.cross_entropy(preds, batch["cls"], reduction="mean")
+        loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
         loss_items = loss.detach()
         return loss, loss_items
 
@@ -727,8 +727,6 @@ class v8HumanLoss(v8DetectionLoss):
 
     def __init__(self, model):
         super().__init__(model)
-        self.bce_gender = nn.BCEWithLogitsLoss()
-        self.bce_race = nn.BCEWithLogitsLoss()
         self.dfl_loss = DFLoss(self.reg_max)
 
     def __call__(self, preds, batch):
@@ -786,16 +784,12 @@ class v8HumanLoss(v8DetectionLoss):
             gt_attributes = gt_attributes.gather(1, target_gt_idx.expand(-1, -1, gt_attributes.shape[-1]))[fg_mask]
 
             # one-hot
-            gt_gender = torch.zeros((len(gt_attributes), 2), dtype=torch.float32, device=gt_attributes.device)
-            gt_gender.scatter_(1, gt_attributes[:, 2:3].long(), 1)
-            gt_race = torch.zeros((len(gt_attributes), 6), dtype=torch.float32, device=gt_attributes.device)
-            gt_race.scatter_(1, gt_attributes[:, -1:].long(), 1)
 
             loss[3] = self.dfl_loss(pred_attributes["weight"][fg_mask], (gt_attributes[:, 0] / 12.5)) * self.hyp.dfl
             loss[4] = self.dfl_loss(pred_attributes["height"][fg_mask], gt_attributes[:, 1] / 16) * self.hyp.dfl
-            loss[5] = self.bce_gender(pred_attributes["gender"][fg_mask], gt_gender) * self.hyp.cls
+            loss[5] = F.cross_entropy(pred_attributes["gender"][fg_mask], gt_attributes[:, 2].long()) * self.hyp.cls
             loss[6] = self.dfl_loss(pred_attributes["age"][fg_mask], gt_attributes[:, 3] / 6.25) * self.hyp.dfl
-            loss[7] = self.bce_race(pred_attributes["race"][fg_mask], gt_race) * self.hyp.cls
+            loss[7] = F.cross_entropy(pred_attributes["race"][fg_mask], gt_attributes[:, 4].long()) * self.hyp.cls
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

@@ -354,19 +354,19 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
     === "Jetson Orin NX 16GB"
 
-        Tested with JetPack 5.1.3 (L4T 35.5.0) Ubuntu 20.04.6, `python 3.8.10`, `ultralytics==8.2.4`, `tensorrt==8.5.2.2`
+        Tested with JetPack 6.0 (L4T 36.3) Ubuntu 22.04.4 LTS, `python 3.10.12`, `ultralytics==8.2.16`, `tensorrt==10.0.1`
 
         !!! note 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 6.90         | 6.89 \| 6.93       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 6.97         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 3.36         | 3.35 \| 3.39       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 3.39         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 2.32         | 2.32 \| 2.34       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 2.33         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | FP32      | Predict      | 6.11         | 6.10 \| 6.29       |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | Predict      | 3.18         | 3.18 \| 3.20       |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 3.19         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | INT8      | Predict      | 2.30         | 2.29 \| 2.35       |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 2.32         |                    | 0.46                 | 0.32                    | 1       | 640                   |
 
 !!! info
 

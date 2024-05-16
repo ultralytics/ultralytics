@@ -1,16 +1,17 @@
 import io
+import math
 import os.path
 import time
 
-import requests
-import torch
-
-from ultralytics import YOLO
 import cv2
 import numpy as np
-import math
+import requests
+import torch
 from equilib import equi2pers
 from PIL import Image, ImageDraw, ImageFont
+
+from ultralytics import YOLO
+
 # from mmseg.apis import MMSegInferencer
 
 
@@ -74,15 +75,9 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     cos_yaw, sin_yaw = np.cos(np.radians(yaw)), np.sin(np.radians(yaw))
     cos_pitch, sin_pitch = np.cos(np.radians(pitch)), np.sin(np.radians(pitch))
 
-    rotation_matrix = np.array([
-        [cos_yaw, 0, -sin_yaw],
-        [0, 1, 0],
-        [sin_yaw, 0, cos_yaw]
-    ]) @ np.array([
-        [1, 0, 0],
-        [0, cos_pitch, sin_pitch],
-        [0, -sin_pitch, cos_pitch]
-    ])
+    rotation_matrix = np.array([[cos_yaw, 0, -sin_yaw], [0, 1, 0], [sin_yaw, 0, cos_yaw]]) @ np.array(
+        [[1, 0, 0], [0, cos_pitch, sin_pitch], [0, -sin_pitch, cos_pitch]]
+    )
 
     # 将方向向量旋转到最终的方向
     final_dir = rotation_matrix @ direction
@@ -99,7 +94,7 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
 
 
 # Load a model
-model = YOLO('runs/detect/train55/weights/best.pt')  # pretrained YOLOv8n model
+model = YOLO("runs/detect/train55/weights/best.pt")  # pretrained YOLOv8n model
 # inferencer = MMSegInferencer(model='deeplabv3plus_r18-d8_4xb2-80k_cityscapes-512x1024')
 
 
@@ -130,23 +125,23 @@ images = [
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/6176dca744e64bd6bf8a02dd92f466eb.jpg',
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/057c166dcc8648e69cba69009a8535b4.jpg',
     # 'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/0b3f8b79969940528ab1cf6a43ca83a9.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/9cf26a02681f44f68b718762cd0f5494.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/aa00a97db0a34c0e90eea6d393cedde2.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/723fbb77ae71495e8407265cb3d8f7db.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/33fa8f17405f415195055f6a714f4c09.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/809d5a96fee24fc294fb4a8d5445412a.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d5c8a742f7464f96979633f0dc2f10aa.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/e1e599f026834cd0ae7f0a714123175d.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d92593ffbcf74d80aa12afaa43a26584.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/74483c83efb84cf7a41f55c314bffcb8.jpg',
-    'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/61523fb326234be194e5d41afa06b17b.jpg'
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/9cf26a02681f44f68b718762cd0f5494.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/aa00a97db0a34c0e90eea6d393cedde2.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/723fbb77ae71495e8407265cb3d8f7db.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/33fa8f17405f415195055f6a714f4c09.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/809d5a96fee24fc294fb4a8d5445412a.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d5c8a742f7464f96979633f0dc2f10aa.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/e1e599f026834cd0ae7f0a714123175d.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/d92593ffbcf74d80aa12afaa43a26584.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/74483c83efb84cf7a41f55c314bffcb8.jpg",
+    "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/61523fb326234be194e5d41afa06b17b.jpg",
 ]
 
-img_names = [x.split('/')[-1].split('.')[0] for x in images]
+img_names = [x.split("/")[-1].split(".")[0] for x in images]
 
 name_dict = {
-    0: '路面破损',
+    0: "路面破损",
     # 1: '沿街晾晒',
     # 2: '垃圾满冒',
     # 3: '乱扔垃圾',
@@ -163,8 +158,8 @@ def cvt_coord(yaw, pitch):
 
 
 for idx_conf in confs:
-    if not os.path.exists(f'conf_{idx_conf}'):
-        os.mkdir(f'conf_{idx_conf}')
+    if not os.path.exists(f"conf_{idx_conf}"):
+        os.mkdir(f"conf_{idx_conf}")
     for img_idx, image_url in enumerate(images):
         begin = time.time()
         now = time.time()
@@ -175,7 +170,7 @@ for idx_conf in confs:
             continue
         # img = cv2.imread(image_url)
         # cv2.imwrite(f'det/{img_names[img_idx]}_orig_result.jpg', img)
-        print(f'下载图片耗时{time.time() - now:.2f}s')
+        print(f"下载图片耗时{time.time() - now:.2f}s")
         # img = e2c(img, face_w=int(img.shape[0] / 3))
         now = time.time()
         (height, width, depth) = img.shape
@@ -197,18 +192,18 @@ for idx_conf in confs:
             pers_imgs = []
             # 偏航角每次转
             # 动10度
-            dir = f'pitch_{math.ceil(math.degrees(pitch))}/{img_names[img_idx]}'
+            dir = f"pitch_{math.ceil(math.degrees(pitch))}/{img_names[img_idx]}"
             if not os.path.exists(dir):
                 os.makedirs(dir)
-            if not os.path.exists(os.path.join(dir, '标注图')):
-                os.mkdir(os.path.join(dir, '标注图'))
-            if not os.path.exists(os.path.join(dir, '原图')):
-                os.mkdir(os.path.join(dir, '原图'))
+            if not os.path.exists(os.path.join(dir, "标注图")):
+                os.mkdir(os.path.join(dir, "标注图"))
+            if not os.path.exists(os.path.join(dir, "原图")):
+                os.mkdir(os.path.join(dir, "原图"))
             for i in range(36):
                 rots = {
-                    'roll': 0.,
-                    'pitch': pitch,  # rotate vertical
-                    'yaw': yaw,  # rotate horizontal
+                    "roll": 0.0,
+                    "pitch": pitch,  # rotate vertical
+                    "yaw": yaw,  # rotate horizontal
                 }
                 # Run equi2pers
                 fov_deg = 90.0
@@ -241,14 +236,14 @@ for idx_conf in confs:
                 # cv2.imshow('img', cube_result)
                 # cv2.waitKey(0)
             pitch += math.radians(5)
-            print(f'转动视角耗时{time.time() - now}秒')
+            print(f"转动视角耗时{time.time() - now}秒")
 
             results = model.predict([elem.pers_img for elem in pers_imgs], conf=0.3, imgsz=640)
             for idx, result in enumerate(results):
                 pers_image = pers_imgs[idx]
                 orig_image = Image.fromarray(pers_image.pers_img[..., ::-1])  # 转成 PIL 格式
                 orig_draw = ImageDraw.Draw(orig_image)
-                cv2.imwrite(f'{dir}/原图/origin_img_{idx}.jpg', pers_image.pers_img)
+                cv2.imwrite(f"{dir}/原图/origin_img_{idx}.jpg", pers_image.pers_img)
                 for cls, box, conf in zip(result.boxes.cls, result.boxes.xyxy, result.boxes.conf):
                     cls_np = int(cls.cpu().detach().numpy().item())
                     if cls_np not in name_dict.keys():
@@ -259,10 +254,28 @@ for idx_conf in confs:
                     p2 = (box_np[2], box_np[3])
                     # if (p2[0] - p1[0]) * (p2[1] - p1[1]) < 100:
                     #     continue
-                    left_top = screen_to_equirectangular(box_np[0], box_np[1], pers_width, pers_height, fov_deg,
-                                                         math.degrees(pers_image.yaw), math.degrees(pers_image.pitch), width, height)
-                    right_bottom = screen_to_equirectangular(box_np[2], box_np[3], pers_width, pers_height, fov_deg,
-                                                             math.degrees(pers_image.yaw), math.degrees(pers_image.pitch), width, height)
+                    left_top = screen_to_equirectangular(
+                        box_np[0],
+                        box_np[1],
+                        pers_width,
+                        pers_height,
+                        fov_deg,
+                        math.degrees(pers_image.yaw),
+                        math.degrees(pers_image.pitch),
+                        width,
+                        height,
+                    )
+                    right_bottom = screen_to_equirectangular(
+                        box_np[2],
+                        box_np[3],
+                        pers_width,
+                        pers_height,
+                        fov_deg,
+                        math.degrees(pers_image.yaw),
+                        math.degrees(pers_image.pitch),
+                        width,
+                        height,
+                    )
                     if left_top[0] > right_bottom[0]:
                         # 如果x1大于x2且它俩之间的距离相差大于一屏，则说明标注框跨过了接缝，需要将x1进行偏移
                         if left_top[0] - right_bottom[0] > pers_should_width:
@@ -274,14 +287,17 @@ for idx_conf in confs:
                     # cv2.imshow('img', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
                     # cv2.waitKey(0)
 
-                    orig_draw.rectangle(xy=(p1, p2), fill=None, outline='red', width=5)
+                    orig_draw.rectangle(xy=(p1, p2), fill=None, outline="red", width=5)
                     # cv2.rectangle(img=img, pt1=p1, pt2=p2, color=(0, 0, 255), thickness=10)
-                    font = ImageFont.truetype(font='wqy-zenhei.ttc', size=40)  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
-                    orig_draw.rectangle(((p1[0], p1[1] - 50), (p1[0] + 300, p1[1])),
-                                        fill=(255, 0, 0), )
-                    name = f'{name_dict[cls_np]} {conf_np:.2f}'
-                    orig_draw.text(xy=(p1[0], p1[1] - font.size - 10), text=name, font=font,
-                                   fill=(255, 255, 255))
+                    font = ImageFont.truetype(
+                        font="wqy-zenhei.ttc", size=40
+                    )  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
+                    orig_draw.rectangle(
+                        ((p1[0], p1[1] - 50), (p1[0] + 300, p1[1])),
+                        fill=(255, 0, 0),
+                    )
+                    name = f"{name_dict[cls_np]} {conf_np:.2f}"
+                    orig_draw.text(xy=(p1[0], p1[1] - font.size - 10), text=name, font=font, fill=(255, 255, 255))
                     # cv2.imshow('img', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
                     # cv2.waitKey(0)
                     r = Rectangle(left_top, right_bottom, cls_np, conf_np, pers_image.pitch, pers_image.yaw)
@@ -290,7 +306,9 @@ for idx_conf in confs:
                     r.pers_p2 = [box_np[2], box_np[3]]
                     rectangles.append(r)
                 # print(f'保存标注图第{idx}张')
-                cv2.imwrite(f'{dir}/标注图/labeled_img_{idx}.jpg', cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR))
+                cv2.imwrite(
+                    f"{dir}/标注图/labeled_img_{idx}.jpg", cv2.cvtColor(np.asarray(orig_image), cv2.COLOR_RGB2BGR)
+                )
         # merged = []
         # for rect1 in rectangles:
         #     # 如果该矩形已被其他矩形合并过则不需要再处理
@@ -307,18 +325,27 @@ for idx_conf in confs:
         for rectangle in rectangles:
             pitch = rectangle.pitch
             yaw = rectangle.yaw
-            draw.rectangle(xy=((rectangle.p1[0], rectangle.p1[1]), (rectangle.p2[0], rectangle.p2[1])), fill=None,
-                           outline='red', width=10)
+            draw.rectangle(
+                xy=((rectangle.p1[0], rectangle.p1[1]), (rectangle.p2[0], rectangle.p2[1])),
+                fill=None,
+                outline="red",
+                width=10,
+            )
             # cv2.rectangle(img=img, pt1=p1, pt2=p2, color=(0, 0, 255), thickness=10)
-            font = ImageFont.truetype(font='wqy-zenhei.ttc', size=40)  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
-            draw.rectangle(((rectangle.p1[0], rectangle.p1[1] - 50), (rectangle.p1[0] + 300, rectangle.p1[1])),
-                           fill=(255, 0, 0), )
+            font = ImageFont.truetype(
+                font="wqy-zenhei.ttc", size=40
+            )  # 字体设置，Windows系统可以在 "C:\Windows\Fonts" 下查找
+            draw.rectangle(
+                ((rectangle.p1[0], rectangle.p1[1] - 50), (rectangle.p1[0] + 300, rectangle.p1[1])),
+                fill=(255, 0, 0),
+            )
             # print(left_top, right_bottom)
-            name = f'{name_dict[rectangle.cls]} {rectangle.conf:.2f}'
-            draw.text(xy=(rectangle.p1[0], rectangle.p1[1] - font.size - 10), text=name, font=font,
-                      fill=(255, 255, 255))
+            name = f"{name_dict[rectangle.cls]} {rectangle.conf:.2f}"
+            draw.text(
+                xy=(rectangle.p1[0], rectangle.p1[1] - font.size - 10), text=name, font=font, fill=(255, 255, 255)
+            )
         img = cv2.cvtColor(np.asarray(img_PIL), cv2.COLOR_RGB2BGR)  # 再转成 OpenCV 的格式，记住 OpenCV 中通道排布是 BGR
-        cv2.imwrite(f'det_merged/{img_names[img_idx]}_det_result.jpg', img)
+        cv2.imwrite(f"det_merged/{img_names[img_idx]}_det_result.jpg", img)
         # cv2.imwrite(f'det_result.jpg', img)
 
         # seg_img = requests.get(image_url + '?x-oss-process=image/resize,h_1024,m_lfit')
@@ -326,4 +353,4 @@ for idx_conf in confs:
         # mask = predict_result(inferencer(seg_img_arr, show=False)['predictions'])
         # mask.save(f'seg/{img_names[img_idx]}_seg_result.jpg')
 
-        print(f'总耗时:{time.time() - begin}秒')
+        print(f"总耗时:{time.time() - begin}秒")

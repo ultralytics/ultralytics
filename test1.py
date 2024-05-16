@@ -17,15 +17,9 @@ def screen_to_equirectangular(x, y, screen_width, screen_height, fov, yaw, pitch
     cos_yaw, sin_yaw = np.cos(np.radians(yaw)), np.sin(np.radians(yaw))
     cos_pitch, sin_pitch = np.cos(np.radians(pitch)), np.sin(np.radians(pitch))
 
-    rotation_matrix = np.array([
-        [cos_yaw, 0, -sin_yaw],
-        [0, 1, 0],
-        [sin_yaw, 0, cos_yaw]
-    ]) @ np.array([
-        [1, 0, 0],
-        [0, cos_pitch, sin_pitch],
-        [0, -sin_pitch, cos_pitch]
-    ])
+    rotation_matrix = np.array([[cos_yaw, 0, -sin_yaw], [0, 1, 0], [sin_yaw, 0, cos_yaw]]) @ np.array(
+        [[1, 0, 0], [0, cos_pitch, sin_pitch], [0, -sin_pitch, cos_pitch]]
+    )
 
     # 将方向向量旋转到最终的方向
     final_dir = rotation_matrix @ direction

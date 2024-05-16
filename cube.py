@@ -1,12 +1,12 @@
 import io
 import math
+import os
 import urllib
-import io
+
 import cv2
 import numpy as np
-import os
 import requests
-from equilib import equi2cube, cube2equi
+from equilib import cube2equi, equi2cube
 
 
 def cubemap_to_equirectangular(u, v, face_size, face_index, equirectangular_width, equirectangular_height):
@@ -83,13 +83,13 @@ def map_cube(x, y, side, cw, W, H):
     _v = 0.5 + (phi / math.pi)
     return _u * W, _v * H
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     imgurls = [
-        'https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg',
+        "https://ow-prod-cdn.survey.work/platform_id_1/app_id_null/roled_user_id_null/type_1/7868ef382f84429fb79047fba3978b67.jpg",
     ]
     for imgurl in imgurls:
-        res = requests.get(
-            imgurl)
+        res = requests.get(imgurl)
         # Run equi2pers
 
         #
@@ -107,18 +107,13 @@ if __name__ == '__main__':
         equi_img = np.transpose(img, (2, 0, 1))
         # rotations
         rots = {
-            'roll': 0.,
-            'pitch': 0,  # rotate vertical
-            'yaw': 0,  # rotate horizontal
+            "roll": 0.0,
+            "pitch": 0,  # rotate vertical
+            "yaw": 0,  # rotate horizontal
         }
 
         # Run equi2pers
-        cube_img = equi2cube(
-            equi=equi_img,
-            rots=rots,
-            w_face=cut_width,
-            cube_format='dice'
-        )
+        cube_img = equi2cube(equi=equi_img, rots=rots, w_face=cut_width, cube_format="dice")
         point = (cut_width + 100, 100)
         transpose = np.transpose(cube_img, (1, 2, 0))
         transpose = np.ascontiguousarray(transpose)

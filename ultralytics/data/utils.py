@@ -192,14 +192,14 @@ def verify_image_label_seg_pose(args):
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]  
                 nl = len(lb)      
                 if nl > 0:        
-                    segments = [np.array(x[1+4+3*17:], dtype=np.float32).reshape(-1, 2) for x in lb]                    
-                    lb = [lbx[:1+4+3*17] for lbx in lb]     
+                    segments = [np.array(x[5+nkpt*ndim:], dtype=np.float32).reshape(-1, 2) for x in lb]                    
+                    lb = [lbx[5+nkpt*ndim] for lbx in lb]     
                     lb = np.array(lb, dtype=np.float32)
                 else:
                     ne = 1  # label empty
                     lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
                         (0, 5), dtype=np.float32)
-        keypoints = lb[:, 5:5+3*17].reshape(-1, nkpt, ndim)
+        keypoints = lb[:, 5:5+nkpt*ndim].reshape(-1, nkpt, ndim)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:

@@ -112,10 +112,10 @@ class SegmentationPoseValidator(DetectionValidator):
     def _prepare_pred(self, pred, pbatch, proto):
         """Prepares a batch for training or inference by processing images and targets."""
         predn = super()._prepare_pred(pred, pbatch)
-        pred_masks = self.process(proto, pred[:, 6:-17*3], pred[:, :4], shape=pbatch["imgsz"])
+        pred_masks = self.process(proto, pred[:, 6:-self.kpt_shape[0]*self.kpt_shape[1]], pred[:, :4], shape=pbatch["imgsz"])
 
         nk = pbatch["kpts"].shape[1]
-        pred_kpts = predn[:, -17*3:].view(len(predn), nk, -1)
+        pred_kpts = predn[:, -self.kpt_shape[0]*self.kpt_shape[1]:].view(len(predn), nk, -1)
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         return predn, pred_masks, pred_kpts
 
@@ -232,7 +232,7 @@ class SegmentationPoseValidator(DetectionValidator):
 
     def plot_predictions(self, batch, preds, ni):
         """Plots batch predictions with masks and bounding boxes."""
-        pred_kpts = torch.cat([p[:, -17*3:].view(-1, *self.kpt_shape)[:15] for p in preds[0]], 0) # [:15] because max segmentation masks to plot is 15
+        pred_kpts = torch.cat([p[:, -self.kpt_shape[0]*self.kpt_shape[1]:].view(-1, *self.kpt_shape)[:15] for p in preds[0]], 0) # [:15] because max segmentation masks to plot is 15
         plot_images(
             batch["img"],
             *output_to_target(preds[0], max_det=15),  # not set to self.args.max_det due to slow plotting speed
@@ -275,7 +275,7 @@ class SegmentationPoseValidator(DetectionValidator):
                     "bbox": [round(x, 3) for x in b],
                     "score": round(p[4], 5),
                     "segmentation": rles[i],
-                    "keypoints": p[-17*3:],
+                    "keypoints": p[-self.kpt_shape[0]*self.kpt_shape[1]:],
                 }
             )
 

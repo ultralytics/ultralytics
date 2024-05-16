@@ -188,7 +188,7 @@ def verify_image_label_seg_pose(args):
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file) as f:         
+            with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]  
                 nl = len(lb)      
                 if nl > 0:        

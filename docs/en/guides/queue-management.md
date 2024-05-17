@@ -99,17 +99,16 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Optional Arguments `set_args`
 
-| Name              | Type        | Default                    | Description                                 |
-|-------------------|-------------|----------------------------|---------------------------------------------|
-| `view_img`        | `bool`      | `False`                    | Display frames with counts                  |
-| `line_thickness`  | `int`       | `2`                        | Increase bounding boxes thickness           |
-| `region_pts`      | `list`      | `[(20, 400), (1260, 400)]` | Points defining the Region Area             |
-| `names`           | `dict`      | `model.names`              | Dictionary of Class Names                   |
-| `region_color`    | `RGB Color` | `(255, 0, 255)`            | Color of the Object counting Region or Line |
-| `draw_tracks`     | `bool`      | `False`                    | Enable drawing Track lines                  |
-| `count_txt_color` | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text     |
-| `txt_color`       | `RGB Color` | `(255, 255, 255)`          | Foreground color for object counts text     |
-| `bg_color`        | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                     |
+| Name              | Type    | Default                    | Description                             |
+|-------------------|---------|----------------------------|-----------------------------------------|
+| `view_img`        | `bool`  | `False`                    | Display frames with counts              |
+| `line_thickness`  | `int`   | `2`                        | Increase bounding boxes thickness       |
+| `region_pts`      | `list`  | `[(20, 400), (1260, 400)]` | Points defining the Region Area         |
+| `names`           | `dict`  | `model.names`              | Dictionary of Class Names               |
+| `draw_tracks`     | `bool`  | `False`                    | Enable drawing Track lines              |
+| `count_txt_color` | `tuple` | `(255, 255, 255)`          | Foreground color for Object counts text |
+| `txt_color`       | `tuple` | `(255, 255, 255)`          | Foreground color for object counts text |
+| `bg_color`        | `tuple` | `(255, 255, 255)`          | Count highlighter color                 |
 
 ### Arguments `model.track`
 

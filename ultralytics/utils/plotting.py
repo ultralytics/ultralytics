@@ -339,6 +339,7 @@ class Annotator:
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
+    # ----------- Ultralytics solutions utils -----------
     def get_bbox_dimension(self, bbox=None):
         """
         Calculate the area of a bounding box.
@@ -387,8 +388,8 @@ class Annotator:
             points (tuple): region points for center point calculation to display text
             region_color (RGB): queue region color
             txt_color (RGB): text display color
-            fontsize (float): text fontsize
         """
+
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)
@@ -420,6 +421,18 @@ class Annotator:
         )
 
     def draw_label_in_center(self, text, txt_color, bg_color, x_center, y_center, margin):
+        """
+        Draw bounding boxes label in center of box area
+
+        Args:
+            text (str): Text to display i.e. class name
+            bg_color (tuple): text background color
+            txt_color (tuple): text foreground color
+            x_center (int): x value of bbox centroid
+            y_center (int): y value of bbox centroid
+            margin (int): margin between background rectangle and text
+        """
+
         text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_x = x_center - text_size[0] // 2
         text_y = y_center + text_size[1] // 2
@@ -431,7 +444,6 @@ class Annotator:
         cv2.putText(self.im, text, (text_x, text_y), 0, self.sf, txt_color,
                     self.tf, lineType=cv2.LINE_AA)
 
-    ### Parking management utils
     def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
         """
         Display the bounding boxes labels in parking management app.
@@ -457,8 +469,6 @@ class Annotator:
         cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
         cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
-    # ----------- Ultralytics solutions utils -----------
-    # Parking management, object counting, heatmaps
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
         """
         Display the overall statistics for parking lots
@@ -492,6 +502,18 @@ class Annotator:
 
     # Object counting, heatmaps
     def line_counter(self, points, bg_color, txt_color, margin=10, text=0, gap=10):
+        """
+        Display the object counts using line counting annotator
+
+        Args:
+            points (list): line points for visual display
+            text (str): counting information
+            txt_color (bgr color): display color for text foreground
+            bg_color (bgr color): display color for text background
+            gap (int): gap for line and text display
+            margin (int): gap between text and rectangle for better display
+        """
+
         global center_x, center_y
         if len(points) >= 3:
             center_x = sum(point[0] for point in points) // len(points)

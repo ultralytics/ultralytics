@@ -192,20 +192,20 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Optional Arguments `configure`
 
-| Name               | Type        | Default                    | Description                                      |
-|--------------------|-------------|----------------------------|--------------------------------------------------|
-| `view_img`         | `bool`      | `False`                    | Display frames with counts                       |
-| `view_in_counts`   | `bool`      | `True`                     | Display in-counts only on video frame            |
-| `view_out_counts`  | `bool`      | `True`                     | Display out-counts only on video frame           |
-| `line_thickness`   | `int`       | `2`                        | Increase bounding boxes and count text thickness |
-| `region_pts`       | `list`      | `[(20, 400), (1260, 400)]` | Points defining the region area                  |
-| `names`            | `dict`      | `model.model.names`        | Dictionary of classes names                      |
-| `draw_tracks`      | `bool`      | `False`                    | Enable drawing track lines                       |
-| `line_dist_thresh` | `int`       | `15`                       | Euclidean distance threshold for line counter    |
-| `txt_color`        | `RGB Color` | `(255, 255, 255)`          | Foreground color for object counts text          |
-| `bg_color`         | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                          |
-| `counts_type`      | `str`       | `line`                     | counter type, "line" or "classwise"              |
-| `enable_counting`  | `bool`      | `True`                     | Enable object counting                           |
+| Name               | Type    | Default                    | Description                                      |
+|--------------------|---------|----------------------------|--------------------------------------------------|
+| `view_img`         | `bool`  | `False`                    | Display frames with counts                       |
+| `view_in_counts`   | `bool`  | `True`                     | Display in-counts only on video frame            |
+| `view_out_counts`  | `bool`  | `True`                     | Display out-counts only on video frame           |
+| `line_thickness`   | `int`   | `2`                        | Increase bounding boxes and count text thickness |
+| `region_pts`       | `list`  | `[(20, 400), (1260, 400)]` | Points defining the region area                  |
+| `names`            | `dict`  | `model.model.names`        | Dictionary of classes names                      |
+| `draw_tracks`      | `bool`  | `False`                    | Enable drawing track lines                       |
+| `line_dist_thresh` | `int`   | `15`                       | Euclidean distance threshold for line counter    |
+| `txt_color`        | `tuple` | `(255, 255, 255)`          | Foreground color for object counts text          |
+| `bg_color`         | `tuple` | `(255, 255, 255)`          | Count highlighter color                          |
+| `counts_type`      | `str`   | `line`                     | counter type, "line" or "classwise"              |
+| `enable_counting`  | `bool`  | `True`                     | Enable object counting                           |
 
 ### Arguments `model.track`
 

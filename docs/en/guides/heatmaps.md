@@ -248,8 +248,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 | `names`            | `dict`         | `model.model.names`        | Dictionary of classes names                                       |
 | `draw_tracks`      | `bool`         | `False`                    | Enable drawing track lines                                        |
 | `line_dist_thresh` | `int`          | `15`                       | Euclidean distance threshold for line counter                     |
-| `txt_color`        | `RGB Color`    | `(255, 255, 255)`          | Foreground color for object counts text                           |
-| `bg_color`         | `RGB Color`    | `(255, 255, 255)`          | Count highlighter color                                           |
+| `txt_color`        | `tuple`        | `(255, 255, 255)`          | Foreground color for object counts text                           |
+| `bg_color`         | `tuple`        | `(255, 255, 255)`          | Count highlighter color                                           |
 | `counts_type`      | `str`          | `line`                     | counter type, "line" or "classwise"                               |
 | `color_map`        | `cv2.COLORMAP` | `cv2.COLORMAP_JET`         | Heatmap colormap                                                  |
 | `heat_shape`       | `str`          | `circle`                   | Heatmap shape, i.e "circle" or "rect"                             |

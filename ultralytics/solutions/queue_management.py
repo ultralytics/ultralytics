@@ -71,7 +71,3 @@ class QueueManager:
         self.extract_and_process_tracks(tracks)  # draw region even if no objects
 
         return self.im0
-
-
-if __name__ == "__main__":
-    QueueManager()

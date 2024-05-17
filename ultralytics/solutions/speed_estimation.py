@@ -95,6 +95,3 @@ class SpeedEstimator:
 
         display_frames(self.im0, self.window_name)
         return self.im0
-
-if __name__ == "__main__":
-    SpeedEstimator()

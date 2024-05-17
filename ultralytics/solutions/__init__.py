@@ -15,6 +15,7 @@ from shapely.geometry import LineString, Point, Polygon
 counted_ids = []
 clswise_dict = {}
 counting_region = []
+
 track_history = defaultdict(list)
 env_check = check_imshow(warn=True)
 
@@ -23,14 +24,18 @@ tf: int = 0
 in_count: int = 0
 out_count: int = 0
 d_thresh: int = 14
+ps_type: str = None
 rg_pts: list = None
-h_alpha: float = 0.5,
-h_decay: float = 0.99,
+h_alpha: float = 0.5
+h_decay: float = 0.99
+psup_angle: int = 90
 cls_names: dict = None
 display_in: bool = True
+psdown_angle: int = 145
 display_out: bool = True
+workout_kpts: list = None
 display_img: bool = False
-heatshape: str = "circle",
+heatshape: str = "circle"
 enable_count: bool = True
 colormap = cv2.COLORMAP_JET
 display_tracks: bool = True
@@ -38,11 +43,7 @@ count_type: str = "classwise"
 bg_color_rgb: tuple = (104, 31, 17)
 txt_color_rgb: tuple = (255, 255, 255)
 
-pixels_per_meter = 10,
-pose_type = "push up"
-pose_up_angle = 90,
-pose_down_angle = 145,
-kpts_to_check = [6, 8, 10]
+pixels_per_meter = 10
 
 
 def configure(
@@ -63,15 +64,16 @@ def configure(
         heat_decay=0.99,
         heat_alpha=0.5,
         kpts_to_check=None,
+        pose_type=None,
         pose_up_angle=145.0,
         pose_down_angle=90.0,
-        pose_type="pullup",
         pixels_per_meter=10,
-
 ):
+
     global display_img, bg_color_rgb, txt_color_rgb, cls_names, tf, sf, display_tracks, \
         display_in, display_out, d_thresh, rg_pts, counting_region, count_type, colormap, \
-        heatshape, h_alpha, h_decay, enable_count
+        heatshape, h_alpha, h_decay, enable_count, workout_kpts, psup_angle, psdown_angle, \
+        ps_type
 
     display_img = view_img
     display_tracks = draw_tracks
@@ -87,36 +89,43 @@ def configure(
     cls_names = names
     if cls_names is None:
         print("Model classes name required, you can pass as argument to sol.configure function i.e cls_names=model.names !!!")
-        sys.exit()
+        exit(0)
 
     bg_color_rgb = bg_color
     txt_color_rgb = txt_color
+
     tf = line_thickness
     d_thresh = line_dist_thresh
+
     colormap = cv2.COLORMAP_JET if color_map is None else color_map
+
     if heat_shape not in {"circle", "rect"}:
         print("Unknown shape value provided, 'circle' & 'rect' supported")
         print("Using circle shape now")
         heatshape = "circle"
     else:
         heatshape = heat_shape
-    h_alpha = heat_alpha
+
     h_decay = heat_decay
+    h_alpha = heat_alpha
+
+    workout_kpts = kpts_to_check
+    if workout_kpts is None:
+        print("List of 3 keypoints for reps counts required!!! i.e [2, 5, 7]")
+        exit(0)
+
+    psup_angle = pose_up_angle
+    psdown_angle = pose_down_angle
+
+    ps_type = pose_type
+    if ps_type is None:
+        print(f"Pose type is required, supported include 'pushup', 'pullup', 'squat', 'abworkout'")
+        exit(0)
 
     # Distance calculation arguments
     pixels_per_meter = pixels_per_meter
 
-    # Ai gym arguments
-    pose_type = pose_type
-    pose_up_angle = pose_up_angle
-    pose_down_angle = pose_down_angle
-    kpts_to_check = kpts_to_check if kpts_to_check is not None else [6, 8, 10]
-
-    # Environment check
-    env_check = check_imshow(warn=True)
-    track_history = defaultdict(list)
-
-    from . import object_counter, speed_estimation, heatmap, distance_calculation, queue_management
+    from . import object_counter, speed_estimation, heatmap, distance_calculation, queue_management, ai_gym
 
 
 def configure_region(rg_pts):

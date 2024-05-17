@@ -40,31 +40,31 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         ```python
         from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
+        import ultralytics.solutions as sol
         import cv2
-
+        
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
-
+        
+        sol.configure(names=model.names, line_thickness=4, pose_type="squat",
+                      view_img=True, kpts_to_check=[5, 11, 13])
+        
+        # init AI GYM module
+        gym_object = sol.ai_gym.AIGym()
+        
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
+                break
             frame_count += 1
-            results = model.track(im0, verbose=False)  # Tracking recommended
-            #results = model.predict(im0)  # Prediction also supported
+            results = model.track(im0, persist=True, verbose=False)  # Tracking recommended
             im0 = gym_object.start_counting(im0, results, frame_count)
-
+            video_writer.write(im0)
+        
+        cap.release()
         cv2.destroyAllWindows()
         ```
 
@@ -72,39 +72,35 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         ```python
         from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
+        import ultralytics.solutions as sol
         import cv2
-
+        
         model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        video_writer = cv2.VideoWriter("workouts.avi",
-                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                        fps,
-                                        (w, h))
-
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
-
+        
+        video_writer = cv2.VideoWriter("workouts_monitoring.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        
+        sol.configure(names=model.names, line_thickness=4, pose_type="squat",
+                      view_img=True, kpts_to_check=[5, 11, 13])
+        
+        # init AI GYM module
+        gym_object = sol.ai_gym.AIGym()
+        
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-              print("Video frame is empty or video processing has been successfully completed.")
-              break
+                break
             frame_count += 1
-            results = model.track(im0, verbose=False)  # Tracking recommended
-            #results = model.predict(im0)  # Prediction also supported
+            results = model.track(im0, persist=True, verbose=False)  # Tracking recommended
             im0 = gym_object.start_counting(im0, results, frame_count)
             video_writer.write(im0)
-
-        cv2.destroyAllWindows()
+        
+        cap.release()
         video_writer.release()
+        cv2.destroyAllWindows()
         ```
 
 ???+ tip "Support"
@@ -115,16 +111,19 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/ultralytics/ultralytics/assets/62513924/f45d8315-b59f-47b7-b9c8-c61af1ce865b)
 
-### Arguments `set_args`
+### Arguments `configure`
 
-| Name              | Type   | Default  | Description                                                                            |
-|-------------------|--------|----------|----------------------------------------------------------------------------------------|
-| `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
-| `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
-| `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
-| `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
-| `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |
+| Name              | Type        | Default             | Description                                                                            |
+|-------------------|-------------|---------------------|----------------------------------------------------------------------------------------|
+| `view_img`        | `bool`      | `False`             | Display frames with counts                                                             |
+| `line_thickness`  | `int`       | `2`                 | Increase bounding boxes and count text thickness                                       |
+| `names`           | `dict`      | `model.model.names` | Dictionary of classes names                                                            |
+| `txt_color`       | `RGB Color` | `(255, 255, 255)`   | Foreground color for object counts text                                                |
+| `bg_color`        | `RGB Color` | `(255, 255, 255)`   | Count highlighter color                                                                |
+| `kpts_to_check`   | `list`      | `None`              | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `pose_type`       | `str`       | `pushup`            | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
+| `pose_up_angle`   | `int`       | `145`               | Pose Up Angle value                                                                    |
+| `pose_down_angle` | `int`       | `90`                | Pose Down Angle value                                                                  |
 
 ### Arguments `model.predict`
 

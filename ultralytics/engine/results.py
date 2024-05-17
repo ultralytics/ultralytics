@@ -96,7 +96,7 @@ class Results(SimpleClass):
     """
 
     def __init__(
-        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, human=None
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, human=None, speed=None
     ) -> None:
         """
         Initialize the Results class.
@@ -119,7 +119,7 @@ class Results(SimpleClass):
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.human = Human(human) if human is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
@@ -186,8 +186,8 @@ class Results(SimpleClass):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        """Return a new Results object with the same image, path, names and speed."""
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,

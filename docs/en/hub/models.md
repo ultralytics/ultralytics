@@ -82,7 +82,7 @@ Alternatively, you start training from one of your previously trained models by 
 
 When you're happy with your model configuration, click **Continue**.
 
-### 2. Train
+### 3. Train
 
 In this step, you will start training you model.
 
@@ -98,7 +98,7 @@ In this step, you will start training you model.
 - Google Colab
 - Bring your own agent
 
-#### Ultralytics Cloud
+#### a. Ultralytics Cloud
 
 You need to upgrade to the [Pro Plan](./pro.md) in order to access [Ultralytics Cloud](./cloud-training.md).
 
@@ -106,7 +106,7 @@ You need to upgrade to the [Pro Plan](./pro.md) in order to access [Ultralytics 
 
 To train models using our [Cloud Training](./cloud-training.md) solution, read the [Ultralytics Cloud Training](./cloud-training.md) documentation.
 
-#### Google Colab
+#### b. Google Colab
 
 To start training your model using [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb), follow the instructions shown in the [Ultralytics HUB](https://bit.ly/ultralytics_hub) **Train Model** dialog or on the [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb) notebook.
 
@@ -128,7 +128,7 @@ When the training starts, you can click **Done** and monitor the training progre
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Resume Training card](./images/models/hub_train_model_11.jpg)
 
-#### Bring your own agent
+#### c. Bring your own agent
 
 To start training your model using your own agent, follow the instructions shown in the [Ultralytics HUB](https://bit.ly/ultralytics_hub) **Train Model** dialog.
 

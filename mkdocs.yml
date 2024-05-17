@@ -362,8 +362,10 @@ nav:
           - Datasets: hub/datasets.md
           - Projects: hub/projects.md
           - Models: hub/models.md
+          - Pro: hub/pro.md
           - Cloud Training: hub/cloud-training.md
           - Inference API: hub/inference-api.md
+          - Teams: hub/teams.md
           - Integrations: hub/integrations.md
       - App:
           - hub/app/index.md

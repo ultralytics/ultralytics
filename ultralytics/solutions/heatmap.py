@@ -2,7 +2,7 @@
 
 import cv2
 from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
-               track_history, display_img, display_in, display_out, clswise_dict,
+               track_history, display_in, display_out, clswise_dict,
                txt_color_rgb, extract_tracks, object_counts, env_check,
                h_alpha, h_decay, heatshape, display_frames, np, colormap,
                enable_count, Annotator, colors)

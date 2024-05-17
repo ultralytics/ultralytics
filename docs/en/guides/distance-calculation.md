@@ -43,40 +43,34 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         ```python
         from ultralytics import YOLO
-        from ultralytics.solutions import distance_calculation
+        import ultralytics.solutions as sol
         import cv2
-
+        
         model = YOLO("yolov8n.pt")
         names = model.model.names
-
+        
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Video writer
-        video_writer = cv2.VideoWriter("distance_calculation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
-
+        
+        video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        
+        sol.configure(names=model.names, pixels_per_meter=10, view_img=True)
+        
         # Init distance-calculation obj
-        dist_obj = distance_calculation.DistanceCalculation()
-        dist_obj.set_args(names=names, view_img=True)
-
+        dist_obj = sol.distance_calculation.DistanceCalculation()
+        
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
                 break
-
-            tracks = model.track(im0, persist=True, show=False)
-            im0 = dist_obj.start_process(im0, tracks)
+            tracks = model.track(im0, persist=True, verbose=False)
+            im0 = dist_obj.calculate_distance(im0, tracks)
             video_writer.write(im0)
-
+        
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ???+ tip "Note"
@@ -84,14 +78,16 @@ Measuring the gap between two objects is known as distance calculation within a 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
-### Optional Arguments `set_args`
+### Optional Arguments `configure`
 
-| Name             | Type   | Default         | Description                                            |
-|------------------|--------|-----------------|--------------------------------------------------------|
-| `names`          | `dict` | `None`          | Classes names                                          |
-| `view_img`       | `bool` | `False`         | Display frames with counts                             |
-| `line_thickness` | `int`  | `2`             | Increase bounding boxes thickness                      |
-| `line_color`     | `RGB`  | `(255, 255, 0)` | Line Color for centroids mapping on two bounding boxes |
+| Name               | Type    | Default             | Description                       |
+|--------------------|---------|---------------------|-----------------------------------|
+| `view_img`         | `bool`  | `False`             | Display frames with counts        |
+| `line_thickness`   | `int`   | `2`                 | Increase bounding boxes thickness |
+| `names`            | `dict`  | `model.model.names` | Dictionary of classes names       |
+| `txt_color`        | `tuple` | `(255, 255, 255)`   | Distance display foreground color |
+| `bg_color`         | `tuple` | `(255, 255, 255)`   | Distance display background color |
+| `pixels_per_meter` | `int`   | `10`                | Pixel per meter                   |
 
 ### Arguments `model.track`
 

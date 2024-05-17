@@ -665,29 +665,29 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
+        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance M: {distance_m:.2f}m",
             (20, 50),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance MM: {distance_mm:.2f}mm",
             (20, 100),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 

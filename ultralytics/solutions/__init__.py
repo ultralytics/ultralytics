@@ -21,10 +21,11 @@ env_check = check_imshow(warn=True)
 
 # Variables initialization
 tf: int = 0
+pxl_m: int = 10
 in_count: int = 0
 out_count: int = 0
 d_thresh: int = 14
-ps_type: str = None
+ps_type: str = "pushup"
 rg_pts: list = None
 h_alpha: float = 0.5
 h_decay: float = 0.99
@@ -33,7 +34,7 @@ cls_names: dict = None
 display_in: bool = True
 psdown_angle: int = 145
 display_out: bool = True
-workout_kpts: list = None
+workout_kpts: list = [6, 8, 10]
 display_img: bool = False
 heatshape: str = "circle"
 enable_count: bool = True
@@ -70,10 +71,10 @@ def configure(
         pixels_per_meter=10,
 ):
 
-    global display_img, bg_color_rgb, txt_color_rgb, cls_names, tf, sf, display_tracks, \
-        display_in, display_out, d_thresh, rg_pts, counting_region, count_type, colormap, \
-        heatshape, h_alpha, h_decay, enable_count, workout_kpts, psup_angle, psdown_angle, \
-        ps_type
+    global display_img, bg_color_rgb, txt_color_rgb, cls_names, tf, sf, \
+        display_tracks, display_in, display_out, d_thresh, rg_pts, pxl_m, \
+        counting_region, count_type, colormap, heatshape, h_alpha, h_decay, \
+        enable_count, workout_kpts, psup_angle, psdown_angle, ps_type
 
     display_img = view_img
     display_tracks = draw_tracks
@@ -109,21 +110,12 @@ def configure(
     h_decay = heat_decay
     h_alpha = heat_alpha
 
-    workout_kpts = kpts_to_check
-    if workout_kpts is None:
-        print("List of 3 keypoints for reps counts required!!! i.e [2, 5, 7]")
-        exit(0)
-
+    workout_kpts = [6, 8, 10] if kpts_to_check is None else kpts_to_check
     psup_angle = pose_up_angle
     psdown_angle = pose_down_angle
+    ps_type = "pushup" if pose_type is None else pose_type
 
-    ps_type = pose_type
-    if ps_type is None:
-        print(f"Pose type is required, supported include 'pushup', 'pullup', 'squat', 'abworkout'")
-        exit(0)
-
-    # Distance calculation arguments
-    pixels_per_meter = pixels_per_meter
+    pxl_m = pixels_per_meter
 
     from . import object_counter, speed_estimation, heatmap, distance_calculation, queue_management, ai_gym
 

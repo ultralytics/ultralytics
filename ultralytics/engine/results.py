@@ -94,7 +94,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -115,7 +117,9 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = (
+            speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
+        )  # milliseconds per image
         self.names = names
         self.path = path
         self.save_dir = None

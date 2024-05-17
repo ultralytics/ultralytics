@@ -40,7 +40,7 @@ Speed estimation is the process of calculating the rate of movement of an object
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -51,10 +51,10 @@ Speed estimation is the process of calculating the rate of movement of an object
         
         line_points = [(0, 360), (1280, 360)]
         
-        sol.configure(names=model.names, line_thickness=2, region_pts=line_points,
+        solutions.configure(names=model.names, line_thickness=2, region_pts=line_points,
                       line_dist_thresh=15, view_img=True)
         
-        speed_obj = sol.speed_estimation.SpeedEstimator()
+        speed_obj = solutions.speed_estimation.SpeedEstimator()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -73,7 +73,7 @@ Speed estimation is the process of calculating the rate of movement of an object
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -84,10 +84,10 @@ Speed estimation is the process of calculating the rate of movement of an object
         
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
         
-        sol.configure(names=model.names, line_thickness=2, region_pts=region_points,
+        solutions.configure(names=model.names, line_thickness=2, region_pts=region_points,
                       line_dist_thresh=15, view_img=True)
         
-        speed_obj = sol.speed_estimation.SpeedEstimator()
+        speed_obj = solutions.speed_estimation.SpeedEstimator()
         
         while cap.isOpened():
             success, im0 = cap.read()

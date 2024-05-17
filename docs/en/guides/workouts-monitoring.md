@@ -40,7 +40,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n-pose.pt")
@@ -48,11 +48,11 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         
-        sol.configure(names=model.names, line_thickness=3, pose_type="squat",
+        solutions.configure(names=model.names, line_thickness=3, pose_type="squat",
                       view_img=True, kpts_to_check=[5, 11, 13])
         
         # init AI GYM module
-        gym_object = sol.ai_gym.AIGym()
+        gym_object = solutions.ai_gym.AIGym()
         
         frame_count = 0
         while cap.isOpened():
@@ -72,7 +72,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n-pose.pt")
@@ -82,11 +82,11 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         
         video_writer = cv2.VideoWriter("workouts_monitoring.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
-        sol.configure(names=model.names, line_thickness=3, pose_type="squat",
+        solutions.configure(names=model.names, line_thickness=3, pose_type="squat",
                       view_img=True, kpts_to_check=[5, 11, 13])
         
         # init AI GYM module
-        gym_object = sol.ai_gym.AIGym()
+        gym_object = solutions.ai_gym.AIGym()
         
         frame_count = 0
         while cap.isOpened():

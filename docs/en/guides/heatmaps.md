@@ -45,7 +45,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -56,11 +56,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Configure heatmap
-        sol.configure(view_img=True, names=model.names, heat_shape="circle", color_map=cv2.COLORMAP_PINK,
+        solutions.configure(view_img=True, names=model.names, heat_shape="circle", color_map=cv2.COLORMAP_PINK,
                       draw_tracks=False, counts_type="classwise",enable_counting=True)
         
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -79,7 +79,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -91,11 +91,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         
         # Configure heatmap
         line_points = [(20, 400), (1080, 404)]
-        sol.configure(view_img=True, region_pts=line_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=line_points, names=model.names,
                       draw_tracks=False, counts_type="line",enable_counting=True)
         
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -113,7 +113,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     === "Polygon Counting"
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -125,11 +125,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         
         # Configure heatmap
         polygon_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
-        sol.configure(view_img=True, region_pts=polygon_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=polygon_points, names=model.names,
                       draw_tracks=False, counts_type="line",enable_counting=True)
         
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -148,7 +148,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -160,11 +160,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         
         # Configure heatmap
         region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        sol.configure(view_img=True, region_pts=region_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=region_points, names=model.names,
                       draw_tracks=True, counts_type="classwise", enable_counting=True)
         
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -183,18 +183,18 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
         im0 = cv2.imread("path/to/image.png")  # path to image file
 
         # Configure heatmap
-        sol.configure(view_img=True, names=model.names, draw_tracks=False, 
+        solutions.configure(view_img=True, names=model.names, draw_tracks=False, 
                       counts_type="classwise", enable_counting=False)
 
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
 
         results = model.track(im0, persist=True, show=False)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -205,7 +205,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -217,11 +217,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         
         # Configure heatmap
         classes_for_heatmap = [0, 2]  # classes for heatmap
-        sol.configure(view_img=True, names=model.names, draw_tracks=False,
+        solutions.configure(view_img=True, names=model.names, draw_tracks=False,
                       counts_type="classwise", enable_counting=True)
         
         # Init heatmap
-        heatmap_obj = sol.heatmap.Heatmap()
+        heatmap_obj = solutions.heatmap.Heatmap()
         
         while cap.isOpened():
             success, im0 = cap.read()

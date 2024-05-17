@@ -41,7 +41,7 @@ class ObjectCounter:
         Extracts and processes tracks for object counting in a video stream.
 
         Args:
-            tracks: object tracking data for complete frame
+            tracks (list): List of tracks obtained from the object tracking process
         """
 
         global in_count, out_count, clswise_dict

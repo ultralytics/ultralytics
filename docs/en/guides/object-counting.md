@@ -52,7 +52,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -64,10 +64,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Init object counter
-        sol.configure(view_img=True, region_pts=region_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=region_points, names=model.names,
                       draw_tracks=True, counts_type="classwise",enable_counting=True)
         
-        counter = sol.object_counter.ObjectCounter()
+        counter = solutions.object_counter.ObjectCounter()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -87,7 +87,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -99,10 +99,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Init object counter
-        sol.configure(view_img=True, region_pts=region_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=region_points, names=model.names,
                       draw_tracks=True, counts_type="classwise", enable_counting=True)
         
-        counter = sol.object_counter.ObjectCounter()
+        counter = solutions.object_counter.ObjectCounter()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -122,7 +122,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -134,10 +134,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Init object counter
-        sol.configure(view_img=True, region_pts=region_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=region_points, names=model.names,
                       draw_tracks=True, counts_type="merge", enable_counting=True)
         
-        counter = sol.object_counter.ObjectCounter()
+        counter = solutions.object_counter.ObjectCounter()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -157,7 +157,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -171,10 +171,10 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         classes_to_count = [0, 2]
 
         # Init object counter
-        sol.configure(view_img=True, region_pts=region_points, names=model.names,
+        solutions.configure(view_img=True, region_pts=region_points, names=model.names,
                       draw_tracks=True, counts_type="merge", enable_counting=True)
         
-        counter = sol.object_counter.ObjectCounter()
+        counter = solutions.object_counter.ObjectCounter()
         
         while cap.isOpened():
             success, im0 = cap.read()

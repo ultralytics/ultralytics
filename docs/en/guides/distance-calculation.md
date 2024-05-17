@@ -43,7 +43,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -55,10 +55,10 @@ Measuring the gap between two objects is known as distance calculation within a 
         
         video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
-        sol.configure(names=model.names, pixels_per_meter=10, view_img=True)
+        solutions.configure(names=model.names, pixels_per_meter=10, view_img=True)
         
         # Init distance-calculation obj
-        dist_obj = sol.distance_calculation.DistanceCalculation()
+        dist_obj = solutions.distance_calculation.DistanceCalculation()
         
         while cap.isOpened():
             success, im0 = cap.read()

@@ -28,7 +28,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -41,11 +41,11 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         
         # Configure queue
-        sol.configure(view_img=True, names=model.names, 
+        solutions.configure(view_img=True, names=model.names, 
                       draw_tracks=True, region_pts=queue_region)
         
         # Init queue
-        queue = sol.queue_management.QueueManager()
+        queue = solutions.queue_management.QueueManager()
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -64,7 +64,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         from ultralytics import YOLO
-        import ultralytics.solutions as sol
+        from ultralytics import solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -78,11 +78,11 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         
         # Configure queue
         classes_to_queue = [0, 2]
-        sol.configure(view_img=True, names=model.names,
+        solutions.configure(view_img=True, names=model.names,
                       draw_tracks=True, region_pts=queue_region)
         
         # Init queue
-        queue = sol.queue_management.QueueManager()
+        queue = solutions.queue_management.QueueManager()
         
         while cap.isOpened():
             success, im0 = cap.read()

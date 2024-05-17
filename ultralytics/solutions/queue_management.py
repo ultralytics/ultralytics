@@ -1,9 +1,23 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-from . import (tf, cls_names, bg_color_rgb, display_tracks, counting_region,
-               track_history, txt_color_rgb, extract_tracks,
-               env_check, Annotator, colors, Point, rg_pts, display_frames)
+
+from . import (
+    Annotator,
+    Point,
+    bg_color_rgb,
+    cls_names,
+    colors,
+    counting_region,
+    display_frames,
+    display_tracks,
+    env_check,
+    extract_tracks,
+    rg_pts,
+    tf,
+    track_history,
+    txt_color_rgb,
+)
 
 
 class QueueManager:
@@ -40,9 +54,9 @@ class QueueManager:
                 if display_tracks:
                     self.annotator.draw_centroid_and_tracks(track_line, color=color, track_thickness=tf)
 
-                self.annotator.draw_label_in_center(f"{cls_names[cls]}#{trk_id}", txt_color_rgb,
-                                                    color, x_center, y_center, 5)
-
+                self.annotator.draw_label_in_center(
+                    f"{cls_names[cls]}#{trk_id}", txt_color_rgb, color, x_center, y_center, 5
+                )
 
                 prev_position = track_history[trk_id][-2] if len(track_history[trk_id]) > 1 else None
 
@@ -52,12 +66,10 @@ class QueueManager:
                         counts += 1
 
         label = "Queue Counts: " + str(counts)
-        self.annotator.queue_counts_display(label, points=rg_pts, region_color=bg_color_rgb,
-                                            txt_color=txt_color_rgb)
+        self.annotator.queue_counts_display(label, points=rg_pts, region_color=bg_color_rgb, txt_color=txt_color_rgb)
 
         counts = 0
         display_frames(self.im0, self.window_name)
-
 
     def process_queue(self, im0, tracks):
         """

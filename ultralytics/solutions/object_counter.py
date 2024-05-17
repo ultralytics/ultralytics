@@ -1,16 +1,35 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
-               track_history, display_frames, display_in, display_out, clswise_dict,
-               txt_color_rgb, extract_tracks, object_counts, env_check,
-               Annotator, colors, enable_count)
+
+from . import (
+    Annotator,
+    bg_color_rgb,
+    cls_names,
+    clswise_dict,
+    colors,
+    count_type,
+    display_frames,
+    display_in,
+    display_out,
+    display_tracks,
+    enable_count,
+    env_check,
+    extract_tracks,
+    object_counts,
+    rg_pts,
+    tf,
+    track_history,
+    txt_color_rgb,
+)
 
 
 class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         """Initializes object counting module."""
         self.im0 = None
         self.annotator = None
@@ -28,7 +47,9 @@ class ObjectCounter:
         global in_count, out_count, clswise_dict
 
         self.annotator = Annotator(self.im0, line_width=tf)
-        self.annotator.draw_region(reg_pts=rg_pts, color=bg_color_rgb, thickness=tf) if count_type == "classwise" and enable_count else None
+        self.annotator.draw_region(
+            reg_pts=rg_pts, color=bg_color_rgb, thickness=tf
+        ) if count_type == "classwise" and enable_count else None
 
         # Extract tracks
         boxes, clss, track_ids = extract_tracks(tracks)
@@ -42,7 +63,9 @@ class ObjectCounter:
                 if len(track_line) > 30:
                     track_line.pop(0)
 
-                self.annotator.draw_label_in_center((str(cls_names[int(cls)])+":"+str(trk_id)), txt_color_rgb, color, x_center, y_center, 5)
+                self.annotator.draw_label_in_center(
+                    (str(cls_names[int(cls)]) + ":" + str(trk_id)), txt_color_rgb, color, x_center, y_center, 5
+                )
 
                 if display_tracks:
                     self.annotator.draw_centroid_and_tracks(track_line, color=color, track_thickness=tf)
@@ -67,7 +90,9 @@ class ObjectCounter:
                                 labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
                     if labels_dict is not None:
-                        self.annotator.display_analytics(self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=5)
+                        self.annotator.display_analytics(
+                            self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=5
+                        )
                 else:
                     if not display_in and not display_out:
                         label = 0
@@ -78,7 +103,9 @@ class ObjectCounter:
                     else:
                         label = f"In : {in_count}, Out : {out_count}"
 
-                    self.annotator.line_counter(points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=5, gap=10)
+                    self.annotator.line_counter(
+                        points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=5, gap=10
+                    )
 
         display_frames(self.im0, self.window_name)
 

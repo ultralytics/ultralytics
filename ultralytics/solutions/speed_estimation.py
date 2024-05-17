@@ -1,10 +1,25 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from time import time
+
 import cv2
-from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, track_history,
-               txt_color_rgb, extract_tracks, env_check, Annotator, colors,
-               d_thresh, np, display_frames)
+
+from . import (
+    Annotator,
+    bg_color_rgb,
+    cls_names,
+    colors,
+    d_thresh,
+    display_frames,
+    display_tracks,
+    env_check,
+    extract_tracks,
+    np,
+    rg_pts,
+    tf,
+    track_history,
+    txt_color_rgb,
+)
 
 
 class SpeedEstimator:
@@ -20,7 +35,6 @@ class SpeedEstimator:
         self.dist_data = {}
         self.window_name = "Ultralytics YOLOv8 Speed Estimation"
         print("Speed estimation app initialized...")
-
 
     def calculate_speed(self, trk_id, track):
         """

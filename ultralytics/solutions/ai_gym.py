@@ -1,24 +1,35 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-from . import (tf, bg_color_rgb, display_frames, txt_color_rgb, env_check, bg_color_rgb,
-               txt_color_rgb, Annotator, colors, psdown_angle, psup_angle, workout_kpts,
-               ps_type)
+
+from . import (
+    Annotator,
+    bg_color_rgb,
+    colors,
+    display_frames,
+    env_check,
+    ps_type,
+    psdown_angle,
+    psup_angle,
+    tf,
+    txt_color_rgb,
+    workout_kpts,
+)
 
 
 class AIGym:
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
     def __init__(self):
-        """Initializes the AIGym class with default parameters"""
+        """Initializes the AIGym class with default parameters."""
 
-        self.im0 = None     # variable for im0 storage
-        self.count = None   # storage of reps count
-        self.angle = None   # storage of kpts angle
-        self.stage = None   # storage of current stage
-        self.annotator = None   # annotator object initialized
+        self.im0 = None  # variable for im0 storage
+        self.count = None  # storage of reps count
+        self.angle = None  # storage of kpts angle
+        self.stage = None  # storage of current stage
+        self.annotator = None  # annotator object initialized
 
-        self.window_name = "Ultralytics YOLOv8 Workouts Monitor"    # visual window name
+        self.window_name = "Ultralytics YOLOv8 Workouts Monitor"  # visual window name
         print("Workouts monitoring app initialized...")
 
     def start_counting(self, im0, results, frame_count):
@@ -67,7 +78,7 @@ class AIGym:
                     stage_text=self.stage[ind],
                     center_kpt=k[int(workout_kpts[1])],
                     color=bg_color_rgb,
-                    txt_color=txt_color_rgb
+                    txt_color=txt_color_rgb,
                 )
 
             if ps_type == "pushup" or ps_type == "squat":
@@ -82,7 +93,7 @@ class AIGym:
                     stage_text=self.stage[ind],
                     center_kpt=k[int(workout_kpts[1])],
                     color=bg_color_rgb,
-                    txt_color=txt_color_rgb
+                    txt_color=txt_color_rgb,
                 )
             if ps_type == "pullup":
                 if self.angle[ind] > psup_angle:
@@ -96,7 +107,7 @@ class AIGym:
                     stage_text=self.stage[ind],
                     center_kpt=k[int(workout_kpts[1])],
                     color=bg_color_rgb,
-                    txt_color=txt_color_rgb
+                    txt_color=txt_color_rgb,
                 )
 
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)

@@ -1,12 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import sys
+from collections import defaultdict
 
 import cv2
 import numpy as np
-from collections import defaultdict
+
+from ultralytics.utils.checks import check_imshow, check_requirements
 
 from ..utils.plotting import Annotator, colors
-from ultralytics.utils.checks import check_imshow, check_requirements
 
 check_requirements("shapely>=2.0.0")
 from shapely.geometry import LineString, Point, Polygon
@@ -48,33 +49,52 @@ pixels_per_meter = 10
 
 
 def configure(
-        view_img=True,
-        draw_tracks=True,
-        view_in_counts=True,
-        view_out_counts=True,
-        enable_counting=True,
-        region_pts=None,
-        counts_type="line",
-        names=None,
-        bg_color=(104, 31, 17),
-        txt_color=(255, 255, 255),
-        line_thickness=2,
-        line_dist_thresh=15,
-        color_map=None,
-        heat_shape="circle",
-        heat_decay=0.99,
-        heat_alpha=0.5,
-        kpts_to_check=None,
-        pose_type=None,
-        pose_up_angle=145.0,
-        pose_down_angle=90.0,
-        pixels_per_meter=10,
+    view_img=True,
+    draw_tracks=True,
+    view_in_counts=True,
+    view_out_counts=True,
+    enable_counting=True,
+    region_pts=None,
+    counts_type="line",
+    names=None,
+    bg_color=(104, 31, 17),
+    txt_color=(255, 255, 255),
+    line_thickness=2,
+    line_dist_thresh=15,
+    color_map=None,
+    heat_shape="circle",
+    heat_decay=0.99,
+    heat_alpha=0.5,
+    kpts_to_check=None,
+    pose_type=None,
+    pose_up_angle=145.0,
+    pose_down_angle=90.0,
+    pixels_per_meter=10,
 ):
-
-    global display_img, bg_color_rgb, txt_color_rgb, cls_names, tf, sf, \
-        display_tracks, display_in, display_out, d_thresh, rg_pts, pxl_m, \
-        counting_region, count_type, colormap, heatshape, h_alpha, h_decay, \
-        enable_count, workout_kpts, psup_angle, psdown_angle, ps_type
+    global \
+        display_img, \
+        bg_color_rgb, \
+        txt_color_rgb, \
+        cls_names, \
+        tf, \
+        sf, \
+        display_tracks, \
+        display_in, \
+        display_out, \
+        d_thresh, \
+        rg_pts, \
+        pxl_m, \
+        counting_region, \
+        count_type, \
+        colormap, \
+        heatshape, \
+        h_alpha, \
+        h_decay, \
+        enable_count, \
+        workout_kpts, \
+        psup_angle, \
+        psdown_angle, \
+        ps_type
 
     display_img = view_img
     display_tracks = draw_tracks
@@ -89,7 +109,9 @@ def configure(
 
     cls_names = names
     if cls_names is None:
-        print("Model classes name required, you can pass as argument to sol.configure function i.e cls_names=model.names !!!")
+        print(
+            "Model classes name required, you can pass as argument to sol.configure function i.e cls_names=model.names !!!"
+        )
         exit(0)
 
     bg_color_rgb = bg_color
@@ -117,7 +139,7 @@ def configure(
 
     pxl_m = pixels_per_meter
 
-    from . import object_counter, speed_estimation, heatmap, distance_calculation, queue_management, ai_gym
+    from . import ai_gym, distance_calculation, heatmap, object_counter, queue_management, speed_estimation
 
 
 def configure_region(rg_pts):
@@ -129,8 +151,7 @@ def configure_region(rg_pts):
         rg_pts = rg_pts
         counting_region = Polygon(rg_pts)
     else:
-        print("Invalid Region points provided, region_points "
-              "must be 2 for lines or >= 3 for polygons.")
+        print("Invalid Region points provided, region_points " "must be 2 for lines or >= 3 for polygons.")
         print("Using Line Counter Now")
         rg_pts = [(20, 400), (1260, 400)]
         counting_region = LineString(rg_pts)
@@ -182,7 +203,7 @@ def object_counts(prev_position, box, cls, track_id, track_line):
 
 
 def display_frames(im0, window_name):
-    """Display output image if platform supported display"""
+    """Display output image if platform supported display."""
 
     if env_check:
         cv2.namedWindow(window_name)

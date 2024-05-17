@@ -32,9 +32,9 @@ class SegmentationPoseTrainer(yolo.detect.DetectionTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return SegmentationPoseModel initialized with specified config and weights."""
         model = SegmentationPoseModel(cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data['kpt_shape'], verbose=verbose and RANK == -1)
+        model.kpt_shape = self.data['kpt_shape']
         if weights:
             model.load(weights)
-
         return model
 
     def get_validator(self):

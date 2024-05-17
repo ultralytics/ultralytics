@@ -56,7 +56,7 @@ check_dataset("path/to/dataset.zip", task="detect")
 
 Once your dataset ZIP is ready, navigate to the [Datasets](https://hub.ultralytics.com/datasets) page by clicking on the **Datasets** button in the sidebar and click on the **Upload Dataset** button on the top right of the page.
 
-![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to Datasets button in the sidebar and one to the Upload Dataset button](./images/datasets/hub_upload_dataset_2.jpg)
+![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Datasets button in the sidebar and one to the Upload Dataset button](./images/datasets/hub_upload_dataset_2.jpg)
 
 ??? tip "Tip"
 
@@ -72,7 +72,7 @@ You have the additional option to set a custom name and description for your [Ul
 
 When you're happy with your dataset configuration, click **Upload**.
 
-![Ultralytics HUB screenshot of the Upload Dataset dialog with an arrows pointing to dataset task, dataset file and Upload button](./images/datasets/hub_upload_dataset_3.jpg)
+![Ultralytics HUB screenshot of the Upload Dataset dialog with arrows pointing to dataset task, dataset file and Upload button](./images/datasets/hub_upload_dataset_3.jpg)
 
 After your dataset is uploaded and processed, you will be able to access it from the [Datasets](https://hub.ultralytics.com/datasets) page.
 

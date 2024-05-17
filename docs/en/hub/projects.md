@@ -24,7 +24,7 @@ This creates a unified and organized workspace that facilitates easier model man
 
 Navigate to the [Projects](https://hub.ultralytics.com/projects) page by clicking on the **Projects** button in the sidebar and click on the **Create Project** button on the top right of the page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Projects button in the sidebar and one to the Create Project button](./images/projects/hub_create_project_2.jpg)
+![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Projects button in the sidebar and one to the Create Project button](./images/projects/hub_create_project_2.jpg)
 
 ??? tip "Tip"
 
@@ -52,7 +52,7 @@ Next, [train a model](./models.md#train-model) inside your project.
 
 ## Share Project
 
-!!! Info "Info"
+!!! info "Info"
 
     [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://bit.ly/ultralytics_hub) users and those who have yet to create an account.
 
@@ -130,25 +130,29 @@ Navigate to the Project page of the project you want to delete, open the project
 
 Navigate to the Project page of the project where the models you want to compare are located. To use the model comparison feature, click on the **Charts** tab.
 
-![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Charts tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_1.jpg)
+![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Charts tab](./images/projects/hub_compare_models_1.jpg)
 
 This will display all the relevant charts. Each chart corresponds to a different metric and contains the performance of each model for that metric. The models are represented by different colors, and you can hover over each data point to get more information.
 
-![Ultralytics HUB screenshot of the Charts tab inside the Project page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_2.jpg)
+![Ultralytics HUB screenshot of the Charts tab inside the Project page](./images/projects/hub_compare_models_2.jpg)
 
 ??? tip "Tip"
 
     Each chart can be enlarged for better visualization.
 
-    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the expand icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_3.jpg)
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the expand icon](./images/projects/hub_compare_models_3.jpg)
 
-    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_4.jpg)
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded](./images/projects/hub_compare_models_4.jpg)
+
+    Furthermore, to properly analyze the data, you can utilize the zoom feature.
+
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded and zoomed](./images/projects/hub_compare_models_5.jpg)
 
 ??? tip "Tip"
 
     You have the flexibility to customize your view by selectively hiding certain models. This feature allows you to concentrate on the models of interest.
 
-    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the hide/unhide icon of one of the model](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_5.jpg)
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the hide/unhide icon of one of the model](./images/projects/hub_compare_models_6.jpg)
 
 ## Reorder Models
 
@@ -158,20 +162,20 @@ This will display all the relevant charts. Each chart corresponds to a different
 
 Navigate to the Project page of the project where the models you want to reorder are located. Click on the designated reorder icon of the model you want to move and drag it to the desired location.
 
-![Ultralytics HUB screenshot of the Project page with an arrow pointing to the reorder icon](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_reorder_models_1.jpg)
+![Ultralytics HUB screenshot of the Project page with an arrow pointing to the reorder icon](./images/projects/hub_reorder_models_1.jpg)
 
 ## Transfer Models
 
 Navigate to the Project page of the project where the model you want to mode is located, open the project actions dropdown and click on the **Transfer** option. This action will trigger the **Transfer Model** dialog.
 
-![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Transfer option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_transfer_models_1.jpg)
+![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Transfer option of one of the models](./images/projects/hub_transfer_models_1.jpg)
 
 ??? tip "Tip"
 
     You can also transfer a model directly from the [Models](https://hub.ultralytics.com/models) page.
 
-    ![Ultralytics HUB screenshot of the Models page with an arrow pointing to the Transfer option of one of the models](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_transfer_models_2.jpg)
+    ![Ultralytics HUB screenshot of the Models page with an arrow pointing to the Transfer option of one of the models](./images/projects/hub_transfer_models_2.jpg)
 
 Select the project you want to transfer the model to and click **Save**.
 
-![Ultralytics HUB screenshot of the Transfer Model dialog with an arrow pointing to the dropdown and one to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_transfer_models_3.jpg)
+![Ultralytics HUB screenshot of the Transfer Model dialog with an arrow pointing to the dropdown and one to the Save button](./images/projects/hub_transfer_models_3.jpg)

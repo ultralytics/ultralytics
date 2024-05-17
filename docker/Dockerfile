@@ -4,7 +4,7 @@
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
 FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
-RUN pip install --no-cache nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
+RUN pip install --no-cache-dir nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -30,16 +30,16 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e ".[export]" "albumentations>=1.4.6" comet pycocotools
+RUN pip install --no-cache-dir -e ".[export]" "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
-RUN pip install --no-cache paddlepaddle>=2.6.0 x2paddle
+RUN pip install --no-cache-dir paddlepaddle>=2.6.0 x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
-RUN pip install --no-cache numpy==1.23.5
+RUN pip install --no-cache-dir numpy==1.23.5
 # Remove exported models
 RUN rm -rf tmp
 

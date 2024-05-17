@@ -515,7 +515,7 @@ def is_online() -> bool:
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=1.0).close()
+            socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
     return False
 

@@ -56,6 +56,10 @@ The default tracker is BoT-SORT.
 
 ## Tracking
 
+!!! Warning "Tracker Threshold Information"
+    
+    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
+
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
 
 !!! Example
@@ -92,6 +96,10 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
 As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
 
 ## Configuration
+
+!!! Warning "Tracker Threshold Information"
+    
+    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 ### Tracking Arguments
 
@@ -349,7 +357,7 @@ Are you proficient in multi-object tracking and have successfully implemented or
 
 By contributing to this section, you help expand the scope of tracking solutions available within the Ultralytics YOLO framework, adding another layer of functionality and utility for the community.
 
-To initiate your contribution, please refer to our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
+To initiate your contribution, please refer to our [Contributing Guide](../help/contributing.md) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 

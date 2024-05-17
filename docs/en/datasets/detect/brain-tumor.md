@@ -8,6 +8,17 @@ keywords: Ultralytics, Brain Tumor dataset, object detection, YOLO, YOLO model t
 
 A brain tumor detection dataset consists of medical images from MRI or CT scans, containing information about brain tumor presence, location, and characteristics. This dataset is essential for training computer vision algorithms to automate brain tumor identification, aiding in early diagnosis and treatment planning.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ogTBBD8McRk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics HUB
+</p>
+
 ## Dataset Structure
 
 The brain tumor dataset is divided into two subsets:

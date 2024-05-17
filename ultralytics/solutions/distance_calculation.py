@@ -3,15 +3,16 @@
 import math
 
 import cv2
-from . import (tf, cls_names, bg_color_rgb, txt_color_rgb, extract_tracks,
-               display_frames, Annotator, colors, pxl_m)
+
+from . import Annotator, bg_color_rgb, cls_names, colors, display_frames, extract_tracks, pxl_m, tf, txt_color_rgb
 
 
 class DistanceCalculation:
     """A class to calculate distance between two objects in real-time video stream based on their tracks."""
 
     def __init__(self):
-        """Initializes the distance calculation class with default values for Visual, Image, track and distance parameters.
+        """Initializes the distance calculation class with default values for Visual, Image, track and distance
+        parameters.
         """
         self.boxes = None
         self.trk_ids = None
@@ -92,7 +93,8 @@ class DistanceCalculation:
 
                 distance_m, distance_mm = self.distance(self.centroids[0], self.centroids[1])
                 self.annotator.plot_distance_and_line(
-                    distance_m, distance_mm, self.centroids, bg_color_rgb, txt_color_rgb)
+                    distance_m, distance_mm, self.centroids, bg_color_rgb, txt_color_rgb
+                )
 
         self.centroids = []
         cv2.namedWindow(self.window_name)

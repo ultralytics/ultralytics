@@ -1,18 +1,41 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
-               track_history, display_in, display_out, clswise_dict,
-               txt_color_rgb, extract_tracks, object_counts, env_check,
-               h_alpha, h_decay, heatshape, display_frames, np, colormap,
-               enable_count, Annotator, colors)
+
+from . import (
+    Annotator,
+    bg_color_rgb,
+    cls_names,
+    clswise_dict,
+    colormap,
+    colors,
+    count_type,
+    display_frames,
+    display_in,
+    display_out,
+    display_tracks,
+    enable_count,
+    env_check,
+    extract_tracks,
+    h_alpha,
+    h_decay,
+    heatshape,
+    np,
+    object_counts,
+    rg_pts,
+    tf,
+    track_history,
+    txt_color_rgb,
+)
 
 
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
 
     def __init__(self):
-        """Initializes the heatmap_im0 class with default values for Visual, Image, track, count and heatmap_im0 parameters."""
+        """Initializes the heatmap_im0 class with default values for Visual, Image, track, count and heatmap_im0
+        parameters.
+        """
         self.im0 = None
         self.annotator = None
         self.heatmap_im0 = None
@@ -29,7 +52,11 @@ class Heatmap:
         """
         global in_count, out_count
 
-        self.heatmap_im0 = np.zeros((int(im0.shape[0]), int(im0.shape[1])), dtype=np.float32) if self.heatmap_im0 is None else self.heatmap_im0
+        self.heatmap_im0 = (
+            np.zeros((int(im0.shape[0]), int(im0.shape[1])), dtype=np.float32)
+            if self.heatmap_im0 is None
+            else self.heatmap_im0
+        )
 
         self.im0 = im0
         self.annotator = Annotator(self.im0, line_width=tf)
@@ -37,7 +64,9 @@ class Heatmap:
 
         boxes, clss, track_ids = extract_tracks(tracks)
 
-        self.annotator.draw_region(reg_pts=rg_pts, color=bg_color_rgb, thickness=tf) if count_type == "classwise" and enable_count else None
+        self.annotator.draw_region(
+            reg_pts=rg_pts, color=bg_color_rgb, thickness=tf
+        ) if count_type == "classwise" and enable_count else None
         heatmap_normalized = cv2.normalize(self.heatmap_im0, None, 0, 255, cv2.NORM_MINMAX)
 
         if track_ids is not None:
@@ -47,25 +76,25 @@ class Heatmap:
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0: self.heatmap_im0.shape[0], 0: self.heatmap_im0.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
+                    y, x = np.ogrid[0 : self.heatmap_im0.shape[0], 0 : self.heatmap_im0.shape[1]]
+                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap_im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += (
-                            2 * mask[int(box[1]): int(box[3]), int(box[0]): int(box[2])]
+                    self.heatmap_im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     )
                 else:
-                    self.heatmap_im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap_im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
                 track_line = track_history[trk_id]
                 x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
                 track_line.append((x_center, y_center))
                 if len(track_line) > 30:
                     track_line.pop(0)
 
-
                 if display_tracks:
                     self.annotator.draw_centroid_and_tracks(track_line, color=color, track_thickness=tf)
-                    self.annotator.draw_label_in_center((str(cls_names[int(cls)]) + ":" + str(trk_id)), txt_color_rgb,
-                                                        color, x_center, y_center, 5)
+                    self.annotator.draw_label_in_center(
+                        (str(cls_names[int(cls)]) + ":" + str(trk_id)), txt_color_rgb, color, x_center, y_center, 5
+                    )
 
                 if enable_count:
                     prev_position = track_history[trk_id][-2] if len(track_history[trk_id]) > 1 else None
@@ -85,7 +114,9 @@ class Heatmap:
                                 else:
                                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
                         if labels_dict is not None:
-                            self.annotator.display_analytics(self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=5)
+                            self.annotator.display_analytics(
+                                self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=5
+                            )
                     else:
                         if not display_in and not display_out:
                             label = 0
@@ -95,7 +126,9 @@ class Heatmap:
                             label = f"In : {in_count}"
                         else:
                             label = f"In : {in_count}, Out : {out_count}"
-                        self.annotator.line_counter(points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=5, gap=10)
+                        self.annotator.line_counter(
+                            points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=5, gap=10
+                        )
 
         else:
             for box in boxes:
@@ -103,14 +136,14 @@ class Heatmap:
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0: self.heatmap_im0.shape[0], 0: self.heatmap_im0.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
+                    y, x = np.ogrid[0 : self.heatmap_im0.shape[0], 0 : self.heatmap_im0.shape[1]]
+                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap_im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += (
-                            2 * mask[int(box[1]): int(box[3]), int(box[0]): int(box[2])]
+                    self.heatmap_im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     )
                 else:
-                    self.heatmap_im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap_im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), colormap)
 

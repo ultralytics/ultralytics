@@ -44,6 +44,11 @@ class SegmentationPoseTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
+    def set_model_attributes(self):
+        """Sets keypoints shape attribute of PoseModel."""
+        super().set_model_attributes()
+        self.model.kpt_shape = self.data["kpt_shape"]
+
     def plot_training_samples(self, batch, ni):
         """Creates a plot of training sample images with labels and box coordinates."""
         plot_images(

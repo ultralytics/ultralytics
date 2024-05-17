@@ -339,7 +339,6 @@ class Annotator:
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
-    # ----------- Ultralytics solutions utils -----------
     def get_bbox_dimension(self, bbox=None):
         """
         Calculate the area of a bounding box.
@@ -350,11 +349,13 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
+
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
         height = y_max - y_min
         return width, height, width * height
 
+    # ----------- Ultralytics solutions utils -----------
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """
         Draw region line.
@@ -364,6 +365,7 @@ class Annotator:
             color (tuple): Region Color value
             thickness (int): Region area thickness value
         """
+
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
@@ -375,6 +377,7 @@ class Annotator:
             color (tuple): tracks line color
             track_thickness (int): track line thickness value
         """
+
         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
@@ -500,7 +503,6 @@ class Annotator:
             )
             text_y_offset = rect_y2
 
-    # Object counting, heatmaps
     def line_counter(self, points, bg_color, txt_color, margin=10, text=0, gap=10):
         """
         Display the object counts using line counting annotator
@@ -550,6 +552,7 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
+
         a, b, c = np.array(a), np.array(b), np.array(c)
         radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
         angle = np.abs(radians * 180.0 / np.pi)
@@ -567,6 +570,7 @@ class Annotator:
             shape (tuple): imgsz for model inference
             radius (int): Keypoint radius value
         """
+
         for i, k in enumerate(keypoints):
             if i in indices:
                 x_coord, y_coord = k[0], k[1]
@@ -590,6 +594,7 @@ class Annotator:
             color (tuple): text background color for workout monitoring
             txt_color (tuple): text foreground color for workout monitoring
         """
+
         angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
 
         # Draw angle
@@ -659,6 +664,7 @@ class Annotator:
             det_label (str): Detection label text
             track_label (str): Tracking label text
         """
+
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f"Track ID: {track_label}" if track_label else det_label
@@ -687,6 +693,7 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
+
         (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
         cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
         cv2.putText(
@@ -717,7 +724,7 @@ class Annotator:
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
         """
         Function for pinpoint human-vision eye mapping and plotting.
 
@@ -726,13 +733,12 @@ class Annotator:
             center_point (tuple): center point for vision eye view
             color (tuple): object centroid and line color value
             pin_color (tuple): visioneye point color value
-            thickness (int): int value for line thickness
-            pins_radius (int): visioneye point radius value
         """
+
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
-        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
-        cv2.line(self.im, center_point, center_bbox, color, thickness)
+        cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
+        cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, self.tf)
     # ---------------------------------------------------
 
 

@@ -105,7 +105,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ???+ tip "Support"
 
-    "pushup", "pullup" and "abworkout" supported
+    "pushup", "squat", "pullup" and "abworkout" supported
 
 ### KeyPoints Map
 
@@ -121,7 +121,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `txt_color`       | `tuple` | `(255, 255, 255)`   | Foreground color for object counts text                                                |
 | `bg_color`        | `tuple` | `(255, 255, 255)`   | Count highlighter color                                                                |
 | `kpts_to_check`   | `list`  | `None`              | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `pose_type`       | `str`   | `pushup`            | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
+| `pose_type`       | `str`   | `pushup`            | Pose that need to be monitored, `squat`, `pullup` and `abworkout` also supported       |
 | `pose_up_angle`   | `int`   | `145`               | Pose Up Angle value                                                                    |
 | `pose_down_angle` | `int`   | `90`                | Pose Down Angle value                                                                  |
 

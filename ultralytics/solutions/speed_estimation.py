@@ -1,13 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from collections import defaultdict
 from time import time
-
 import cv2
-import numpy as np
-
-from ultralytics.utils.checks import check_imshow
-from ultralytics.utils.plotting import Annotator, colors
+from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, track_history,
+               txt_color_rgb, extract_tracks, env_check, Annotator, colors,
+               d_thresh, np, display_frames)
 
 
 class SpeedEstimator:
@@ -15,108 +12,15 @@ class SpeedEstimator:
 
     def __init__(self):
         """Initializes the speed-estimator class with default values for Visual, Image, track and speed parameters."""
-
-        # Visual & im0 information
         self.im0 = None
         self.annotator = None
-        self.view_img = False
-
-        # Region information
-        self.reg_pts = [(20, 400), (1260, 400)]
-
-        # Predict/track information
-        self.clss = None
-        self.names = None
-        self.boxes = None
-        self.trk_ids = None
-        self.trk_pts = None
-        self.tf = 2
-        self.trk_history = defaultdict(list)
-
-        # Speed estimator information
-        self.current_time = 0
-        self.dist_data = {}
-        self.trk_idslist = []
-        self.spdl_dist_thresh = 10
         self.trk_previous_times = {}
         self.trk_previous_points = {}
+        self.trk_idslist = []
+        self.dist_data = {}
+        self.window_name = "Ultralytics YOLOv8 Speed Estimation"
+        print("Speed estimation app initialized...")
 
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        reg_pts,
-        names,
-        view_img=False,
-        line_thickness=2,
-        spdl_dist_thresh=10,
-    ):
-        """
-        Configures the speed estimation and display parameters.
-
-        Args:
-            reg_pts (list): Initial list of points defining the speed calculation region.
-            names (dict): object detection classes names
-            view_img (bool): Flag indicating frame display
-            line_thickness (int): Line thickness for bounding boxes.
-            spdl_dist_thresh (int): Euclidean distance threshold for speed line
-        """
-        if reg_pts is None:
-            print("Region points not provided, using default values")
-        else:
-            self.reg_pts = reg_pts
-        self.names = names
-        self.view_img = view_img
-        self.tf = line_thickness
-        self.spdl_dist_thresh = spdl_dist_thresh
-
-    def extract_tracks(self, tracks):
-        """
-        Extracts results from the provided data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
-
-    def store_track_info(self, track_id, box):
-        """
-        Store track data.
-
-        Args:
-            track_id (int): object track id.
-            box (list): object bounding box data
-        """
-        track = self.trk_history[track_id]
-        bbox_center = (float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2))
-        track.append(bbox_center)
-
-        if len(track) > 30:
-            track.pop(0)
-
-        self.trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        return track
-
-    def plot_box_and_track(self, track_id, box, cls, track):
-        """
-        Plot track and bounding box.
-
-        Args:
-            track_id (int): object track id.
-            box (list): object bounding box data
-            cls (str): object class name
-            track (list): tracking history for tracks path drawing
-        """
-        speed_label = f"{int(self.dist_data[track_id])}km/ph" if track_id in self.dist_data else self.names[int(cls)]
-        bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
-
-        self.annotator.box_label(box, speed_label, bbox_color)
-
-        cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
-        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
 
     def calculate_speed(self, trk_id, track):
         """
@@ -127,12 +31,12 @@ class SpeedEstimator:
             track (list): tracking history for tracks path drawing
         """
 
-        if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
+        if not rg_pts[0][0] < track[-1][0] < rg_pts[1][0]:
             return
-        if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:
+        if rg_pts[1][1] - d_thresh < track[-1][1] < rg_pts[1][1] + d_thresh:
             direction = "known"
 
-        elif self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[0][1] + self.spdl_dist_thresh:
+        elif rg_pts[0][1] - d_thresh < track[-1][1] < rg_pts[0][1] + d_thresh:
             direction = "known"
 
         else:
@@ -150,45 +54,47 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks, region_color=(255, 0, 0)):
+    def estimate_speed(self, im0, tracks):
         """
         Calculate object based on tracking data.
 
         Args:
             im0 (nd array): Image
             tracks (list): List of tracks obtained from the object tracking process.
-            region_color (tuple): Color to use when drawing regions.
         """
         self.im0 = im0
-        if tracks[0].boxes.id is None:
-            if self.view_img and self.env_check:
-                self.display_frames()
-            return im0
-        self.extract_tracks(tracks)
 
-        self.annotator = Annotator(self.im0, line_width=2)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
+        boxes, clss, track_ids = extract_tracks(tracks)
 
-        for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
-            track = self.store_track_info(trk_id, box)
+        self.annotator = Annotator(self.im0, line_width=tf)
+        self.annotator.draw_region(reg_pts=rg_pts, color=bg_color_rgb, thickness=tf)
 
-            if trk_id not in self.trk_previous_times:
-                self.trk_previous_times[trk_id] = 0
+        if track_ids is not None:
+            for box, trk_id, cls in zip(boxes, track_ids, clss):
+                color = colors(int(trk_id), True)
+                track_line = track_history[trk_id]
 
-            self.plot_box_and_track(trk_id, box, cls, track)
-            self.calculate_speed(trk_id, track)
+                x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+                track_line.append((x_center, y_center))
+                if len(track_line) > 30:
+                    track_line.pop(0)
 
-        if self.view_img and self.env_check:
-            self.display_frames()
+                if display_tracks:
+                    self.annotator.draw_centroid_and_tracks(
+                        track_line,
+                        color=color,
+                        track_thickness=tf,
+                    )
 
-        return im0
+                if trk_id not in self.trk_previous_times:
+                    self.trk_previous_times[trk_id] = 0
 
-    def display_frames(self):
-        """Display frame."""
-        cv2.imshow("Ultralytics Speed Estimation", self.im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
+                speed_label = f"{int(self.dist_data[trk_id])}km/ph" if trk_id in self.dist_data else cls_names[int(cls)]
+                self.annotator.draw_label_in_center(speed_label, txt_color_rgb, color, x_center, y_center, 10)
+                self.calculate_speed(trk_id, track_line)
 
+        display_frames(self.im0, self.window_name)
+        return self.im0
 
 if __name__ == "__main__":
     SpeedEstimator()

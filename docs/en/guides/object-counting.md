@@ -178,7 +178,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()
         ```
 
-### Optional Arguments `set_args`
+### Optional Arguments `configure`
 
 | Name               | Type        | Default                    | Description                                      |
 |--------------------|-------------|----------------------------|--------------------------------------------------|

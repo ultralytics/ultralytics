@@ -56,8 +56,8 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Configure heatmap
-        sol.configure(view_img=True, names=model.names, heat_shape="circle",
-                      draw_tracks=True, counts_type="classwise",enable_counting=True)
+        sol.configure(view_img=True, names=model.names, heat_shape="circle", color_map=cv2.COLORMAP_PINK,
+                      draw_tracks=False, counts_type="classwise",enable_counting=True)
         
         # Init heatmap
         heatmap_obj = sol.heatmap.Heatmap()
@@ -92,7 +92,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Configure heatmap
         line_points = [(20, 400), (1080, 404)]
         sol.configure(view_img=True, region_pts=line_points, names=model.names,
-                      draw_tracks=True, counts_type="line",enable_counting=True)
+                      draw_tracks=False, counts_type="line",enable_counting=True)
         
         # Init heatmap
         heatmap_obj = sol.heatmap.Heatmap()
@@ -126,7 +126,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Configure heatmap
         polygon_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
         sol.configure(view_img=True, region_pts=polygon_points, names=model.names,
-                      draw_tracks=True, counts_type="line",enable_counting=True)
+                      draw_tracks=False, counts_type="line",enable_counting=True)
         
         # Init heatmap
         heatmap_obj = sol.heatmap.Heatmap()
@@ -190,7 +190,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         im0 = cv2.imread("path/to/image.png")  # path to image file
 
         # Configure heatmap
-        sol.configure(view_img=True, names=model.names, draw_tracks=True, 
+        sol.configure(view_img=True, names=model.names, draw_tracks=False, 
                       counts_type="classwise", enable_counting=False)
 
         # Init heatmap
@@ -217,7 +217,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         
         # Configure heatmap
         classes_for_heatmap = [0, 2]  # classes for heatmap
-        sol.configure(view_img=True, names=model.names, draw_tracks=True,
+        sol.configure(view_img=True, names=model.names, draw_tracks=False,
                       counts_type="classwise", enable_counting=True)
         
         # Init heatmap
@@ -236,7 +236,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         cv2.destroyAllWindows()
         ```
 
-### Arguments `set_args`
+### Arguments `configure`
 
 | Name               | Type           | Default                    | Description                                                       |
 |--------------------|----------------|----------------------------|-------------------------------------------------------------------|
@@ -255,6 +255,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 | `heat_shape`       | `str`          | `circle`                   | Heatmap shape, i.e "circle" or "rect"                             |
 | `heat_decay`       | `float`        | `0.99`                     | Heatmap decay factor for heatmap area removal after specific time |
 | `heat_alpha`       | `float`        | `0.55`                     | Heatmap alpha value                                               |
+| `enable_counting`  | `bool`         | `True`                     | Enable object counting                                            |
 
 ### Arguments `model.track`
 

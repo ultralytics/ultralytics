@@ -36,66 +36,88 @@ Speed estimation is the process of calculating the rate of movement of an object
 
 !!! Example "Speed Estimation using YOLOv8 Example"
 
-    === "Speed Estimation"
+    === "Speed in Line"
 
         ```python
         from ultralytics import YOLO
-        from ultralytics.solutions import speed_estimation
+        import ultralytics.solutions as sol
         import cv2
-
+        
         model = YOLO("yolov8n.pt")
-        names = model.model.names
-
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Video writer
-        video_writer = cv2.VideoWriter("speed_estimation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
-
-        line_pts = [(0, 360), (1280, 360)]
-
-        # Init speed-estimation obj
-        speed_obj = speed_estimation.SpeedEstimator()
-        speed_obj.set_args(reg_pts=line_pts,
-                           names=names,
-                           view_img=True)
-
+        video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        
+        line_points = [(0, 360), (1280, 360)]
+        
+        sol.configure(names=model.names, line_thickness=3, region_pts=line_points,
+                      line_dist_thresh=15, view_img=True)
+        
+        speed_obj = sol.speed_estimation.SpeedEstimator()
+        
         while cap.isOpened():
-
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
                 break
-
             tracks = model.track(im0, persist=True, show=False)
-
             im0 = speed_obj.estimate_speed(im0, tracks)
             video_writer.write(im0)
-
+        
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
+        ```
+    
+    === "Speed in Region"
 
+        ```python
+        from ultralytics import YOLO
+        import ultralytics.solutions as sol
+        import cv2
+        
+        model = YOLO("yolov8n.pt")
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
+        
+        sol.configure(names=model.names, line_thickness=3, region_pts=region_points,
+                      line_dist_thresh=15, view_img=True)
+        
+        speed_obj = sol.speed_estimation.SpeedEstimator()
+        
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                break
+            tracks = model.track(im0, persist=True, show=False)
+            im0 = speed_obj.estimate_speed(im0, tracks)
+            video_writer.write(im0)
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
         ```
 
 ???+ warning "Speed is Estimate"
 
     Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
 
-### Optional Arguments `set_args`
+### Optional Arguments `configure`
 
-| Name               | Type   | Default                    | Description                                       |
-|--------------------|--------|----------------------------|---------------------------------------------------|
-| `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | Points defining the Region Area                   |
-| `names`            | `dict` | `None`                     | Classes names                                     |
-| `view_img`         | `bool` | `False`                    | Display frames with counts                        |
-| `line_thickness`   | `int`  | `2`                        | Increase bounding boxes thickness                 |
-| `region_thickness` | `int`  | `5`                        | Thickness for object counter region or line       |
-| `spdl_dist_thresh` | `int`  | `10`                       | Euclidean Distance threshold for speed check line |
+| Name               | Type        | Default                    | Description                                      |
+|--------------------|-------------|----------------------------|--------------------------------------------------|
+| `view_img`         | `bool`      | `False`                    | Display frames with counts                       |
+| `line_thickness`   | `int`       | `2`                        | Increase bounding boxes and count text thickness |
+| `region_pts`       | `list`      | `[(20, 400), (1260, 400)]` | Points defining the region area                  |
+| `names`            | `dict`      | `model.model.names`        | Dictionary of classes names                      |
+| `draw_tracks`      | `bool`      | `False`                    | Enable drawing track lines                       |
+| `line_dist_thresh` | `int`       | `15`                       | Euclidean distance threshold for line counter    |
+| `txt_color`        | `RGB Color` | `(255, 255, 255)`          | Foreground color for object counts text          |
+| `bg_color`         | `RGB Color` | `(255, 255, 255)`          | Count highlighter color                          |
 
 ### Arguments `model.track`
 

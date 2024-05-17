@@ -13,30 +13,30 @@ from shapely.geometry import LineString, Point, Polygon
 
 # Dict and list initialization
 counted_ids = []
-counting_region = []
 clswise_dict = {}
-env_check = check_imshow(warn=True)
+counting_region = []
 track_history = defaultdict(list)
+env_check = check_imshow(warn=True)
 
 # Variables initialization
-cls_names = None
-count_type = "classwise"  # classwise or merge
-in_count = 0
-out_count = 0
-display_img = False,
-bg_color_rgb = (104, 31, 17)
-txt_color_rgb = (255, 255, 255)
-tf = 0
-display_tracks: bool = True,
-display_in: bool = True,
-display_out: bool = True,
-d_thresh = 14,
-rg_pts = None,
-enable_count = True,
-colormap = cv2.COLORMAP_JET,
-h_alpha = 0.5,
-h_decay = 0.99,
-heatshape = "circle",
+tf: int = 0
+in_count: int = 0
+out_count: int = 0
+d_thresh: int = 14
+rg_pts: list = None
+h_alpha: float = 0.5,
+h_decay: float = 0.99,
+cls_names: dict = None
+display_in: bool = True
+display_out: bool = True
+display_img: bool = False
+heatshape: str = "circle",
+enable_count: bool = True
+colormap = cv2.COLORMAP_JET
+display_tracks: bool = True
+count_type: str = "classwise"
+bg_color_rgb: tuple = (104, 31, 17)
+txt_color_rgb: tuple = (255, 255, 255)
 
 pixels_per_meter = 10,
 pose_type = "push up"
@@ -62,11 +62,12 @@ def configure(
         heat_shape="circle",
         heat_decay=0.99,
         heat_alpha=0.5,
-        pixels_per_meter=10,
         kpts_to_check=None,
         pose_up_angle=145.0,
         pose_down_angle=90.0,
-        pose_type="pullup"
+        pose_type="pullup",
+        pixels_per_meter=10,
+
 ):
     global display_img, bg_color_rgb, txt_color_rgb, cls_names, tf, sf, display_tracks, \
         display_in, display_out, d_thresh, rg_pts, counting_region, count_type, colormap, \
@@ -177,10 +178,6 @@ def object_counts(prev_position, box, cls, track_id, track_line):
                     if count_type == "classwise":
                         clswise_dict[cls_names[cls]]["OUT"] += 1
     return in_count, out_count, clswise_dict
-
-
-def draw_region(annotator):
-    annotator.draw_region(reg_pts=rg_pts, color=bg_color_rgb, thickness=tf * 2)
 
 
 def display_frames(im0, window_name):

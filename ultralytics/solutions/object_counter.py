@@ -2,8 +2,8 @@
 
 import cv2
 from . import (tf, cls_names, bg_color_rgb, display_tracks, rg_pts, count_type,
-               track_history, display_img, display_in, display_out, clswise_dict,
-               txt_color_rgb, draw_region, extract_tracks, object_counts, env_check,
+               track_history, display_frames, display_in, display_out, clswise_dict,
+               txt_color_rgb, extract_tracks, object_counts, env_check,
                Annotator, colors, enable_count)
 
 
@@ -25,64 +25,60 @@ class ObjectCounter:
             tracks: object tracking data for complete frame
         """
 
-        global in_count, out_count
+        global in_count, out_count, clswise_dict
 
-        if enable_count:
-            self.annotator = Annotator(self.im0, line_width=tf)
-            if count_type == "classwise":
-                draw_region(self.annotator)
+        self.annotator = Annotator(self.im0, line_width=tf)
+        self.annotator.draw_region(reg_pts=rg_pts, color=bg_color_rgb, thickness=tf) if count_type == "classwise" and enable_count else None
 
-            # Extract tracks
-            boxes, clss, track_ids = extract_tracks(tracks)
+        # Extract tracks
+        boxes, clss, track_ids = extract_tracks(tracks)
 
-            if track_ids is not None:
-                for box, track_id, cls in zip(boxes, track_ids, clss):
-                    self.annotator.box_label(box, label=f"{cls_names[cls]}#{track_id}",
-                                             color=colors(int(track_id), True))
+        if track_ids is not None:
+            for box, trk_id, cls in zip(boxes, track_ids, clss):
+                color = colors(int(trk_id), True)
+                track_line = track_history[trk_id]
+                x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+                track_line.append((x_center, y_center))
+                if len(track_line) > 30:
+                    track_line.pop(0)
 
-                    track_line = track_history[track_id]
-                    track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
-                    if len(track_line) > 30:
-                        track_line.pop(0)
+                self.annotator.draw_label_in_center((str(cls_names[int(cls)])+":"+str(trk_id)), txt_color_rgb, color, x_center, y_center, 5)
 
-                    # Draw track trails
-                    if display_tracks:
-                        self.annotator.draw_centroid_and_tracks(
-                            track_line,
-                            color=colors(int(track_id), True),
-                            track_thickness=tf,
-                        )
+                if display_tracks:
+                    self.annotator.draw_centroid_and_tracks(track_line, color=color, track_thickness=tf)
 
-                    prev_position = track_history[track_id][-2] if len(track_history[track_id]) > 1 else None
-                    in_count, out_count, clswise_dict = object_counts(prev_position, box, cls, track_id, track_line)
+                if enable_count:
+                    prev_position = track_history[trk_id][-2] if len(track_history[trk_id]) > 1 else None
+                    in_count, out_count, clswise_dict = object_counts(prev_position, box, cls, trk_id, track_line)
 
-            if count_type == "classwise":
-                labels_dict = {}
+            if enable_count:
+                if count_type == "classwise":
+                    labels_dict = {}
 
-                for key, value in clswise_dict.items():
-                    if value["IN"] != 0 or value["OUT"] != 0:
-                        if not display_in and not display_out:
-                            continue
-                        elif not display_in:
-                            labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
-                        elif not display_out:
-                            labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
-                        else:
-                            labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
+                    for key, value in clswise_dict.items():
+                        if value["IN"] != 0 or value["OUT"] != 0:
+                            if not display_in and not display_out:
+                                continue
+                            elif not display_in:
+                                labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
+                            elif not display_out:
+                                labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
+                            else:
+                                labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
-                if labels_dict is not None:
-                    self.annotator.display_analytics(self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=10)
-            else:
-                if not display_in and not display_out:
-                    label = 0
-                elif not display_in:
-                    label = f"Out : {out_count}"
-                elif not display_out:
-                    label = f"In : {in_count}"
+                    if labels_dict is not None:
+                        self.annotator.display_analytics(self.im0, labels_dict, txt_color=txt_color_rgb, bg_color=bg_color_rgb, margin=5)
                 else:
-                    label = f"In : {in_count}, Out : {out_count}"
+                    if not display_in and not display_out:
+                        label = 0
+                    elif not display_in:
+                        label = f"Out : {out_count}"
+                    elif not display_out:
+                        label = f"In : {in_count}"
+                    else:
+                        label = f"In : {in_count}, Out : {out_count}"
 
-                self.annotator.line_counter(points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=10, gap=10)
+                    self.annotator.line_counter(points=rg_pts, bg_color=bg_color_rgb, txt_color=txt_color_rgb, text=label, margin=5, gap=10)
 
         display_frames(self.im0, self.window_name)
 

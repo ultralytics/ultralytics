@@ -94,6 +94,7 @@ def configure(
         workout_kpts, \
         psup_angle, \
         psdown_angle, \
+        ps_type
 
     display_img = view_img
     display_tracks = draw_tracks

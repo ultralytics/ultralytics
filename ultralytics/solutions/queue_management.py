@@ -112,7 +112,6 @@ class QueueManager:
                 points=self.reg_pts,
                 region_color=self.region_color,
                 txt_color=self.count_txt_color,
-                fontsize=self.fontsize,
             )
 
         self.counts = 0

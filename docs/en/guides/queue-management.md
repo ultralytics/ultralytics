@@ -127,7 +127,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `track_color`       | `RGB Color` | `(0, 255, 0)`              | Color for each track line                   |
 | `count_txt_color`   | `RGB Color` | `(255, 255, 255)`          | Foreground color for Object counts text     |
 | `region_thickness`  | `int`       | `5`                        | Thickness for object counter region or line |
-| `fontsize`          | `float`     | `0.6`                      | Font size of counting text                  |
 
 ### Arguments `model.track`
 

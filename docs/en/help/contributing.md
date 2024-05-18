@@ -57,7 +57,7 @@ When adding new functions or classes, please include a [Google-style docstring](
 
     === "Google-style"
 
-         This example shows both Google-style docstrings. Note that both input and output `types` must always be enclosed by parentheses, i.e. `(bool)`.
+         This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e. `(bool)`.
          ```python
          def example_function(arg1, arg2=4):
              """
@@ -80,7 +80,7 @@ When adding new functions or classes, please include a [Google-style docstring](
 
     === "Google-style with type hints"
 
-         This example shows both Google-style docstrings and argument and return type hints, though both are not required, one can be used without the other.
+         This example shows both a Google-style docstring and argument and return type hints, though both are not required, one can be used without the other.
          ```python
          def example_function(arg1: int, arg2: int = 4) -> bool:
              """

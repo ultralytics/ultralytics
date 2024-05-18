@@ -11,69 +11,39 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class SpeedEstimator:
-    """A class to estimation speed of objects in real-time video stream based on their tracks."""
+    """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
 
-    def __init__(self):
-        """Initializes the speed-estimator class with default values for Visual, Image, track and speed parameters."""
+    def __init__(self, names, reg_pts=None, view_img=False, line_thickness=2, region_thickness=5, spdl_dist_thresh=10):
+        """Initializes the speed-estimator class with default values for Visual, Image, track, and speed parameters."""
 
         # Visual & im0 information
         self.im0 = None
         self.annotator = None
-        self.view_img = False
+        self.view_img = view_img
 
         # Region information
-        self.reg_pts = [(20, 400), (1260, 400)]
-        self.region_thickness = 3
+        self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
+        self.region_thickness = region_thickness
 
         # Predict/track information
         self.clss = None
-        self.names = None
+        self.names = names
         self.boxes = None
         self.trk_ids = None
         self.trk_pts = None
-        self.line_thickness = 2
+        self.line_thickness = line_thickness
         self.trk_history = defaultdict(list)
 
         # Speed estimator information
         self.current_time = 0
         self.dist_data = {}
         self.trk_idslist = []
-        self.spdl_dist_thresh = 10
+        self.spdl_dist_thresh = spdl_dist_thresh
         self.trk_previous_times = {}
         self.trk_previous_points = {}
 
-        # Check if environment support imshow
+        # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        reg_pts,
-        names,
-        view_img=False,
-        line_thickness=2,
-        region_thickness=5,
-        spdl_dist_thresh=10,
-    ):
-        """
-        Configures the speed estimation and display parameters.
-
-        Args:
-            reg_pts (list): Initial list of points defining the speed calculation region.
-            names (dict): object detection classes names
-            view_img (bool): Flag indicating frame display
-            line_thickness (int): Line thickness for bounding boxes.
-            region_thickness (int): Speed estimation region thickness
-            spdl_dist_thresh (int): Euclidean distance threshold for speed line
-        """
-        if reg_pts is None:
-            print("Region points not provided, using default values")
-        else:
-            self.reg_pts = reg_pts
-        self.names = names
-        self.view_img = view_img
-        self.line_thickness = line_thickness
-        self.region_thickness = region_thickness
-        self.spdl_dist_thresh = spdl_dist_thresh
 
     def extract_tracks(self, tracks):
         """
@@ -130,15 +100,12 @@ class SpeedEstimator:
             trk_id (int): object track id.
             track (list): tracking history for tracks path drawing
         """
-
         if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
             return
         if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:
             direction = "known"
-
         elif self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[0][1] + self.spdl_dist_thresh:
             direction = "known"
-
         else:
             direction = "unknown"
 
@@ -195,4 +162,5 @@ class SpeedEstimator:
 
 
 if __name__ == "__main__":
-    SpeedEstimator()
+    names = {0: "person", 1: "car"}  # example class names
+    speed_estimator = SpeedEstimator(names)

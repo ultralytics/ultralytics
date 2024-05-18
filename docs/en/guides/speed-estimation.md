@@ -39,8 +39,7 @@ Speed estimation is the process of calculating the rate of movement of an object
     === "Speed Estimation"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import speed_estimation
+        from ultralytics import YOLO, Solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -51,18 +50,14 @@ Speed estimation is the process of calculating the rate of movement of an object
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
-        video_writer = cv2.VideoWriter("speed_estimation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
+        video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
 
         line_pts = [(0, 360), (1280, 360)]
 
         # Init speed-estimation obj
-        speed_obj = speed_estimation.SpeedEstimator()
-        speed_obj.set_args(reg_pts=line_pts,
-                           names=names,
-                           view_img=True)
+        speed_obj = Solutions.SpeedEstimator(reg_pts=line_pts,
+                                               names=names,
+                                               view_img=True)
 
         while cap.isOpened():
 

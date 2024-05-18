@@ -1,9 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
-
 import cv2
-
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -11,62 +9,33 @@ from ultralytics.utils.plotting import Annotator, colors
 class DistanceCalculation:
     """A class to calculate distance between two objects in real-time video stream based on their tracks."""
 
-    def __init__(self):
-        """Initializes the distance calculation class with default values for Visual, Image, track and distance
-        parameters.
-        """
+    def __init__(self, names, pixels_per_meter=10, view_img=False, line_thickness=2, line_color=(255, 255, 0), centroid_color=(255, 0, 255)):
+        """Initializes the distance calculation class with default values for Visual, Image, track and distance parameters."""
 
         # Visual & im0 information
         self.im0 = None
         self.annotator = None
-        self.view_img = False
-        self.line_color = (255, 255, 0)
-        self.centroid_color = (255, 0, 255)
+        self.view_img = view_img
+        self.line_color = line_color
+        self.centroid_color = centroid_color
 
         # Predict/track information
         self.clss = None
-        self.names = None
+        self.names = names
         self.boxes = None
-        self.line_thickness = 2
+        self.line_thickness = line_thickness
         self.trk_ids = None
 
         # Distance calculation information
         self.centroids = []
-        self.pixel_per_meter = 10
+        self.pixel_per_meter = pixels_per_meter
 
         # Mouse event
         self.left_mouse_count = 0
         self.selected_boxes = {}
 
-        # Check if environment support imshow
+        # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        names,
-        pixels_per_meter=10,
-        view_img=False,
-        line_thickness=2,
-        line_color=(255, 255, 0),
-        centroid_color=(255, 0, 255),
-    ):
-        """
-        Configures the distance calculation and display parameters.
-
-        Args:
-            names (dict): object detection classes names
-            pixels_per_meter (int): Number of pixels in meter
-            view_img (bool): Flag indicating frame display
-            line_thickness (int): Line thickness for bounding boxes.
-            line_color (RGB): color of centroids line
-            centroid_color (RGB): colors of bbox centroids
-        """
-        self.names = names
-        self.pixel_per_meter = pixels_per_meter
-        self.view_img = view_img
-        self.line_thickness = line_thickness
-        self.line_color = line_color
-        self.centroid_color = centroid_color
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
@@ -76,8 +45,7 @@ class DistanceCalculation:
             event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
             x (int): The x-coordinate of the mouse pointer.
             y (int): The y-coordinate of the mouse pointer.
-            flags (int): Any flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY,
-                cv2.EVENT_FLAG_SHIFTKEY, etc.).
+            flags (int): Any flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY, cv2.EVENT_FLAG_SHIFTKEY, etc.).
             param (dict): Additional parameters you may want to pass to the function.
         """
         global selected_boxes
@@ -178,4 +146,6 @@ class DistanceCalculation:
 
 
 if __name__ == "__main__":
-    DistanceCalculation()
+    names = {0: "person", 1: "car"}  # example class names
+    distance_calculation = DistanceCalculation(names)
+

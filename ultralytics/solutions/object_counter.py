@@ -18,7 +18,7 @@ class ObjectCounter:
     def __init__(
         self,
         classes_names,
-        reg_pts=[(20, 400), (1260, 400)],
+        reg_pts=None,
         count_reg_color=(255, 0, 255),
         count_txt_color=(0, 0, 0),
         count_bg_color=(255, 255, 255),
@@ -59,7 +59,7 @@ class ObjectCounter:
         self.selected_point = None
 
         # Region & Line Information
-        self.reg_pts = reg_pts
+        self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
         self.line_dist_thresh = line_dist_thresh
         self.counting_region = None
         self.region_color = count_reg_color

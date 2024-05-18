@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Gain insights into training and deploying your YOLOv5 and YOLOv8 models with Ultralytics HUB. Explore pre-trained models, templates and various integrations.
-keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, model deployment, pretrained models, model integrations
+description: Discover Ultralytics HUB for seamless training and deploying of YOLOv5 and YOLOv8 models. Start your AI journey with ease!.
+keywords: Ultralytics HUB, YOLO model training, YOLOv5, YOLOv8, model deployment, AI, machine learning
 ---
 
 # Ultralytics HUB

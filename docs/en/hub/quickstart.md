@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Kickstart your journey with Ultralytics HUB. Learn how to train and deploy YOLOv5 and YOLOv8 models in seconds with our Quickstart guide.
-keywords: Ultralytics HUB, Quickstart, YOLOv5, YOLOv8, model training, quick deployment, drag-and-drop interface, real-time object detection
+description: Easily train YOLO models with the Ultralytics HUB. Quick sign-up, intuitive use, and ready-to-deploy models!.
+keywords: Ultralytics HUB, YOLO Quickstart, train YOLO model, pre-trained models, deploy models, Ultralytics HUB App
 ---
 
 # Ultralytics HUB Quickstart

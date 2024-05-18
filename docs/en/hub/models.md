@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to efficiently train AI models using Ultralytics HUB, a streamlined solution for model creation, training, evaluation, and deployment.
-keywords: Ultralytics, HUB Models, AI model training, model creation, model training, model evaluation, model deployment
+description: Streamline your AI model training on custom datasets with Ultralytics HUB. Efficient, user-friendly, and powerful.
+keywords: Ultralytics HUB, AI model training, custom datasets, YOLOv8, real-time updates, model deployment, Ultralytics
 ---
 
 # Ultralytics HUB Models

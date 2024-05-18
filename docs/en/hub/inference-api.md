@@ -1,3 +1,9 @@
+---
+comments: true
+description: Effortlessly run AI model inferences with Ultralytics HUB Inference API. Perfect for developers!.
+keywords: Ultralytics HUB, Inference API, YOLO, REST API, machine learning, AI model inference, remote inference
+---
+
 # Ultralytics HUB Inference API
 
 The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.

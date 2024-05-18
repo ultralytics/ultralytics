@@ -87,7 +87,6 @@ class AIGym:
                     count_text=self.count[ind],
                     stage_text=self.stage[ind],
                     center_kpt=k[int(self.kpts_to_check[1])],
-                    line_thickness=self.tf,
                 )
 
             if self.pose_type == "pushup":
@@ -101,7 +100,6 @@ class AIGym:
                     count_text=self.count[ind],
                     stage_text=self.stage[ind],
                     center_kpt=k[int(self.kpts_to_check[1])],
-                    line_thickness=self.tf,
                 )
             if self.pose_type == "pullup":
                 if self.angle[ind] > self.poseup_angle:
@@ -114,7 +112,6 @@ class AIGym:
                     count_text=self.count[ind],
                     stage_text=self.stage[ind],
                     center_kpt=k[int(self.kpts_to_check[1])],
-                    line_thickness=self.tf,
                 )
 
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)

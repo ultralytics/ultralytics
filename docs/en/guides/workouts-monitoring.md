@@ -39,7 +39,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
     === "Workouts Monitoring"
 
         ```python
-        from ultralytics import YOLO, Solutions
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n-pose.pt")
@@ -47,7 +47,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        gym_object = Solutions.AIGym(line_thickness=2,
+        gym_object = solutions.AIGym(line_thickness=2,
                                     view_img=True,
                                     pose_type="pushup",
                                     kpts_to_check=[6, 8, 10])
@@ -69,7 +69,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
     === "Workouts Monitoring with Save Output"
 
         ```python
-        from ultralytics import YOLO, Solutions
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n-pose.pt")
@@ -79,7 +79,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
 
-        gym_object = Solutions.AIGym(line_thickness=2,
+        gym_object = solutions.AIGym(line_thickness=2,
                                     view_img=True,
                                     pose_type="pushup",
                                     kpts_to_check=[6, 8, 10])
@@ -114,7 +114,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 |-------------------|--------|----------|----------------------------------------------------------------------------------------|
 | `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
 | `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
-| `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
 | `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
 | `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
 | `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |

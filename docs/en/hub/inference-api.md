@@ -124,10 +124,10 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO("yolov8n.pt")
+        model = YOLO('yolov8n.pt')
 
         # Run inference
-        results = model("image.jpg")
+        results = model('image.jpg')
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -222,10 +222,10 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO("yolov8n-seg.pt")
+        model = YOLO('yolov8n-seg.pt')
 
         # Run inference
-        results = model("image.jpg")
+        results = model('image.jpg')
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -363,10 +363,10 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO("yolov8n-seg.pt")
+        model = YOLO('yolov8n-seg.pt')
 
         # Run inference
-        results = model("image.jpg")
+        results = model('image.jpg')
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())

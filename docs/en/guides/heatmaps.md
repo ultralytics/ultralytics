@@ -255,28 +255,27 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         cv2.destroyAllWindows()
         ```
 
-### Arguments `set_args`
+### Arguments `Heatmap()`
 
-| Name                 | Type           | Default             | Description                                               |
-|----------------------|----------------|---------------------|-----------------------------------------------------------|
-| `view_img`           | `bool`         | `False`             | Display the frame with heatmap                            |
-| `colormap`           | `cv2.COLORMAP` | `None`              | cv2.COLORMAP for heatmap                                  |
-| `imw`                | `int`          | `None`              | Width of Heatmap                                          |
-| `imh`                | `int`          | `None`              | Height of Heatmap                                         |
-| `line_thickness`     | `int`          | `2`                 | Increase bounding boxes and count text thickness          |
-| `view_in_counts`     | `bool`         | `True`              | Display in-counts only on video frame                     |
-| `view_out_counts`    | `bool`         | `True`              | Display out-counts only on video frame                    |
-| `classes_names`      | `dict`         | `model.model.names` | Dictionary of Class Names                                 |
-| `heatmap_alpha`      | `float`        | `0.5`               | Heatmap alpha value                                       |
-| `count_reg_pts`      | `list`         | `None`              | Object counting region points                             |
-| `count_txt_color`    | `RGB Color`    | `(0, 0, 0)`         | Foreground color for Object counts text                   |
-| `count_reg_color`    | `RGB Color`    | `(255, 0, 255)`     | Counting region color                                     |
-| `region_thickness`   | `int`          | `5`                 | Counting region thickness value                           |
-| `decay_factor`       | `float`        | `0.99`              | Decay factor for heatmap area removal after specific time |
-| `shape`              | `str`          | `circle`            | Heatmap shape for display "rect" or "circle" supported    |
-| `line_dist_thresh`   | `int`          | `15`                | Euclidean Distance threshold for line counter             |
-| `count_bg_color`     | `RGB Color`    | `(255, 255, 255)`   | Count highlighter color                                   |
-| `cls_txtdisplay_gap` | `int`          | `50`                | Display gap between each class count                      |
+| Name               | Type             | Default            | Description                                                       |
+|--------------------|------------------|--------------------|-------------------------------------------------------------------|
+| `classes_names`    | `dict`           | `None`             | Dictionary of class names.                                        |
+| `imw`              | `int`            | `0`                | Image width.                                                      |
+| `imh`              | `int`            | `0`                | Image height.                                                     |
+| `colormap`         | `int`            | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
+| `heatmap_alpha`    | `float`          | `0.5`              | Alpha blending value for heatmap overlay.                         |
+| `view_img`         | `bool`           | `False`            | Whether to display the image with the heatmap overlay.            |
+| `view_in_counts`   | `bool`           | `True`             | Whether to display the count of objects entering the region.      |
+| `view_out_counts`  | `bool`           | `True`             | Whether to display the count of objects exiting the region.       |
+| `count_reg_pts`    | `list` or `None` | `None`             | Points defining the counting region (either a line or a polygon). |
+| `count_txt_color`  | `tuple`          | `(0, 0, 0)`        | Text color for displaying counts.                                 |
+| `count_bg_color`   | `tuple`          | `(255, 255, 255)`  | Background color for displaying counts.                           |
+| `count_reg_color`  | `tuple`          | `(255, 0, 255)`    | Color for the counting region.                                    |
+| `region_thickness` | `int`            | `5`                | Thickness of the region line.                                     |
+| `line_dist_thresh` | `int`            | `15`               | Distance threshold for line-based counting.                       |
+| `line_thickness`   | `int`            | `2`                | Thickness of the lines used in drawing.                           |
+| `decay_factor`     | `float`          | `0.99`             | Decay factor for the heatmap to reduce intensity over time.       |
+| `shape`            | `str`            | `"circle"`         | Shape of the heatmap blobs ('circle' or 'rect').                  |
 
 ### Arguments `model.track`
 

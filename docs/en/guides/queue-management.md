@@ -108,7 +108,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         cv2.destroyAllWindows()
         ```
 
-### Optional Arguments `set_args`
+### Arguments `QueueManager`
 
 | Name                | Type             | Default                    | Description                                                                         |
 |---------------------|------------------|----------------------------|-------------------------------------------------------------------------------------|

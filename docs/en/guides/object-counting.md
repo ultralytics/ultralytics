@@ -216,7 +216,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
     You can move the region anywhere in the frame by clicking on its edges
 
-### Optional `ObjectCounter` Arguments
+### Argument `ObjectCounter`
 
 Here's a table with the `ObjectCounter` arguments:
 

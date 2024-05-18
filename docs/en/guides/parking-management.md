@@ -97,7 +97,7 @@ root.mainloop()
         cv2.destroyAllWindows()
         ```
 
-### Optional Arguments `ParkingManagement()`
+### Optional Arguments `ParkingManagement`
 
 | Name                     | Type    | Default           | Description                            |
 |--------------------------|---------|-------------------|----------------------------------------|

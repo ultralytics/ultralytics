@@ -108,7 +108,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/ultralytics/ultralytics/assets/62513924/f45d8315-b59f-47b7-b9c8-c61af1ce865b)
 
-### Arguments `set_args`
+### Arguments `AIGym`
 
 | Name              | Type   | Default  | Description                                                                            |
 |-------------------|--------|----------|----------------------------------------------------------------------------------------|

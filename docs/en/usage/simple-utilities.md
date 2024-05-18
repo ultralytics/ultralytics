@@ -396,9 +396,10 @@ from ultralytics.utils.plotting import Annotator, colors
 obb_names = {10: "small vehicle"}
 obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
 obb_boxes = np.array(
-    [[ 0, 635, 560, 919, 719, 1087, 420, 803,  261,], # class-idx x1 y1 x2 y2 x3 y2 x4 y4
-     [ 0, 331,  19, 493, 260, 776,   70, 613, -171,],
-     [ 9, 869, 161, 886, 147, 851,  101, 833,  115,]
+    [
+        [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
+        [0, 331, 19, 493, 260, 776, 70, 613, -171],
+        [9, 869, 161, 886, 147, 851, 101, 833, 115],
     ]
 )
 ann = Annotator(

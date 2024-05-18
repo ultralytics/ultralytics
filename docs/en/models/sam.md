@@ -50,16 +50,16 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics import SAM
 
         # Load a model
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Display model information (optional)
         model.info()
 
         # Run inference with bboxes prompt
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with points prompt
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "Segment everything"
@@ -72,13 +72,13 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics import SAM
 
         # Load a model
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Display model information (optional)
         model.info()
 
         # Run inference
-        model('path/to/image.jpg')
+        model("path/to/image.jpg")
         ```
 
     === "CLI"
@@ -100,7 +100,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
@@ -121,7 +121,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
@@ -150,27 +150,27 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
     === "Python"
 
         ```python
-        from ultralytics import FastSAM, SAM, YOLO
+        from ultralytics import SAM, YOLO, FastSAM
 
         # Profile SAM-b
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile MobileSAM
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile FastSAM-s
-        model = FastSAM('FastSAM-s.pt')
+        model = FastSAM("FastSAM-s.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile YOLOv8n-seg
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
         ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
@@ -188,7 +188,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
 | Argument   | Type                | Description                                                                                             | Default      |

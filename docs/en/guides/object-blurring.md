@@ -21,9 +21,9 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Object Blurring"
 
         ```python
+        import cv2
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
-        import cv2
 
         model = YOLO("yolov8n.pt")
         names = model.names
@@ -36,9 +36,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         blur_ratio = 50
 
         # Video writer
-        video_writer = cv2.VideoWriter("object_blurring_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps, (w, h))
+        video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -55,14 +53,14 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                 for box, cls in zip(boxes, clss):
                     annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
 
-                    obj = im0[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+                    obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     blur_obj = cv2.blur(obj, (blur_ratio, blur_ratio))
 
-                    im0[int(box[1]):int(box[3]), int(box[0]):int(box[2])] = blur_obj
+                    im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
 
             cv2.imshow("ultralytics", im0)
             video_writer.write(im0)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         cap.release()

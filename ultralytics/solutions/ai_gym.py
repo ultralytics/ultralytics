@@ -86,7 +86,7 @@ class AIGym:
                 self.im0 = self.annotator.draw_specific_points(k, self.kpts_to_check, shape=(640, 640), radius=10)
 
                 # Check and update pose stages and counts based on angle
-                if self.pose_type == "abworkout":
+                if self.pose_type in {"abworkout", "pullup"}:
                     if self.angle[ind] > self.poseup_angle:
                         self.stage[ind] = "down"
                     if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
@@ -98,13 +98,6 @@ class AIGym:
                         self.stage[ind] = "up"
                     if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":
                         self.stage[ind] = "down"
-                        self.count[ind] += 1
-
-                elif self.pose_type == "pullup":
-                    if self.angle[ind] > self.poseup_angle:
-                        self.stage[ind] = "down"
-                    if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
-                        self.stage[ind] = "up"
                         self.count[ind] += 1
 
                 self.annotator.plot_angle_and_count_and_stage(

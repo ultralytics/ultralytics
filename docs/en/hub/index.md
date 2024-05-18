@@ -62,5 +62,5 @@ We hope that the resources here will help you get the most out of HUB. Please br
 - [**Teams**](teams.md): Collaborate effortlessly with your team.
 - [**Integrations**](integrations.md): Explore different integration options.
 - [**Ultralytics HUB App**](app/index.md): Learn about the Ultralytics HUB App, which allows you to run models directly on your mobile device.
-  - [**iOS**](app/ios.md): Explore CoreML acceleration on iPhones and iPads.
-  - [**Android**](app/android.md): Explore TFLite acceleration on Android devices.
+    - [**iOS**](app/ios.md): Explore CoreML acceleration on iPhones and iPads.
+    - [**Android**](app/android.md): Explore TFLite acceleration on Android devices.

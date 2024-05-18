@@ -130,7 +130,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         ```
 
 !!! Tip
-    
+
     For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options).
 
 ## Raspberry Pi 5 vs Raspberry Pi 4 YOLOv8 Benchmarks

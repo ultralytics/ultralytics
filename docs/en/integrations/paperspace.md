@@ -16,7 +16,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
   <img width="100%" src="https://assets-global.website-files.com/5db99670374d1d829291af4f/62dde8621ae3452ade8096e7_workflows-gallery-1.png" alt="Paperspace Overview">
 </p>
 
-[Paperspace](https://www.paperspace.com/), launched in 2014 by University of Michigan graduates and acquired by DigitalOcean in 2023, is a cloud platform specifically designed for machine learning. It provides users with powerful GPUs, collaborative Jupyter notebooks, a container service for deployments, automated workflows for machine learning tasks, and high-performance virtual machines. These features aim to streamline the entire machine learning development process, from coding to deployment. 
+[Paperspace](https://www.paperspace.com/), launched in 2014 by University of Michigan graduates and acquired by DigitalOcean in 2023, is a cloud platform specifically designed for machine learning. It provides users with powerful GPUs, collaborative Jupyter notebooks, a container service for deployments, automated workflows for machine learning tasks, and high-performance virtual machines. These features aim to streamline the entire machine learning development process, from coding to deployment.
 
 ## Paperspace Gradient
 

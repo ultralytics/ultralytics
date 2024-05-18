@@ -9,59 +9,32 @@ from ultralytics.utils.plotting import Annotator
 class AIGym:
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
-    def __init__(self):
+    def __init__(self, kpts_to_check, line_thickness=2, view_img=False, pose_up_angle=145.0, pose_down_angle=90.0, pose_type="pullup"):
         """Initializes the AIGym with default values for Visual and Image parameters."""
 
         # Image and line thickness
         self.im0 = None
-        self.tf = None
+        self.tf = line_thickness
 
         # Keypoints and count information
         self.keypoints = None
-        self.poseup_angle = None
-        self.posedown_angle = None
+        self.poseup_angle = pose_up_angle
+        self.posedown_angle = pose_down_angle
         self.threshold = 0.001
 
         # Store stage, count and angle information
         self.angle = None
         self.count = None
         self.stage = None
-        self.pose_type = "pushup"
-        self.kpts_to_check = None
+        self.pose_type = pose_type
+        self.kpts_to_check = kpts_to_check
 
         # Visual Information
-        self.view_img = False
+        self.view_img = view_img
         self.annotator = None
 
-        # Check if environment support imshow
+        # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        kpts_to_check,
-        line_thickness=2,
-        view_img=False,
-        pose_up_angle=145.0,
-        pose_down_angle=90.0,
-        pose_type="pullup",
-    ):
-        """
-        Configures the AIGym line_thickness, save image and view image parameters.
-
-        Args:
-            kpts_to_check (list): 3 keypoints for counting
-            line_thickness (int): Line thickness for bounding boxes.
-            view_img (bool): display the im0
-            pose_up_angle (float): Angle to set pose position up
-            pose_down_angle (float): Angle to set pose position down
-            pose_type (str): "pushup", "pullup" or "abworkout"
-        """
-        self.kpts_to_check = kpts_to_check
-        self.tf = line_thickness
-        self.view_img = view_img
-        self.poseup_angle = pose_up_angle
-        self.posedown_angle = pose_down_angle
-        self.pose_type = pose_type
 
     def start_counting(self, im0, results, frame_count):
         """
@@ -147,4 +120,5 @@ class AIGym:
 
 
 if __name__ == "__main__":
-    AIGym()
+    kpts_to_check = [0, 1, 2]  # example keypoints
+    aigym = AIGym(kpts_to_check)

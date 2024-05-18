@@ -21,7 +21,7 @@ First of all, thank you for your interest in contributing to Ultralytics open-so
 
 ## Code of Conduct
 
-All contributors are expected to adhere to the [Code of Conduct](code_of_conduct.md) to ensure a welcoming and inclusive environment for everyone.
+All contributors are expected to adhere to the [Code of Conduct](https://docs.ultralytics.com/help/code_of_conduct/) to ensure a welcoming and inclusive environment for everyone.
 
 ## Contributing via Pull Requests
 
@@ -41,7 +41,7 @@ We welcome contributions in the form of pull requests. To make the review proces
 
 ### CLA Signing
 
-Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](CLA.md). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
+Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 
@@ -112,11 +112,11 @@ When adding new functions or classes, please include a [Google-style docstring](
 
 ### GitHub Actions CI Tests
 
-Before your pull request can be merged, all GitHub Actions [Continuous Integration](CI.md) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
+Before your pull request can be merged, all GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
 
 ## Reporting Bugs
 
-We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs it is important to provide a [Minimum Reproducible Example](minimum_reproducible_example.md): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
+We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs it is important to provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum_reproducible_example/): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
 
 ## License
 

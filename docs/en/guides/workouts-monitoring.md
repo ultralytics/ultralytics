@@ -51,7 +51,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         solutions.configure(names=model.names, line_thickness=3, pose_type="squat",
                       view_img=True, kpts_to_check=[5, 11, 13])
         
-        # init AI GYM module
+        # Init AI GYM module
         gym_object = solutions.ai_gym.AIGym()
         
         frame_count = 0

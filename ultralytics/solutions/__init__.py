@@ -71,31 +71,29 @@ def configure(
     pose_down_angle=90.0,
     pixels_per_meter=10,
 ):
-    global (
-        display_img,
-        bg_color_rgb,
-        txt_color_rgb,
-        cls_names,
-        tf,
-        sf,
-        display_tracks,
-        display_in,
-        display_out,
-        d_thresh,
-        rg_pts,
-        pxl_m,
-        counting_region,
-        count_type,
-        colormap,
-        heatshape,
-        h_alpha,
-        h_decay,
-        enable_count,
-        workout_kpts,
-        psup_angle,
-        psdown_angle,
-        ps_type
-    )
+    global \
+        display_img, \
+        bg_color_rgb, \
+        txt_color_rgb, \
+        cls_names, \
+        tf, \
+        sf, \
+        display_tracks, \
+        display_in, \
+        display_out, \
+        d_thresh, \
+        rg_pts, \
+        pxl_m, \
+        counting_region, \
+        count_type, \
+        colormap, \
+        heatshape, \
+        h_alpha, \
+        h_decay, \
+        enable_count, \
+        workout_kpts, \
+        psup_angle, \
+        psdown_angle, \
 
     display_img = view_img
     display_tracks = draw_tracks

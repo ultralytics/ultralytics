@@ -59,7 +59,7 @@ root.mainloop()
 
         ```python
         import cv2
-        from ultralytics.solutions.parking_management import ParkingManagement
+        from ultralytics import solutions
 
         # Path to json file, that created with above point selection app
         polygon_json_path = "bounding_boxes.json"
@@ -72,11 +72,10 @@ root.mainloop()
                                                cv2.CAP_PROP_FPS))
         
         # Video writer
-        video_writer = cv2.VideoWriter("parking management.avi", 
-                                        cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Initialize parking management object
-        management = ParkingManagement(model_path="yolov8n.pt")
+        management = solutions.ParkingManagement(model_path="yolov8n.pt")
         
         while cap.isOpened():
             ret, im0 = cap.read()

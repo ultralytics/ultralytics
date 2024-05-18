@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
 
@@ -18,7 +17,17 @@ class AIGym:
         pose_down_angle=90.0,
         pose_type="pullup",
     ):
-        """Initializes the AIGym with default values for Visual and Image parameters."""
+        """
+        Initializes the AIGym class with the specified parameters.
+
+        Args:
+            kpts_to_check (list): Indices of keypoints to check.
+            line_thickness (int, optional): Thickness of the lines drawn. Defaults to 2.
+            view_img (bool, optional): Flag to display the image. Defaults to False.
+            pose_up_angle (float, optional): Angle threshold for the 'up' pose. Defaults to 145.0.
+            pose_down_angle (float, optional): Angle threshold for the 'down' pose. Defaults to 90.0.
+            pose_type (str, optional): Type of pose to detect ('pullup', 'pushup', 'abworkout'). Defaults to "pullup".
+        """
 
         # Image and line thickness
         self.im0 = None
@@ -50,19 +59,24 @@ class AIGym:
 
         Args:
             im0 (ndarray): Current frame from the video stream.
-            results (list): Pose estimation data
-            frame_count (int): store current frame count
+            results (list): Pose estimation data.
+            frame_count (int): Current frame count.
         """
+
         self.im0 = im0
+
+        # Initialize count, angle, and stage lists on the first frame
         if frame_count == 1:
             self.count = [0] * len(results[0])
             self.angle = [0] * len(results[0])
             self.stage = ["-" for _ in results[0]]
+
         self.keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=2)
 
         for ind, k in enumerate(reversed(self.keypoints)):
-            if self.pose_type in {"pushup", "pullup"}:
+            # Estimate angle and draw specific points based on pose type
+            if self.pose_type in {"pushup", "pullup", "abworkout"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
                     k[int(self.kpts_to_check[0])].cpu(),
                     k[int(self.kpts_to_check[1])].cpu(),
@@ -70,18 +84,28 @@ class AIGym:
                 )
                 self.im0 = self.annotator.draw_specific_points(k, self.kpts_to_check, shape=(640, 640), radius=10)
 
-            if self.pose_type == "abworkout":
-                self.angle[ind] = self.annotator.estimate_pose_angle(
-                    k[int(self.kpts_to_check[0])].cpu(),
-                    k[int(self.kpts_to_check[1])].cpu(),
-                    k[int(self.kpts_to_check[2])].cpu(),
-                )
-                self.im0 = self.annotator.draw_specific_points(k, self.kpts_to_check, shape=(640, 640), radius=10)
-                if self.angle[ind] > self.poseup_angle:
-                    self.stage[ind] = "down"
-                if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
-                    self.stage[ind] = "up"
-                    self.count[ind] += 1
+                # Check and update pose stages and counts based on angle
+                if self.pose_type == "abworkout":
+                    if self.angle[ind] > self.poseup_angle:
+                        self.stage[ind] = "down"
+                    if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
+                        self.stage[ind] = "up"
+                        self.count[ind] += 1
+
+                elif self.pose_type == "pushup":
+                    if self.angle[ind] > self.poseup_angle:
+                        self.stage[ind] = "up"
+                    if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":
+                        self.stage[ind] = "down"
+                        self.count[ind] += 1
+
+                elif self.pose_type == "pullup":
+                    if self.angle[ind] > self.poseup_angle:
+                        self.stage[ind] = "down"
+                    if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
+                        self.stage[ind] = "up"
+                        self.count[ind] += 1
+
                 self.annotator.plot_angle_and_count_and_stage(
                     angle_text=self.angle[ind],
                     count_text=self.count[ind],
@@ -89,33 +113,10 @@ class AIGym:
                     center_kpt=k[int(self.kpts_to_check[1])],
                 )
 
-            if self.pose_type == "pushup":
-                if self.angle[ind] > self.poseup_angle:
-                    self.stage[ind] = "up"
-                if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":
-                    self.stage[ind] = "down"
-                    self.count[ind] += 1
-                self.annotator.plot_angle_and_count_and_stage(
-                    angle_text=self.angle[ind],
-                    count_text=self.count[ind],
-                    stage_text=self.stage[ind],
-                    center_kpt=k[int(self.kpts_to_check[1])],
-                )
-            if self.pose_type == "pullup":
-                if self.angle[ind] > self.poseup_angle:
-                    self.stage[ind] = "down"
-                if self.angle[ind] < self.posedown_angle and self.stage[ind] == "down":
-                    self.stage[ind] = "up"
-                    self.count[ind] += 1
-                self.annotator.plot_angle_and_count_and_stage(
-                    angle_text=self.angle[ind],
-                    count_text=self.count[ind],
-                    stage_text=self.stage[ind],
-                    center_kpt=k[int(self.kpts_to_check[1])],
-                )
-
+            # Draw keypoints
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)
 
+        # Display the image if environment supports it and view_img is True
         if self.env_check and self.view_img:
             cv2.imshow("Ultralytics YOLOv8 AI GYM", self.im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):

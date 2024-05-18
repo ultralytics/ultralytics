@@ -70,7 +70,7 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 See the table below for a full list of available inference arguments.
 
 | Argument     | Default | Type    | Description                            |
-| ------------ | ------- | ------- | -------------------------------------- |
+|--------------|---------|---------|----------------------------------------|
 | `image`      |         | `image` | image file                             |
 | `url`        |         | `str`   | URL of the image if not passing a file |
 | `size`       | `640`   | `int`   | valid range `32` - `1280` pixels       |
@@ -91,10 +91,10 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-cls.pt')
+        model = YOLO("yolov8n-cls.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -159,10 +159,10 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -231,10 +231,10 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-obb.pt')
+        model = YOLO("yolov8n-obb.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -305,10 +305,10 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -374,10 +374,10 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-pose.pt')
+        model = YOLO("yolov8n-pose.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())

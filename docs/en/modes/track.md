@@ -57,7 +57,7 @@ The default tracker is BoT-SORT.
 ## Tracking
 
 !!! Warning "Tracker Threshold Information"
-    
+
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
@@ -98,7 +98,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 ## Configuration
 
 !!! Warning "Tracker Threshold Information"
-    
+
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 ### Tracking Arguments

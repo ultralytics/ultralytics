@@ -39,7 +39,7 @@ Speed estimation is the process of calculating the rate of movement of an object
     === "Speed Estimation"
 
         ```python
-        from ultralytics import YOLO, Solutions
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -55,7 +55,7 @@ Speed estimation is the process of calculating the rate of movement of an object
         line_pts = [(0, 360), (1280, 360)]
 
         # Init speed-estimation obj
-        speed_obj = Solutions.SpeedEstimator(reg_pts=line_pts,
+        speed_obj = solutions.SpeedEstimator(reg_pts=line_pts,
                                                names=names,
                                                view_img=True)
 

@@ -13,6 +13,7 @@ class ParkingPtsSelection:
     def __init__(self, master):
         check_requirements("tkinter")
         import tkinter as tk
+
         """Initializes the UI for selecting parking zone points in a tkinter window."""
         self.master = master
         master.title("Ultralytics Parking Zones Points Selector")

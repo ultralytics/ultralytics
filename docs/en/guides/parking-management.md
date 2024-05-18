@@ -23,24 +23,24 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 | ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/e3d4bc3e-cf4a-4da9-b42e-0da55cc74ad6) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/fe186719-1aca-43c9-b388-1ded91280eb5) |
 |                                                 Parking management Aeriel View using Ultralytics YOLOv8                                                 |                                                     Parking management Top View using Ultralytics YOLOv8                                                     |
 
-
 ## Parking Management System Code Workflow
 
 ### Selection of Points
 
 !!! Tip "Point Selection is now Easy"
-    
+
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool that lets you define parking lot areas, which can be utilized later for additional processing.
 
 - Capture a frame from the video or camera stream where you want to manage the parking lot.
 - Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
 
 !!! Warning "Image Size"
-    
+
     Max Image Size of 1920 * 1080 supported
 
 ```python
 from ultralytics.solutions.parking_management import ParkingPtsSelection, tk
+
 root = tk.Tk()
 ParkingPtsSelection(root)
 root.mainloop()
@@ -50,7 +50,6 @@ root.mainloop()
 
 ![Ultralytics YOLOv8 Points Selection Demo](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/72737b8a-0f0f-4efb-98ad-b917a0039535)
 
-
 ### Python Code for Parking Management
 
 !!! Example "Parking management using YOLOv8 Example"
@@ -59,7 +58,7 @@ root.mainloop()
 
         ```python
         import cv2
-        from ultralytics.solutions.parking_management import ParkingManagement
+        from ultralytics import solutions
 
         # Path to json file, that created with above point selection app
         polygon_json_path = "bounding_boxes.json"
@@ -72,11 +71,10 @@ root.mainloop()
                                                cv2.CAP_PROP_FPS))
         
         # Video writer
-        video_writer = cv2.VideoWriter("parking management.avi", 
-                                        cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         # Initialize parking management object
-        management = ParkingManagement(model_path="yolov8n.pt")
+        management = solutions.ParkingManagement(model_path="yolov8n.pt")
         
         while cap.isOpened():
             ret, im0 = cap.read()
@@ -98,16 +96,17 @@ root.mainloop()
         video_writer.release()
         cv2.destroyAllWindows()
         ```
-    
-### Optional Arguments `ParkingManagement()`
 
-| Name                     | Type        | Default           | Description                                         |
-|--------------------------|-------------|-------------------|-----------------------------------------------------|
-| `occupied_region_color`  | `RGB Color` | `(0, 255, 0)`     | Parking space occupied region color                 |
-| `available_region_color` | `RGB Color` | `(0, 0, 255)`     | Parking space available region color                |
-| `margin`                 | `int`       | `10`              | Gap between text display for multiple classes count |
-| `txt_color`              | `RGB Color` | `(255, 255, 255)` | Foreground color for object counts text             |
-| `bg_color`               | `RGB Color` | `(255, 255, 255)` | Rectangle behind text background color              |
+### Optional Arguments `ParkingManagement`
+
+| Name                     | Type    | Default           | Description                            |
+|--------------------------|---------|-------------------|----------------------------------------|
+| `model_path`             | `str`   | `None`            | Path to the YOLOv8 model.              |
+| `txt_color`              | `tuple` | `(0, 0, 0)`       | RGB color tuple for text.              |
+| `bg_color`               | `tuple` | `(255, 255, 255)` | RGB color tuple for background.        |
+| `occupied_region_color`  | `tuple` | `(0, 255, 0)`     | RGB color tuple for occupied regions.  |
+| `available_region_color` | `tuple` | `(0, 0, 255)`     | RGB color tuple for available regions. |
+| `margin`                 | `int`   | `10`              | Margin for text display.               |
 
 ### Arguments `model.track`
 

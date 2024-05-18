@@ -7,7 +7,7 @@ keywords: Ultralytics, HUBTrainingSession, Documentation, Model Training, AI, Ma
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py). If you spot a problem please help fix it by [contributing](../../help/contributing.md/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/session.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/session.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

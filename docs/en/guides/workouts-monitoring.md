@@ -39,8 +39,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
     === "Workouts Monitoring"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n-pose.pt")
@@ -48,11 +47,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
+        gym_object = solutions.AIGym(line_thickness=2,
+                                    view_img=True,
+                                    pose_type="pushup",
+                                    kpts_to_check=[6, 8, 10])
 
         frame_count = 0
         while cap.isOpened():
@@ -71,8 +69,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
     === "Workouts Monitoring with Save Output"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import ai_gym
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n-pose.pt")
@@ -80,16 +77,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        video_writer = cv2.VideoWriter("workouts.avi",
-                                        cv2.VideoWriter_fourcc(*'mp4v'),
-                                        fps,
-                                        (w, h))
+        video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
 
-        gym_object = ai_gym.AIGym()  # init AI GYM module
-        gym_object.set_args(line_thickness=2,
-                            view_img=True,
-                            pose_type="pushup",
-                            kpts_to_check=[6, 8, 10])
+        gym_object = solutions.AIGym(line_thickness=2,
+                                    view_img=True,
+                                    pose_type="pushup",
+                                    kpts_to_check=[6, 8, 10])
 
         frame_count = 0
         while cap.isOpened():
@@ -115,16 +108,16 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/ultralytics/ultralytics/assets/62513924/f45d8315-b59f-47b7-b9c8-c61af1ce865b)
 
-### Arguments `set_args`
+### Arguments `AIGym`
 
-| Name              | Type   | Default  | Description                                                                            |
-|-------------------|--------|----------|----------------------------------------------------------------------------------------|
-| `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
-| `line_thickness`  | `int`  | `2`      | Increase the thickness of count value                                                  |
-| `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
-| `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
-| `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |
+| Name              | Type    | Default  | Description                                                                            |
+|-------------------|---------|----------|----------------------------------------------------------------------------------------|
+| `kpts_to_check`   | `list`  | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `line_thickness`  | `int`   | `2`      | Thickness of the lines drawn.                                                          |
+| `view_img`        | `bool`  | `False`  | Flag to display the image.                                                             |
+| `pose_up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
+| `pose_down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
+| `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`).                            |
 
 ### Arguments `model.predict`
 

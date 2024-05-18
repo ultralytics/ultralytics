@@ -189,13 +189,14 @@ class Heatmap:
 
                     # Count objects using line
                     elif len(self.count_reg_pts) == 2:
-
                         if prev_position is not None and track_id not in self.count_ids:
                             distance = Point(track_line[-1]).distance(self.counting_region)
                             if distance < self.line_dist_thresh and track_id not in self.count_ids:
                                 self.count_ids.append(track_id)
 
-                                if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                                if (box[0] - prev_position[0]) * (
+                                    self.counting_region.centroid.x - prev_position[0]
+                                ) > 0:
                                     self.in_counts += 1
                                     self.class_wise_count[self.names[cls]]["IN"] += 1
                                 else:

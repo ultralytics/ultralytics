@@ -39,10 +39,10 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='cifar10', epochs=100, imgsz=32)
+        results = model.train(data="cifar10", epochs=100, imgsz=32)
         ```
 
     === "CLI"

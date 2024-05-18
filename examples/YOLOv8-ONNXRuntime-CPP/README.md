@@ -40,9 +40,9 @@ yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx im
 import onnx
 from onnxconverter_common import float16
 
-model = onnx.load(R'YOUR_ONNX_PATH')
+model = onnx.load(R"YOUR_ONNX_PATH")
 model_fp16 = float16.convert_float_to_float16(model)
-onnx.save(model_fp16, R'YOUR_FP16_ONNX_PATH')
+onnx.save(model_fp16, R"YOUR_FP16_ONNX_PATH")
 ```
 
 ## Download COCO.yaml file 📂

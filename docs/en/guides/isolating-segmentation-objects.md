@@ -36,7 +36,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO('yolov8n-seg.pt')
+    model = YOLO("yolov8n-seg.pt")
 
     # Run inference
     results = model.predict()
@@ -159,7 +159,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
             # Isolate object with binary mask
             isolated = cv2.bitwise_and(mask3ch, img)
-
             ```
 
             ??? question "How does this work?"
@@ -209,7 +208,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
             ```py
             # Isolate object with transparent background (when saved as PNG)
             isolated = np.dstack([img, b_mask])
-
             ```
 
             ??? question "How does this work?"
@@ -266,7 +264,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         ```py
         # Save isolated object to file
-        _ = cv2.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
+        _ = cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
         ```
 
         - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the object detection (in case of multiple instances with the same class name).

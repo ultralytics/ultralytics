@@ -74,12 +74,12 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         # train the model
         results = model.train(
-        data="coco8.yaml",
-        project="comet-example-yolov8-coco128",
-        batch=32,
-        save_period=1,
-        save_json=True,
-        epochs=3
+            data="coco8.yaml",
+            project="comet-example-yolov8-coco128",
+            batch=32,
+            save_period=1,
+            save_json=True,
+            epochs=3,
         )
         ```
 
@@ -144,7 +144,7 @@ Comet ML allows you to specify how often batches of image predictions are logged
 ```python
 import os
 
-os.environ['COMET_EVAL_BATCH_LOGGING_INTERVAL'] = "4"
+os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
 ```
 
 ### Disabling Confusion Matrix Logging

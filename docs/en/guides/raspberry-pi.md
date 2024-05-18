@@ -108,16 +108,16 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to NCNN format
-        model.export(format='ncnn')  # creates 'yolov8n_ncnn_model'
+        model.export(format="ncnn")  # creates 'yolov8n_ncnn_model'
 
         # Load the exported NCNN model
-        ncnn_model = YOLO('yolov8n_ncnn_model')
+        ncnn_model = YOLO("yolov8n_ncnn_model")
 
         # Run inference
-        results = ncnn_model('https://ultralytics.com/images/bus.jpg')
+        results = ncnn_model("https://ultralytics.com/images/bus.jpg")
         ```
     === "CLI"
 
@@ -231,10 +231,10 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data='coco8.yaml', imgsz=640)
+        results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
     === "CLI"
 
@@ -293,10 +293,10 @@ With the TCP stream initiated, you can perform YOLOv8 inference.
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run inference
-        results = model('tcp://127.0.0.1:8888')
+        results = model("tcp://127.0.0.1:8888")
         ```
     === "CLI"
 

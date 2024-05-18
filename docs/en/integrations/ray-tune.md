@@ -50,10 +50,10 @@ To install the required packages, run:
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        result_grid = model.tune(data="coco8.yaml", use_ray=True)
         ```
 
 ## `tune()` Method Parameters
@@ -112,10 +112,12 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model
-    result_grid = model.tune(data="coco8.yaml",
-                             space={"lr0": tune.uniform(1e-5, 1e-1)},
-                             epochs=50,
-                             use_ray=True)
+    result_grid = model.tune(
+        data="coco8.yaml",
+        space={"lr0": tune.uniform(1e-5, 1e-1)},
+        epochs=50,
+        use_ray=True,
+    )
     ```
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
@@ -164,10 +166,14 @@ You can plot the history of reported metrics for each trial to see how the metri
 import matplotlib.pyplot as plt
 
 for result in result_grid:
-    plt.plot(result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}")
+    plt.plot(
+        result.metrics_dataframe["training_iteration"],
+        result.metrics_dataframe["mean_accuracy"],
+        label=f"Trial {i}",
+    )
 
-plt.xlabel('Training Iterations')
-plt.ylabel('Mean Accuracy')
+plt.xlabel("Training Iterations")
+plt.ylabel("Mean Accuracy")
 plt.legend()
 plt.show()
 ```

@@ -76,12 +76,12 @@ Train YOLOv8n-obb on the `dota8.yaml` dataset for 100 epochs at image size 640. 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-obb.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n-obb.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n-obb.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n-obb.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n-obb.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-obb.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='dota8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -113,15 +113,15 @@ retains its training `data` and arguments as model attributes.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-obb.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-obb.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
-        metrics = model.val(data='dota8.yaml')  # no arguments needed, dataset and settings remembered
-        metrics.box.map    # map50-95(B)
+        metrics = model.val(data="dota8.yaml")  # no arguments needed, dataset and settings remembered
+        metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps   # a list contains map50-95(B) of each category
+        metrics.box.maps  # a list contains map50-95(B) of each category
         ```
     === "CLI"
 
@@ -142,11 +142,11 @@ Use a trained YOLOv8n-obb model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-obb.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-obb.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
     === "CLI"
 
@@ -169,11 +169,11 @@ Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-obb.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained model
+        model = YOLO("yolov8n-obb.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
 
         # Export the model
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 

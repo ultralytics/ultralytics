@@ -85,16 +85,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TensorRT format
-        model.export(format='engine')  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
-        tensorrt_model = YOLO('yolov8n.engine')
+        tensorrt_model = YOLO("yolov8n.engine")
 
         # Run inference
-        results = tensorrt_model('https://ultralytics.com/images/bus.jpg')
+        results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -434,7 +434,7 @@ Expand sections below for information on how these models were exported and test
         result = model.predict(
             [img] * 8,  # batch=8 of the same image
             verbose=False,
-            device="cuda"
+            device="cuda",
         )
     ```
 
@@ -451,7 +451,7 @@ Expand sections below for information on how these models were exported and test
         batch=1,
         imgsz=640,
         verbose=False,
-        device="cuda"
+        device="cuda",
     )
     ```
 

@@ -35,16 +35,16 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model
-        model.export(format='openvino')  # creates 'yolov8n_openvino_model/'
+        model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO('yolov8n_openvino_model/')
+        ov_model = YOLO("yolov8n_openvino_model/")
 
         # Run inference
-        results = ov_model('https://ultralytics.com/images/bus.jpg')
+        results = ov_model("https://ultralytics.com/images/bus.jpg")
         ```
     === "CLI"
 
@@ -259,10 +259,10 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        results= model.benchmarks(data='coco8.yaml')
+        results = model.benchmarks(data="coco8.yaml")
         ```
     === "CLI"
 

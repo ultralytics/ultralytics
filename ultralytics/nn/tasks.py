@@ -566,7 +566,7 @@ class WorldModel(DetectionModel):
 
     def set_classes(self, labels, images=[], batch=80, cache_clip_model=True):
         """Set classes in advance so that model could do offline-inference without clip model."""
-        txt_feats=None
+        txt_feats = None
         try:
             import clip
         except ImportError:
@@ -583,29 +583,25 @@ class WorldModel(DetectionModel):
         else:
             model, preprocess = clip.load("ViT-B/32")
         device = next(model.parameters()).device
-        
-        if len(labels)>0:
+
+        if len(labels) > 0:
             text_token = clip.tokenize(labels).to(device)
-            txt_feats = [model.encode_text(token).detach()
-                        for token in text_token.split(batch)]
-            txt_feats = txt_feats[0] if len(
-                txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+            txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+            txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
             txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        
-            
-        lenght=len(labels)
+
+        length = len(labels)
         for img in images:
             img = preprocess(img).unsqueeze(0).to(device)
             image_features = model.encode_image(img)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            if txt_feats==None:   
-                txt_feats=image_features
+            if txt_feats == None:
+                txt_feats = image_features
             else:
-                txt_feats=torch.cat((txt_feats, image_features), 0)
-            lenght+=1
-        self.txt_feats = txt_feats.reshape(-1, lenght, txt_feats.shape[-1])
-        self.model[-1].nc = lenght
-
+                txt_feats = torch.cat((txt_feats, image_features), 0)
+            length += 1
+        self.txt_feats = txt_feats.reshape(-1, length, txt_feats.shape[-1])
+        self.model[-1].nc = length
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """

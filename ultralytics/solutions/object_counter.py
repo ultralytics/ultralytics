@@ -26,9 +26,7 @@ class ObjectCounter(Solutions):
         self.extract_tracks(tracks)
 
         if self.track_ids is not None:
-
             for box, trk_id, cls in zip(self.boxes, self.track_ids, self.clss):
-
                 color = colors(int(trk_id), True)
 
                 track_line = self.track_history[trk_id]
@@ -42,8 +40,12 @@ class ObjectCounter(Solutions):
                     self.annotator.draw_centroid_and_tracks(track_line, color=self.track_color, track_thickness=self.tt)
 
                 self.annotator.draw_label_in_center(
-                    (str(self.classes_names[int(cls)]) + ":" + str(trk_id)), self.count_txt_color,
-                    color, x_center, y_center, 5
+                    (str(self.classes_names[int(cls)]) + ":" + str(trk_id)),
+                    self.count_txt_color,
+                    color,
+                    x_center,
+                    y_center,
+                    5,
                 )
 
                 prev_position = self.track_history[trk_id][-2] if len(self.track_history[trk_id]) > 1 else None
@@ -78,7 +80,12 @@ class ObjectCounter(Solutions):
                     label = f"In : {self.in_count}, Out : {self.out_count}"
 
                 self.annotator.line_counter(
-                    points=self.reg_pts, bg_color=self.count_bg_color, txt_color=self.count_txt_color, text=label, margin=5, gap=10
+                    points=self.reg_pts,
+                    bg_color=self.count_bg_color,
+                    txt_color=self.count_txt_color,
+                    text=label,
+                    margin=5,
+                    gap=10,
                 )
 
         self.display_frames(self.im0, self.window_name)

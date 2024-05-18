@@ -13,40 +13,41 @@ from shapely.geometry import LineString, Point, Polygon
 
 
 class Solutions:
-
-    def __init__(self,
-                 classes_names=None,
-                 reg_pts=None,
-                 count_reg_color=(255, 0, 255),
-                 count_txt_color=(255, 255, 255),
-                 count_bg_color=(104, 31, 17),
-                 line_thickness=2,
-                 track_thickness=2,
-                 view_img=False,
-                 view_in_counts=True,
-                 view_out_counts=True,
-                 draw_tracks=False,
-                 track_color=(255, 144, 31),
-                 region_thickness=5,
-                 line_dist_thresh=15,
-                 count_type="classwise",
-                 imw=None,
-                 imh=None,
-                 colormap=cv2.COLORMAP_JET,
-                 heatmap_alpha=0.5,
-                 count_reg_pts=None,
-                 decay_factor=0.99,
-                 shape="circle",
-                 kpts_to_check=None,
-                 pose_type="pushup",
-                 pose_up_angle=145.0,
-                 pose_down_angle=90.0,
-                 spdl_dist_thresh=10,
-                 ):
+    def __init__(
+        self,
+        classes_names=None,
+        reg_pts=None,
+        count_reg_color=(255, 0, 255),
+        count_txt_color=(255, 255, 255),
+        count_bg_color=(104, 31, 17),
+        line_thickness=2,
+        track_thickness=2,
+        view_img=False,
+        view_in_counts=True,
+        view_out_counts=True,
+        draw_tracks=False,
+        track_color=(255, 144, 31),
+        region_thickness=5,
+        line_dist_thresh=15,
+        count_type="classwise",
+        imw=None,
+        imh=None,
+        colormap=cv2.COLORMAP_JET,
+        heatmap_alpha=0.5,
+        count_reg_pts=None,
+        decay_factor=0.99,
+        shape="circle",
+        kpts_to_check=None,
+        pose_type="pushup",
+        pose_up_angle=145.0,
+        pose_down_angle=90.0,
+        spdl_dist_thresh=10,
+    ):
         """
-        The Ultralytics solutions modules are designed to address various complex and prevalent needs,
-        such as object counting, workout monitoring, heatmaps, speed estimation, object cropping,
-        object blurring, instance segmentation, distance calculation, and more features are on the way.
+        The Ultralytics solutions modules are designed to address various complex and prevalent needs, such as object
+        counting, workout monitoring, heatmaps, speed estimation, object cropping, object blurring, instance
+        segmentation, distance calculation, and more features are on the way.
+
         This function initializes the solution arguments according to the user's preferences.
         Args:
             classes_names (dict): Model classes names
@@ -74,7 +75,7 @@ class Solutions:
 
         # Print the solution initialized arguments data
         self.sargs_dict = {}
-        solution = {k: v for k, v in locals().items() if k != 'self'}
+        solution = {k: v for k, v in locals().items() if k != "self"}
         print(f"Solution: {solution}")
 
         # Display info if image width and height provided for heatmap
@@ -83,7 +84,7 @@ class Solutions:
         if imh is not None:
             print("imh is deprecated and will be removed in future, shape will be handle automatically")
 
-        self.classes_names = classes_names      # Store model classes names
+        self.classes_names = classes_names  # Store model classes names
 
         # Set counting region points, count_reg_pts is deprecated
         if count_reg_pts is not None:
@@ -120,8 +121,8 @@ class Solutions:
         self.view_out_counts = view_out_counts
         self.draw_tracks = draw_tracks
 
-        self.ld_thresh = line_dist_thresh   # line distance threshold for line counting
-        self.count_type = count_type    # set count type i.e. classwise or line
+        self.ld_thresh = line_dist_thresh  # line distance threshold for line counting
+        self.count_type = count_type  # set count type i.e. classwise or line
 
         # Set heatmap parameters
         self.colormap = cv2.COLORMAP_JET if colormap is None else colormap
@@ -143,7 +144,7 @@ class Solutions:
         self.trk_previous_points = {}
         self.trk_idslist = []
         self.dist_data = {}
-        spdl_dist_thresh = 10,
+        spdl_dist_thresh = (10,)
 
         # self.pixels_per_meter = pixels_per_meter
 
@@ -163,10 +164,10 @@ class Solutions:
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)
 
-
     def extract_tracks(self, tracks):
         """
         Extract tracks for advanced analytics, including bounding boxes, classes, and tracking IDs.
+
         Args:
             tracks (list): list of tracking data that comes from model.Track
         """
@@ -177,7 +178,6 @@ class Solutions:
             self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     def object_counts(self, prev_position, box, cls, track_id, track_line):
-
         if self.count_type == "classwise":
             if self.classes_names[cls] not in self.clswise_dict:
                 self.clswise_dict[self.classes_names[cls]] = {"IN": 0, "OUT": 0}
@@ -186,8 +186,7 @@ class Solutions:
             is_inside = self.counting_region.contains(Point(track_line[-1]))
             if prev_position is not None and is_inside and track_id not in self.counted_ids:
                 self.counted_ids.append(track_id)
-                if (box[0] - prev_position[0]) * (self.counting_region.centroid.x -
-                                                  prev_position[0]) > 0:
+                if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                     self.in_count += 1
                     if self.count_type == "classwise":
                         self.clswise_dict[self.classes_names[cls]]["IN"] += 1
@@ -201,8 +200,7 @@ class Solutions:
                 distance = Point(track_line[-1]).distance(self.counting_region)
                 if distance < self.ld_thresh and track_id not in self.counted_ids:
                     self.counted_ids.append(track_id)
-                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x -
-                                                      prev_position[0]) > 0:
+                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                         self.in_count += 1
                         if self.count_type == "classwise":
                             self.clswise_dict[self.classes_names[cls]]["IN"] += 1
@@ -210,7 +208,6 @@ class Solutions:
                         self.out_count += 1
                         if self.count_type == "classwise":
                             self.clswise_dict[self.classes_names[cls]]["OUT"] += 1
-
 
     def display_frames(self, im0, window_name):
         """
@@ -222,33 +219,34 @@ class Solutions:
         """
 
         if self.env_check:
-            cv2.imshow(window_name, im0)    # Display output image
-            if cv2.waitKey(1) & 0xFF == ord("q"):   # Break Window
+            cv2.imshow(window_name, im0)  # Display output image
+            if cv2.waitKey(1) & 0xFF == ord("q"):  # Break Window
                 return
 
     def _convert_value(self, value):
         """
-        Convert string representations of tuples to actual tuples, and other necessary conversions
+        Convert string representations of tuples to actual tuples, and other necessary conversions.
 
         Args:
             value (str | int | float | bool): The dict value coming from dictionary
-
         """
-        if isinstance(value, str) and value.startswith('(') and value.endswith(')'):
-            return tuple(map(int, value[1:-1].split(',')))
+        if isinstance(value, str) and value.startswith("(") and value.endswith(")"):
+            return tuple(map(int, value[1:-1].split(",")))
         return value
 
     def set_args(self, **kwargs):
         """
-        The 'Set Arguments' function is deprecated. However, if a user is running the code on a machine
-        with a previous version of Ultralytics, updating the Ultralytics package will crash the code, this
-        function will prevent the code from crashing and ensure smooth execution of the solution.
+        The 'Set Arguments' function is deprecated. However, if a user is running the code on a machine with a previous
+        version of Ultralytics, updating the Ultralytics package will crash the code, this function will prevent the
+        code from crashing and ensure smooth execution of the solution.
 
         Args:
             kwargs (dict): list of arguments user provided to execute solution
         """
 
-        print("set_args is deprecated and will be removed in the future, pass arguments directly inside object i.e counter = object_counter.ObjectCounter(args)")
+        print(
+            "set_args is deprecated and will be removed in the future, pass arguments directly inside object i.e counter = object_counter.ObjectCounter(args)"
+        )
         for key, value in kwargs.items():
             if key == "imw" or key == "imh":
                 print(f"{key} is deprecated and will be removed in the future, shape will be handle directly")

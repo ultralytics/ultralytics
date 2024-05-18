@@ -3,13 +3,13 @@
 from time import time
 
 import cv2
+
 from ultralytics.solutions import Solutions
 from ultralytics.utils.plotting import Annotator, colors
 
 
 class SpeedEstimator(Solutions):
     """A class to estimation speed of objects in real-time video stream based on their tracks."""
-
 
     def calculate_speed(self, trk_id, track):
         """

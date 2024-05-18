@@ -1,17 +1,34 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+
 import cv2
-from ultralytics.utils.checks import check_imshow, check_requirements
-from ultralytics.utils.plotting import Annotator, colors
 from shapely.geometry import Point, Polygon
 
+from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.utils.plotting import Annotator, colors
+
 check_requirements("shapely>=2.0.0")
+
 
 class QueueManager:
     """A class to manage the queue management in real-time video stream based on their tracks."""
 
-    def __init__(self, classes_names, reg_pts=None, line_thickness=2, track_thickness=2, view_img=False, region_color=(255, 0, 255), view_queue_counts=True, draw_tracks=False, count_txt_color=(255, 255, 255), track_color=None, region_thickness=5, fontsize=0.7):
+    def __init__(
+        self,
+        classes_names,
+        reg_pts=None,
+        line_thickness=2,
+        track_thickness=2,
+        view_img=False,
+        region_color=(255, 0, 255),
+        view_queue_counts=True,
+        draw_tracks=False,
+        count_txt_color=(255, 255, 255),
+        track_color=None,
+        region_thickness=5,
+        fontsize=0.7,
+    ):
         """Initializes the queue manager with default values for various tracking and counting parameters."""
 
         # Mouse events
@@ -20,7 +37,9 @@ class QueueManager:
 
         # Region & Line Information
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 60), (20, 680), (1120, 680), (1120, 60)]
-        self.counting_region = Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
+        self.counting_region = (
+            Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
+        )
         self.region_color = region_color
         self.region_thickness = region_thickness
 

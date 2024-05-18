@@ -1,21 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-
 import cv2
-
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
-
-check_requirements("shapely>=2.0.0")
-
 from shapely.geometry import Point, Polygon
 
+check_requirements("shapely>=2.0.0")
 
 class QueueManager:
     """A class to manage the queue management in real-time video stream based on their tracks."""
 
-    def __init__(self):
+    def __init__(self, classes_names, reg_pts=None, line_thickness=2, track_thickness=2, view_img=False, region_color=(255, 0, 255), view_queue_counts=True, draw_tracks=False, count_txt_color=(255, 255, 255), track_color=None, region_thickness=5, fontsize=0.7):
         """Initializes the queue manager with default values for various tracking and counting parameters."""
 
         # Mouse events
@@ -23,88 +19,34 @@ class QueueManager:
         self.selected_point = None
 
         # Region & Line Information
-        self.reg_pts = [(20, 60), (20, 680), (1120, 680), (1120, 60)]
-        self.counting_region = None
-        self.region_color = (255, 0, 255)
-        self.region_thickness = 5
+        self.reg_pts = reg_pts if reg_pts is not None else [(20, 60), (20, 680), (1120, 680), (1120, 60)]
+        self.counting_region = Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
+        self.region_color = region_color
+        self.region_thickness = region_thickness
 
         # Image and annotation Information
         self.im0 = None
-        self.tf = None
-        self.view_img = False
-        self.view_queue_counts = True
-        self.fontsize = 0.6
+        self.tf = line_thickness
+        self.view_img = view_img
+        self.view_queue_counts = view_queue_counts
+        self.fontsize = fontsize
 
-        self.names = None  # Classes names
+        self.names = classes_names  # Classes names
         self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Queue Manager"
 
         # Object counting Information
         self.counts = 0
-        self.count_txt_color = (255, 255, 255)
+        self.count_txt_color = count_txt_color
 
         # Tracks info
         self.track_history = defaultdict(list)
-        self.track_thickness = 2
-        self.draw_tracks = False
-        self.track_color = None
-
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(
-        self,
-        classes_names,
-        reg_pts,
-        line_thickness=2,
-        track_thickness=2,
-        view_img=False,
-        region_color=(255, 0, 255),
-        view_queue_counts=True,
-        draw_tracks=False,
-        count_txt_color=(255, 255, 255),
-        track_color=None,
-        region_thickness=5,
-        fontsize=0.7,
-    ):
-        """
-        Configures the Counter's image, bounding box line thickness, and counting region points.
-
-        Args:
-            line_thickness (int): Line thickness for bounding boxes.
-            view_img (bool): Flag to control whether to display the video stream.
-            view_queue_counts (bool): Flag to control whether to display the counts on video stream.
-            reg_pts (list): Initial list of points defining the counting region.
-            classes_names (dict): Classes names
-            region_color (RGB color): Color of queue region
-            track_thickness (int): Track thickness
-            draw_tracks (Bool): draw tracks
-            count_txt_color (RGB color): count text color value
-            track_color (RGB color): color for tracks
-            region_thickness (int): Object counting Region thickness
-            fontsize (float): Text display font size
-        """
-        self.tf = line_thickness
-        self.view_img = view_img
-        self.view_queue_counts = view_queue_counts
         self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
-        self.region_color = region_color
-
-        if len(reg_pts) >= 3:
-            print("Queue region initiated...")
-            self.reg_pts = reg_pts
-            self.counting_region = Polygon(self.reg_pts)
-        else:
-            print("Invalid region points provided...")
-            print("Using default region now....")
-            self.counting_region = Polygon(self.reg_pts)
-
-        self.names = classes_names
         self.track_color = track_color
-        self.count_txt_color = count_txt_color
-        self.region_thickness = region_thickness
-        self.fontsize = fontsize
+
+        # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
@@ -184,4 +126,5 @@ class QueueManager:
 
 
 if __name__ == "__main__":
-    QueueManager()
+    classes_names = {0: "person", 1: "car"}  # example class names
+    queue_manager = QueueManager(classes_names)

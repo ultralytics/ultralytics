@@ -28,8 +28,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
-        from ultralytics import YOLO
-        from ultralytics.solutions import queue_management
+        from ultralytics import YOLO, Solutions
         
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -39,19 +38,15 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
                                                cv2.CAP_PROP_FRAME_HEIGHT,
                                                cv2.CAP_PROP_FPS))
         
-        video_writer = cv2.VideoWriter("queue_management.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
+        video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         
-        queue = queue_management.QueueManager()
-        queue.set_args(classes_names=model.names,
-                       reg_pts=queue_region,
-                       line_thickness=3,
-                       fontsize=1.0,
-                       region_color=(255, 144, 31))
+        queue = Solutions.QueueManager(classes_names=model.names,
+                                       reg_pts=queue_region,
+                                       line_thickness=3,
+                                       fontsize=1.0,
+                                       region_color=(255, 144, 31))
         
         while cap.isOpened():
             success, im0 = cap.read()
@@ -77,8 +72,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
-        from ultralytics import YOLO
-        from ultralytics.solutions import queue_management
+        from ultralytics import YOLO, Solutions
         
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -88,19 +82,15 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
                                                cv2.CAP_PROP_FRAME_HEIGHT,
                                                cv2.CAP_PROP_FPS))
         
-        video_writer = cv2.VideoWriter("queue_management.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
+        video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         
-        queue = queue_management.QueueManager()
-        queue.set_args(classes_names=model.names,
-                       reg_pts=queue_region,
-                       line_thickness=3,
-                       fontsize=1.0,
-                       region_color=(255, 144, 31))
+        queue = Solutions.QueueManager(classes_names=model.names,
+                                       reg_pts=queue_region,
+                                       line_thickness=3,
+                                       fontsize=1.0,
+                                       region_color=(255, 144, 31))
         
         while cap.isOpened():
             success, im0 = cap.read()

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
+from PIL import Image
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -95,16 +96,25 @@ class YOLOWorld(Model):
             labels (List(str)): A list of categories i.e ["person"].
             images (List()): A list of images.
         """
+        
+        classes=labels.copy()
+        for i,img in enumerate(images):
+            if isinstance(img, str):
+                path=Path(img)
+                name=path.name
+                img=Image.open(path) 
+                images[i]=img
+            else:     
+                name=f"image{i}"
+            classes.append(name)
+        
         self.model.set_classes(labels=labels, images=images)
         # Remove background if it's given
         background = " "
         if background in labels:
             labels.remove(background)
             
-        classes=labels.copy()
-        for i,img in enumerate(images):
-            name=f"image{i}"
-            classes.append(name)
+
         self.model.names = classes
 
         # Reset method class names

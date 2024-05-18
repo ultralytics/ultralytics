@@ -566,6 +566,7 @@ class WorldModel(DetectionModel):
 
     def set_classes(self, labels, images=[], batch=80, cache_clip_model=True):
         """Set classes in advance so that model could do offline-inference without clip model."""
+        txt_feats=None
         try:
             import clip
         except ImportError:
@@ -590,15 +591,17 @@ class WorldModel(DetectionModel):
             txt_feats = txt_feats[0] if len(
                 txt_feats) == 1 else torch.cat(txt_feats, dim=0)
             txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        else:
-            txt_feats=torch.Tensor().to(device)
+        
             
         lenght=len(labels)
         for img in images:
             img = preprocess(img).unsqueeze(0).to(device)
             image_features = model.encode_image(img)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            txt_feats=torch.cat((txt_feats, image_features), 0)
+            if txt_feats==None:   
+                txt_feats=image_features
+            else:
+                txt_feats=torch.cat((txt_feats, image_features), 0)
             lenght+=1
         self.txt_feats = txt_feats.reshape(-1, lenght, txt_feats.shape[-1])
         self.model[-1].nc = lenght

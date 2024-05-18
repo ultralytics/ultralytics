@@ -2,7 +2,7 @@
 
 The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Ultralytics Inference API card](./images/inference-api/hub_inference_api_1.jpg)
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Ultralytics Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/OpWpBI35A5Y"

@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+
 import cv2
+
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -9,8 +11,18 @@ from ultralytics.utils.plotting import Annotator, colors
 class DistanceCalculation:
     """A class to calculate distance between two objects in real-time video stream based on their tracks."""
 
-    def __init__(self, names, pixels_per_meter=10, view_img=False, line_thickness=2, line_color=(255, 255, 0), centroid_color=(255, 0, 255)):
-        """Initializes the distance calculation class with default values for Visual, Image, track and distance parameters."""
+    def __init__(
+        self,
+        names,
+        pixels_per_meter=10,
+        view_img=False,
+        line_thickness=2,
+        line_color=(255, 255, 0),
+        centroid_color=(255, 0, 255),
+    ):
+        """Initializes the distance calculation class with default values for Visual, Image, track and distance
+        parameters.
+        """
 
         # Visual & im0 information
         self.im0 = None
@@ -148,4 +160,3 @@ class DistanceCalculation:
 if __name__ == "__main__":
     names = {0: "person", 1: "car"}  # example class names
     distance_calculation = DistanceCalculation(names)
-

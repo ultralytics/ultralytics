@@ -98,7 +98,7 @@ class DistanceCalculation:
             box (list): Bounding box coordinates [x1, y1, x2, y2].
 
         Returns:
-            tuple: Centroid coordinates (x, y).
+            (tuple): Centroid coordinates (x, y).
         """
         return int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
 
@@ -111,7 +111,7 @@ class DistanceCalculation:
             centroid2 (tuple): Coordinates of the second centroid (x, y).
 
         Returns:
-            tuple: Distance in meters and millimeters.
+            (tuple): Distance in meters and millimeters.
         """
         pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
         distance_m = pixel_distance / self.pixel_per_meter
@@ -127,7 +127,7 @@ class DistanceCalculation:
             tracks (list): List of tracks obtained from the object tracking process.
 
         Returns:
-            ndarray: The processed image frame.
+            (ndarray): The processed image frame.
         """
         self.im0 = im0
         if tracks[0].boxes.id is None:

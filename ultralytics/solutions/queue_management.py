@@ -35,7 +35,7 @@ class QueueManager:
         Args:
             classes_names (dict): A dictionary mapping class IDs to class names.
             reg_pts (list of tuples, optional): Points defining the counting region polygon. Defaults to a predefined
-            rectangle.
+                rectangle.
             line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
             track_thickness (int, optional): Thickness of the track lines. Defaults to 2.
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
@@ -44,7 +44,7 @@ class QueueManager:
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
             count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
             track_color (tuple, optional): Color of the tracks. If None, different colors will be used for different
-            tracks. Defaults to None.
+                tracks. Defaults to None.
             region_thickness (int, optional): Thickness of the counting region lines. Defaults to 5.
             fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
         """
@@ -111,7 +111,7 @@ class QueueManager:
                 if self.draw_tracks:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=self.track_color if self.track_color else colors(int(track_id), True),
+                        color=self.track_color or colors(int(track_id), True),
                         track_thickness=self.track_thickness,
                     )
 
@@ -124,7 +124,7 @@ class QueueManager:
                         self.counts += 1
 
         # Display queue counts
-        label = "Queue Counts : " + str(self.counts)
+        label = f"Queue Counts : {str(self.counts)}"
         if label is not None:
             self.annotator.queue_counts_display(
                 label,

@@ -74,7 +74,7 @@ class SpeedEstimator:
             box (list): Object bounding box data.
 
         Returns:
-            list: Updated tracking history for the given track_id.
+            (list): Updated tracking history for the given track_id.
         """
         track = self.trk_history[track_id]
         bbox_center = (float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2))
@@ -142,7 +142,7 @@ class SpeedEstimator:
             region_color (tuple, optional): Color to use when drawing regions. Defaults to (255, 0, 0).
 
         Returns:
-            ndarray: The image with annotated boxes and tracks.
+            (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
         if tracks[0].boxes.id is None:

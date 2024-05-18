@@ -87,18 +87,24 @@ class YOLOWorld(Model):
             }
         }
 
-    def set_classes(self, classes):
+    def set_classes(self, labels, images=[]):
         """
         Set classes.
 
         Args:
-            classes (List(str)): A list of categories i.e ["person"].
+            labels (List(str)): A list of categories i.e ["person"].
+            images (List()): A list of images.
         """
-        self.model.set_classes(classes)
+        self.model.set_classes(labels=labels, images=images)
         # Remove background if it's given
         background = " "
-        if background in classes:
-            classes.remove(background)
+        if background in labels:
+            labels.remove(background)
+            
+        classes=labels.copy()
+        for i,img in enumerate(images):
+            name=f"image{i}"
+            classes.append(name)
         self.model.names = classes
 
         # Reset method class names

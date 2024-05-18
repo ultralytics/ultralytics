@@ -81,7 +81,7 @@ Speed estimation is the process of calculating the rate of movement of an object
 
     Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
 
-### Optional Arguments `set_args`
+### Arguments `SpeedEstimator`
 
 | Name               | Type   | Default                    | Description                                          |
 |--------------------|--------|----------------------------|------------------------------------------------------|

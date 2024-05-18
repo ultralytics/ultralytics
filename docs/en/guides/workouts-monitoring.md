@@ -110,13 +110,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ### Arguments `AIGym`
 
-| Name              | Type   | Default  | Description                                                                            |
-|-------------------|--------|----------|----------------------------------------------------------------------------------------|
-| `kpts_to_check`   | `list` | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `view_img`        | `bool` | `False`  | Display the frame with counts                                                          |
-| `pose_type`       | `str`  | `pushup` | Pose that need to be monitored, `pullup` and `abworkout` also supported                |
-| `pose_up_angle`   | `int`  | `145`    | Pose Up Angle value                                                                    |
-| `pose_down_angle` | `int`  | `90`     | Pose Down Angle value                                                                  |
+| Name              | Type    | Default  | Description                                                                            |
+|-------------------|---------|----------|----------------------------------------------------------------------------------------|
+| `kpts_to_check`   | `list`  | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `line_thickness`  | `int`   | `2`      | Thickness of the lines drawn.                                                          |
+| `view_img`        | `bool`  | `False`  | Flag to display the image.                                                             |
+| `pose_up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
+| `pose_down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
+| `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`).                            |
 
 ### Arguments `model.predict`
 

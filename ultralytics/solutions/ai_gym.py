@@ -9,7 +9,15 @@ from ultralytics.utils.plotting import Annotator
 class AIGym:
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
-    def __init__(self, kpts_to_check, line_thickness=2, view_img=False, pose_up_angle=145.0, pose_down_angle=90.0, pose_type="pullup"):
+    def __init__(
+        self,
+        kpts_to_check,
+        line_thickness=2,
+        view_img=False,
+        pose_up_angle=145.0,
+        pose_down_angle=90.0,
+        pose_type="pullup",
+    ):
         """Initializes the AIGym with default values for Visual and Image parameters."""
 
         # Image and line thickness

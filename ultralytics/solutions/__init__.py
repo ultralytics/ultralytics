@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import sys
 from collections import defaultdict
 
@@ -7,207 +8,253 @@ import numpy as np
 
 from ultralytics.utils.checks import check_imshow, check_requirements
 
-from ..utils.plotting import Annotator, colors
-
 check_requirements("shapely>=2.0.0")
 from shapely.geometry import LineString, Point, Polygon
 
-# Dict and list initialization
-counted_ids = []
-clswise_dict = {}
-counting_region = []
 
-track_history = defaultdict(list)
-env_check = check_imshow(warn=True)
+class Solutions:
 
-# Variables initialization
-tf: int = 0
-pxl_m: int = 10
-in_count: int = 0
-out_count: int = 0
-d_thresh: int = 14
-ps_type: str = "pushup"
-rg_pts: list = None
-h_alpha: float = 0.5
-h_decay: float = 0.99
-psup_angle: int = 90
-cls_names: dict = None
-display_in: bool = True
-psdown_angle: int = 145
-display_out: bool = True
-workout_kpts: list = [6, 8, 10]
-display_img: bool = False
-heatshape: str = "circle"
-enable_count: bool = True
-colormap = cv2.COLORMAP_JET
-display_tracks: bool = True
-count_type: str = "classwise"
-bg_color_rgb: tuple = (104, 31, 17)
-txt_color_rgb: tuple = (255, 255, 255)
+    def __init__(self,
+                 classes_names=None,
+                 reg_pts=None,
+                 count_reg_color=(255, 0, 255),
+                 count_txt_color=(255, 255, 255),
+                 count_bg_color=(104, 31, 17),
+                 line_thickness=2,
+                 track_thickness=2,
+                 view_img=False,
+                 view_in_counts=True,
+                 view_out_counts=True,
+                 draw_tracks=False,
+                 track_color=(255, 144, 31),
+                 region_thickness=5,
+                 line_dist_thresh=15,
+                 count_type="classwise",
+                 imw=None,
+                 imh=None,
+                 colormap=cv2.COLORMAP_JET,
+                 heatmap_alpha=0.5,
+                 count_reg_pts=None,
+                 decay_factor=0.99,
+                 shape="circle",
+                 kpts_to_check=None,
+                 pose_type="pushup",
+                 pose_up_angle=145.0,
+                 pose_down_angle=90.0,
+                 spdl_dist_thresh=10,
+                 ):
+        """
+        The Ultralytics solutions modules are designed to address various complex and prevalent needs,
+        such as object counting, workout monitoring, heatmaps, speed estimation, object cropping,
+        object blurring, instance segmentation, distance calculation, and more features are on the way.
+        This function initializes the solution arguments according to the user's preferences.
+        Args:
+            classes_names (dict): Model classes names
+            reg_pts (list): Initial list of points defining the counting region.
+            count_reg_color (tuple): Color of object counting region
+            count_txt_color (tuple): Count text color
+            count_bg_color (tuple): Count highlighter line color
+            line_thickness (int): Line thickness for bounding boxes.
+            track_thickness (int): Track line thickness for each track
+            view_img (bool): Flag to control whether to display the video stream.
+            view_in_counts (bool): Flag to control whether to display the incounts on video stream.
+            view_out_counts (bool): Flag to control whether to display the outcounts on video stream.
+            draw_tracks (Bool): draw tracks
+            track_color (tuple): color for tracks
+            region_thickness (int): Object counting Region thickness
+            line_dist_thresh (int): Euclidean Distance threshold for line counter
+            count_type (str): Object counting type i.e. classwise or line counting
+            colormap (cv2.COLORMAP): The colormap to be set opencv colormaps.
+            heatmap_alpha (float): Alpha value for heatmap display
+            count_reg_pts (list): Initial list of points defining the counting region.
+            decay_factor (float): Value for removing heatmap area after object passed
+            shape (str): Heatmap shape, rect or circle shape supported
+            kpts_to_check (list): 3 keypoints for counting
+        """
 
-pixels_per_meter = 10
+        # Print the solution initialized arguments data
+        self.sargs_dict = {}
+        solution = {k: v for k, v in locals().items() if k != 'self'}
+        print(f"Solution: {solution}")
 
+        # Display info if image width and height provided for heatmap
+        if imw is not None:
+            print("imw is deprecated and will be removed in future, shape will be handle automatically")
+        if imh is not None:
+            print("imh is deprecated and will be removed in future, shape will be handle automatically")
 
-def configure(
-    view_img=True,
-    draw_tracks=True,
-    view_in_counts=True,
-    view_out_counts=True,
-    enable_counting=True,
-    region_pts=None,
-    counts_type="line",
-    names=None,
-    bg_color=(104, 31, 17),
-    txt_color=(255, 255, 255),
-    line_thickness=2,
-    line_dist_thresh=15,
-    color_map=None,
-    heat_shape="circle",
-    heat_decay=0.99,
-    heat_alpha=0.5,
-    kpts_to_check=None,
-    pose_type=None,
-    pose_up_angle=145.0,
-    pose_down_angle=90.0,
-    pixels_per_meter=10,
-):
-    global \
-        display_img, \
-        bg_color_rgb, \
-        txt_color_rgb, \
-        cls_names, \
-        tf, \
-        sf, \
-        display_tracks, \
-        display_in, \
-        display_out, \
-        d_thresh, \
-        rg_pts, \
-        pxl_m, \
-        counting_region, \
-        count_type, \
-        colormap, \
-        heatshape, \
-        h_alpha, \
-        h_decay, \
-        enable_count, \
-        workout_kpts, \
-        psup_angle, \
-        psdown_angle, \
-        ps_type
+        self.classes_names = classes_names      # Store model classes names
 
-    display_img = view_img
-    display_tracks = draw_tracks
-    display_in = view_in_counts
-    display_out = view_out_counts
-    enable_count = enable_counting
+        # Set counting region points, count_reg_pts is deprecated
+        if count_reg_pts is not None:
+            self.reg_pts = count_reg_pts
+        else:
+            self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
 
-    rg_pts = [(20, 400), (1260, 400)] if region_pts is None else region_pts
-    configure_region(rg_pts)
+        # Configure region points
+        if len(self.reg_pts) == 2:
+            print("Line Counter Initiated.")
+            self.counting_region = LineString(self.reg_pts)
+        elif len(self.reg_pts) >= 3:
+            print("Polygon Counter Initiated.")
+            self.counting_region = Polygon(self.reg_pts)
+        else:
+            print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons.")
+            print("Using Line Counter Now")
+            self.counting_region = LineString(self.reg_pts)
 
-    count_type = counts_type
+        # Set color attributes i.e. region, background, text and track color
+        self.count_reg_color = count_bg_color if count_reg_color is None else count_reg_color
+        self.count_bg_color = count_bg_color
+        self.count_txt_color = count_txt_color
+        self.track_color = track_color
 
-    cls_names = names
-    if cls_names is None:
-        print(
-            "Model classes name required, you can pass as argument to sol.configure function i.e cls_names=model.names !!!"
-        )
-        exit(0)
+        # Set text and plotting objects, track and region thickness
+        self.tf = line_thickness
+        self.tt = track_thickness
+        self.rt = region_thickness
 
-    bg_color_rgb = bg_color
-    txt_color_rgb = txt_color
+        # Set display attributes i.e, image, in count, out count, track display
+        self.view_img = view_img
+        self.view_in_counts = view_in_counts
+        self.view_out_counts = view_out_counts
+        self.draw_tracks = draw_tracks
 
-    tf = line_thickness
-    d_thresh = line_dist_thresh
+        self.ld_thresh = line_dist_thresh   # line distance threshold for line counting
+        self.count_type = count_type    # set count type i.e. classwise or line
 
-    colormap = cv2.COLORMAP_JET if color_map is None else color_map
+        # Set heatmap parameters
+        self.colormap = cv2.COLORMAP_JET if colormap is None else colormap
+        self.heatmap_alpha = heatmap_alpha
+        self.decay_factor = decay_factor
+        self.shape = shape
 
-    if heat_shape not in {"circle", "rect"}:
-        print("Unknown shape value provided, 'circle' & 'rect' supported")
-        print("Using circle shape now")
-        heatshape = "circle"
-    else:
-        heatshape = heat_shape
+        # Set workouts monitoring parameters for ai_gym app
+        self.workouts_counts = None
+        self.stage = None
+        self.angle = None
+        self.kpts_to_check = [6, 8, 10] if kpts_to_check is None else kpts_to_check
+        self.pose_type = "pushup" if pose_type is None else pose_type
+        self.pose_up_angle = pose_up_angle
+        self.pose_down_angle = pose_down_angle
 
-    h_decay = heat_decay
-    h_alpha = heat_alpha
+        # Set speed estimation parameters for speed estimation app
+        self.trk_previous_times = {}
+        self.trk_previous_points = {}
+        self.trk_idslist = []
+        self.dist_data = {}
+        spdl_dist_thresh = 10,
 
-    workout_kpts = [6, 8, 10] if kpts_to_check is None else kpts_to_check
-    psup_angle = pose_up_angle
-    psdown_angle = pose_down_angle
-    ps_type = "pushup" if pose_type is None else pose_type
+        # self.pixels_per_meter = pixels_per_meter
 
-    pxl_m = pixels_per_meter
+        self.im0 = None
+        self.heatmap_im0 = None
+        self.annotator = None
+        self.counted_ids = []
+        self.clswise_dict = {}
 
-    from . import ai_gym, distance_calculation, heatmap, object_counter, queue_management, speed_estimation
+        self.boxes = None
+        self.clss = None
+        self.track_ids = None
+        self.in_count = 0
+        self.out_count = 0
 
-
-def configure_region(rg_pts):
-    global counting_region
-    if len(rg_pts) == 2:
-        rg_pts = rg_pts
-        counting_region = LineString(rg_pts)
-    elif len(rg_pts) >= 3:
-        rg_pts = rg_pts
-        counting_region = Polygon(rg_pts)
-    else:
-        print("Invalid Region points provided, region_points " "must be 2 for lines or >= 3 for polygons.")
-        print("Using Line Counter Now")
-        rg_pts = [(20, 400), (1260, 400)]
-        counting_region = LineString(rg_pts)
-
-
-def extract_tracks(tracks):
-    if tracks[0].boxes.id is not None:
-        boxes = tracks[0].boxes.xyxy.cpu()
-        clss = tracks[0].boxes.cls.cpu().tolist()
-        track_ids = tracks[0].boxes.id.int().cpu().tolist()
-        return boxes, clss, track_ids
-    else:
-        return 0, 0, None
+        self.window_name = "Ultralytics Solutions"
+        self.track_history = defaultdict(list)
+        self.env_check = check_imshow(warn=True)
 
 
-def object_counts(prev_position, box, cls, track_id, track_line):
-    global in_count, out_count
-    if count_type == "classwise":
-        if cls_names[cls] not in clswise_dict:
-            clswise_dict[cls_names[cls]] = {"IN": 0, "OUT": 0}
+    def extract_tracks(self, tracks):
+        """
+        Extract tracks for advanced analytics, including bounding boxes, classes, and tracking IDs.
+        Args:
+            tracks (list): list of tracking data that comes from model.Track
+        """
 
-    if len(rg_pts) >= 3:
-        is_inside = counting_region.contains(Point(track_line[-1]))
-        if prev_position is not None and is_inside and track_id not in counted_ids:
-            counted_ids.append(track_id)
-            if (box[0] - prev_position[0]) * (counting_region.centroid.x - prev_position[0]) > 0:
-                in_count += 1
-                if count_type == "classwise":
-                    clswise_dict[cls_names[cls]]["IN"] += 1
-            else:
-                out_count += 1
-                if count_type == "classwise":
-                    clswise_dict[cls_names[cls]]["OUT"] += 1
+        if tracks[0].boxes.id is not None:
+            self.boxes = tracks[0].boxes.xyxy.cpu()
+            self.clss = tracks[0].boxes.cls.cpu().tolist()
+            self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
 
-    elif len(rg_pts) == 2:
-        if prev_position is not None and track_id not in counted_ids:
-            distance = Point(track_line[-1]).distance(counting_region)
-            if distance < d_thresh and track_id not in counted_ids:
-                counted_ids.append(track_id)
-                if (box[0] - prev_position[0]) * (counting_region.centroid.x - prev_position[0]) > 0:
-                    in_count += 1
-                    if count_type == "classwise":
-                        clswise_dict[cls_names[cls]]["IN"] += 1
+    def object_counts(self, prev_position, box, cls, track_id, track_line):
+
+        if self.count_type == "classwise":
+            if self.classes_names[cls] not in self.clswise_dict:
+                self.clswise_dict[self.classes_names[cls]] = {"IN": 0, "OUT": 0}
+
+        if len(self.reg_pts) >= 3:
+            is_inside = self.counting_region.contains(Point(track_line[-1]))
+            if prev_position is not None and is_inside and track_id not in self.counted_ids:
+                self.counted_ids.append(track_id)
+                if (box[0] - prev_position[0]) * (self.counting_region.centroid.x -
+                                                  prev_position[0]) > 0:
+                    self.in_count += 1
+                    if self.count_type == "classwise":
+                        self.clswise_dict[self.classes_names[cls]]["IN"] += 1
                 else:
-                    out_count += 1
-                    if count_type == "classwise":
-                        clswise_dict[cls_names[cls]]["OUT"] += 1
-    return in_count, out_count, clswise_dict
+                    self.out_count += 1
+                    if self.count_type == "classwise":
+                        self.clswise_dict[self.classes_names[cls]]["OUT"] += 1
+
+        elif len(self.reg_pts) == 2:
+            if prev_position is not None and track_id not in self.counted_ids:
+                distance = Point(track_line[-1]).distance(self.counting_region)
+                if distance < self.ld_thresh and track_id not in self.counted_ids:
+                    self.counted_ids.append(track_id)
+                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x -
+                                                      prev_position[0]) > 0:
+                        self.in_count += 1
+                        if self.count_type == "classwise":
+                            self.clswise_dict[self.classes_names[cls]]["IN"] += 1
+                    else:
+                        self.out_count += 1
+                        if self.count_type == "classwise":
+                            self.clswise_dict[self.classes_names[cls]]["OUT"] += 1
 
 
-def display_frames(im0, window_name):
-    """Display output image if platform supported display."""
+    def display_frames(self, im0, window_name):
+        """
+        Display output image if platform supported display.
 
-    if env_check:
-        cv2.namedWindow(window_name)
-        cv2.imshow(window_name, im0)
-        # Break Window
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
+        Args:
+            im0 (ndarray): The output image to be displayed if the environment supports display.
+            window_name (str): The name of the output window; required by OpenCV.
+        """
+
+        if self.env_check:
+            cv2.imshow(window_name, im0)    # Display output image
+            if cv2.waitKey(1) & 0xFF == ord("q"):   # Break Window
+                return
+
+    def _convert_value(self, value):
+        """
+        Convert string representations of tuples to actual tuples, and other necessary conversions
+
+        Args:
+            value (str | int | float | bool): The dict value coming from dictionary
+
+        """
+        if isinstance(value, str) and value.startswith('(') and value.endswith(')'):
+            return tuple(map(int, value[1:-1].split(',')))
+        return value
+
+    def set_args(self, **kwargs):
+        """
+        The 'Set Arguments' function is deprecated. However, if a user is running the code on a machine
+        with a previous version of Ultralytics, updating the Ultralytics package will crash the code, this
+        function will prevent the code from crashing and ensure smooth execution of the solution.
+
+        Args:
+            kwargs (dict): list of arguments user provided to execute solution
+        """
+
+        print("set_args is deprecated and will be removed in the future, pass arguments directly inside object i.e counter = object_counter.ObjectCounter(args)")
+        for key, value in kwargs.items():
+            if key == "imw" or key == "imh":
+                print(f"{key} is deprecated and will be removed in the future, shape will be handle directly")
+            elif key == "count_reg_pts":
+                print(f"{key} is deprecated and will be removed in the future, use reg_pts instead")
+                self.sargs_dict["reg_pts"] = value
+            else:
+                self.sargs_dict[key] = value
+        self.__init__(**self.sargs_dict)

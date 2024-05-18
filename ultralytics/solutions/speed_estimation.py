@@ -3,38 +3,13 @@
 from time import time
 
 import cv2
-
-from . import (
-    Annotator,
-    bg_color_rgb,
-    cls_names,
-    colors,
-    d_thresh,
-    display_frames,
-    display_tracks,
-    env_check,
-    extract_tracks,
-    np,
-    rg_pts,
-    tf,
-    track_history,
-    txt_color_rgb,
-)
+from ultralytics.solutions import Solutions
+from ultralytics.utils.plotting import Annotator, colors
 
 
-class SpeedEstimator:
+class SpeedEstimator(Solutions):
     """A class to estimation speed of objects in real-time video stream based on their tracks."""
 
-    def __init__(self):
-        """Initializes the speed-estimator class with default values for Visual, Image, track and speed parameters."""
-        self.im0 = None
-        self.annotator = None
-        self.trk_previous_times = {}
-        self.trk_previous_points = {}
-        self.trk_idslist = []
-        self.dist_data = {}
-        self.window_name = "Ultralytics YOLOv8 Speed Estimation"
-        print("Speed estimation app initialized...")
 
     def calculate_speed(self, trk_id, track):
         """

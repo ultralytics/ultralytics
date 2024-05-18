@@ -44,7 +44,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     === "Heatmap"
 
         ```python
-        from ultralytics import YOLO, Solutions
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -56,7 +56,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
 
         # Init heatmap
-        heatmap_obj = Solutions.Heatmap(colormap=cv2.COLORMAP_PARULA,
+        heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA,
                                      view_img=True,
                                      shape="circle",
                                      classes_names=model.names)

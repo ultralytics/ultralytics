@@ -51,8 +51,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Count in Region"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -70,7 +69,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                                (w, h))
 
         # Init Object Counter
-        counter = object_counter.ObjectCounter()
+        counter = solutions.ObjectCounter()
         counter.set_args(view_img=True,
                          reg_pts=region_points,
                          classes_names=model.names,
@@ -95,8 +94,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Count in Polygon"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
+        from ultralytics import YOLO, solutions
         import cv2
         
         model = YOLO("yolov8n.pt")
@@ -114,7 +112,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                                (w, h))
         
         # Init Object Counter
-        counter = object_counter.ObjectCounter()
+        counter = solutions.ObjectCounter()
         counter.set_args(view_img=True,
                          reg_pts=region_points,
                          classes_names=model.names,
@@ -139,8 +137,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Count in Line"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -158,7 +155,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                                (w, h))
 
         # Init Object Counter
-        counter = object_counter.ObjectCounter()
+        counter = solutions.ObjectCounter()
         counter.set_args(view_img=True,
                          reg_pts=line_points,
                          classes_names=model.names,
@@ -183,8 +180,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Specific Classes"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import object_counter
+        from ultralytics import YOLO, solutions
         import cv2
 
         model = YOLO("yolov8n.pt")
@@ -202,7 +198,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                                (w, h))
 
         # Init Object Counter
-        counter = object_counter.ObjectCounter()
+        counter = solutions.ObjectCounter()
         counter.set_args(view_img=True,
                          reg_pts=line_points,
                          classes_names=model.names,

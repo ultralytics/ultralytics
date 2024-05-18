@@ -9,11 +9,11 @@ from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 
 __all__ = (
+    "AIGym",
     "DistanceCalculation",
     "Heatmap",
+    "ObjectCounter",
     "ParkingManagement",
     "QueueManager",
     "SpeedEstimator",
-    "AIGym",
-    "ObjectCounter",
 )

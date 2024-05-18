@@ -16,25 +16,26 @@ from shapely.geometry import LineString, Point, Polygon
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
 
-    def __init__(self,
-                 classes_names,
-                 imw=0,
-                 imh=0,
-                 colormap=cv2.COLORMAP_JET,
-                 heatmap_alpha=0.5,
-                 view_img=False,
-                 view_in_counts=True,
-                 view_out_counts=True,
-                 count_reg_pts=None,
-                 count_txt_color=(0, 0, 0),
-                 count_bg_color=(255, 255, 255),
-                 count_reg_color=(255, 0, 255),
-                 region_thickness=5,
-                 line_dist_thresh=15,
-                 line_thickness=2,
-                 decay_factor=0.99,
-                 shape="circle"):
-
+    def __init__(
+        self,
+        classes_names,
+        imw=0,
+        imh=0,
+        colormap=cv2.COLORMAP_JET,
+        heatmap_alpha=0.5,
+        view_img=False,
+        view_in_counts=True,
+        view_out_counts=True,
+        count_reg_pts=None,
+        count_txt_color=(0, 0, 0),
+        count_bg_color=(255, 255, 255),
+        count_reg_color=(255, 0, 255),
+        region_thickness=5,
+        line_dist_thresh=15,
+        line_thickness=2,
+        decay_factor=0.99,
+        shape="circle",
+    ):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
 
         # Visual information

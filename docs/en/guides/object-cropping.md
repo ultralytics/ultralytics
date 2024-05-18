@@ -28,10 +28,11 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Object Cropping"
 
         ```python
+        import os
+
+        import cv2
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
-        import cv2
-        import os
 
         model = YOLO("yolov8n.pt")
         names = model.names
@@ -45,9 +46,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
             os.mkdir(crop_dir_name)
 
         # Video writer
-        video_writer = cv2.VideoWriter("object_cropping_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps, (w, h))
+        video_writer = cv2.VideoWriter("object_cropping_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         idx = 0
         while cap.isOpened():
@@ -66,14 +65,14 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                     idx += 1
                     annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
 
-                    crop_obj = im0[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+                    crop_obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
 
-                    cv2.imwrite(os.path.join(crop_dir_name, str(idx)+".png"), crop_obj)
+                    cv2.imwrite(os.path.join(crop_dir_name, str(idx) + ".png"), crop_obj)
 
             cv2.imshow("ultralytics", im0)
             video_writer.write(im0)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         cap.release()

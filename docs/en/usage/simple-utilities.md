@@ -195,15 +195,15 @@ from ultralytics.data.utils import polygon2mask
 
 imgsz = (1080, 810)
 polygon = np.array(
-    [805, 392, 797, 400, ..., 808, 714, 808, 392], # (238, 2)
+    [805, 392, 797, 400, ..., 808, 714, 808, 392],  # (238, 2)
 )
 
 mask = polygon2mask(
-    imgsz,     # tuple
-    [polygon], # input as list
-    color=255, # 8-bit binary
-    downsample_ratio=1
-) 
+    imgsz,  # tuple
+    [polygon],  # input as list
+    color=255,  # 8-bit binary
+    downsample_ratio=1,
+)
 ```
 
 ## Bounding Boxes
@@ -326,13 +326,15 @@ xywh
 ### All Bounding Box Conversions
 
 ```python
-from ultralytics.utils.ops import xywh2xyxy
-from ultralytics.utils.ops import xywhn2xyxy # normalized → pixel
-from ultralytics.utils.ops import xyxy2xywhn # pixel → normalized
-from ultralytics.utils.ops import xywh2ltwh  # xywh → top-left corner, w, h
-from ultralytics.utils.ops import xyxy2ltwh  # xyxy → top-left corner, w, h
-from ultralytics.utils.ops import ltwh2xywh
-from ultralytics.utils.ops import ltwh2xyxy
+from ultralytics.utils.ops import (
+    ltwh2xywh,
+    ltwh2xyxy,
+    xywh2ltwh,  # xywh → top-left corner, w, h
+    xywh2xyxy,
+    xywhn2xyxy,  # normalized → pixel
+    xyxy2ltwh,  # xyxy → top-left corner, w, h
+    xyxy2xywhn,  # pixel → normalized
+)
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.
@@ -402,9 +404,9 @@ obb_boxes = np.array(
 ann = Annotator(
     obb_image,
     line_width=None,  # default auto-size
-    font_size=None,   # default auto-size
-    font="Arial.ttf", # must be ImageFont compatible
-    pil=False,        # use PIL, otherwise uses OpenCV
+    font_size=None,  # default auto-size
+    font="Arial.ttf",  # must be ImageFont compatible
+    pil=False,  # use PIL, otherwise uses OpenCV
 )
 for obb in obb_boxes:
     c_idx, *obb = obb

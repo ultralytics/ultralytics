@@ -62,14 +62,14 @@ When adding new functions or classes, please include a [Google-style docstring](
          def example_function(arg1, arg2=4):
              """
              Example function that demonstrates Google-style docstrings.
-         
+
              Args:
                  arg1 (int): The first argument.
                  arg2 (int): The second argument. Default value is 4.
-         
+
              Returns:
                  (bool): True if successful, False otherwise.
-         
+
              Examples:
                  >>> result = example_function(1, 2)  # returns False
              """
@@ -85,14 +85,14 @@ When adding new functions or classes, please include a [Google-style docstring](
          def example_function(arg1: int, arg2: int = 4) -> bool:
              """
              Example function that demonstrates Google-style docstrings.
-         
+
              Args:
                  arg1: The first argument.
                  arg2: The second argument. Default value is 4.
-         
+
              Returns:
                  True if successful, False otherwise.
-         
+
              Examples:
                  >>> result = example_function(1, 2)  # returns False
              """

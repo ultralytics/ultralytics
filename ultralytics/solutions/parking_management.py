@@ -8,17 +8,22 @@ from PIL import Image, ImageTk
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
-check_requirements("tkinter")
-import tkinter as tk
-
 
 class ParkingPtsSelection:
     def __init__(self, master):
-        """Initializes the UI for selecting parking zone points in a tkinter window."""
+        """
+        Initializes the UI for selecting parking zone points in a tkinter window.
+
+        Args:
+            master (tk.Tk): The main tkinter window object.
+        """
+        check_requirements("tkinter")
+        import tkinter as tk
+
         self.master = master
         master.title("Ultralytics Parking Zones Points Selector")
 
-        # Resizable false
+        # Disable window resizing
         master.resizable(False, False)
 
         # Setup canvas for image display
@@ -36,7 +41,6 @@ class ParkingPtsSelection:
         self.image_path = None
         self.image = None
         self.canvas_image = None
-        self.canvas = None
         self.bounding_boxes = []
         self.current_box = []
         self.img_width = 0
@@ -101,7 +105,6 @@ class ParkingPtsSelection:
         Args:
             box (list): Bounding box data
         """
-
         for i in range(4):
             x1, y1 = box[i]
             x2, y2 = box[(i + 1) % 4]
@@ -151,6 +154,17 @@ class ParkingManagement:
         available_region_color=(0, 0, 255),
         margin=10,
     ):
+        """
+        Initializes the parking management system with a YOLOv8 model and visualization settings.
+
+        Args:
+            model_path (str): Path to the YOLOv8 model.
+            txt_color (tuple): RGB color tuple for text.
+            bg_color (tuple): RGB color tuple for background.
+            occupied_region_color (tuple): RGB color tuple for occupied regions.
+            available_region_color (tuple): RGB color tuple for available regions.
+            margin (int): Margin for text display.
+        """
         # Model path and initialization
         self.model_path = model_path
         self.model = self.load_model()
@@ -166,7 +180,7 @@ class ParkingManagement:
         self.available_region_color = available_region_color
 
         self.window_name = "Ultralytics YOLOv8 Parking Management System"
-        # Check if environment support imshow
+        # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
 
     def load_model(self):
@@ -184,7 +198,6 @@ class ParkingManagement:
         Args:
             json_file (str): file that have all parking slot points
         """
-
         with open(json_file, "r") as json_file:
             return json.load(json_file)
 

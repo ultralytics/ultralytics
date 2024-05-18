@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, ClassificationValidator, model validation, model fi
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/val.py). If you spot a problem please help fix it by [contributing](../../../../help/contributing.md/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/classify/val.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/val.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/classify/val.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/classify/val.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

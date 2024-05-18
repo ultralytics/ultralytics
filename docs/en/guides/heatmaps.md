@@ -56,7 +56,12 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init heatmap
-        heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", classes_names=model.names,)
+        heatmap_obj = solutions.Heatmap(
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            classes_names=model.names,
+        )
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -91,7 +96,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", count_reg_pts=line_points, classes_names=model.names,
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            count_reg_pts=line_points,
+            classes_names=model.names,
         )
 
         while cap.isOpened():
@@ -127,7 +136,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", count_reg_pts=region_points, classes_names=model.names,
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            count_reg_pts=region_points,
+            classes_names=model.names,
         )
 
         while cap.isOpened():
@@ -164,7 +177,11 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", count_reg_pts=region_points, classes_names=model.names,
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            count_reg_pts=region_points,
+            classes_names=model.names,
         )
 
         while cap.isOpened():
@@ -194,7 +211,12 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         h, w = im0.shape[:2]  # image height and width
 
         # Heatmap Init
-        heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", classes_names=model.names,)
+        heatmap_obj = solutions.Heatmap(
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            classes_names=model.names,
+        )
 
         results = model.track(im0, persist=True)
         im0 = heatmap_obj.generate_heatmap(im0, tracks=results)
@@ -218,7 +240,12 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         classes_for_heatmap = [0, 2]  # classes for heatmap
 
         # Init heatmap
-        heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", classes_names=model.names,)
+        heatmap_obj = solutions.Heatmap(
+            colormap=cv2.COLORMAP_PARULA,
+            view_img=True,
+            shape="circle",
+            classes_names=model.names,
+        )
 
         while cap.isOpened():
             success, im0 = cap.read()

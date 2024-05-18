@@ -41,7 +41,11 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            classes_names=model.names, reg_pts=queue_region, line_thickness=3, fontsize=1.0, region_color=(255, 144, 31),
+            classes_names=model.names,
+            reg_pts=queue_region,
+            line_thickness=3,
+            fontsize=1.0,
+            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():
@@ -80,7 +84,11 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            classes_names=model.names, reg_pts=queue_region, line_thickness=3, fontsize=1.0, region_color=(255, 144, 31),
+            classes_names=model.names,
+            reg_pts=queue_region,
+            line_thickness=3,
+            fontsize=1.0,
+            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():

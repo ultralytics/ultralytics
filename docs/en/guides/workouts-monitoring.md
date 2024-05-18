@@ -47,7 +47,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        gym_object = solutions.AIGym(line_thickness=2, view_img=True, pose_type="pushup", kpts_to_check=[6, 8, 10],)
+        gym_object = solutions.AIGym(
+            line_thickness=2,
+            view_img=True,
+            pose_type="pushup",
+            kpts_to_check=[6, 8, 10],
+        )
 
         frame_count = 0
         while cap.isOpened():
@@ -76,7 +81,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        gym_object = solutions.AIGym(line_thickness=2, view_img=True, pose_type="pushup", kpts_to_check=[6, 8, 10],)
+        gym_object = solutions.AIGym(
+            line_thickness=2,
+            view_img=True,
+            pose_type="pushup",
+            kpts_to_check=[6, 8, 10],
+        )
 
         frame_count = 0
         while cap.isOpened():

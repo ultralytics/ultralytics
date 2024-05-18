@@ -113,7 +113,11 @@ class ObjectDetection:
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
         gap = 10
         cv2.rectangle(
-            im0, (20 - gap, 70 - text_size[1] - gap), (20 + text_size[0] + gap, 70 + gap), (255, 255, 255), -1,
+            im0,
+            (20 - gap, 70 - text_size[1] - gap),
+            (20 + text_size[0] + gap, 70 + gap),
+            (255, 255, 255),
+            -1,
         )
         cv2.putText(im0, text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 

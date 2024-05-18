@@ -55,7 +55,11 @@ Speed estimation is the process of calculating the rate of movement of an object
         line_pts = [(0, 360), (1280, 360)]
 
         # Init speed-estimation obj
-        speed_obj = solutions.SpeedEstimator(reg_pts=line_pts, names=names, view_img=True,)
+        speed_obj = solutions.SpeedEstimator(
+            reg_pts=line_pts,
+            names=names,
+            view_img=True,
+        )
 
         while cap.isOpened():
             success, im0 = cap.read()

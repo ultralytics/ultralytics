@@ -12,7 +12,7 @@ check_requirements("shapely>=2.0.0")
 
 
 class QueueManager:
-    """A class to manage the queue management in real-time video stream based on their tracks."""
+    """A class to manage the queue in a real-time video stream based on object tracks."""
 
     def __init__(
         self,
@@ -29,9 +29,27 @@ class QueueManager:
         region_thickness=5,
         fontsize=0.7,
     ):
-        """Initializes the queue manager with default values for various tracking and counting parameters."""
+        """
+        Initializes the QueueManager with specified parameters for tracking and counting objects.
 
-        # Mouse events
+        Args:
+            classes_names (dict): A dictionary mapping class IDs to class names.
+            reg_pts (list of tuples, optional): Points defining the counting region polygon. Defaults to a predefined
+            rectangle.
+            line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
+            track_thickness (int, optional): Thickness of the track lines. Defaults to 2.
+            view_img (bool, optional): Whether to display the image frames. Defaults to False.
+            region_color (tuple, optional): Color of the counting region lines (BGR). Defaults to (255, 0, 255).
+            view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
+            draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
+            count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
+            track_color (tuple, optional): Color of the tracks. If None, different colors will be used for different
+            tracks. Defaults to None.
+            region_thickness (int, optional): Thickness of the counting region lines. Defaults to 5.
+            fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
+        """
+
+        # Mouse events state
         self.is_drawing = False
         self.selected_point = None
 
@@ -50,7 +68,7 @@ class QueueManager:
         self.view_queue_counts = view_queue_counts
         self.fontsize = fontsize
 
-        self.names = classes_names  # Classes names
+        self.names = classes_names  # Class names
         self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Queue Manager"
 
@@ -70,7 +88,7 @@ class QueueManager:
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
 
-        # Annotator Init and queue region drawing
+        # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.tf, self.names)
 
         if tracks[0].boxes.id is not None:
@@ -83,13 +101,13 @@ class QueueManager:
                 # Draw bounding box
                 self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
-                # Draw Tracks
+                # Update track history
                 track_line = self.track_history[track_id]
                 track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
                 if len(track_line) > 30:
                     track_line.pop(0)
 
-                # Draw track trails
+                # Draw track trails if enabled
                 if self.draw_tracks:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
@@ -99,13 +117,14 @@ class QueueManager:
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
+                # Check if the object is inside the counting region
                 if len(self.reg_pts) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
                     if prev_position is not None and is_inside:
                         self.counts += 1
 
+        # Display queue counts
         label = "Queue Counts : " + str(self.counts)
-
         if label is not None:
             self.annotator.queue_counts_display(
                 label,
@@ -114,16 +133,16 @@ class QueueManager:
                 txt_color=self.count_txt_color,
             )
 
-        self.counts = 0
+        self.counts = 0  # Reset counts after displaying
         self.display_frames()
 
     def display_frames(self):
-        """Display frame."""
+        """Displays the current frame with annotations."""
         if self.env_check:
             self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness, color=self.region_color)
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
-            # Break Window
+            # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
@@ -135,11 +154,11 @@ class QueueManager:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        self.im0 = im0  # store image
-        self.extract_and_process_tracks(tracks)  # draw region even if no objects
+        self.im0 = im0  # Store the current frame
+        self.extract_and_process_tracks(tracks)  # Extract and process tracks
 
         if self.view_img:
-            self.display_frames()
+            self.display_frames()  # Display the frame if enabled
         return self.im0
 
 

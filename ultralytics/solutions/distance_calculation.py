@@ -168,7 +168,7 @@ class DistanceCalculation:
         cv2.imshow("Ultralytics Distance Estimation", self.im0)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
-            cv2.destroyAllWindows()
+            return
 
 
 if __name__ == "__main__":

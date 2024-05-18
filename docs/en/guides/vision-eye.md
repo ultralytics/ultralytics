@@ -166,10 +166,10 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 
 ### `visioneye` Arguments
 
-| Name          | Type    | Default          | Description                                      |
-|---------------|---------|------------------|--------------------------------------------------|
-| `color`       | `tuple` | `(235, 219, 11)` | Line and object centroid color                   |
-| `pin_color`   | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color                         |
+| Name        | Type    | Default          | Description                    |
+|-------------|---------|------------------|--------------------------------|
+| `color`     | `tuple` | `(235, 219, 11)` | Line and object centroid color |
+| `pin_color` | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color       |
 
 ## Note
 

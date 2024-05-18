@@ -70,7 +70,7 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 See the table below for a full list of available inference arguments.
 
 | Argument     | Default | Type    | Description                            |
-| ------------ | ------- | ------- | -------------------------------------- |
+|--------------|---------|---------|----------------------------------------|
 | `image`      |         | `image` | image file                             |
 | `url`        |         | `str`   | URL of the image if not passing a file |
 | `size`       | `640`   | `int`   | valid range `32` - `1280` pixels       |

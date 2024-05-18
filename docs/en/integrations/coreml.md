@@ -83,16 +83,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to CoreML format
-        model.export(format='coreml')  # creates 'yolov8n.mlpackage'
+        model.export(format="coreml")  # creates 'yolov8n.mlpackage'
 
         # Load the exported CoreML model
-        coreml_model = YOLO('yolov8n.mlpackage')
+        coreml_model = YOLO("yolov8n.mlpackage")
 
         # Run inference
-        results = coreml_model('https://ultralytics.com/images/bus.jpg')
+        results = coreml_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

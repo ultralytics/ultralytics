@@ -36,13 +36,13 @@ pip install ultralytics[explorer]
 from ultralytics import Explorer
 
 # Create an Explorer object
-explorer = Explorer(data='coco128.yaml', model='yolov8n.pt')
+explorer = Explorer(data="coco128.yaml", model="yolov8n.pt")
 
 # Create embeddings for your dataset
 explorer.create_embeddings_table()
 
 # Search for similar images to a given image/images
-dataframe = explorer.get_similar(img='path/to/image.jpg')
+dataframe = explorer.get_similar(img="path/to/image.jpg")
 
 # Or search for similar images to a given index/indices
 dataframe = explorer.get_similar(idx=0)
@@ -75,18 +75,17 @@ You get a pandas dataframe with the `limit` number of most similar data points t
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
-        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        similar = exp.get_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
         print(similar.head())
 
         # Search using multiple indices
         similar = exp.get_similar(
-                                img=['https://ultralytics.com/images/bus.jpg',
-                                     'https://ultralytics.com/images/bus.jpg'],
-                                limit=10
-                                )
+            img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"],
+            limit=10,
+        )
         print(similar.head())
         ```
 
@@ -96,14 +95,14 @@ You get a pandas dataframe with the `limit` number of most similar data points t
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
         similar = exp.get_similar(idx=1, limit=10)
         print(similar.head())
 
         # Search using multiple indices
-        similar = exp.get_similar(idx=[1,10], limit=10)
+        similar = exp.get_similar(idx=[1, 10], limit=10)
         print(similar.head())
         ```
 
@@ -119,10 +118,10 @@ You can also plot the similar images using the `plot_similar` method. This metho
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
-        plt = exp.plot_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        plt = exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
         plt.show()
         ```
 
@@ -132,7 +131,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
         plt = exp.plot_similar(idx=1, limit=10)
@@ -150,9 +149,8 @@ Note: This works using LLMs under the hood so the results are probabilistic and 
     from ultralytics import Explorer
     from ultralytics.data.explorer import plot_query_result
 
-
     # create an Explorer object
-    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
     exp.create_embeddings_table()
 
     df = exp.ask_ai("show me 100 images with exactly one person and 2 dogs. There can be other objects too")
@@ -173,7 +171,7 @@ You can run SQL queries on your dataset using the `sql_query` method. This metho
     from ultralytics import Explorer
 
     # create an Explorer object
-    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
     exp.create_embeddings_table()
 
     df = exp.sql_query("WHERE labels LIKE '%person%' AND labels LIKE '%dog%'")
@@ -190,7 +188,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
     from ultralytics import Explorer
 
     # create an Explorer object
-    exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+    exp = Explorer(data="coco128.yaml", model="yolov8n.pt")
     exp.create_embeddings_table()
 
     # plot the SQL Query
@@ -293,7 +291,7 @@ You can use similarity index to build custom conditions to filter out the datase
 import numpy as np
 
 sim_count = np.array(sim_idx["count"])
-sim_idx['im_file'][sim_count > 30]
+sim_idx["im_file"][sim_count > 30]
 ```
 
 ### Visualize Embedding Space
@@ -301,10 +299,10 @@ sim_idx['im_file'][sim_count > 30]
 You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using matplotlib:
 
 ```python
-import numpy as np
-from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.decomposition import PCA
 
 # Reduce dimensions using PCA to 3 components for visualization in 3D
 pca = PCA(n_components=3)
@@ -312,14 +310,14 @@ reduced_data = pca.fit_transform(embeddings)
 
 # Create a 3D scatter plot using Matplotlib Axes3D
 fig = plt.figure(figsize=(8, 6))
-ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection="3d")
 
 # Scatter plot
 ax.scatter(reduced_data[:, 0], reduced_data[:, 1], reduced_data[:, 2], alpha=0.5)
-ax.set_title('3D Scatter Plot of Reduced 256-Dimensional Data (PCA)')
-ax.set_xlabel('Component 1')
-ax.set_ylabel('Component 2')
-ax.set_zlabel('Component 3')
+ax.set_title("3D Scatter Plot of Reduced 256-Dimensional Data (PCA)")
+ax.set_xlabel("Component 1")
+ax.set_ylabel("Component 2")
+ax.set_zlabel("Component 3")
 
 plt.show()
 ```

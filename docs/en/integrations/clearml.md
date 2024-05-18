@@ -67,17 +67,14 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Step 1: Creating a ClearML Task
-        task = Task.init(
-            project_name="my_project",
-            task_name="my_yolov8_task"
-        )
+        task = Task.init(project_name="my_project", task_name="my_yolov8_task")
 
         # Step 2: Selecting the YOLOv8 Model
         model_variant = "yolov8n"
         task.set_parameter("model_variant", model_variant)
 
         # Step 3: Loading the YOLOv8 Model
-        model = YOLO(f'{model_variant}.pt')
+        model = YOLO(f"{model_variant}.pt")
 
         # Step 4: Setting Up Training Arguments
         args = dict(data="coco8.yaml", epochs=16)

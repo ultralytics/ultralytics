@@ -158,16 +158,16 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model
-        model.export(format='engine')  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
-        trt_model = YOLO('yolov8n.engine')
+        trt_model = YOLO("yolov8n.engine")
 
         # Run inference
-        results = trt_model('https://ultralytics.com/images/bus.jpg')
+        results = trt_model("https://ultralytics.com/images/bus.jpg")
         ```
     === "CLI"
 
@@ -290,10 +290,10 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data='coco8.yaml', imgsz=640)
+        results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
     === "CLI"
 

@@ -41,7 +41,6 @@ class ParkingPtsSelection:
         self.image_path = None
         self.image = None
         self.canvas_image = None
-        self.canvas = None
         self.bounding_boxes = []
         self.current_box = []
         self.img_width = 0

@@ -36,10 +36,10 @@ Dataset annotation is a very resource intensive and time-consuming process. If y
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(#(1)!
-    data='path/to/new/data',
-    det_model='yolov8n.pt',
-    sam_model='mobile_sam.pt',
+auto_annotate(  # (1)!
+    data="path/to/new/data",
+    det_model="yolov8n.pt",
+    sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",
 )
@@ -58,9 +58,9 @@ Use to convert COCO JSON annotations into proper YOLO format. For object detecti
 ```{ .py .annotate }
 from ultralytics.data.converter import convert_coco
 
-convert_coco(#(1)!
-    '../datasets/coco/annotations/',
-    use_segments=False, 
+convert_coco(  # (1)!
+    "../datasets/coco/annotations/",
+    use_segments=False,
     use_keypoints=False,
     cls91to80=True,
 )
@@ -113,10 +113,10 @@ data
 ```{ .py .annotate }
 from ultralytics.data.converter import yolo_bbox2segment
 
-yolo_bbox2segment(#(1)!
+yolo_bbox2segment(  # (1)!
     im_dir="path/to/images",
-    save_dir=None, # saved to "labels-segment" in images directory
-    sam_model="sam_b.pt"
+    save_dir=None,  # saved to "labels-segment" in images directory
+    sam_model="sam_b.pt",
 )
 ```
 
@@ -155,10 +155,11 @@ Compresses a single image file to reduced size while preserving its aspect ratio
 
 ```{ .py .annotate }
 from pathlib import Path
+
 from ultralytics.data.utils import compress_one_image
 
-for f in Path('path/to/dataset').rglob('*.jpg'):
-    compress_one_image(f)#(1)!
+for f in Path("path/to/dataset").rglob("*.jpg"):
+    compress_one_image(f)  # (1)!
 ```
 
 1. Nothing returns from this function
@@ -170,10 +171,10 @@ Automatically split a dataset into `train`/`val`/`test` splits and save the resu
 ```{ .py .annotate }
 from ultralytics.data.utils import autosplit
 
-autosplit( #(1)!
+autosplit(  # (1)!
     path="path/to/images",
-    weights=(0.9, 0.1, 0.0), # (train, validation, test) fractional splits
-    annotated_only=False     # split only images with annotation file when True
+    weights=(0.9, 0.1, 0.0),  # (train, validation, test) fractional splits
+    annotated_only=False,  # split only images with annotation file when True
 )
 ```
 

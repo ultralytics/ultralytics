@@ -153,11 +153,11 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         model = YOLO("yolov8n.pt")
         model.export(
             format="engine",
-            dynamic=True, #(1)!
-            batch=8, #(2)!
-            workspace=4, #(3)!
+            dynamic=True,  # (1)!
+            batch=8,  # (2)!
+            workspace=4,  # (3)!
             int8=True,
-            data="coco.yaml", #(4)!
+            data="coco.yaml",  # (4)!
         )
 
         # Load the exported TensorRT INT8 model

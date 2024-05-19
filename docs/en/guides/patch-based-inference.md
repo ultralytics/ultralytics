@@ -1,7 +1,7 @@
 ---
 comments: true
 description: A comprehensive guide on how to use Patch-Based-Inference in instance segmentation and object detection tasks.
-keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9, FastSAM, RTDETR, SAHI, Sliced Inference, Instance Segmentation, Object Detection, Ultralytics, Large Scale Image Analysis, Small Object Segmentation
+keywords: Patch-Based-Inference, patched_yolo_infer, YOLOv8, YOLOv8-seg, YOLOv9, YOLOv9-seg, FastSAM, RTDETR, SAHI, Sliced Inference, Instance Segmentation, Object Detection, Ultralytics, Large Scale Image Analysis, Small Object Segmentation
 ---
 # Ultralytics Docs: Using Patch-Based-Inference for segmenting and detecting small objects in images. 
 
@@ -66,7 +66,7 @@ The output obtained from the process includes several attributes that can be lev
 | image                  | numpy.ndarray       | This attribute contains the original image on which the inference was performed.                      |
 | filtered_confidences   | list[numpy.float32] | This attribute holds the confidence scores associated with each detected object.                      |
 | filtered_boxes         | list[list[int]]     | These bounding boxes are represented as a list of lists, where each list contains four values: [x_min, y_min, x_max, y_max]. These values correspond to the coordinates of the top-left and bottom-right corners of each bounding box.|
-| filtered_masks         | list[numpy.ndarray] | If available, this attribute provides segmentation masks corresponding to the detected objects. These masks can be used to precisely delineate object boundaries. |
+| filtered_polygons         | list[numpy.ndarray] | If available, this attribute provides a list containing NumPy arrays of polygon coordinates that represent segmentation masks corresponding to the detected objects. These polygons can be utilized to accurately outline the boundaries of each object. |
 | filtered_classes_id    | list[int]           | This attribute contains the class IDs assigned to each detected object.                               |
 | filtered_classes_names | list[str]           | These are the human-readable names corresponding to the class IDs.                                    |
 
@@ -112,7 +112,7 @@ result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS'
 img=result.image
 confidences=result.filtered_confidences
 boxes=result.filtered_boxes
-masks=result.filtered_masks
+polygons=result.filtered_polygons
 classes_ids=result.filtered_classes_id
 classes_names=result.filtered_classes_names
 ```
@@ -120,7 +120,7 @@ classes_names=result.filtered_classes_names
 
 **MakeCropsDetectThem**
 
-Class implementing cropping and passing crops through a neural network for detection/segmentation.
+Class implementing cropping and passing crops through a neural network for detection/segmentation:
 
 | **Argument**          | **Type**               | **Default**  | **Description**                                                                                                |
 |-----------------------|------------------------|--------------|----------------------------------------------------------------------------------------------------------------|
@@ -130,19 +130,20 @@ Class implementing cropping and passing crops through a neural network for detec
 | imgsz                 | int                    | 640          | Size of the input image for inference YOLO.                                                                    |
 | conf                  | float                  | 0.5          | Confidence threshold for detections YOLO.                                                                      |
 | iou                   | float                  | 0.7          | IoU threshold for non-maximum suppression YOLOv8 of single  crop.                                              |
-| classes_list          | List[int] or None      | None         | List of classes to filter detections. If None, all classes are considered. Defaults to None.                   |
-| segment               | bool                   | False        | Whether to perform segmentation (YOLOv8-seg).                                                                  |
+| classes_list          | List[int] or None      | None         | List of classes to filter detections. If None, all classes are considered.                                     |
+| segment               | bool                   | False        | Whether to perform segmentation (if the model supports it).                                                    |
 | shape_x               | int                    | 700          | Size of the crop in the x-coordinate.                                                                          |
-| shape_y               | int                    | 700          | Size of the crop in the y-coordinate.                                                                          |
+| shape_y               | int                    | 600          | Size of the crop in the y-coordinate.                                                                          |
 | overlap_x             | float                  | 25           | Percentage of overlap along the x-axis.                                                                        |
 | overlap_y             | float                  | 25           | Percentage of overlap along the y-axis.                                                                        |
 | show_crops            | bool                   | False        | Whether to visualize the cropping.                                                                             |
-| resize_initial_size   | bool                   | False        | Whether to resize the results to the original image size (ps: slow operation).                                 |
+| resize_initial_size   | bool                   | False        | Whether to resize the results to the original input image size (ps: slow operation).                           |
+| memory_optimize       | bool                   | True         | Memory optimization option for segmentation (less accurate results when enabled).                              |
 
 
 **CombineDetections**
 
-Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression).
+Class implementing combining masks/boxes from multiple crops + NMS (Non-Maximum Suppression):
 
 | **Argument**         | **Type**          | **Default** | **Description**                                                                                                         |
 |----------------------|-------------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
@@ -173,13 +174,13 @@ visualize_results(
     img=result.image,
     confidences=result.filtered_confidences,
     boxes=result.filtered_boxes,
-    masks=result.filtered_masks,
+    polygons=result.filtered_polygons,
     classes_ids=result.filtered_classes_id,
     classes_names=result.filtered_classes_names,
     segment=False,
 )
 ```
-#### Possible arguments of the visualize_results function:
+#### Possible arguments of the ```visualize_results``` function:
 
 | Argument                | Type            | Default       | Description                                                                                   |
 |-------------------------|-----------------|-----------    |-----------------------------------------------------------------------------------------------|
@@ -188,8 +189,9 @@ visualize_results(
 | classes_ids             | list            |               | A list of class IDs for each detection.                                                       |
 | confidences             | list            | []            | A list of confidence scores corresponding to each bounding box.                               |
 | classes_names           | list            | []            | A list of class names corresponding to the class IDs.                                         |
-| masks                   | list            | []            | A list of masks.                                                                              |
-| segment                 | bool            | False         | Whether to perform instance segmentation.                                                     |
+| polygons                | list            | []            | A list containing NumPy arrays of polygon coordinates that represent segmentation masks.      |
+| masks                   | list            | []            | A list of segmentation binary masks.                                                          |
+| segment                 | bool            | False         | Whether to perform instance segmentation visualization.                                       |
 | show_boxes              | bool            | True          | Whether to show bounding boxes.                                                               |
 | show_class              | bool            | True          | Whether to show class labels.                                                                 |
 | fill_mask               | bool            | False         | Whether to fill the segmented regions with color.                                             |
@@ -197,7 +199,7 @@ visualize_results(
 | color_class_background  | tuple           | (0, 0, 255)   | The background BGR color for class labels.                                                    |
 | color_class_text        | tuple           |(255, 255, 255)| The text color for class labels.                                                              |
 | thickness               | int             | 4             | The thickness of bounding box and text.                                                       |
-| font                    |                 |cv2.FONT_HERSHEY_SIMPLEX | The font type for class labels.                                                     |
+| font                    | cv2.font        |cv2.FONT_HERSHEY_SIMPLEX | The font type for class labels.                                                     |
 | font_scale              | float           | 1.5           | The scale factor for font size.                                                               |
 | delta_colors            | int             | seed=0        | The random seed offset for color variation.                                                   |
 | dpi                     | int             | 150           | Final visualization size (plot is bigger when dpi is higher).                                 |
@@ -207,11 +209,44 @@ visualize_results(
 | show_classes_list       | list            | []            | If empty, visualize all classes. Otherwise, visualize only classes in the list.               |
 | return_image_array      | bool            | False         | If True, the function returns the image (BGR np.array) instead of displaying it.              |
 
+---
+
+## __How to improve the quality of the algorithm for the task of instance segmentation:__
+
+In this approach, all operations under the hood are performed on binary masks of recognized objects. Storing these masks consumes a lot of memory, so this method requires more RAM and slightly more processing time. However, the accuracy of recognition significantly improves, which is especially noticeable in cases where there are many objects of different sizes and they are densely packed. Therefore, we recommend using this approach in production if accuracy is important and not speed, and if your computational resources allow storing hundreds of binary masks in RAM.
+
+The difference in the approach to using the function lies in specifying the parameter ```memory_optimize=False``` in the ```MakeCropsDetectThem``` class.
+In such a case, the informative values after processing will be the following:
+
+1. img: This attribute contains the original image on which the inference was performed. It provides context for the detected objects.
+
+2. confidences: This attribute holds the confidence scores associated with each detected object. These scores indicate the model's confidence level in the accuracy of its predictions.
+
+3. boxes: These bounding boxes are represented as a list of lists, where each list contains four values: [x_min, y_min, x_max, y_max]. These values correspond to the coordinates of the top-left and bottom-right corners of each bounding box.
+
+4. masks: This attribute provides segmentation binary masks corresponding to the detected objects. These masks can be used to precisely delineate object boundaries.
+
+5. classes_ids: This attribute contains the class IDs assigned to each detected object. These IDs correspond to specific object classes defined during the model training phase.
+
+6. classes_names: These are the human-readable names corresponding to the class IDs. They provide semantic labels for the detected objects, making the results easier to interpret.
+
+Here's how you can obtain them:
+```python
+img=result.image
+confidences=result.filtered_confidences
+boxes=result.filtered_boxes
+masks=result.filtered_masks
+classes_ids=result.filtered_classes_id
+classes_names=result.filtered_classes_names
+```
+
+---
+
 We extend our thanks to the patched_yolo_infer developers for creating and maintaining this invaluable resource for the computer vision community. For more information about patched_yolo_infer and its creators, visit the [patched_yolo_infer GitHub repository](https://github.com/Koldim2001/YOLO-Patch-Based-Inference).
 
 [nb_example1]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_patch_based_inference.ipynb
 [colab_badge]: https://colab.research.google.com/assets/colab-badge.svg
-[colab_ex1]: https://colab.research.google.com/drive/1FUao91GyB-ojGRN_okUxYyfagTT9tdsP?usp=sharing
+[colab_ex1]: https://colab.research.google.com/drive/1XCpIYLMFEmGSO0XCOkSD7CcD9SFHSJPA?usp=sharing
 [yt_link1]: https://youtu.be/IfbNOLROym4
 [nb_example2]: https://nbviewer.org/github/Koldim2001/YOLO-Patch-Based-Inference/blob/main/examples/example_extra_functions.ipynb
 [colab_ex2]: https://colab.research.google.com/drive/1eM4o1e0AUQrS1mLDpcgK9HKInWEvnaMn?usp=sharing

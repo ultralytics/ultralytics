@@ -92,13 +92,13 @@ Object detection is straightforward with the `train` method, as illustrated belo
         from ultralytics import YOLOWorld
 
         # Load a pretrained YOLOv8s-worldv2 model
-        model = YOLOWorld('yolov8s-worldv2.pt')
+        model = YOLOWorld("yolov8s-worldv2.pt")
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -120,10 +120,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOWorld
 
         # Initialize a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLOWorld("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Execute inference with the YOLOv8s-world model on the specified image
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -150,10 +150,10 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLO
 
         # Create a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data='coco8.yaml')
+        metrics = model.val(data="coco8.yaml")
         ```
 
     === "CLI"
@@ -175,7 +175,7 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
         from ultralytics import YOLO
 
         # Create a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Track with a YOLO-World model on a video
         results = model.track(source="path/to/video.mp4")
@@ -208,13 +208,13 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
         from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
-        
+        model = YOLO("yolov8s-world.pt")  # or choose yolov8m/l-world.pt
+
         # Define custom classes
         model.set_classes(["person", "bus"])
 
         # Execute prediction for specified categories on an image
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -232,8 +232,8 @@ You can also save a model after setting custom classes. By doing this you create
         from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt
-        
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt
+
         # Define custom classes
         model.set_classes(["person", "bus"])
 
@@ -247,10 +247,10 @@ You can also save a model after setting custom classes. By doing this you create
         from ultralytics import YOLO
 
         # Load your custom model
-        model = YOLO('custom_yolov8s.pt')
+        model = YOLO("custom_yolov8s.pt")
 
         # Run inference to detect your custom classes
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -294,8 +294,8 @@ This approach provides a powerful means of customizing state-of-the-art object d
     === "Python"
 
         ```python
-        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
         from ultralytics import YOLOWorld
+        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
         data = dict(
             train=dict(
@@ -315,7 +315,6 @@ This approach provides a powerful means of customizing state-of-the-art object d
         )
         model = YOLOWorld("yolov8s-worldv2.yaml")
         model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
-
         ```
 
 ## Citations and Acknowledgements

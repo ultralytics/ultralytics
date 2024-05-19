@@ -81,16 +81,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TF GraphDef format
-        model.export(format='pb')  # creates 'yolov8n.pb'
+        model.export(format="pb")  # creates 'yolov8n.pb'
 
         # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO('yolov8n.pb')
+        tf_graphdef_model = YOLO("yolov8n.pb")
 
         # Run inference
-        results = tf_graphdef_model('https://ultralytics.com/images/bus.jpg')
+        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

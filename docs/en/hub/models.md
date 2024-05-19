@@ -90,7 +90,7 @@ In this step, you will start training you model.
 
     When you are on this step, you have the option to close the **Train Model** dialog and start training your model from the Model page later.
 
-    ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_2.jpg)
+    ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_2.jpg)
 
 [Ultralytics HUB](https://bit.ly/ultralytics_hub) offers three training options:
 
@@ -252,7 +252,7 @@ Now, anyone who has the direct link to your model can view it.
 
     ![Ultralytics HUB screenshot of the Share Model dialog with an arrow pointing to the model's link](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_share_model_4.jpg)
 
-## Edit Project
+## Edit Model
 
 Navigate to the Model page of the model you want to edit, open the model actions dropdown and click on the **Edit** option. This action will trigger the **Update Model** dialog.
 
@@ -268,7 +268,7 @@ Apply the desired modifications to your model and then confirm the changes by cl
 
 ![Ultralytics HUB screenshot of the Update Model dialog with an arrow pointing to the Save button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_edit_model_3.jpg)
 
-## Delete Project
+## Delete Model
 
 Navigate to the Model page of the model you want to delete, open the model actions dropdown and click on the **Delete** option. This action will delete the model.
 

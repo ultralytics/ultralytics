@@ -109,10 +109,7 @@ With your YOLOv8 model in ONNX format, you can deploy and run inferences using D
         model_path = "path/to/yolov8n.onnx"
 
         # Set up the DeepSparse Pipeline
-        yolo_pipeline = Pipeline.create(
-            task="yolov8",
-            model_path=model_path
-        )
+        yolo_pipeline = Pipeline.create(task="yolov8", model_path=model_path)
 
         # Run the model on your images
         images = ["path/to/image.jpg"]

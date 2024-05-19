@@ -192,7 +192,7 @@ Results file `results.csv` is updated after each epoch, and then plotted as `res
 ```python
 from utils.plots import plot_results
 
-plot_results('path/to/results.csv')  # plot 'results.csv' as 'results.png'
+plot_results("path/to/results.csv")  # plot 'results.csv' as 'results.png'
 ```
 
 <p align="center"><img width="800" alt="results.png" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/results.png"></p>

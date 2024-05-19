@@ -50,10 +50,10 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='SKU-110K.yaml', epochs=100, imgsz=640)
+        results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

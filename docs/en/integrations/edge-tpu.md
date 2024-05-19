@@ -73,16 +73,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TFLite Edge TPU format
-        model.export(format='edgetpu')  # creates 'yolov8n_full_integer_quant_edgetpu.tflite’
+        model.export(format="edgetpu")  # creates 'yolov8n_full_integer_quant_edgetpu.tflite’
 
         # Load the exported TFLite Edge TPU model
-        edgetpu_model = YOLO('yolov8n_full_integer_quant_edgetpu.tflite')
+        edgetpu_model = YOLO("yolov8n_full_integer_quant_edgetpu.tflite")
 
         # Run inference
-        results = edgetpu_model('https://ultralytics.com/images/bus.jpg')
+        results = edgetpu_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

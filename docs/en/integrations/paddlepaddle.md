@@ -77,16 +77,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format='paddle')  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO('./yolov8n_paddle_model')
+        paddle_model = YOLO("./yolov8n_paddle_model")
 
         # Run inference
-        results = paddle_model('https://ultralytics.com/images/bus.jpg')
+        results = paddle_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

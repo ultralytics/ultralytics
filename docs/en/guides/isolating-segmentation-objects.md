@@ -277,12 +277,12 @@ from ultralytics import YOLO
 m = YOLO("yolov8n-seg.pt")  # (4)!
 res = m.predict()  # (3)!
 
-# iterate detection results (5)
+# Iterate detection results (5)
 for r in res:
     img = np.copy(r.orig_img)
     img_name = Path(r.path).stem
 
-    # iterate each object contour (6)
+    # Iterate each object contour (6)
     for ci, c in enumerate(r):
         label = c.names[c.boxes.cls.tolist().pop()]
 

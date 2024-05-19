@@ -80,10 +80,10 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/best.pt')  # load a tiger-pose trained model
+        model = YOLO("path/to/best.pt")  # load a tiger-pose trained model
 
         # Run inference
-        results = model.predict(source="https://youtu.be/MIBAT6BGE6U" show=True)
+        results = model.predict(source="https://youtu.be/MIBAT6BGE6U", show=True)
         ```
 
     === "CLI"

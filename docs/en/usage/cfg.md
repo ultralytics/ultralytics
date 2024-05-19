@@ -33,7 +33,7 @@ Ultralytics commands use the following syntax:
         from ultralytics import YOLO
 
         # Load a YOLOv8 model from a pre-trained weights file
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)

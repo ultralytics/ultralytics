@@ -1,19 +1,16 @@
 ---
 comments: true
-description: Learn how to use Ultralytics HUB for efficient and user-friendly AI model training in the cloud. Follow our detailed guide for easy model creation, training, evaluation, and deployment.
-keywords: Ultralytics, HUB Models, AI model training, model creation, model training, model evaluation, model deployment
+description: Unlock one-click cloud training for your models on Ultralytics HUB Pro. Streamline your AI workflow today!.
+keywords: Ultralytics HUB, cloud training, AI model training, Pro users, easy model training, Ultralytics cloud, AI workflow
 ---
 
-# Cloud Training
+# Ultralytics HUB Cloud Training
 
-[Ultralytics HUB](https://hub.ultralytics.com/) provides a powerful and user-friendly cloud platform to train custom object detection models. Easily select your dataset and the desired training method, then kick off the process with just a few clicks. Ultralytics HUB offers pre-built options and various model architectures to streamline your workflow.
+We've listened to the high demand and widespread interest and are thrilled to unveil [Ultralytics HUB](https://bit.ly/ultralytics_hub) Cloud Training, offering a single-click training experience for our [Pro](./pro.md) users!
 
-![cloud training cover](https://github.com/ultralytics/ultralytics/assets/19519529/cbfdb3b8-ad35-44a6-afe6-61ec0b8e8b8d)
-
-Read more about creating and other details of a Model at our [HUB Models page](models.md)
+[Ultralytics HUB](https://bit.ly/ultralytics_hub) [Pro](./pro.md) users can finetune [Ultralytics HUB](https://bit.ly/ultralytics_hub) models on a custom dataset using our Cloud Training solution, making the model training process easy. Say goodbye to complex setups and hello to streamlined workflows with [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s intuitive interface.
 
 <p align="center">
-  <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ie3vLUDNYZo"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -23,49 +20,67 @@ Read more about creating and other details of a Model at our [HUB Models page](m
   <strong>Watch:</strong> New Feature 🌟 Introducing Ultralytics HUB Cloud Training
 </p>
 
-## Selecting an Instance
+## Train Model
 
-For details on picking a model and instances for it, please read our [Instances guide Page](models.md)
+In order to train models using Ultralytics Cloud Training, you need to [upgrade](./pro.md#upgrade) to the [Pro Plan](./pro.md).
 
-## Steps to Train the Model
+Follow the [Train Model](./models.md#train-model) instructions from the [Models](./models.md) page until you reach the third step ([Train](./models.md#3-train)) of the **Train Model** dialog. Once you are on this step, simply select the training duration (Epochs or Timed), the training instance, the payment method, and click the **Start Training** button. That's it!
 
-Once the instance has been selected, training a model using Ultralytics HUB is a three-step process, as below:
+![Ultralytics HUB screenshot of the Train Model dialog with arrows pointing to the Cloud Training options and the Start Training button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_1.jpg)
 
-1. Picking a Dataset - Read more about datasets, steps to add/remove datasets from the [Dataset page](datasets.md)
-2. Picking a Model - Read more about models, steps to create/share and handle a model on the [HUB Models page](models.md)
-3. Training the Model on the Chosen Dataset
+??? note "Note"
 
-Ultralytics HUB offers three training options:
+    When you are on this step, you have the option to close the **Train Model** dialog and start training your model from the Model page later.
 
-- **Ultralytics Cloud** - Explained in this page.
-- **Google Colab** - Train on Google's popular Colab notebooks.
-- **Bring your own agent** - Train models locally on your own hardware or on-premise GPU servers.
+    ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_2.jpg)
 
-In order to start training your model, follow the instructions presented in these steps.
+Most of the times, you will use the Epochs training. The number of epochs can be adjusted on this step (if the training didn't start yet) and represents the number of times your dataset needs to go through the cycle of train, label, and test. The exact pricing based on the number of epochs is hard to determine, reason why we only allow the [Account Balance](./pro.md#account-balance) payment method.
 
-## Training via Ultralytics Cloud
+!!! note "Note"
 
-To start training your model using Ultralytics Cloud, simply select the Training Duration, Available Instances, and Payment options.
+    When using the Epochs training, your [account balance](./pro.md#account-balance) needs to be at least US$5.00 to start training. In case you have a low balance, you can top-up directly from this step.
 
-**Training Duration** - Ultralytics offers two kinds of training durations:
+    ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Top-Up button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_3.jpg)
 
-1. Training based on `Epochs`: This option allows you to train your model based on the number of times your dataset needs to go through the cycle of train, label, and test. The exact pricing based on the number of epochs is hard to determine. Hence, if the credit gets exhausted before the intended number of epochs, the training pauses, and you get a prompt to top-up and resume training.
-2. Timed Training: The timed training feature allows you to fix the time duration of the entire training process and also determines the estimated amount before the start of training.
+!!! note "Note"
 
-![Ultralytics cloud screenshot of training duration options](https://github.com/ultralytics/ultralytics/assets/19519529/47b96f3f-a9ea-441a-b065-cba97edc333f)
+    When using the Epochs training, the [account balance](./pro.md#account-balance) is deducted after every epoch.
 
-When the training starts, you can click **Done** and monitor the training progress on the Model page.
+    Also, after every epoch, we check if you have enough [account balance](./pro.md#account-balance) for the next epoch. In case you don't have enough [account balance](./pro.md#account-balance) for the next epoch, we will stop the training session, allowing you to resume training your model from the last checkpoint saved.
 
-## Monitor Your Training
+    ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Resume Training button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_4.jpg)
 
-Once the model and mode of training have been selected, you can monitor the training procedure on the `Train` section with the link provided in the terminal (on your agent/Google Colab) or a button from Ultralytics Cloud.
+Alternatively, you can use the Timed training. This option allows you to set the training duration. In this case, we can determine the exact pricing. You can pay upfront or using your [account balance](./pro.md#account-balance).
 
-![Monitor your Training](https://github.com/ultralytics/ultralytics/assets/19519529/316f8301-0d60-465e-8c99-aa3daf66433c)
+If you have enough [account balance](./pro.md#account-balance), you can use the [Account Balance](./pro.md#account-balance) payment method.
 
-## Stopping and Resuming Your Training
+![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Start Training button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_5.jpg)
+
+If you don't have enough [account balance](./pro.md#account-balance), you won't be able to use the [Account Balance](./pro.md#account-balance) payment method. You can pay upfront or top-up directly from this step.
+
+![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Pay Now button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_6.jpg)
+
+Before the training session starts, the initialization process spins up a dedicated instance equipped with GPU resources, which can sometimes take a while depending on the current demand and availability of GPU resources.
+
+![Ultralytics HUB screenshot of the Model page during the initialization process](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_7.jpg)
+
+!!! note "Note"
+
+    The account balance is not deducted during the initialization process (before the training session starts).
+
+After the training session starts, you can monitor each step of the progress.
+
+If needed, you can stop the training by clicking on the **Stop Training** button.
+
+![Ultralytics HUB screenshot of the Model page of a model that is currently training with an arrow pointing to the Stop Training button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_8.jpg)
+
+!!! note "Note"
+
+    You can resume training your model from the last checkpoint saved.
+
+    ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Resume Training button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_4.jpg)
 
 <p align="center">
-  <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/H3qL8ImCSV8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -75,26 +90,14 @@ Once the model and mode of training have been selected, you can monitor the trai
   <strong>Watch:</strong> Pause and Resume Model Training Using Ultralytics HUB
 </p>
 
-Once the training has started, you can `Stop` the training, which will also correspondingly pause the credit usage. You can then `Resume` the training from the point where it stopped.
+!!! note "Note"
 
-![Pausing and Resuming Training](https://github.com/ultralytics/ultralytics/assets/19519529/b2707a93-fa5c-4ee2-8443-6be9e1c2857d)
+    Unfortunately, at the moment, you can only train one model at a time using Ultralytics Cloud.
 
-## Payments and Billing Options
+    ![Ultralytics HUB screenshot of the Train Model dialog with the Ultralytics Cloud unavailable](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_9.jpg)
 
-Ultralytics HUB offers `Pay Now` as upfront and/or using `Ultralytics HUB Account` as a wallet to top up and fulfill the billing. You can choose from two types of accounts: `Free` and `Pro` user.
+## Billing
 
-To access your profile, click on the profile picture in the bottom left corner.
+At any point during training or after training, you can check the cost of your model by clicking on the **Billing** tab. Furthermore, you can download a small cost report by clicking on the **Download** button.
 
-![Clicking profile picture](https://github.com/ultralytics/ultralytics/assets/19519529/53e5410e-06f5-4b40-b29d-ef00b5779163)
-
-Click on the Billing tab to view your current plan and options to upgrade it.
-
-![Clicking Upgrade button](https://github.com/ultralytics/ultralytics/assets/19519529/361b43c7-a9d4-4d05-b80b-dc1fa8bce829)
-
-You will be prompted with different available plans, and you can pick from the available plans as shown below.
-
-![Picking a plan](https://github.com/ultralytics/ultralytics/assets/19519529/4326b01c-0d7d-4850-ac4f-ced2de3339ee)
-
-Navigate to the Payment page, fill in the details, and complete the payment.
-
-![Payment Page](https://github.com/ultralytics/ultralytics/assets/19519529/5deebabe-1d8a-485a-b290-e038729c849f)
+![Ultralytics HUB screenshot of the Billing tab inside the Model page with an arrow pointing to the Billing tab and one to the Download button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_billing_1.jpg)

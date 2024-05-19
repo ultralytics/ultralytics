@@ -75,16 +75,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format='saved_model')  # creates '/yolov8n_saved_model'
+        model.export(format="saved_model")  # creates '/yolov8n_saved_model'
 
         # Load the exported TF SavedModel model
-        tf_savedmodel_model = YOLO('./yolov8n_saved_model')
+        tf_savedmodel_model = YOLO("./yolov8n_saved_model")
 
         # Run inference
-        results = tf_savedmodel_model('https://ultralytics.com/images/bus.jpg')
+        results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

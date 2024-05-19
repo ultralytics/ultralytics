@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, AI Gym, pose estimation, real-time tracking, machin
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py). If you spot a problem please help fix it by [contributing](../../help/contributing.md/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/ai_gym.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/ai_gym.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

@@ -56,16 +56,16 @@ To perform object detection on an image, use the `predict` method as shown below
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # Define an inference source
-        source = 'path/to/bus.jpg'
+        source = "path/to/bus.jpg"
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Run inference on an image
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Prepare a Prompt Process object
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # Everything prompt
         ann = prompt_process.everything_prompt()
@@ -74,13 +74,13 @@ To perform object detection on an image, use the `predict` method as shown below
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # Text prompt
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
         # Point prompt
         # points default [[0,0]] [[x1,y1],[x2,y2]]
         # point_label default [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -104,10 +104,10 @@ Validation of the model on a dataset can be done as follows:
         from ultralytics import FastSAM
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Validate the model
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -131,7 +131,7 @@ To perform object tracking on an image, use the `track` method as shown below:
         from ultralytics import FastSAM
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Track with a FastSAM model on a video
         results = model.track(source="path/to/video.mp4", imgsz=640)

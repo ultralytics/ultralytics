@@ -59,12 +59,12 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The trainin
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -154,7 +154,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/last.pt')  # load a partially trained model
+        model = YOLO("path/to/last.pt")  # load a partially trained model
 
         # Resume training
         results = model.train(resume=True)

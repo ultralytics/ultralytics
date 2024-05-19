@@ -14,7 +14,7 @@ You can use Google Colab to work on projects related to [Ultralytics YOLOv8](htt
 
 Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your machine learning and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
 
-You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you’re good to go. 
+You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you’re good to go.
 
 ## Training YOLOv8 Using Google Colaboratory
 
@@ -39,7 +39,7 @@ Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Chec
 
 ### Common Questions While Working with Google Colab
 
-When working with Google Colab, you might have a few common questions. Let’s answer them. 
+When working with Google Colab, you might have a few common questions. Let’s answer them.
 
 **Q: Why does my Google Colab session timeout?**  
 A: Google Colab sessions can timeout due to inactivity, especially for free users who have a limited session duration.

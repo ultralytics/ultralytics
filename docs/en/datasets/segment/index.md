@@ -74,10 +74,10 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco8-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -117,7 +117,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_segments=True)
+        convert_coco(labels_dir="path/to/coco/annotations/", use_segments=True)
         ```
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
@@ -139,7 +139,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
 Certainly, here is the table updated with code snippets:

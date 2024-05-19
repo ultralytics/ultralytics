@@ -55,10 +55,10 @@ To train Ultralytics YOLOv8n model on the Carparts Segmentation dataset for 100 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='carparts-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

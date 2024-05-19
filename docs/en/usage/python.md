@@ -27,22 +27,22 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
-    results = model.train(data='coco8.yaml', epochs=3)
+    results = model.train(data="coco8.yaml", epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()
 
     # Perform object detection on an image using the model
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Export the model to ONNX format
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 ## [Train](../modes/train.md)
@@ -56,7 +56,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt') # pass any model type
+        model = YOLO("yolov8n.pt")  # pass any model type
         results = model.train(epochs=5)
         ```
 
@@ -65,8 +65,8 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.yaml')
-        results = model.train(data='coco8.yaml', epochs=5)
+        model = YOLO("yolov8n.yaml")
+        results = model.train(data="coco8.yaml", epochs=5)
         ```
 
     === "Resume"
@@ -117,14 +117,14 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
     === "From source"
 
         ```python
-        from ultralytics import YOLO
-        from PIL import Image
         import cv2
+        from PIL import Image
+        from ultralytics import YOLO
 
         model = YOLO("model.pt")
         # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
         results = model.predict(source="0")
-        results = model.predict(source="folder", show=True) # Display preds. Accepts all YOLO predict arguments
+        results = model.predict(source="folder", show=True)  # Display preds. Accepts all YOLO predict arguments
 
         # from PIL
         im1 = Image.open("bus.jpg")
@@ -153,20 +153,20 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
 
         for result in results:
             # Detection
-            result.boxes.xyxy   # box with xyxy format, (N, 4)
-            result.boxes.xywh   # box with xywh format, (N, 4)
+            result.boxes.xyxy  # box with xyxy format, (N, 4)
+            result.boxes.xywh  # box with xywh format, (N, 4)
             result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
             result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
-            result.boxes.conf   # confidence score, (N, 1)
-            result.boxes.cls    # cls, (N, 1)
+            result.boxes.conf  # confidence score, (N, 1)
+            result.boxes.cls  # cls, (N, 1)
 
             # Segmentation
-            result.masks.data      # masks, (N, H, W)
-            result.masks.xy        # x,y segments (pixels), List[segment] * N
-            result.masks.xyn       # x,y segments (normalized), List[segment] * N
+            result.masks.data  # masks, (N, H, W)
+            result.masks.xy  # x,y segments (pixels), List[segment] * N
+            result.masks.xyn  # x,y segments (normalized), List[segment] * N
 
             # Classification
-            result.probs     # cls prob, (num_class, )
+            result.probs  # cls prob, (num_class, )
 
         # Each result is composed of torch.Tensor by default,
         # in which you can easily use following functionality:
@@ -218,9 +218,9 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official detection model
-        model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n.pt")  # load an official detection model
+        model = YOLO("yolov8n-seg.pt")  # load an official segmentation model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Track with the model
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)
@@ -242,7 +242,7 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
@@ -259,18 +259,16 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco8.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
-        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        similar = exp.get_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
         print(similar.head())
 
         # Search using multiple indices
         similar = exp.get_similar(
-                                img=['https://ultralytics.com/images/bus.jpg',
-                                     'https://ultralytics.com/images/bus.jpg'],
-                                limit=10
-                                )
+            img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"], limit=10
+        )
         print(similar.head())
         ```
 
@@ -280,14 +278,14 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco8.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
         similar = exp.get_similar(idx=1, limit=10)
         print(similar.head())
 
         # Search using multiple indices
-        similar = exp.get_similar(idx=[1,10], limit=10)
+        similar = exp.get_similar(idx=[1, 10], limit=10)
         print(similar.head())
         ```
 
@@ -300,7 +298,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 !!! Tip "Detection Trainer Example"
 
         ```python
-        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
+        from ultralytics.models.yolo import DetectionPredictor, DetectionTrainer, DetectionValidator
 
         # trainer
         trainer = DetectionTrainer(overrides={})

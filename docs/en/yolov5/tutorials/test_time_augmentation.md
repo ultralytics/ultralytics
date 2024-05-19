@@ -131,10 +131,10 @@ TTA is automatically integrated into all [YOLOv5 PyTorch Hub](https://pytorch.or
 import torch
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')  # or yolov5m, yolov5x, custom
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")  # or yolov5m, yolov5x, custom
 
 # Images
-img = 'https://ultralytics.com/images/zidane.jpg'  # or file, PIL, OpenCV, numpy, multiple
+img = "https://ultralytics.com/images/zidane.jpg"  # or file, PIL, OpenCV, numpy, multiple
 
 # Inference
 results = model(img, augment=True)  # <--- TTA inference

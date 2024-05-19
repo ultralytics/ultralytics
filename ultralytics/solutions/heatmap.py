@@ -16,62 +16,11 @@ from shapely.geometry import LineString, Point, Polygon
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
 
-    def __init__(self):
-        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
-
-        # Visual information
-        self.annotator = None
-        self.view_img = False
-        self.shape = "circle"
-
-        self.names = None  # Classes names
-
-        # Image information
-        self.imw = None
-        self.imh = None
-        self.im0 = None
-        self.tf = 2
-        self.view_in_counts = True
-        self.view_out_counts = True
-
-        # Heatmap colormap and heatmap np array
-        self.colormap = None
-        self.heatmap = None
-        self.heatmap_alpha = 0.5
-
-        # Predict/track information
-        self.boxes = None
-        self.track_ids = None
-        self.clss = None
-        self.track_history = defaultdict(list)
-
-        # Region & Line Information
-        self.count_reg_pts = None
-        self.counting_region = None
-        self.line_dist_thresh = 15
-        self.region_thickness = 5
-        self.region_color = (255, 0, 255)
-
-        # Object Counting Information
-        self.in_counts = 0
-        self.out_counts = 0
-        self.count_ids = []
-        self.class_wise_count = {}
-        self.count_txt_color = (0, 0, 0)
-        self.count_bg_color = (255, 255, 255)
-        self.cls_txtdisplay_gap = 50
-
-        # Decay factor
-        self.decay_factor = 0.99
-
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(
+    def __init__(
         self,
-        imw,
-        imh,
-        classes_names=None,
+        classes_names,
+        imw=0,
+        imh=0,
         colormap=cv2.COLORMAP_JET,
         heatmap_alpha=0.5,
         view_img=False,
@@ -87,71 +36,78 @@ class Heatmap:
         decay_factor=0.99,
         shape="circle",
     ):
-        """
-        Configures the heatmap colormap, width, height and display parameters.
+        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
 
-        Args:
-            colormap (cv2.COLORMAP): The colormap to be set.
-            imw (int): The width of the frame.
-            imh (int): The height of the frame.
-            classes_names (dict): Classes names
-            line_thickness (int): Line thickness for bounding boxes.
-            heatmap_alpha (float): alpha value for heatmap display
-            view_img (bool): Flag indicating frame display
-            view_in_counts (bool): Flag to control whether to display the incounts on video stream.
-            view_out_counts (bool): Flag to control whether to display the outcounts on video stream.
-            count_reg_pts (list): Object counting region points
-            count_txt_color (RGB color): count text color value
-            count_bg_color (RGB color): count highlighter line color
-            count_reg_color (RGB color): Color of object counting region
-            region_thickness (int): Object counting Region thickness
-            line_dist_thresh (int): Euclidean Distance threshold for line counter
-            decay_factor (float): value for removing heatmap area after object passed
-            shape (str): Heatmap shape, rect or circle shape supported
-        """
-        self.tf = line_thickness
-        self.names = classes_names
+        # Visual information
+        self.annotator = None
+        self.view_img = view_img
+        self.shape = shape
+
+        self.initialized = False
+        self.names = classes_names  # Classes names
+
+        # Image information
         self.imw = imw
         self.imh = imh
-        self.heatmap_alpha = heatmap_alpha
-        self.view_img = view_img
+        self.im0 = None
+        self.tf = line_thickness
         self.view_in_counts = view_in_counts
         self.view_out_counts = view_out_counts
+
+        # Heatmap colormap and heatmap np array
         self.colormap = colormap
+        self.heatmap = None
+        self.heatmap_alpha = heatmap_alpha
+
+        # Predict/track information
+        self.boxes = None
+        self.track_ids = None
+        self.clss = None
+        self.track_history = defaultdict(list)
+
+        # Region & Line Information
+        self.counting_region = None
+        self.line_dist_thresh = line_dist_thresh
+        self.region_thickness = region_thickness
+        self.region_color = count_reg_color
+
+        # Object Counting Information
+        self.in_counts = 0
+        self.out_counts = 0
+        self.count_ids = []
+        self.class_wise_count = {}
+        self.count_txt_color = count_txt_color
+        self.count_bg_color = count_bg_color
+        self.cls_txtdisplay_gap = 50
+
+        # Decay factor
+        self.decay_factor = decay_factor
+
+        # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)
 
         # Region and line selection
-        if count_reg_pts is not None:
-            if len(count_reg_pts) == 2:
+        self.count_reg_pts = count_reg_pts
+        print(self.count_reg_pts)
+        if self.count_reg_pts is not None:
+            if len(self.count_reg_pts) == 2:
                 print("Line Counter Initiated.")
-                self.count_reg_pts = count_reg_pts
                 self.counting_region = LineString(self.count_reg_pts)
-            elif len(count_reg_pts) >= 3:
+            elif len(self.count_reg_pts) >= 3:
                 print("Polygon Counter Initiated.")
-                self.count_reg_pts = count_reg_pts
                 self.counting_region = Polygon(self.count_reg_pts)
             else:
                 print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons.")
                 print("Using Line Counter Now")
                 self.counting_region = LineString(self.count_reg_pts)
 
-        # Heatmap new frame
-        self.heatmap = np.zeros((int(self.imh), int(self.imw)), dtype=np.float32)
-
-        self.count_txt_color = count_txt_color
-        self.count_bg_color = count_bg_color
-        self.region_color = count_reg_color
-        self.region_thickness = region_thickness
-        self.decay_factor = decay_factor
-        self.line_dist_thresh = line_dist_thresh
-        self.shape = shape
-
-        # shape of heatmap, if not selected
+        # Shape of heatmap, if not selected
         if self.shape not in {"circle", "rect"}:
             print("Unknown shape value provided, 'circle' & 'rect' supported")
             print("Using Circular shape now")
             self.shape = "circle"
 
-    def extract_results(self, tracks):
+    def extract_results(self, tracks, _intialized=False):
         """
         Extracts results from the provided data.
 
@@ -171,18 +127,20 @@ class Heatmap:
             tracks (list): List of tracks obtained from the object tracking process.
         """
         self.im0 = im0
-        if tracks[0].boxes.id is None:
-            self.heatmap = np.zeros((int(self.imh), int(self.imw)), dtype=np.float32)
-            if self.view_img and self.env_check:
-                self.display_frames()
-            return im0
+
+        # Initialize heatmap only once
+        if not self.initialized:
+            self.heatmap = np.zeros((int(self.im0.shape[0]), int(self.im0.shape[1])), dtype=np.float32)
+            self.initialized = True
+
         self.heatmap *= self.decay_factor  # decay factor
+
         self.extract_results(tracks)
         self.annotator = Annotator(self.im0, self.tf, None)
 
-        if self.count_reg_pts is not None:
+        if self.track_ids is not None:
             # Draw counting region
-            if self.view_in_counts or self.view_out_counts:
+            if self.count_reg_pts is not None:
                 self.annotator.draw_region(
                     reg_pts=self.count_reg_pts, color=self.region_color, thickness=self.region_thickness
                 )
@@ -214,25 +172,12 @@ class Heatmap:
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
-                # Count objects in any polygon
-                if len(self.count_reg_pts) >= 3:
-                    is_inside = self.counting_region.contains(Point(track_line[-1]))
+                if self.count_reg_pts is not None:
+                    # Count objects in any polygon
+                    if len(self.count_reg_pts) >= 3:
+                        is_inside = self.counting_region.contains(Point(track_line[-1]))
 
-                    if prev_position is not None and is_inside and track_id not in self.count_ids:
-                        self.count_ids.append(track_id)
-
-                        if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                            self.in_counts += 1
-                            self.class_wise_count[self.names[cls]]["IN"] += 1
-                        else:
-                            self.out_counts += 1
-                            self.class_wise_count[self.names[cls]]["OUT"] += 1
-
-                # Count objects using line
-                elif len(self.count_reg_pts) == 2:
-                    if prev_position is not None and track_id not in self.count_ids:
-                        distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.line_dist_thresh and track_id not in self.count_ids:
+                        if prev_position is not None and is_inside and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
@@ -241,6 +186,22 @@ class Heatmap:
                             else:
                                 self.out_counts += 1
                                 self.class_wise_count[self.names[cls]]["OUT"] += 1
+
+                    # Count objects using line
+                    elif len(self.count_reg_pts) == 2:
+                        if prev_position is not None and track_id not in self.count_ids:
+                            distance = Point(track_line[-1]).distance(self.counting_region)
+                            if distance < self.line_dist_thresh and track_id not in self.count_ids:
+                                self.count_ids.append(track_id)
+
+                                if (box[0] - prev_position[0]) * (
+                                    self.counting_region.centroid.x - prev_position[0]
+                                ) > 0:
+                                    self.in_counts += 1
+                                    self.class_wise_count[self.names[cls]]["IN"] += 1
+                                else:
+                                    self.out_counts += 1
+                                    self.class_wise_count[self.names[cls]]["OUT"] += 1
 
         else:
             for box, cls in zip(self.boxes, self.clss):
@@ -258,26 +219,26 @@ class Heatmap:
                 else:
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
+        if self.count_reg_pts is not None:
+            labels_dict = {}
+
+            for key, value in self.class_wise_count.items():
+                if value["IN"] != 0 or value["OUT"] != 0:
+                    if not self.view_in_counts and not self.view_out_counts:
+                        continue
+                    elif not self.view_in_counts:
+                        labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
+                    elif not self.view_out_counts:
+                        labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
+                    else:
+                        labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
+
+            if labels_dict is not None:
+                self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
+
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
-
-        labels_dict = {}
-
-        for key, value in self.class_wise_count.items():
-            if value["IN"] != 0 or value["OUT"] != 0:
-                if not self.view_in_counts and not self.view_out_counts:
-                    continue
-                elif not self.view_in_counts:
-                    labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
-                elif not self.view_out_counts:
-                    labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
-                else:
-                    labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
-
-        if labels_dict is not None:
-            self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
-
         self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
         if self.env_check and self.view_img:
@@ -294,4 +255,5 @@ class Heatmap:
 
 
 if __name__ == "__main__":
-    Heatmap()
+    classes_names = {0: "person", 1: "car"}  # example class names
+    heatmap = Heatmap(classes_names)

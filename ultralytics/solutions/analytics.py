@@ -1,17 +1,31 @@
-import cv2
-import numpy as np
 from itertools import cycle
+
+import cv2
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
+import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 
 class Analytics:
-    """ A class to create and update various types of charts (line, bar, pie) for visual analytics."""
+    """A class to create and update various types of charts (line, bar, pie) for visual analytics."""
 
-    def __init__(self, type, writer, im0_shape, title="ultralytics", x_label="x",
-                 y_label="y", bg_color="white", fg_color="black", line_color="yellow",
-                 line_width=2, fontsize=13, view_img=False, save_img=True):
+    def __init__(
+        self,
+        type,
+        writer,
+        im0_shape,
+        title="ultralytics",
+        x_label="x",
+        y_label="y",
+        bg_color="white",
+        fg_color="black",
+        line_color="yellow",
+        line_width=2,
+        fontsize=13,
+        view_img=False,
+        save_img=True,
+    ):
         """
         Initialize the Analytics class with various chart types.
 
@@ -46,30 +60,36 @@ class Analytics:
             fig = Figure(facecolor=self.bg_color, figsize=figsize)
             self.canvas = FigureCanvas(fig)
             self.ax = fig.add_subplot(111, facecolor=self.bg_color)
-            self.line, = self.ax.plot([], [], color=line_color, linewidth=line_width)
-
+            (self.line,) = self.ax.plot([], [], color=line_color, linewidth=line_width)
 
         elif type == "bar" or type == "pie":
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.ax.set_facecolor(self.bg_color)
             color_palette = [
-                (31, 119, 180), (255, 127, 14), (44, 160, 44), (214, 39, 40),
-                (148, 103, 189), (140, 86, 75), (227, 119, 194), (127, 127, 127),
-                (188, 189, 34), (23, 190, 207)
+                (31, 119, 180),
+                (255, 127, 14),
+                (44, 160, 44),
+                (214, 39, 40),
+                (148, 103, 189),
+                (140, 86, 75),
+                (227, 119, 194),
+                (127, 127, 127),
+                (188, 189, 34),
+                (23, 190, 207),
             ]
             self.color_palette = [(r / 255, g / 255, b / 255, 1) for r, g, b in color_palette]
             self.color_cycle = cycle(self.color_palette)
             self.color_mapping = {}
 
             # Ensure pie chart is circular
-            self.ax.axis('equal') if type == "pie" else None
+            self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
         self.ax.set_title(self.title, color=self.fg_color, fontsize=fontsize)
         self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=fontsize - 3)
         self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=fontsize - 3)
-        self.ax.tick_params(axis='both', colors=self.fg_color)
+        self.ax.tick_params(axis="both", colors=self.fg_color)
 
     def update_line(self, frame_number, total_counts):
         """
@@ -119,8 +139,14 @@ class Analytics:
 
         bars = self.ax.bar(labels, counts, color=colors)
         for bar, count in zip(bars, counts):
-            self.ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                         str(count), ha='center', va='bottom', color=self.fg_color)
+            self.ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                str(count),
+                ha="center",
+                va="bottom",
+                color=self.fg_color,
+            )
 
         # Display and save the updated graph
         canvas = FigureCanvas(self.fig)
@@ -149,13 +175,11 @@ class Analytics:
         self.ax.clear()
 
         # Create pie chart without labels inside the slices
-        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle,
-                                        textprops={'color': self.fg_color})
+        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle, textprops={"color": self.fg_color})
 
         # Construct legend labels with percentages
-        legend_labels = [f'{label} ({percentage:.1f}%)' for label, percentage in zip(labels, percentages)]
-        self.ax.legend(wedges, legend_labels, title="Classes", loc="center left",
-                       bbox_to_anchor=(1, 0, 0.5, 1))
+        legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
+        self.ax.legend(wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
         # Adjust layout to fit the legend
         self.fig.tight_layout()

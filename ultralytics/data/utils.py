@@ -659,7 +659,11 @@ def load_dataset_cache_file(path):
     import gc
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
-    cache = np.load(str(path), allow_pickle=True).item()  # load dict
+    try:
+        cache = np.load(str(path), allow_pickle=True).item()  # load dict HELLO MOM
+    except FileNotFoundError:
+        cache = np.load(str(path.with_suffix(".cache.npy")), allow_pickle=True).item()  # try loading with .npy suffix
+
     gc.enable()
     return cache
 
@@ -671,7 +675,11 @@ def save_dataset_cache_file(prefix, path, x, version):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
         np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
-        LOGGER.info(f"{prefix}New cache created: {path}")
+        try:
+            path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+            LOGGER.info(f"{prefix}New cache created: {path}")
+        except OSError:
+            LOGGER.warning(f"{prefix}WARNING ⚠️ Could not rename file, keeping .npy suffix: {path.with_suffix('.cache.npy')}")
+
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")

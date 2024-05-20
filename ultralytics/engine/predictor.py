@@ -29,7 +29,6 @@ Usage - formats:
                               yolov8n_ncnn_model         # NCNN
 """
 
-import os
 import platform
 import re
 import threading
@@ -38,6 +37,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+import os
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -47,8 +47,6 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, co
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
-
-START_TIME = 0
 
 STREAM_WARNING = """
 WARNING ⚠️ inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
@@ -314,7 +312,6 @@ class BasePredictor:
 
     def write_results(self, i, p, im, s):
         """Write inference results to a file or directory."""
-        global START_TIME
         string = ""  # print string
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
@@ -332,20 +329,16 @@ class BasePredictor:
         string += result.verbose() + f"{result.speed['inference']:.1f}ms"
 
         # Solution: Write the results "Logs" into a text file to create a logs file
-        pwd = os.getcwd()  # Get the current directory path of the project
-        logs_folder = os.path.join(pwd, "LOGS")  # Path to the LOGS folder
-        if not os.path.exists(logs_folder):  # Check if the LOGS folder exists
-            os.makedirs(logs_folder)  # Create the folder if it doesn't exist
+        self.log_path = self.save_dir / "LOGS"  # Check if the LOGS folder exists   
+        self.log_file_path = self.log_path / "logs.txt"  # Path of the logs text file
 
-        log_file = os.path.join(logs_folder, "logs.txt")  # Path of the logs text file
+        # Ensure the directory exists
+        if not self.log_path.exists():
+            self.log_path.mkdir(parents=True, exist_ok=True)
+
         # Write the new result string to the log file
-        if START_TIME == 0:
-            with open(log_file, "w") as f:  # Open the log file in write mode
-                f.write(string + "\n")  # Write the string followed by a newline character
-                START_TIME = 1
-        else:
-            with open(log_file, "a") as f:  # Open the log file in append mode
-                f.write(string + "\n")  # Write the string followed by a newline character
+        with self.log_file_path.open("a", encoding="utf-8") as f:  # Open the log file in append mode
+            f.write(string + "\n")  # Write the string followed by a newline character
 
         # Add predictions to image
         if self.args.save or self.args.show:

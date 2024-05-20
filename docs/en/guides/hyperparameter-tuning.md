@@ -77,10 +77,10 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
         from ultralytics import YOLO
 
         # Initialize the YOLO model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Tune hyperparameters on COCO8 for 30 epochs
-        model.tune(data='coco8.yaml', epochs=30, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
 ## Results

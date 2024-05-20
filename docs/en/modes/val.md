@@ -57,15 +57,15 @@ Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need t
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # a list contains map50-95 of each category
+        metrics.box.maps  # a list contains map50-95 of each category
         ```
 
     === "CLI"
@@ -108,17 +108,12 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
-        model = YOLO('yolov8n.pt')
-        
+        model = YOLO("yolov8n.pt")
+
         # Customize validation settings
-        validation_results = model.val(data='coco8.yaml',
-                                       imgsz=640,
-                                       batch=16,
-                                       conf=0.25,
-                                       iou=0.6,
-                                       device='0')
+        validation_results = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
         ```
 
     === "CLI"

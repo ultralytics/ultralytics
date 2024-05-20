@@ -89,8 +89,10 @@ class TLCDetectionTrainer(DetectionTrainer):
 
         if mode == "train":
             exclude_zero_weights = self._settings.exclude_zero_weight_training
+            sampling_weights = self._settings.sampling_weights
         else:
             exclude_zero_weights = self._settings.exclude_zero_weight_collection
+            sampling_weights = False
         
         return build_tlc_dataset(
             self.args,
@@ -101,7 +103,7 @@ class TLCDetectionTrainer(DetectionTrainer):
             rect=mode == "val",
             stride=gs,
             table=self.data[split],
-            use_sampling_weights=self._settings.sampling_weights,
+            use_sampling_weights=sampling_weights,
             exclude_zero_weights=exclude_zero_weights,
         )
     

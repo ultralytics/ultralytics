@@ -25,9 +25,8 @@ from ultralytics.utils import (
     Retry,
     checks,
 )
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, is_url
 from ultralytics.utils.torch_utils import TORCH_1_9
-
 from . import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
@@ -102,7 +101,7 @@ def test_predict_img(model_name):
 def test_predict_visualize(model):
     """Test model predict methods with 'visualize=True' arguments."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
-    
+
 
 def test_predict_grey_and_4ch():
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""
@@ -131,6 +130,7 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(not is_url("https://youtu.be/G17sBkb38XQ"), reason="YouTube URL issue")
 @Retry(times=3, delay=10)
 def test_youtube():
     """

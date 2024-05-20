@@ -30,6 +30,7 @@ class Analytics:
             view_img (bool): Whether to display the image.
             save_img (bool): Whether to save the image.
         """
+
         self.bg_color = bg_color
         self.fg_color = fg_color
         self.view_img = view_img
@@ -70,7 +71,7 @@ class Analytics:
         self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=fontsize - 3)
         self.ax.tick_params(axis='both', colors=self.fg_color)
 
-    def update_line_graph(self, frame_number, total_counts):
+    def update_line(self, frame_number, total_counts):
         """
         Update the line graph with new data.
 
@@ -78,11 +79,8 @@ class Analytics:
             frame_number (int): The current frame number.
             total_counts (int): The total counts to plot.
         """
+
         # Update line graph data
-
-        print("Frame # : ", frame_number)
-        print("Total Counts # : ", total_counts)
-
         x_data = self.line.get_xdata()
         y_data = self.line.get_ydata()
         x_data = np.append(x_data, float(frame_number))
@@ -98,13 +96,14 @@ class Analytics:
         cv2.imshow(self.title, im0) if self.view_img else None
         self.writer.write(im0) if self.save_img else None
 
-    def update_bar_graph(self, count_dict):
+    def update_bar(self, count_dict):
         """
         Update the bar graph with new data.
 
         Args:
             count_dict (dict): Dictionary containing the count data to plot.
         """
+
         # Update bar graph data
         self.ax.clear()
         self.ax.set_facecolor(self.bg_color)
@@ -133,13 +132,14 @@ class Analytics:
         self.writer.write(im0) if self.save_img else None
         cv2.imshow(self.title, im0) if self.view_img else None
 
-    def update_pie_chart(self, classes_dict):
+    def update_pie(self, classes_dict):
         """
         Update the pie chart with new data.
 
         Args:
             classes_dict (dict): Dictionary containing the class data to plot.
         """
+
         # Update pie chart data
         labels = list(classes_dict.keys())
         sizes = list(classes_dict.values())

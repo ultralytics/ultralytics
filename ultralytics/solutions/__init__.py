@@ -7,6 +7,7 @@ from .object_counter import ObjectCounter
 from .parking_management import ParkingManagement
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
+from .analytics import Analytics
 
 __all__ = (
     "AIGym",
@@ -16,4 +17,5 @@ __all__ = (
     "ParkingManagement",
     "QueueManager",
     "SpeedEstimator",
+    "Analytics"
 )

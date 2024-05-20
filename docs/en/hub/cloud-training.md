@@ -98,6 +98,6 @@ If needed, you can stop the training by clicking on the **Stop Training** button
 
 ## Billing
 
-At any point during training or after training, you can check the cost of your model by clicking on the **Billing** tab. Furthermore, you can download a small cost report by clicking on the **Download** button.
+During training or after training, you can check the cost of your model by clicking on the **Billing** tab. Furthermore, you can download the cost report by clicking on the **Download** button.
 
 ![Ultralytics HUB screenshot of the Billing tab inside the Model page with an arrow pointing to the Billing tab and one to the Download button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_billing_1.jpg)

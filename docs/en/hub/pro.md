@@ -31,7 +31,7 @@ Next, select the Pro Plan.
 
     ![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Save 20% toggle and one to the Select Plan button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/pro/hub_pro_upgrade_3.jpg)
 
-Fill in your details during the checkout!
+Fill in your details during the checkout.
 
 ![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the checkbox for saving the payment information for future purchases](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/pro/hub_pro_upgrade_4.jpg)
 

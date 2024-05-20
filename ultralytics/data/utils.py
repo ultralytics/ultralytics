@@ -660,7 +660,7 @@ def load_dataset_cache_file(path):
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
     try:
-        cache = np.load(str(path), allow_pickle=True).item()  # load dict HELLO MOM
+        cache = np.load(str(path), allow_pickle=True).item()  # load dict
     except FileNotFoundError:
         cache = np.load(str(path.with_suffix(".cache.npy")), allow_pickle=True).item()  # try loading with .npy suffix
 

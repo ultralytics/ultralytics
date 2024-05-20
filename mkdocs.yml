@@ -159,7 +159,6 @@ nav:
       - Guides:
           - guides/index.md
       - New 🚀 Analytics: guides/analytics.md
-      - New 🚀 Parking Management: guides/parking-management.md
       - Explorer:
           - datasets/explorer/index.md
       - Languages:

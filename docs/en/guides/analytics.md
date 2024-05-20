@@ -38,7 +38,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
         
         out = cv2.VideoWriter('line_plot.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
         
-        line = solutions.Analytics(type="line", 
+        analytics = solutions.Analytics(type="line", 
                                     writer=out, 
                                     im0_shape=(w, h), 
                                     view_img=True)
@@ -57,7 +57,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
                     for box in boxes:
                         total_counts += 1
         
-                line.update_line(frame_count, total_counts)
+                analytics.update_line(frame_count, total_counts)
         
                 total_counts = 0
                 if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -84,7 +84,10 @@ This guide provides a comprehensive overview of three fundamental types of data 
         
         out = cv2.VideoWriter('pie_chart.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
         
-        analytics = solutions.Analytics(type="pie", writer=out, im0_shape=(w, h), view_img=True)
+        analytics = solutions.Analytics(type="pie", 
+                                        writer=out, 
+                                        im0_shape=(w, h), 
+                                        view_img=True)
         
         clswise_count = {}
         
@@ -128,7 +131,10 @@ This guide provides a comprehensive overview of three fundamental types of data 
         
         out = cv2.VideoWriter('bar_plot.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
         
-        analytics = solutions.Analytics(type="bar", writer=out, im0_shape=(w, h), view_img=True)
+        analytics = solutions.Analytics(type="bar", 
+                                        writer=out, 
+                                        im0_shape=(w, h), 
+                                        view_img=True)
         
         clswise_count = {}
         

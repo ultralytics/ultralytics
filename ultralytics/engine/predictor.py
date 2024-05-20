@@ -29,6 +29,7 @@ Usage - formats:
                               yolov8n_ncnn_model         # NCNN
 """
 
+import os
 import platform
 import re
 import threading
@@ -37,7 +38,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-import os
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -329,7 +329,7 @@ class BasePredictor:
         string += result.verbose() + f"{result.speed['inference']:.1f}ms"
 
         # Solution: Write the results "Logs" into a text file to create a logs file
-        self.log_path = self.save_dir / "LOGS"  # Check if the LOGS folder exists   
+        self.log_path = self.save_dir / "LOGS"  # Check if the LOGS folder exists
         self.log_file_path = self.log_path / "logs.txt"  # Path of the logs text file
 
         # Ensure the directory exists

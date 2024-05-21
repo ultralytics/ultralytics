@@ -21,7 +21,7 @@ This dataset can be applied in various computer vision tasks such as object dete
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the signature detection dataset, the `signature-detection.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature-detection.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature-detection.yaml).
+A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths and classes information. For the signature detection dataset, the `signature.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
 
 !!! Example "ultralytics/cfg/datasets/signature.yaml"
 

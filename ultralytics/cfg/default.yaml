@@ -82,7 +82,7 @@ optimize: False # (bool) TorchScript: optimize for mobile
 int8: False # (bool) CoreML/TF INT8 quantization
 dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes
 simplify: False # (bool) ONNX: simplify model
-slim: False # (bool) ONNX: slim model
+slim: True # (bool) ONNX: slim model
 opset: # (int, optional) ONNX: opset version
 workspace: 4 # (int) TensorRT: workspace size (GB)
 nms: False # (bool) CoreML: add NMS

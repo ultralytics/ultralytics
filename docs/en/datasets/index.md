@@ -48,6 +48,7 @@ Bounding box object detection is a computer vision technique that involves detec
 - [Roboflow 100](detect/roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Brain-tumor](detect/brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics. It's vital for training computer vision models to automate tumor identification, aiding in early diagnosis and treatment planning.
 - [African-wildlife](detect/african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebra, aids in training computer vision models. Essential for identifying animals in various habitats, it supports wildlife research.
+- [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, aids in training computer vision models. Essential for identifying signatures in different document formats, it supports document verification and fraud detection research.
 
 ## [Instance Segmentation Datasets](segment/index.md)
 

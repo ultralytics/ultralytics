@@ -383,6 +383,9 @@ class Exporter:
             requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
             if ARM64:
                 check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
+        if self.args.slim:
+            requirements += ["onnxslim", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
+
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -427,6 +430,15 @@ class Exporter:
                 assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.info(f"{prefix} simplifier failure: {e}")
+        # Slim
+        if self.args.slim:
+            try:
+                import onnxslim
+
+                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+                model_onnx = onnxslim.slim(model_onnx)
+            except Exception as e:
+                LOGGER.info(f"{prefix} slimmer failure: {e}")
 
         # Metadata
         for k, v in self.metadata.items():

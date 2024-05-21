@@ -82,11 +82,11 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
         self.stats = {
-            'tp': [],
-            'conf': [],
-            'pred_cls': [],
-            'target_cls': [],
-            **({'target_img': []} if self.args.detail_per_class else {})
+            "tp": [],
+            "conf": [],
+            "pred_cls": [],
+            "target_cls": [],
+            **({"target_img": []} if self.args.detail_per_class else {}),
         }
 
     def _prepare_batch(self, si, batch):

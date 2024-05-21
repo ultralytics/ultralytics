@@ -79,11 +79,11 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.stats = {
-            'tp': [],
-            'conf': [],
-            'pred_cls': [],
-            'target_cls': [],
-            **({'target_img': []} if self.args.detail_per_class else {})
+            "tp": [],
+            "conf": [],
+            "pred_cls": [],
+            "target_cls": [],
+            **({"target_img": []} if self.args.detail_per_class else {}),
         }
 
     def get_desc(self):
@@ -196,8 +196,13 @@ class DetectionValidator(BaseValidator):
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
-                    pf % (self.names[c], self.nt_per_image[c] if self.args.detail_per_class else self.seen,
-                          self.nt_per_class[c], *self.metrics.class_result(i))
+                    pf
+                    % (
+                        self.names[c],
+                        self.nt_per_image[c] if self.args.detail_per_class else self.seen,
+                        self.nt_per_class[c],
+                        *self.metrics.class_result(i),
+                    )
                 )
 
         if self.args.plots:

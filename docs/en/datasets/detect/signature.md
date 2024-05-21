@@ -65,14 +65,14 @@ To train a YOLOv8n model on the signature detection dataset for 100 epochs with 
         model = YOLO("path/to/best.pt")  # load a signature-detection fine-tuned model
 
         # Inference using the model
-        results = model.predict("https://ultralytics.com/assets/signature-s.mp4")
+        results = model.predict("https://ultralytics.com/assets/signature-s.mp4", conf=0.75)
         ```
 
     === "CLI"
 
         ```bash
         # Start prediction with a finetuned *.pt model
-        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/signature-s.mp4"
+        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/signature-s.mp4" conf=0.75
         ```
 
 ## Sample Images and Annotations

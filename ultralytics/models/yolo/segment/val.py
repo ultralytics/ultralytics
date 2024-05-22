@@ -52,6 +52,7 @@ class SegmentationValidator(DetectionValidator):
         else:
             self.process = ops.process_mask  # faster
         self.stats = {
+            "tp_m": [],
             "tp": [],
             "conf": [],
             "pred_cls": [],

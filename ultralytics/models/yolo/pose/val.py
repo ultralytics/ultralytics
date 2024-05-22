@@ -82,6 +82,7 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
         self.stats = {
+            "tp_p": [],
             "tp": [],
             "conf": [],
             "pred_cls": [],

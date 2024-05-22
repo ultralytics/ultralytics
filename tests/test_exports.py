@@ -18,8 +18,7 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-
-from . import MODEL, SOURCE
+from tests import MODEL, SOURCE
 
 
 def test_export_torchscript():

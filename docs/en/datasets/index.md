@@ -30,7 +30,7 @@ Create embeddings for your dataset, search for similar images, run SQL queries, 
 - Try the [GUI Demo](explorer/index.md)
 - Learn more about the [Explorer API](explorer/index.md)
 
-## [Detection Datasets](detect/index.md)
+## [Object Detection](detect/index.md)
 
 Bounding box object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.
 
@@ -50,7 +50,7 @@ Bounding box object detection is a computer vision technique that involves detec
 - [African-wildlife](detect/african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 
-## [Instance Segmentation Datasets](segment/index.md)
+## [Instance Segmentation](segment/index.md)
 
 Instance segmentation is a computer vision technique that involves identifying and localizing objects in an image at the pixel level.
 
@@ -87,7 +87,7 @@ Image classification is a computer vision task that involves categorizing an ima
 
 Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angled objects in images using rotated bounding boxes, often applied to aerial and satellite imagery.
 
-- [DOTAv2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
+- [DOTA-v2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
 
 ## [Multi-Object Tracking](track/index.md)
 
@@ -103,11 +103,8 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 ### Steps to Contribute a New Dataset
 
 1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection.
-
 2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task.
-
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
-
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` subdirectory.
 
     ```
@@ -121,11 +118,8 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
     ```
 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
-
 6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.
-
 7. **Zip Dataset**: Compress the entire dataset folder into a zip file.
-
 8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing) for more details on how to submit a PR.
 
 ### Example Code to Optimize and Zip a Dataset

@@ -20,9 +20,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 </p>
 
 !!! Example "Install"
-
-    <br>
-    ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)
+    
+    <p align="left" style="margin-bottom: -20px;">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)<p>
 
     === "Pip install (recommended)"
 

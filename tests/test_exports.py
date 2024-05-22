@@ -118,9 +118,33 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to TorchScript format."""
+    """Test YOLO exports to CoreML format."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    shutil.rmtree(file)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        if not (int8 and half)  # exclude cases where both int8 and half are True
+    ],
+)
+def test_export_tflite_matrix(task, dynamic, int8, half, batch):
+    """Test YOLO exports to TFLite format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="tflite",
         imgsz=32,
         dynamic=dynamic,
         int8=int8,

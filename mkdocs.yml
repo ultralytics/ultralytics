@@ -356,17 +356,17 @@ nav:
       - Paperspace Gradient: integrations/paperspace.md
       - Google Colab: integrations/google-colab.md
   - HUB:
-      - Cloud:
+      - Web:
           - hub/index.md
           - Quickstart: hub/quickstart.md
           - Datasets: hub/datasets.md
           - Projects: hub/projects.md
           - Models: hub/models.md
+          - Pro: hub/pro.md
           - Cloud Training: hub/cloud-training.md
-          - Integrations: hub/integrations.md
           - Inference API: hub/inference-api.md
-      - On-Premise:
-          - hub/on-premise/index.md
+          - Teams: hub/teams.md
+          - Integrations: hub/integrations.md
       - App:
           - hub/app/index.md
           - iOS: hub/app/ios.md

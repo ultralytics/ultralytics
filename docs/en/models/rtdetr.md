@@ -48,16 +48,16 @@ This example provides simple RT-DETR training and inference examples. For full d
         from ultralytics import RTDETR
 
         # Load a COCO-pretrained RT-DETR-l model
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

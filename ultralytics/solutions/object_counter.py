@@ -15,55 +15,10 @@ from shapely.geometry import LineString, Point, Polygon
 class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
-    def __init__(self):
-        """Initializes the Counter with default values for various tracking and counting parameters."""
-
-        # Mouse events
-        self.is_drawing = False
-        self.selected_point = None
-
-        # Region & Line Information
-        self.reg_pts = [(20, 400), (1260, 400)]
-        self.line_dist_thresh = 15
-        self.counting_region = None
-        self.region_color = (255, 0, 255)
-        self.region_thickness = 5
-
-        # Image and annotation Information
-        self.im0 = None
-        self.tf = None
-        self.view_img = False
-        self.view_in_counts = True
-        self.view_out_counts = True
-
-        self.names = None  # Classes names
-        self.annotator = None  # Annotator
-        self.window_name = "Ultralytics YOLOv8 Object Counter"
-
-        # Object counting Information
-        self.in_counts = 0
-        self.out_counts = 0
-        self.count_ids = []
-        self.class_wise_count = {}
-        self.count_txt_thickness = 0
-        self.count_txt_color = (255, 255, 255)
-        self.count_bg_color = (255, 255, 255)
-        self.cls_txtdisplay_gap = 50
-        self.fontsize = 0.6
-
-        # Tracks info
-        self.track_history = defaultdict(list)
-        self.track_thickness = 2
-        self.draw_tracks = False
-        self.track_color = None
-
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(
+    def __init__(
         self,
         classes_names,
-        reg_pts,
+        reg_pts=None,
         count_reg_color=(255, 0, 255),
         count_txt_color=(0, 0, 0),
         count_bg_color=(255, 255, 255),
@@ -79,66 +34,90 @@ class ObjectCounter:
         cls_txtdisplay_gap=50,
     ):
         """
-        Configures the Counter's image, bounding box line thickness, and counting region points.
+        Initializes the ObjectCounter with various tracking and counting parameters.
 
         Args:
+            classes_names (dict): Dictionary of class names.
+            reg_pts (list): List of points defining the counting region.
+            count_reg_color (tuple): RGB color of the counting region.
+            count_txt_color (tuple): RGB color of the count text.
+            count_bg_color (tuple): RGB color of the count text background.
             line_thickness (int): Line thickness for bounding boxes.
+            track_thickness (int): Thickness of the track lines.
             view_img (bool): Flag to control whether to display the video stream.
-            view_in_counts (bool): Flag to control whether to display the incounts on video stream.
-            view_out_counts (bool): Flag to control whether to display the outcounts on video stream.
-            reg_pts (list): Initial list of points defining the counting region.
-            classes_names (dict): Classes names
-            track_thickness (int): Track thickness
-            draw_tracks (Bool): draw tracks
-            count_txt_color (RGB color): count text color value
-            count_bg_color (RGB color): count highlighter line color
-            count_reg_color (RGB color): Color of object counting region
-            track_color (RGB color): color for tracks
-            region_thickness (int): Object counting Region thickness
-            line_dist_thresh (int): Euclidean Distance threshold for line counter
-            cls_txtdisplay_gap (int): Display gap between each class count
+            view_in_counts (bool): Flag to control whether to display the in counts on the video stream.
+            view_out_counts (bool): Flag to control whether to display the out counts on the video stream.
+            draw_tracks (bool): Flag to control whether to draw the object tracks.
+            track_color (tuple): RGB color of the tracks.
+            region_thickness (int): Thickness of the object counting region.
+            line_dist_thresh (int): Euclidean distance threshold for line counter.
+            cls_txtdisplay_gap (int): Display gap between each class count.
         """
+
+        # Mouse events
+        self.is_drawing = False
+        self.selected_point = None
+
+        # Region & Line Information
+        self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
+        self.line_dist_thresh = line_dist_thresh
+        self.counting_region = None
+        self.region_color = count_reg_color
+        self.region_thickness = region_thickness
+
+        # Image and annotation Information
+        self.im0 = None
         self.tf = line_thickness
         self.view_img = view_img
         self.view_in_counts = view_in_counts
         self.view_out_counts = view_out_counts
+
+        self.names = classes_names  # Classes names
+        self.annotator = None  # Annotator
+        self.window_name = "Ultralytics YOLOv8 Object Counter"
+
+        # Object counting Information
+        self.in_counts = 0
+        self.out_counts = 0
+        self.count_ids = []
+        self.class_wise_count = {}
+        self.count_txt_thickness = 0
+        self.count_txt_color = count_txt_color
+        self.count_bg_color = count_bg_color
+        self.cls_txtdisplay_gap = cls_txtdisplay_gap
+        self.fontsize = 0.6
+
+        # Tracks info
+        self.track_history = defaultdict(list)
         self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
+        self.track_color = track_color
 
-        # Region and line selection
-        if len(reg_pts) == 2:
+        # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)
+
+        # Initialize counting region
+        if len(self.reg_pts) == 2:
             print("Line Counter Initiated.")
-            self.reg_pts = reg_pts
             self.counting_region = LineString(self.reg_pts)
-        elif len(reg_pts) >= 3:
+        elif len(self.reg_pts) >= 3:
             print("Polygon Counter Initiated.")
-            self.reg_pts = reg_pts
             self.counting_region = Polygon(self.reg_pts)
         else:
             print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons.")
             print("Using Line Counter Now")
             self.counting_region = LineString(self.reg_pts)
 
-        self.names = classes_names
-        self.track_color = track_color
-        self.count_txt_color = count_txt_color
-        self.count_bg_color = count_bg_color
-        self.region_color = count_reg_color
-        self.region_thickness = region_thickness
-        self.line_dist_thresh = line_dist_thresh
-        self.cls_txtdisplay_gap = cls_txtdisplay_gap
-
     def mouse_event_for_region(self, event, x, y, flags, params):
         """
-        This function is designed to move region with mouse events in a real-time video stream.
+        Handles mouse events for defining and moving the counting region in a real-time video stream.
 
         Args:
             event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
             x (int): The x-coordinate of the mouse pointer.
             y (int): The y-coordinate of the mouse pointer.
-            flags (int): Any flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY,
-                cv2.EVENT_FLAG_SHIFTKEY, etc.).
-            params (dict): Additional parameters you may want to pass to the function.
+            flags (int): Any associated event flags (e.g., cv2.EVENT_FLAG_CTRLKEY,  cv2.EVENT_FLAG_SHIFTKEY, etc.).
+            params (dict): Additional parameters for the function.
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             for i, point in enumerate(self.reg_pts):
@@ -240,11 +219,11 @@ class ObjectCounter:
                 else:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
-        if labels_dict is not None:
+        if labels_dict:
             self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
 
     def display_frames(self):
-        """Display frame."""
+        """Displays the current frame with annotations and regions in a window."""
         if self.env_check:
             cv2.namedWindow(self.window_name)
             if len(self.reg_pts) == 4:  # only add mouse event If user drawn region
@@ -271,4 +250,5 @@ class ObjectCounter:
 
 
 if __name__ == "__main__":
-    ObjectCounter()
+    classes_names = {0: "person", 1: "car"}  # example class names
+    ObjectCounter(classes_names)

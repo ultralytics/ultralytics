@@ -131,7 +131,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)  # cleanup
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

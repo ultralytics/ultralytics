@@ -39,7 +39,10 @@ class TLCDetectionTrainer(DetectionTrainer):
         self._run = tlc.init(project_name, self._settings.run_name, self._settings.run_description) if not self._settings.collection_disable else None
 
         # Save hyperparameters to the 3LC Run
-        settings_dict = {f"3lc_{k}": str(v) for k,v in vars(self._settings).items() if not k.startswith("_")}
+        settings_dict = {
+            f"3lc_{k}": str(v) if not isinstance(v, (int, float, bool)) else v 
+            for k,v in vars(self._settings).items()
+            if not k.startswith("_")}
         parameters = {**vars(self.args), **settings_dict}
         self._run.set_parameters(parameters)
 

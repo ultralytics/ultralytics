@@ -17,7 +17,7 @@
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
     <br>
-    <a href="https://pypi.org/project/ultralytics/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=yellow&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F">
+    <a href="https://pypi.org/project/ultralytics/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F">
     <a href="https://anaconda.org/conda-forge/ultralytics"><img alt="Conda Version" src="https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge&link=https%3A%2F%2Fanaconda.org%2Fconda-forge%2Fultralytics">
 </div>
 <br>
@@ -56,7 +56,7 @@ See below for a quickstart installation and usage example, and see the [YOLOv8 D
 
 Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
 
-[![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=yellow&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F)](https://pypi.org/project/ultralytics/)
+[![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
 ```bash
 pip install ultralytics

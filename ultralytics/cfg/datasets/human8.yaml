@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Ultralytics human8 dataset: 8 images from COCO train2017 annotated with person weight (kg), height (m), gender (0: female, 1: male), age (years) and race (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black)
+# Ultralytics human8 dataset: 8 images from COCO train2017 annotated with person weight (kg), height (cm), gender (0: female, 1: male), age (years) and race (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black)
 # Documentation: TODO @ambitious-octopus
 # Example usage: yolo train data=human8.yaml
 # parent

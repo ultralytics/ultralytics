@@ -73,7 +73,7 @@ class AIGym:
             self.stage = ["-" for _ in results[0]]
 
         self.keypoints = results[0].keypoints.data
-        self.annotator = Annotator(im0, line_width=2)
+        self.annotator = Annotator(im0, line_width=self.tf)
 
         for ind, k in enumerate(reversed(self.keypoints)):
             # Estimate angle and draw specific points based on pose type

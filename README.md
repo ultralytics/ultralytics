@@ -17,8 +17,8 @@
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
     <br>
-    <a href="https://pypi.org/project/ultralytics/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F">
-    <a href="https://anaconda.org/conda-forge/ultralytics"><img alt="Conda Version" src="https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge&link=https%3A%2F%2Fanaconda.org%2Fconda-forge%2Fultralytics">
+    <a href="https://pypi.org/project/ultralytics/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white">
+    <a href="https://anaconda.org/conda-forge/ultralytics"><img alt="Conda Version" src="https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge">
 </div>
 <br>
 

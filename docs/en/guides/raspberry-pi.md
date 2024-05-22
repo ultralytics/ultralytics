@@ -313,7 +313,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                     cv2.imshow("Camera", annotated_frame)
 
                     # Break the loop if 'q' is pressed
-                    if cv2.waitKey(1) == ord('q'):
+                    if cv2.waitKey(1) == ord("q"):
                         break
 
                 # Release resources and close windows
@@ -346,7 +346,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
             === "CLI"
 
                 ```bash
-                yolo predict model=yolov8n.pt source='tcp://127.0.0.1:8888'
+                yolo predict model=yolov8n.pt source="tcp://127.0.0.1:8888"
                 ```
                 
 !!! Tip

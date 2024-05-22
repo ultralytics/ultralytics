@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from PIL import Image
 import numpy
+from PIL import Image
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -101,15 +101,15 @@ class YOLOWorld(Model):
 
         classes = labels.copy()
         for i, img in enumerate(images):
-            if isinstance(img, (Path,str)):
+            if isinstance(img, (Path, str)):
                 path = Path(img)
                 name = path.name
                 img = Image.open(path)
                 images[i] = img
             elif isinstance(img, numpy.ndarray):
-                    img = Image.fromarray(img)
-                    images[i] = img
-                    name = f"image{i}"
+                img = Image.fromarray(img)
+                images[i] = img
+                name = f"image{i}"
             else:
                 name = f"image{i}"
             classes.append(name)

@@ -39,15 +39,15 @@ TensorBoard is conveniently pre-installed with YOLOv8, eliminating the need for 
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-## Configuring TensorBoard for Google Collab
+## Configuring TensorBoard for Google Colab
 
 When using Google Colab, it's important to set up TensorBoard before starting your training code:
 
-!!! Example "Configure TensorBoard for Google Collab"
+!!! Example "Configure TensorBoard for Google Colab"
 
     === "Python"
 
-        ```python
+        ```ipython
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
         ```

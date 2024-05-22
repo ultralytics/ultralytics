@@ -94,7 +94,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -115,7 +117,7 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
@@ -180,8 +182,8 @@ class Results(SimpleClass):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        """Return a new Results object with the same image, path, names and speed."""
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,
@@ -407,9 +409,9 @@ class Results(SimpleClass):
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
-            for i, b in enumerate(box):
-                xy[f"x{i + 1}"] = round(b[0] / w, decimals)
-                xy[f"y{i + 1}"] = round(b[1] / h, decimals)
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID

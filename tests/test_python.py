@@ -12,7 +12,7 @@ import yaml
 from PIL import Image
 
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA
+from ultralytics.cfg import MODELS, TASKS, TASK2DATA
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -25,10 +25,9 @@ from ultralytics.utils import (
     Retry,
     checks,
 )
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, is_url
 from ultralytics.utils.torch_utils import TORCH_1_9
-
-from . import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
+from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
 def test_model_forward():
@@ -98,6 +97,12 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
 
+@pytest.mark.parametrize("model", MODELS)
+def test_predict_visualize(model):
+    """Test model predict methods with 'visualize=True' arguments."""
+    YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
+
+
 def test_predict_grey_and_4ch():
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""
     im = Image.open(SOURCE)
@@ -125,6 +130,7 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(not is_url("https://youtu.be/G17sBkb38XQ"), reason="YouTube URL issue")
 @Retry(times=3, delay=10)
 def test_youtube():
     """
@@ -267,7 +273,7 @@ def test_data_utils():
     # from ultralytics.utils.files import WorkingDirectory
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
-    for task in "detect", "segment", "pose", "classify":
+    for task in TASKS:
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=TMP)
         stats = HUBDatasetStats(TMP / file, task=task)

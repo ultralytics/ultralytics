@@ -22,11 +22,11 @@ All layers that match the train.py `freeze` list in train.py will be frozen by s
 
 ```python
 # Freeze
-freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze
+freeze = [f"model.{x}." for x in range(freeze)]  # layers to freeze
 for k, v in model.named_parameters():
     v.requires_grad = True  # train all layers
     if any(x in k for x in freeze):
-        print(f'freezing {k}')
+        print(f"freezing {k}")
         v.requires_grad = False
 ```
 

@@ -21,7 +21,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import LINUX, NUM_THREADS, RANK, colorstr
+from ultralytics.utils import LINUX, RANK, colorstr
 from ultralytics.utils.checks import check_file
 
 
@@ -79,8 +79,6 @@ def seed_worker(worker_id):  # noqa
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
-    if LINUX and hasattr(os, "sched_setaffinity"):  # unsupported on macOS and Windows
-        os.sched_setaffinity(0, range(NUM_THREADS))  # fix https://github.com/ultralytics/ultralytics/pull/11195
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
@@ -130,7 +128,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min([os.cpu_count() // max(nd, 1), workers])  # number of workers
+    nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)

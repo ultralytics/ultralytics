@@ -46,10 +46,10 @@ Before deploying the model on Triton, it must be exported to the ONNX format. ON
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('yolov8n.pt')  # load an official model
+model = YOLO("yolov8n.pt")  # load an official model
 
 # Export the model
-onnx_file = model.export(format='onnx', dynamic=True)
+onnx_file = model.export(format="onnx", dynamic=True)
 ```
 
 ## Setting Up Triton Model Repository
@@ -62,11 +62,11 @@ The Triton Model Repository is a storage location where Triton can access and lo
     from pathlib import Path
 
     # Define paths
-    triton_repo_path = Path('tmp') / 'triton_repo'
-    triton_model_path = triton_repo_path / 'yolo'
+    triton_repo_path = Path("tmp") / "triton_repo"
+    triton_model_path = triton_repo_path / "yolo"
 
     # Create directories
-    (triton_model_path / '1').mkdir(parents=True, exist_ok=True)
+    (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
     ```
 
 2. Move the exported ONNX model to the Triton repository:
@@ -75,10 +75,10 @@ The Triton Model Repository is a storage location where Triton can access and lo
     from pathlib import Path
 
     # Move ONNX model to Triton Model path
-    Path(onnx_file).rename(triton_model_path / '1' / 'model.onnx')
+    Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
 
     # Create config file
-    (triton_model_path / 'config.pbtxt').touch()
+    (triton_model_path / "config.pbtxt").touch()
     ```
 
 ## Running Triton Inference Server
@@ -92,18 +92,23 @@ import time
 from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = 'nvcr.io/nvidia/tritonserver:23.09-py3'  # 6.4 GB
+tag = "nvcr.io/nvidia/tritonserver:23.09-py3"  # 6.4 GB
 
 # Pull the image
-subprocess.call(f'docker pull {tag}', shell=True)
+subprocess.call(f"docker pull {tag}", shell=True)
 
 # Run the Triton server and capture the container ID
-container_id = subprocess.check_output(
-    f'docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models',
-    shell=True).decode('utf-8').strip()
+container_id = (
+    subprocess.check_output(
+        f"docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        shell=True,
+    )
+    .decode("utf-8")
+    .strip()
+)
 
 # Wait for the Triton server to start
-triton_client = InferenceServerClient(url='localhost:8000', verbose=False, ssl=False)
+triton_client = InferenceServerClient(url="localhost:8000", verbose=False, ssl=False)
 
 # Wait until model is ready
 for _ in range(10):
@@ -119,17 +124,17 @@ Then run inference using the Triton Server model:
 from ultralytics import YOLO
 
 # Load the Triton Server model
-model = YOLO(f'http://localhost:8000/yolo', task='detect')
+model = YOLO(f"http://localhost:8000/yolo", task="detect")
 
 # Run inference on the server
-results = model('path/to/image.jpg')
+results = model("path/to/image.jpg")
 ```
 
 Cleanup the container:
 
 ```python
 # Kill and remove the container at the end of the test
-subprocess.call(f'docker kill {container_id}', shell=True)
+subprocess.call(f"docker kill {container_id}", shell=True)
 ```
 
 ---

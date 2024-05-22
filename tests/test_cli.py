@@ -7,7 +7,7 @@ import pytest
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
-from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 
 # Constants
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
@@ -54,8 +54,8 @@ def test_export(model):
 
 def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     """Test the RTDETR functionality with the Ultralytics framework."""
-    # Warning: MUST use imgsz=640
-    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk")  # add coma, spaces to args
+    # Warning: must use imgsz=640 (note also add coma, spaces, fraction=0.25 args to test single-image training)
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
 
 

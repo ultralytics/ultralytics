@@ -195,6 +195,9 @@ class Exporter:
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
+        if self.args.half and self.args.int8:
+            LOGGER.warning("WARNING ⚠️ half=True and int8=True are mutually exclusive, setting half=False.")
+            self.args.half = False
         if self.args.half and onnx and self.device.type == "cpu":
             LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False

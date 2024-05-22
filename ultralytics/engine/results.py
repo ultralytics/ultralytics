@@ -402,7 +402,7 @@ class Results(SimpleClass):
             )
             return results
 
-        data = self.boxes or self.obb
+        data = self.boxes or self.obb or []
         is_obb = self.obb is not None
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id

@@ -77,7 +77,7 @@ class AIGym:
 
         for ind, k in enumerate(reversed(self.keypoints)):
             # Estimate angle and draw specific points based on pose type
-            if self.pose_type in {"pushup", "pullup", "abworkout"}:
+            if self.pose_type in {"pushup", "pullup", "abworkout", "squat"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
                     k[int(self.kpts_to_check[0])].cpu(),
                     k[int(self.kpts_to_check[1])].cpu(),
@@ -93,7 +93,7 @@ class AIGym:
                         self.stage[ind] = "up"
                         self.count[ind] += 1
 
-                elif self.pose_type == "pushup":
+                elif self.pose_type == "pushup" or self.pose_type == "squat":
                     if self.angle[ind] > self.poseup_angle:
                         self.stage[ind] = "up"
                     if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":

@@ -348,7 +348,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 ```bash
                 yolo predict model=yolov8n.pt source="tcp://127.0.0.1:8888"
                 ```
-                
+
 !!! Tip
 
     Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/ video input type

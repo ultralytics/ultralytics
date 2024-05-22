@@ -16,6 +16,9 @@
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+    <br>
+    <a href="https://pypi.org/project/ultralytics/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=yellow&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F">
+    <a href="https://anaconda.org/conda-forge/ultralytics"><img alt="Conda Version" src="https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge&link=https%3A%2F%2Fanaconda.org%2Fconda-forge%2Fultralytics">
 </div>
 <br>
 
@@ -55,13 +58,13 @@
 
 使用Pip在一个[**Python>=3.8**](https://www.python.org/)环境中安装`ultralytics`包，此环境还需包含[**PyTorch>=1.8**](https://pytorch.org/get-started/locally/)。这也会安装所有必要的[依赖项](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml)。
 
-[![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
+[![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=yellow&link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?link=https%3A%2F%2Fpypi.org%2Fproject%2Fultralytics%2F)](https://pypi.org/project/ultralytics/)
 
 ```bash
 pip install ultralytics
 ```
 
-如需使用包括[Conda](https://anaconda.org/conda-forge/ultralytics)、[Docker](https://hub.docker.com/r/ultralytics/ultralytics)和Git在内的其他安装方法，请参考[快速入门指南](https://docs.ultralytics.com/quickstart)。
+如需使用包括[Conda](https://anaconda.org/conda-forge/ultralytics)，[Docker](https://hub.docker.com/r/ultralytics/ultralytics)和Git在内的其他安装方法，请参考[快速入门指南](https://docs.ultralytics.com/quickstart)。
 
 </details>
 

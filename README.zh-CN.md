@@ -221,7 +221,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224             | 69.0             | 88.3             | 12.9                        | 0.31                             | 2.7            | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224             | 73.8             | 91.7             | 23.4                        | 0.35                             | 6.4            | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt) | 224             | 76.8             | 93.5             | 85.4                        | 0.62                             | 17.0           | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt) | 224             | 76.8             | 93.5             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt) | 224             | 78.3             | 94.2             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt) | 224             | 79.0             | 94.6             | 232.0                       | 1.01                             | 57.4           | 154.8                    |
 
 - **acc** 值是模型在 [ImageNet](https://www.image-net.org/) 数据集验证集上的准确率。 <br>通过 `yolo val classify data=path/to/ImageNet device=0` 复现

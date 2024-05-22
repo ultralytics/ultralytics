@@ -9,6 +9,17 @@ keywords: Ultralytics, LVIS dataset, object detection, YOLO, YOLO model training
 The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and instance segmentation with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
 
 <p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/cfTKj96TjSE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO World training workflow with LVIS dataset
+</p>
+
+<p align="center">
     <img width="640" src="https://github.com/ultralytics/ultralytics/assets/26833433/40230a80-e7bc-4310-a860-4cc0ef4bb02a" alt="LVIS Dataset example images">
 </p>
 
@@ -55,10 +66,10 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='lvis.yaml', epochs=100, imgsz=640)
+        results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

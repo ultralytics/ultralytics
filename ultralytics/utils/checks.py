@@ -391,7 +391,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
-                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                    LOGGER.info(subprocess.check_output(f"pip install --no-cache-dir {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -419,7 +419,14 @@ def check_torchvision():
     """
 
     # Compatibility table
-    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+    compatibility_table = {
+        "2.3": ["0.18"],
+        "2.2": ["0.17"],
+        "2.1": ["0.16"],
+        "2.0": ["0.15"],
+        "1.13": ["0.14"],
+        "1.12": ["0.13"],
+    }
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
@@ -521,14 +528,15 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not IS_DOCKER and not IS_COLAB and not IS_KAGGLE
+            assert not IS_COLAB and not IS_KAGGLE
+            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()

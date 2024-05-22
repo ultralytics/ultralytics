@@ -26,10 +26,10 @@ This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and pa
 import torch
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 # Image
-im = 'https://ultralytics.com/images/zidane.jpg'
+im = "https://ultralytics.com/images/zidane.jpg"
 
 # Inference
 results = model(im)
@@ -52,13 +52,13 @@ import torch
 from PIL import Image
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 # Images
-for f in 'zidane.jpg', 'bus.jpg':
-    torch.hub.download_url_to_file('https://ultralytics.com/images/' + f, f)  # download 2 images
-im1 = Image.open('zidane.jpg')  # PIL image
-im2 = cv2.imread('bus.jpg')[..., ::-1]  # OpenCV image (BGR to RGB)
+for f in "zidane.jpg", "bus.jpg":
+    torch.hub.download_url_to_file("https://ultralytics.com/images/" + f, f)  # download 2 images
+im1 = Image.open("zidane.jpg")  # PIL image
+im2 = cv2.imread("bus.jpg")[..., ::-1]  # OpenCV image (BGR to RGB)
 
 # Inference
 results = model([im1, im2], size=640)  # batch of images
@@ -110,7 +110,7 @@ model.to(device)  # i.e. device=torch.device(0)
 Models can also be created directly on any `device`:
 
 ```python
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', device='cpu')  # load on CPU
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", device="cpu")  # load on CPU
 ```
 
 💡 ProTip: Input images are automatically transferred to the correct model device before inference.
@@ -120,7 +120,7 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', device='cpu')  # load on
 Models can be loaded silently with `_verbose=False`:
 
 ```python
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', _verbose=False)  # load silently
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", _verbose=False)  # load silently
 ```
 
 ### Input Channels
@@ -128,7 +128,7 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', _verbose=False)  # load 
 To load a pretrained YOLOv5s model with 4 input channels rather than the default 3:
 
 ```python
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', channels=4)
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", channels=4)
 ```
 
 In this case the model will be composed of pretrained weights **except for** the very first input layer, which is no longer the same shape as the pretrained input layer. The input layer will remain initialized by random weights.
@@ -138,7 +138,7 @@ In this case the model will be composed of pretrained weights **except for** the
 To load a pretrained YOLOv5s model with 10 output classes rather than the default 80:
 
 ```python
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', classes=10)
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", classes=10)
 ```
 
 In this case the model will be composed of pretrained weights **except for** the output layers, which are no longer the same shape as the pretrained output layers. The output layers will remain initialized by random weights.
@@ -148,7 +148,7 @@ In this case the model will be composed of pretrained weights **except for** the
 If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub.
 
 ```python
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', force_reload=True)  # force reload
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload
 ```
 
 ### Screenshot Inference
@@ -160,7 +160,7 @@ import torch
 from PIL import ImageGrab
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 # Image
 im = ImageGrab.grab()  # take a screenshot
@@ -174,33 +174,35 @@ results = model(im)
 YOLOv5 models can be loaded to multiple GPUs in parallel with threaded inference:
 
 ```python
-import torch
 import threading
+
+import torch
 
 
 def run(model, im):
+    """Performs inference on an image using a given model and saves the output; model must support `.save()` method."""
     results = model(im)
     results.save()
 
 
 # Models
-model0 = torch.hub.load('ultralytics/yolov5', 'yolov5s', device=0)
-model1 = torch.hub.load('ultralytics/yolov5', 'yolov5s', device=1)
+model0 = torch.hub.load("ultralytics/yolov5", "yolov5s", device=0)
+model1 = torch.hub.load("ultralytics/yolov5", "yolov5s", device=1)
 
 # Inference
-threading.Thread(target=run, args=[model0, 'https://ultralytics.com/images/zidane.jpg'], daemon=True).start()
-threading.Thread(target=run, args=[model1, 'https://ultralytics.com/images/bus.jpg'], daemon=True).start()
+threading.Thread(target=run, args=[model0, "https://ultralytics.com/images/zidane.jpg"], daemon=True).start()
+threading.Thread(target=run, args=[model1, "https://ultralytics.com/images/bus.jpg"], daemon=True).start()
 ```
 
 ### Training
 
-To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](https://docs.ultralytics.com/yolov5/tutorials/train_custom_data) for model training.
+To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](./train_custom_data.md) for model training.
 
 ```python
 import torch
 
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False)  # load pretrained
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False, pretrained=False)  # load scratch
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False)  # load pretrained
+model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrained=False)  # load scratch
 ```
 
 ### Base64 Results
@@ -216,7 +218,7 @@ for im in results.ims:
     buffered = BytesIO()
     im_base64 = Image.fromarray(im)
     im_base64.save(buffered, format="JPEG")
-    print(base64.b64encode(buffered.getvalue()).decode('utf-8'))  # base64 encoded image with results
+    print(base64.b64encode(buffered.getvalue()).decode("utf-8"))  # base64 encoded image with results
 ```
 
 ### Cropped Results
@@ -257,7 +259,7 @@ Results can be sorted by column, i.e. to sort license plate digit detection left
 
 ```python
 results = model(im)  # inference
-results.pandas().xyxy[0].sort_values('xmin')  # sorted left-right
+results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
 ```
 
 ### Box-Cropped Results
@@ -331,13 +333,13 @@ This example loads a custom 20-class [VOC](https://github.com/ultralytics/yolov5
 ```python
 import torch
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='path/to/best.pt')  # local model
-model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', source='local')  # local repo
+model = torch.hub.load("ultralytics/yolov5", "custom", path="path/to/best.pt")  # local model
+model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", source="local")  # local repo
 ```
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](https://docs.ultralytics.com/yolov5/tutorials/model_export) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model_export.md) for details on exporting models.
 
 💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
@@ -345,14 +347,14 @@ PyTorch Hub supports inference on most YOLOv5 export formats, including custom t
 ```python
 import torch
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # PyTorch
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.torchscript')  # TorchScript
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.onnx')  # ONNX
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_openvino_model/')  # OpenVINO
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.engine')  # TensorRT
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.mlmodel')  # CoreML (macOS-only)
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.tflite')  # TFLite
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s_paddle_model/')  # PaddlePaddle
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.pt")  # PyTorch
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.torchscript")  # TorchScript
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.onnx")  # ONNX
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_openvino_model/")  # OpenVINO
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.engine")  # TensorRT
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.mlmodel")  # CoreML (macOS-only)
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.tflite")  # TFLite
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_model/")  # PaddlePaddle
 ```
 
 ## Supported Environments

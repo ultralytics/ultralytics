@@ -28,14 +28,16 @@ When using threads in Python, it's important to recognize patterns that can lead
 
 ```python
 # Unsafe: Sharing a single model instance across threads
-from ultralytics import YOLO
 from threading import Thread
+
+from ultralytics import YOLO
 
 # Instantiate the model outside the thread
 shared_model = YOLO("yolov8n.pt")
 
 
 def predict(image_path):
+    """Predicts objects in an image using a preloaded YOLO model, take path string to image as argument."""
     results = shared_model.predict(image_path)
     # Process results
 
@@ -53,8 +55,9 @@ Similarly, here is an unsafe pattern with multiple YOLO model instances:
 
 ```python
 # Unsafe: Sharing multiple model instances across threads can still lead to issues
-from ultralytics import YOLO
 from threading import Thread
+
+from ultralytics import YOLO
 
 # Instantiate multiple models outside the thread
 shared_model_1 = YOLO("yolov8n_1.pt")
@@ -62,6 +65,7 @@ shared_model_2 = YOLO("yolov8n_2.pt")
 
 
 def predict(model, image_path):
+    """Runs prediction on an image using a specified YOLO model, returning the results."""
     results = model.predict(image_path)
     # Process results
 
@@ -83,12 +87,13 @@ Here's how to instantiate a YOLO model inside each thread for safe parallel infe
 
 ```python
 # Safe: Instantiating a single model inside each thread
-from ultralytics import YOLO
 from threading import Thread
+
+from ultralytics import YOLO
 
 
 def thread_safe_predict(image_path):
-    # Instantiate a new model inside the thread
+    """Predict on an image using a new YOLO model instance in a thread-safe manner; takes image path as input."""
     local_model = YOLO("yolov8n.pt")
     results = local_model.predict(image_path)
     # Process results

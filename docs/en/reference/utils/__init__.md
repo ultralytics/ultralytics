@@ -7,7 +7,7 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
 
 <br><br>
 
@@ -63,6 +63,10 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 <br><br>
 
+## ::: ultralytics.utils.read_device_model
+
+<br><br>
+
 ## ::: ultralytics.utils.is_ubuntu
 
 <br><br>
@@ -80,6 +84,14 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 <br><br>
 
 ## ::: ultralytics.utils.is_docker
+
+<br><br>
+
+## ::: ultralytics.utils.is_raspberrypi
+
+<br><br>
+
+## ::: ultralytics.utils.is_jetson
 
 <br><br>
 
@@ -103,11 +115,11 @@ keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_lo
 
 <br><br>
 
-## ::: ultralytics.utils.is_git_dir
+## ::: ultralytics.utils.get_git_dir
 
 <br><br>
 
-## ::: ultralytics.utils.get_git_dir
+## ::: ultralytics.utils.is_git_dir
 
 <br><br>
 

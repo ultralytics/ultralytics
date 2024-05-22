@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Speed Estimation, Object Tracki
 
 ## What is Speed Estimation?
 
-Speed estimation is the process of calculating the rate of movement of an object within a given context, often employed in computer vision applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](https://docs.ultralytics.com/modes/track/) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
+Speed estimation is the process of calculating the rate of movement of an object within a given context, often employed in computer vision applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
 
 <p align="center">
   <br>
@@ -39,9 +39,8 @@ Speed estimation is the process of calculating the rate of movement of an object
     === "Speed Estimation"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import speed_estimation
         import cv2
+        from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
         names = model.model.names
@@ -51,21 +50,18 @@ Speed estimation is the process of calculating the rate of movement of an object
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
-        video_writer = cv2.VideoWriter("speed_estimation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
+        video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         line_pts = [(0, 360), (1280, 360)]
 
         # Init speed-estimation obj
-        speed_obj = speed_estimation.SpeedEstimator()
-        speed_obj.set_args(reg_pts=line_pts,
-                           names=names,
-                           view_img=True)
+        speed_obj = solutions.SpeedEstimator(
+            reg_pts=line_pts,
+            names=names,
+            view_img=True,
+        )
 
         while cap.isOpened():
-
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
@@ -79,23 +75,22 @@ Speed estimation is the process of calculating the rate of movement of an object
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ???+ warning "Speed is Estimate"
 
     Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
 
-### Optional Arguments `set_args`
+### Arguments `SpeedEstimator`
 
-| Name               | Type   | Default                    | Description                                       |
-|--------------------|--------|----------------------------|---------------------------------------------------|
-| `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | Points defining the Region Area                   |
-| `names`            | `dict` | `None`                     | Classes names                                     |
-| `view_img`         | `bool` | `False`                    | Display frames with counts                        |
-| `line_thickness`   | `int`  | `2`                        | Increase bounding boxes thickness                 |
-| `region_thickness` | `int`  | `5`                        | Thickness for object counter region or line       |
-| `spdl_dist_thresh` | `int`  | `10`                       | Euclidean Distance threshold for speed check line |
+| Name               | Type   | Default                    | Description                                          |
+|--------------------|--------|----------------------------|------------------------------------------------------|
+| `names`            | `dict` | `None`                     | Dictionary of class names.                           |
+| `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
+| `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |
+| `line_thickness`   | `int`  | `2`                        | Thickness of the lines for drawing boxes and tracks. |
+| `region_thickness` | `int`  | `5`                        | Thickness of the region lines.                       |
+| `spdl_dist_thresh` | `int`  | `10`                       | Distance threshold for speed calculation.            |
 
 ### Arguments `model.track`
 

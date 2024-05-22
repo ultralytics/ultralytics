@@ -3,15 +3,17 @@ description: Discover what's next for Ultralytics with our under-construction pa
 keywords: Ultralytics, coming soon, under construction, new features, AI updates, ML advancements, YOLO, technology preview
 ---
 
-# Under Construction 🏗️🌟
+# Ultralytics HUB Teams - Under Construction 🏗️🌟
 
-Welcome to the Ultralytics "Under Construction" page! Here, we're hard at work developing the next generation of AI and ML innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
+We are in the process of expanding this section to offer detailed guidance on how to effectively use the Teams features within [Ultralytics HUB](https://bit.ly/ultralytics_hub). This will include managing team members, sharing resources, and collaborating on projects.
+
+We appreciate your patience as we work to make this section comprehensive and user-friendly. Stay tuned for updates!
 
 ## Exciting New Features on the Way 🎉
 
-- **Innovative Breakthroughs:** Get ready for advanced features and services that will transform your AI and ML experience.
-- **New Horizons:** Anticipate novel products that redefine AI and ML capabilities.
-- **Enhanced Services:** We're upgrading our services for greater efficiency and user-friendliness.
+- Enhanced Team Management Features
+- Guidance on Resource Sharing Among Team Members
+- Best Practices for Collaborative Project Development
 
 ## Stay Updated 🚧
 
@@ -23,7 +25,7 @@ This placeholder page is your first stop for upcoming developments. Keep an eye 
 
 ## We Value Your Input 🗣️
 
-Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/contact).
+Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/survey).
 
 ## Thank You, Community! 🌍
 

@@ -94,7 +94,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -115,7 +117,7 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
@@ -180,8 +182,8 @@ class Results(SimpleClass):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        """Return a new Results object with the same image, path, names and speed."""
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,
@@ -387,26 +389,32 @@ class Results(SimpleClass):
 
     def summary(self, normalize=False, decimals=5):
         """Convert the results to a summarized format."""
-        if self.probs is not None:
-            LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
-            return
-
         # Create list of detection dictionaries
         results = []
-        data = self.boxes.data.cpu().tolist()
+        if self.probs is not None:
+            class_id = self.probs.top1
+            results.append(
+                {
+                    "name": self.names[class_id],
+                    "class": class_id,
+                    "confidence": round(self.probs.top1conf.item(), decimals),
+                }
+            )
+            return results
+
+        data = self.boxes or self.obb
+        is_obb = self.obb is not None
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {
-                "x1": round(row[0] / w, decimals),
-                "y1": round(row[1] / h, decimals),
-                "x2": round(row[2] / w, decimals),
-                "y2": round(row[3] / h, decimals),
-            }
-            conf = round(row[-2], decimals)
-            class_id = int(row[-1])
-            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
-            if self.boxes.is_track:
-                result["track_id"] = int(row[-3])  # track ID
+            class_id, conf = int(row.cls), round(row.conf.item(), decimals)
+            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            xy = {}
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
+            if data.is_track:
+                result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
                     "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),

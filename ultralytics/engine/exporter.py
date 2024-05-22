@@ -777,11 +777,10 @@ class Exporter:
                     _ = self.cache.write_bytes(cache)
 
             # Load dataset w/ builder (for batching) and calibrate
-            dataset = self.get_int8_calibration_dataloader(prefix)
             config.int8_calibrator = EngineCalibrator(
-                dataset=dataset,
+                dataset=self.get_int8_calibration_dataloader(prefix),
                 batch=2 * self.args.batch,
-                cache=self.file.with_suffix(".cache"),
+                cache=str(self.file.with_suffix(".cache")),
             )
 
         elif half:
@@ -861,11 +860,8 @@ class Exporter:
             verbosity = "info"
             if self.args.data:
                 # Generate calibration data for integer quantization
-                dataloader = self.get_int8_calibration_dataloader(prefix)
                 images = []
-                for i, batch in enumerate(dataloader):
-                    if i >= 100:  # maximum number of calibration images
-                        break
+                for batch in self.get_int8_calibration_dataloader(prefix):
                     im = batch["img"].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
                     images.append(im)
                 f.mkdir()

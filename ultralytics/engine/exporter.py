@@ -854,17 +854,13 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         np_data = None
         if self.args.int8:
+            tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
             verbosity = "info"
             if self.args.data:
-                # Generate calibration data for integer quantization
-                images = []
-                for batch in self.get_int8_calibration_dataloader(prefix):
-                    im = batch["img"].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
-                    images.append(im)
                 f.mkdir()
+                images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
                 images = torch.cat(images, 0).float()
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]

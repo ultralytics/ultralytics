@@ -815,7 +815,11 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
+<<<<<<< tflite
             version = "" if ARM64 else ">=2.0.0"
+=======
+            version = "" if ARM64 else "<=2.13.1"
+>>>>>>> main
             check_requirements((f"tensorflow{suffix}{version}", "keras"))
             import tensorflow as tf  # noqa
         if ARM64:

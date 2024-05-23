@@ -158,7 +158,7 @@ nav:
           - datasets/index.md
       - Guides:
           - guides/index.md
-      - New 🚀 Parking Management: guides/parking-management.md
+      - New 🚀 Analytics: guides/analytics.md
       - Explorer:
           - datasets/explorer/index.md
       - Languages:
@@ -291,6 +291,7 @@ nav:
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Real-World Projects:
+          - NEW 🚀 Analytics: guides/analytics.md
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
           - Object Blurring: guides/object-blurring.md

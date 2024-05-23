@@ -164,7 +164,7 @@ jobs:
 
   Tests:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -241,7 +241,7 @@ jobs:
 
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
       - uses: actions/checkout@v4

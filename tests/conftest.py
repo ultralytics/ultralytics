@@ -3,7 +3,7 @@
 import shutil
 from pathlib import Path
 
-from tests import TMP
+from ultralytics.utils.testing import TMP
 
 
 def pytest_addoption(parser):

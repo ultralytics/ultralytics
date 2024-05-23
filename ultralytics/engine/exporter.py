@@ -1008,8 +1008,13 @@ class Exporter:
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
-        from tensorflow_lite_support.metadata import metadata_schema_py_generated as _metadata_fb  # noqa
-        from tensorflow_lite_support.metadata.python import metadata as _metadata  # noqa
+
+        if MACOS:  # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
+            from tflite_support import metadata as _metadata  # noqa
+            from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
+        else:
+            from tensorflow_lite_support.metadata import metadata_schema_py_generated as _metadata_fb  # noqa
+            from tensorflow_lite_support.metadata.python import metadata as _metadata  # noqa
 
         # Create model info
         model_meta = _metadata_fb.ModelMetadataT()

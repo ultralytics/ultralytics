@@ -131,14 +131,14 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)  # cleanup
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
     [  # generate all combinations but exclude those where both int8 and half are True
         (task, dynamic, int8, half, batch)
-        # for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
-        for task, dynamic, int8, half, batch in product(["detect"], [False], [True], [False], [1])
+        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        # for task, dynamic, int8, half, batch in product(["detect"], [False], [True], [False], [1])
         if not (int8 and half)  # exclude cases where both int8 and half are True
     ],
 )

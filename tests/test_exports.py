@@ -132,6 +132,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 
 
 # @pytest.mark.slow
+@pytest.mark.skipif(not checks.check_python("3.9.0", hard=False), reason="TFLite export requires Python>=3.9")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

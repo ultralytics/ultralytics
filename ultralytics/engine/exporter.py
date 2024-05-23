@@ -378,7 +378,7 @@ class Exporter:
             ts.save(str(f), _extra_files=extra_files)
         return f, None
 
-    @try_export
+    # @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
@@ -803,7 +803,7 @@ class Exporter:
 
         return f, None
 
-    @try_export
+    # @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """YOLOv8 TensorFlow SavedModel export."""
         cuda = torch.cuda.is_available()

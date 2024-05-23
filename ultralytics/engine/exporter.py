@@ -811,7 +811,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
-            version = "" if ARM64 else "<=2.13.1"
+            version = "" if ARM64 else ">=2.15.0"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         if ARM64:
@@ -833,7 +833,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,
-            "<=2.13.1",
+            ">=2.15.0",
             name="tensorflow",
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",

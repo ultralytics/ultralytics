@@ -86,6 +86,7 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
+    checks,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
@@ -184,6 +185,7 @@ class Exporter:
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
         if fmt == "engine" and self.args.device is None:
@@ -210,6 +212,8 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
+        if is_tf_format and not checks.IS_PYTHON_3_10:
+            raise SystemError("Ultralytics TensorFlow exports requires Python>=3.10")
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
@@ -243,7 +247,7 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-            elif isinstance(m, C2f) and not any((saved_model, pb, tflite, edgetpu, tfjs)):
+            elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
@@ -303,7 +307,7 @@ class Exporter:
             f[3], _ = self.export_openvino()
         if coreml:  # CoreML
             f[4], _ = self.export_coreml()
-        if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
+        if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
             f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs

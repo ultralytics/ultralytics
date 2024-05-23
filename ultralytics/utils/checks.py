@@ -735,5 +735,5 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
-IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

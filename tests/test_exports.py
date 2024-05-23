@@ -132,7 +132,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 
 
 # @pytest.mark.slow
-@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
@@ -170,7 +170,7 @@ def test_export_coreml():
         YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
 
 
-@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """

@@ -212,7 +212,7 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
-        if is_tf_format and not checks.IS_PYTHON_3_10:
+        if is_tf_format and not checks.IS_PYTHON_MINIMUM_3_10:
             raise SystemError("Ultralytics TensorFlow exports requires Python>=3.10")
         if isinstance(model, WorldModel):
             LOGGER.warning(
@@ -382,7 +382,7 @@ class Exporter:
             ts.save(str(f), _extra_files=extra_files)
         return f, None
 
-    # @try_export
+    @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
@@ -807,7 +807,7 @@ class Exporter:
 
         return f, None
 
-    # @try_export
+    @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """YOLOv8 TensorFlow SavedModel export."""
         cuda = torch.cuda.is_available()

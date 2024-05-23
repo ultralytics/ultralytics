@@ -17,8 +17,8 @@ from ultralytics.utils import (
     Retry,
     checks,
 )
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 from ultralytics.utils.testing import MODEL, SOURCE
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 
 def test_export_torchscript():

@@ -11,7 +11,6 @@ import pytest
 from ultralytics import YOLO, download
 from ultralytics.utils import DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
-
 from ultralytics.utils.testing import MODEL, SOURCE, TMP
 
 

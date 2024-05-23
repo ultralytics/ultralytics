@@ -44,6 +44,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md) - Learn latency and throughput optimization techniques for peak YOLO inference performance.
 
 ## Real-World Projects
+
 ![Ultralytics Solutions Thumbnail](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/44c8b148-7a9d-43e4-b7bf-272a7ac4e636)
 
 - [Object Counting](object-counting.md) 🚀 NEW: Explore the process of real-time object counting with Ultralytics YOLOv8 and acquire the knowledge to effectively count objects in a live video stream.

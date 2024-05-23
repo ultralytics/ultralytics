@@ -8,7 +8,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
-from ultralytics.utils.testing import MODEL
+
+from test_any import MODEL
 
 
 def test_func(*args):  # noqa

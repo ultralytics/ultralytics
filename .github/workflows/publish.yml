@@ -4,7 +4,7 @@
 name: Publish to PyPI and Deploy Docs
 
 on:
-  push:
+  pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -17,7 +17,6 @@ on:
 
 jobs:
   publish:
-    # if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
     runs-on: ubuntu-latest
     steps:

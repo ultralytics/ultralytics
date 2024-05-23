@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
@@ -18,7 +19,6 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-from tests import MODEL, SOURCE
 
 
 def test_export_torchscript():
@@ -129,6 +129,30 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
     shutil.rmtree(file)  # cleanup
+
+
+# @pytest.mark.slow
+@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        if not (int8 and half)  # exclude cases where both int8 and half are True
+    ],
+)
+def test_export_tflite_matrix(task, dynamic, int8, half, batch):
+    """Test YOLO exports to TFLite format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="tflite",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    Path(file).unlink()  # cleanup
 
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")

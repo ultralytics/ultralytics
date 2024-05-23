@@ -812,7 +812,7 @@ class Exporter:
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
             version = "" if ARM64 else ">=2.0.0"
-            check_requirements((f"tensorflow{suffix}{version}", "keras", "tf-keras"))
+            check_requirements((f"tensorflow{suffix}{version}", "keras", "tf_keras"))
             import tensorflow as tf  # noqa
         if ARM64:
             check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64

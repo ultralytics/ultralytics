@@ -303,6 +303,7 @@ nav:
           - Distance Calculation: guides/distance-calculation.md
           - Queue Management: guides/queue-management.md
           - Parking Management: guides/parking-management.md
+          - ROS Quickstart: guides/ros-quickstart.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md

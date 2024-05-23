@@ -26,8 +26,8 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.downloads import download, is_url
-from ultralytics.utils.torch_utils import TORCH_1_9
 from ultralytics.utils.testing import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
+from ultralytics.utils.torch_utils import TORCH_1_9
 
 
 def test_model_forward():

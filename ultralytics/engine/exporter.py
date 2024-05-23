@@ -83,10 +83,10 @@ from ultralytics.utils import (
     WINDOWS,
     __version__,
     callbacks,
+    checks,
     colorstr,
     get_default_args,
     yaml_save,
-    checks,
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download

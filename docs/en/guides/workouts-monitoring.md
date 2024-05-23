@@ -121,7 +121,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `view_img`        | `bool`  | `False`  | Flag to display the image.                                                             |
 | `pose_up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
 | `pose_down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
-| `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`).                            |
+| `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`, `squat`).                   |
 
 ### Arguments `model.predict`
 

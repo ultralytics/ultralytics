@@ -33,8 +33,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel build twine
           pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
-      - name: Publish to PyPI
-        continue-on-error: true
+      - name: See tests dir
         run: |
           ls tests
+      - name: Publish to PyPI
+        run: |
           python -m build

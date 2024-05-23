@@ -170,7 +170,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-14]
-        python-version: ["3.9", "3.10" "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
         torch: [latest]
         include:
           - os: ubuntu-latest

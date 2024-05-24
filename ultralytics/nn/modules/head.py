@@ -562,3 +562,6 @@ class v10Detect(Detect):
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
+    def decode_bboxes(self, bboxes, anchors):
+        """Decode bounding boxes for YOLOv10."""
+        return dist2bbox(bboxes, anchors, xywh=not self.export, dim=1)

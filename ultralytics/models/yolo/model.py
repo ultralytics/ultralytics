@@ -1,14 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
-
-import numpy
 from PIL import Image
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
+from ultralytics.data import load_inference_source
 
 
 class YOLO(Model):
@@ -100,21 +99,18 @@ class YOLOWorld(Model):
         """
 
         classes = labels.copy()
+        pilImages=[]
+        
         for i, img in enumerate(images):
-            if isinstance(img, (Path, str)):
-                path = Path(img)
-                name = path.name
-                img = Image.open(path)
-                images[i] = img
-            elif isinstance(img, numpy.ndarray):
-                img = Image.fromarray(img)
-                images[i] = img
-                name = f"image{i}"
-            else:
-                name = f"image{i}"
-            classes.append(name)
+            dataSet= load_inference_source(source=img, batch=1) 
+            for batch in dataSet:
+                paths, im0s, s = batch
+                path = Path(paths[0])
+                image= Image.fromarray(im0s[0]).convert("RGB")
+                pilImages.append(image)
+                classes.append(path.name)
 
-        self.model.set_classes(labels=labels, images=images)
+        self.model.set_classes(labels=labels, images=pilImages)
         # Remove background if it's given
         background = " "
         if background in labels:

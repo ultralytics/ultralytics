@@ -143,6 +143,9 @@ class BaseTrainer:
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
 
+        # hub
+        self.hub_session = None
+
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in {-1, 0}:
@@ -162,6 +165,9 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
+        # setup hub training
+        if RANK in {-1, 0}:
+            self._setup_hub()
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
@@ -762,3 +768,24 @@ class BaseTrainer:
             f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
         )
         return optimizer
+
+    def _setup_hub(self):
+        """Setup session for Hub Training."""
+        from ultralytics.utils import SETTINGS
+
+        if SETTINGS["hub"] is False or self.hub_session is not None:
+            return
+        # Create a model in HUB
+        try:
+            from ultralytics.hub.session import HUBTrainingSession
+
+            session = HUBTrainingSession(self.args.model)
+            self.hub_session = session if session.client.authenticated else self.hub_session
+            if self.hub_session:
+                self.hub_session.create_model(self.args)
+                # Check model was created
+                if not getattr(self.hub_session.model, "id", None):
+                    self.hub_session = None
+        except (PermissionError, ModuleNotFoundError):
+            # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
+            pass

@@ -829,8 +829,8 @@ class Exporter:
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),
-            cmds="--extra-index-url https://pypi.ngc.nvidia.com",
-        )  # onnx_graphsurgeon only on NVIDIA
+            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(

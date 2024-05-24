@@ -814,7 +814,7 @@ class Exporter:
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
             version = "" if ARM64 else "<=2.13.1"
-            check_requirements((f"tensorflow{suffix}{version}", "keras"))
+            check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         if ARM64:
             check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
@@ -828,6 +828,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
+                "keras",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",
         )  # onnx_graphsurgeon only on NVIDIA

@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils import ops
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
 from .conv import Conv
@@ -41,10 +42,15 @@ class Detect(nn.Module):
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
-    def forward(self, x):
+
+    def forward(self, x, o2o:bool=False, cv2=None, cv3=None):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if o2o:
+            for i in range(self.nl):
+                x[i] = torch.cat((cv2[i](x[i]), cv3[i](x[i])), 1)  # convert to list?
+        else:
+            for i in range(self.nl):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
 
@@ -487,3 +493,72 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class v10Detect(Detect):
+    """
+    v10 Detection head from https://arxiv.org/pdf/2405.14458
+
+    Args:
+        nc (int): Number of classes.
+        ch (tuple): Tuple of channel sizes.
+
+    Attributes:
+        max_det (int): Maximum number of detections.
+
+    Methods:
+        __init__(self, nc=80, ch=()): Initializes the v10Detect object.
+        forward(self, x): Performs forward pass of the v10Detect module.
+        bias_init(self): Initializes biases of the Detect module.
+
+    """
+
+    max_det = -1
+
+    def __init__(self, nc=80, ch=()):
+        import copy
+
+        super().__init__(nc, ch)
+        c3 = max(ch[0], min(self.nc, 100))  # channels
+        self.cv3 = nn.ModuleList(nn.Sequential(nn.Sequential(Conv(x, x, 3, g=x), Conv(x, c3, 1)), nn.Sequential(Conv(c3, c3, 3, g=c3), Conv(c3, c3, 1)), nn.Conv2d(c3, self.nc, 1)) for i, x in enumerate(ch))
+
+        self.one2one_cv2 = copy.deepcopy(self.cv2)
+        self.one2one_cv3 = copy.deepcopy(self.cv3)
+    
+    def forward(self, x):
+        """
+        Performs forward pass of the v10Detect module.
+
+        Args:
+            x (tensor): Input tensor.
+
+        Returns:
+            dict or tensor: If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
+                           If in training mode, returns a dictionary containing the outputs of one2many and one2one detections separately.
+
+        """
+        one2one = super().forward([xi.detach() for xi in x], True, self.one2one_cv2, self.one2one_cv3)  # NOTE attempt to bypass extra forward_feat method
+        if not self.export:
+            one2many = super().forward(x)
+
+        if not self.training:
+            one2one = self.inference(one2one)
+            if not self.export:
+                return {"one2many": one2many, "one2one": one2one}
+            else:
+                assert(self.max_det != -1)
+                boxes, scores, labels = ops.v10postprocess(one2one.permute(0, 2, 1), self.max_det)
+                return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)
+        else:
+            return {"one2many": one2many, "one2one": one2one}
+
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        super().bias_init()
+        m = self  # self.model[-1]  # Detect() module
+        # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
+        # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
+        for a, b, s in zip(m.one2one_cv2, m.one2one_cv3, m.stride):  # from
+            a[-1].bias.data[:] = 1.0  # box
+            b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+

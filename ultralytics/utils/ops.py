@@ -848,7 +848,8 @@ def clean_str(s):
     """
     return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
 
-def v10postprocess(preds:torch.Tensor, max_det:int, nc:int=80):
+
+def v10postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
     """
     Post-processes the predictions obtained from a YOLOv10 model.
 
@@ -861,9 +862,8 @@ def v10postprocess(preds:torch.Tensor, max_det:int, nc:int=80):
         torch.Tensor: The post-processed bounding boxes with shape (batch_size, max_det, 4).
         torch.Tensor: The corresponding scores for each bounding box with shape (batch_size, max_det).
         torch.Tensor: The labels for each bounding box with shape (batch_size, max_det).
-
     """
-    assert(4 + nc == preds.shape[-1])
+    assert 4 + nc == preds.shape[-1]
     boxes, scores = preds.split([4, nc], dim=-1)
     max_scores = scores.amax(dim=-1)
     max_scores, index = torch.topk(max_scores, max_det, axis=-1)
@@ -875,5 +875,5 @@ def v10postprocess(preds:torch.Tensor, max_det:int, nc:int=80):
     labels = index % nc
     index = index // nc
     boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
-    
+
     return boxes, scores, labels

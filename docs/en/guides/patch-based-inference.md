@@ -44,13 +44,13 @@ Interactive notebooks are provided to showcase the functionality of the library.
 
 #### Instance Segmentation example 1:
 <p align="center">
-  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_1.gif" alt="Segmentation Example 1">
+  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/blob/main/readme_content/segment_1.gif" alt="Segmentation Example 1">
 </p>
 
 #### Instance Segmentation example 2:
 
 <p align="center">
-  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/raw/main/readme_content/segment_2.gif" alt="Segmentation Example 2">
+  <img width="1024" src="https://github.com/Koldim2001/YOLO-Patch-Based-Inference/blob/main/readme_content/segment_2.gif" alt="Segmentation Example 2">
 </p>
 
 ---

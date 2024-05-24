@@ -17,7 +17,7 @@ Real-time object detection aims to accurately predict object categories and posi
 ## Key Features
 
 1. **NMS-Free Training**: Utilizes consistent dual assignments to eliminate the need for NMS, reducing inference latency.
-2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled downsampling, and rank-guided block design.
+2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled down sampling, and rank-guided block design.
 3. **Enhanced Model Capabilities**: Incorporates large-kernel convolutions and partial self-attention modules to improve performance without significant computational cost.
 
 ## Model Variants
@@ -46,7 +46,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 #### Efficiency Enhancements
 
 1. **Lightweight Classification Head**: Reduces the computational overhead of the classification head by using depth-wise separable convolutions.
-2. **Spatial-Channel Decoupled Downsampling**: Decouples spatial reduction and channel modulation to minimize information loss and computational cost.
+2. **Spatial-Channel Decoupled Down sampling**: Decouples spatial reduction and channel modulation to minimize information loss and computational cost.
 3. **Rank-Guided Block Design**: Adapts block design based on intrinsic stage redundancy, ensuring optimal parameter utilization.
 
 #### Accuracy Enhancements

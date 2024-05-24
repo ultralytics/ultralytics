@@ -45,7 +45,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 
 #### Efficiency Enhancements
 
-1. **Lightweight Classification Head**: Reduces the computational overhead of the classification head by using depthwise separable convolutions.
+1. **Lightweight Classification Head**: Reduces the computational overhead of the classification head by using depth-wise separable convolutions.
 2. **Spatial-Channel Decoupled Downsampling**: Decouples spatial reduction and channel modulation to minimize information loss and computational cost.
 3. **Rank-Guided Block Design**: Adapts block design based on intrinsic stage redundancy, ensuring optimal parameter utilization.
 
@@ -62,6 +62,22 @@ YOLOv10 has been extensively tested on standard benchmarks like COCO, demonstrat
 
 YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of real-world applications.
 
-## References
+## Citations and Acknowledgements
+
+We would like to acknowledge the YOLOv10 authors for their extensive research to build upon the Ultralytics framework:
+
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{THU-MIGyolov10,
+          title={YOLOv10: Real-Time End-to-End Object Detection},
+          author={Ao Wang, Hui Chen, Lihao Liu, et al.},
+          journal={arXiv preprint arXiv:2405.14458},
+          year={2024},
+          license = {AGPL-3.0}
+        }
+        ```
 
 For detailed implementation and experimental results, please refer to the YOLOv10 [research paper](https://github.com/THU-MIG/yolov10).

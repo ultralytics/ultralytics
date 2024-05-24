@@ -120,26 +120,28 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 
     The Ultralytics team is actively working on officially integrating the YOLOv10 models into the `ultralytics` package. Once the integration is complete, the usage examples shown below will be fully functional. Please stay tuned by following our social media and [GitHub repository](https://github.com/ultralytics/ultralytics) for the latest updates on YOLOv10 integration. We appreciate your patience and excitement! 🚀
 
+For predicting new images with YOLOv10:
+
 ```python
 from ultralytics import YOLO
 
-# Load a pretrained YOLOv10 model
-model = YOLO("yolov10s.pt")
+# Load a pretrained YOLOv10n model
+model = YOLO("yolov10n.pt")
 
 # Perform object detection on an image
 results = model("image.jpg")
 
 # Display the results
-results.show()
+results[0].show()
 ```
 
-For training on a custom dataset:
+For training YOLOv10 on a custom dataset:
 
 ```python
 from ultralytics import YOLO
 
-# Load YOLOv10 model
-model = YOLO("yolov10s.yaml")
+# Load YOLOv10n model from scratch
+model = YOLO("yolov10n.yaml")
 
 # Train the model
 model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -151,7 +153,7 @@ YOLOv10 sets a new standard in real-time object detection by addressing the shor
 
 ## Citations and Acknowledgements
 
-We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the Ultralytics framework:
+We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://ultralytics.com) framework:
 
 !!! Quote ""
 
@@ -168,4 +170,4 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
         }
         ```
 
-For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [Github repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
+For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.

@@ -830,8 +830,8 @@ class Exporter:
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "keras",
             ),
-            cmds="--extra-index-url https://pypi.ngc.nvidia.com",
-        )  # onnx_graphsurgeon only on NVIDIA
+            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(

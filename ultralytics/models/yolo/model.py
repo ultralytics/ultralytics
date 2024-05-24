@@ -1,13 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
+
 from PIL import Image
 
+from ultralytics.data import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
-from ultralytics.data import load_inference_source
 
 
 class YOLO(Model):
@@ -99,14 +100,14 @@ class YOLOWorld(Model):
         """
 
         classes = labels.copy()
-        pilImages=[]
-        
+        pilImages = []
+
         for i, img in enumerate(images):
-            dataSet= load_inference_source(source=img, batch=1) 
+            dataSet = load_inference_source(source=img, batch=1)
             for batch in dataSet:
                 paths, im0s, s = batch
                 path = Path(paths[0])
-                image= Image.fromarray(im0s[0]).convert("RGB")
+                image = Image.fromarray(im0s[0]).convert("RGB")
                 pilImages.append(image)
                 classes.append(path.name)
 

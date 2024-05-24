@@ -889,7 +889,9 @@ class Albumentations:
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
             ]
-            self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+            # add bbox_params only when spatial augmentations involved
+            # bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"])
+            self.transform = A.Compose(T)
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
@@ -900,19 +902,8 @@ class Albumentations:
     def __call__(self, labels):
         """Generates object detections and returns a dictionary with detection results."""
         im = labels["img"]
-        cls = labels["cls"]
-        if len(cls):
-            labels["instances"].convert_bbox("xywh")
-            labels["instances"].normalize(*im.shape[:2][::-1])
-            bboxes = labels["instances"].bboxes
-            # TODO: add supports of segments and keypoints
-            if self.transform and random.random() < self.p:
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"])
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
-            labels["instances"].update(bboxes=bboxes)
+        if self.transform and random.random() < self.p:
+            labels["img"] = self.transform(image=im)["image"]  # transformed
         return labels
 
 

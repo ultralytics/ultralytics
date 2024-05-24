@@ -889,8 +889,8 @@ class Albumentations:
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
             ]
-            # NOTE: add bbox_params only when spatial augmentations involved
-            # bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"])
+            # NOTE: add 'bbox_params' argument if spatial augmentations used
+            # self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
             self.transform = A.Compose(T)
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))

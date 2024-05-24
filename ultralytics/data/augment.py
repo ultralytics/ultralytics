@@ -952,7 +952,7 @@ class Albumentations:
         if self.transform is None or random.random() > self.p:
             return labels
 
-        if self.spatial_transforms:
+        if self.contains_spatial:
             cls = labels["cls"]
             if len(cls):
                 im = labels["img"]

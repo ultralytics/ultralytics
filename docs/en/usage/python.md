@@ -87,23 +87,31 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
     === "Val after training"
 
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.yaml')
-          model.train(data='coco8.yaml', epochs=5)
-          model.val()  # It'll automatically evaluate the data you trained.
+        # Load a YOLOv8 model
+        model = YOLO("yolov8n.yaml")
+
+        # Train the model
+        model.train(data="coco8.yaml", epochs=5)
+
+        # Validate on training data
+        model.val()
         ```
 
-    === "Val independently"
+    === "Val on another dataset"
 
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO("model.pt")
-          # It'll use the data YAML file in model.pt if you don't set data.
-          model.val()
-          # or you can set the data you want to val
-          model.val(data='coco8.yaml')
+        # Load a YOLOv8 model
+        model = YOLO("yolov8n.yaml")
+
+        # Train the model
+        model.train(data="coco8.yaml", epochs=5)
+
+        # Validate on separate data
+        model.val(data="path/to/separate/data.yaml")
         ```
 
 [Val Examples](../modes/val.md){ .md-button }
@@ -188,20 +196,20 @@ Export mode is used for exporting a YOLOv8 model to a format that can be used fo
 
         Export an official YOLOv8n model to ONNX with dynamic batch-size and image-size.
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.pt')
-          model.export(format='onnx', dynamic=True)
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", dynamic=True)
         ```
 
     === "Export to TensorRT"
 
         Export an official YOLOv8n model to TensorRT on `device=0` for acceleration on CUDA devices.
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.pt')
-          model.export(format='onnx', device=0)
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", device=0)
         ```
 
 [Export Examples](../modes/export.md){ .md-button }

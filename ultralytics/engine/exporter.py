@@ -1012,7 +1012,7 @@ class Exporter:
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
 
-        if MACOS or IS_RASPBERRYPI:
+        if MACOS or IS_RASPBERRYPI:  # TODO: should this be 'if ARM64:'?
             from tflite_support import metadata  # noqa
             from tflite_support import metadata_schema_py_generated as schema  # noqa
         else:

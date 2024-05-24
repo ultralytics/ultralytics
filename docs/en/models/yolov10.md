@@ -6,6 +6,10 @@ keywords: YOLOv10, real-time object detector, state-of-the-art, Tsinghua Univers
 
 # YOLOv10: Real-Time End-to-End Object Detection
 
+!!! tip "Coming Soon"
+
+    YOLOv10 will be integrated into the Ultralytics library as quickly as possible. Make sure to follow us on all social media channels and follow our [GitHub repository](https://github.com/ultralytics/ultralytics) for updates 🚀
+
 YOLOv10 introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
 
 ![YOLOv10 comparison with SOTA object detectors](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/f68032d5-8311-4ef6-ac11-fefdd7db72c2)

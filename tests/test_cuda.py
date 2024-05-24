@@ -10,7 +10,7 @@ from ultralytics import YOLO
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 
-from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 
 
 def test_checks():

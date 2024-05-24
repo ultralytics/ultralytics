@@ -20,8 +20,8 @@ The architecture of YOLOv10 builds upon the strengths of previous YOLO models wh
 
 1. **Backbone**: Responsible for feature extraction, the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
 2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
-3. **One-to-Many Head**: Generates multiple predictions per object, used during training.
-4. **One-to-One Head**: Generates single best prediction per object, used for NMS-free inference.
+3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
+4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
 
 ## Key Features
 

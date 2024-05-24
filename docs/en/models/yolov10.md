@@ -124,10 +124,10 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 from ultralytics import YOLO
 
 # Load a pretrained YOLOv10 model
-model = YOLO('yolov10s.pt')
+model = YOLO("yolov10s.pt")
 
 # Perform object detection on an image
-results = model('image.jpg')
+results = model("image.jpg")
 
 # Display the results
 results.show()
@@ -139,10 +139,10 @@ For training on a custom dataset:
 from ultralytics import YOLO
 
 # Load YOLOv10 model
-model = YOLO('yolov10s.yaml')
+model = YOLO("yolov10s.yaml")
 
 # Train the model
-model.train(data='coco8.yaml', epochs=100, imgsz=640)
+model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
 ## Conclusion

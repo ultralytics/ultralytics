@@ -5,10 +5,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics.utils.torch_utils import fuse_conv_and_bn
+
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
-
-from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
 __all__ = (
     "DFL",
@@ -687,10 +687,9 @@ class CBFuse(nn.Module):
         out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
         return out
 
+
 class RepVGGDW(torch.nn.Module):
-    """
-    RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture.
-    """
+    """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
 
     def __init__(self, ed) -> None:
         super().__init__()
@@ -738,7 +737,7 @@ class RepVGGDW(torch.nn.Module):
         conv1_w = conv1.weight
         conv1_b = conv1.bias
 
-        conv1_w = torch.nn.functional.pad(conv1_w, [2,2,2,2])
+        conv1_w = torch.nn.functional.pad(conv1_w, [2, 2, 2, 2])
 
         final_conv_w = conv_w + conv1_w
         final_conv_b = conv_b + conv1_b
@@ -748,6 +747,7 @@ class RepVGGDW(torch.nn.Module):
 
         self.conv = conv
         del self.conv1
+
 
 class CIB(nn.Module):
     """
@@ -786,6 +786,7 @@ class CIB(nn.Module):
         """
         return x + self.cv1(x) if self.add else self.cv1(x)
 
+
 class C2fCIB(C2f):
     """
     C2fCIB class represents a convolutional block with C2f and CIB modules.
@@ -822,7 +823,6 @@ class Attention(nn.Module):
         qkv (Conv): Convolutional layer for computing the query, key, and value.
         proj (Conv): Convolutional layer for projecting the attended values.
         pe (Conv): Convolutional layer for positional encoding.
-
     """
 
     def __init__(self, dim, num_heads=8, attn_ratio=0.5):
@@ -830,7 +830,7 @@ class Attention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         self.key_dim = int(self.head_dim * attn_ratio)
-        self.scale = self.key_dim ** -0.5
+        self.scale = self.key_dim**-0.5
         nh_kd = nh_kd = self.key_dim * num_heads
         h = dim + nh_kd * 2
         self.qkv = Conv(dim, h, 1, act=False)
@@ -846,20 +846,18 @@ class Attention(nn.Module):
 
         Returns:
             torch.Tensor: The output tensor after self-attention.
-
         """
         B, _, H, W = x.shape
         N = H * W
         qkv = self.qkv(x)
         q, k, v = qkv.view(B, self.num_heads, -1, N).split([self.key_dim, self.key_dim, self.head_dim], dim=2)
 
-        attn = (
-            (q.transpose(-2, -1) @ k) * self.scale
-        )
+        attn = (q.transpose(-2, -1) @ k) * self.scale
         attn = attn.softmax(dim=-1)
         x = (v @ attn.transpose(-2, -1)).view(B, -1, H, W) + self.pe(v.reshape(B, -1, H, W))
         x = self.proj(x)
         return x
+
 
 class PSA(nn.Module):
     """
@@ -876,21 +874,17 @@ class PSA(nn.Module):
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
         attn (Attention): Attention module for spatial attention.
         ffn (nn.Sequential): Feed-forward network module.
-
     """
 
     def __init__(self, c1, c2, e=0.5):
         super().__init__()
-        assert(c1 == c2)
+        assert c1 == c2
         self.c = int(c1 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
         self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
-        self.ffn = nn.Sequential(
-            Conv(self.c, self.c*2, 1),
-            Conv(self.c*2, self.c, 1, act=False)
-        )
+        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
 
     def forward(self, x):
         """
@@ -901,12 +895,12 @@ class PSA(nn.Module):
 
         Returns:
             torch.Tensor: Output tensor.
-
         """
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = b + self.attn(b)
         b = b + self.ffn(b)
         return self.cv2(torch.cat((a, b), 1))
+
 
 class SCDown(nn.Module):
     def __init__(self, c1, c2, k, s):
@@ -934,4 +928,3 @@ class SCDown(nn.Module):
             torch.Tensor: Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))
-    

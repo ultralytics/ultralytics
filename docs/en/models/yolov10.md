@@ -80,4 +80,4 @@ We would like to acknowledge the YOLOv10 authors for their extensive research to
         }
         ```
 
-For detailed implementation and experimental results, please refer to the YOLOv10 [research paper](https://github.com/THU-MIG/yolov10).
+For detailed implementation and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458).

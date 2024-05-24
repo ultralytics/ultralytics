@@ -75,6 +75,7 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_JETSON,
+    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -1011,10 +1012,11 @@ class Exporter:
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
 
-        if MACOS:  # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
+        if MACOS or IS_RASPBERRYPI:  # TODO: should this be 'if ARM64:'?
             from tflite_support import metadata  # noqa
             from tflite_support import metadata_schema_py_generated as schema  # noqa
         else:
+            # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
             from tensorflow_lite_support.metadata import metadata_schema_py_generated as schema  # noqa
             from tensorflow_lite_support.metadata.python import metadata  # noqa
 

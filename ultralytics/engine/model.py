@@ -17,7 +17,6 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     LOGGER,
     RANK,
-    SETTINGS,
     callbacks,
     checks,
     emojis,

@@ -889,7 +889,7 @@ class Albumentations:
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
             ]
-            # add bbox_params only when spatial augmentations involved
+            # NOTE: add bbox_params only when spatial augmentations involved
             # bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"])
             self.transform = A.Compose(T)
 
@@ -901,9 +901,9 @@ class Albumentations:
 
     def __call__(self, labels):
         """Generates object detections and returns a dictionary with detection results."""
-        im = labels["img"]
-        if self.transform and random.random() < self.p:
-            labels["img"] = self.transform(image=im)["image"]  # transformed
+        if self.transform is None or random.random() > self.p:
+            return labels
+        labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
         return labels
 
 

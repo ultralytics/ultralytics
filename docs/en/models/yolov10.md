@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the YOLOv10, a real-time object detector. Understand its superior speed, impressive accuracy, and unique approach to end-to-end object detection optimization.
-keywords: YOLOv10, real-time object detector, state-of-the-art, Tsinghua University, COCO dataset, NMS-free training, holistic model design, efficient architecture
+description: Discover YOLOv10, a cutting-edge real-time object detector known for its exceptional speed and accuracy. Learn about NMS-free training, holistic model design, and performance across various scales.
+keywords: YOLOv10, real-time object detection, Tsinghua University, COCO dataset, NMS-free training, efficient architecture, object detection optimization, state-of-the-art AI
 ---
 
 # YOLOv10: Real-Time End-to-End Object Detection

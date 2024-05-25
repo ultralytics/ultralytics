@@ -67,7 +67,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     if not exists:
         # Add new markdown file to the git staging area
         print(f"Created new file '{md_filepath}'")
-        subprocess.run(["git", "add", str(md_filepath)], check=True)
+        subprocess.run(["git", "add", "-f", str(md_filepath)], check=True)
 
     return md_filepath.relative_to(PACKAGE_DIR.parent)
 

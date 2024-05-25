@@ -42,17 +42,16 @@ class Detect(nn.Module):
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
-    def forward(self, x, o2o: bool = False, cv2=None, cv3=None):
+    def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if o2o:
-            for i in range(self.nl):
-                x[i] = torch.cat((cv2[i](x[i]), cv3[i](x[i])), 1)  # convert to list?
-        else:
-            for i in range(self.nl):
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
+        return self._inference(x)
 
+    def _inference(self, x):
+        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
         # Inference path
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
@@ -512,20 +511,21 @@ class v10Detect(Detect):
 
     """
 
-    max_det = -1
+    max_det = 300
 
     def __init__(self, nc=80, ch=()):
         import copy
 
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
+        # Light cls head
         self.cv3 = nn.ModuleList(
             nn.Sequential(
                 nn.Sequential(Conv(x, x, 3, g=x), Conv(x, c3, 1)),
                 nn.Sequential(Conv(c3, c3, 3, g=c3), Conv(c3, c3, 1)),
                 nn.Conv2d(c3, self.nc, 1),
             )
-            for i, x in enumerate(ch)
+            for x in ch
         )
 
         self.one2one_cv2 = copy.deepcopy(self.cv2)
@@ -542,33 +542,56 @@ class v10Detect(Detect):
             dict or tensor: If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
                            If in training mode, returns a dictionary containing the outputs of one2many and one2one detections separately.
         """
-        one2one = super().forward(
-            [xi.detach() for xi in x], True, self.one2one_cv2, self.one2one_cv3
-        )  # NOTE attempt to bypass extra forward_feat method
-        if not self.export:
-            one2many = super().forward(x)
+        x_detach = [xi.detach() for xi in x]
+        one2one = [
+            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
+        ]
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:  # Training path
+            return {"one2many": x, "one2one": one2one}
 
-        if not self.training:
-            one2one = self.inference(one2one)
-            if not self.export:
-                return {"one2many": one2many, "one2one": one2one}
-            else:
-                assert self.max_det != -1
-                boxes, scores, labels = ops.v10postprocess(one2one.permute(0, 2, 1), self.max_det)
-                return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)
-        else:
-            return {"one2many": one2many, "one2one": one2one}
+        one2one = self._inference(one2one)
+        y = self.postprocess((one2one if self.export else one2one[0]).permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else {"one2many": x, "one2one": one2one}
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         super().bias_init()
         m = self  # self.model[-1]  # Detect() module
-        # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
-        # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
         for a, b, s in zip(m.one2one_cv2, m.one2one_cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode bounding boxes for YOLOv10."""
-        return dist2bbox(bboxes, anchors, xywh=not self.export, dim=1)
+        return dist2bbox(bboxes, anchors, xywh=False, dim=1)
+
+    @staticmethod
+    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
+        """
+        Post-processes the predictions obtained from a YOLOv10 model.
+
+        Args:
+            preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
+            max_det (int): The maximum number of detections to keep.
+            nc (int, optional): The number of classes. Defaults to 80.
+
+        Returns:
+            torch.Tensor: The post-processed predictions with shape (batch_size, max_det, 6),
+                including bounding boxes, scores and cls.
+        """
+        assert 4 + nc == preds.shape[-1]
+        boxes, scores = preds.split([4, nc], dim=-1)
+        max_scores = scores.amax(dim=-1)
+        max_scores, index = torch.topk(max_scores, max_det, axis=-1)
+        index = index.unsqueeze(-1)
+        boxes = torch.gather(boxes, dim=1, index=index.repeat(1, 1, boxes.shape[-1]))
+        scores = torch.gather(scores, dim=1, index=index.repeat(1, 1, scores.shape[-1]))
+
+        scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
+        labels = index % nc
+        index = index // nc
+        boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
+
+        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)

@@ -119,9 +119,9 @@ We cherish the community's input as it drives Ultralytics open-source initiative
 
 ## 📜 License
 
-Ultralytics presents two licensing options:
+Ultralytics Docs presents two licensing options:
 
-- **AGPL-3.0 License**: Perfect for academia and open collaboration. Details are in the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file.
+- **AGPL-3.0 License**: Perfect for academia and open collaboration. Details are in the [LICENSE](https://github.com/ultralytics/docs/blob/main/LICENSE) file.
 - **Enterprise License**: Tailored for commercial usage, offering a seamless blend of Ultralytics technology in your products. Learn more at [Ultralytics Licensing](https://ultralytics.com/license).
 
 ## ✉️ Contact

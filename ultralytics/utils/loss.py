@@ -730,4 +730,4 @@ class v10DetectLoss:
         loss_one2many = self.one2many(one2many, batch)
         one2one = preds["one2one"]
         loss_one2one = self.one2one(one2one, batch)
-        return loss_one2many[0] + loss_one2one[0], torch.cat((loss_one2many[1], loss_one2one[1]))
+        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]

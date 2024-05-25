@@ -39,6 +39,7 @@ on:
 
 jobs:
   Docs:
+    if: github.repository == 'ultralytics/ultralytics'
     runs-on: macos-14
     steps:
       - name: Checkout Repository

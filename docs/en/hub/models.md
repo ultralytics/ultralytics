@@ -130,6 +130,16 @@ When the training starts, you can click **Done** and monitor the training progre
 
 #### c. Bring your own agent
 
+<p align="center">
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/S_J-Dyw15i0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Bring your Own Agent model training using Ultralytics HUB
+</p>
+
 To start training your model using your own agent, follow the instructions shown in the [Ultralytics HUB](https://bit.ly/ultralytics_hub) **Train Model** dialog.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with arrows pointing to instructions](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_12.jpg)

@@ -7,6 +7,7 @@ Note: Must be run from repository root directory. Do not run from docs directory
 """
 
 import re
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -33,17 +34,16 @@ def extract_classes_and_functions(filepath: Path) -> tuple:
 def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
     """Creates a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix(".md")
+    exists = md_filepath.exists()
 
     # Read existing content and keep header content between first two ---
     header_content = ""
-    if md_filepath.exists():
+    if exists:
         existing_content = md_filepath.read_text()
         header_parts = existing_content.split("---")
         for part in header_parts:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
-    else:
-        print(f"Creating new file '{md_filepath}'")
 
     module_name = module_path.replace(".__init__", "")
     module_path = module_path.replace(".", "/")
@@ -63,6 +63,11 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
     md_filepath.write_text(md_content)
+
+    if not exists:
+        # Add new markdown file to the git staging area
+        print(f"Created new file '{md_filepath}'")
+        subprocess.run(["git", "add", str(md_filepath)], check=True)
 
     return md_filepath.relative_to(PACKAGE_DIR.parent)
 

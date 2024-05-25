@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import json
 from tkinter import filedialog, messagebox
 

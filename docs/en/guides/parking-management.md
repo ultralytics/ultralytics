@@ -38,13 +38,14 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-```python
-from ultralytics.solutions.parking_management import ParkingPtsSelection, tk
+!!! Example "Parking slots Annotator Ultralytics YOLOv8"
 
-root = tk.Tk()
-ParkingPtsSelection(root)
-root.mainloop()
-```
+    === "Parking Annotator"
+
+        ```python
+        from ultralytics import solutions
+        solutions.ParkingPtsSelection()
+        ```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 

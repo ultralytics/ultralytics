@@ -39,6 +39,12 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "Silence",
+    "RepVGGDW",
+    "CIB",
+    "C2fCIB",
+    "Attention",
+    "PSA",
+    "SCDown",
 )
 
 

@@ -6,7 +6,22 @@ from ultralytics.utils import ops
 
 
 class YOLOv10DetectionPredictor(DetectionPredictor):
+    """
+    A class extending the DetectionPredictor class for prediction based on YOLOv10 models.
+
+    Example:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolov10.detect import YOLOv10DetectionPredictor
+
+        args = dict(model='yolov10n.pt', source=ASSETS)
+        predictor = YOLOv10DetectionPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+    """
+
     def postprocess(self, preds, img, orig_imgs):
+        """Post-processes predictions and returns a list of Results objects."""
         if isinstance(preds, (list, tuple)):
             preds = preds[0]
 

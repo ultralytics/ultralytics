@@ -44,13 +44,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         from ultralytics import solutions
-        import tkinter as tk
-        from ultralytics.utils.checks import check_requirements
-        
-        check_requirements("tkinter")
-        root = tk.Tk()
-        solutions.ParkingPtsSelection(root, tk)
-        root.mainloop()
+        solutions.ParkingPtsSelection()
         ```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.

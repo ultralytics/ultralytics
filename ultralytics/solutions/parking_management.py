@@ -5,31 +5,33 @@ import cv2
 import numpy as np
 from PIL import Image, ImageTk
 
-from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
 
 class ParkingPtsSelection:
-    def __init__(self, master, tk):
+    def __init__(self):
         """
         Initializes the UI for selecting parking zone points in a tkinter window.
 
         Args:
             master (tk.Tk): The main tkinter window object.
         """
+        import tkinter as tk
+        check_requirements("tkinter")
 
         self.tk = tk
-        self.master = master
-        master.title("Ultralytics Parking Zones Points Selector")
+        self.master = tk.Tk()
+        self.master.title("Ultralytics Parking Zones Points Selector")
 
         # Disable window resizing
-        master.resizable(False, False)
+        self.master.resizable(False, False)
 
         # Setup canvas for image display
-        self.canvas = self.tk.Canvas(master, bg="white")
+        self.canvas = self.tk.Canvas(self.master, bg="white")
 
         # Setup buttons
-        button_frame = self.tk.Frame(master)
+        button_frame = self.tk.Frame(self.master)
         button_frame.pack(side=self.tk.TOP)
 
         self.tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
@@ -50,6 +52,8 @@ class ParkingPtsSelection:
         # Constants
         self.canvas_max_width = 1280
         self.canvas_max_height = 720
+
+        self.master.mainloop()
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""

@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Speed Estimation, Object Tracki
 
 ## What is Speed Estimation?
 
-Speed estimation is the process of calculating the rate of movement of an object within a given context, often employed in computer vision applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
+[Speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) is the process of calculating the rate of movement of an object within a given context, often employed in computer vision applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
 
 <p align="center">
   <br>
@@ -21,11 +21,17 @@ Speed estimation is the process of calculating the rate of movement of an object
   <strong>Watch:</strong> Speed Estimation using Ultralytics YOLOv8
 </p>
 
+!!! tip "Check Out Our Blog"
+
+    For deeper insights into speed estimation, check out our blog post: [Ultralytics YOLOv8 for Speed Estimation in Computer Vision Projects](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects)
+
 ## Advantages of Speed Estimation?
 
 - **Efficient Traffic Control:** Accurate speed estimation aids in managing traffic flow, enhancing safety, and reducing congestion on roadways.
 - **Precise Autonomous Navigation:** In autonomous systems like self-driving cars, reliable speed estimation ensures safe and accurate vehicle navigation.
 - **Enhanced Surveillance Security:** Speed estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
+
+
 
 ## Real World Applications
 

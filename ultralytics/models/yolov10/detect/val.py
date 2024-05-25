@@ -16,6 +16,7 @@ class YOLOv10DetectionValidator(DetectionValidator):
         validator()
         ```
     """
+
     def postprocess(self, preds):
         """Apply postprocess for yolov10 models."""
         if isinstance(preds, (list, tuple)):

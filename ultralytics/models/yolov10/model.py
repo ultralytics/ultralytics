@@ -2,9 +2,10 @@
 
 from ultralytics.engine.model import Model
 from ultralytics.nn.tasks import YOLOv10DetectionModel
+
 from .detect.predict import YOLOv10DetectionPredictor
-from .detect.val import YOLOv10DetectionValidator
 from .detect.train import YOLOv10DetectionTrainer
+from .detect.val import YOLOv10DetectionValidator
 
 
 class YOLOv10(Model):

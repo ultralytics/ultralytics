@@ -22,6 +22,7 @@ class YOLOv10DetectionTrainer(DetectionTrainer):
         trainer.train()
         ```
     """
+
     def get_validator(self):
         """Returns a DetectionValidator for YOLOv10 model validation."""
         self.loss_names = (

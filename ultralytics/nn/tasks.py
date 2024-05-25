@@ -14,6 +14,7 @@ from ultralytics.nn.modules import (
     C3,
     C3TR,
     OBB,
+    PSA,
     SPP,
     SPPELAN,
     SPPF,
@@ -22,6 +23,7 @@ from ultralytics.nn.modules import (
     BottleneckCSP,
     C2f,
     C2fAttn,
+    C2fCIB,
     C3Ghost,
     C3x,
     CBFuse,
@@ -44,16 +46,14 @@ from ultralytics.nn.modules import (
     RepC3,
     RepConv,
     RepNCSPELAN4,
+    RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
+    SCDown,
     Segment,
     Silence,
     WorldDetect,
-    C2fCIB,
-    PSA,
-    SCDown,
-    RepVGGDW,
-    v10Detect
+    v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml

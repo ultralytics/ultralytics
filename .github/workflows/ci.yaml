@@ -45,6 +45,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
       - name: Set up Python

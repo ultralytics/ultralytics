@@ -718,6 +718,7 @@ class v8OBBLoss(v8DetectionLoss):
 
 class v10DetectLoss:
     """Criterion class for computing training losses."""
+
     def __init__(self, model):
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)

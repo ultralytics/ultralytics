@@ -1,10 +1,9 @@
-from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.engine.results import Results
+from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import ops
 
 
 class YOLOv10DetectionPredictor(DetectionPredictor):
-
     def postprocess(self, preds, img, orig_imgs):
         if isinstance(preds, (list, tuple)):
             preds = preds[0]

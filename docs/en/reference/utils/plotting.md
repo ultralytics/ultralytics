@@ -23,6 +23,10 @@ keywords: Ultralytics, plotting, utils, color annotation, label plotting, image 
 
 <br><br>
 
+## ::: ultralytics.utils.plotting.plot_attributes
+
+<br><br>
+
 ## ::: ultralytics.utils.plotting.save_one_box
 
 <br><br>

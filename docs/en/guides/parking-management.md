@@ -38,16 +38,20 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-```python
-from ultralytics import solutions
-import tkinter as tk
-from ultralytics.utils.checks import check_requirements
+!!! Example "Parking slots Annotator Ultralytics YOLOv8"
 
-check_requirements("tkinter")
-root = tk.Tk()
-solutions.ParkingPtsSelection(root, tk)
-root.mainloop()
-```
+    === "Parking Annotator"
+
+        ```python
+        from ultralytics import solutions
+        import tkinter as tk
+        from ultralytics.utils.checks import check_requirements
+        
+        check_requirements("tkinter")
+        root = tk.Tk()
+        solutions.ParkingPtsSelection(root, tk)
+        root.mainloop()
+        ```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 

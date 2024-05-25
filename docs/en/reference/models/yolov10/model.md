@@ -1,3 +1,8 @@
+---
+description: TODO ADD DESCRIPTION
+keywords: TODO ADD KEYWORDS
+---
+
 # Reference for `ultralytics/models/yolov10/model.py`
 
 !!! Note

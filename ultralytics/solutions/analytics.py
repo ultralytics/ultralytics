@@ -33,7 +33,7 @@ class Analytics:
 
         Args:
             type (str): Type of chart to initialize ('line', 'bar', or 'pie').
-            writer: Video writer object to save the frames.
+            writer (object): Video writer object to save the frames.
             im0_shape (tuple): Shape of the input image (width, height).
             title (str): Title of the chart.
             x_label (str): Label for the x-axis.
@@ -64,7 +64,7 @@ class Analytics:
             self.ax = fig.add_subplot(111, facecolor=self.bg_color)
             (self.line,) = self.ax.plot([], [], color=line_color, linewidth=line_width)
 
-        elif type == "bar" or type == "pie":
+        elif type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.ax.set_facecolor(self.bg_color)

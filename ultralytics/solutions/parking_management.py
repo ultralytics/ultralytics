@@ -13,12 +13,7 @@ from ultralytics.utils.plotting import Annotator
 
 class ParkingPtsSelection:
     def __init__(self):
-        """
-        Initializes the UI for selecting parking zone points in a tkinter window.
-
-        Args:
-            master (tk.Tk): The main tkinter window object.
-        """
+        """Initializes the UI for selecting parking zone points in a tkinter window."""
         check_requirements("tkinter")
 
         import tkinter as tk
@@ -218,6 +213,7 @@ class ParkingManagement:
             im0 (ndarray): inference image
             boxes (list): bounding boxes data
             clss (list): bounding boxes classes list
+
         Returns:
             filled_slots (int): total slots that are filled in parking lot
             empty_slots (int): total slots that are available in parking lot

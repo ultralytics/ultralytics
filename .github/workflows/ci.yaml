@@ -63,6 +63,7 @@ jobs:
             git push
           else
             echo "No changes to commit"
+          fi
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
 

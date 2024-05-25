@@ -44,6 +44,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         from ultralytics import solutions
+
         solutions.ParkingPtsSelection()
         ```
 

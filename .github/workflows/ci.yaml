@@ -50,6 +50,19 @@ jobs:
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
         run: pip install tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin
+      - name: Update Docs Reference Section
+        run: python docs/build_reference.py
+      - name: Commit and Push Changes
+        run: |
+          git add .
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git config --global user.name "UltralyticsAssistant"
+            git config --global user.email "web@ultralytics.com"
+            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
 

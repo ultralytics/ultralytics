@@ -269,40 +269,85 @@ rpicam-hello
 
     Learn more about [`rpicam-hello` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello) 
 
-### Initiate TCP Stream with `rpicam-vid`
+### Inference with Camera
 
-We need to iniate a TCP stream from the connected camera so that we can use this stream URL as an input when we are inferencing later. Execute the following command to start the TCP stream.
+There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
 
-```bash
-rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
-```
+!!! Usage
 
-!!! Tip
+    === "Method 1"
 
-    Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid) 
+        We can use `picamera2`which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLOv8 models.
 
-### Perform YOLOv8 Inference
+        !!! Example
 
-With the TCP stream initiated, you can perform YOLOv8 inference.
+            === "Python"
 
-!!! Example
+                ```python
+                import cv2
+                from picamera2 import Picamera2
+                from ultralytics import YOLO
 
-    === "Python"
+                # Initialize the Picamera2
+                picam2 = Picamera2()
+                picam2.preview_configuration.main.size = (1280, 720)
+                picam2.preview_configuration.main.format = "RGB888"
+                picam2.preview_configuration.align()
+                picam2.configure("preview")
+                picam2.start()
 
-        ```python
-        from ultralytics import YOLO
+                # Load the YOLOv8 model
+                model = YOLO("yolov8n.pt")
 
-        # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+                while True:
+                    # Capture frame-by-frame
+                    frame = picam2.capture_array()
 
-        # Run inference
-        results = model("tcp://127.0.0.1:8888")
-        ```
-    === "CLI"
+                    # Run YOLOv8 inference on the frame
+                    results = model(frame)
+
+                    # Visualize the results on the frame
+                    annotated_frame = results[0].plot()
+
+                    # Display the resulting frame
+                    cv2.imshow("Camera", annotated_frame)
+
+                    # Break the loop if 'q' is pressed
+                    if cv2.waitKey(1) == ord("q"):
+                        break
+
+                # Release resources and close windows
+                cv2.destroyAllWindows()
+                ```
+
+    === "Method 2"
+
+        We need to initiate a TCP stream with `rpicam-vid` from the connected camera so that we can use this stream URL as an input when we are inferencing later. Execute the following command to start the TCP stream.
 
         ```bash
-        yolo predict model=yolov8n.pt source='tcp://127.0.0.1:8888'
+        rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
         ```
+
+        Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid) 
+
+        !!! Example
+
+            === "Python"
+
+                ```python
+                from ultralytics import YOLO
+
+                # Load a YOLOv8n PyTorch model
+                model = YOLO("yolov8n.pt")
+
+                # Run inference
+                results = model("tcp://127.0.0.1:8888")
+                ```
+            === "CLI"
+
+                ```bash
+                yolo predict model=yolov8n.pt source="tcp://127.0.0.1:8888"
+                ```
 
 !!! Tip
 
@@ -314,11 +359,11 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 1. Use an SSD
 
-    When using Raspberry Pi for 24x7 continued usage, it is recommend to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
+    When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
 
 2. Flash without GUI
 
-    When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a little bit of RAM on the device, leaving more space for computer vision processing.
+    When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
 
 ## Next Steps
 

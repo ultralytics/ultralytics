@@ -19,7 +19,7 @@ jobs:
   publish:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

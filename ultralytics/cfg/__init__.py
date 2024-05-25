@@ -550,6 +550,10 @@ def entrypoint(debug=""):
         from ultralytics import SAM
 
         model = SAM(model)
+    elif "yolov10" in stem:
+        from ultralytics import YOLOv10
+
+        model = YOLOv10(model)
     else:
         from ultralytics import YOLO
 

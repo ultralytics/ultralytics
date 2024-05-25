@@ -6,6 +6,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
+from ..yolov10 import YOLOv10
 
 
 class YOLO(Model):
@@ -16,6 +17,10 @@ class YOLO(Model):
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
+        elif "v10" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+            new_instance = YOLOv10(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:

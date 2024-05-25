@@ -48,7 +48,8 @@ class Detect(nn.Module):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
-        return self._inference(x)
+        y = self._inference(x)
+        return y if self.export else (y, x)
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
@@ -77,7 +78,7 @@ class Detect(nn.Module):
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         y = torch.cat((dbox, cls.sigmoid()), 1)
-        return y if self.export else (y, x)
+        return y
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
@@ -552,8 +553,8 @@ class v10Detect(Detect):
             return {"one2many": x, "one2one": one2one}
 
         one2one = self._inference(one2one)
-        y = self.postprocess((one2one if self.export else one2one[0]).permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else {"one2many": x, "one2one": one2one}
+        y = self.postprocess(one2one.permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else y, {"one2many": x, "one2one": one2one}
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

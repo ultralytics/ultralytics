@@ -43,8 +43,8 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
         for part in header_parts:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
-        if not any(header_content):
-            header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+    if not any(header_content):
+        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
 
     module_name = module_path.replace(".__init__", "")
     module_path = module_path.replace(".", "/")

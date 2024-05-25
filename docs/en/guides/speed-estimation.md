@@ -31,8 +31,6 @@ keywords: Ultralytics, YOLOv8, Object Detection, Speed Estimation, Object Tracki
 - **Precise Autonomous Navigation:** In autonomous systems like self-driving cars, reliable speed estimation ensures safe and accurate vehicle navigation.
 - **Enhanced Surveillance Security:** Speed estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
 
-
-
 ## Real World Applications
 
 |                                                                     Transportation                                                                      |                                                                      Transportation                                                                       |

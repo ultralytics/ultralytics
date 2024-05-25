@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import json
 from tkinter import filedialog, messagebox
 
@@ -10,32 +12,31 @@ from ultralytics.utils.plotting import Annotator
 
 
 class ParkingPtsSelection:
-    def __init__(self, master):
-        """
-        Initializes the UI for selecting parking zone points in a tkinter window.
-
-        Args:
-            master (tk.Tk): The main tkinter window object.
-        """
+    def __init__(self):
+        """Initializes the UI for selecting parking zone points in a tkinter window."""
         check_requirements("tkinter")
+
         import tkinter as tk
 
-        self.master = master
-        master.title("Ultralytics Parking Zones Points Selector")
+        self.tk = tk
+        self.master = tk.Tk()
+        self.master.title("Ultralytics Parking Zones Points Selector")
 
         # Disable window resizing
-        master.resizable(False, False)
+        self.master.resizable(False, False)
 
         # Setup canvas for image display
-        self.canvas = tk.Canvas(master, bg="white")
+        self.canvas = self.tk.Canvas(self.master, bg="white")
 
         # Setup buttons
-        button_frame = tk.Frame(master)
-        button_frame.pack(side=tk.TOP)
+        button_frame = self.tk.Frame(self.master)
+        button_frame.pack(side=self.tk.TOP)
 
-        tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
-        tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(row=0, column=1)
-        tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
+        self.tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
+        self.tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(
+            row=0, column=1
+        )
+        self.tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
 
         # Initialize properties
         self.image_path = None
@@ -49,6 +50,8 @@ class ParkingPtsSelection:
         # Constants
         self.canvas_max_width = 1280
         self.canvas_max_height = 720
+
+        self.master.mainloop()
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
@@ -74,12 +77,12 @@ class ParkingPtsSelection:
         if self.canvas:
             self.canvas.destroy()  # Destroy previous canvas
 
-        self.canvas = tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
+        self.canvas = self.tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
         resized_image = self.image.resize((canvas_width, canvas_height), Image.LANCZOS)
         self.canvas_image = ImageTk.PhotoImage(resized_image)
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.canvas_image)
+        self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
 
-        self.canvas.pack(side=tk.BOTTOM)
+        self.canvas.pack(side=self.tk.BOTTOM)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
         # Reset bounding boxes and current box
@@ -115,7 +118,7 @@ class ParkingPtsSelection:
         if self.bounding_boxes:
             self.bounding_boxes.pop()  # Remove the last bounding box
             self.canvas.delete("all")  # Clear the canvas
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.canvas_image)  # Redraw the image
+            self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)  # Redraw the image
 
             # Redraw all bounding boxes
             for box in self.bounding_boxes:
@@ -210,6 +213,7 @@ class ParkingManagement:
             im0 (ndarray): inference image
             boxes (list): bounding boxes data
             clss (list): bounding boxes classes list
+
         Returns:
             filled_slots (int): total slots that are filled in parking lot
             empty_slots (int): total slots that are available in parking lot

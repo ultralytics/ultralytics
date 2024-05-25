@@ -39,10 +39,13 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
     Max Image Size of 1920 * 1080 supported
 
 ```python
-from ultralytics.solutions.parking_management import ParkingPtsSelection, tk
+from ultralytics import solutions
+import tkinter as tk
+from ultralytics.utils.checks import check_requirements
 
+check_requirements("tkinter")
 root = tk.Tk()
-ParkingPtsSelection(root)
+solutions.ParkingPtsSelection(root, tk)
 root.mainloop()
 ```
 

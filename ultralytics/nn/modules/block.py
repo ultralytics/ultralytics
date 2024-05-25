@@ -788,7 +788,7 @@ class CIB(nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            torch.Tensor: Output tensor.
+            (torch.Tensor): Output tensor.
         """
         return x + self.cv1(x) if self.add else self.cv1(x)
 
@@ -851,7 +851,7 @@ class Attention(nn.Module):
             x (torch.Tensor): The input tensor.
 
         Returns:
-            torch.Tensor: The output tensor after self-attention.
+            (torch.Tensor): The output tensor after self-attention.
         """
         B, _, H, W = x.shape
         N = H * W
@@ -900,7 +900,7 @@ class PSA(nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            torch.Tensor: Output tensor.
+            (torch.Tensor): Output tensor.
         """
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = b + self.attn(b)
@@ -931,6 +931,6 @@ class SCDown(nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            torch.Tensor: Output tensor after applying the SCDown module.
+            (torch.Tensor): Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))

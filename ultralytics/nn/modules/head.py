@@ -540,7 +540,7 @@ class v10Detect(Detect):
             x (tensor): Input tensor.
 
         Returns:
-            dict or tensor: If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
+            (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
                            If in training mode, returns a dictionary containing the outputs of one2many and one2one detections separately.
         """
         x_detach = [xi.detach() for xi in x]
@@ -579,7 +579,7 @@ class v10Detect(Detect):
             nc (int, optional): The number of classes. Defaults to 80.
 
         Returns:
-            torch.Tensor: The post-processed predictions with shape (batch_size, max_det, 6),
+            (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
                 including bounding boxes, scores and cls.
         """
         assert 4 + nc == preds.shape[-1]

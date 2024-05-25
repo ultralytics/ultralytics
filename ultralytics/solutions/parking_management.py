@@ -33,7 +33,9 @@ class ParkingPtsSelection:
         button_frame.pack(side=self.tk.TOP)
 
         self.tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
-        self.tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(row=0, column=1)
+        self.tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(
+            row=0, column=1
+        )
         self.tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
 
         # Initialize properties

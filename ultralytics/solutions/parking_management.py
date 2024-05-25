@@ -17,9 +17,9 @@ class ParkingPtsSelection:
         Args:
             master (tk.Tk): The main tkinter window object.
         """
-        import tkinter as tk
-
         check_requirements("tkinter")
+
+        import tkinter as tk
 
         self.tk = tk
         self.master = tk.Tk()

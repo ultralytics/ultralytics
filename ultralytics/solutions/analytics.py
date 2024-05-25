@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from itertools import cycle
 
 import cv2

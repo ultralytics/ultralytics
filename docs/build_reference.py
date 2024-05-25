@@ -11,10 +11,9 @@ import subprocess
 from collections import defaultdict
 from pathlib import Path
 
-# Get package root i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
-from ultralytics.utils import ROOT as PACKAGE_DIR
-
 # Constants
+FILE = Path(__file__).resolve()
+PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 

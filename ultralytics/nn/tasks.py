@@ -4,8 +4,11 @@ import contextlib
 from copy import deepcopy
 from pathlib import Path
 
+from functools import partial
+
 import torch
 import torch.nn as nn
+from ultralytics.nn.modules.block import MBConvConfig
 
 from ultralytics.nn.modules import (
     AIFI,
@@ -49,6 +52,7 @@ from ultralytics.nn.modules import (
     Segment,
     Silence,
     WorldDetect,
+    MBConv,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -294,7 +298,7 @@ class DetectionModel(BaseModel):
             s = 256  # 2x min stride
             m.inplace = self.inplace
             forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
-            m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
+            m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(8, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
         else:
@@ -884,7 +888,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
-            RepC3,
+            RepC3,          
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -899,6 +903,26 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3}:
                 args.insert(2, n)  # number of repeats
                 n = 1
+        elif m is MBConv:
+            stochastic_depth_prob = 0.2
+            expand_ratio = args[1]
+            kernel = args[2]
+            stride = args[3]
+            input_channels = ch[f]
+            out_channels = args[0]
+            num_layers = args[4]
+            stage_block_id = args[5]
+            total_stage_block = args[6]
+            bneck_conf = partial(MBConvConfig, width_mult=1, depth_mult=1)
+            
+            inverted_residual_setting = bneck_conf(expand_ratio,kernel,stride,input_channels,out_channels,num_layers)
+            
+            sd_prob = stochastic_depth_prob * float(stage_block_id)/total_stage_block
+            norm_layer = nn.BatchNorm2d            
+            c2 = out_channels
+
+            args = [inverted_residual_setting,sd_prob,norm_layer]
+            
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:

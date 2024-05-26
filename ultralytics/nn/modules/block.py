@@ -4,6 +4,15 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import math
+
+from dataclasses import dataclass
+
+from torchvision.models._utils import _make_divisible
+from torchvision.ops.misc import Conv2dNormActivation, SqueezeExcitation
+from functools import partial
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from torchvision.ops import StochasticDepth
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
@@ -37,6 +46,7 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "Silence",
+    "MBConv",
 )
 
 
@@ -684,3 +694,113 @@ class CBFuse(nn.Module):
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
         out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
         return out
+
+@dataclass
+class _MBConvConfig:
+    expand_ratio: float
+    kernel: int 
+    stride: int
+    input_channels: int 
+    out_channels: int
+    num_layers: int
+    block: Callable[..., nn.Module]
+
+    @staticmethod
+    def adjust_channels(channels: int, width_mult: float, min_value: Optional[int] = None) -> int:
+        return _make_divisible(channels * width_mult, 8, min_value)
+
+
+class MBConvConfig(_MBConvConfig):
+    # Stores information listed at Table 1 of the EfficientNet paper & Table 4 of the EfficientNetV2 paper
+    def __init__(
+        self,
+        expand_ratio: float,
+        kernel: int,
+        stride: int,
+        input_channels: int,
+        out_channels: int,
+        num_layers: int,
+        width_mult: float = 1.0,
+        depth_mult: float = 1.0,
+        block: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        
+        input_channels = self.adjust_channels(input_channels, width_mult)
+        out_channels = self.adjust_channels(out_channels, width_mult)
+        num_layers = self.adjust_depth(num_layers, depth_mult)
+        if block is None:
+            block = MBConv
+        super().__init__(expand_ratio, kernel, stride, input_channels, out_channels, num_layers, block)
+
+    @staticmethod
+    def adjust_depth(num_layers: int, depth_mult: float):
+        return int(math.ceil(num_layers * depth_mult))
+
+
+
+
+class MBConv(nn.Module):
+    def __init__(
+        self,
+        cnf: MBConvConfig,
+        stochastic_depth_prob: float,
+        norm_layer: Callable[..., nn.Module],
+        se_layer: Callable[..., nn.Module] = SqueezeExcitation,
+    ) -> None:
+        super().__init__()
+
+        if not (1 <= cnf.stride <= 2):
+            raise ValueError("illegal stride value")
+
+        self.use_res_connect = cnf.stride == 1 and cnf.input_channels == cnf.out_channels
+
+        layers: List[nn.Module] = []
+        activation_layer = nn.SiLU
+
+        # expand
+        expanded_channels = cnf.adjust_channels(cnf.input_channels, cnf.expand_ratio)
+        if expanded_channels != cnf.input_channels:
+            layers.append(
+                Conv2dNormActivation(
+                    cnf.input_channels,
+                    expanded_channels,
+                    kernel_size=1,
+                    norm_layer=norm_layer,
+                    activation_layer=activation_layer,
+                )
+            )
+
+        # depthwise
+        layers.append(
+            Conv2dNormActivation(
+                expanded_channels,
+                expanded_channels,
+                kernel_size=cnf.kernel,
+                stride=cnf.stride,
+                groups=expanded_channels,
+                norm_layer=norm_layer,
+                activation_layer=activation_layer,
+            )
+        )
+
+        # squeeze and excitation
+        squeeze_channels = max(1, cnf.input_channels // 4)
+        layers.append(se_layer(expanded_channels, squeeze_channels, activation=partial(nn.SiLU, inplace=True)))
+
+        # project
+        layers.append(
+            Conv2dNormActivation(
+                expanded_channels, cnf.out_channels, kernel_size=1, norm_layer=norm_layer, activation_layer=None
+            )
+        )
+
+        self.block = nn.Sequential(*layers)
+        self.stochastic_depth = StochasticDepth(stochastic_depth_prob, "row")
+        self.out_channels = cnf.out_channels
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        result = self.block(input)
+        if self.use_res_connect:
+            result = self.stochastic_depth(result)
+            result += input
+        return result

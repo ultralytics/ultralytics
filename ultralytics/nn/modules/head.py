@@ -553,7 +553,7 @@ class v10Detect(Detect):
 
         y = self._inference(one2one)
         y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else y, {"one2many": x, "one2one": one2one}
+        return y if self.export else (y, {"one2many": x, "one2one": one2one})
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

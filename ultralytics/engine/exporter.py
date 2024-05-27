@@ -824,7 +824,7 @@ class Exporter:
             (
                 "keras",
                 "onnx>=1.12.0",
-                "onnx2tf>=1.15.4,<=1.22.3",
+                "onnx2tf>=1.15.4,<=1.17.5" if ARM64 else "onnx2tf>=1.15.4,<=1.22.3",
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",

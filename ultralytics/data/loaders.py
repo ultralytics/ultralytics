@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops, Retry
 from ultralytics.utils.checks import check_requirements
 
 
@@ -522,6 +522,7 @@ def autocast_list(source):
     return files
 
 
+@Retry(times=3)
 def get_best_youtube_url(url, use_pafy=False):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.

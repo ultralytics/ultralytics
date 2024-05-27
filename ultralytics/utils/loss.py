@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -692,9 +694,16 @@ class v8OBBLoss(v8DetectionLoss):
         else:
             loss[0] += (pred_angle * 0).sum()
 
+        # Angle Loss (MSE)
+        gt_angle_norm = torch.minimum(target_bboxes[fg_mask][:,-1], math.pi/2 - target_bboxes[fg_mask][:,-1])
+        pred_angle_norm = torch.minimum(pred_bboxes[fg_mask][:,-1], math.pi/2 - pred_bboxes[fg_mask][:,-1])
+        angle_diff = gt_angle_norm - pred_angle_norm
+        angle_loss = (angle_diff ** 2).mean()
+
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        loss[3] = angle_loss * self.hyp.ang
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 

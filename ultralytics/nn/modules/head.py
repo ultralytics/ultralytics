@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Model head modules."""
 
-import math
 import copy
+import math
 
 import torch
 import torch.nn as nn
@@ -577,7 +577,9 @@ class v10Detect(Detect):
         bias_init(self): Initializes biases of the Detect module.
 
     """
+
     end2end = True
+
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels

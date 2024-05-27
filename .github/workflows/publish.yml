@@ -103,15 +103,45 @@ jobs:
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-      - name: Update Changelog
+      - name: Summarize commit changes
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
+        shell: python
         run: |
-          CHANGELOG="docs/en/Changelog.md"
-          echo -e "## Version ${{ steps.check_pypi.outputs.version }}\n{{RELEASE NOTES}}\n\n$(cat $CHANGELOG)" > $CHANGELOG
-          git config --global user.name "Glenn Jocher"
-          git config --global user.email "glenn.jocher@ultralytics.com"
-          git add $CHANGELOG
-          git commit -m "Update Changelog for version ${{ steps.check_pypi.outputs.version }}"
-          git push
+          import openai
+          import os
+          import requests
+
+          OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+          CURRENT_TAG = os.getenv('CURRENT_TAG')
+          v = tuple(map(int, CURRENT_TAG.split('.')))
+          if len(v) == 3:
+            repo = f'ultralytics/ultralytics'
+            headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
+
+            latest_tag = CURRENT_TAG
+            previous_tag = f"{v[0]}.{v[1]}.{v[2] + 1}"
+            os.system(f'echo "previous_tag={previous_tag}"')
+
+            compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
+
+            diff = requests.get(comparision_response, headers=headers).text
+
+            os.system(f'echo "diff={diff}"')
+
+            client = openai.OpenAI(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+              model="gpt-4o",
+              messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": f"Summarize this diff for me in a neat and concise manner:/n{diff}."}
+              ]
+            )
+            summary = response['choices'][0]['message']['content']
+            os.system(f'echo "summary={summary}"')
       - name: Notify on Slack (Success)
         if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v1.25.0

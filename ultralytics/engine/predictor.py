@@ -303,7 +303,7 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            end2end=self.args.end2end
+            end2end=self.args.end2end,
         )
 
         self.device = self.model.device  # update device

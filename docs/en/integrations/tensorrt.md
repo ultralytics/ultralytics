@@ -125,7 +125,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
 
-    - Aim to use the <u>minimum</u> `workspace` value required as this prevents testing algorithms that require more `workspace` from being considered by the TensorRT builder. Setting a higher value for `workspace` may take **considerably longer** to calibrate and export.
+    - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and accuracy. Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
     - Default is `workspace=4` (GiB), this value may need to be increased if calibration crashes (exits without warning).
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
@@ -18,7 +19,6 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-from tests import MODEL, SOURCE
 
 
 def test_export_torchscript():

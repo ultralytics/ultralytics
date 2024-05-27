@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
 from itertools import product
+from pathlib import Path
 
 import pytest
 import torch
 
-from ultralytics import YOLO
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from ultralytics import YOLO
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
 
 def test_checks():

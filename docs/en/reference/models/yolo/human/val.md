@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover the Ultralytics YOLO model class. Learn advanced techniques, tips, and tricks for training.
+keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
 ---
 
 # Reference for `ultralytics/models/yolo/human/val.py`

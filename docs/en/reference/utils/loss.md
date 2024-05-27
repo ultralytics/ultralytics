@@ -51,6 +51,6 @@ keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss,
 
 <br><br>
 
-## ::: ultralytics.utils.loss.v10DetectLoss
+## ::: ultralytics.utils.loss.E2EDetectLoss
 
 <br><br>

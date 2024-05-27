@@ -141,7 +141,7 @@ def test_youtube():
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     except ConnectionError as e:
-        LOGGER.warning(f"YouTube connection error: {e}")
+        LOGGER.warning(f"YouTube Test error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

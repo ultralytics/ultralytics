@@ -775,12 +775,12 @@ class BaseTrainer:
 
         if SETTINGS["hub"] is False or self.hub_session is not None:
             return
+
         # Create a model in HUB
         try:
             from ultralytics.hub.session import HUBTrainingSession
 
-            session = HUBTrainingSession(self.args.model)
-            self.hub_session = session if session.client.authenticated else self.hub_session
+            self.hub_session = HUBTrainingSession(self.args.model) if session.client.authenticated else self.hub_session
             if self.hub_session:
                 self.hub_session.create_model(self.args)
                 # Check model was created

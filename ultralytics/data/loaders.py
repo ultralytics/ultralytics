@@ -549,7 +549,7 @@ def get_best_youtube_url(url, method="pytube"):
         streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
         streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
         for stream in streams:
-            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # Check if resolution is at least 1080p
+            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
                 return stream.url
 
     elif method == "pafy":

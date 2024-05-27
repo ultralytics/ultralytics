@@ -63,7 +63,7 @@ from ultralytics.utils.loss import (
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    v10DetectLoss,
+    E2EDetectLoss,
 )
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
@@ -295,6 +295,7 @@ class DetectionModel(BaseModel):
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+        self.end2end = end2end
 
         # Define model
         ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
@@ -313,7 +314,7 @@ class DetectionModel(BaseModel):
             s = 256  # 2x min stride
             m.inplace = self.inplace
             forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
-            if isinstance(m, v10Detect):
+            if self.end2end:
                 forward = lambda x: self.forward(x)["one2many"]
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
@@ -365,7 +366,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return v8DetectionLoss(self)
+        return E2EDetectLoss(self) if self.end2end else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -665,14 +666,12 @@ class WorldModel(DetectionModel):
         return self.criterion(preds, batch)
 
 
+# NOTE: keep YOLOv10DetectionModel for compatibility with yolov10 pretrained weights.
 class YOLOv10DetectionModel(DetectionModel):
     """YOLOv10 Detection model."""
 
-    def __init__(self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True, end2end=True):
+    def __init__(self, cfg="yolov10n.yaml", ch=3, nc=None, verbose=True, end2end=True):
         super().__init__(cfg, ch, nc, verbose, end2end)
-
-    def init_criterion(self):
-        return v10DetectLoss(self)
 
 
 class Ensemble(nn.ModuleList):

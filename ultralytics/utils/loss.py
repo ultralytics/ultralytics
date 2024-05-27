@@ -716,7 +716,7 @@ class v8OBBLoss(v8DetectionLoss):
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
 
 
-class v10DetectLoss:
+class E2EDetectLoss:
     """Criterion class for computing training losses."""
 
     def __init__(self, model):

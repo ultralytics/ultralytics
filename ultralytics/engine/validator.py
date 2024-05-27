@@ -127,7 +127,8 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
-                end2end=self.args.end2end,
+                # NOTE: `end2end` only available with detect for now
+                end2end=self.args.end2end and self.args.task == "detect",
             )
             # self.model = model
             self.device = model.device  # update device

@@ -303,7 +303,8 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            end2end=self.args.end2end,
+            # NOTE: `end2end` only available with detect for now
+            end2end=self.args.end2end and self.args.task == "detect",
         )
 
         self.device = self.model.device  # update device

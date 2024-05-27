@@ -127,6 +127,7 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
+                end2end=self.args.end2end,
             )
             # self.model = model
             self.device = model.device  # update device

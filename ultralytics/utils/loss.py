@@ -695,10 +695,10 @@ class v8OBBLoss(v8DetectionLoss):
             loss[0] += (pred_angle * 0).sum()
 
         # Angle Loss (MSE)
-        gt_angle_norm = torch.minimum(target_bboxes[fg_mask][:,-1], math.pi/2 - target_bboxes[fg_mask][:,-1])
-        pred_angle_norm = torch.minimum(pred_bboxes[fg_mask][:,-1], math.pi/2 - pred_bboxes[fg_mask][:,-1])
+        gt_angle_norm = torch.minimum(target_bboxes[fg_mask][:, -1], math.pi / 2 - target_bboxes[fg_mask][:, -1])
+        pred_angle_norm = torch.minimum(pred_bboxes[fg_mask][:, -1], math.pi / 2 - pred_bboxes[fg_mask][:, -1])
         angle_diff = gt_angle_norm - pred_angle_norm
-        angle_loss = (angle_diff ** 2).mean()
+        angle_loss = (angle_diff**2).mean()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

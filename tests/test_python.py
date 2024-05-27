@@ -128,6 +128,7 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_youtube():
     """
@@ -141,7 +142,7 @@ def test_youtube():
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     except ConnectionError as e:
-        LOGGER.warning(f"YouTube Test error: {e}")
+        LOGGER.warning(f"YouTube ConnectionError: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

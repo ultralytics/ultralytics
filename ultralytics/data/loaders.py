@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops, Retry
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, Retry, ops
 from ultralytics.utils.checks import check_requirements
 
 

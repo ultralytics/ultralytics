@@ -133,7 +133,7 @@ from ultralytics import YOLO
 model = YOLO("yolov10n.pt")
 
 # Perform object detection on an image
-results = model("image.jpg")
+results = model("image.jpg", end2end=True)
 
 # Display the results
 results[0].show()
@@ -148,7 +148,7 @@ from ultralytics import YOLO
 model = YOLO("yolov10n.yaml")
 
 # Train the model
-model.train(data="coco8.yaml", epochs=100, imgsz=640)
+model.train(data="coco8.yaml", epochs=100, imgsz=640, end2end=True)
 ```
 
 ## Conclusion

@@ -23,7 +23,6 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
-    IS_DOCKER,
     IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -322,17 +321,18 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0") -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
 
 
 @TryExcept()
@@ -735,4 +735,5 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

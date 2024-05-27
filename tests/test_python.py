@@ -11,8 +11,9 @@ import torch
 import yaml
 from PIL import Image
 
+from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASKS, TASK2DATA
+from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -22,12 +23,10 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
-    Retry,
     checks,
 )
-from ultralytics.utils.downloads import download, is_url
+from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
-from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
 def test_model_forward():
@@ -130,13 +129,11 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(not is_url("https://youtu.be/G17sBkb38XQ"), reason="YouTube URL issue")
-@Retry(times=3, delay=10)
 def test_youtube():
     """
     Test YouTube inference.
 
-    Marked --slow to reduce YouTube API rate limits risk.
+    Note: ConnectionError may occur during this test due to network instability or YouTube server availability.
     """
     model = YOLO(MODEL)
     model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)

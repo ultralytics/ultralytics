@@ -81,14 +81,7 @@ class PoseValidator(DetectionValidator):
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
-        self.stats = {
-            "tp_p": [],
-            "tp": [],
-            "conf": [],
-            "pred_cls": [],
-            "target_cls": [],
-            **({"target_img": []} if self.args.detail_per_class else {}),
-        }
+        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch for processing by converting keypoints to float and moving to device."""
@@ -125,8 +118,7 @@ class PoseValidator(DetectionValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
-            if self.args.detail_per_class:
-                stat["target_img"] = cls.unique()
+            stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():

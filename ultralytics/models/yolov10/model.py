@@ -1,11 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.engine.model import Model
-from ultralytics.nn.tasks import YOLOv10DetectionModel
+from ultralytics.nn.tasks import v10DetectionModel, DetectionModel
 
-from .detect.predict import YOLOv10DetectionPredictor
+from ultralytics.models import yolo
 from .detect.train import YOLOv10DetectionTrainer
-from .detect.val import YOLOv10DetectionValidator
 
 
 class YOLOv10(Model):
@@ -14,9 +13,9 @@ class YOLOv10(Model):
         """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
-                "model": YOLOv10DetectionModel,
+                "model": DetectionModel,
                 "trainer": YOLOv10DetectionTrainer,
-                "validator": YOLOv10DetectionValidator,
-                "predictor": YOLOv10DetectionPredictor,
+                "validator": yolo.detect.DetectionValidator,
+                "predictor": yolo.detect.DetectionPredictor,
             },
         }

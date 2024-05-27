@@ -289,7 +289,9 @@ class BaseModel(nn.Module):
 class DetectionModel(BaseModel):
     """YOLOv8 detection model."""
 
-    def __init__(self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True, end2end=False):  # model, input channels, number of classes
+    def __init__(
+        self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True, end2end=True
+    ):  # model, input channels, number of classes
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
@@ -299,7 +301,9 @@ class DetectionModel(BaseModel):
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose, end2end=end2end)  # model, savelist
+        self.model, self.save = parse_model(
+            deepcopy(self.yaml), ch=ch, verbose=verbose, end2end=end2end
+        )  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
 
@@ -663,6 +667,7 @@ class WorldModel(DetectionModel):
 
 class YOLOv10DetectionModel(DetectionModel):
     """YOLOv10 Detection model."""
+
     def __init__(self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True, end2end=True):
         super().__init__(cfg, ch, nc, verbose, end2end)
 

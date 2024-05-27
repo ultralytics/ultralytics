@@ -577,6 +577,7 @@ class v10Detect(Detect):
         bias_init(self): Initializes biases of the Detect module.
 
     """
+    end2end = True
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels

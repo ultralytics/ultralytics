@@ -709,10 +709,10 @@ class RepVGGDW(torch.nn.Module):
         Performs a forward pass of the RepVGGDW block.
 
         Args:
-            x: Input tensor.
+            x (torch.Tensor): Input tensor.
 
         Returns:
-            Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
         """
         return self.act(self.conv(x) + self.conv1(x))
 
@@ -721,10 +721,10 @@ class RepVGGDW(torch.nn.Module):
         Performs a forward pass of the RepVGGDW block without fusing the convolutions.
 
         Args:
-            x: Input tensor.
+            x (torch.Tensor): Input tensor.
 
         Returns:
-            Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
         """
         return self.act(self.conv(x))
 

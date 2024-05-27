@@ -5,8 +5,8 @@
 # Material theme, define the navigation structure, and enable various plugins.
 
 # Site metadata
-site_name: Ultralytics YOLOv8 Docs
-site_description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
+site_name: Ultralytics YOLO Docs
+site_description: Explore Ultralytics YOLO, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics

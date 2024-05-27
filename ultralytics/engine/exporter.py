@@ -212,8 +212,6 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
-        if is_tf_format and not checks.IS_PYTHON_MINIMUM_3_10:
-            raise SystemError("Ultralytics TensorFlow exports requires Python>=3.10")
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
@@ -815,7 +813,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
-            version = "" if ARM64 else ">=2.0.0"
+            version = "<=2.13.1" if IS_JETSON else ">2.0.0"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         if ARM64:
@@ -838,7 +836,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,
-            ">=2.0.0",
+            "<=2.13.1" if IS_JETSON else ">2.0.0",
             name="tensorflow",
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",

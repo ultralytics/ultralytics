@@ -19,7 +19,6 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
-    LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
@@ -134,15 +133,10 @@ def test_youtube():
     """
     Test YouTube inference.
 
-    Note: YouTube connection errors frequently occur during this test due to
-    the nature of network instability or YouTube server availability issues.
-    These errors are caught and logged to avoid test failures caused by external factors.
+    Note: ConnectionError may occur during this test due to network instability or YouTube server availability.
     """
     model = YOLO(MODEL)
-    try:
-        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
-    except ConnectionError as e:
-        LOGGER.warning(f"YouTube ConnectionError: {e}")
+    model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

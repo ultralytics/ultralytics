@@ -118,7 +118,7 @@ jobs:
                   'draft': False,
                   'prerelease': False
               }
-          response = requests.post(releases_url, headers=headers, data=json.dumps(release_payload))
+          response = requests.post(release_url, headers=headers, data=json.dumps(release_payload))
           if response.status_code == 201:
             print(f'Successfully created release {latest_version}')
           else:

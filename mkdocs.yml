@@ -289,6 +289,7 @@ nav:
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
+      - ROS Quickstart: guides/ros-quickstart.md
       - Real-World Projects:
           - Object Counting: guides/object-counting.md
           - Object Cropping: guides/object-cropping.md
@@ -303,7 +304,6 @@ nav:
           - Distance Calculation: guides/distance-calculation.md
           - Queue Management: guides/queue-management.md
           - Parking Management: guides/parking-management.md
-          - ROS Quickstart: guides/ros-quickstart.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md

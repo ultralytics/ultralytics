@@ -73,6 +73,7 @@ jobs:
           import openai
           import os
           import requests
+          import json
 
           OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
@@ -87,9 +88,8 @@ jobs:
 
           compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
 
-          diff = requests.get(compare_tags_url, headers=headers).text
-
-          os.system(f'echo "diff={diff}"')
+          response = requests.get(compare_tags_url, headers=headers).json()
+          os.system(f'echo "response={response}"')
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

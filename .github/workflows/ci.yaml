@@ -146,8 +146,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          # yolo export format=tflite imgsz=32 || true
+          pip install --no-cache-dir -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks

@@ -122,7 +122,7 @@ jobs:
           if response.status_code == 201:
             print(f'Successfully created release {latest_version}')
           else:
-            print(f'Failed to create release {latest_version}: {response.content}')"""
+            print(f'Failed to create release {latest_version}: {response.content}')
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

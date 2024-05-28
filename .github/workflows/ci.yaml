@@ -278,7 +278,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install --no-cache-dir -e ".[export]" pytest mlflow pycocotools "ray[tune]"
+          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]"
       - name: Check environment
         run: |
           yolo checks

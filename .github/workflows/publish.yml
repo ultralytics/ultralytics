@@ -107,8 +107,8 @@ jobs:
               f"\n\nHere's the PR diff:\n\n{combined_diff[:limit]}",
               }
             ]
-          response = client.chat.completions.create(model="gpt-4o", messages=messages)
-          summary = response['choices'][0]['message']['content']
+          response = client.chat.completions.create(model="gpt-4o", messages=messages).choices[0]
+          summary = response.message.content.strip()
           print(summary)
           
       - name: Publish to PyPI

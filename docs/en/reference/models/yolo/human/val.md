@@ -1,6 +1,6 @@
 ---
-description: Discover the Ultralytics YOLO model class. Learn advanced techniques, tips, and tricks for training.
-keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
+description: Explore the Ultralytics YOLO HumanValidator class for human model validation. Learn implementation details, advanced techniques, and methods for accurate human attribute evaluation.
+keywords: Ultralytics YOLO, HumanValidator, Human Model, Model Validation, Machine Learning, Deep Learning, Computer Vision, Human Attributes
 ---
 
 # Reference for `ultralytics/models/yolo/human/val.py`

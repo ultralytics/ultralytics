@@ -67,7 +67,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
-          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
+          # PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
         shell: python
         run: |
           import openai
@@ -76,12 +76,15 @@ jobs:
 
           OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-          latest_tag = os.getenv('CURRENT_TAG')
-          previous_tag = os.getenv('PREVIOUS_TAG')
+          latest_tag = os.getenv('CURRENT_TAG') 
+          # we generate a release note when there is a tag difference, for now, we manually create one
+          v = tuple(map(int, latest_tag.split('.')))
+          previous_tag = f"{v[0]}.{v[1]}.{v[2] - 1}"
+          # previous_tag = os.getenv('PREVIOUS_TAG')
           
           os.system(f'echo "previous_tag={previous_tag}"')
           
-          repo = f'ultralytics/release-test' # change later
+          repo = f'ultralytics/release-test' # change to main repo later
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
           compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"

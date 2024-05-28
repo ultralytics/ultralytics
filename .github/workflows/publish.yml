@@ -96,15 +96,18 @@ jobs:
               if patch:
                   diffs.append(patch)       
           combined_diff = '\n'.join(diffs)
-
+          limit = 128000 * 3.3 * 0.5
           client = openai.OpenAI(api_key=OPENAI_API_KEY)
-          response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-              {"role": "system", "content": "You are a helpful assistant."},
-              {"role": "user", "content": f"Summarize this diff for me in several neat and concise pulletpoints:/n{combined_diff}."}
+          messages=[
+              {"role": "system", "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub PRs from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
+              {"role": "user", "content": f"Summarize the updates made on '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+              f"### 🌟 Summary (single-line synopsis)\n"
+              f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
+              f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
+              f"\n\nHere's the PR diff:\n\n{combined_diff[:limit]}",
+              }
             ]
-          )
+          response = client.chat.completions.create(model="gpt-4o", messages=messages)
           summary = response['choices'][0]['message']['content']
           print(summary)
           

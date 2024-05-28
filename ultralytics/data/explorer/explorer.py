@@ -7,8 +7,8 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 from matplotlib import pyplot as plt
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -16,6 +16,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
+
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 

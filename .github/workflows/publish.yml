@@ -109,8 +109,20 @@ jobs:
             ]
           response = client.chat.completions.create(model="gpt-4o", messages=messages).choices[0]
           summary = response.message.content.strip()
-          print(summary)
           
+          release_url = f"https://api.github.com/repos/{repo}/releases"
+          release_payload = {
+                  'tag_name': latest_version,
+                  'name': f'Release {latest_tag}',
+                  'body': summary,
+                  'draft': False,
+                  'prerelease': False
+              }
+          response = requests.post(releases_url, headers=headers, data=json.dumps(release_payload))
+          if response.status_code == 201:
+            print(f'Successfully created release {latest_version}')
+          else:
+            print(f'Failed to create release {latest_version}: {response.content}')"""
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

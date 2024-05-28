@@ -806,8 +806,8 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
-    specified number of times with an exponentially increasing delay between retries.
+    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries.
 
     Examples:
         Example usage as a decorator:
@@ -815,11 +815,6 @@ class Retry(contextlib.ContextDecorator):
         >>> def test_func():
         >>>     # Replace with function logic that may raise exceptions
         >>>     return True
-
-        Example usage as a context manager:
-        >>> with Retry(times=3, delay=2):
-        >>>     # Replace with code block that may raise exceptions
-        >>>     pass
     """
 
     def __init__(self, times=3, delay=2):
@@ -845,20 +840,6 @@ class Retry(contextlib.ContextDecorator):
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
-
-    def __enter__(self):
-        """Enter the runtime context related to this object."""
-        self._attempts = 0
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context related to this object with exponential backoff."""
-        if exc_type is not None:
-            self._attempts += 1
-            if self._attempts < self.times:
-                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
-                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
-                return True  # Suppresses the exception and retries
-        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):

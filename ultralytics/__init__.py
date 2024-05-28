@@ -2,6 +2,10 @@
 
 __version__ = "8.2.23"
 
+import os
+
+os.environ["OMP_NUM_THREADS"] = "1"  # reduce CPU utilization during training
+
 from ultralytics.data.explorer.explorer import Explorer
 from ultralytics.models import RTDETR, SAM, YOLO, YOLOWorld
 from ultralytics.models.fastsam import FastSAM

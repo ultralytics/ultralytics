@@ -57,7 +57,7 @@ jobs:
 
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_version={v_pypi}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "previous_version={check_latest_pypi_version()}" >> $GITHUB_OUTPUT')
 
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
@@ -78,6 +78,7 @@ jobs:
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
           latest_tag = os.getenv('CURRENT_TAG')
           previous_tag = os.getenv('PREVIOUS_TAG')
+          
           os.system(f'echo "previous_tag={previous_tag}"')
           
           repo = f'ultralytics/release-test' # change later

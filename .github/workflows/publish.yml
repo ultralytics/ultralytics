@@ -96,7 +96,18 @@ jobs:
               if patch:
                   diffs.append(patch)       
           combined_diff = '\n'.join(diffs)
-          print(combined_diff)
+
+          client = openai.OpenAI(api_key=OPENAI_API_KEY)
+          response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+              {"role": "system", "content": "You are a helpful assistant."},
+              {"role": "user", "content": f"Summarize this diff for me in several neat and concise pulletpoints:/n{combined_diff}."}
+            ]
+          )
+          summary = response['choices'][0]['message']['content']
+          print(summary)
+          
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

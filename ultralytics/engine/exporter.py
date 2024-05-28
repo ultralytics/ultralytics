@@ -74,7 +74,6 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
-    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -812,7 +811,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
-            version = "<=2.13.1" if IS_RASPBERRYPI else ">2.0.0"
+            version = ">2.0.0"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
         if ARM64:
@@ -821,7 +820,7 @@ class Exporter:
             (
                 "keras",
                 "onnx>=1.12.0",
-                "onnx2tf>=1.15.4,<=1.17.5" if IS_RASPBERRYPI else "onnx2tf>=1.15.4,<=1.22.3",
+                "onnx2tf>1.17.5,<=1.22.3",
                 "sng4onnx>=1.0.1",
                 "onnxsim>=0.4.33",
                 "onnx_graphsurgeon>=0.3.26",
@@ -836,7 +835,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,
-            "<=2.13.1" if IS_RASPBERRYPI else ">2.0.0",
+            ">2.0.0",
             name="tensorflow",
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",

@@ -100,7 +100,6 @@ export = [
     "onnx>=1.12.0", # ONNX export
     "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
     "openvino>=2024.0.0", # OpenVINO export
-    "tensorflow<=2.13.1; platform_machine == 'aarch64'",
     "tensorflow>=2.0.0; platform_machine != 'aarch64'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
     "keras",  # not installed auotomatically by tensorflow>=2.16

@@ -120,9 +120,9 @@ jobs:
               }
           response = requests.post(release_url, headers=headers, data=json.dumps(release_payload))
           if response.status_code == 201:
-            print(f'Successfully created release {latest_version}')
+            print(f'Successfully created release {latest_tag}')
           else:
-            print(f'Failed to create release {latest_version}: {response.content}')
+            print(f'Failed to create release {latest_tag}: {response.content}')
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

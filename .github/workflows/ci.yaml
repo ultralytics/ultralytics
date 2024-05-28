@@ -141,7 +141,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+          # cache: "pip" # caching pip dependencies
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

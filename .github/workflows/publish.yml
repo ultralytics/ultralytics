@@ -89,8 +89,14 @@ jobs:
           compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
 
           response = requests.get(compare_tags_url, headers=headers).json()
-          response_text = json.dumps(response, indent=4)
-          print(response_text)
+          diffs = []
+          files = response.get('files', [])
+          for file in files:
+              patch = file.get('patch', '')
+              if patch:
+                  diffs.append(patch)       
+          combined_diff = '\n'.join(diffs)
+          print(combined_diff)
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

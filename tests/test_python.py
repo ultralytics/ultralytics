@@ -20,12 +20,12 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
     checks,
-    LOGGER,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9

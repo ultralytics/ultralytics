@@ -278,6 +278,7 @@ jobs:
       - name: Install requirements
         run: |
           pip cache purge
+          rm -rf ~/.cache/pip
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]"
       - name: Check environment

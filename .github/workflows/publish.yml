@@ -77,7 +77,7 @@ jobs:
 
           OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-          # we generate a release note when there is a tag difference, for now, we manually create one
+          # we generate a release note when there is a tag increment. For testing, we manually compare two different tags
           # latest_tag = os.getenv('CURRENT_TAG') 
           # previous_tag = os.getenv('PREVIOUS_TAG')
           latest_tag = "v8.2.0"
@@ -96,7 +96,7 @@ jobs:
               if patch:
                   diffs.append(patch)       
           combined_diff = '\n'.join(diffs)
-          limit = 64000 * 3
+          limit = 64000 * 3 # can be changed if needed
           client = openai.OpenAI(api_key=OPENAI_API_KEY)
           messages=[
               {"role": "system", "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub PRs from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
@@ -113,7 +113,7 @@ jobs:
           release_url = f"https://api.github.com/repos/{repo}/releases"
           release_payload = {
                   'tag_name': latest_tag,
-                  'name': f'Release {latest_tag}',
+                  'name': f'Release YOLO{latest_tag}',
                   'body': summary,
                   'draft': False,
                   'prerelease': False

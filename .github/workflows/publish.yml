@@ -79,8 +79,8 @@ jobs:
           # we generate a release note when there is a tag difference, for now, we manually create one
           # latest_tag = os.getenv('CURRENT_TAG') 
           # previous_tag = os.getenv('PREVIOUS_TAG')
-          latest_tag = "8.2.0"
-          previous_tag = "8.1.0"
+          latest_tag = "v8.2.0"
+          previous_tag = "v8.1.0"
           
           repo = f'ultralytics/release-test' # change to main repo later
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}

@@ -96,7 +96,7 @@ jobs:
               if patch:
                   diffs.append(patch)       
           combined_diff = '\n'.join(diffs)
-          limit = 128000 * 3.3 * 0.5
+          limit = 64000 * 3
           client = openai.OpenAI(api_key=OPENAI_API_KEY)
           messages=[
               {"role": "system", "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub PRs from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},

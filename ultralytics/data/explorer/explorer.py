@@ -7,8 +7,8 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from PIL import Image
+from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -16,7 +16,6 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
-
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -64,7 +63,7 @@ class Explorer:
         import lancedb
 
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name.lower() + "_" + model.lower()
+        self.table_name = f"{Path(data).name.lower()}_{model.lower()}"
         self.sim_idx_base_name = (
             f"{self.table_name}_sim_idx".lower()
         )  # Use this name and append thres and top_k to reuse the table
@@ -268,10 +267,7 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
-        assert return_type in {
-            "pandas",
-            "arrow",
-        }, f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        assert return_type in {"pandas", "arrow"}, f"Return type should be `pandas` or `arrow`, but got {return_type}"
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 

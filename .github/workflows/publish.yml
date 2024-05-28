@@ -90,7 +90,7 @@ jobs:
 
           response = requests.get(compare_tags_url, headers=headers).json()
           response_text = json.dumps(response, indent=4)
-          os.system(f'echo "response_text={response_text}"')
+          print(response_text)
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

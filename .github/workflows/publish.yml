@@ -112,7 +112,7 @@ jobs:
           
           release_url = f"https://api.github.com/repos/{repo}/releases"
           release_payload = {
-                  'tag_name': latest_version,
+                  'tag_name': latest_tag,
                   'name': f'Release {latest_tag}',
                   'body': summary,
                   'draft': False,

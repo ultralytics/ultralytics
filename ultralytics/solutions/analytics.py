@@ -1,3 +1,6 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+import warnings
 from itertools import cycle
 
 import cv2
@@ -32,7 +35,7 @@ class Analytics:
 
         Args:
             type (str): Type of chart to initialize ('line', 'bar', or 'pie').
-            writer: Video writer object to save the frames.
+            writer (object): Video writer object to save the frames.
             im0_shape (tuple): Shape of the input image (width, height).
             title (str): Title of the chart.
             x_label (str): Label for the x-axis.
@@ -44,6 +47,7 @@ class Analytics:
             fontsize (int): Font size for chart text.
             view_img (bool): Whether to display the image.
             save_img (bool): Whether to save the image.
+            max_points (int): Specifies when to remove the oldest points in a graph for multiple lines.
         """
 
         self.bg_color = bg_color
@@ -65,7 +69,7 @@ class Analytics:
             self.ax = fig.add_subplot(111, facecolor=self.bg_color)
             (self.line,) = self.ax.plot([], [], color=line_color, linewidth=line_width)
 
-        elif type == "bar" or type == "pie":
+        elif type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.ax.set_facecolor(self.bg_color)
@@ -113,13 +117,18 @@ class Analytics:
         self.ax.autoscale_view()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-
-        # Display and save the updated graph
-        cv2.imshow(self.title, im0) if self.view_img else None
-        self.writer.write(im0) if self.save_img else None
+        self.write_and_display_line(im0)
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
+        """
+        Update the line graph with multiple classes.
+
+        Args:
+            counts_dict (int): Dictionary include each class counts.
+            labels_list (int): list include each classes names.
+            frame_number (int): The current frame number.
+        """
+        warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
             if obj not in self.lines:
                 line, = self.ax.plot([], [], label=obj, marker='o', markersize=15)
@@ -143,9 +152,17 @@ class Analytics:
         self.canvas.draw()
 
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.write_and_display(im0)
+        self.view_img = False   # for multiple line view_img not supported yet, coming soon!
+        self.write_and_display_line(im0)
 
-    def write_and_display(self, im0):
+    def write_and_display_line(self, im0):
+        """
+        Write and display the line graph
+        Args:
+            im0 (ndarray): Image for processing
+        """
+
+        # convert image to BGR format
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         cv2.imshow(self.title, im0) if self.view_img else None
         self.writer.write(im0) if self.save_img else None

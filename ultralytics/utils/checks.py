@@ -383,9 +383,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             pkgs.append(r)
 
     @Retry(times=2, delay=1)
-    def attempt_install(s, cmds):
+    def attempt_install(packages, commands):
         """Attempt pip install command with retries on failure."""
-        return subprocess.check_output(f"pip install --no-cache-dir {s} {cmds}", shell=True).decode()
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

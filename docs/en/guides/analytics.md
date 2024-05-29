@@ -235,7 +235,6 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
 Here's a table with the `Analytics` arguments:
 
-<<<<<<< HEAD
 | Name         | Type              | Default       | Description                                                                      |
 |--------------|-------------------|---------------|----------------------------------------------------------------------------------|
 | `type`       | `str`             | `None`        | Type of data or object.                                                          |
@@ -252,23 +251,6 @@ Here's a table with the `Analytics` arguments:
 | `view_img`   | `bool`            | `False`       | Flag to display the image or video.                                              |
 | `save_img`   | `bool`            | `True`        | Flag to save the image or video.                                                 |
 | `max_points` | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
-=======
-| Name         | Type              | Default       | Description                         |
-|--------------|-------------------|---------------|-------------------------------------|
-| `type`       | `str`             | `None`        | Type of data or object.             |
-| `im0_shape`  | `tuple`           | `None`        | Shape of the initial image.         |
-| `writer`     | `cv2.VideoWriter` | `None`        | Object for writing video files.     |
-| `title`      | `str`             | `ultralytics` | Title for the visualization.        |
-| `x_label`    | `str`             | `x`           | Label for the x-axis.               |
-| `y_label`    | `str`             | `y`           | Label for the y-axis.               |
-| `bg_color`   | `str`             | `white`       | Background color.                   |
-| `fg_color`   | `str`             | `black`       | Foreground color.                   |
-| `line_color` | `str`             | `yellow`      | Color of the lines.                 |
-| `line_width` | `int`             | `2`           | Width of the lines.                 |
-| `fontsize`   | `int`             | `13`          | Font size for text.                 |
-| `view_img`   | `bool`            | `False`       | Flag to display the image or video. |
-| `save_img`   | `bool`            | `True`        | Flag to save the image or video.    |
->>>>>>> 7cd871dbd0887a73078a10fdf946163e417405ad
 
 ### Arguments `model.track`
 

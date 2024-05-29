@@ -129,6 +129,31 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)  # cleanup
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        if not (int8 and half)  # exclude cases where both int8 and half are True
+    ],
+)
+def test_export_tflite_matrix(task, dynamic, int8, half, batch):
+    """Test YOLO exports to TFLite format."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="tflite",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    Path(file).unlink()  # cleanup
+
+
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
@@ -142,6 +167,7 @@ def test_export_coreml():
         YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
 
 
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """

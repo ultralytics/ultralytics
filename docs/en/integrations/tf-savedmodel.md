@@ -32,7 +32,7 @@ Here are the key features that make TF SavedModel a great option for AI develope
 
 ## Deployment Options with TF SavedModel
 
-Before we dive into the process of exporting YOLOv8 models to the TF SavedModel format, let's explore some typical deployment scenarios where this format is used. 
+Before we dive into the process of exporting YOLOv8 models to the TF SavedModel format, let's explore some typical deployment scenarios where this format is used.
 
 TF SavedModel provides a range of options to deploy your machine learning models:
 
@@ -63,7 +63,6 @@ To install the required package, run:
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-
 ### Usage
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
@@ -76,16 +75,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format='saved_model')  # creates '/yolov8n_saved_model'
+        model.export(format="saved_model")  # creates '/yolov8n_saved_model'
 
         # Load the exported TF SavedModel model
-        tf_savedmodel_model = YOLO('./yolov8n_saved_model')
+        tf_savedmodel_model = YOLO("./yolov8n_saved_model")
 
         # Run inference
-        results = tf_savedmodel_model('https://ultralytics.com/images/bus.jpg')
+        results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"

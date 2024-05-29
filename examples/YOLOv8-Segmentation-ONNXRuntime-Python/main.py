@@ -37,7 +37,7 @@ class YOLOv8Seg:
         self.model_height, self.model_width = [x.shape for x in self.session.get_inputs()][0][-2:]
 
         # Load COCO class names
-        self.classes = yaml_load(check_yaml("coco128.yaml"))["names"]
+        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
 
         # Create color palette
         self.color_palette = Colors()

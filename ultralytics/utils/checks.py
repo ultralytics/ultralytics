@@ -18,15 +18,20 @@ import cv2
 import numpy as np
 import requests
 import torch
-from matplotlib import font_manager
 
 from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
+    IS_COLAB,
+    IS_JUPYTER,
+    IS_KAGGLE,
+    IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
     ONLINE,
+    PYTHON_VERSION,
     ROOT,
+    TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     SimpleNamespace,
     ThreadingLocked,
@@ -35,17 +40,9 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     emojis,
-    is_colab,
-    is_docker,
     is_github_action_running,
-    is_jupyter,
-    is_kaggle,
-    is_online,
-    is_pip_package,
     url2file,
 )
-
-PYTHON_VERSION = platform.python_version()
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -237,7 +234,7 @@ def check_version(
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -278,7 +275,7 @@ def check_pip_update_available():
     Returns:
         (bool): True if an update is available, False otherwise.
     """
-    if ONLINE and is_pip_package():
+    if ONLINE and IS_PIP_PACKAGE:
         with contextlib.suppress(Exception):
             from ultralytics import __version__
 
@@ -303,9 +300,10 @@ def check_font(font="Arial.ttf"):
     Returns:
         file (Path): Resolved font file path.
     """
-    name = Path(font).name
+    from matplotlib import font_manager
 
     # Check USER_CONFIG_DIR
+    name = Path(font).name
     file = USER_CONFIG_DIR / name
     if file.exists():
         return file
@@ -322,17 +320,18 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0") -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
 
 
 @TryExcept()
@@ -389,8 +388,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
-                assert is_online(), "AutoUpdate skipped (offline)"
-                LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                assert ONLINE, "AutoUpdate skipped (offline)"
+                LOGGER.info(subprocess.check_output(f"pip install --no-cache-dir {s} {cmds}", shell=True).decode())
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -417,14 +416,19 @@ def check_torchvision():
     Torchvision versions.
     """
 
-    import torchvision
-
     # Compatibility table
-    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+    compatibility_table = {
+        "2.3": ["0.18"],
+        "2.2": ["0.17"],
+        "2.1": ["0.16"],
+        "2.0": ["0.15"],
+        "1.13": ["0.14"],
+        "1.12": ["0.13"],
+    }
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
-    v_torchvision = ".".join(torchvision.__version__.split("+")[0].split(".")[:2])
+    v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
@@ -500,7 +504,7 @@ def check_file(file, suffix="", download=True, hard=True):
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0] if len(files) else [] if hard else file  # return file
+        return files[0] if len(files) else []  # return file
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
@@ -522,14 +526,15 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+            assert not IS_COLAB and not IS_KAGGLE
+            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -547,10 +552,10 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if is_jupyter():
+    if IS_JUPYTER:
         if check_requirements("wandb", install=False):
             os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if is_colab():
+        if IS_COLAB:
             shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
@@ -575,7 +580,7 @@ def collect_system_info():
 
     import psutil
 
-    from ultralytics.utils import ENVIRONMENT, is_git_dir
+    from ultralytics.utils import ENVIRONMENT, IS_GIT_DIR
     from ultralytics.utils.torch_utils import get_cpu_info
 
     ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
@@ -584,7 +589,7 @@ def collect_system_info():
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
         f"{'Python':<20}{PYTHON_VERSION}\n"
-        f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
+        f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
         f"{'RAM':<20}{ram_info:.2f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
         f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n"
@@ -632,7 +637,7 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
     device = next(model.parameters()).device  # get model device
-    if device.type in ("cpu", "mps"):
+    if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):
@@ -728,4 +733,5 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

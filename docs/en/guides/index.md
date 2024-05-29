@@ -35,6 +35,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Conda Quickstart](conda-quickstart.md) 🚀 NEW: Step-by-step guide to setting up a [Conda](https://anaconda.org/conda-forge/ultralytics) environment for Ultralytics. Learn how to install and start using the Ultralytics package efficiently with Conda.
 - [Docker Quickstart](docker-quickstart.md) 🚀 NEW: Complete guide to setting up and using Ultralytics YOLO models with [Docker](https://hub.docker.com/r/ultralytics/ultralytics). Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers for consistent development and deployment.
 - [Raspberry Pi](raspberry-pi.md) 🚀 NEW: Quickstart tutorial to run YOLO models to the latest Raspberry Pi hardware.
+- [NVIDIA-Jetson](nvidia-jetson.md)🚀 NEW: Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
 - [Triton Inference Server Integration](triton-inference-server.md) 🚀 NEW: Dive into the integration of Ultralytics YOLOv8 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md) 🚀 NEW: Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
 - [Isolating Segmentation Objects](isolating-segmentation-objects.md) 🚀 NEW: Step-by-step recipe and explanation on how to extract and/or isolate objects from images using Ultralytics Segmentation.
@@ -44,6 +45,8 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 
 ## Real-World Projects
 
+![Ultralytics Solutions Thumbnail](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/44c8b148-7a9d-43e4-b7bf-272a7ac4e636)
+
 - [Object Counting](object-counting.md) 🚀 NEW: Explore the process of real-time object counting with Ultralytics YOLOv8 and acquire the knowledge to effectively count objects in a live video stream.
 - [Object Cropping](object-cropping.md) 🚀 NEW: Explore object cropping using YOLOv8 for precise extraction of objects from images and videos.
 - [Object Blurring](object-blurring.md) 🚀 NEW: Apply object blurring with YOLOv8 for privacy protection in image and video processing.
@@ -51,10 +54,13 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Objects Counting in Regions](region-counting.md) 🚀 NEW: Explore counting objects in specific regions with Ultralytics YOLOv8 for precise and efficient object detection in varied areas.
 - [Security Alarm System](security-alarm-system.md) 🚀 NEW: Discover the process of creating a security alarm system with Ultralytics YOLOv8. This system triggers alerts upon detecting new objects in the frame. Subsequently, you can customize the code to align with your specific use case.
 - [Heatmaps](heatmaps.md) 🚀 NEW: Elevate your understanding of data with our Detection Heatmaps! These intuitive visual tools use vibrant color gradients to vividly illustrate the intensity of data values across a matrix. Essential in computer vision, heatmaps are skillfully designed to highlight areas of interest, providing an immediate, impactful way to interpret spatial information.
-- [Instance Segmentation with Object Tracking](instance-segmentation-and-tracking.md) 🚀 NEW: Explore our feature on [Object Segmentation](https://docs.ultralytics.com/tasks/segment/) in Bounding Boxes Shape, providing a visual representation of precise object boundaries for enhanced understanding and analysis.
+- [Instance Segmentation with Object Tracking](instance-segmentation-and-tracking.md) 🚀 NEW: Explore our feature on [Object Segmentation](../tasks/segment.md) in Bounding Boxes Shape, providing a visual representation of precise object boundaries for enhanced understanding and analysis.
 - [VisionEye View Objects Mapping](vision-eye.md) 🚀 NEW: This feature aim computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
-- [Speed Estimation](speed-estimation.md) 🚀 NEW: Speed estimation in computer vision relies on analyzing object motion through techniques like [object tracking](https://docs.ultralytics.com/modes/track/), crucial for applications like autonomous vehicles and traffic monitoring.
+- [Speed Estimation](speed-estimation.md) 🚀 NEW: Speed estimation in computer vision relies on analyzing object motion through techniques like [object tracking](../modes/track.md), crucial for applications like autonomous vehicles and traffic monitoring.
 - [Distance Calculation](distance-calculation.md) 🚀 NEW: Distance calculation, which involves measuring the separation between two objects within a defined space, is a crucial aspect. In the context of Ultralytics YOLOv8, the method employed for this involves using the bounding box centroid to determine the distance associated with user-highlighted bounding boxes.
+- [Queue Management](queue-management.md) 🚀 NEW: Queue management is the practice of efficiently controlling and directing the flow of people or tasks, often through strategic planning and technology implementation, to minimize wait times and improve overall productivity.
+- [Parking Management](parking-management.md) 🚀 NEW: Parking management involves efficiently organizing and directing the flow of vehicles in parking areas, often through strategic planning and technology integration, to optimize space utilization and enhance user experience.
+- [Analytics](analytics.md) 📊 NEW: Analytics involves the systematic computational analysis of data or statistics. It is used for discovering, interpreting, and communicating significant patterns in data, and for applying data patterns towards effective decision-making. Analytics can be descriptive, predictive, or prescriptive in nature, and it is integral to data-driven strategies in various industries.
 
 ## Contribute to Our Guides
 

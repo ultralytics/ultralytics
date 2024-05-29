@@ -14,6 +14,17 @@ keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Da
 
 This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLOv8 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/TG9exsBlkDE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Common Issues | Installation Errors, Model Training Issues
+</p>
+
 ## Common Issues
 
 ### Installation Errors
@@ -68,7 +79,7 @@ This section will address common issues faced while training and their respectiv
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
 ```python
-model.train(data='/path/to/your/data.yaml', batch=4)
+model.train(data="/path/to/your/data.yaml", batch=4)
 ```
 
 #### Accelerating Training with Multiple GPUs
@@ -87,7 +98,7 @@ model.train(data='/path/to/your/data.yaml', batch=4)
 
 ```python
 # Adjust the batch size and other settings as needed to optimize training speed
-model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
+model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
 ```
 
 #### Continuous Monitoring Parameters
@@ -210,10 +221,10 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 from ultralytics import YOLO
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = YOLO("yolov8n.pt")
 
 # Specify the source image
-source = 'https://ultralytics.com/images/bus.jpg'
+source = "https://ultralytics.com/images/bus.jpg"
 
 # Make predictions
 results = model.predict(source, save=True, imgsz=320, conf=0.5)

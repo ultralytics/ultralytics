@@ -16,7 +16,7 @@ cd yolov5
 pip install -r requirements.txt  # install
 ```
 
-💡 ProTip! **Docker Image** is recommended for all Multi-GPU trainings. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+💡 ProTip! **Docker Image** is recommended for all Multi-GPU trainings. See [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 💡 ProTip! `torch.distributed.run` replaces `torch.distributed.launch` in **PyTorch>=1.9**. See [docs](https://pytorch.org/docs/stable/distributed.html) for details.
 
@@ -121,7 +121,7 @@ python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
 
 ## Results
 
-DDP profiling results on an [AWS EC2 P4d instance](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
+DDP profiling results on an [AWS EC2 P4d instance](../environments/aws_quickstart_tutorial.md) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
 
 <details>
   <summary>Profiling code</summary>

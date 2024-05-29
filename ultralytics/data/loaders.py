@@ -15,8 +15,8 @@ import requests
 import torch
 from PIL import Image
 
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import LOGGER, is_colab, is_kaggle, ops
+from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 
 
@@ -83,11 +83,11 @@ class LoadStreams:
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f"{i + 1}/{n}: {s}... "
-            if urlparse(s).hostname in ("www.youtube.com", "youtube.com", "youtu.be"):  # if source is YouTube video
+            if urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/LNwODJXcvt4'
                 s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0 and (is_colab() or is_kaggle()):
+            if s == 0 and (IS_COLAB or IS_KAGGLE):
                 raise NotImplementedError(
                     "'source=0' webcam not supported in Colab and Kaggle notebooks. "
                     "Try running 'source=0' in a local environment."
@@ -291,8 +291,14 @@ class LoadImagesAndVideos:
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 
-        images = [x for x in files if x.split(".")[-1].lower() in IMG_FORMATS]
-        videos = [x for x in files if x.split(".")[-1].lower() in VID_FORMATS]
+        # Define files as images or videos
+        images, videos = [], []
+        for f in files:
+            suffix = f.split(".")[-1].lower()  # Get file extension without the dot and lowercase
+            if suffix in IMG_FORMATS:
+                images.append(f)
+            elif suffix in VID_FORMATS:
+                videos.append(f)
         ni, nv = len(images), len(videos)
 
         self.files = images + videos
@@ -307,10 +313,7 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(
-                f"No images or videos found in {p}. "
-                f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
-            )
+            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
 
     def __iter__(self):
         """Returns an iterator object for VideoStream or ImageFolder."""
@@ -322,7 +325,7 @@ class LoadImagesAndVideos:
         paths, imgs, info = [], [], []
         while len(imgs) < self.bs:
             if self.count >= self.nf:  # end of file list
-                if len(imgs) > 0:
+                if imgs:
                     return paths, imgs, info  # return last partial batch
                 else:
                     raise StopIteration
@@ -519,26 +522,43 @@ def autocast_list(source):
     return files
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, method="pytube"):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
-    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
-    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
+    This function uses the specified method to extract the video info from YouTube. It supports the following methods:
+    - "pytube": Uses the pytube library to fetch the video streams.
+    - "pafy": Uses the pafy library to fetch the video streams.
+    - "yt-dlp": Uses the yt-dlp library to fetch the video streams.
+
+    The function then finds the highest quality MP4 format that has a video codec but no audio codec, and returns the
+    URL of this video stream.
 
     Args:
         url (str): The URL of the YouTube video.
-        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
+        method (str): The method to use for extracting video info. Default is "pytube". Other options are "pafy" and
+            "yt-dlp".
 
     Returns:
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
-    if use_pafy:
+    if method == "pytube":
+        check_requirements("pytube")
+        from pytube import YouTube
+
+        streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
+        streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
+        for stream in streams:
+            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
+                return stream.url
+
+    elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))
         import pafy  # noqa
 
         return pafy.new(url).getbestvideo(preftype="mp4").url
-    else:
+
+    elif method == "yt-dlp":
         check_requirements("yt-dlp")
         import yt_dlp
 

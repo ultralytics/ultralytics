@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/dataset.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/dataset.py) 🛠️. Thank you 🙏!
 
 <br><br>
 
@@ -15,7 +15,15 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 <br><br>
 
-## ::: ultralytics.data.dataset.ClassificationDataset
+## ::: ultralytics.data.dataset.YOLOMultiModalDataset
+
+<br><br>
+
+## ::: ultralytics.data.dataset.GroundingDataset
+
+<br><br>
+
+## ::: ultralytics.data.dataset.YOLOConcatDataset
 
 <br><br>
 
@@ -23,10 +31,6 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 
 <br><br>
 
-## ::: ultralytics.data.dataset.load_dataset_cache_file
-
-<br><br>
-
-## ::: ultralytics.data.dataset.save_dataset_cache_file
+## ::: ultralytics.data.dataset.ClassificationDataset
 
 <br><br>

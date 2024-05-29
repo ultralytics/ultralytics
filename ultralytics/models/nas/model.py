@@ -17,6 +17,7 @@ import torch
 
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
+
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -45,7 +46,7 @@ class NAS(Model):
 
     def __init__(self, model="yolo_nas_s.pt") -> None:
         """Initializes the NAS model with the provided or default 'yolo_nas_s.pt' model."""
-        assert Path(model).suffix not in (".yaml", ".yml"), "YOLO-NAS models only support pre-trained models."
+        assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
     @smart_inference_mode()

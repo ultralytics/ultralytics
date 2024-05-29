@@ -1,96 +1,132 @@
-# Contributing to YOLOv8 🚀
+---
+comments: true
+description: Learn how to contribute to Ultralytics YOLO projects – guidelines for pull requests, reporting bugs, code conduct and CLA signing.
+keywords: Ultralytics, YOLO, open-source, contribute, pull request, bug report, coding guidelines, CLA, code of conduct, GitHub
+---
 
-We love your input! We want to make contributing to YOLOv8 as easy and transparent as possible, whether it's:
+# Contributing to Ultralytics Open-Source YOLO Repositories
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing a new feature
-- Becoming a maintainer
+First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices to get you started.
 
-YOLOv8 works so well due to our combined community effort, and for every small improvement you contribute you will be helping push the frontiers of what's possible in AI 😃!
+## Table of Contents
 
-## Submitting a Pull Request (PR) 🛠️
+1. [Code of Conduct](#code-of-conduct)
+2. [Contributing via Pull Requests](#contributing-via-pull-requests)
+    - [CLA Signing](#cla-signing)
+    - [Google-Style Docstrings](#google-style-docstrings)
+    - [GitHub Actions CI Tests](#github-actions-ci-tests)
+3. [Reporting Bugs](#reporting-bugs)
+4. [License](#license)
+5. [Conclusion](#conclusion)
 
-Submitting a PR is easy! This example shows how to submit a PR for updating `requirements.txt` in 4 steps:
+## Code of Conduct
 
-### 1. Select File to Update
+All contributors are expected to adhere to the [Code of Conduct](https://docs.ultralytics.com/help/code_of_conduct/) to ensure a welcoming and inclusive environment for everyone.
 
-Select `requirements.txt` to update by clicking on it in GitHub.
+## Contributing via Pull Requests
 
-<p align="center"><img width="800" alt="PR_step1" src="https://user-images.githubusercontent.com/26833433/122260847-08be2600-ced4-11eb-828b-8287ace4136c.png"></p>
+We welcome contributions in the form of pull requests. To make the review process smoother, please follow these guidelines:
 
-### 2. Click 'Edit this file'
+1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)**: Fork the Ultralytics YOLO repository to your own GitHub account.
 
-Button is in top-right corner.
+2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop)**: Create a new branch in your forked repository with a descriptive name for your changes.
 
-<p align="center"><img width="800" alt="PR_step2" src="https://user-images.githubusercontent.com/26833433/122260844-06f46280-ced4-11eb-9eec-b8a24be519ca.png"></p>
+3. **Make your changes**: Make the changes you want to contribute. Ensure that your changes follow the coding style of the project and do not introduce new errors or warnings.
 
-### 3. Make Changes
+4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests)**: Test your changes locally to ensure that they work as expected and do not introduce new issues.
 
-Change `matplotlib` version from `3.2.2` to `3.3`.
+5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop)**: Commit your changes with a descriptive commit message. Make sure to include any relevant issue numbers in your commit message.
 
-<p align="center"><img width="800" alt="PR_step3" src="https://user-images.githubusercontent.com/26833433/122260853-0a87e980-ced4-11eb-9fd2-3650fb6e0842.png"></p>
+6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)**: Create a pull request from your forked repository to the main Ultralytics YOLO repository. In the pull request description, provide a clear explanation of your changes and how they improve the project.
 
-### 4. Preview Changes and Submit PR
+### CLA Signing
 
-Click on the **Preview changes** tab to verify your updates. At the bottom of the screen select 'Create a **new branch** for this commit', assign your branch a descriptive name such as `fix/matplotlib_version` and click the green **Propose changes** button. All done, your PR is now submitted to YOLOv8 for review and approval 😃!
+Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
-<p align="center"><img width="800" alt="PR_step4" src="https://user-images.githubusercontent.com/26833433/122260856-0b208000-ced4-11eb-8e8e-77b6151cbcc3.png"></p>
+To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 
-### PR recommendations
-
-To allow your work to be integrated as seamlessly as possible, we advise you to:
-
-- ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update your code by clicking the 'Update branch' button or by running `git pull` and `git merge main` locally.
-
-<p align="center"><img width="751" alt="PR recommendation 1" src="https://user-images.githubusercontent.com/26833433/187295893-50ed9f44-b2c9-4138-a614-de69bd1753d7.png"></p>
-
-- ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
-
-<p align="center"><img width="751" alt="PR recommendation 2" src="https://user-images.githubusercontent.com/26833433/187296922-545c5498-f64a-4d8c-8300-5fa764360da6.png"></p>
-
-- ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_ — Bruce Lee
-
-### Docstrings
-
-Not all functions or classes require docstrings but when they do, we follow [google-style docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). Here is an example:
-
-```python
-"""
-    What the function does. Performs NMS on given detection predictions.
-
-    Args:
-        arg1: The description of the 1st argument
-        arg2: The description of the 2nd argument
-
-    Returns:
-        What the function returns. Empty if nothing is returned.
-
-    Raises:
-        Exception Class: When and why this exception can be raised by the function.
-"""
+```
+I have read the CLA Document and I sign the CLA
 ```
 
-## Submitting a Bug Report 🐛
+### Google-Style Docstrings
 
-If you spot a problem with YOLOv8 please submit a Bug Report!
+When adding new functions or classes, please include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This will help ensure that your contributions are easy to understand and maintain.
 
-For us to start investigating a possible problem we need to be able to reproduce it ourselves first. We've created a few short guidelines below to help users provide what we need in order to get started.
+#### Google-style
 
-When asking a question, people will be better able to provide help if you provide **code** that they can easily understand and use to **reproduce** the problem. This is referred to by community members as creating a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/). Your code that reproduces the problem should be:
+This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e. `(bool)`.
 
-- ✅ **Minimal** – Use as little code as possible that still produces the same problem
-- ✅ **Complete** – Provide **all** parts someone else needs to reproduce your problem in the question itself
-- ✅ **Reproducible** – Test the code you're about to provide to make sure it reproduces the problem
+```python
+def example_function(arg1, arg2=4):
+    """
+    Example function that demonstrates Google-style docstrings.
 
-In addition to the above requirements, for [Ultralytics](https://ultralytics.com/) to provide assistance your code should be:
+    Args:
+        arg1 (int): The first argument.
+        arg2 (int): The second argument. Default value is 4.
 
-- ✅ **Current** – Verify that your code is up-to-date with current GitHub [main](https://github.com/ultralytics/ultralytics/tree/main) branch, and if necessary `git pull` or `git clone` a new copy to ensure your problem has not already been resolved by previous commits.
-- ✅ **Unmodified** – Your problem must be reproducible without any modifications to the codebase in this repository. [Ultralytics](https://ultralytics.com/) does not provide support for custom code ⚠️.
+    Returns:
+        (bool): True if successful, False otherwise.
 
-If you believe your problem meets all of the above criteria, please close this issue and raise a new one using the 🐛 **Bug Report** [template](https://github.com/ultralytics/ultralytics/issues/new/choose) and providing a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us better understand and diagnose your problem.
+    Examples:
+        >>> result = example_function(1, 2)  # returns False
+    """
+    if arg1 == arg2:
+        return True
+    return False
+```
+
+#### Google-style with type hints
+
+This example shows both a Google-style docstring and argument and return type hints, though both are not required, one can be used without the other.
+
+```python
+def example_function(arg1: int, arg2: int = 4) -> bool:
+    """
+    Example function that demonstrates Google-style docstrings.
+
+    Args:
+        arg1: The first argument.
+        arg2: The second argument. Default value is 4.
+
+    Returns:
+        True if successful, False otherwise.
+
+    Examples:
+        >>> result = example_function(1, 2)  # returns False
+    """
+    if arg1 == arg2:
+        return True
+    return False
+```
+
+#### Single-line
+
+Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes, and be a complete sentence starting with a capital letter and ending with a period.
+
+```python
+def example_small_function(arg1: int, arg2: int = 4) -> bool:
+    """Example function that demonstrates a single-line docstring."""
+    return arg1 == arg2
+```
+
+### GitHub Actions CI Tests
+
+Before your pull request can be merged, all GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
+
+## Reporting Bugs
+
+We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs it is important to provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum_reproducible_example/): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [AGPL-3.0 license](https://choosealicense.com/licenses/agpl-3.0/)
+Ultralytics embraces the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) for its repositories, promoting openness, transparency, and collaborative enhancement in software development. This strong copyleft license ensures that all users and developers retain the freedom to use, modify, and share the software. It fosters community collaboration, ensuring that any improvements remain accessible to all.
+
+Users and developers are encouraged to familiarize themselves with the terms of AGPL-3.0 to contribute effectively and ethically to the Ultralytics open-source community.
+
+## Conclusion
+
+Thank you for your interest in contributing to [Ultralytics open-source](https://github.com/ultralytics) YOLO projects. Your participation is crucial in shaping the future of our software and fostering a community of innovation and collaboration. Whether you're improving code, reporting bugs, or suggesting features, your contributions make a significant impact.
+
+We're eager to see your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟

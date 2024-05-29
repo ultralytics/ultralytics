@@ -94,7 +94,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, regress=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, regress=None, speed=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -117,7 +119,7 @@ class Results(SimpleClass):
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.regress = Regress(regress) if regress is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
@@ -184,8 +186,8 @@ class Results(SimpleClass):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        """Return a new Results object with the same image, path, names and speed."""
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,
@@ -409,26 +411,32 @@ class Results(SimpleClass):
 
     def summary(self, normalize=False, decimals=5):
         """Convert the results to a summarized format."""
-        if self.probs is not None:
-            LOGGER.warning("Warning: Classify results do not support the `summary()` method yet.")
-            return
-
         # Create list of detection dictionaries
         results = []
-        data = self.boxes.data.cpu().tolist()
+        if self.probs is not None:
+            class_id = self.probs.top1
+            results.append(
+                {
+                    "name": self.names[class_id],
+                    "class": class_id,
+                    "confidence": round(self.probs.top1conf.item(), decimals),
+                }
+            )
+            return results
+
+        is_obb = self.obb is not None
+        data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
-            box = {
-                "x1": round(row[0] / w, decimals),
-                "y1": round(row[1] / h, decimals),
-                "x2": round(row[2] / w, decimals),
-                "y2": round(row[3] / h, decimals),
-            }
-            conf = round(row[-2], decimals)
-            class_id = int(row[-1])
-            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": box}
-            if self.boxes.is_track:
-                result["track_id"] = int(row[-3])  # track ID
+            class_id, conf = int(row.cls), round(row.conf.item(), decimals)
+            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            xy = {}
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
+            if data.is_track:
+                result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
                     "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
@@ -492,7 +500,7 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape
@@ -709,7 +717,7 @@ class OBB(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (7, 8), f"expected 7 or 8 values but got {n}"  # xywh, rotation, track_id, conf, cls
+        assert n in {7, 8}, f"expected 7 or 8 values but got {n}"  # xywh, rotation, track_id, conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 8
         self.orig_shape = orig_shape

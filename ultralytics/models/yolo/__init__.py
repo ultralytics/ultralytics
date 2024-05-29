@@ -6,4 +6,4 @@ from ultralytics.models.yolo import regress
 from .model import YOLO, YOLOWorld
 
 __all__ = "classify", "segment", "detect", "pose", "obb", "world", "YOLO", "YOLOWorld"
-__all__ += "regress"
+__all__ += "regress",

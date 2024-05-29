@@ -507,7 +507,7 @@ class ClassificationDataset:
         return samples
 
 # Regression dataloaders -------------------------------------------------------------------------------------------
-class RegressionDataset(torchvision.datasets.vision.VisionDataset):
+class RegressionDataset:
     """
     Regression Dataset.
 
@@ -522,7 +522,7 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
         album_transforms (callable, optional): Albumentations transforms applied to the dataset if augment is True.
     """
 
-    def __init__(self, args, img_path, augment=False, cache=False, prefix=""):
+    def __init__(self, root, args, img_path, augment=False, cache=False, prefix=""):
         """
         Initialize RegressionDataset object with image path, image size, augmentations, and cache settings.
 
@@ -532,9 +532,13 @@ class RegressionDataset(torchvision.datasets.vision.VisionDataset):
             augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
             cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
-        super().__init__(root=img_path)
+        import torchvision  # scope for faster 'import ultralytics'
+
+        # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
+        self.base = torchvision.datasets.vision.VisionDataset(root=root)        
         self.samples = self.get_samples(img_path)
-        
+        self.root = self.base.root
+
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""

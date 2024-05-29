@@ -299,13 +299,13 @@ class DetectionValidator(BaseValidator):
             )  # annotations
             anno_json = Path(self.args.anno_json) if self.args.anno_json else anno_json
 
-            pkg = "pycocotools" if self.is_coco else "lvis"
+            pkg = "lvis" if self.is_lvis else "pycocotools"
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
                 check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
-                if self.is_coco:
+                if not self.is_lvis:
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
 
@@ -318,7 +318,8 @@ class DetectionValidator(BaseValidator):
                     anno = LVIS(str(anno_json))  # init annotations api
                     pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
                     eval = LVISEval(anno, pred, "bbox")
-                eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                if self.is_coco or self.is_lvis:
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()

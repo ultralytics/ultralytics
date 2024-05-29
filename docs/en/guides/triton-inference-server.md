@@ -62,8 +62,9 @@ The Triton Model Repository is a storage location where Triton can access and lo
     from pathlib import Path
 
     # Define paths
+    model_name = "yolo"
     triton_repo_path = Path("tmp") / "triton_repo"
-    triton_model_path = triton_repo_path / "yolo"
+    triton_model_path = triton_repo_path / model_name
 
     # Create directories
     (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
@@ -86,6 +87,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
 Run the Triton Inference Server using Docker:
 
 ```python
+import contextlib
 import subprocess
 import time
 

@@ -88,14 +88,14 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
-            if i == 5:  # CoreML
-                assert not (IS_RASPBERRYPI or IS_JETSON), "CoreML export not supported on Raspberry Pi or NVIDIA Jetson"
-            if i == 9:  # Edge TPU
-                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif i == 7:  # TF GraphDef
+            if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif i == 9:  # Edge TPU
+                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i in {5, 10}:  # CoreML and TF.js
-                assert MACOS or LINUX, "export only supported on macOS and Linux"
+                assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
+                assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
+                assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
             if i in {6, 7, 8, 9, 10}:  # All TF formats

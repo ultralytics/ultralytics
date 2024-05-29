@@ -152,7 +152,7 @@ class Analytics:
         self.canvas.draw()
 
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.view_img = False   # for multiple line view_img not supported yet, coming soon!
+        self.view_img = False  # for multiple line view_img not supported yet, coming soon!
         self.write_and_display_line(im0)
 
     def write_and_display_line(self, im0):

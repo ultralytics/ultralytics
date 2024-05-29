@@ -293,6 +293,8 @@ nav:
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
+      - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
+      - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
       - Real-World Projects:
           - NEW 🚀 Analytics: guides/analytics.md
           - Object Counting: guides/object-counting.md

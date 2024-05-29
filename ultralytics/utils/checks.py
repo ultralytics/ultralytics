@@ -33,6 +33,7 @@ from ultralytics.utils import (
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    Retry,
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -42,7 +43,6 @@ from ultralytics.utils import (
     emojis,
     is_github_action_running,
     url2file,
-    Retry,
 )
 
 

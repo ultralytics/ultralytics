@@ -214,7 +214,6 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="pycocotools mlflow ray[tune]"
           fi
-          slow="pycocotools mlflow ray[tune]"
           pip install -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |

@@ -6,6 +6,11 @@
 FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
 RUN pip install --no-cache-dir nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
 
+# Set environment variables
+ENV APP_HOME /usr/src/ultralytics
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+ENV MKL_THREADING_LAYER=GNU
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -22,12 +27,12 @@ RUN apt update \
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-WORKDIR /usr/src/ultralytics
+WORKDIR $APP_HOME
 
-# Copy contents
-# COPY . /usr/src/ultralytics  # git permission issues inside container
-RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt /usr/src/ultralytics/
+# Copy contents and assign permissions
+COPY . $APP_HOME
+RUN chown -R root:root $APP_HOME
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
@@ -43,11 +48,6 @@ RUN pip install --no-cache-dir paddlepaddle>=2.6.0 x2paddle
 RUN pip install --no-cache-dir numpy==1.23.5
 # Remove exported models
 RUN rm -rf tmp
-
-# Set environment variables
-ENV OMP_NUM_THREADS=1
-# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
-ENV MKL_THREADING_LAYER=GNU
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

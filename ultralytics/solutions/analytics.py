@@ -122,7 +122,7 @@ class Analytics:
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
         for obj in labels_list:
             if obj not in self.lines:
-                line, = self.ax.plot([], [], label=obj, marker='o', markersize=15)
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=15)
                 self.lines[obj] = line
 
             x_data = self.lines[obj].get_xdata()

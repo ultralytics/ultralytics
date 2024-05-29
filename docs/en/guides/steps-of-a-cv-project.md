@@ -8,7 +8,7 @@ keywords: Computer Vision Steps, How Does Computer Vision Work, Computer Vision 
 
 ## Introduction
 
-Computer vision is a subfield of artificial intelligence (AI) that helps computers see and understand the world like humans do. It processes and analyzes images or videos to extract information, recognize patterns, and make decisions based on that data. 
+Computer vision is a subfield of artificial intelligence (AI) that helps computers see and understand the world like humans do. It processes and analyzes images or videos to extract information, recognize patterns, and make decisions based on that data.
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare), to gain valuable insights.
 
@@ -16,7 +16,7 @@ Computer vision techniques like [object detection](../tasks/detect.md), [image c
   <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQGf61lmNOm3xA/article-cover_image-shrink_720_1280/0/1656513646049?e=1722470400&v=beta&t=23Rqohhxfie38U5syPeL2XepV2QZe6_HSSC-4rAAvt4" alt="Overview of computer vision techniques">
 </p>
 
-Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you’ll be familiar with the steps involved in a computer vision project.  We’ll walk through everything from the beginning to the end of a project, explaining why each part is important. Let’s get started and make your computer vision project a success!
+Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you’ll be familiar with the steps involved in a computer vision project. We’ll walk through everything from the beginning to the end of a project, explaining why each part is important. Let’s get started and make your computer vision project a success!
 
 ## An Overview of a Computer Vision Project
 
@@ -36,7 +36,7 @@ Now that we know what to expect, let's dive right into the steps and get your pr
 
 ## Step 1: Defining Your Project’s Goals
 
-The first step in any computer vision project is clearly defining the problem you’re trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project’s objective will directly affect which computer vision task you need to focus on. 
+The first step in any computer vision project is clearly defining the problem you’re trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project’s objective will directly affect which computer vision task you need to focus on.
 
 Here are some examples of project objectives and the computer vision tasks that can be used to reach these objectives:
 
@@ -51,11 +51,11 @@ Here are some examples of project objectives and the computer vision tasks that 
 
 ### Step 1.5: Selecting the Right Model and Training Approach
 
-After understanding the project objective and suitable computer vision tasks, an essential part of defining the project goal is [selecting the right model](../models/index.md) and training approach. 
+After understanding the project objective and suitable computer vision tasks, an essential part of defining the project goal is [selecting the right model](../models/index.md) and training approach.
 
 Depending on the objective, you might choose to select the model first or after seeing what data you are able to collect in Step 2. For example, suppose your project is highly dependent on the availability of specific types of data. In that case, it may be more practical to gather and analyze the data first before selecting a model. On the other hand, if you have a clear understanding of the model requirements, you can choose the model first and then collect data that fits those specifications.
 
-Choosing between training from scratch or using transfer learning affects how you prepare your data. Training from scratch requires a diverse dataset to build the model’s understanding from the ground up. Transfer learning, on the other hand, allows you to use a pre-trained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model’s specific requirements. 
+Choosing between training from scratch or using transfer learning affects how you prepare your data. Training from scratch requires a diverse dataset to build the model’s understanding from the ground up. Transfer learning, on the other hand, allows you to use a pre-trained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model’s specific requirements.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1330/format:webp/1*zCnoXfPVcdXizTmhL68Rlw.jpeg" alt="Training From Scratch Vs. Using Transfer Learning">
@@ -117,7 +117,7 @@ By properly understanding, splitting, and augmenting your data, you can develop 
 
 ## Step 4: Model Training
 
-Once your dataset is ready for training, you can focus on setting up the necessary environment, managing your datasets, and training your model. 
+Once your dataset is ready for training, you can focus on setting up the necessary environment, managing your datasets, and training your model.
 
 First, you’ll need to make sure your environment is configured correctly. Typically, this includes the following:
 
@@ -141,7 +141,7 @@ It’s important to assess your model's performance using various metrics and re
 
 ## Step 6: Model Testing
 
-In this step, you can make sure that your model performs well on completely unseen data, confirming its readiness for deployment. The difference between model testing and model evaluation is that it focuses on verifying the final model's performance rather than iteratively improving it. 
+In this step, you can make sure that your model performs well on completely unseen data, confirming its readiness for deployment. The difference between model testing and model evaluation is that it focuses on verifying the final model's performance rather than iteratively improving it.
 
 It's important to thoroughly test and debug any common issues that may arise. Test your model on a separate test dataset that was not used during training or validation. This dataset should represent real-world scenarios to ensure the model's performance is consistent and reliable.
 

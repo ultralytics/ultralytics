@@ -37,12 +37,12 @@ Primary users include traffic management authorities and law enforcement, while 
 
 ### Setting Measurable Objectives
 
-Setting measurable objectives is key to the success of a computer vision project. These goals should be clear, achievable, and time-bound. 
+Setting measurable objectives is key to the success of a computer vision project. These goals should be clear, achievable, and time-bound.
 
 For example, if you are developing a system to estimate vehicle speeds on a highway. You could consider the following measurable objectives:
 
--  To achieve at least 95% accuracy in speed detection within six months, using a dataset of 10,000 vehicle images.
--  The system should be able to process real-time video feeds at 30 frames per second with minimal delay. 
+- To achieve at least 95% accuracy in speed detection within six months, using a dataset of 10,000 vehicle images.
+- The system should be able to process real-time video feeds at 30 frames per second with minimal delay.
 
 By setting specific and quantifiable goals, you can effectively track progress, identify areas for improvement, and ensure the project stays on course.
 
@@ -50,7 +50,7 @@ By setting specific and quantifiable goals, you can effectively track progress, 
 
 Your problem statement helps you conceptualize which computer vision task can solve your issue.
 
-For example, if your problem is monitoring vehicle speeds on a highway, the relevant computer vision task is object tracking. [Object tracking](../modes/track.md) is suitable because it allows the system to continuously follow each vehicle in the video feed, which is crucial for accurately calculating their speeds. 
+For example, if your problem is monitoring vehicle speeds on a highway, the relevant computer vision task is object tracking. [Object tracking](../modes/track.md) is suitable because it allows the system to continuously follow each vehicle in the video feed, which is crucial for accurately calculating their speeds.
 
 <p align="center">
   <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664f03ba300cf6e61689862f_FIG%20444.gif" alt="Example of Object Tracking">
@@ -134,7 +134,7 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 
 ### Comprehensive Guides and Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Explore the [official YOLOv8 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects. 
+- **Ultralytics YOLOv8 Documentation:** Explore the [official YOLOv8 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects.
 
 ## Conclusion
 

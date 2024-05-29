@@ -206,11 +206,16 @@ jobs:
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
+          slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
-          pip install -e . $torch pytest-cov "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'" --extra-index-url https://download.pytorch.org/whl/cpu
+          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
+              slow="pycocotools mlflow ray[tune]"
+          fi
+          slow="pycocotools mlflow ray[tune]"
+          pip install -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
@@ -220,7 +225,6 @@ jobs:
         run: |
           slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              pip install pycocotools mlflow "ray[tune]"
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
@@ -272,7 +276,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install --no-cache-dir -e ".[export]" pytest mlflow pycocotools "ray[tune]"
+          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]"
       - name: Check environment
         run: |
           yolo checks

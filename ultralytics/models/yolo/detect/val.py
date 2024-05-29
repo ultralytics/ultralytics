@@ -99,14 +99,18 @@ class DetectionValidator(BaseValidator):
                 max_det=self.args.max_det
             )
         else:
-            return ops.non_max_suppression(
-                preds,
-                self.args.conf,
-                self.args.iou,
-                labels=self.lb,
-                multi_label=True,
-                agnostic=self.args.single_cls,
-                max_det=self.args.max_det,
+            return (
+                preds
+                if self.args.end2end
+                else ops.non_max_suppression(
+                    preds,
+                    self.args.conf,
+                    self.args.iou,
+                    labels=self.lb,
+                    multi_label=True,
+                    agnostic=self.args.single_cls,
+                    max_det=self.args.max_det,
+                )
             )
 
     def _prepare_batch(self, si, batch):

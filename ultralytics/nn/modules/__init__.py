@@ -22,16 +22,20 @@ from .block import (
     C2,
     C3,
     C3TR,
+    CIB,
     DFL,
+    PSA,
     SPP,
     SPPELAN,
     SPPF,
     ADown,
+    Attention,
     BNContrastiveHead,
     Bottleneck,
     BottleneckCSP,
     C2f,
     C2fAttn,
+    C2fCIB,
     C3Ghost,
     C3x,
     CBFuse,
@@ -44,7 +48,9 @@ from .block import (
     Proto,
     RepC3,
     RepNCSPELAN4,
+    RepVGGDW,
     ResNetLayer,
+    SCDown,
     Silence,
 )
 from .conv import (
@@ -62,7 +68,9 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, Regress, Regress6
+from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
+from .head import Regress, Regress6
+
 from .transformer import (
     AIFI,
     MLP,
@@ -137,4 +145,10 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "Silence",
+    "RepVGGDW",
+    "CIB",
+    "C2fCIB",
+    "Attention",
+    "PSA",
+    "SCDown",
 )

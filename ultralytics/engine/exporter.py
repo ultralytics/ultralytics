@@ -253,6 +253,7 @@ class Exporter:
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
+                m.end2end = self.args.end2end
                 m.format = self.args.format
                 m.separate_outputs = self.args.separate_outputs
             elif isinstance(m, C2f):

@@ -1,3 +1,9 @@
+---
+comments: true
+description: Explore the new Teams feature in Ultralytics HUB! Manage, share, and collaborate efficiently on projects.
+keywords: Ultralytics HUB, Teams feature, collaboration, project management, team creation, invite members
+---
+
 # Ultralytics HUB Teams
 
 We're excited to introduce you to the new Teams feature within [Ultralytics HUB](https://bit.ly/ultralytics_hub) for our [Pro](./pro.md) users!

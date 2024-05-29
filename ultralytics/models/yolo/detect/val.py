@@ -31,8 +31,8 @@ class DetectionValidator(BaseValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize detection model with necessary variables and settings."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.nt_per_image = None
         self.nt_per_class = None
+        self.nt_per_image = None
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
@@ -170,9 +170,9 @@ class DetectionValidator(BaseValidator):
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
         stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
+        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         if len(stats) and stats["tp"].any():
             self.metrics.process(**stats)
         return self.metrics.results_dict

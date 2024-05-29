@@ -1,13 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import urllib
 from copy import copy
 from pathlib import Path
 
 import cv2
 import numpy as np
 import pytest
-import requests
 import torch
 import yaml
 from PIL import Image
@@ -135,15 +135,13 @@ def test_youtube():
     """
     Test YouTube inference.
 
-    Note: YouTube connection errors frequently occur during this test due to
-    the nature of network instability or YouTube server availability issues.
-    These errors are caught and logged to avoid test failures caused by external factors.
+    Note: ConnectionError may occur during this test due to network instability or YouTube server availability.
     """
     model = YOLO(MODEL)
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
-    except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
-        LOGGER.warning(f"YouTube connection error: {e}")
+    except urllib.error.HTTPError as e:  # handle 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
+        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

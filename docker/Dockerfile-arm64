@@ -32,8 +32,14 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $A
 # Remove python3.11/EXTERNALLY-MANAGED to avoid 'externally-managed-environment' issue, Debian 12 Bookworm error
 RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
-# Install pip packages
+# Upgrade pip packages
 RUN python3 -m pip install --upgrade pip wheel
+
+# Install tensorstore from .whl because pypi does not include aarch64 binaries
+RUN wget https://github.com/ultralytics/yolov5/releases/download/v7.0/tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
+RUN pip install tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
+
+# Install Ultralytics
 RUN pip install --no-cache-dir -e ".[export]"
 
 # Creates a symbolic link to make 'python' point to 'python3'

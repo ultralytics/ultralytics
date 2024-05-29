@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import urllib
 from copy import copy
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
@@ -136,7 +138,10 @@ def test_youtube():
     Note: ConnectionError may occur during this test due to network instability or YouTube server availability.
     """
     model = YOLO(MODEL)
-    model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+    try:
+        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+    except urllib.error.HTTPError as e:  # handle 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
+        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

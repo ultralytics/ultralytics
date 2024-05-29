@@ -37,7 +37,7 @@ on:
         default: true
       push:
         type: boolean
-        description: Push images to Docker Hub
+        description: Publish all Images to Docker Hub
 
 jobs:
   docker:

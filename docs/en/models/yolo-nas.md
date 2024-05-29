@@ -55,16 +55,16 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         from ultralytics import NAS
 
         # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # Display model information (optional)
         model.info()
 
         # Validate the model on the COCO8 example dataset
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

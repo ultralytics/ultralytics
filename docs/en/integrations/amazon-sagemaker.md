@@ -117,21 +117,22 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLOv8.
 ```python
 import json
 
+
 def output_fn(prediction_output, content_type):
     """Formats model outputs as JSON string according to content_type, extracting attributes like boxes, masks, keypoints."""
     print("Executing output_fn from inference.py ...")
     infer = {}
     for result in prediction_output:
         if result.boxes is not None:
-            infer['boxes'] = result.boxes.numpy().data.tolist()
+            infer["boxes"] = result.boxes.numpy().data.tolist()
         if result.masks is not None:
-            infer['masks'] = result.masks.numpy().data.tolist()
+            infer["masks"] = result.masks.numpy().data.tolist()
         if result.keypoints is not None:
-            infer['keypoints'] = result.keypoints.numpy().data.tolist()
+            infer["keypoints"] = result.keypoints.numpy().data.tolist()
         if result.obb is not None:
-            infer['obb'] = result.obb.numpy().data.tolist()
+            infer["obb"] = result.obb.numpy().data.tolist()
         if result.probs is not None:
-            infer['probs'] = result.probs.numpy().data.tolist()
+            infer["probs"] = result.probs.numpy().data.tolist()
     return json.dumps(infer)
 ```
 

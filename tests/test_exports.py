@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
@@ -14,32 +15,29 @@ from ultralytics.utils import (
     LINUX,
     MACOS,
     WINDOWS,
-    Retry,
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
-from . import MODEL, SOURCE
-
 
 def test_export_torchscript():
     """Test YOLO exports to TorchScript format."""
-    f = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 def test_export_onnx():
     """Test YOLO exports to ONNX format."""
-    f = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test YOLO exports to OpenVINO format."""
-    f = YOLO(MODEL).export(format="openvino", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    file = YOLO(MODEL).export(format="openvino", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
@@ -70,8 +68,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
-    with Retry(times=3, delay=1):  # retry in case of potential lingering multi-threaded file usage errors
-        shutil.rmtree(file)
+    shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
 @pytest.mark.slow
@@ -119,7 +116,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to TorchScript format."""
+    """Test YOLO exports to CoreML format."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
         imgsz=32,
@@ -139,8 +136,8 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 def test_export_coreml():
     """Test YOLO exports to CoreML format."""
     if MACOS:
-        f = YOLO(MODEL).export(format="coreml", imgsz=32)
-        YOLO(f)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
+        file = YOLO(MODEL).export(format="coreml", imgsz=32)
+        YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
     else:
         YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
 
@@ -153,8 +150,8 @@ def test_export_tflite():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="tflite", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)
+    file = model.export(format="tflite", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
@@ -166,8 +163,8 @@ def test_export_pb():
     Note TF suffers from install conflicts on Windows and macOS.
     """
     model = YOLO(MODEL)
-    f = model.export(format="pb", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)
+    file = model.export(format="pb", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
@@ -183,5 +180,5 @@ def test_export_paddle():
 @pytest.mark.slow
 def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
-    f = YOLO(MODEL).export(format="ncnn", imgsz=32)
-    YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    file = YOLO(MODEL).export(format="ncnn", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference

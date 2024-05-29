@@ -23,7 +23,7 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 [Jetson Orin](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Ampere architecture which brings drastically improved AI performance when compared to the previous generations. Below table compared few of the Jetson devices in the ecosystem.
 
 |                   | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano 8GB                                          | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
-| ----------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+|-------------------|------------------------------------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------|--------------------------------------------------------------|---------------------------------------------|
 | AI Performance    | 275 TOPS                                                         | 100 TOPS                                                        | 40 TOPs                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
 | GPU               | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
 | GPU Max Frequency | 1.3 GHz                                                          | 918 MHz                                                         | 625 MHz                                                       | 1377 MHz                                                    | 1100 MHz                                                     | 921MHz                                      |
@@ -158,16 +158,16 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model
-        model.export(format='engine')  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
-        trt_model = YOLO('yolov8n.engine')
+        trt_model = YOLO("yolov8n.engine")
 
         # Run inference
-        results = trt_model('https://ultralytics.com/images/bus.jpg')
+        results = trt_model("https://ultralytics.com/images/bus.jpg")
         ```
     === "CLI"
 
@@ -290,10 +290,10 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data='coco8.yaml', imgsz=640)
+        results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
     === "CLI"
 

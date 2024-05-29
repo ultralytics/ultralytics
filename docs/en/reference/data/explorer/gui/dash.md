@@ -8,7 +8,7 @@ keywords: Ultralytics, data explorer, gui, function reference, documentation, AI
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py). If you spot a problem please help fix it by [contributing](../../../../help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/explorer/gui/dash.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/explorer/gui/dash.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

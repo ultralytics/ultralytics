@@ -378,7 +378,7 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
+    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
@@ -387,14 +387,14 @@ class Annotator:
             points (tuple): region points for center point calculation to display text
             region_color (RGB): queue region color
             txt_color (RGB): text display color
-            fontsize (float): text fontsize
         """
+
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)
         center_y = sum(y_values) // len(points)
 
-        text_size = cv2.getTextSize(label, 0, fontScale=fontsize, thickness=self.tf)[0]
+        text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_width = text_size[0]
         text_height = text_size[1]
 
@@ -413,13 +413,12 @@ class Annotator:
             label,
             (text_x, text_y),
             0,
-            fontScale=fontsize,
+            fontScale=self.sf,
             color=txt_color,
             thickness=self.tf,
             lineType=cv2.LINE_AA,
         )
 
-    ### Parking management utils
     def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
         """
         Display the bounding boxes labels in parking management app.
@@ -445,7 +444,6 @@ class Annotator:
         cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
         cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
-    # Parking lot and object counting app
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
         """
         Display the overall statistics for parking lots
@@ -459,12 +457,12 @@ class Annotator:
 
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)
-
         text_y_offset = 0
-
         for label, value in text.items():
             txt = f"{label}: {value}"
-            text_size = cv2.getTextSize(txt, 0, int(self.sf * 1.5), int(self.tf * 1.5))[0]
+            text_size = cv2.getTextSize(txt, 0, self.sf, self.tf)[0]
+            if text_size[0] < 5 or text_size[1] < 5:
+                text_size = (5, 5)
             text_x = im0.shape[1] - text_size[0] - margin * 2 - horizontal_gap
             text_y = text_y_offset + text_size[1] + margin * 2 + vertical_gap
             rect_x1 = text_x - margin * 2
@@ -472,9 +470,7 @@ class Annotator:
             rect_x2 = text_x + text_size[0] + margin * 2
             rect_y2 = text_y + margin * 2
             cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
-            cv2.putText(
-                im0, txt, (text_x, text_y), 0, int(self.sf * 1.5), txt_color, int(self.tf * 1.5), lineType=cv2.LINE_AA
-            )
+            cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
             text_y_offset = rect_y2
 
     @staticmethod
@@ -518,7 +514,9 @@ class Annotator:
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
+    def plot_angle_and_count_and_stage(
+        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+    ):
         """
         Plot the pose angle, count value and step stage.
 
@@ -527,16 +525,17 @@ class Annotator:
             count_text (str): counts value for workout monitoring
             stage_text (str): stage decision for workout monitoring
             center_kpt (int): centroid pose index for workout monitoring
-            line_thickness (int): thickness for text display
+            color (tuple): text background color for workout monitoring
+            txt_color (tuple): text foreground color for workout monitoring
         """
+
         angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
-        font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
         angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
         angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
+        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
         cv2.rectangle(
             self.im,
             angle_background_position,
@@ -544,19 +543,19 @@ class Annotator:
                 angle_background_position[0] + angle_background_size[0],
                 angle_background_position[1] + angle_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
 
         # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
         count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
         count_background_position = (
             angle_background_position[0],
             angle_background_position[1] + angle_background_size[1] + 5,
         )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + (line_thickness * 2))
+        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
 
         cv2.rectangle(
             self.im,
@@ -565,13 +564,13 @@ class Annotator:
                 count_background_position[0] + count_background_size[0],
                 count_background_position[1] + count_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
 
         # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
         stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
         stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
         stage_background_size = (stage_text_width + 10, stage_text_height + 10)
@@ -583,10 +582,10 @@ class Annotator:
                 stage_background_position[0] + stage_background_size[0],
                 stage_background_position[1] + stage_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
         """
@@ -626,29 +625,30 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
+
+        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance M: {distance_m:.2f}m",
             (20, 50),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance MM: {distance_mm:.2f}mm",
             (20, 100),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 
@@ -656,7 +656,7 @@ class Annotator:
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
         """
         Function for pinpoint human-vision eye mapping and plotting.
 
@@ -665,13 +665,11 @@ class Annotator:
             center_point (tuple): center point for vision eye view
             color (tuple): object centroid and line color value
             pin_color (tuple): visioneye point color value
-            thickness (int): int value for line thickness
-            pins_radius (int): visioneye point radius value
         """
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
-        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
-        cv2.line(self.im, center_point, center_bbox, color, thickness)
+        cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
+        cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395

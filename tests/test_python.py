@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import urllib
 from copy import copy
 from pathlib import Path
 
@@ -11,24 +12,23 @@ import torch
 import yaml
 from PIL import Image
 
+from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASKS, TASK2DATA
+from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
-    Retry,
     checks,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
-
-from . import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
 
 
 def test_model_forward():
@@ -102,7 +102,7 @@ def test_predict_img(model_name):
 def test_predict_visualize(model):
     """Test model predict methods with 'visualize=True' arguments."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
-    
+
 
 def test_predict_grey_and_4ch():
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images."""
@@ -131,15 +131,17 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@Retry(times=3, delay=10)
 def test_youtube():
     """
     Test YouTube inference.
 
-    Marked --slow to reduce YouTube API rate limits risk.
+    Note: ConnectionError may occur during this test due to network instability or YouTube server availability.
     """
     model = YOLO(MODEL)
-    model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+    try:
+        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+    except urllib.error.HTTPError as e:  # handle 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
+        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

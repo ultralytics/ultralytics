@@ -18,13 +18,10 @@ Now, let’s get to the heart of defining a clear problem statement for your pro
 
 Setting clear goals and objectives for your project is the first big step toward finding the most effective solutions. Let’s understand how you can clearly define your project’s problem statement:
 
-- Identify the Core Issue: Pinpoint the specific challenge your computer vision project aims to solve.
-
-- Determine the Scope: Define the boundaries of your problem.
-
-- Consider End Users and Stakeholders: Identify who will be affected by the solution.
-
-- Analyze Project Requirements and Constraints: Assess available resources (time, budget, personnel) and identify any technical or regulatory constraints.
+- **Identify the Core Issue:** Pinpoint the specific challenge your computer vision project aims to solve.
+- **Determine the Scope:** Define the boundaries of your problem.
+- **Consider End Users and Stakeholders:** Identify who will be affected by the solution.
+- **Analyze Project Requirements and Constraints:** Assess available resources (time, budget, personnel) and identify any technical or regulatory constraints.
 
 ### Example of a Business Problem Statement
 
@@ -36,7 +33,7 @@ Consider a computer vision project where you want to [estimate the speed of vehi
   <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664efc6e1c4bef6407824558_Abi%20Speed%20fig1.png" alt="Speed Estimation Using YOLOv8">
 </p>
 
-Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the general public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and data security must be considered.
+Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and data security must be considered.
 
 ### Setting Measurable Objectives
 
@@ -45,7 +42,6 @@ Setting measurable objectives is key to the success of a computer vision project
 For example, if you are developing a system to estimate vehicle speeds on a highway. You could consider the following measurable objectives:
 
 -  To achieve at least 95% accuracy in speed detection within six months, using a dataset of 10,000 vehicle images.
- 
 -  The system should be able to process real-time video feeds at 30 frames per second with minimal delay. 
 
 By setting specific and quantifiable goals, you can effectively track progress, identify areas for improvement, and ensure the project stays on course.
@@ -67,15 +63,12 @@ Other tasks, like [object detection](../tasks/detect.md), are not suitable as th
 The order of model selection, dataset preparation, and training approach depends on the specifics of your project. Here are a few tips to help you decide:
 
 - **Clear Understanding of the Problem**: If your problem and objectives are well-defined, start with model selection. Then, prepare your dataset and decide on the training approach based on the model's requirements.
-
     - **Example**: Start by selecting a model for a traffic monitoring system that estimates vehicle speeds. Choose an object tracking model, gather and annotate highway videos, and then train the model with techniques for real-time video processing.
 
 - **Unique or Limited Data**: If your project is constrained by unique or limited data, begin with dataset preparation. For instance, if you have a rare dataset of medical images, annotate and prepare the data first. Then, select a model that performs well on such data, followed by choosing a suitable training approach.
-
     - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for transfer learning. Finally, decide on a training approach, including data augmentation, to expand the dataset.
 
 - **Need for Experimentation**: In projects where experimentation is crucial, start with the training approach. This is common in research projects where you might initially test different training techniques. Refine your model selection after identifying a promising method and prepare the dataset based on your findings.
-
     - **Example**: In a project exploring new methods for detecting manufacturing defects, start with experimenting on a small data subset. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.
 
 ## Common Discussion Points in the Community
@@ -107,11 +100,8 @@ If you want to use the classes the model was pre-trained on, a practical approac
 [Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project. For instance, the deployment environment must handle the computational load of your model. Here are some practical examples:
 
 - **Edge Devices**: Deploying on edge devices like smartphones or IoT devices requires lightweight models due to their limited computational resources. Example technologies include [TensorFlow Lite](../integrations/tflite.md) and [ONNX Runtime](../integrations/onnx.md), which are optimized for such environments.
-
 - **Cloud Servers**: Cloud deployments can handle more complex models with larger computational demands. Cloud platforms like [AWS](../integrations/amazon-sagemaker.md), Google Cloud, and Azure offer robust hardware options that can scale based on the project’s needs.
-
 - **On-Premise Servers**: For scenarios requiring high data privacy and security, deploying on-premise might be necessary. This involves significant upfront hardware investment but allows full control over the data and infrastructure.
-
 - **Hybrid Solutions**: Some projects might benefit from a hybrid approach, where some processing is done on the edge, while more complex analyses are offloaded to the cloud. This can balance performance needs with cost and latency considerations.
 
 Each deployment option offers different benefits and challenges, and the choice depends on specific project requirements like performance, cost, and security.
@@ -121,20 +111,17 @@ Each deployment option offers different benefits and challenges, and the choice 
 Here are some questions that might encounter while defining your computer vision project:
 
 - **Q1:** How do I set effective and measurable objectives for my computer vision project?
-
-- **A1:** To set effective and measurable objectives, follow the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bound. Define what success looks like, how it will be measured, ensure the goals are attainable with available resources, align them with broader project aims, and set a deadline.
+    - **A1:** To set effective and measurable objectives, follow the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bound. Define what success looks like, how it will be measured, ensure the goals are attainable with available resources, align them with broader project aims, and set a deadline.
 
 <p align="center">
   <img width="100%" src="https://ugc.futurelearn.com/uploads/assets/58/fa/58fa21ca-e284-4086-a1ce-58689ea49982.png" alt="Overview of SMART criteria">
 </p>
 
 - **Q2:** Can the scope of a computer vision project change after the problem statement is defined?
-
-- **A2:** Yes, the scope of a computer vision project can change as new information becomes available or as project requirements evolve. It's important to regularly review and adjust the problem statement and objectives to reflect any new insights or changes in project direction.
+    - **A2:** Yes, the scope of a computer vision project can change as new information becomes available or as project requirements evolve. It's important to regularly review and adjust the problem statement and objectives to reflect any new insights or changes in project direction.
 
 - **Q3:** What are some common challenges in defining the problem for a computer vision project?
-
-- **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
+    - **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
 
 ## Connecting with the Community
 
@@ -143,7 +130,6 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 ### Community Support Channels
 
 - **GitHub Issues:** Head over to the YOLOv8 GitHub repository. You can use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers can assist with specific problems you encounter.
-
 - **Ultralytics Discord Server:** Become part of the  [Ultralytics Discord server](https://ultralytics.com/discord/). Connect with fellow users and developers, seek support, exchange knowledge, and discuss ideas.
 
 ### Comprehensive Guides and Documentation

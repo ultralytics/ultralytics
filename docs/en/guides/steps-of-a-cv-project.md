@@ -23,13 +23,9 @@ Working on your own computer vision projects is a great way to understand and le
 Before discussing the details of each step involved in a computer vision project, let's look at the overall process. If you started a computer vision project today, you’d take the following steps:
 
 - Your first priority would be to understand your project’s requirements.
-
 - Then, you’d collect and accurately label the images that will help train your model.
-
 - Next, you’d clean your data and apply augmentation techniques to prepare it for model training.
-
 - After model training, you’d thoroughly test and evaluate your model to make sure it performs consistently under different conditions.
-
 - Finally, you’d deploy your model into the real world and update it based on new insights and feedback.
 
 <p align="center">
@@ -44,17 +40,14 @@ The first step in any computer vision project is clearly defining the problem yo
 
 Here are some examples of project objectives and the computer vision tasks that can be used to reach these objectives:
 
-- Objective: To develop a system that can monitor and manage the flow of different vehicle types on highways, improving traffic management and safety.
+- **Objective:** To develop a system that can monitor and manage the flow of different vehicle types on highways, improving traffic management and safety.
+    - **Computer Vision Task:** Object detection is ideal for traffic monitoring because it efficiently locates and identifies multiple vehicles. It is less computationally demanding than image segmentation, which provides unnecessary detail for this task, ensuring faster, real-time analysis.
 
-    - Computer Vision Task: Object detection is ideal for traffic monitoring because it efficiently locates and identifies multiple vehicles. It is less computationally demanding than image segmentation, which provides unnecessary detail for this task, ensuring faster, real-time analysis.
+- **Objective:** To develop a tool that assists radiologists by providing precise, pixel-level outlines of tumors in medical imaging scans.
+    - **Computer Vision Task:** Image segmentation is suitable for medical imaging because it provides accurate and detailed boundaries of tumors that are crucial for assessing size, shape, and treatment planning.
 
-- Objective: To develop a tool that assists radiologists by providing precise, pixel-level outlines of tumors in medical imaging scans.
-
-    - Computer Vision Task: Image segmentation is suitable for medical imaging because it provides accurate and detailed boundaries of tumors that are crucial for assessing size, shape, and treatment planning.
-
-- Objective: To create a digital system that categorizes various documents (e.g., invoices, receipts, legal paperwork) to improve organizational efficiency and document retrieval.
-
-    - Computer Vision Task: Image classification is ideal here as it handles one document at a time, without needing to consider the document's position in the image. This approach simplifies and accelerates the sorting process.
+- **Objective:** To create a digital system that categorizes various documents (e.g., invoices, receipts, legal paperwork) to improve organizational efficiency and document retrieval.
+    - **Computer Vision Task:** Image classification is ideal here as it handles one document at a time, without needing to consider the document's position in the image. This approach simplifies and accelerates the sorting process.
 
 ### Step 1.5: Selecting the Right Model and Training Approach
 
@@ -73,13 +66,9 @@ Note: When choosing a model, consider its [deployment](./model-deployment-option
 Before getting into the hands-on work of a computer vision project, it's important to have a clear understanding of these details. Double-check that you've considered the following before moving on to Step 2:
 
 - Clearly define the problem you’re trying to solve.
-
 - Determine the end goal of your project.
-
 - Identify the specific computer vision task needed (e.g., object detection, image classification, image segmentation).
-
 - Decide whether to train a model from scratch or use transfer learning.
-
 - Select the appropriate model for your task and deployment needs.
 
 ## Step 2: Data Collection and Data Annotation
@@ -90,11 +79,9 @@ Some libraries, like Ultralytics, provide [built-in support for various datasets
 
 However, if you choose to collect images or take your own pictures, you’ll need to annotate your data. Data annotation is the process of labeling your data to impart knowledge to your model. The type of data annotation you’ll work with depends on your specific computer vision technique. Here are some examples:
 
-- Image Classification: You’ll label the entire image as a single class.
-
-- Object Detection: You’ll draw bounding boxes around each object in the image and label each box.
-
-- Image Segmentation: You’ll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
+- **Image Classification:** You’ll label the entire image as a single class.
+- **Object Detection:** You’ll draw bounding boxes around each object in the image and label each box.
+- **Image Segmentation:** You’ll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/0*VhpVAAJnvq5ZE_pv" alt="Different Types of Image Annotation">
@@ -108,11 +95,9 @@ After collecting and annotating your image data, it's important to first split y
 
 Here's how to split your data:
 
-- Training Set: It is the largest portion of your data, typically 70-80% of the total, used to train your model.
-
-- Validation Set: Usually around 10-15% of your data; this set is used to tune hyperparameters and validate the model during training, helping to prevent overfitting.
-
-- Test Set: The remaining 10-15% of your data is set aside as the test set. It is used to evaluate the model's performance on unseen data after training is complete.
+- **Training Set:** It is the largest portion of your data, typically 70-80% of the total, used to train your model.
+- **Validation Set:** Usually around 10-15% of your data; this set is used to tune hyperparameters and validate the model during training, helping to prevent overfitting.
+- **Test Set:** The remaining 10-15% of your data is set aside as the test set. It is used to evaluate the model's performance on unseen data after training is complete.
 
 After splitting your data, you can perform data augmentation by applying transformations like rotating, scaling, and flipping images to artificially increase the size of your dataset. Data augmentation makes your model more robust to variations and improves its performance on unseen images.
 
@@ -136,8 +121,7 @@ Once your dataset is ready for training, you can focus on setting up the necessa
 
 First, you’ll need to make sure your environment is configured correctly. Typically, this includes the following:
 
-- Installing essential libraries and frameworks like TensorFlow, PyTorch, or [Ultralytics](../quickstart.md). 
-
+- Installing essential libraries and frameworks like TensorFlow, PyTorch, or [Ultralytics](../quickstart.md).
 - If you are using a GPU, installing libraries like CUDA and cuDNN will help enable GPU acceleration and speed up the training process.
 
 Then, you can load your training and validation datasets into your environment. Normalize and preprocess the data through resizing, format conversion, or augmentation. With your model selected, configure the layers and specify hyperparameters. Compile the model by setting the loss function, optimizer, and performance metrics.
@@ -150,9 +134,8 @@ It's important to keep in mind that proper dataset management is vital for effic
 
 It’s important to assess your model's performance using various metrics and refine it to improve accuracy. [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. Fine-tuning ensures the model is optimized for the best possible performance.
 
-- [Performance Metrics](./yolo-performance-metrics.md): Use metrics like accuracy, precision, recall, and F1-score to evaluate your model’s performance. These metrics provide insights into how well your model is making predictions.
-
-- [Hyperparameter Tuning](./hyperparameter-tuning.md): Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
+- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, precision, recall, and F1-score to evaluate your model’s performance. These metrics provide insights into how well your model is making predictions.
+- **[Hyperparameter Tuning](./hyperparameter-tuning.md):** Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
 
 - Fine-Tuning: Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking learning rates, batch sizes, or other model parameters.
 
@@ -170,11 +153,9 @@ Once your model has been thoroughly tested, it's time to deploy it. Deployment i
 
 - Setting Up the Environment: Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
 
-- [Exporting the Model](../modes/export.md): Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLOv8) to ensure compatibility with your deployment platform.
-
-- Deploying the Model: Deploy the model by setting up APIs or endpoints and integrating it with your application.
-
-- Ensuring Scalability: Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
+- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLOv8) to ensure compatibility with your deployment platform.
+- **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
+- **Ensuring Scalability**: Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
@@ -193,20 +174,16 @@ In addition to monitoring and maintenance, documentation is also key. Thoroughly
 Here are some common questions that might arise during a computer vision project:
 
 - **Q1:** How do the steps change if I already have a dataset or data when starting a computer vision project?
-
-- **A1:** Starting with a pre-existing dataset or data affects the initial steps of your project. In Step 1, along with deciding the computer vision task and model, you’ll also need to explore your dataset thoroughly. Understanding its quality, variety, and limitations will guide your choice of model and training approach. Your approach should align closely with the data's characteristics for more effective outcomes. Depending on your data or dataset, you may be able to skip Step 2 as well.
+    - **A1:** Starting with a pre-existing dataset or data affects the initial steps of your project. In Step 1, along with deciding the computer vision task and model, you’ll also need to explore your dataset thoroughly. Understanding its quality, variety, and limitations will guide your choice of model and training approach. Your approach should align closely with the data's characteristics for more effective outcomes. Depending on your data or dataset, you may be able to skip Step 2 as well.
 
 - **Q2:**  I’m not sure what computer vision project to start my AI learning journey with.
-
-- **A2:**  Check out our [guides on Real-World Projects](./index.md) for inspiration and guidance.
+    - **A2:**  Check out our [guides on Real-World Projects](./index.md) for inspiration and guidance.
 
 - **Q3:** I don’t want to train a model. I just want to try running a model on an image. How can I do that?
-
-- **A3:** You can use a pre-trained model to run predictions on an image without training a new model. Check out the [YOLOv8 predict docs page](../modes/predict.md) for instructions on how to use a pre-trained YOLOv8 model to make predictions on your images.
+    - **A3:** You can use a pre-trained model to run predictions on an image without training a new model. Check out the [YOLOv8 predict docs page](../modes/predict.md) for instructions on how to use a pre-trained YOLOv8 model to make predictions on your images.
 
 - **Q4:** Where can I find more detailed articles and updates about computer vision applications and YOLOv8?
-
-- **A4:** For more detailed articles, updates, and insights about computer vision applications and YOLOv8, visit the [Ultralytics blog page](https://www.ultralytics.com/blog). The blog covers a wide range of topics and provides valuable information to help you stay updated and improve your projects.
+    - **A4:** For more detailed articles, updates, and insights about computer vision applications and YOLOv8, visit the [Ultralytics blog page](https://www.ultralytics.com/blog). The blog covers a wide range of topics and provides valuable information to help you stay updated and improve your projects.
 
 ## Engaging with the Community
 
@@ -215,7 +192,6 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 ### Community Resources
 
 - **GitHub Issues:** Check out the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
-
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to interact with other users and developers, get support, and share insights.
 
 ### Official Documentation

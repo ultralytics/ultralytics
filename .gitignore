@@ -141,7 +141,6 @@ dmypy.json
 datasets/
 runs/
 wandb/
-tests/
 .DS_Store
 
 # Neural Network weights -----------------------------------------------------------------------------------------------

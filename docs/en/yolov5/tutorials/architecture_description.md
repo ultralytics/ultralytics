@@ -32,6 +32,7 @@ To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 ```python
 import time
+
 import torch
 import torch.nn as nn
 
@@ -87,7 +88,7 @@ def main():
     print(f"SPPF time: {time.time() - t_start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 

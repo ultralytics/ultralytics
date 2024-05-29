@@ -126,7 +126,7 @@ def main():
     # Update edit links
     update_subdir_edit_links(
         subdir="hub/sdk/",  # do not use leading slash
-        docs_url="https://github.com/ultralytics/hub-sdk/tree/develop/docs/",
+        docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
     )
 
     # Update HTML file head section

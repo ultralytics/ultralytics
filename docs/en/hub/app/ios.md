@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Execute object detection in real-time on your iOS devices utilizing YOLO models. Leverage the power of the Apple Neural Engine and Core ML for fast and efficient object detection.
-keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple Neural Engine, Core ML, FP16, INT8, quantization
+description: Transform your iOS device into a powerful object detection tool with the Ultralytics iOS App, powered by YOLO models.
+keywords: Ultralytics, iOS app, YOLO, object detection, real-time, iPhone, iPad, quantization, Apple Neural Engine, Core ML
 ---
 
 # Ultralytics iOS App: Real-time Object Detection with YOLO Models
@@ -16,7 +16,7 @@ keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple 
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

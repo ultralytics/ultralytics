@@ -1,17 +1,16 @@
 ---
 comments: true
-description: Learn how to manage Ultralytics HUB projects. Understand effective strategies to create, share, edit, delete, and compare models in an organized workspace.
-keywords: Ultralytics, HUB projects, Create project, Edit project, Share project, Delete project, Compare Models, Model Management
+description: Effortlessly consolidate, manage, and enhance your AI models with Ultralytics HUB projects. Start now!.
+keywords: Ultralytics HUB, manage AI models, project creation, model comparison, model management
 ---
 
 # Ultralytics HUB Projects
 
-[Ultralytics HUB](https://hub.ultralytics.com/) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, Ultralytics HUB projects allow you to group these models together.
+[Ultralytics HUB](https://bit.ly/ultralytics_hub) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, [Ultralytics HUB](https://bit.ly/ultralytics_hub) projects allow you to group these models together.
 
 This creates a unified and organized workspace that facilitates easier model management, comparison and development. Having similar models or various iterations together can facilitate rapid benchmarking, as you can compare their effectiveness. This can lead to faster, more insightful iterative development and refinement of your models.
 
 <p align="center">
-  <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gc6K5eKrTNQ"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -23,47 +22,45 @@ This creates a unified and organized workspace that facilitates easier model man
 
 ## Create Project
 
-Navigate to the [Projects](https://hub.ultralytics.com/projects) page by clicking on the **Projects** button in the sidebar.
+Navigate to the [Projects](https://hub.ultralytics.com/projects) page by clicking on the **Projects** button in the sidebar and click on the **Create Project** button on the top right of the page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Projects button in the sidebar](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_1.jpg)
+![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Projects button in the sidebar and one to the Create Project button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_2.jpg)
 
 ??? tip "Tip"
 
-    You can also create a project directly from the [Home](https://hub.ultralytics.com/home) page.
+    You can create a project directly from the [Home](https://hub.ultralytics.com/home) page.
 
-    ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_2.jpg)
+    ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_1.jpg)
 
-Click on the **Create Project** button on the top right of the page. This action will trigger the **Create Project** dialog, opening up a suite of options for tailoring your project to your needs.
-
-![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Create Project button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_3.jpg)
+This action will trigger the **Create Project** dialog, opening up a suite of options for tailoring your project to your needs.
 
 Type the name of your project in the _Project name_ field or keep the default name and finalize the project creation with a single click.
 
-You have the additional option to enrich your project with a description and a unique image, enhancing its recognizability on the Projects page.
+You have the additional option to enrich your project with a description and a unique image, enhancing its recognizability on the [Projects](https://hub.ultralytics.com/projects) page.
 
 When you're happy with your project configuration, click **Create**.
 
-![Ultralytics HUB screenshot of the Create Project dialog with an arrow pointing to the Create button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_4.jpg)
+![Ultralytics HUB screenshot of the Create Project dialog with an arrow pointing to the Create button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_3.jpg)
 
-After your project is created, you will be able to access it from the Projects page.
+After your project is created, you will be able to access it from the [Projects](https://hub.ultralytics.com/projects) page.
 
-![Ultralytics HUB screenshot of the Projects page with an arrow pointing to one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_5.jpg)
+![Ultralytics HUB screenshot of the Projects page with an arrow pointing to one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_4.jpg)
 
 Next, [train a model](./models.md#train-model) inside your project.
 
-![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_6.jpg)
+![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_5.jpg)
 
 ## Share Project
 
-!!! Info "Info"
+!!! info "Info"
 
-    Ultralytics HUB's sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing Ultralytics HUB users and those who have yet to create an account.
+    [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://bit.ly/ultralytics_hub) users and those who have yet to create an account.
 
 ??? note "Note"
 
     You have control over the general access of your projects.
 
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the project, regardless of whether they have an Ultralytics HUB account or not.
+    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the project, regardless of whether they have an [Ultralytics HUB](https://bit.ly/ultralytics_hub) account or not.
 
 Navigate to the Project page of the project you want to share, open the project actions dropdown and click on the **Share** option. This action will trigger the **Share Project** dialog.
 
@@ -71,7 +68,7 @@ Navigate to the Project page of the project you want to share, open the project 
 
 ??? tip "Tip"
 
-    You can also share a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
+    You can share a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Share option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_share_project_2.jpg)
 
@@ -99,7 +96,7 @@ Navigate to the Project page of the project you want to edit, open the project a
 
 ??? tip "Tip"
 
-    You can also edit a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
+    You can edit a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Edit option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_edit_project_2.jpg)
 
@@ -115,7 +112,7 @@ Navigate to the Project page of the project you want to delete, open the project
 
 ??? tip "Tip"
 
-    You can also delete a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
+    You can delete a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Delete option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_delete_project_2.jpg)
 
@@ -123,11 +120,11 @@ Navigate to the Project page of the project you want to delete, open the project
 
     When deleting a project, the models inside the project will be deleted as well.
 
-??? note "Note"
+!!! note "Note"
 
     If you change your mind, you can restore the project from the [Trash](https://hub.ultralytics.com/trash) page.
 
-    ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to the Restore option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_delete_project_3.jpg)
+    ![Ultralytics HUB screenshot of the Trash page with an arrow pointing to Trash button in the sidebar and one to the Restore option of one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_delete_project_3.jpg)
 
 ## Compare Models
 
@@ -147,11 +144,15 @@ This will display all the relevant charts. Each chart corresponds to a different
 
     ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_4.jpg)
 
+    Furthermore, to properly analyze the data, you can utilize the zoom feature.
+
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded and zoomed](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_5.jpg)
+
 ??? tip "Tip"
 
     You have the flexibility to customize your view by selectively hiding certain models. This feature allows you to concentrate on the models of interest.
 
-    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the hide/unhide icon of one of the model](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_5.jpg)
+    ![Ultralytics HUB screenshot of the Charts tab inside the Project page with an arrow pointing to the hide/unhide icon of one of the model](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_6.jpg)
 
 ## Reorder Models
 

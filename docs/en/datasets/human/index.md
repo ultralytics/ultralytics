@@ -69,7 +69,7 @@ Box coordinates must be in **normalized xywh** format (from 0 to 1). If your box
 
 These categories help in the study of diverse populations and enable the development of models that are inclusive and non-biased.
 
-When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
+When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](../detect/coco8.md) example below.
 <p align="center"><img width="800" src="https://github.com/IvorZhu331/ultralytics/assets/26833433/a55ec82d-2bb5-40f9-ac5c-f935e7eb9f07" alt="Example dataset directory structure"></p>
 
 ## Supported Datasets

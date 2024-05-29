@@ -131,7 +131,7 @@ class Analytics:
         warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
             if obj not in self.lines:
-                line, = self.ax.plot([], [], label=obj, marker='o', markersize=15)
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=15)
                 self.lines[obj] = line
 
             x_data = self.lines[obj].get_xdata()

@@ -29,10 +29,9 @@ RUN apt upgrade --no-install-recommends -y openssl tar
 # Create working directory
 WORKDIR $APP_HOME
 
-# Copy contents (previously used git clone to avoid permission errors)
+# Copy contents and assign permissions
 COPY . $APP_HOME
 RUN chown -R root:root $APP_HOME
-# RUN git clone https://github.com/ultralytics/ultralytics -b main $APP_HOME
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Install pip packages

@@ -51,7 +51,7 @@ class SegmentationValidator(DetectionValidator):
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
-        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[])
+        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
@@ -112,6 +112,7 @@ class SegmentationValidator(DetectionValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
+            stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():

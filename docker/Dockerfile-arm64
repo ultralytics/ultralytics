@@ -36,8 +36,9 @@ RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 RUN python3 -m pip install --upgrade pip wheel
 
 # Install tensorstore from .whl because pypi does not include aarch64 binaries
-RUN wget https://github.com/ultralytics/yolov5/releases/download/v7.0/tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
-RUN pip install tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
+# RUN wget https://github.com/ultralytics/yolov5/releases/download/v7.0/tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
+# RUN pip install tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
+RUN pip install --no-cache-dir https://github.com/ultralytics/yolov5/releases/download/v7.0/tensorstore-0.1.59-cp311-cp311-linux_aarch64.whl
 
 # Install Ultralytics
 RUN pip install --no-cache-dir -e ".[export]"

@@ -33,6 +33,7 @@ from ultralytics.utils import (
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    Retry,
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -381,6 +382,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
+    @Retry(times=2, delay=1)
+    def attempt_install(packages, commands):
+        """Attempt pip install command with retries on failure."""
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
@@ -389,7 +395,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(subprocess.check_output(f"pip install --no-cache-dir {s} {cmds}", shell=True).decode())
+                LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"

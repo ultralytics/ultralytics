@@ -114,7 +114,7 @@ jobs:
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         uses: nick-invision/retry@v3
         with:
-          timeout_minutes: 60
+          timeout_minutes: 120
           retry_wait_seconds: 30
           max_attempts: 2 # retry once
           command: |

@@ -32,12 +32,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $A
 RUN grep -v "opencv-python" pyproject.toml > temp.toml && mv temp.toml pyproject.toml
 
 # Download onnxruntime-gpu 1.15.1 for Jetson Linux 35.2.1 (JetPack 5.1). Other versions can be seen in https://elinux.org/Jetson_Zoo#ONNX_Runtime
-RUN wget https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl -O onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
+ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
 
 # Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
-RUN pip install --no-cache-dir tqdm matplotlib pyyaml psutil pandas onnx
 RUN pip install --no-cache-dir -e ".[export]"
 
 

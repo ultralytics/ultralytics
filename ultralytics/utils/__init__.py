@@ -23,8 +23,6 @@ import numpy as np
 import torch
 import yaml
 from tqdm import tqdm as tqdm_original
-import habana_frameworks.torch.gpu_migration
-import habana_frameworks.torch.core as htcore
 
 from ultralytics import __version__
 

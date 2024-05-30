@@ -156,11 +156,13 @@ nav:
           - models/index.md
       - Datasets:
           - datasets/index.md
+      - Solutions:
+          - solutions/index.md
       - Guides:
           - guides/index.md
-      - New 🚀 Analytics: guides/analytics.md
       - Explorer:
           - datasets/explorer/index.md
+      - NEW 🚀 Analytics: guides/analytics.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -184,6 +186,20 @@ nav:
           - Configuration: usage/cfg.md
           - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
+      - Modes:
+          - modes/index.md
+      - Tasks:
+          - tasks/index.md
+      - Models:
+          - models/index.md
+      - Datasets:
+          - datasets/index.md
+      - Solutions:
+          - solutions/index.md
+      - Guides:
+          - guides/index.md
+      - Explorer:
+          - datasets/explorer/index.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -217,7 +233,7 @@ nav:
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
   - Datasets:
       - datasets/index.md
-      - NEW 🚀 Explorer:
+      - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard: datasets/explorer/dashboard.md
@@ -269,11 +285,22 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - NEW 🚀 Explorer:
-      - datasets/explorer/index.md
-      - Explorer API: datasets/explorer/api.md
-      - Explorer Dashboard Demo: datasets/explorer/dashboard.md
-      - VOC Exploration Example: datasets/explorer/explorer.ipynb
+  - NEW 🚀 Solutions:
+      - solutions/index.md
+      - NEW 🚀 Analytics: guides/analytics.md
+      - Object Counting: guides/object-counting.md
+      - Object Cropping: guides/object-cropping.md
+      - Object Blurring: guides/object-blurring.md
+      - Workouts Monitoring: guides/workouts-monitoring.md
+      - Objects Counting in Regions: guides/region-counting.md
+      - Security Alarm System: guides/security-alarm-system.md
+      - Heatmaps: guides/heatmaps.md
+      - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
+      - VisionEye Mapping: guides/vision-eye.md
+      - Speed Estimation: guides/speed-estimation.md
+      - Distance Calculation: guides/distance-calculation.md
+      - Queue Management: guides/queue-management.md
+      - Parking Management: guides/parking-management.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -295,21 +322,11 @@ nav:
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
       - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
-      - Real-World Projects:
-          - NEW 🚀 Analytics: guides/analytics.md
-          - Object Counting: guides/object-counting.md
-          - Object Cropping: guides/object-cropping.md
-          - Object Blurring: guides/object-blurring.md
-          - Workouts Monitoring: guides/workouts-monitoring.md
-          - Objects Counting in Regions: guides/region-counting.md
-          - Security Alarm System: guides/security-alarm-system.md
-          - Heatmaps: guides/heatmaps.md
-          - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
-          - VisionEye Mapping: guides/vision-eye.md
-          - Speed Estimation: guides/speed-estimation.md
-          - Distance Calculation: guides/distance-calculation.md
-          - Queue Management: guides/queue-management.md
-          - Parking Management: guides/parking-management.md
+      - Explorer:
+          - datasets/explorer/index.md
+          - Explorer API: datasets/explorer/api.md
+          - Explorer Dashboard Demo: datasets/explorer/dashboard.md
+          - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md

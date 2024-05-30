@@ -71,6 +71,7 @@ class HumanValidator(DetectionValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
+            stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():

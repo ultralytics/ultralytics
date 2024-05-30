@@ -1009,7 +1009,7 @@ def guess_model_task(model):
         model (nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'human').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.
@@ -1018,16 +1018,18 @@ def guess_model_task(model):
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
         m = cfg["head"][-1][-2].lower()  # output module name
-        if m in {"classify", "classifier", "cls", "fc"}:
-            return "classify"
-        if "detect" in m:
-            return "detect"
         if m == "segment":
             return "segment"
+        if "human" in m:
+            return "human"
+        if m in {"classify", "classifier", "cls", "fc"}:
+            return "classify"
         if m == "pose":
             return "pose"
         if m == "obb":
             return "obb"
+        if "detect" in m:
+            return "detect"
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -1046,6 +1048,8 @@ def guess_model_task(model):
         for m in model.modules():
             if isinstance(m, Segment):
                 return "segment"
+            elif isinstance(m, HumanDetect):
+                return "human"
             elif isinstance(m, Classify):
                 return "classify"
             elif isinstance(m, Pose):
@@ -1060,6 +1064,8 @@ def guess_model_task(model):
         model = Path(model)
         if "-seg" in model.stem or "segment" in model.parts:
             return "segment"
+        elif "-human" in model.stem or "human" in model.parts:
+            return "human"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"
         elif "-pose" in model.stem or "pose" in model.parts:
@@ -1072,6 +1078,6 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose', 'obb' or 'human'."
     )
     return "detect"  # assume detect

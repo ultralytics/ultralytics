@@ -29,10 +29,10 @@ names:
 ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per human in the following format:
-weight (kg), height (cm), gender (0: female, 1: male), age (years) and race (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black)
+weight (kg), height (cm), gender (0: female, 1: male), age (years) and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black)
 
 ```bash
-class x_center y_center width height p_weight p_height p_gender p_age p_race
+class x_center y_center width height p_weight p_height p_gender p_age p_ethnicity
 ```
 
 Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. For this format, the class number should always be `0` (person). 
@@ -54,9 +54,9 @@ Box coordinates must be in **normalized xywh** format (from 0 to 1). If your box
   
 - Age: Age is annotated as an integer. This numerical value represents the person's age in years and is essential for demographic analysis and age-related studies.
   
-- Race: Race is categorized into six distinct groups, each represented by an integer:
+- Ethnicity: Ethnicity is categorized into six distinct groups, each represented by an integer:
 
-    !!! Race Classes
+    !!! Ethnicity Classes
   
         | value | class          |
         |-------|----------------|

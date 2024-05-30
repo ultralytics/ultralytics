@@ -795,7 +795,7 @@ class Human(BaseTensor):
         height (torch.Tensor | numpy.ndarray): The values of human height.
         age (torch.Tensor | numpy.ndarray): The values of human age.
         cls_gender (torch.Tensor | numpy.ndarray): The index of predicted gender, female or male.
-        cls_ethnicity (torch.Tensor | numpy.ndarray): The index of predicted human ethnicity, should be one of 
+        cls_ethnicity (torch.Tensor | numpy.ndarray): The index of predicted human ethnicity, should be one of
             [asian, white, middle eastern, indian, latino, black] for now.
         conf_gender (torch.Tensor | numpy.ndarray): The confidence score of the predicted gender.
         conf_ethnicity (torch.Tensor | numpy.ndarray): The confidence score of the predicted human ethnicity.

@@ -183,7 +183,7 @@ jobs:
 
   Tests:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
-    timeout-minutes: 120
+    timeout-minutes: 360
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

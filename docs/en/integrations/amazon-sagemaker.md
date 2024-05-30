@@ -1,7 +1,7 @@
 ---
 comments: true
-Description: Learn how to deploy YOLOv8 models on Amazon SageMaker Endpoints. This guide covers the essentials of AWS environment setup, model preparation, and deployment using AWS CloudFormation and the AWS Cloud Development Kit (CDK).
-keywords: YOLOv8, Ultralytics, Amazon SageMaker, AWS, CloudFormation, AWS CDK, PyTorch, Model Deployment, Machine Learning, Computer Vision
+description: Learn how to deploy YOLOv8 models on Amazon SageMaker Endpoints. This guide covers the essentials of AWS environment setup, model preparation, and deployment using AWS CloudFormation and the AWS Cloud Development Kit (CDK).
+keywords: YOLOv8, Amazon SageMaker, deploy YOLOv8, AWS deployment, machine learning, real-time inference, AWS CloudFormation, AWS CDK
 ---
 
 # A Guide to Deploying YOLOv8 on Amazon SageMaker Endpoints

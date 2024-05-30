@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how Ultralytics HUB datasets streamline your ML workflow. Upload, format, validate, access, share, edit or delete datasets for Ultralytics YOLO model training.
-keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, dataset validation, ML workflow, share datasets
+description: Discover how to seamlessly upload, manage, and leverage datasets for model training with Ultralytics HUB.
+keywords: Ultralytics HUB datasets, upload datasets, manage datasets, dataset management, model training, YOLOv5 datasets, YOLOv8 datasets
 ---
 
 # Ultralytics HUB Datasets

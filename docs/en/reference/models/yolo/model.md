@@ -1,6 +1,6 @@
 ---
-description: Discover the Ultralytics YOLO model class. Learn advanced techniques, tips, and tricks for training.
-keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
+description: Explore the powerful YOLO model for object detection, including YOLOWorld for enhanced capabilities. Learn about classification, detection, segmentation, and more.
+keywords: Ultralytics YOLO, object detection, YOLOWorld, classification, detection, segmentation, pose estimation
 ---
 
 # Reference for `ultralytics/models/yolo/model.py`

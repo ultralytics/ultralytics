@@ -77,9 +77,9 @@ This guide provides a comprehensive overview of three fundamental types of data 
         ```python
         import cv2
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8s.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -92,42 +92,41 @@ This guide provides a comprehensive overview of three fundamental types of data 
             view_img=True,
             max_points=200,
         )
-        
+
         frame_count = 0
         data = {}
         labels = []
-        
+
         while cap.isOpened():
             success, frame = cap.read()
-        
+
             if success:
-                frame_count  += 1
-        
+                frame_count += 1
+
                 results = model.track(frame, persist=True)
-        
+
                 if results[0].boxes.id is not None:
                     boxes = results[0].boxes.xyxy.cpu()
                     track_ids = results[0].boxes.id.int().cpu().tolist()
                     clss = results[0].boxes.cls.cpu().tolist()
-        
+
                     for box, track_id, cls in zip(boxes, track_ids, clss):
-        
                         # Store each class label
                         if model.names[int(cls)] not in labels:
                             labels.append(model.names[int(cls)])
-        
+
                         # Store each class count
                         if model.names[int(cls)] in data:
                             data[model.names[int(cls)]] += 1
                         else:
                             data[model.names[int(cls)]] = 0
-        
+
                 # update lines every frame
                 analytics.update_multiple_lines(data, labels, frame_count)
-                data = {}   # clear the data list for next frame
+                data = {}  # clear the data list for next frame
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()

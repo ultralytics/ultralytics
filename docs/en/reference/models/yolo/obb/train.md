@@ -1,5 +1,5 @@
 ---
-description: Master the Ultralytics YOLO OBB Trainer: A specialized tool for training YOLO models using Oriented Bounding Boxes. Features detailed usage, model initialization, and training processes.
+description: Master the Ultralytics YOLO OBB Trainer - A specialized tool for training YOLO models using Oriented Bounding Boxes. Features detailed usage, model initialization, and training processes.
 keywords: Ultralytics, YOLO OBB Trainer, Oriented Bounding Box, OBB model training, YOLO model training, computer vision, deep learning, machine learning, YOLO object detection, model initialization, YOLO training process
 ---
 

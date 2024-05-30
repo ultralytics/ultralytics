@@ -25,7 +25,7 @@ For example, if you want to monitor traffic, your classes might include "car," "
 When you define your classes, another important distinction to make is whether to choose coarse or fine class counts. ‘Count' refers to the number of distinct classes you are interested in. This decision influences the granularity of your data and the complexity of your model. Here are the considerations for each approach:
 
 - **Coarse Class-Count**: These are broader, more inclusive categories, such as "vehicle" and "non-vehicle." They simplify annotation and require fewer computational resources but provide less detailed information, potentially limiting the model's effectiveness in complex scenarios.
-- **Fine Class-Count*:* More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
+- **Fine Class-Count**: More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
 
 Something to note is that starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes lets you collect more detailed data, and gain deeper insights and clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
 

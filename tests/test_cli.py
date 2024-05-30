@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import subprocess
-from pathlib import Path
 
 import pytest
 from PIL import Image
@@ -61,7 +60,7 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
-def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="coco8-seg.yaml"):
+def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8-seg.yaml"):
     """Test FastSAM segmentation functionality within Ultralytics."""
     source = ASSETS / "bus.jpg"
 
@@ -75,15 +74,15 @@ def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="c
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
 
-    for source in (source, Image.open(source)):
-        # Run inference on an image file path
-        everything_results = sam_model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    # Run inference on an image
+    for s in (source, Image.open(source)):
+        everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Remove small regions
         new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
         # Everything prompt
-        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
+        prompt_process = FastSAMPrompt(s, everything_results, device="cpu")
         ann = prompt_process.everything_prompt()
 
         # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
@@ -96,7 +95,6 @@ def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="c
         # Points default [[0,0]] [[x1,y1],[x2,y2]]
         # Point_label default [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-
         prompt_process.plot(annotations=ann, output="./")
 
 

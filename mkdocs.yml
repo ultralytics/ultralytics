@@ -156,10 +156,10 @@ nav:
           - models/index.md
       - Datasets:
           - datasets/index.md
-      - Guides:
-          - guides/index.md
       - Solutions:
           - solutions/index.md
+      - Guides:
+          - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
       - New 🚀 Analytics: guides/analytics.md # for promotion of new pages

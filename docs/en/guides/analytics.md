@@ -71,6 +71,66 @@ This guide provides a comprehensive overview of three fundamental types of data 
         out.release()
         cv2.destroyAllWindows()
         ```
+    
+    === "Multiple Lines"
+
+        ```python
+        import cv2
+        from ultralytics import YOLO, solutions
+
+        model = YOLO("yolov8s.pt")
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        out = cv2.VideoWriter("multiple_line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+
+        analytics = solutions.Analytics(
+            type="line",
+            writer=out,
+            im0_shape=(w, h),
+            view_img=True,
+            max_points=200,
+        )
+
+        frame_count = 0
+        data = {}
+        labels = []
+
+        while cap.isOpened():
+            success, frame = cap.read()
+
+            if success:
+                frame_count += 1
+
+                results = model.track(frame, persist=True)
+
+                if results[0].boxes.id is not None:
+                    boxes = results[0].boxes.xyxy.cpu()
+                    track_ids = results[0].boxes.id.int().cpu().tolist()
+                    clss = results[0].boxes.cls.cpu().tolist()
+
+                    for box, track_id, cls in zip(boxes, track_ids, clss):
+                        # Store each class label
+                        if model.names[int(cls)] not in labels:
+                            labels.append(model.names[int(cls)])
+
+                        # Store each class count
+                        if model.names[int(cls)] in data:
+                            data[model.names[int(cls)]] += 1
+                        else:
+                            data[model.names[int(cls)]] = 0
+
+                # update lines every frame
+                analytics.update_multiple_lines(data, labels, frame_count)
+                data = {}  # clear the data list for next frame
+            else:
+                break
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+        ```
 
     === "Pie Chart"
 
@@ -174,21 +234,22 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
 Here's a table with the `Analytics` arguments:
 
-| Name         | Type              | Default       | Description                         |
-|--------------|-------------------|---------------|-------------------------------------|
-| `type`       | `str`             | `None`        | Type of data or object.             |
-| `im0_shape`  | `tuple`           | `None`        | Shape of the initial image.         |
-| `writer`     | `cv2.VideoWriter` | `None`        | Object for writing video files.     |
-| `title`      | `str`             | `ultralytics` | Title for the visualization.        |
-| `x_label`    | `str`             | `x`           | Label for the x-axis.               |
-| `y_label`    | `str`             | `y`           | Label for the y-axis.               |
-| `bg_color`   | `str`             | `white`       | Background color.                   |
-| `fg_color`   | `str`             | `black`       | Foreground color.                   |
-| `line_color` | `str`             | `yellow`      | Color of the lines.                 |
-| `line_width` | `int`             | `2`           | Width of the lines.                 |
-| `fontsize`   | `int`             | `13`          | Font size for text.                 |
-| `view_img`   | `bool`            | `False`       | Flag to display the image or video. |
-| `save_img`   | `bool`            | `True`        | Flag to save the image or video.    |
+| Name         | Type              | Default       | Description                                                                      |
+|--------------|-------------------|---------------|----------------------------------------------------------------------------------|
+| `type`       | `str`             | `None`        | Type of data or object.                                                          |
+| `im0_shape`  | `tuple`           | `None`        | Shape of the initial image.                                                      |
+| `writer`     | `cv2.VideoWriter` | `None`        | Object for writing video files.                                                  |
+| `title`      | `str`             | `ultralytics` | Title for the visualization.                                                     |
+| `x_label`    | `str`             | `x`           | Label for the x-axis.                                                            |
+| `y_label`    | `str`             | `y`           | Label for the y-axis.                                                            |
+| `bg_color`   | `str`             | `white`       | Background color.                                                                |
+| `fg_color`   | `str`             | `black`       | Foreground color.                                                                |
+| `line_color` | `str`             | `yellow`      | Color of the lines.                                                              |
+| `line_width` | `int`             | `2`           | Width of the lines.                                                              |
+| `fontsize`   | `int`             | `13`          | Font size for text.                                                              |
+| `view_img`   | `bool`            | `False`       | Flag to display the image or video.                                              |
+| `save_img`   | `bool`            | `True`        | Flag to save the image or video.                                                 |
+| `max_points` | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
 
 ### Arguments `model.track`
 

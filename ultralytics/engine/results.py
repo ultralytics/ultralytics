@@ -301,7 +301,7 @@ class Results(SimpleClass):
                     h = self.human[len(pred_boxes) - 1 - i]  # reversed
                     weight, height, age = float(h.weight), float(h.height), int(h.age)
                     cls_gender, conf_gender = int(h.cls_gender), float(h.conf_gender)
-                    cls_race, conf_race = int(h.cls_race), float(h.conf_race)
+                    cls_ethnicity, conf_ethnicity = int(h.cls_ethnicity), float(h.conf_ethnicity)
                     text = "\n".join(
                         [
                             f"{weight:.2f}kg",

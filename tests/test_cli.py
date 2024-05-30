@@ -1,8 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import subprocess
+from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
@@ -59,7 +61,7 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
-def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8-seg.yaml"):
+def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="coco8-seg.yaml"):
     """Test FastSAM segmentation functionality within Ultralytics."""
     source = ASSETS / "bus.jpg"
 
@@ -73,27 +75,29 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
     # Create a FastSAM model
     sam_model = FastSAM(model)  # or FastSAM-x.pt
 
-    # Run inference on an image
-    everything_results = sam_model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+    for source in (source, Image.open(source)):
+        # Run inference on an image file path
+        everything_results = sam_model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-    # Remove small regions
-    new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
+        # Remove small regions
+        new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
-    # Everything prompt
-    prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
-    ann = prompt_process.everything_prompt()
+        # Everything prompt
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
+        ann = prompt_process.everything_prompt()
 
-    # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
-    ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+        # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-    # Text prompt
-    ann = prompt_process.text_prompt(text="a photo of a dog")
+        # Text prompt
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
-    # Point prompt
-    # Points default [[0,0]] [[x1,y1],[x2,y2]]
-    # Point_label default [0] [1,0] 0:background, 1:foreground
-    ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-    prompt_process.plot(annotations=ann, output="./")
+        # Point prompt
+        # Points default [[0,0]] [[x1,y1],[x2,y2]]
+        # Point_label default [0] [1,0] 0:background, 1:foreground
+        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+
+        prompt_process.plot(annotations=ann, output="./")
 
 
 def test_mobilesam():

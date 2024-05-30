@@ -165,9 +165,9 @@ class HumanValidator(DetectionValidator):
             "R",
             "mAP50",
             "mAP50-95)",
-            "acc(W)",
-            "acc(H)",
-            "acc(G)",
-            "acc(A)",
-            "acc(R)",
+            "acc(W)",  # weight
+            "acc(H)",  # height
+            "acc(G)",  # gender
+            "acc(A)",  # age
+            "acc(E)",  # ethnicity
         )

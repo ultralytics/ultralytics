@@ -788,7 +788,7 @@ class Human(BaseTensor):
 
     Args:
         attributes (torch.Tensor | numpy.ndarray): A tensor or numpy array with shape (N, 11) for human attributes
-            containing weight(0), height(1), age(2), gender(3-5), race(5-11).
+            containing weight(0), height(1), age(2), gender(3-5), ethnicity(5-11).
 
     Attributes:
         weight (torch.Tensor | numpy.ndarray): The values of human weight.

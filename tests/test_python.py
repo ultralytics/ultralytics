@@ -590,4 +590,4 @@ def test_fastsam_text_prompt(image, model_name="FastSAM-s.pt", device="cpu"):
     prompt_process = FastSAMPrompt(pil_image, everything_results, device=device)
 
     # Text prompt
-    annotations = prompt_process.text_prompt(text='foo')
+    annotations = prompt_process.text_prompt(text="foo")

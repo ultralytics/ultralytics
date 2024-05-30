@@ -62,7 +62,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect
+from .head import OBB, Classify, Detect, HumanDetect, Pose, RTDETRDecoder, Segment, WorldDetect
 from .transformer import (
     AIFI,
     MLP,
@@ -126,6 +126,7 @@ __all__ = (
     "ResNetLayer",
     "OBB",
     "WorldDetect",
+    "HumanDetect",
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",

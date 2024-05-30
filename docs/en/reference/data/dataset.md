@@ -34,3 +34,7 @@ keywords: Ultralytics, YOLO, YOLODataset, SemanticDataset, data handling, data m
 ## ::: ultralytics.data.dataset.ClassificationDataset
 
 <br><br>
+
+## ::: ultralytics.data.dataset.HumanDataset
+
+<br><br>

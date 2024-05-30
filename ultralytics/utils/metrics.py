@@ -1287,3 +1287,48 @@ class OBBMetrics(SimpleClass):
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
+
+
+class HumanMetric(DetMetrics):
+    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
+        super().__init__(save_dir, plot, on_plot, names)
+        self.attrs_stats = dict(weight=[], height=[], gender=[], age=[], ethnicity=[])
+        self.attrs_accuracy = dict(weight=0, height=0, gender=0, age=0, ethnicity=0)
+
+    def process_attrs(self):
+        """Process predicted results for human attributes and update metrics."""
+        for k, v in self.attrs_stats.items():
+            if len(v) == 0:
+                continue
+            self.attrs_accuracy[k] = torch.cat(v).mean().item()
+            self.attrs_stats[k].clear()  # reset stats
+
+    def process(self, tp, conf, pred_cls, target_cls):
+        """Process predicted results for object detection and update metrics."""
+        super().process(tp, conf, pred_cls, target_cls)
+        self.process_attrs()
+
+    @property
+    def keys(self):
+        """Returns a list of keys for accessing specific metrics."""
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",
+            "metrics/accuracy(W)",
+            "metrics/accuracy(H)",
+            "metrics/accuracy(G)",
+            "metrics/accuracy(A)",
+            "metrics/accuracy(R)",
+        ]
+
+    def mean_results(self):
+        return super().mean_results() + [v for _, v in self.attrs_accuracy.items()]
+
+    @property
+    def fitness(self):
+        """Model fitness as a weighted combination of metrics."""
+        # weights for [P, R, mAP@0.5, mAP@0.5:0.95, acc_w, acc_h, acc_g, acc_a, acc_r]
+        w = [0.0, 0.0, 0.0, 0.2, 0.16, 0.16, 0.16, 0.16, 0.16]
+        return (np.array(self.mean_results()) * w).sum()

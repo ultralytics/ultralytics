@@ -728,6 +728,48 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot(fname)
 
 
+@TryExcept()
+@plt_settings()
+def plot_attributes(
+    attributes,
+    gender_names=["female", "male"],
+    ethnicity_names=["asian", "white", "middle eastern", "indian", "latino", "black"],
+    save_dir=Path(""),
+    on_plot=None,
+):
+    """Plot training human attributes including weight/height/gender/age/ethnicity statistics."""
+    weight = attributes[:, 0]
+    height = attributes[:, 1]
+    gender = attributes[:, 2]
+    age = attributes[:, 3]
+    ethnicity = attributes[:, 4]
+    n_gender = int(gender.max() + 1)
+    n_ethnicity = int(ethnicity.max() + 1)
+    ax = plt.subplots(1, 5, figsize=(20, 4), tight_layout=True)[1].ravel()
+
+    ax[0].hist(gender, bins=np.linspace(0, n_gender, n_gender + 1) - 0.5, rwidth=0.8)
+    ax[0].set_ylabel("gender")
+    ax[0].set_xticks(range(len(gender_names)))
+    ax[0].set_xticklabels(gender_names, rotation=90, fontsize=10)
+    ax[1].hist(ethnicity, bins=np.linspace(0, n_ethnicity, n_ethnicity + 1) - 0.5, rwidth=0.8)
+    ax[1].set_ylabel("ethnicity")
+    ax[1].set_xticks(range(len(ethnicity_names)))
+    ax[1].set_xticklabels(ethnicity_names, rotation=90, fontsize=10)
+
+    ax[2].hist(weight, bins=np.linspace(0, weight.max(), 10) - 0.5, rwidth=0.8)
+    ax[2].set_ylabel("weight")
+    ax[3].hist(height, bins=np.linspace(0, height.max(), 10) - 0.5, rwidth=0.8)
+    ax[3].set_ylabel("height")
+    ax[4].hist(age, bins=np.linspace(0, age.max(), 10) - 0.5, rwidth=0.8)
+    ax[4].set_ylabel("age")
+
+    fname = save_dir / "labels_attributes.jpg"
+    plt.savefig(fname, dpi=200)
+    plt.close()
+    if on_plot:
+        on_plot(fname)
+
+
 def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
@@ -917,7 +959,9 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(
+    file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, human=False, on_plot=None
+):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -928,6 +972,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
         pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
         classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
+        human (bool, optional): Flag to indicate if the data is for YOLO-Human. Defaults to False.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
             Defaults to None.
 
@@ -951,6 +996,11 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+    elif human:
+        fig, ax = plt.subplots(5, 5, figsize=(12, 15), tight_layout=True)
+        detection = [1, 2, 3, 9, 10, 18, 19, 20, 11, 12]
+        attributes = [4, 5, 6, 7, 8, 21, 22, 23, 24, 25, 13, 14, 15, 16, 17]
+        index = detection + attributes
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]

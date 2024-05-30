@@ -4,7 +4,15 @@ from pathlib import Path
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import (
+    ClassificationModel,
+    DetectionModel,
+    HumanModel,
+    OBBModel,
+    PoseModel,
+    SegmentationModel,
+    WorldModel,
+)
 from ultralytics.utils import ROOT, yaml_load
 
 
@@ -16,6 +24,10 @@ class YOLO(Model):
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
+        elif "-human" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+            new_instance = YOLOHuman(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:
@@ -105,3 +117,22 @@ class YOLOWorld(Model):
         # self.predictor = None  # reset predictor otherwise old names remain
         if self.predictor:
             self.predictor.model.names = classes
+
+
+class YOLOHuman(Model):
+    """YOLO-Human object detection model."""
+
+    def __init__(self, model="yolov8s-human.yaml", verbose=False) -> None:
+        super().__init__(model=model, task="detect", verbose=verbose)
+
+    @property
+    def task_map(self):
+        """Map head to model, validator, and predictor classes."""
+        return {
+            "detect": {
+                "model": HumanModel,
+                "trainer": yolo.human.HumanTrainer,
+                "validator": yolo.human.HumanValidator,
+                "predictor": yolo.human.HumanPredictor,
+            },
+        }

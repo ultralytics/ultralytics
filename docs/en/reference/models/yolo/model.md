@@ -18,3 +18,7 @@ keywords: Ultralytics YOLO, object detection, YOLOWorld, classification, detecti
 ## ::: ultralytics.models.yolo.model.YOLOWorld
 
 <br><br>
+
+## ::: ultralytics.models.yolo.model.YOLOHuman
+
+<br><br>

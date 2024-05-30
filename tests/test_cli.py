@@ -63,7 +63,7 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
 def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="coco8-seg.yaml"):
     """Test FastSAM segmentation functionality within Ultralytics."""
-    source = Path("ASSETS/bus.jpg")
+    source = ASSETS / "bus.jpg"
 
     run(f"yolo segment val {task} model={model} data={data} imgsz=32")
     run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")

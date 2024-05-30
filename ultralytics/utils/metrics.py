@@ -1289,7 +1289,7 @@ class OBBMetrics(SimpleClass):
         return []
 
 
-class HumanMetric(DetMetrics):
+class HumanMetrics(DetMetrics):
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
         super().__init__(save_dir, plot, on_plot, names)
         self.attrs_stats = dict(weight=[], height=[], gender=[], age=[], ethnicity=[])

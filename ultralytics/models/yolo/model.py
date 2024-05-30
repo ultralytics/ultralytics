@@ -26,7 +26,7 @@ class YOLO(Model):
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "-human" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        elif "-human" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOHuman PyTorch model
             new_instance = YOLOHuman(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
@@ -122,14 +122,14 @@ class YOLOWorld(Model):
 class YOLOHuman(Model):
     """YOLO-Human object detection model."""
 
-    def __init__(self, model="yolov8s-human.yaml", verbose=False) -> None:
-        super().__init__(model=model, task="detect", verbose=verbose)
+    def __init__(self, model="yolov8n-human.yaml", verbose=False) -> None:
+        super().__init__(model=model, task="human", verbose=verbose)
 
     @property
     def task_map(self):
         """Map head to model, validator, and predictor classes."""
         return {
-            "detect": {
+            "human": {
                 "model": HumanModel,
                 "trainer": yolo.human.HumanTrainer,
                 "validator": yolo.human.HumanValidator,

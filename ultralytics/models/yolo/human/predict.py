@@ -23,6 +23,7 @@ class HumanPredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initializes the HumanPredictor with the provided configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
+        self.args.task = "human"
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions and returns a list of Results objects."""

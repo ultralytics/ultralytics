@@ -7,7 +7,7 @@ from ultralytics.data.dataset import HumanDataset
 from ultralytics.engine.results import Human
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr
-from ultralytics.utils.metrics import HumanMetric, box_iou
+from ultralytics.utils.metrics import HumanMetrics, box_iou
 
 
 class HumanValidator(DetectionValidator):
@@ -26,7 +26,8 @@ class HumanValidator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-        self.metrics = HumanMetric(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
+        self.args.task = "human"
+        self.metrics = HumanMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
 
     def build_dataset(self, img_path, mode="val", batch=None):
         cfg = self.args

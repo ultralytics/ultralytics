@@ -39,7 +39,7 @@ keywords: Ultralytics, YOLO, YOLOv3, YOLOv4, metrics, confusion matrix, detectio
 
 <br><br>
 
-## ::: ultralytics.utils.metrics.HumanMetric
+## ::: ultralytics.utils.metrics.HumanMetrics
 
 <br><br>
 

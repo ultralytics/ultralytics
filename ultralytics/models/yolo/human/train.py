@@ -30,6 +30,7 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
         """Initialize a HumanTrainer object with given arguments."""
         if overrides is None:
             overrides = {}
+        overrides["task"] = "human"
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -46,11 +47,11 @@ class HumanTrainer(yolo.detect.DetectionTrainer):
             "box_loss",
             "cls_loss",
             "dfl_loss",
-            "w_loss",
-            "h_loss",
-            "g_loss",
-            "a_loss",
-            "r_loss",
+            "w_loss",  # weight
+            "h_loss",  # height
+            "g_loss",  # gender
+            "a_loss",  # age
+            "e_loss",  # ethnicity
         )
         return yolo.human.HumanValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

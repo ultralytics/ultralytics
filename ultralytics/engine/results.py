@@ -308,7 +308,7 @@ class Results(SimpleClass):
                             f"{height:.2f}cm",
                             f"{age} years old",
                             f"{h.gender[cls_gender]} {conf_gender:.2f}",
-                            f"{h.race[cls_race]} {conf_race:.2f}",
+                            f"{h.ethnicity[cls_ethnicity]} {conf_ethnicity:.2f}",
                         ]
                     )
                     annotator.text([int(box[0]), int(box[1])], text, txt_color=colors(c, True))

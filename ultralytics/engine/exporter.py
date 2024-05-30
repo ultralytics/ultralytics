@@ -819,7 +819,8 @@ class Exporter:
             check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(
             (
-                "keras",
+                "keras",  # required by onnx2tf package
+                "tf_keras",  # required by onnx2tf package
                 "onnx>=1.12.0",
                 "onnx2tf>1.17.5,<=1.22.3",
                 "sng4onnx>=1.0.1",

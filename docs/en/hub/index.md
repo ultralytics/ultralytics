@@ -6,11 +6,32 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, AI platform, object d
 
 # Ultralytics HUB
 
-<a href="https://bit.ly/ultralytics_hub" target="_blank">
-  <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image">
-</a>
-<br>
 <div align="center">
+<a href="https://bit.ly/ultralytics_hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
+<a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
+<a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
+<a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
+<a href="https://docs.ultralytics.com/ru/hub/">Русский</a> |
+<a href="https://docs.ultralytics.com/de/hub/">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr/hub/">Français</a> |
+<a href="https://docs.ultralytics.com/es/hub/">Español</a> |
+<a href="https://docs.ultralytics.com/pt/hub/">Português</a> |
+<a href="https://docs.ultralytics.com/tr/hub/">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi/hub/">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/hi/hub/">हिन्दी</a> |
+<a href="https://docs.ultralytics.com/ar/hub/">العربية</a>
+<br>
+<br>
+
+<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
+</div>
+
+👋 Hello from the [Ultralytics](https://ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://bit.ly/ultralytics_hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
+
+We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
+
+<div align="center">
+  <br>
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="Ultralytics LinkedIn"></a>
@@ -24,17 +45,8 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, AI platform, object d
   <a href="https://www.instagram.com/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="Ultralytics Instagram"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
-  <br>
-  <br>
-  <a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml">
-    <img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI"></a>
-  <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 </div>
 
-👋 Hello from the [Ultralytics](https://ultralytics.com/) Team!
-
-We've been working hard over the past few months to launch [Ultralytics HUB](https://bit.ly/ultralytics_hub), a new platform for training, monitoring, and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
 
 ## Introduction
 

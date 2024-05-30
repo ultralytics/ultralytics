@@ -190,10 +190,10 @@ nav:
           - modes/index.md
       - Tasks:
           - tasks/index.md
-      - Solutions:
-          - solutions/index.md
-      - Explorer:
-          - datasets/explorer/index.md
+      - Models:
+          - models/index.md
+      - Datasets:
+          - datasets/index.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -227,7 +227,7 @@ nav:
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
   - Datasets:
       - datasets/index.md
-      - NEW 🚀 Explorer:
+      - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard: datasets/explorer/dashboard.md

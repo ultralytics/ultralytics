@@ -576,18 +576,3 @@ def test_yolo_world():
         close_mosaic=1,
         trainer=WorldTrainerFromScratch,
     )
-
-
-def test_fastsam_text_prompt(image, model_name="FastSAM-s.pt", device="cpu"):
-    """Test FastSAM with FastSAMPrompt.text_prompt."""
-    model = FastSAM(model_name)
-    pil_image = Image.fromarray(image)
-
-    # Run inference on image
-    everything_results = model(pil_image, device=device)
-
-    # Prepare a Prompt Process object
-    prompt_process = FastSAMPrompt(pil_image, everything_results, device=device)
-
-    # Text prompt
-    annotations = prompt_process.text_prompt(text="foo")

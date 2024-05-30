@@ -162,7 +162,7 @@ nav:
           - solutions/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - New 🚀 Analytics: guides/analytics.md # For promotion of new stuff
+      - New 🚀 Analytics: guides/analytics.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/

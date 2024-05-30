@@ -538,7 +538,7 @@ class HumanDataset(YOLODataset):
                     "shape": shape,
                     "cls": lb[:, 0:1],  # n, 1
                     "bboxes": lb[:, 1:5],  # n, 4
-                    # weight(kg), height(cm), gender, age, race
+                    # weight(kg), height(cm), gender, age, ethnicity
                     "attributes": lb[:, 5:],  # n, 5
                     "segments": [],
                     "keypoints": None,

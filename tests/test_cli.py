@@ -76,7 +76,7 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
 
     # Run inference on an image
     for s in (source, Image.open(source)):
-        everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=320, conf=0.4, iou=0.9)
 
         # Remove small regions
         new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)

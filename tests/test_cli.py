@@ -89,8 +89,6 @@ def test_fastsam(task="segment", model=Path("WEIGHTS_DIR/FastSAM-s.pt"), data="c
         prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
         ann = prompt_process.everything_prompt()
 
-        prompt_process_pil = FastSAMPrompt(pil_image, everything_results_pil, device="cpu")
-
         # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 

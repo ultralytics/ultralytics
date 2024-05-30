@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Easily train YOLO models with the Ultralytics HUB. Quick sign-up, intuitive use, and ready-to-deploy models!.
-keywords: Ultralytics HUB, YOLO Quickstart, train YOLO model, pre-trained models, deploy models, Ultralytics HUB App
+keywords: Ultralytics HUB, YOLO models, quickstart, train YOLO, easy signup, deploy models, Ultralytics
 ---
 
 # Ultralytics HUB Quickstart

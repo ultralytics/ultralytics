@@ -216,7 +216,7 @@ class Instances:
             bboxes (ndarray): bboxes with shape [N, 4].
             segments (list | ndarray): segments.
             keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3].
-            attributes (ndarray): attributes(weight, height, gender, age, race) with shape [N, 5].
+            attributes (ndarray): attributes(weight, height, gender, age, ethnicity) with shape [N, 5].
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints

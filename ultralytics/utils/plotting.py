@@ -733,28 +733,28 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 def plot_attributes(
     attributes,
     gender_names=["female", "male"],
-    race_names=["asian", "white", "middle eastern", "indian", "latino", "black"],
+    ethnicity_names=["asian", "white", "middle eastern", "indian", "latino", "black"],
     save_dir=Path(""),
     on_plot=None,
 ):
-    """Plot training human attributes including weight/height/gender/age/race statistics."""
+    """Plot training human attributes including weight/height/gender/age/ethnicity statistics."""
     weight = attributes[:, 0]
     height = attributes[:, 1]
     gender = attributes[:, 2]
     age = attributes[:, 3]
-    race = attributes[:, 4]
+    ethnicity = attributes[:, 4]
     n_gender = int(gender.max() + 1)
-    n_race = int(race.max() + 1)
+    n_ethnicity = int(ethnicity.max() + 1)
     ax = plt.subplots(1, 5, figsize=(20, 4), tight_layout=True)[1].ravel()
 
     ax[0].hist(gender, bins=np.linspace(0, n_gender, n_gender + 1) - 0.5, rwidth=0.8)
     ax[0].set_ylabel("gender")
     ax[0].set_xticks(range(len(gender_names)))
     ax[0].set_xticklabels(gender_names, rotation=90, fontsize=10)
-    ax[1].hist(race, bins=np.linspace(0, n_race, n_race + 1) - 0.5, rwidth=0.8)
-    ax[1].set_ylabel("race")
-    ax[1].set_xticks(range(len(race_names)))
-    ax[1].set_xticklabels(race_names, rotation=90, fontsize=10)
+    ax[1].hist(ethnicity, bins=np.linspace(0, n_ethnicity, n_ethnicity + 1) - 0.5, rwidth=0.8)
+    ax[1].set_ylabel("ethnicity")
+    ax[1].set_xticks(range(len(ethnicity_names)))
+    ax[1].set_xticklabels(ethnicity_names, rotation=90, fontsize=10)
 
     ax[2].hist(weight, bins=np.linspace(0, weight.max(), 10) - 0.5, rwidth=0.8)
     ax[2].set_ylabel("weight")

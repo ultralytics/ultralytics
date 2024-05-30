@@ -795,10 +795,10 @@ class Human(BaseTensor):
         height (torch.Tensor | numpy.ndarray): The values of human height.
         age (torch.Tensor | numpy.ndarray): The values of human age.
         cls_gender (torch.Tensor | numpy.ndarray): The index of predicted gender, female or male.
-        cls_race (torch.Tensor | numpy.ndarray): The index of predicted human race, should be one of
+        cls_ethnicity (torch.Tensor | numpy.ndarray): The index of predicted human ethnicity, should be one of 
             [asian, white, middle eastern, indian, latino, black] for now.
         conf_gender (torch.Tensor | numpy.ndarray): The confidence score of the predicted gender.
-        conf_race (torch.Tensor | numpy.ndarray): The confidence score of the predicted human race.
+        conf_ethnicity (torch.Tensor | numpy.ndarray): The confidence score of the predicted human ethnicity.
         data (torch.Tensor): The raw attributes tensor.
 
     Methods:
@@ -812,10 +812,10 @@ class Human(BaseTensor):
         if attributes.ndim == 1:
             attributes = attributes[None, :]
         n = attributes.shape[-1]
-        assert n == 11, f"Expected 11 values but got {n}"  # weight(0), height(1), age(2), gender(3-5), race(5-11)
+        assert n == 11, f"Expected 11 values but got {n}"  # weight(0), height(1), age(2), gender(3-5), ethnicity(5-11)
         super().__init__(attributes, orig_shape=orig_shape)
         self.gender = ["female", "male"]
-        self.race = ["asian", "white", "middle eastern", "indian", "latino", "black"]
+        self.ethnicity = ["asian", "white", "middle eastern", "indian", "latino", "black"]
 
     @property
     def weight(self):
@@ -834,7 +834,7 @@ class Human(BaseTensor):
         return self.data[:, 3:5].argmax(1)
 
     @property
-    def cls_race(self):
+    def cls_ethnicity(self):
         return self.data[:, 5:].argmax(1)
 
     @property
@@ -842,5 +842,5 @@ class Human(BaseTensor):
         return self.data[:, 3:5].max(1).values
 
     @property
-    def conf_race(self):
+    def conf_ethnicity(self):
         return self.data[:, 5:].max(1).values

@@ -140,18 +140,18 @@ class HumanValidator(DetectionValidator):
         height = gt_attrs[:, 1]
         gender = gt_attrs[:, 2]
         age = gt_attrs[:, 3]
-        race = gt_attrs[:, 4]
+        ethnicity = gt_attrs[:, 4]
         acc_w = 1 - (pred_attrs.weight - weight).abs() / weight
         acc_h = 1 - (pred_attrs.height - height).abs() / height
         acc_g = (pred_attrs.cls_gender == gender).float()
         acc_a = 1 - (pred_attrs.age - age).abs() / age
-        acc_r = (pred_attrs.cls_race == race).float()
+        acc_r = (pred_attrs.cls_ethnicity == ethnicity).float()
 
         self.metrics.attrs_stats["weight"].append(acc_w.clip(0, 1))
         self.metrics.attrs_stats["height"].append(acc_h.clip(0, 1))
         self.metrics.attrs_stats["gender"].append(acc_g)
         self.metrics.attrs_stats["age"].append(acc_a.clip(0, 1))
-        self.metrics.attrs_stats["race"].append(acc_r)
+        self.metrics.attrs_stats["ethnicity"].append(acc_r)
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""

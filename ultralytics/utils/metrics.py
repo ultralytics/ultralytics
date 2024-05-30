@@ -1292,8 +1292,8 @@ class OBBMetrics(SimpleClass):
 class HumanMetric(DetMetrics):
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
         super().__init__(save_dir, plot, on_plot, names)
-        self.attrs_stats = dict(weight=[], height=[], gender=[], age=[], race=[])
-        self.attrs_accuracy = dict(weight=0, height=0, gender=0, age=0, race=0)
+        self.attrs_stats = dict(weight=[], height=[], gender=[], age=[], ethnicity=[])
+        self.attrs_accuracy = dict(weight=0, height=0, gender=0, age=0, ethnicity=0)
 
     def process_attrs(self):
         """Process predicted results for human attributes and update metrics."""

@@ -267,18 +267,18 @@ class HumanDetect(Detect):
         )
         # gender, 2 classes
         self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
-        # race, 6 classes
+        # ethnicity, 6 classes
         self.cv6 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 6, 1)) for x in ch)
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
         x_wha = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max * 3, -1) for i in range(self.nl)], -1)
         gender = torch.cat([self.cv5[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
-        race = torch.cat([self.cv6[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
+        ethnicity = torch.cat([self.cv6[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
         weight = x_wha[:, : self.reg_max]
         height = x_wha[:, self.reg_max : 2 * self.reg_max]
         age = x_wha[:, 2 * self.reg_max :]
-        attributes = dict(weight=weight, height=height, age=age, gender=gender, race=race)
+        attributes = dict(weight=weight, height=height, age=age, gender=gender, ethnicity=ethnicity)
         # boxes
         x = Detect.forward(self, x)
         if self.training:
@@ -290,11 +290,11 @@ class HumanDetect(Detect):
             else (torch.cat([x[0], pred_attributes], 1), (x[1], attributes))
         )
 
-    def decode_attributes(self, weight, height, age, gender, race):
+    def decode_attributes(self, weight, height, age, gender, ethnicity):
         weight = self.dfl(weight) * 12.5  # 0-200kg
         height = self.dfl(height) * 16  # 0-250cm
         age = self.dfl(age) * 6.25  # 0-100
-        return torch.cat([weight, height, age, gender.softmax(1), race.softmax(1)], dim=1)
+        return torch.cat([weight, height, age, gender.softmax(1), ethnicity.softmax(1)], dim=1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

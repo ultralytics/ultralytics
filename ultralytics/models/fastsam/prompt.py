@@ -261,7 +261,7 @@ class FastSAMPrompt:
 
     def _crop_image(self, format_results):
         """Crops an image based on provided annotation format and returns cropped images and related data."""
-        if os.path.isdir(self.source):
+        if not isinstance(self.source, Image.Image) and os.path.isdir(self.source):
             raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size

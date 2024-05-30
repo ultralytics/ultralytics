@@ -20,6 +20,8 @@ import numpy as np
 import torch
 from torch import distributed as dist
 from torch import nn, optim
+import habana_frameworks.torch.gpu_migration
+import habana_frameworks.torch.core as htcore
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -377,10 +379,12 @@ class BaseTrainer:
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
+                htcore.mark_step()
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
+                    htcore.mark_step()
                     last_opt_step = ni
 
                     # Timed stopping

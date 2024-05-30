@@ -160,6 +160,8 @@ nav:
           - guides/index.md
       - Solutions:
           - solutions/index.md
+      - Explorer:
+          - datasets/explorer/index.md
       - New 🚀 Analytics: guides/analytics.md  # For promotion of new stuff
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/

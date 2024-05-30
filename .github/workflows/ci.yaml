@@ -233,9 +233,9 @@ jobs:
           rm -rf weights/
           mkdir onnx-test
           model=yolov8n
-          yolo detect export model=$model.pt format=onnx slim && mv $model.onnx ./onnx-test/$model-slim.onnx
-          yolo detect export model=$model.pt format=onnx slim=False simplify && mv $model.onnx ./onnx-test/$model-sim.onnx
-          yolo detect export model=$model.pt format=onnx slim=False && mv $model.onnx ./onnx-test/$model.onnx
+          yolo detect export model=$model.pt format=onnx slim dynamic && mv $model.onnx ./onnx-test/$model-slim.onnx
+          yolo detect export model=$model.pt format=onnx simplify dynamic && mv $model.onnx ./onnx-test/$model-sim.onnx
+          yolo detect export model=$model.pt format=onnx dynamic && mv $model.onnx ./onnx-test/$model.onnx
       - name: Profile Slim Speeds
         shell: python
         run: |

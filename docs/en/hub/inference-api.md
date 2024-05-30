@@ -69,13 +69,13 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 
 See the table below for a full list of available inference arguments.
 
-| Argument     | Default | Type    | Description                            |
-|--------------|---------|---------|----------------------------------------|
-| `image`      |         | `image` | image file                             |
-| `url`        |         | `str`   | URL of the image if not passing a file |
-| `size`       | `640`   | `int`   | valid range `32` - `1280` pixels       |
-| `confidence` | `0.25`  | `float` | valid range `0.01` - `1.0`             |
-| `iou`        | `0.45`  | `float` | valid range `0.0` - `0.95`             |
+| Argument     | Default | Type    | Description                                                          |
+|--------------|---------|---------|----------------------------------------------------------------------|
+| `image`      |         | `image` | Image file to be used for inference.                                 |
+| `url`        |         | `str`   | URL of the image if not passing a file.                              |
+| `size`       | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
+| `confidence` | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |
+| `iou`        | `0.45`  | `float` | Intersection over Union (IoU) threshold, valid range `0.0` - `0.95`. |
 
 ## Response
 

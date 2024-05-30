@@ -8,18 +8,18 @@ keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, AI platform, object d
 
 <div align="center">
 <a href="https://bit.ly/ultralytics_hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
-<a href="https://docs.ultralytics.com/zh/">中文</a> |
-<a href="https://docs.ultralytics.com/ko/">한국어</a> |
-<a href="https://docs.ultralytics.com/ja/">日本語</a> |
-<a href="https://docs.ultralytics.com/ru/">Русский</a> |
-<a href="https://docs.ultralytics.com/de/">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr/">Français</a> |
-<a href="https://docs.ultralytics.com/es/">Español</a> |
-<a href="https://docs.ultralytics.com/pt/">Português</a> |
-<a href="https://docs.ultralytics.com/tr/">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/hi/">हिन्दी</a> |
-<a href="https://docs.ultralytics.com/ar/">العربية</a>
+<a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
+<a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
+<a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
+<a href="https://docs.ultralytics.com/ru/hub/">Русский</a> |
+<a href="https://docs.ultralytics.com/de/hub/">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr/hub/">Français</a> |
+<a href="https://docs.ultralytics.com/es/hub/">Español</a> |
+<a href="https://docs.ultralytics.com/pt/hub/">Português</a> |
+<a href="https://docs.ultralytics.com/tr/hub/">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi/hub/">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/hi/hub/">हिन्दी</a> |
+<a href="https://docs.ultralytics.com/ar/hub/">العربية</a>
 <br>
 <br>
 

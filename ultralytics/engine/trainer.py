@@ -368,7 +368,8 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with torch.cuda.amp.autocast(self.amp):
+                amp = torch.cuda.amp.autocast(self.amp) if self.amp and self.device not in ["hpu"] else torch.autocast(device_type="hpu", dtype=torch.bfloat16)
+                with amp:
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:

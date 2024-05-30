@@ -227,6 +227,21 @@ jobs:
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
+      - name: Export Slim Models
+        shell: bash
+        run: |
+          mkdir onnx-test
+          model=yolov8n
+          yolo detect export model=$model.pt format=onnx slim && mv $model.onnx ./onnx-test/$model-slim.onnx
+          yolo detect export model=$model.pt format=onnx slim=False simplify && mv $model.onnx ./onnx-test/$model-sim.onnx
+          yolo detect export model=$model.pt format=onnx slim=False && mv $model.onnx ./onnx-test/$model.onnx
+      - name: Profile Slim Speeds
+        shell: python
+        run: |
+          from ultralytics.utils.benchmarks import ProfileModels
+
+          models = ["./onnx-test/"]
+          ProfileModels(models, num_warmup_runs=30, num_timed_runs=1000).profile()
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v4

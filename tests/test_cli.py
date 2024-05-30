@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
-import pytest
 import subprocess
+from pathlib import Path
 
+import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
-from ultralytics import run, checks
+from ultralytics import checks, run
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
-
 
 # Constants
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]

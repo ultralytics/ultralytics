@@ -36,7 +36,7 @@ To make resizing a simpler task, you can use the following tools:
 - **OpenCV**: A popular computer vision library with extensive functions for image processing.
 - **PIL (Pillow)**: A Python Imaging Library for opening, manipulating, and saving image files.
 
-With respect to YOLOv8, the ‘imgsz’ parameter during [model training](../modes/train/md) allows for flexible input sizes. When set to a specific size, such as 640, the model will resize input images so their largest dimension is 640 pixels while maintaining the original aspect ratio. 
+With respect to YOLOv8, the ‘imgsz’ parameter during [model training](../modes/train.md) allows for flexible input sizes. When set to a specific size, such as 640, the model will resize input images so their largest dimension is 640 pixels while maintaining the original aspect ratio. 
 
 By evaluating your model's and dataset's specific needs, you can determine whether resizing is a necessary preprocessing step or if your model can efficiently handle images of varying sizes.
 

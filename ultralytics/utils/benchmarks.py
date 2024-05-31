@@ -457,6 +457,8 @@ class ProfileModels:
 
         input_tensor = sess.get_inputs()[0]
         input_type = input_tensor.type
+        dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
+        input_shape = (1, 3, self.imgsz, self.imgsz) if dynamic else input_tensor.shape
 
         # Mapping ONNX datatype to numpy datatype
         if "float16" in input_type:
@@ -472,7 +474,7 @@ class ProfileModels:
         else:
             raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
+        input_data = np.random.rand(*input_shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 

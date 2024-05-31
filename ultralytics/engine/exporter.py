@@ -808,12 +808,13 @@ class Exporter:
         cuda = torch.cuda.is_available()
         try:
             import tensorflow as tf  # noqa
-            import cmake
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
             version = ">=2.0.0"
-            check_requirements(f"tensorflow{suffix}{version}","cmake") # 'cmake' is needed to build onnxsim on aarch64 and Conda runners
-            import tensorflow as tf  # noqa 
+            check_requirements(f"tensorflow{suffix}{version}")
+            import tensorflow as tf  # noqa
+        if ARM64:
+            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64 and Conda runners
         check_requirements(
             (
                 "keras",  # required by onnx2tf package

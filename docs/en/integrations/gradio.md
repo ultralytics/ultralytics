@@ -10,6 +10,26 @@ keywords: Gradio, Ultralytics YOLOv8, object detection, interactive AI, Python
 
 This Gradio interface provides an easy and interactive way to perform object detection using the [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
 
+<div style="display: flex; width: 100%;">
+    <div style="width: 75%;">
+      <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/pWYiene9lYw"
+        title="YouTube video player" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div style="width: 25%;">
+       <iframe loading="lazy" width="235" height="405" src="https://www.youtube.com/embed/ODI47g5arT8" 
+       title="YouTube video player" frameborder="0" 
+       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+       allowfullscreen>
+       </iframe>
+    </div>
+</div>
+<div align="center">
+   <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8
+</div>
+
 ## Why Use Gradio for Object Detection?
 
 * **User-Friendly Interface:** Gradio offers a straightforward platform for users to upload images and visualize detection results without any coding requirement.

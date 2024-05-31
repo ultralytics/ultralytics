@@ -41,6 +41,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
         workspace=1,  # reduce workspace GB for less resource utilization during testing
+        simplify=True,  # use 'onnxslim'
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup

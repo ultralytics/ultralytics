@@ -27,6 +27,7 @@ from .block import (
     SPPELAN,
     SPPF,
     ADown,
+    BasicLayer,
     BNContrastiveHead,
     Bottleneck,
     BottleneckCSP,
@@ -44,7 +45,6 @@ from .block import (
     Proto,
     RepC3,
     RepNCSPELAN4,
-    BasicLayer,
     ResNetLayer,
     Silence,
 )

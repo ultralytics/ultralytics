@@ -372,9 +372,11 @@ class BasicBlock(nn.Module):
         hidden_channels = int(e * c2)
         self.cv1 = Conv(c1, c2, 3, s=s, p=1, act=True)
         self.cv2 = Conv(c2, hidden_channels, 3, s=1, p=1, act=False)
-        self.shortcut = nn.Sequential(
-            Conv(c1, hidden_channels, 1, s=s, act=False)
-        ) if s != 1 or c1 != hidden_channels else nn.Identity()
+        self.shortcut = (
+            nn.Sequential(Conv(c1, hidden_channels, 1, s=s, act=False))
+            if s != 1 or c1 != hidden_channels
+            else nn.Identity()
+        )
 
     def forward(self, x):
         """Forward pass through the ResNet18/34 block."""
@@ -413,11 +415,7 @@ class BasicLayer(nn.Module):
             )
         else:
             blocks = [BasicBlock(c1, c2, s, e=e)]
-            blocks.extend(
-                [
-                    BasicBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)
-                ]
-            )
+            blocks.extend([BasicBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)])
             self.layer = nn.Sequential(*blocks)
 
     def forward(self, x):

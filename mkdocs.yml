@@ -322,6 +322,8 @@ nav:
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
       - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
+      - Data Collection and Annotation: guides/data-collection-and-annotation.md
+      - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

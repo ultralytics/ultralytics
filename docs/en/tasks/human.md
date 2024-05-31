@@ -18,6 +18,11 @@ YOLOv8 pretrained Human models are shown here. Detect, Segment and Pose models a
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
+!!! note
+
+    It is important to note that these models have been trained on a specially curated, artificially annotated version of the COCO dataset. This custom dataset was meticulously crafted to enhance the models' performance on specific tasks by incorporating additional annotations and adjustments beyond those available in the public COCO dataset. Due to proprietary reasons, this enhanced version of the dataset is not publicly available. The artificial annotations were designed to provide more comprehensive and nuanced data, enabling the models to achieve higher accuracy and robustness in their predictions. The proprietary nature of this dataset ensures that the models possess a competitive edge, offering advanced capabilities and superior performance in their respective applications.
+    
+    
 | Model                                                                                            | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |--------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |

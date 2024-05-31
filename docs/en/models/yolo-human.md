@@ -24,7 +24,11 @@ The YOLO-Human model by Ultralytics is designed for advanced human attribute est
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes. 
+
+!!! note
+
+    It is important to note that these models have been trained on a specially curated, artificially annotated version of the COCO dataset. This custom dataset was meticulously crafted to enhance the models' performance on specific tasks by incorporating additional annotations and adjustments beyond those available in the public COCO dataset. Due to proprietary reasons, this enhanced version of the dataset is not publicly available. The artificial annotations were designed to provide more comprehensive and nuanced data, enabling the models to achieve higher accuracy and robustness in their predictions. The proprietary nature of this dataset ensures that the models possess a competitive edge, offering advanced capabilities and superior performance in their respective applications.
 
 | Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                                    | Inference | Validation | Training | Export |
 |-----------------|---------------------------------------------------------------------------------------------------------|----------------------------------------------------|-----------|------------|----------|--------|
@@ -33,7 +37,6 @@ This section details the models available with their specific pre-trained weight
 | YOLOv8m-human   | [yolov8m-human.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-human.pt)     | [Human attributes estimation](../tasks/human.md)   | ✅        | ✅         | ✅       | ✅     |
 | YOLOv8l-human   | [yolov8l-human.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-human.pt)     | [Human attributes estimation](../tasks/human.md)   | ✅        | ✅         | ✅       | ✅     |
 | YOLOv8x-human   | [yolov8x-human.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-human.pt)     | [Human attributes estimation](../tasks/human.md)   | ✅        | ✅         | ✅       | ✅     |
-
 
 
 ## Usage Examples

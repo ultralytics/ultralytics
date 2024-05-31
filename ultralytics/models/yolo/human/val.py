@@ -148,13 +148,13 @@ class HumanValidator(DetectionValidator):
         acc_h = 1 - (pred_attrs.height - height).abs() / height
         acc_g = (pred_attrs.cls_gender == gender).float()
         acc_a = 1 - (pred_attrs.age - age).abs() / age
-        acc_r = (pred_attrs.cls_ethnicity == ethnicity).float()
+        acc_e = (pred_attrs.cls_ethnicity == ethnicity).float()
 
         self.metrics.attrs_stats["weight"].append(acc_w.clip(0, 1))
         self.metrics.attrs_stats["height"].append(acc_h.clip(0, 1))
         self.metrics.attrs_stats["gender"].append(acc_g)
         self.metrics.attrs_stats["age"].append(acc_a.clip(0, 1))
-        self.metrics.attrs_stats["ethnicity"].append(acc_r)
+        self.metrics.attrs_stats["ethnicity"].append(acc_e)
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""

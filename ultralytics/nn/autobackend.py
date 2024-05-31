@@ -134,7 +134,7 @@ class AutoBackend(nn.Module):
             device = torch.device("cpu")
             cuda = False
         elif npu and not onnx:
-            torch.npu.set_device(device) # explicitly initialize device (otherwise device with index 0 is used)
+            torch.npu.set_device(device)  # explicitly initialize device (otherwise device with index 0 is used)
 
         # Download if not local
         if not (pt or triton or nn_module):

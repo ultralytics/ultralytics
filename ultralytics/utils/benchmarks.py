@@ -472,7 +472,11 @@ class ProfileModels:
         else:
             raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
+        if all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape):
+            input_shape = input_tensor.shape
+        else:
+            input_shape = (1, 3, self.imgsz, self.imgsz)
+        input_data = np.random.rand(*input_shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 

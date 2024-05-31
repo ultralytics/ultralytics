@@ -44,6 +44,7 @@ from .block import (
     Proto,
     RepC3,
     RepNCSPELAN4,
+    BasicLayer,
     ResNetLayer,
     Silence,
 )
@@ -123,6 +124,7 @@ __all__ = (
     "DeformableTransformerDecoderLayer",
     "MSDeformAttn",
     "MLP",
+    "BaiscLayer",
     "ResNetLayer",
     "OBB",
     "WorldDetect",

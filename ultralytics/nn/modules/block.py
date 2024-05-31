@@ -28,8 +28,10 @@ __all__ = (
     "GhostBottleneck",
     "Bottleneck",
     "BottleneckCSP",
+    "BasicBlock",
     "Proto",
     "RepC3",
+    "BasicLayer",
     "ResNetLayer",
     "RepNCSPELAN4",
     "ADown",
@@ -362,6 +364,23 @@ class BottleneckCSP(nn.Module):
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
 
 
+class BasicBlock(nn.Module):
+    """ResNet18/34 block with standard convolution layers."""
+
+    def __init__(self, c1, c2, s=1, e=1) -> None:
+        super().__init__()
+        hidden_channels = int(e * c2)
+        self.cv1 = Conv(c1, c2, 3, s=s, p=1, act=True)
+        self.cv2 = Conv(c2, hidden_channels, 3, s=1, p=1, act=False)
+        self.shortcut = nn.Sequential(
+            Conv(c1, hidden_channels, 1, s=s, act=False)
+        ) if s != 1 or c1 != hidden_channels else nn.Identity()
+
+    def forward(self, x):
+        """Forward pass through the ResNet18/34 block."""
+        return F.relu(self.cv2(self.cv1(x)) + self.shortcut(x))
+
+
 class ResNetBlock(nn.Module):
     """ResNet block with standard convolution layers."""
 
@@ -377,6 +396,33 @@ class ResNetBlock(nn.Module):
     def forward(self, x):
         """Forward pass through the ResNet block."""
         return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
+
+
+class BasicLayer(nn.Module):
+    """ResNet18/34 layer with multiple ResNet blocks."""
+
+    def __init__(self, c1, c2, s=1, is_first=False, n=1, e=1) -> None:
+        """Initializes the BasicLayer given arguments."""
+        super().__init__()
+        self.is_first = is_first
+
+        if self.is_first:
+            self.layer = nn.Sequential(
+                Conv(c1, c2, 7, s=2, p=3, act=True),
+                nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            )
+        else:
+            blocks = [BasicBlock(c1, c2, s, e=e)]
+            blocks.extend(
+                [
+                    BasicBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)
+                ]
+            )
+            self.layer = nn.Sequential(*blocks)
+
+    def forward(self, x):
+        """Forward pass through the ResNet18/34 layer."""
+        return self.layer(x)
 
 
 class ResNetLayer(nn.Module):

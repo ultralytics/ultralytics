@@ -784,7 +784,7 @@ def regularize_rboxes(rboxes):
     Regularize rotated boxes in range [0, pi/2].
 
     Args:
-        x (torch.Tensor): (N, 5), xywhr.
+        rboxes (torch.Tensor): Input boxes of shape(N, 5) in xywhr format.
 
     Returns:
         (torch.Tensor): The regularized boxes.

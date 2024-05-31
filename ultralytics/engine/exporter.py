@@ -851,6 +851,7 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
+        self.args.simplify = True
         f_onnx, _ = self.export_onnx()
 
         # Export to TF

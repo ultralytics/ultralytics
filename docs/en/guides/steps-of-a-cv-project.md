@@ -87,7 +87,7 @@ However, if you choose to collect images or take your own pictures, you’ll nee
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/0*VhpVAAJnvq5ZE_pv" alt="Different Types of Image Annotation">
 </p>
 
-Data annotation can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/labelmeai/labelme).
+[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/labelmeai/labelme).
 
 ## Step 3: Data Augmentation and Splitting Your Dataset
 
@@ -113,7 +113,7 @@ To understand your data better, you can use tools like [Matplotlib](https://matp
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0" alt="The Ultralytics Explorer Tool">
 </p> 
 
-By properly understanding, splitting, and augmenting your data, you can develop a well-trained, validated, and tested model that performs well in real-world applications.
+By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
 ## Step 4: Model Training
 

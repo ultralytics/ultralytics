@@ -373,6 +373,7 @@ class Results(SimpleClass):
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
+        human = self.human
         texts = []
         if probs is not None:
             # Classify
@@ -388,6 +389,15 @@ class Results(SimpleClass):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
+                if human is not None:
+                    h = human[j]
+                    line += (
+                        int(h.weight[0]),
+                        int(h.height[0]),
+                        int(h.cls_gender[0]),
+                        int(h.age[0]),
+                        int(h.cls_ethnicity[0]),
+                    )
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 

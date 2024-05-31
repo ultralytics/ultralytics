@@ -2,9 +2,11 @@
 from pathlib import Path
 
 import torch
+import numpy as np
 
 from ultralytics.data.dataset import HumanDataset
 from ultralytics.engine.results import Human
+from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr
 from ultralytics.utils.metrics import HumanMetrics, box_iou
@@ -154,6 +156,12 @@ class HumanValidator(DetectionValidator):
         self.metrics.attrs_stats["gender"].append(acc_g)
         self.metrics.attrs_stats["age"].append(acc_a.clip(0, 1))
         self.metrics.attrs_stats["ethnicity"].append(acc_r)
+
+    def save_one_txt(self, predn, save_conf, shape, file):
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        im = np.zeros((shape[0], shape[1]), dtype=np.uint8)
+        result = Results(im, path=None, names=self.names, boxes=predn[:, :6], human=predn[:, 6:])
+        result.save_txt(file, save_conf=save_conf)
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""

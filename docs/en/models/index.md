@@ -26,6 +26,7 @@ Here are some of the key models supported:
 12. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Models.
 13. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
 14. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
+15. **[YOLO-Human](yolo-human.md)**: Human detection and attributes estimation models by Ultralytics.
 
 <p align="center">
   <br>

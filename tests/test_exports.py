@@ -72,8 +72,10 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [True, False], [False], [False], [1, 2]))
-def test_export_onnx_matrix(task, dynamic, int8, half, batch):
+@pytest.mark.parametrize(
+    "task, dynamic, int8, half, batch, simplify", product(TASKS, [True, False], [False], [False], [1, 2], [True, False])
+)
+def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify):
     """Test YOLO exports to ONNX format."""
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
@@ -82,6 +84,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch):
         int8=int8,
         half=half,
         batch=batch,
+        simplify=simplify,
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup

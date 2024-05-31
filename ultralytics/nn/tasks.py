@@ -4,6 +4,7 @@ import contextlib
 from copy import deepcopy
 from pathlib import Path
 
+import thop
 import torch
 import torch.nn as nn
 
@@ -64,10 +65,6 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
-
-
-import thop
-
 
 
 class BaseModel(nn.Module):

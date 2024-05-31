@@ -164,9 +164,12 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     elif npu:
         check_requirements("torch_npu")
         import torch_npu
+
         if not torch.npu.is_available():
             raise ValueError("Ascend NPU is not available")
-        torch.npu.set_device(device)  # otherwise device with index 0 is always allocated in addition to the specified one
+        torch.npu.set_device(
+            device
+        )  # otherwise device with index 0 is always allocated in addition to the specified one
         device_split = device.split(":")
         device_index = int(device_split[1]) if len(device_split) == 2 else 0
         p = torch.npu.get_device_properties(device_index)

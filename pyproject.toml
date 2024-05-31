@@ -75,9 +75,9 @@ dependencies = [
     "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
-    "thop>=0.1.1", # FLOPs computation
     "pandas>=1.1.4",
     "seaborn>=0.11.0", # plotting
+    "ultralytics-thop>=0.2.4", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.44", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.0.45", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export

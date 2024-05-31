@@ -16,10 +16,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
-# cmake and build-essential are needed to build 'onnxsim' when exporting to TFLite
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 build-essential
+    && apt install --no-install-recommends -y python3-pip git zip curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 
 # Create working directory
 WORKDIR $APP_HOME

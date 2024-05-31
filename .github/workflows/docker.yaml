@@ -18,22 +18,26 @@ on:
       Dockerfile-cpu:
         type: boolean
         description: Use Dockerfile-cpu
+        default: true
       Dockerfile-arm64:
         type: boolean
         description: Use Dockerfile-arm64
+        default: true
       Dockerfile-jetson:
         type: boolean
         description: Use Dockerfile-jetson
+        default: true
       Dockerfile-python:
         type: boolean
         description: Use Dockerfile-python
+        default: true
       Dockerfile-conda:
         type: boolean
         description: Use Dockerfile-conda
+        default: true
       push:
         type: boolean
-        description: Push images to Docker Hub
-        default: true
+        description: Publish all Images to Docker Hub
 
 jobs:
   docker:

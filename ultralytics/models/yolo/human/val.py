@@ -1,12 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 from pathlib import Path
 
-import torch
 import numpy as np
+import torch
 
 from ultralytics.data.dataset import HumanDataset
-from ultralytics.engine.results import Human
-from ultralytics.engine.results import Results
+from ultralytics.engine.results import Human, Results
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr
 from ultralytics.utils.metrics import HumanMetrics, box_iou

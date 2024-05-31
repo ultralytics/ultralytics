@@ -16,12 +16,43 @@ This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.
 
 A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Human dataset, the `human8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/human8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/human8.yaml).
 
-!!! Example "ultralytics/cfg/datasets/human8.yaml"
+!!! Example "ultralytics/cfg/datasets/coco8-human.yaml"
 
     ```yaml
-    --8<-- "ultralytics/cfg/datasets/human8.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8-human.yaml"
     ```
 
 ## Usage
 
-Coming soon...
+To train a YOLOv8n-human model on the COCO8-human dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-human.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="coco8-human.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo human train data=coco8-human.yaml model=yolov8n-human.pt epochs=100 imgsz=640
+        ```
+
+## Sample Images and Annotations
+
+Here are some examples of images from the COCO8-human dataset, along with their corresponding detection annotations. Each human is also annotated with: weight (kg), height (cm), gender (0: female, 1: male), age (years), and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black):
+
+<img src="https://github.com/ultralytics/ultralytics/assets/3855193/dc3cbd2e-28e8-4459-98b2-659e52792e51" alt="Dataset sample image" width="800">
+
+- **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
+
+The example showcases the variety and complexity of the images in the COCO8-human dataset and the benefits of using mosaicing during the training process.

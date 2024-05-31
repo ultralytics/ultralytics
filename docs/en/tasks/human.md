@@ -6,7 +6,7 @@ keywords: YOLOv8, Ultralytics, human detection, attribute estimation, age estima
 
 # Human Detection and Attribute Estimation
 
-<img width="1024" src="https://github.com/ultralytics/ultralytics/assets/3855193/c49d8b56-aed6-4303-82b2-790aa24b5515" alt="Object detection examples">
+<img width="1024" src="https://github.com/ultralytics/ultralytics/assets/3855193/c49d8b56-aed6-4303-82b2-790aa24b5515" alt="Human attributes estimation example">
 
 
 Human detection and attribute estimation is a task that involves identifying humans in an image or video stream and estimating their attributes, such as age, gender, weight, height, and ethnicity.
@@ -14,9 +14,50 @@ The output of the detector is a set of bounding boxes that enclose the humans in
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
+YOLOv8 pretrained Human models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+
+| Model                                                                                            | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+|--------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| [YOLOv8n-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |
+| [YOLOv8s-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |
+| [YOLOv8m-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |
+| [YOLOv8l-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |
+| [YOLOv8x-human](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-human.pt) | 640                   | Coming soon          | Coming soon                    | Coming soon                         | Coming soon        | Coming soon       |
+
 ## Train
 
-Coming soon...
+Train YOLOv8n-human on the COCO8-Human dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-human.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n-human.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-human.yaml").load("yolov8n-human.pt")  # build from YAML and transfer weights
+
+        # Train the model
+        results = model.train(data="coco8-human.yaml", epochs=100, imgsz=640)
+        ```
+    === "CLI"
+
+        ```bash
+        # Build a new model from YAML and start training from scratch
+        yolo human train data=coco8-human.yaml model=yolov8n-human.yaml epochs=100 imgsz=640
+
+        # Start training from a pretrained *.pt model
+        yolo human train data=coco8-human.yaml model=yolov8n-human.pt epochs=100 imgsz=640
+
+        # Build a new model from YAML, transfer pretrained weights to it and start training
+        yolo human train data=coco8-human.yaml model=yolov8n-human.yaml pretrained=yolov8n-human.pt epochs=100 imgsz=640
+        ```
+
 
 ### Dataset format
 
@@ -24,12 +65,102 @@ Human Detection and Attribute Estimation dataset format can be found in detail i
 
 ## Val
 
-Coming soon...
+Validate trained YOLOv8n-human model accuracy on the COCO8-human dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-human.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
+
+        # Validate the model
+        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics.box.map  # map50-95
+        metrics.box.map50  # map50
+        metrics.box.map75  # map75
+        metrics.box.maps  # a list contains map50-95 of each category
+        metrics.attrs_accuracy # human attributes estimation accuracy
+        ```
+    === "CLI"
+
+        ```bash
+        yolo human val model=yolov8n-human.pt  # val official model
+        yolo human val model=path/to/best.pt  # val custom model
+        ```
 
 ## Predict
 
-Coming soon...
+Use a trained YOLOv8n-human model to run predictions on images.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-human.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
+
+        # Predict with the model
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        ```
+    === "CLI"
+
+        ```bash
+        yolo human predict model=yolov8n-human.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo human predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        ```
+
+See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 
-Coming soon...
+Export a YOLOv8n-human model to a different format like ONNX, CoreML, etc.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-human.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
+
+        # Export the model
+        model.export(format="onnx")
+        ```
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n-human.pt format=onnx  # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        ```
+
+Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-human.onnx`. Usage examples are shown for your model after export completes.
+
+| Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                            |
+|---------------------------------------------------|-------------------|---------------------------|----------|----------------------------------------------------------------------|
+| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-human.pt`              | ✅ | -                                                                    |
+| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-human.torchscript`     | ✅ | `imgsz`, `optimize`, `batch`                                         |
+| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-human.onnx`            | ✅ | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-human_openvino_model/` | ✅ | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-human.engine`          | ✅ | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-human.mlpackage`       | ✅ | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-human_saved_model/`    | ✅ | `imgsz`, `keras`, `int8`, `batch`                                    |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-human.pb`              | ❌ | `imgsz`, `batch`                                                     |
+| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-human.tflite`          | ✅ | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-human_edgetpu.tflite`  | ✅ | `imgsz`, `batch`                                                     |
+| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-human_web_model/`      | ✅ | `imgsz`, `half`, `int8`, `batch`                                     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-human_paddle_model/`   | ✅ | `imgsz`, `batch`                                                     |
+| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-human_ncnn_model/`     | ✅ | `imgsz`, `half`, `batch`                                             |
+
+See full `export` details in the [Export](../modes/export.md) page.

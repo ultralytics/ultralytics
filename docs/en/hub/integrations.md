@@ -1,3 +1,9 @@
+---
+comments: true
+description: TODO ADD DESCRIPTION
+keywords: TODO ADD KEYWORDS
+---
+
 # Ultralytics HUB Integrations
 
 Learn about [Ultralytics HUB](https://bit.ly/ultralytics_hub) integrations with various platforms and formats.

@@ -537,7 +537,7 @@ class HUBDatasetStats:
                     "labels": [{Path(k).name: v} for k, v in dataset.imgs],
                 }
             else:
-                from ultralytics.data import YOLODataset, HumanDataset
+                from ultralytics.data import HumanDataset, YOLODataset
 
                 dataset = (HumanDataset if self.task == "human" else YOLODataset)(
                     img_path=self.data[split], data=self.data, task=self.task

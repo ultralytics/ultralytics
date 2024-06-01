@@ -567,13 +567,13 @@ class HUBDatasetStats:
 
     def process_images(self):
         """Compress images for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import YOLODataset, HumanDataset  # ClassificationDataset
 
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue
-            dataset = YOLODataset(img_path=self.data[split], data=self.data)
+            dataset = (HumanDataset if self.task == "human" else YOLODataset)(img_path=self.data[split], data=self.data)
             with ThreadPool(NUM_THREADS) as pool:
                 for _ in TQDM(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f"{split} images"):
                     pass

@@ -7,6 +7,7 @@ from .dataset import (
     GroundingDataset,
     SemanticDataset,
     YOLOConcatDataset,
+    HumanDataset,
     YOLODataset,
     YOLOMultiModalDataset,
 )
@@ -18,6 +19,7 @@ __all__ = (
     "YOLODataset",
     "YOLOMultiModalDataset",
     "YOLOConcatDataset",
+    "HumanDataset",
     "GroundingDataset",
     "build_yolo_dataset",
     "build_grounding",

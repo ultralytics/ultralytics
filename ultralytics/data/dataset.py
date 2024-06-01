@@ -15,7 +15,6 @@ from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
-
 from .augment import (
     Compose,
     Format,
@@ -508,8 +507,8 @@ class ClassificationDataset:
 
 
 class HumanDataset(YOLODataset):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, task="detect", data={}, **kwargs)
+    def __init__(self, *args, data=None, **kwargs):
+        super().__init__(*args, task="detect", data=data, **kwargs)
 
     def get_labels(self):
         self.label_files = img2label_paths(self.im_files)
@@ -538,8 +537,7 @@ class HumanDataset(YOLODataset):
                     "shape": shape,
                     "cls": lb[:, 0:1],  # n, 1
                     "bboxes": lb[:, 1:5],  # n, 4
-                    # weight(kg), height(cm), gender, age, ethnicity
-                    "attributes": lb[:, 5:],  # n, 5
+                    "attributes": lb[:, 5:],  # n, 5  (weight(kg), height(cm), gender, age, ethnicity)
                     "segments": [],
                     "keypoints": None,
                     "normalized": True,

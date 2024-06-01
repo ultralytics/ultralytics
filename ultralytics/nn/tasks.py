@@ -4,7 +4,6 @@ import contextlib
 from copy import deepcopy
 from pathlib import Path
 
-import thop
 import torch
 import torch.nn as nn
 
@@ -65,6 +64,11 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
+
+try:
+    import thop
+except ImportError:
+    thop = None
 
 
 class BaseModel(nn.Module):
@@ -153,7 +157,7 @@ class BaseModel(nn.Module):
             None
         """
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2  # GFLOPs
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
         t = time_sync()
         for _ in range(10):
             m(x.copy() if c else x)

@@ -503,6 +503,8 @@ class HUBDatasetStats:
             elif self.task == "pose":
                 n, nk, nd = labels["keypoints"].shape
                 coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, nk * nd)), 1)
+            elif self.task == "human":
+                coordinates = np.concatenate((labels["bboxes"], labels["attributes"]), 1)  # attributes concatenated
             else:
                 raise ValueError(f"Undefined dataset task={self.task}.")
             zipped = zip(labels["cls"], coordinates)
@@ -535,9 +537,11 @@ class HUBDatasetStats:
                     "labels": [{Path(k).name: v} for k, v in dataset.imgs],
                 }
             else:
-                from ultralytics.data import YOLODataset
+                from ultralytics.data import YOLODataset, HumanDataset
 
-                dataset = YOLODataset(img_path=self.data[split], data=self.data, task=self.task)
+                dataset = (HumanDataset if self.task == "human" else YOLODataset)(
+                    img_path=self.data[split], data=self.data, task=self.task
+                )
                 x = np.array(
                     [
                         np.bincount(label["cls"].astype(int).flatten(), minlength=self.data["nc"])

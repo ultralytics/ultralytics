@@ -264,7 +264,7 @@ class YOLOMultiModalDataset(YOLODataset):
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
-        """Add texts information for multi modal model training."""
+        """Add texts information for multimodal model training."""
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
         labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
@@ -508,8 +508,10 @@ class ClassificationDataset:
 
 
 class HumanDataset(YOLODataset):
-    def __init__(self, *args, data=None, **kwargs):
-        super().__init__(*args, task="detect", data=data, **kwargs)
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("task", None)
+        kwargs.pop("data", None)
+        super().__init__(*args, task="detect", data={}, **kwargs)
 
     def get_labels(self):
         self.label_files = img2label_paths(self.im_files)

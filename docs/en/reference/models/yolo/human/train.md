@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover the functionalities of the Ultralytics YOLO HumanTrainer class for training human detection models. Learn about training processes, optimization techniques, and methods to enhance human attribute recognition.
+keywords: Ultralytics YOLO, HumanTrainer, Human Model, Model Training, Machine Learning, Deep Learning, Computer Vision, Human Attributes
 ---
 
 # Reference for `ultralytics/models/yolo/human/train.py`

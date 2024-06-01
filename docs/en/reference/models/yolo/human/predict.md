@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the Ultralytics YOLO HumanPredictor class for human model prediction. Learn implementation details, advanced techniques, and methods for accurate human attribute prediction.
+keywords: Ultralytics YOLO, HumanPredictor, Human Model, Model Prediction, Machine Learning, Deep Learning, Computer Vision, Human Attributes
 ---
 
 # Reference for `ultralytics/models/yolo/human/predict.py`

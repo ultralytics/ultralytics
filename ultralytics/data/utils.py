@@ -567,7 +567,7 @@ class HUBDatasetStats:
 
     def process_images(self):
         """Compress images for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset, HumanDataset  # ClassificationDataset
+        from ultralytics.data import HumanDataset, YOLODataset  # ClassificationDataset
 
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":

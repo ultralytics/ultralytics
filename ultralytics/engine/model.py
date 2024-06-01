@@ -6,6 +6,7 @@ from typing import List, Union
 
 import numpy as np
 import torch
+from huggingface_hub import PyTorchModelHubMixin
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
@@ -23,8 +24,6 @@ from ultralytics.utils import (
     emojis,
     yaml_load,
 )
-
-from huggingface_hub import PyTorchModelHubMixin
 
 
 class Model(nn.Module, PyTorchModelHubMixin):

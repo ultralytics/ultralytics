@@ -116,9 +116,23 @@ def update_subdir_edit_links(subdir="", docs_url=""):
             file.write(str(soup))
 
 
+def add_frontmatter(md_filepath: Path):
+    """Creates or updates a Markdown file, ensuring frontmatter is present."""
+    if md_filepath.exists():
+        existing_content = md_filepath.read_text()
+        if not existing_content.strip().startswith("---\n"):
+            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            md_filepath.write_text(header + existing_content)
+    return
+
+
 def main():
     """Builds docs, updates titles and edit links, and prints local server command."""
     build_docs()
+
+    # Add frontmatter
+    for file in tqdm((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
+        add_frontmatter(file)
 
     # Update titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")

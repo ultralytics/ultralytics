@@ -29,7 +29,7 @@ names:
 ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per human in the following format:
-weight (kg), height (cm), gender (0: female, 1: male), age (years) and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black).
+weight (kg), height (cm), biological gender (0: female, 1: male), age (years) and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black).
 
 ```bash
 class x_center y_center width height p_weight p_height p_gender p_age p_ethnicity
@@ -43,9 +43,9 @@ Box coordinates must be in **normalized xywh** format (from 0 to 1). If your box
   
 - Height (cm): The height of the person is annotated in centimeters. Accurate height measurements are crucial for many analytical and identification purposes.
   
-- Gender: Gender is annotated using binary classification where 0 represents female, 1 represents male. This straightforward categorization simplifies gender identification tasks in various applications.
+- Biological Gender: biological gender is annotated using binary classification where 0 represents female, 1 represents male. This straightforward categorization simplifies biological gender identification tasks in various applications.
 
-    !!! Gender Classes
+    !!! Biological Classes
 
         | value | class   |
         |-------|---------|

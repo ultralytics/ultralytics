@@ -8,7 +8,7 @@ keywords: Ultralytics, human8 dataset, object detection, model testing, dataset 
 
 ## Introduction
 
-[Ultralytics](https://ultralytics.com) COCO8-Human is a small, but versatile object detection dataset composed of 8 images from the COCO train 2017 set, annotated with person weight (kg), height (cm), gender (0: female, 1: male), age (years), and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black). The dataset has been artificially generated using a vision-language pipeline and annotated with the GPT-4 Turbo model (version 2024-04-09) deployed on Microsoft Azure. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://ultralytics.com) COCO8-Human is a small, but versatile object detection dataset composed of 8 images from the COCO train 2017 set, annotated with person weight (kg), height (cm), biological gender (0: female, 1: male), age (years), and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black). The dataset has been artificially generated using a vision-language pipeline and annotated with the GPT-4 Turbo model (version 2024-04-09) deployed on Microsoft Azure. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
  This dataset is intended for use with the [Ultralytics python library](https://github.com/ultralytics/ultralytics) and [Ultralytics HUB](https://hub.ultralytics.com).
 
@@ -49,7 +49,7 @@ To train a YOLOv8n-human model on the COCO8-human dataset for 100 epochs with an
 
 ## Sample Images and Annotations
 
-Here are some examples of images from the COCO8-human dataset, along with their corresponding detection annotations. Each human is also annotated with: weight (kg), height (cm), gender (0: female, 1: male), age (years), and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black):
+Here are some examples of images from the COCO8-human dataset, along with their corresponding detection annotations. Each human is also annotated with: weight (kg), height (cm), biological gender (0: female, 1: male), age (years), and ethnicity (0: asian, 1: white, 2: middle eastern, 3: indian, 4: latino, 5: black):
 
 <img src="https://github.com/ultralytics/ultralytics/assets/3855193/dc3cbd2e-28e8-4459-98b2-659e52792e51" alt="Dataset sample image" width="800">
 

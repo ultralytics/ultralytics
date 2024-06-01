@@ -24,8 +24,10 @@ from ultralytics.utils import (
     yaml_load,
 )
 
+from huggingface_hub import PyTorchModelHubMixin
 
-class Model(nn.Module):
+
+class Model(nn.Module, PyTorchModelHubMixin):
     """
     A base class for implementing YOLO models, unifying APIs across different model types.
 

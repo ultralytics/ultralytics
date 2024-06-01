@@ -21,7 +21,7 @@ The YOLO-Human model by Ultralytics is designed for advanced human attribute est
 - **Detailed Visualization**: Provides comprehensive visualization tools to display detected human attributes effectively.
 - **Robust Evaluation Metrics**: Implements new metrics tailored for human attribute detection, ensuring thorough model evaluation and validation.
 
-???+ warning "Responsibility Disclaimer"
+???+ warning "Disclaimer on Privacy and Security"
 
     When using YOLO-Human models for human detection and attribute estimation, please be mindful of privacy and security. Ensure compliance with relevant data protection laws and implement strong security measures. Use these models ethically, avoiding applications that could cause harm or discrimination. Ultralytics is not responsible for any misuse. Users are responsible for ensuring their use complies with all legal and ethical standards.
 

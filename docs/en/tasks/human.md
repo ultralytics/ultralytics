@@ -11,7 +11,7 @@ keywords: YOLOv8, Ultralytics, human detection, attribute estimation, age estima
 Human detection and attributes estimation is a task that involves identifying humans in an image or video stream and estimating their attributes, such as age, biological gender, weight, height, and ethnicity.
 The output of the detector is a set of bounding boxes that enclose the humans in the image, along with class labels, confidence scores, and estimated attributes for each person. This task is useful for applications in surveillance, retail analytics, and human-computer interaction.
 
-???+ warning "Responsibility Disclaimer"
+???+ warning "Disclaimer on Privacy and Security"
 
     When using YOLO-Human models for human detection and attribute estimation, please be mindful of privacy and security. Ensure compliance with relevant data protection laws and implement strong security measures. Use these models ethically, avoiding applications that could cause harm or discrimination. Ultralytics is not responsible for any misuse. Users are responsible for ensuring their use complies with all legal and ethical standards.
 

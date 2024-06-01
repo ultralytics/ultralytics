@@ -15,7 +15,7 @@ The YOLO-Human model by Ultralytics is designed for advanced human attribute est
 - **Real-time Human Attribute Estimation**: Leverages the computational speed of CNNs to provide fast and accurate human attribute estimation in real-time.
 - **Efficiency and Performance**: Optimized for reduced computational and resource requirements without sacrificing performance, enabling deployment in real-time applications.
 - **Comprehensive Attribute Estimation**: Capable of estimating multiple human attributes such as age, gender, ethnicity, weight, and height, providing detailed demographic analysis.
-- **Detection of Flocks of Humans**: Enhanced to detect both individual humans and groups of humans, expanding its applicability in various scenarios.
+- **Detection of Group of Humans**: Enhanced to detect both individual humans and groups of humans, expanding its applicability in various scenarios.
 - **Powered by YOLOv8**: Built upon the advanced YOLOv8 architecture, ensuring state-of-the-art performance in human attribute detection.
 - **Advanced Augmentations**: Includes enhanced augmentations specifically designed for human attribute data, improving model robustness and accuracy.
 - **Detailed Visualization**: Provides comprehensive visualization tools to display detected human attributes effectively.
@@ -28,7 +28,7 @@ This section details the models available with their specific pre-trained weight
 
 !!! note
 
-    It is important to note that these models have been trained on a specially curated, artificially annotated version of the COCO dataset. This custom dataset was meticulously crafted to enhance the models' performance on specific tasks by incorporating additional annotations and adjustments beyond those available in the public COCO dataset. Due to proprietary reasons, this enhanced version of the dataset is not publicly available. The artificial annotations were designed to provide more comprehensive and nuanced data, enabling the models to achieve higher accuracy and robustness in their predictions. The proprietary nature of this dataset ensures that the models possess a competitive edge, offering advanced capabilities and superior performance in their respective applications.
+    It is important to note that these models have been trained on a specially curated, artificially annotated version of the COCO dataset. This custom dataset was meticulously crafted to enhance the models' performance on specific tasks by incorporating additional annotations and adjustments beyond those available in the public COCO dataset. This enhanced version of the dataset is not publicly available (a sample of the dataset is available at [this page](../datasets/human/coco8-human.md). The artificial annotations were designed to provide more comprehensive and nuanced data, enabling the models to achieve higher accuracy and robustness in their predictions.
 
 | Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                                    | Inference | Validation | Training | Export |
 |-----------------|---------------------------------------------------------------------------------------------------------|----------------------------------------------------|-----------|------------|----------|--------|
@@ -54,8 +54,6 @@ Train YOLOv8n-human on the COCO8-Human dataset for 100 epochs at image size 640.
 
         # Load a model
         model = YOLO("yolov8n-human.yaml")  # build a new model from YAML
-        model = YOLO("yolov8n-human.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolov8n-human.yaml").load("yolov8n-human.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8-human.yaml", epochs=100, imgsz=640)
@@ -80,7 +78,7 @@ Human Detection and Attributes Estimation dataset format can be found in detail 
 
 ### Val Usage
 
-Validate trained YOLOv8n-human model accuracy on the COCO8-human dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-human model accuracy on the COCO8-human dataset. No argument need to passed as the `model` retains it's training `data="coco8-human"` and arguments as model attributes.
 
 !!! Example
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore how to seamlessly integrate Ultralytics HUB with Roboflow and more for efficient dataset and model management.
+keywords: Ultralytics HUB, Roboflow integration, dataset management, model training, AI model exports, platform integrations
 ---
 
 # Ultralytics HUB Integrations

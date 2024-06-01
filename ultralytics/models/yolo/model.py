@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
+from huggingface_hub import PyTorchModelHubMixin
+
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
-
-from huggingface_hub import PyTorchModelHubMixin
 
 
 class YOLO(Model, PyTorchModelHubMixin):

@@ -177,7 +177,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
       - name: Notify on Slack (Failure)
-        if: failure()
+        if: failure() && false
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |

@@ -41,7 +41,7 @@ For detailed instructions and best practices related to the installation process
 
 Once you have installed the necessary packages, the next step is to initialize and configure your ClearML SDK. This involves setting up your ClearML account and obtaining the necessary credentials for a seamless connection between your development environment and the ClearML server.
 
-Begin by initializing the ClearML SDK in your environment. The ‘clearml-init’ command starts the setup process and prompts you for the necessary credentials.
+Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
 !!! Tip "Initial SDK Setup"
 
@@ -86,7 +86,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Understanding the Code
 
-Let’s understand the steps showcased in the usage code snippet above.
+Let's understand the steps showcased in the usage code snippet above.
 
 **Step 1: Creating a ClearML Task**: A new task is initialized in ClearML, specifying your project and task names. This task will track and manage your model's training.
 

@@ -28,7 +28,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         allowfullscreen>
       </iframe>
       <br>
-      <strong>Watch:</strong> Classwise Object Counting using Ultralytics YOLOv8
+      <strong>Watch:</strong> Class-wise Object Counting using Ultralytics YOLOv8
     </td>
   </tr>
 </table>

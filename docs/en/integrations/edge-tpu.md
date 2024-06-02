@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to uplift your Ultralytics YOLOv8 model's overall performance with the TFLite Edge TPU export format, which is perfect for mobile and embedded devices.
-keywords: Ultralytics, YOLOv8, TFLite edge TPU format, Export YOLOv8, Model Deployment, Flexible Deployment
+description: Learn how to export YOLOv8 models to TFLite Edge TPU format for high-speed, low-power inferencing on mobile and embedded devices.
+keywords: YOLOv8, TFLite Edge TPU, TensorFlow Lite, model export, machine learning, edge computing, neural networks, Ultralytics
 ---
 
 # Learn to Export to TFLite Edge TPU Format From YOLOv8 Model

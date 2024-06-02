@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the versatile DOTA8 dataset, perfect for testing and debugging oriented detection models. Learn how to get started with YOLOv8-obb model training.
-keywords: Ultralytics, YOLOv8, oriented detection, DOTA8 dataset, dataset, model training, YAML
+description: Explore the DOTA8 dataset - a small, versatile oriented object detection dataset ideal for testing and debugging object detection models using Ultralytics YOLOv8.
+keywords: DOTA8 dataset, Ultralytics, YOLOv8, object detection, debugging, training models, oriented object detection, dataset YAML
 ---
 
 # DOTA8 Dataset

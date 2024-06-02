@@ -22,8 +22,10 @@ from ultralytics.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
 
+from huggingface_hub import PyTorchModelHubMixin
 
-class SAM(Model):
+
+class SAM(Model, PyTorchModelHubMixin, library_name="ultralytics", tags=["mask-generation", "sam"]):
     """
     SAM (Segment Anything Model) interface class.
 

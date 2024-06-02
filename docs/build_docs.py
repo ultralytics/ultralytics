@@ -157,7 +157,7 @@ def main():
         update_html_head(script)
 
     # Show command to serve built website
-    print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
 
 
 if __name__ == "__main__":

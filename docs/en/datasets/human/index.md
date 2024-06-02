@@ -77,5 +77,3 @@ When using the Ultralytics YOLO format, organize your training and validation im
 Currently, the following datasets with Human Attribute Estimation are supported:
 
 - [COCO8-human](coco8-human.md) - A small, 8-image subset of the full COCO dataset suitable for testing workflows and Continuous Integration (CI) checks of human attribute estimation training in the `ultralytics` repository.
- 
-

@@ -8,7 +8,7 @@ keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoid
 
 ## Introduction
 
-The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it’s important to understand the best practices related to data collection and data annotation.
+The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it's important to understand the best practices related to data collection and data annotation.
 
 Every consideration regarding the data should closely align with [your project's goals](./defining-project-goals.md). Changes in your annotation strategies could shift the project's focus or effectiveness and vice versa. With this in mind, let's take a closer look at the best ways to approach data collection and annotation.
 
@@ -67,7 +67,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 
 ### Common Annotation Formats
 
-After selecting a type of annotation, it’s important to choose the appropriate format for storing and sharing annotations. 
+After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations. 
 
 Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
 

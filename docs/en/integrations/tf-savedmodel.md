@@ -105,7 +105,7 @@ Now that you have exported your YOLOv8 model to the TF SavedModel format, the ne
 
 However, for in-depth instructions on deploying your TF SavedModel models, take a look at the following resources:
 
-- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: Here’s the developer documentation for how to deploy your TF SavedModel models using TensorFlow Serving.
+- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: Here's the developer documentation for how to deploy your TF SavedModel models using TensorFlow Serving.
 
 - **[Run a TensorFlow SavedModel in Node.js](https://blog.tensorflow.org/2020/01/run-tensorflow-savedmodel-in-nodejs-directly-without-conversion.html)**: A TensorFlow blog post on running a TensorFlow SavedModel in Node.js directly without conversion.
 

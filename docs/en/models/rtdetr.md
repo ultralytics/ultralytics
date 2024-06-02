@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover the features and benefits of RT-DETR, Baidu’s efficient and adaptable real-time object detector powered by Vision Transformers, including pre-trained models.
+description: Discover the features and benefits of RT-DETR, Baidu's efficient and adaptable real-time object detector powered by Vision Transformers, including pre-trained models.
 keywords: RT-DETR, Baidu, Vision Transformers, object detection, real-time performance, CUDA, TensorRT, IoU-aware query selection, Ultralytics, Python API, PaddlePaddle
 ---
 

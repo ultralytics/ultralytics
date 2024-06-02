@@ -20,7 +20,7 @@ Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**ra
 
 It offers tools and resources similar to popular frameworks like TensorFlow and PyTorch, making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 
-By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap into PaddlePaddle’s strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLOv8 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
+By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap into PaddlePaddle's strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLOv8 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
 
 ## Key Features of PaddlePaddle Models
 

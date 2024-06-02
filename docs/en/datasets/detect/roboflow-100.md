@@ -101,7 +101,7 @@ You can access it directly from the Roboflow 100 GitHub repository. In addition,
 
 ## Sample Data and Annotations
 
-Roboflow 100 consists of datasets with diverse images and videos captured from various angles and domains. Here’s a look at examples of annotated images in the RF100 benchmark.
+Roboflow 100 consists of datasets with diverse images and videos captured from various angles and domains. Here's a look at examples of annotated images in the RF100 benchmark.
 
 <p align="center">
   <img width="640" src="https://blog.roboflow.com/content/images/2022/11/image-2.png" alt="Sample Data and Annotations">

@@ -16,7 +16,7 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](h
   <img width="100%" src="https://docs.nvidia.com/deeplearning/tensorrt/archives/tensorrt-601/tensorrt-developer-guide/graphics/whatistrt2.png" alt="TensorRT Overview">
 </p>
 
-[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It’s well-suited for real-time applications like object detection.
+[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like object detection.
 
 This toolkit optimizes deep learning models for NVIDIA GPUs and results in faster and more efficient operations. TensorRT models undergo TensorRT optimization, which includes techniques like layer fusion, precision calibration (INT8 and FP16), dynamic tensor memory management, and kernel auto-tuning. Converting deep learning models into the TensorRT format allows developers to realize the potential of NVIDIA GPUs fully.
 
@@ -40,7 +40,7 @@ TensorRT models offer a range of key features that contribute to their efficienc
 
 ## Deployment Options in TensorRT
 
-Before we look at the code for exporting YOLOv8 models to the TensorRT format, let’s understand where TensorRT models are normally used.
+Before we look at the code for exporting YOLOv8 models to the TensorRT format, let's understand where TensorRT models are normally used.
 
 TensorRT offers several deployment options, and each option balances ease of integration, performance optimization, and flexibility differently:
 
@@ -205,7 +205,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
-- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferrable.
+- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
 
 ## Ultralytics YOLO TensorRT Export Performance
 

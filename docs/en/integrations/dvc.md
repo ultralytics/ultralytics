@@ -166,6 +166,6 @@ Based on your analysis, iterate on your experiments. Adjust model configurations
 
 This guide has led you through the process of integrating DVCLive with Ultralytics' YOLOv8. You have learned how to harness the power of DVCLive for detailed experiment monitoring, effective visualization, and insightful analysis in your machine learning endeavors.
 
-For further details on usage, visit [DVCLive’s official documentation](https://dvc.org/doc/dvclive/ml-frameworks/yolo).
+For further details on usage, visit [DVCLive's official documentation](https://dvc.org/doc/dvclive/ml-frameworks/yolo).
 
 Additionally, explore more integrations and capabilities of Ultralytics by visiting the [Ultralytics integration guide page](../integrations/index.md), which is a collection of great resources and insights.

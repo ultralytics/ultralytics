@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to evaluate your YOLOv8 model’s performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
+description: Learn how to evaluate your YOLOv8 model's performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
 keywords: model benchmarking, YOLOv8, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 

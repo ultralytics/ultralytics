@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Roboflow’s Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data.
+description: Explore Roboflow's Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data.
 keywords: Carparts Segmentation Dataset, Roboflow, computer vision, automotive AI, vehicle maintenance, Ultralytics
 ---
 

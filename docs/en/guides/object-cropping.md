@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to isolate and extract specific objects from images and videos using YOLOv8 object cropping.
-keywords: Ultralytics, YOLOv8, Object Detection, Object Cropping, Image Analysis, Video Processing, Data Extraction, Python
+description: Learn how to crop and extract objects using Ultralytics YOLOv8 for focused analysis, reduced data volume, and enhanced precision.
+keywords: Ultralytics, YOLOv8, object cropping, object detection, image processing, video analysis, AI, machine learning
 ---
 
 # Object Cropping using Ultralytics YOLOv8 🚀

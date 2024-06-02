@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore FastSAM, a CNN-based solution for real-time object segmentation in images. Enhanced user interaction, computational efficiency and adaptable across vision tasks.
-keywords: FastSAM, machine learning, CNN-based solution, object segmentation, real-time solution, Ultralytics, vision tasks, image processing, industrial applications, user interaction
+description: Discover FastSAM, a real-time CNN-based solution for segmenting any object in an image. Efficient, competitive, and ideal for various vision tasks.
+keywords: FastSAM, Fast Segment Anything Model, Ultralytics, real-time segmentation, CNN, YOLOv8-seg, object segmentation, image processing, computer vision
 ---
 
 # Fast Segment Anything Model (FastSAM)

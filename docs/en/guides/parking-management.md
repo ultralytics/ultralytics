@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Parking Management System Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Parking lots, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Optimize parking spaces and enhance safety with Ultralytics YOLOv8. Explore real-time vehicle detection and smart parking solutions.
+keywords: parking management, YOLOv8, Ultralytics, vehicle detection, real-time tracking, parking lot optimization, smart parking
 ---
 
 # Parking Management using Ultralytics YOLOv8 🚀

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover YOLO-World, a YOLOv8-based framework for real-time open-vocabulary object detection in images. It enhances user interaction, boosts computational efficiency, and adapts across various vision tasks.
-keywords: YOLO-World, YOLOv8, machine learning, CNN-based framework, object detection, real-time detection, Ultralytics, vision tasks, image processing, industrial applications, user interaction
+description: Explore the YOLO-World Model for efficient, real-time open-vocabulary object detection using Ultralytics YOLOv8 advancements. Achieve top performance with minimal computation.
+keywords: YOLO-World, Ultralytics, open-vocabulary detection, YOLOv8, real-time object detection, machine learning, computer vision, AI, deep learning, model training
 ---
 
 # YOLO-World Model

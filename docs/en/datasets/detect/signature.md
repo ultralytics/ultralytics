@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Signature Detection Dataset, a leading dataset for detecting signatures in documents, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, Signature Detection Dataset, object detection, YOLO, YOLO model training, document analysis, computer vision, deep learning models, signature tracking, document verification
+description: Discover the Signature Detection Dataset for training models to identify and verify human signatures in various documents. Perfect for document verification and fraud prevention.
+keywords: Signature Detection Dataset, document verification, fraud detection, computer vision, YOLOv8, Ultralytics, annotated signatures, training dataset
 ---
 
 # Signature Detection Dataset

@@ -37,7 +37,7 @@ To install the required packages, run:
 
 ## Configuring Comet ML
 
-After installing the required packages, you’ll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
+After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
 !!! Tip "Configuring Comet ML"
 
@@ -89,7 +89,7 @@ Comet automatically logs the following data with no additional configuration: me
 
 ## Understanding Your Model's Performance with Comet ML Visualizations
 
-Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here’s a quick tour:
+Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
 
 **Experiment Panels**
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: African Wildlife objects detection, a leading dataset for object detection in forests, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, African Wildlife dataset, object detection, YOLO, YOLO model training, object tracking, computer vision, deep learning models, forest research, animals tracking
+description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
+keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLOv8, wildlife research, conservation, dataset
 ---
 
 # African Wildlife Dataset

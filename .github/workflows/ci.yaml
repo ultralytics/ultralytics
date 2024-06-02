@@ -58,20 +58,31 @@ jobs:
         run: pip install tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin
       - name: Update Docs Reference Section
         run: python docs/build_reference.py
-      - name: Commit and Push Changes
+      - name: Commit and Push Reference Section Changes
         run: |
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
           if ! git diff --staged --quiet; then
-            git config --global user.name "UltralyticsAssistant"
-            git config --global user.email "web@ultralytics.com"
-            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git commit -m "Auto-update Ultralytics Docs Reference Section by https://ultralytics.com/actions"
             git push
           else
             echo "No changes to commit"
           fi
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
+      - name: Commit and Push Docs changes
+        if: always()
+        run: |
+          git add --update  # only add updated files
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
 
   HUB:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))

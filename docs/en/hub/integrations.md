@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Master Ultralytics HUB integrations with platforms & formats for seamless dataset imports and model training.
-keywords: Ultralytics HUB, Roboflow integration, dataset import, model training, HUB integrations, export models, AI models
+description: Explore seamless integrations between Ultralytics HUB and platforms like Roboflow. Learn how to import datasets, train models, and more.
+keywords: Ultralytics HUB, Roboflow integration, dataset import, model training, AI, machine learning
 ---
 
 # Ultralytics HUB Integrations

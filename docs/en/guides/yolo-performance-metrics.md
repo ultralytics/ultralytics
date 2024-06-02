@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide on various performance metrics related to YOLOv8, their significance, and how to interpret them.
-keywords: YOLOv8, Performance metrics, Object detection, Intersection over Union (IoU), Average Precision (AP), Mean Average Precision (mAP), Precision, Recall, Validation mode, Ultralytics
+description: Explore essential YOLOv8 performance metrics like mAP, IoU, F1 Score, Precision, and Recall. Learn how to calculate and interpret them for model evaluation.
+keywords: YOLOv8 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
 ---
 
 # Performance Metrics Deep Dive

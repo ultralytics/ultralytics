@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore how to improve your Ultralytics YOLOv8 model's performance and interoperability using the TFLite export format suitable for edge computing environments.
-keywords: Ultralytics, YOLOv8, TFLite Export, Export YOLOv8, Model Deployment
+description: Learn how to convert YOLOv8 models to TFLite for edge device deployment. Optimize performance and ensure seamless execution on various platforms.
+keywords: YOLOv8, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization
 ---
 
 # A Guide on YOLOv8 Model Export to TFLite for Deployment

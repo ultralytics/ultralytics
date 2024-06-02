@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide that goes through exporting from Ultralytics YOLOv8 models to TensorFlow SavedModel format for streamlined deployments and optimized model performance.
-keywords: Ultralytics YOLOv8, TensorFlow SavedModel, Model Deployment, TensorFlow Serving, TensorFlow Lite, Model Optimization, Computer Vision, Performance Optimization
+description: Learn how to export Ultralytics YOLOv8 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
+keywords: YOLOv8, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI
 ---
 
 # Understand How to Export to TF SavedModel Format From YOLOv8

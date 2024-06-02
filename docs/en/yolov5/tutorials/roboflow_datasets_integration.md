@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use Roboflow for organizing, labelling, preparing, and hosting your datasets for YOLOv5 models. Enhance your model deployments with our platform.
-keywords: Ultralytics, YOLOv5, Roboflow, data organization, data labelling, data preparation, model deployment, active learning, machine learning pipeline
+description: Learn how to use Roboflow for organizing, labeling, and versioning datasets to train YOLOv5 models. Free for public workspaces.
+keywords: Roboflow, YOLOv5, data management, dataset labeling, dataset versioning, Ultralytics, machine learning, AI training
 ---
 
 # Roboflow Datasets

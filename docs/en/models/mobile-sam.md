@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn more about MobileSAM, its implementation, comparison with the original SAM, and how to download and test it in the Ultralytics framework. Improve your mobile applications today.
-keywords: MobileSAM, Ultralytics, SAM, mobile applications, Arxiv, GPU, API, image encoder, mask decoder, model download, testing method
+description: Discover MobileSAM, a lightweight and fast image segmentation model for mobile applications. Compare its performance with the original SAM and explore its various modes.
+keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, mobile applications, SAM, ViT encoder, Tiny-ViT, Ultralytics
 ---
 
 ![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)

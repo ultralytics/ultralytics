@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get an overview of YOLOv3, YOLOv3-Ultralytics and YOLOv3u. Learn about their key features, usage, and supported tasks for object detection.
-keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Object Detection, Inference, Training, Ultralytics
+description: Discover YOLOv3 and its variants YOLOv3-Ultralytics and YOLOv3u. Learn about their features, implementations, and support for object detection tasks.
+keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, computer vision, AI models, deep learning
 ---
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u

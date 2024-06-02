@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Unlock premium features with the Ultralytics HUB Pro Plan! Get 200GB storage, cloud training, and more.
-keywords: Ultralytics HUB Pro, cloud training, inference API, collaboration, Pro Plan benefits, upgrade HUB subscription
+description: Discover the enhanced features of Ultralytics HUB Pro Plan including 200GB storage, cloud training, and more. Learn how to upgrade and manage your account balance.
+keywords: Ultralytics HUB, Pro Plan, upgrade guide, cloud training, storage, inference API, team collaboration, account balance
 ---
 
 # Ultralytics HUB Pro

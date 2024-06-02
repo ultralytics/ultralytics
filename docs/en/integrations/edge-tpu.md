@@ -32,7 +32,7 @@ Here are the key features that make TFLite Edge TPU a great model format choice 
 
 ## Deployment Options with TFLite Edge TPU
 
-Before we jump into how to export YOLOv8 models to the TFLite Edge TPU format, let’s understand where TFLite Edge TPU models are usually used.
+Before we jump into how to export YOLOv8 models to the TFLite Edge TPU format, let's understand where TFLite Edge TPU models are usually used.
 
 TFLite Edge TPU offers various deployment options for machine learning models, including:
 
@@ -76,7 +76,7 @@ Before diving into the usage instructions, it's important to note that while all
         model = YOLO("yolov8n.pt")
 
         # Export the model to TFLite Edge TPU format
-        model.export(format="edgetpu")  # creates 'yolov8n_full_integer_quant_edgetpu.tflite’
+        model.export(format="edgetpu")  # creates 'yolov8n_full_integer_quant_edgetpu.tflite'
 
         # Load the exported TFLite Edge TPU model
         edgetpu_model = YOLO("yolov8n_full_integer_quant_edgetpu.tflite")
@@ -111,7 +111,7 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 ## Summary
 
-In this guide, we’ve learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications.
+In this guide, we've learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications.
 
 For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/edge-tpu).
 

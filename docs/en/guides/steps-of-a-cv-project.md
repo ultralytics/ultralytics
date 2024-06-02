@@ -16,17 +16,17 @@ Computer vision techniques like [object detection](../tasks/detect.md), [image c
   <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQGf61lmNOm3xA/article-cover_image-shrink_720_1280/0/1656513646049?e=1722470400&v=beta&t=23Rqohhxfie38U5syPeL2XepV2QZe6_HSSC-4rAAvt4" alt="Overview of computer vision techniques">
 </p>
 
-Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you’ll be familiar with the steps involved in a computer vision project. We’ll walk through everything from the beginning to the end of a project, explaining why each part is important. Let’s get started and make your computer vision project a success!
+Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important. Let's get started and make your computer vision project a success!
 
 ## An Overview of a Computer Vision Project
 
-Before discussing the details of each step involved in a computer vision project, let's look at the overall process. If you started a computer vision project today, you’d take the following steps:
+Before discussing the details of each step involved in a computer vision project, let's look at the overall process. If you started a computer vision project today, you'd take the following steps:
 
-- Your first priority would be to understand your project’s requirements.
-- Then, you’d collect and accurately label the images that will help train your model.
-- Next, you’d clean your data and apply augmentation techniques to prepare it for model training.
-- After model training, you’d thoroughly test and evaluate your model to make sure it performs consistently under different conditions.
-- Finally, you’d deploy your model into the real world and update it based on new insights and feedback.
+- Your first priority would be to understand your project's requirements.
+- Then, you'd collect and accurately label the images that will help train your model.
+- Next, you'd clean your data and apply augmentation techniques to prepare it for model training.
+- After model training, you'd thoroughly test and evaluate your model to make sure it performs consistently under different conditions.
+- Finally, you'd deploy your model into the real world and update it based on new insights and feedback.
 
 <p align="center">
   <img width="100%" src="https://assets-global.website-files.com/6108e07db6795265f203a636/626bf3577837448d9ed716ff_The%20five%20stages%20of%20ML%20development%20lifecycle%20(1).jpeg" alt="Computer Vision Project Steps Overview">
@@ -34,9 +34,9 @@ Before discussing the details of each step involved in a computer vision project
 
 Now that we know what to expect, let's dive right into the steps and get your project moving forward.
 
-## Step 1: Defining Your Project’s Goals
+## Step 1: Defining Your Project's Goals
 
-The first step in any computer vision project is clearly defining the problem you’re trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project’s objective will directly affect which computer vision task you need to focus on.
+The first step in any computer vision project is clearly defining the problem you're trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project's objective will directly affect which computer vision task you need to focus on.
 
 Here are some examples of project objectives and the computer vision tasks that can be used to reach these objectives:
 
@@ -55,17 +55,17 @@ After understanding the project objective and suitable computer vision tasks, an
 
 Depending on the objective, you might choose to select the model first or after seeing what data you are able to collect in Step 2. For example, suppose your project is highly dependent on the availability of specific types of data. In that case, it may be more practical to gather and analyze the data first before selecting a model. On the other hand, if you have a clear understanding of the model requirements, you can choose the model first and then collect data that fits those specifications.
 
-Choosing between training from scratch or using transfer learning affects how you prepare your data. Training from scratch requires a diverse dataset to build the model’s understanding from the ground up. Transfer learning, on the other hand, allows you to use a pre-trained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model’s specific requirements.
+Choosing between training from scratch or using transfer learning affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pre-trained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1330/format:webp/1*zCnoXfPVcdXizTmhL68Rlw.jpeg" alt="Training From Scratch Vs. Using Transfer Learning">
 </p>
 
-Note: When choosing a model, consider its [deployment](./model-deployment-options.md) to ensure compatibility and performance. For example, lightweight models are ideal for edge computing due to their efficiency on resource-constrained devices. To learn more about the key points related to defining your project, read [our guide](./defining-project-goals.md) on defining your project’s goals and selecting the right model.
+Note: When choosing a model, consider its [deployment](./model-deployment-options.md) to ensure compatibility and performance. For example, lightweight models are ideal for edge computing due to their efficiency on resource-constrained devices. To learn more about the key points related to defining your project, read [our guide](./defining-project-goals.md) on defining your project's goals and selecting the right model.
 
 Before getting into the hands-on work of a computer vision project, it's important to have a clear understanding of these details. Double-check that you've considered the following before moving on to Step 2:
 
-- Clearly define the problem you’re trying to solve.
+- Clearly define the problem you're trying to solve.
 - Determine the end goal of your project.
 - Identify the specific computer vision task needed (e.g., object detection, image classification, image segmentation).
 - Decide whether to train a model from scratch or use transfer learning.
@@ -77,11 +77,11 @@ The quality of your computer vision models depend on the quality of your dataset
 
 Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for using popular datasets seamlessly, which can save you a lot of time and effort in the initial stages of your project.
 
-However, if you choose to collect images or take your own pictures, you’ll need to annotate your data. Data annotation is the process of labeling your data to impart knowledge to your model. The type of data annotation you’ll work with depends on your specific computer vision technique. Here are some examples:
+However, if you choose to collect images or take your own pictures, you'll need to annotate your data. Data annotation is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
 
-- **Image Classification:** You’ll label the entire image as a single class.
-- **Object Detection:** You’ll draw bounding boxes around each object in the image and label each box.
-- **Image Segmentation:** You’ll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
+- **Image Classification:** You'll label the entire image as a single class.
+- **Object Detection:** You'll draw bounding boxes around each object in the image and label each box.
+- **Image Segmentation:** You'll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/0*VhpVAAJnvq5ZE_pv" alt="Different Types of Image Annotation">
@@ -119,7 +119,7 @@ By properly [understanding, splitting, and augmenting your data](./preprocessing
 
 Once your dataset is ready for training, you can focus on setting up the necessary environment, managing your datasets, and training your model.
 
-First, you’ll need to make sure your environment is configured correctly. Typically, this includes the following:
+First, you'll need to make sure your environment is configured correctly. Typically, this includes the following:
 
 - Installing essential libraries and frameworks like TensorFlow, PyTorch, or [Ultralytics](../quickstart.md).
 - If you are using a GPU, installing libraries like CUDA and cuDNN will help enable GPU acceleration and speed up the training process.
@@ -132,9 +132,9 @@ It's important to keep in mind that proper dataset management is vital for effic
 
 ## Step 5: Model Evaluation and Model Finetuning
 
-It’s important to assess your model's performance using various metrics and refine it to improve accuracy. [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. Fine-tuning ensures the model is optimized for the best possible performance.
+It's important to assess your model's performance using various metrics and refine it to improve accuracy. [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. Fine-tuning ensures the model is optimized for the best possible performance.
 
-- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, precision, recall, and F1-score to evaluate your model’s performance. These metrics provide insights into how well your model is making predictions.
+- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, precision, recall, and F1-score to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
 - **[Hyperparameter Tuning](./hyperparameter-tuning.md):** Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
 
 - Fine-Tuning: Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking learning rates, batch sizes, or other model parameters.
@@ -159,7 +159,7 @@ Once your model has been thoroughly tested, it's time to deploy it. Deployment i
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
-Once your model is deployed, it’s important to continuously monitor its performance, maintain it to handle any issues, and document the entire process for future reference and improvements.
+Once your model is deployed, it's important to continuously monitor its performance, maintain it to handle any issues, and document the entire process for future reference and improvements.
 
 Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to changes in the input data. Periodically retrain the model with updated data to maintain accuracy and relevance.
 
@@ -174,12 +174,12 @@ In addition to monitoring and maintenance, documentation is also key. Thoroughly
 Here are some common questions that might arise during a computer vision project:
 
 - **Q1:** How do the steps change if I already have a dataset or data when starting a computer vision project?
-    - **A1:** Starting with a pre-existing dataset or data affects the initial steps of your project. In Step 1, along with deciding the computer vision task and model, you’ll also need to explore your dataset thoroughly. Understanding its quality, variety, and limitations will guide your choice of model and training approach. Your approach should align closely with the data's characteristics for more effective outcomes. Depending on your data or dataset, you may be able to skip Step 2 as well.
+    - **A1:** Starting with a pre-existing dataset or data affects the initial steps of your project. In Step 1, along with deciding the computer vision task and model, you'll also need to explore your dataset thoroughly. Understanding its quality, variety, and limitations will guide your choice of model and training approach. Your approach should align closely with the data's characteristics for more effective outcomes. Depending on your data or dataset, you may be able to skip Step 2 as well.
 
-- **Q2:**  I’m not sure what computer vision project to start my AI learning journey with.
+- **Q2:**  I'm not sure what computer vision project to start my AI learning journey with.
     - **A2:**  Check out our [guides on Real-World Projects](./index.md) for inspiration and guidance.
 
-- **Q3:** I don’t want to train a model. I just want to try running a model on an image. How can I do that?
+- **Q3:** I don't want to train a model. I just want to try running a model on an image. How can I do that?
     - **A3:** You can use a pre-trained model to run predictions on an image without training a new model. Check out the [YOLOv8 predict docs page](../modes/predict.md) for instructions on how to use a pre-trained YOLOv8 model to make predictions on your images.
 
 - **Q4:** Where can I find more detailed articles and updates about computer vision applications and YOLOv8?

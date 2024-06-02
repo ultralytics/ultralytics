@@ -34,7 +34,7 @@ NCNN models offer a wide range of key features that enable on-device machine lea
 
 ## Deployment Options with NCNN
 
-Before we look at the code for exporting YOLOv8 models to the NCNN format, let’s understand how NCNN models are normally used.
+Before we look at the code for exporting YOLOv8 models to the NCNN format, let's understand how NCNN models are normally used.
 
 NCNN models, designed for efficiency and performance, are compatible with a variety of deployment platforms:
 

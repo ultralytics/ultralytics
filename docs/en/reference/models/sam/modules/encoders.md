@@ -1,13 +1,13 @@
 ---
-description: Discover detailed information on ImageEncoderViT, PositionEmbeddingRandom, Attention, window_partition, get_rel_pos and more in Ultralytics models encoders documentation.
-keywords: Ultralytics, Encoders, Modules, Documentation, ImageEncoderViT, PositionEmbeddingRandom, Attention, window_partition, get_rel_pos
+description: Explore detailed documentation of various SAM encoder modules such as ImageEncoderViT, PromptEncoder, and more, available in Ultralytics' repository.
+keywords: Ultralytics, SAM encoder, ImageEncoderViT, PromptEncoder, PositionEmbeddingRandom, Block, Attention, PatchEmbed
 ---
 
 # Reference for `ultralytics/models/sam/modules/encoders.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/encoders.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/encoders.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/encoders.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

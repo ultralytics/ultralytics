@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how Ultralytics leverages Continuous Integration (CI) for maintaining high-quality code. Explore our CI tests and the status of these tests for our repositories.
-keywords: continuous integration, software development, CI tests, Ultralytics repositories, high-quality code, Docker Deployment, Broken Links, CodeQL, PyPI Publishing
+description: Learn about Ultralytics CI actions, Docker deployment, broken link checks, CodeQL analysis, and PyPI publishing to ensure high-quality code.
+keywords: Ultralytics, Continuous Integration, CI, Docker deployment, CodeQL, PyPI publishing, code quality, automated testing
 ---
 
 # Continuous Integration (CI)

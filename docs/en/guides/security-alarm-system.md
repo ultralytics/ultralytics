@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Security Alarm System Project Using Ultralytics YOLOv8. Learn How to implement a Security Alarm System Using ultralytics YOLOv8
-keywords: Object Detection, Security Alarm, Object Tracking, YOLOv8, Computer Vision Projects
+description: Enhance your security with real-time object detection using Ultralytics YOLOv8. Reduce false positives and integrate seamlessly with existing systems.
+keywords: YOLOv8, Security Alarm System, real-time object detection, Ultralytics, computer vision, integration, false positives
 ---
 
 # Security Alarm System Project Using Ultralytics YOLOv8

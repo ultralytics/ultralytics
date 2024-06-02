@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A detailed guide on defining the problem and setting objectives in a computer vision project, highlighting the importance of clear problem statements and measurable objectives.
-keywords: Computer Vision Project, Defining Problems, Setting Objectives, SMART Objectives, Project Scope, How Does Computer Vision Work, Computer Vision Techniques, Computer Vision Basics
+description: Learn how to define clear goals and objectives for your computer vision project with our practical guide. Includes tips on problem statements, measurable objectives, and key decisions.
+keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLOv8, Ultralytics
 ---
 
 # A Practical Guide for Defining Your Computer Vision Project

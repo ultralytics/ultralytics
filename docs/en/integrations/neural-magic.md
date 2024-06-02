@@ -1,26 +1,26 @@
 ---
 comments: true
-description: Learn how to deploy your YOLOv8 models rapidly using Neural Magic’s DeepSparse. This guide focuses on integrating Ultralytics YOLOv8 with the DeepSparse Engine for high-speed, CPU-based inference, leveraging advanced neural network sparsity techniques.
+description: Learn how to deploy your YOLOv8 models rapidly using Neural Magic's DeepSparse. This guide focuses on integrating Ultralytics YOLOv8 with the DeepSparse Engine for high-speed, CPU-based inference, leveraging advanced neural network sparsity techniques.
 keywords: YOLOv8, DeepSparse Engine, Ultralytics, CPU Inference, Neural Network Sparsity, Object Detection, Model Optimization
 ---
 
-# Optimizing YOLOv8 Inferences with Neural Magic’s DeepSparse Engine
+# Optimizing YOLOv8 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying object detection models like [Ultralytics YOLOv8](https://ultralytics.com) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8’s integration with Neural Magic’s DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
+When deploying object detection models like [Ultralytics YOLOv8](https://ultralytics.com) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
 
 This guide shows you how to deploy YOLOv8 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
-## Neural Magic’s DeepSparse
+## Neural Magic's DeepSparse
 
 <p align="center">
-  <img width="640" src="https://docs.neuralmagic.com/assets/images/nm-flows-55d56c0695a30bf9ecb716ea98977a95.png" alt="Neural Magic’s DeepSparse Overview">
+  <img width="640" src="https://docs.neuralmagic.com/assets/images/nm-flows-55d56c0695a30bf9ecb716ea98977a95.png" alt="Neural Magic's DeepSparse Overview">
 </p>
 
-[Neural Magic’s DeepSparse](https://neuralmagic.com/deepsparse/) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable neural network execution across various devices.
+[Neural Magic's DeepSparse](https://neuralmagic.com/deepsparse/) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable neural network execution across various devices.
 
-## Benefits of Integrating Neural Magic’s DeepSparse with YOLOv8
+## Benefits of Integrating Neural Magic's DeepSparse with YOLOv8
 
-Before diving into how to deploy YOLOV8 using DeepSparse, let’s understand the benefits of using DeepSparse. Some key advantages include:
+Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the benefits of using DeepSparse. Some key advantages include:
 
 - **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLOv8n), significantly speeding up YOLOv8's inference capabilities compared to traditional methods.
 
@@ -44,7 +44,7 @@ Before diving into how to deploy YOLOV8 using DeepSparse, let’s understand the
 
 ## How Does Neural Magic's DeepSparse Technology Works?
 
-Neural Magic’s Deep Sparse technology is inspired by the human brain’s efficiency in neural network computation. It adopts two key principles from the brain as follows:
+Neural Magic's Deep Sparse technology is inspired by the human brain's efficiency in neural network computation. It adopts two key principles from the brain as follows:
 
 - **Sparsity**: The process of sparsification involves pruning redundant information from deep learning networks, leading to smaller and faster models without compromising accuracy. This technique reduces the network's size and computational needs significantly.
 
@@ -155,8 +155,8 @@ After running the eval command, you will receive detailed output metrics such as
 
 ## Summary
 
-This guide explored integrating Ultralytics’ YOLOv8 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLOv8's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
+This guide explored integrating Ultralytics' YOLOv8 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLOv8's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit [Neural Magic’s DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/). Also, check out Neural Magic’s documentation on the integration with YOLOv8 [here](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and watch a great session on it [here](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/). Also, check out Neural Magic's documentation on the integration with YOLOv8 [here](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and watch a great session on it [here](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLOv8 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.

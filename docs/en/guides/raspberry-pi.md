@@ -70,7 +70,7 @@ After this is done, skip to [Use NCNN on Raspberry Pi section](#use-ncnn-on-rasp
 
 #### Install Ultralytics Package
 
-Here we will install Ultralyics package on the Raspberry Pi with optional dependencies so that we can export the PyTorch models to other different formats.
+Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the PyTorch models to other different formats.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -94,7 +94,7 @@ Here we will install Ultralyics package on the Raspberry Pi with optional depend
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefore our recommendation is to use NCNN with Raspberry Pi.
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
 
 ## Convert Model to NCNN and Run Inference
 
@@ -135,7 +135,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
 ## Raspberry Pi 5 vs Raspberry Pi 4 YOLOv8 Benchmarks
 
-YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF Graphdef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 precision with default input image size of 640.
+YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 precision with default input image size of 640.
 
 !!! Note
 
@@ -159,7 +159,7 @@ YOLOv8 benchmarks were run by the Ultralytics team on nine different model forma
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLOv8n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF Graphdef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLOv8n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 

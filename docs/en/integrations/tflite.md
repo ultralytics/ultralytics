@@ -34,7 +34,7 @@ TFLite models offer a wide range of key features that enable on-device machine l
 
 ## Deployment Options in TFLite
 
-Before we look at the code for exporting YOLOv8 models to the TFLite format, let’s understand how TFLite models are normally used.
+Before we look at the code for exporting YOLOv8 models to the TFLite format, let's understand how TFLite models are normally used.
 
 TFLite offers various on-device deployment options for machine learning models, including:
 
@@ -117,6 +117,6 @@ After successfully exporting your Ultralytics YOLOv8 models to TFLite format, yo
 
 In this guide, we focused on how to export to TFLite format. By converting your Ultralytics YOLOv8 models to TFLite model format, you can improve the efficiency and speed of YOLOv8 models, making them more effective and suitable for edge computing environments.
 
-For further details on usage, visit [TFLite’s official documentation](https://www.tensorflow.org/lite/guide).
+For further details on usage, visit the [TFLite official documentation](https://www.tensorflow.org/lite/guide).
 
 Also, if you're curious about other Ultralytics YOLOv8 integrations, make sure to check out our [integration guide page](../integrations/index.md). You'll find tons of helpful info and insights waiting for you there.

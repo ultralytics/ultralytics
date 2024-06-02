@@ -110,7 +110,7 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full 
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! Example "Example"
 

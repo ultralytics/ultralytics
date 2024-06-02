@@ -23,7 +23,7 @@ Performance metrics are key tools to evaluate the accuracy and efficiency of obj
 
 ## Object Detection Metrics
 
-Let’s start by discussing some metrics that are not only important to YOLOv8 but are broadly applicable across different object detection models.
+Let's start by discussing some metrics that are not only important to YOLOv8 but are broadly applicable across different object detection models.
 
 - **Intersection over Union (IoU):** IoU is a measure that quantifies the overlap between a predicted bounding box and a ground truth bounding box. It plays a fundamental role in evaluating the accuracy of object localization.
 
@@ -115,7 +115,7 @@ For real-time applications, speed metrics like FPS (Frames Per Second) and laten
 
 ## Interpretation of Results
 
-It’s important to understand the metrics. Here's what some of the commonly observed lower scores might suggest:
+It's important to understand the metrics. Here's what some of the commonly observed lower scores might suggest:
 
 - **Low mAP:** Indicates the model may need general refinements.
 
@@ -157,7 +157,7 @@ Tapping into a community of enthusiasts and experts can amplify your journey wit
 
 ### Engage with the Broader Community
 
-- **GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it’s a great place to get help with specific problems.
+- **GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 - **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and the developers.
 

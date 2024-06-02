@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Data preprocessing and augmentation help prepare datasets for model training in computer vision projects. Learn about various techniques for preprocessing annotated data.
-keywords: What is Data Preprocessing, Data Preprocessing Techniques, What is Data Augmentation, Data Augmentation Methods, Benefits of Data Augmentation
+description: Learn essential data preprocessing techniques for annotated computer vision data, including resizing, normalizing, augmenting, and splitting datasets for optimal model training.
+keywords: data preprocessing, computer vision, image resizing, normalization, data augmentation, training dataset, validation dataset, test dataset, YOLOv8
 ---
 
 # Data Preprocessing Techniques for Annotated Computer Vision Data

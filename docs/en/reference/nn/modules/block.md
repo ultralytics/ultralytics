@@ -1,13 +1,13 @@
 ---
-description: Explore Ultralytics YOLO neural network modules, Proto to BottleneckCSP. Detailed explanation of each module with easy-to-follow code examples.
-keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
+description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase!.
+keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem, HGBlock, SPP, SPPF, C1, C2, C2f, C3, C3x, RepC3, C3TR, C3Ghost, GhostBottleneck, Bottleneck, BottleneckCSP, ResNetBlock, MaxSigmoidAttnBlock, ImagePoolingAttn, ContrastiveHead, RepBottleneck, RepCSP, RepNCSPELAN4, ADown, SPPELAN, Silence, CBLinear, CBFuse
 ---
 
 # Reference for `ultralytics/nn/modules/block.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/block.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/block.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

@@ -1,7 +1,7 @@
 ---
 comments: false
-description: Discover Ultralytics' EHS policy principles and implementation measures. Committed to safety, environment, and continuous improvement for a sustainable future.
-keywords: Ultralytics policy, EHS, environment, health and safety, compliance, prevention, continuous improvement, risk management, emergency preparedness, resource allocation, communication
+description: Explore Ultralytics' commitment to Environmental, Health, and Safety (EHS) policies. Learn about our measures to ensure safety, compliance, and sustainability.
+keywords: Ultralytics, EHS policy, safety, sustainability, environmental impact, health and safety, risk management, compliance, continuous improvement
 ---
 
 # Ultralytics Environmental, Health and Safety (EHS) Policy

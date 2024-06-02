@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to streamline and optimize your YOLOv8 model training with ClearML. This guide provides insights into integrating ClearML's MLOps tools for efficient model training, from initial setup to advanced experiment tracking and model management.
-keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps, Experiment Tracking, Workflow Optimization
+description: Discover how to integrate YOLOv8 with ClearML to streamline your MLOps workflow, automate experiments, and enhance model management effortlessly.
+keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detection, model training, automation, experiment management
 ---
 
 # Training YOLOv8 with ClearML: Streamlining Your MLOps Workflow

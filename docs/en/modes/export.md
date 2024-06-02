@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step guide on exporting your YOLOv8 models to various format like ONNX, TensorRT, CoreML and more for deployment. Explore now!.
-keywords: YOLO, YOLOv8, Ultralytics, Model export, ONNX, TensorRT, CoreML, TensorFlow SavedModel, OpenVINO, PyTorch, export model
+description: Learn how to export your YOLOv8 model to various formats like ONNX, TensorRT, and CoreML. Achieve maximum compatibility and performance.
+keywords: YOLOv8, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine Learning, Inference, Deployment
 ---
 
 # Model Export with Ultralytics YOLO

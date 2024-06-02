@@ -12,10 +12,16 @@ from collections import defaultdict
 from pathlib import Path
 
 # Constants
-FILE = Path(__file__).resolve()
-PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
-REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
-GITHUB_REPO = "ultralytics/ultralytics"
+hub_sdk = False
+if hub_sdk:
+    PACKAGE_DIR = Path("/Users/glennjocher/PycharmProjects/hub-sdk/hub_sdk")
+    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/reference"
+    GITHUB_REPO = "ultralytics/hub-sdk"
+else:
+    FILE = Path(__file__).resolve()
+    PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
+    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
+    GITHUB_REPO = "ultralytics/ultralytics"
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:
@@ -54,7 +60,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
         f"# Reference for `{module_path}.py`\n\n"
         f"!!! Note\n\n"
         f"    This file is available at [{url}]({url}). If you spot a problem please help fix it by [contributing]"
-        f"(/help/contributing.md) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
+        f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
     )
     md_content = ["<br><br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br>\n" for class_name in classes]
     md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br>\n" for func_name in functions)
@@ -68,7 +74,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     if not exists:
         # Add new markdown file to the git staging area
         print(f"Created new file '{md_filepath}'")
-        subprocess.run(["git", "add", "-f", str(md_filepath)], check=True)
+        subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=PACKAGE_DIR)
 
     return md_filepath.relative_to(PACKAGE_DIR.parent)
 

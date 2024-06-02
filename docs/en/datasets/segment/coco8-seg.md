@@ -1,7 +1,7 @@
 ---
 comments: true
-description: 'Discover the COCO8-Seg: a compact but versatile instance segmentation dataset ideal for testing Ultralytics YOLOv8 detection approaches. Complete usage guide included.'
-keywords: COCO8-Seg dataset, Ultralytics, YOLOv8, instance segmentation, dataset configuration, YAML, YOLOv8n-seg model, mosaiced dataset images
+description: Discover the versatile and manageable COCO8-Seg dataset by Ultralytics, ideal for testing and debugging segmentation models or new detection approaches.
+keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLOv8, COCO 2017, model training, computer vision, dataset configuration
 ---
 
 # COCO8-Seg Dataset

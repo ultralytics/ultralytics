@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get to know Roboflow 100, a comprehensive object detection benchmark that brings together 100 datasets from different domains.
-keywords: Ultralytics, YOLOv8, YOLO models, Roboflow 100, object detection, benchmark, computer vision, datasets, deep learning models
+description: Explore the Roboflow 100 dataset featuring 100 diverse datasets designed to test object detection models across various domains, from healthcare to video games.
+keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, machine learning, computer vision, diverse datasets, model evaluation
 ---
 
 # Roboflow 100 Dataset

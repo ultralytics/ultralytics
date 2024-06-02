@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics' comprehensive security strategies safeguarding user data and systems. Learn about our diverse security tools, including Snyk, GitHub CodeQL, and Dependabot Alerts.
-keywords: Ultralytics, Comprehensive Security, user data protection, Snyk, GitHub CodeQL, Dependabot, vulnerability management, coding security practices
+description: Learn about the security measures and tools used by Ultralytics to protect user data and systems. Discover how we address vulnerabilities with Snyk, CodeQL, Dependabot, and more.
+keywords: Ultralytics security policy, Snyk scanning, CodeQL scanning, Dependabot alerts, secret scanning, vulnerability reporting, GitHub security, open-source security
 ---
 
 # Ultralytics Security Policy

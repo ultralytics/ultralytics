@@ -1,13 +1,13 @@
 ---
-description: Explore Ultralytics cfg functions like cfg2dict, handle_deprecation, merge_equal_args & more to handle YOLO settings and configurations efficiently.
-keywords: Ultralytics, YOLO, Configuration, cfg2dict, handle_deprecation, merge_equals_args, handle_yolo_settings, copy_default_cfg, Image Detection
+description: Explore the methods for managing and validating YOLO configurations in the Ultralytics configuration module. Enhance your YOLO experience.
+keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_dir, deprecation, merge_args, yolo, settings, explorer
 ---
 
 # Reference for `ultralytics/cfg/__init__.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/cfg/__init__.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/cfg/__init__.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

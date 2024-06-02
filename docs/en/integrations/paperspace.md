@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore how to enhance your YOLOv8 projects with the Paperspace Gradient integration for streamlined model training, evaluation, and deployment on the cloud.
-keywords: Ultralytics, YOLOv8, Object Detection, Paperspace, Paperspace Gradient, Model Training, Model Deployment, Cloud Computing
+description: Simplify YOLOv8 training with Paperspace Gradient's all-in-one MLOps platform. Access GPUs, automate workflows, and deploy with ease.
+keywords: YOLOv8, Paperspace Gradient, MLOps, machine learning, training, GPUs, Jupyter notebooks, model deployment, AI, cloud platform
 ---
 
 # YOLOv8 Model Training Made Simple with Paperspace Gradient

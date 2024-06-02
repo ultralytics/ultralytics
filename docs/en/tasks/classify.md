@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about YOLOv8 Classify models for image classification. Get detailed information on List of Pretrained Models & how to Train, Validate, Predict & Export models.
-keywords: Ultralytics, YOLOv8, Image Classification, Pretrained Models, YOLOv8n-cls, Training, Validation, Prediction, Model Export
+description: Master image classification using YOLOv8. Learn to train, validate, predict, and export models efficiently.
+keywords: YOLOv8, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
 ---
 
 # Image Classification

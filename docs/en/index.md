@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore a complete guide to Ultralytics YOLOv8, a high-speed, high-accuracy object detection & image segmentation model. Installation, prediction, training tutorials and more.
-keywords: Ultralytics, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, YOLOv8 installation, YOLOv8 prediction, YOLOv8 training, YOLO history, YOLO licenses
+description: Discover Ultralytics YOLOv8 - the latest in real-time object detection and image segmentation. Learn its features and maximize its potential in your projects.
+keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
 ---
 
 <div align="center">

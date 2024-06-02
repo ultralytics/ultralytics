@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Launch into AI with Ultralytics HUB! Train, monitor, and deploy YOLO models easily. Start your journey in AI model training today.
-keywords: Ultralytics HUB, YOLOv5, YOLOv8, model training, AI platform, object detection, deploy models, train YOLO models
+description: Discover Ultralytics HUB, the all-in-one web tool for training and deploying YOLOv5 and YOLOv8 models. Get started quickly with pre-trained models and user-friendly features.
+keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detection, model deployment, machine learning, deep learning, AI tools, dataset upload, model training
 ---
 
 # Ultralytics HUB

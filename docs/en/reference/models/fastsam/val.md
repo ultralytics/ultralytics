@@ -1,6 +1,6 @@
 ---
-description: Learn about FastSAMValidator in Ultralytics models. Comprehensive guide to enhancing AI capabilities with Ultralytics.
-keywords: Ultralytics, FastSAMValidator, model, synthetic, AI, machine learning, validation
+description: Discover FastSAM Validator for segmentation in Ultralytics YOLO. Learn how to validate with custom metrics and avoid common errors. Contribute on GitHub!.
+keywords: FastSAM Validator, Ultralytics, YOLO, segmentation, validation, metrics, GitHub, contribute, documentation
 ---
 
 # Reference for `ultralytics/models/fastsam/val.py`

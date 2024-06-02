@@ -1,6 +1,6 @@
 ---
-description: Browse through Ultralytics YOLO docs to learn about important logging and callback functions used in training and pretraining models.
-keywords: Ultralytics, YOLO, callbacks, logger, training, pretraining, machine learning, models
+description: Learn to integrate DVCLive with Ultralytics for enhanced logging during training. Step-by-step methods for setting up and optimizing DVC callbacks.
+keywords: Ultralytics, DVC, DVCLive, machine learning, logging, training, callbacks, integration
 ---
 
 # Reference for `ultralytics/utils/callbacks/dvc.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the versatile Tiger-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
-keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
+description: Explore Ultralytics Tiger-Pose dataset with 263 diverse images. Ideal for testing, training, and refining pose estimation algorithms.
+keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLOv8, training data, machine learning, neural networks
 ---
 
 # Tiger-Pose Dataset

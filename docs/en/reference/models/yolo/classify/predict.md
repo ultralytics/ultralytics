@@ -1,6 +1,6 @@
 ---
-description: Explore the Ultralytics ClassificationPredictor guide for model prediction and visualization. Build powerful AI models with YOLO.
-keywords: Ultralytics, classification predictor, predict, YOLO, AI models, model visualization
+description: Learn about the ClassificationPredictor class for YOLO models at Ultralytics. Get details on initialization, preprocessing, and postprocessing for classification tasks.
+keywords: YOLO, ClassificationPredictor, Ultralytics, model prediction, preprocess, postprocess, deep learning, machine learning
 ---
 
 # Reference for `ultralytics/models/yolo/classify/predict.py`

@@ -1,6 +1,6 @@
 ---
-description: Explore the Ultralytics Tuner, a powerful tool designed for hyperparameter tuning of YOLO models to optimize performance across various tasks like object detection, image classification, and more.
-keywords: Ultralytics, Tuner, YOLO, hyperparameter tuning, optimization, object detection, image classification, instance segmentation, pose estimation, multi-object tracking
+description: Optimize YOLO model performance using Ultralytics Tuner. Learn about systematic hyperparameter tuning for object detection, segmentation, classification, and tracking.
+keywords: Ultralytics, YOLO, hyperparameter tuning, machine learning, deep learning, object detection, instance segmentation, image classification, pose estimation, multi-object tracking
 ---
 
 # Reference for `ultralytics/engine/tuner.py`

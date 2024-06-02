@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand multi-object tracking datasets, upcoming features and how to use them with YOLO in Python and CLI. Dive in now!.
-keywords: Ultralytics, YOLO, multi-object tracking, datasets, detection, segmentation, pose models, Python, CLI
+description: Learn how to use Multi-Object Tracking with YOLO. Explore dataset formats and see upcoming features for training trackers. Start with Python or CLI examples.
+keywords: YOLO, Multi-Object Tracking, Tracking Datasets, Python Tracking Example, CLI Tracking Example, Object Detection, Ultralytics, AI, Machine Learning
 ---
 
 # Multi-object Tracking Datasets Overview

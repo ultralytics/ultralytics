@@ -1,6 +1,6 @@
 ---
-description: Get in-depth insights about Ultralytics Tiny Encoder Modules such as Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, and TinyViT. Improve your understanding of machine learning model components.
-keywords: Ultralytics, Tiny Encoder, Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, TinyViT, Machine learning modules, Ultralytics models
+description: Explore the detailed implementation of TinyViT architecture including Conv2d_BN, PatchEmbed, MBConv, and more in Ultralytics.
+keywords: Ultralytics, TinyViT, Conv2d_BN, PatchEmbed, MBConv, Attention, PyTorch, YOLO, Deep Learning
 ---
 
 # Reference for `ultralytics/models/sam/modules/tiny_encoder.py`

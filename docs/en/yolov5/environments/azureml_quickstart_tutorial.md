@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Azure Machine Learning YOLOv5 quickstart
-keywords: Ultralytics, YOLO, Deep Learning, Object detection, quickstart, Azure, AzureML
+description: Learn how to set up and run YOLOv5 on AzureML. Follow this quickstart guide for easy configuration and model training on an AzureML compute instance.
+keywords: YOLOv5, AzureML, machine learning, compute instance, quickstart, model training, virtual environment, Python, AI, deep learning
 ---
 
 # YOLOv5 🚀 on AzureML

@@ -1,6 +1,6 @@
 ---
-description: Master the use of Ultralytics BOTrack, a key component of the powerful Ultralytics tracking system. Learn to integrate and use BOTSORT in your projects.
-keywords: Ultralytics, BOTSORT, BOTrack, tracking system, official documentation, machine learning, AI tracking
+description: Explore the robust object tracking capabilities of the BOTrack and BOTSORT classes in the Ultralytics Bot SORT tracker API. Enhance your YOLOv8 projects.
+keywords: Ultralytics, Bot SORT, BOTrack, BOTSORT, YOLOv8, object tracking, Kalman filter, ReID, GMC algorithm
 ---
 
 # Reference for `ultralytics/trackers/bot_sort.py`

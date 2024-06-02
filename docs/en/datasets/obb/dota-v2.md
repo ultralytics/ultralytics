@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Delve into DOTA, an Oriented Bounding Box (OBB) aerial imagery dataset with 1.7 million instances and 11,268 images.
-keywords: DOTA v1, DOTA v1.5, DOTA v2, object detection, aerial images, computer vision, deep learning, annotations, oriented bounding boxes, OBB
+description: Explore the DOTA dataset for object detection in aerial images, featuring 1.7M Oriented Bounding Boxes across 18 categories. Ideal for aerial image analysis.
+keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes, OBB, DOTA v1.0, DOTA v1.5, DOTA v2.0, multiscale detection, Ultralytics
 ---
 
 # DOTA Dataset with OBB

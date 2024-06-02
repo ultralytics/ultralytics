@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand how to utilize the vast Global Wheat Head Dataset for building wheat head detection models. Features, structure, applications, usage, sample data, and citation.
-keywords: Ultralytics, YOLO, Global Wheat Head Dataset, wheat head detection, plant phenotyping, crop management, deep learning, outdoor images, annotations, YAML configuration
+description: Explore the Global Wheat Head Dataset to develop accurate wheat head detection models. Includes training images, annotations, and usage for crop management.
+keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, crop management, deep learning, object detection, training datasets
 ---
 
 # Global Wheat Head Dataset

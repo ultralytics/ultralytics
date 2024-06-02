@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to train your YOLOv8 models efficiently with Weights & Biases. This guide walks through integrating Weights & Biases with YOLOv8 to enable seamless experiment tracking, result visualization, and model explainability.
-keywords: Ultralytics, YOLOv8, Object Detection, Weights & Biases, Model Training, Experiment Tracking, Visualizing Results
+description: Learn how to enhance YOLOv8 experiment tracking and visualization with Weights & Biases for better model performance and management.
+keywords: YOLOv8, Weights & Biases, model training, experiment tracking, Ultralytics, machine learning, computer vision, model visualization
 ---
 
 # Enhancing YOLOv8 Experiment Tracking and Visualization with Weights & Biases

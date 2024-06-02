@@ -1,6 +1,6 @@
 ---
-description: Discover how to use Ultralytics utility functions for file-related operations including incrementing paths, finding file age, checking file size and creating directories.
-keywords: Ultralytics, utility functions, file operations, working directory, file age, file size, create directories
+description: Explore the utility functions and context managers in Ultralytics like WorkingDirectory, increment_path, file_size, and more. Enhance your file handling in Python.
+keywords: Ultralytics, file utilities, Python, WorkingDirectory, increment_path, file_size, file_age, contexts, file handling, file management
 ---
 
 # Reference for `ultralytics/utils/files.py`

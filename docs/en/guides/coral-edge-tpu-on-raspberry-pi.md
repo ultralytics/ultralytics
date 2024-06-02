@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Guide on how to use Ultralytics with a Coral Edge TPU on a Raspberry Pi for increased inference performance.
-keywords: Ultralytics, YOLOv8, Object Detection, Coral, Edge TPU, Raspberry Pi, embedded, edge compute, sbc, accelerator, mobile
+description: Learn how to boost your Raspberry Pi's ML performance using Coral Edge TPU with Ultralytics YOLOv8. Follow our detailed setup and installation guide.
+keywords: Coral Edge TPU, Raspberry Pi, YOLOv8, Ultralytics, TensorFlow Lite, ML inference, machine learning, AI, installation guide, setup tutorial
 ---
 
 # Coral Edge TPU on a Raspberry Pi with Ultralytics YOLOv8 🚀

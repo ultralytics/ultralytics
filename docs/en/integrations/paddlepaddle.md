@@ -1,7 +1,7 @@
 ---
 comments: true
-description: This guide explains how to export Ultralytics YOLOv8 models to the PaddlePaddle format for wide device support and harnessing the power of Baidu's ML framework.
-keywords: Ultralytics, YOLOv8, PaddlePaddle Export, Model Deployment, Flexible Deployment,  Industrial-Grade Deep Learning, Baidu, Cross-Platform Compatibility
+description: Learn how to export YOLOv8 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
+keywords: YOLOv8, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
 ---
 
 # How to Export to PaddlePaddle Format from YOLOv8 Models
@@ -119,4 +119,4 @@ In this guide, we explored the process of exporting Ultralytics YOLOv8 models to
 
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 
-Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights. 
+Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights.

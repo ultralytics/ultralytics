@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide to help determine which deployment option to choose for your YOLOv8 model, including essential considerations.
-keywords: YOLOv8, Deployment, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow, Export
+description: Learn about YOLOv8's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, TF Lite, and more!.
+keywords: YOLOv8, deployment options, export formats, PyTorch, TensorRT, OpenVINO, TF Lite, machine learning, model deployment
 ---
 
 # Understanding YOLOv8's Deployment Options

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to set up and use Comet to enhance your YOLOv5 model training, metrics tracking and visualization. Includes a step by step guide to integrate Comet with YOLOv5.
-keywords: YOLOv5, Comet, Machine Learning, Ultralytics, Real time metrics tracking, Hyperparameters, Model checkpoints, Model predictions, YOLOv5 training, Comet Credentials
+description: Learn to track, visualize and optimize YOLOv5 model metrics with Comet for seamless machine learning workflows.
+keywords: YOLOv5, Comet, machine learning, model tracking, hyperparameters, visualization, deep learning, logging, metrics
 ---
 
 ![Comet](https://cdn.comet.ml/img/notebook_logo.png)

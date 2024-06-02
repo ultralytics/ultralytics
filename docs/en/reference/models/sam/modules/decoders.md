@@ -1,6 +1,6 @@
 ---
-description: Explore MaskDecoder, a part of the Ultralytics models. Gain insights on how to utilize it effectively in the SAM modules decoders MLP.
-keywords: Ultralytics, MaskDecoder, SAM modules, decoders, MLP, YOLO, machine learning, image recognition
+description: Explore the MaskDecoder and MLP modules in Ultralytics for efficient mask prediction using transformer architecture. Detailed attributes, functionalities, and implementation.
+keywords: Ultralytics, MaskDecoder, MLP, machine learning, transformer architecture, mask prediction, neural networks, PyTorch modules
 ---
 
 # Reference for `ultralytics/models/sam/modules/decoders.py`

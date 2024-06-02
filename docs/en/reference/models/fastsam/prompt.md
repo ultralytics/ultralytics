@@ -1,6 +1,6 @@
 ---
-description: Learn to effectively utilize FastSAMPrompt model from Ultralytics. Detailed guide to help you get the most out of your machine learning models.
-keywords: Ultralytics, FastSAMPrompt, machine learning, model, guide, documentation
+description: Explore the FastSAM prompt module for image annotation and visualization in Ultralytics, detailed with class methods and attributes.
+keywords: Ultralytics, FastSAM, image annotation, image visualization, FastSAMPrompt, YOLO, python script
 ---
 
 # Reference for `ultralytics/models/fastsam/prompt.py`

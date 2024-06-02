@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Speed Estimation Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Speed Estimation, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to estimate object speed using Ultralytics YOLOv8 for applications in traffic control, autonomous navigation, and surveillance.
+keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision, traffic control, autonomous navigation, surveillance, security
 ---
 
 # Speed Estimation using Ultralytics YOLOv8 🚀

@@ -1,6 +1,6 @@
 ---
-description: Deploy ML models effortlessly with Ultralytics TritonRemoteModel. Simplify serving with our comprehensive utils guide.
-keywords: Ultralytics, YOLO, TritonRemoteModel, machine learning, model serving, deployment, utils, documentation
+description: Learn how to use the TritonRemoteModel class for interacting with remote Triton Inference Server models. Detailed guide with code examples and attributes.
+keywords: Ultralytics, TritonRemoteModel, Triton Inference Server, model client, inference, remote model, machine learning, AI, Python
 ---
 
 # Reference for `ultralytics/utils/triton.py`

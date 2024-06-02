@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Boost your Python projects with object detection, segmentation and classification using YOLOv8. Explore how to load, train, validate, predict, export, track and benchmark models with ease.
-keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classification, model training, validation, prediction, model export, benchmark, real-time tracking
+description: Learn to integrate YOLOv8 in Python for object detection, segmentation, and classification. Load, train models, and make predictions easily with our comprehensive guide.
+keywords: YOLOv8, Python, object detection, segmentation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
 # Python Usage

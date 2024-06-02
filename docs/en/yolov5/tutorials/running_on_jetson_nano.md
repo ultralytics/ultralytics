@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Detailed guide on deploying trained models on NVIDIA Jetson using TensorRT and DeepStream SDK. Optimize the inference performance on Jetson with Ultralytics.
-keywords: TensorRT, NVIDIA Jetson, DeepStream SDK, deployment, Ultralytics, YOLO, Machine Learning, AI, Deep Learning, model optimization, inference performance
+description: Learn how to deploy models on NVIDIA Jetson using TensorRT and DeepStream SDK. Follow our step-by-step guide for optimized AI inference.
+keywords: NVIDIA Jetson, TensorRT, DeepStream SDK, AI deployment, Jetson Nano, Jetson Xavier NX, YOLOv5, AI inference, Ultralytics
 ---
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK

@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics utilities for optimized task assignment, bounding box creation, and distance calculation. Learn more about algorithm implementations.
-keywords: Ultralytics, task aligned assigner, select highest overlaps, make anchors, dist2bbox, bbox2dist, utilities, algorithm
+description: Explore the TaskAlignedAssigner in Ultralytics YOLO. Learn about the TaskAlignedMetric and its applications in object detection.
+keywords: Ultralytics, YOLO, TaskAlignedAssigner, object detection, machine learning, AI, Tal.py, PyTorch
 ---
 
 # Reference for `ultralytics/utils/tal.py`

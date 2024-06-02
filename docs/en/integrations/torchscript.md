@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to export your Ultralytics YOLOv8 models to TorchScript format for deployment through platforms like embedded systems, web browsers, and C++ applications.
-keywords: Ultralytics, YOLOv8, Export to Torchscript, Model Optimization, Deployment, PyTorch, C++, Faster Inference
+description: Learn how to export Ultralytics YOLOv8 models to TorchScript for flexible, cross-platform deployment. Boost performance and utilize in various environments.
+keywords: YOLOv8, TorchScript, model export, Ultralytics, PyTorch, deep learning, AI deployment, cross-platform, performance optimization
 ---
 
 # YOLOv8 Model Export to TorchScript for Quick Deployment

@@ -1,6 +1,6 @@
 ---
-description: Parking management system using Ultralytics YOLO featuring cutting-edge technology for precise real-time occupancy and availability monitoring for parking lots.
-keywords: Ultralytics YOLO, object tracking software, real-time counting solutions, video stream analysis, YOLOv8 object detection, AI surveillance, smart counting technology, computer vision, AI-powered tracking, object counting accuracy, video analytics tools, automated monitoring.
+description: Explore Ultralytics' Parking Management solution leveraging YOLO for efficient parking zone monitoring and management.
+keywords: Ultralytics, YOLO, parking management, computer vision, parking monitoring, AI solutions, machine learning
 ---
 
 # Reference for `ultralytics/solutions/parking_management.py`

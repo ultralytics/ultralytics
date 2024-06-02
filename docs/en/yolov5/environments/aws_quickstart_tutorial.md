@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Follow this comprehensive guide to set up and operate YOLOv5 on an AWS Deep Learning instance for object detection tasks. Get started with model training and deployment.
-keywords: YOLOv5, AWS Deep Learning AMIs, object detection, machine learning, AI, model training, instance setup, Ultralytics
+description: Discover how to set up and run YOLOv5 on AWS Deep Learning Instances. Follow our comprehensive guide to get started quickly and cost-effectively.
+keywords: YOLOv5, AWS, Deep Learning, Machine Learning, AWS EC2, YOLOv5 setup, Deep Learning Instances, AI, Object Detection
 ---
 
 # YOLOv5 🚀 on AWS Deep Learning Instance: Your Complete Guide

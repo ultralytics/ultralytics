@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore how to improve your Ultralytics YOLOv8 model's performance and interoperability using the ONNX (Open Neural Network Exchange) export format that is suitable for diverse hardware and software environments.
-keywords: Ultralytics, YOLOv8, ONNX Format, Export YOLOv8, CUDA Support, Model Deployment
+description: Learn how to export YOLOv8 models to ONNX format for flexible deployment across various platforms with enhanced performance.
+keywords: YOLOv8, ONNX, model export, Ultralytics, ONNX Runtime, machine learning, model deployment, computer vision, deep learning
 ---
 
 # ONNX Export for YOLOv8 Models

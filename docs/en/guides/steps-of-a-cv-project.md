@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide that walks through the key steps involved in a computer vision project, including steps like defining the problem, data collection, model training, and deployment.
-keywords: Computer Vision Steps, How Does Computer Vision Work, Computer Vision Techniques, Computer Vision Basics, Model Deployment, Data Annotation, Model Evaluation
+description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance. Boost your AI capabilities now!.
+keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
 ---
 
 # Understanding the Key Steps in a Computer Vision Project

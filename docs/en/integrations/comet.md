@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to track and enhance YOLOv8 model training with Comet ML's logging tools, from setup to monitoring key metrics and managing experiments for in-depth analysis.
-keywords: Ultralytics, YOLOv8, Object Detection, Comet ML, Model Training, Model Metrics Logging, Experiment Tracking, Offline Experiment Management
+description: Learn to simplify the logging of YOLOv8 training with Comet ML. This guide covers installation, setup, real-time insights, and custom logging.
+keywords: YOLOv8, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
 ---
 
 # Elevating YOLOv8 Training: Simplify Your Logging Process with Comet ML

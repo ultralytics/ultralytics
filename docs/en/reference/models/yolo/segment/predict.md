@@ -1,6 +1,6 @@
 ---
-description: Discover how to utilize the YOLO Segmentation Predictor in Ultralytics. Enhance your objects detection skills with us.
-keywords: YOLO, Ultralytics, object detection, segmentation predictor
+description: Understand the SegmentationPredictor class for segmentation-based predictions using YOLO. Learn more about its implementation and example usage.
+keywords: YOLO, SegmentationPredictor, machine learning, computer vision, object detection, Ultralytics, prediction, model, non-max suppression
 ---
 
 # Reference for `ultralytics/models/yolo/segment/predict.py`

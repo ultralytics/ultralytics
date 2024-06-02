@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to blur objects using Ultralytics YOLOv8 for privacy in images and videos.
-keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protection, Image Processing, Video Analysis, AI, Machine Learning
+description: Learn how to use Ultralytics YOLOv8 for real-time object blurring to enhance privacy and focus in your images and videos.
+keywords: YOLOv8, object blurring, real-time processing, privacy protection, image manipulation, video editing, Ultralytics
 ---
 
 # Object Blurring using Ultralytics YOLOv8 🚀

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Unlock real-time YOLO model detection directly on your mobile! Discover apps for iOS and Android with YOLOv5 and YOLOv8.
-keywords: Ultralytics HUB App, YOLOv5, YOLOv8, real-time detection, mobile AI, iOS, Android, Apple Neural Engine, Android GPU, Ultralytics
+description: Discover the Ultralytics HUB App for running YOLOv5 and YOLOv8 models on iOS and Android devices with hardware acceleration.
+keywords: Ultralytics HUB, YOLO models, mobile app, iOS, Android, hardware acceleration, YOLOv5, YOLOv8, neural engine, GPU, NNAPI
 ---
 
 # Ultralytics HUB App

@@ -1,6 +1,6 @@
 ---
-description: Learn about the HUBModelError in Ultralytics. Enhance your understanding, troubleshoot errors and optimize your machine learning projects.
-keywords: Ultralytics, HUBModelError, Machine Learning, Error troubleshooting, Ultralytics documentation
+description: Explore error handling for Ultralytics YOLO. Learn about custom exceptions like HUBModelError to manage model fetching issues effectively.
+keywords: Ultralytics, YOLO, error handling, HUBModelError, model fetching, custom exceptions, Python
 ---
 
 # Reference for `ultralytics/utils/errors.py`

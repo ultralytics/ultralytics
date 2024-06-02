@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics NASPredictor. Understand high-level architecture of the model for effective implementation and efficient predictions.
-keywords: NASPredictor, Ultralytics, Ultralytics model, model architecture, efficient predictions
+description: Learn about NASPredictor in Ultralytics YOLO for efficient object detection. Explore its attributes, methods, and usage with examples.
+keywords: Ultralytics, YOLO, NASPredictor, object detection, machine learning, AI, non-maximum suppression, bounding boxes, image processing
 ---
 
 # Reference for `ultralytics/models/nas/predict.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the YOLOv7, a real-time object detector. Understand its superior speed, impressive accuracy, and unique trainable bag-of-freebies optimization focus.
-keywords: YOLOv7, real-time object detector, state-of-the-art, Ultralytics, MS COCO dataset, model re-parameterization, dynamic label assignment, extended scaling, compound scaling
+description: Discover YOLOv7, the breakthrough real-time object detector with top speed and accuracy. Learn about key features, usage, and performance metrics.
+keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, model training, object detector
 ---
 
 # YOLOv7: Trainable Bag-of-Freebies

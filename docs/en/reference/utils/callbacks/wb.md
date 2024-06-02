@@ -1,6 +1,6 @@
 ---
-description: Deep dive into Ultralytics callbacks. Learn how to use the _log_plots, on_fit_epoch_end, and on_train_end functions effectively.
-keywords: Ultralytics, callbacks, _log_plots, on_fit_epoch_end, on_train_end
+description: Learn how Ultralytics YOLO integrates with WandB using custom callbacks for logging metrics and visualizations.
+keywords: Ultralytics, YOLO, WandB, callbacks, logging, metrics, visualizations, AI, machine learning
 ---
 
 # Reference for `ultralytics/utils/callbacks/wb.py`

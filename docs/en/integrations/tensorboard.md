@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Walk through the integration of YOLOv8 with TensorBoard to be able to use TensorFlow's visualization toolkit for enhanced model training analysis, offering capabilities like metric tracking, model graph visualization, and more.
-keywords: TensorBoard, YOLOv8, Visualization, TensorFlow, Training Analysis, Metric Tracking, Model Graphs, Experimentation, Ultralytics
+description: Learn how to integrate YOLOv8 with TensorBoard for real-time visual insights into your model's training metrics, performance graphs, and debugging workflows.
+keywords: YOLOv8, TensorBoard, model training, visualization, machine learning, deep learning, Ultralytics, training metrics, performance analysis
 ---
 
 # Gain Visual Insights with YOLOv8's Integration with TensorBoard

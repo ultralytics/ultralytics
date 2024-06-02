@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to deploy your YOLOv8 models rapidly using Neural Magic's DeepSparse. This guide focuses on integrating Ultralytics YOLOv8 with the DeepSparse Engine for high-speed, CPU-based inference, leveraging advanced neural network sparsity techniques.
-keywords: YOLOv8, DeepSparse Engine, Ultralytics, CPU Inference, Neural Network Sparsity, Object Detection, Model Optimization
+description: Enhance YOLOv8 performance using Neural Magic's DeepSparse Engine. Learn how to deploy and benchmark YOLOv8 models on CPUs for efficient object detection.
+keywords: YOLOv8, DeepSparse, Neural Magic, model optimization, object detection, inference speed, CPU performance, sparsity, pruning, quantization
 ---
 
 # Optimizing YOLOv8 Inferences with Neural Magic's DeepSparse Engine

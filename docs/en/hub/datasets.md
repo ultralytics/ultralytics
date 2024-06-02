@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to seamlessly upload, manage, and leverage datasets for model training with Ultralytics HUB.
-keywords: Ultralytics HUB datasets, upload datasets, manage datasets, dataset management, model training, YOLOv5 datasets, YOLOv8 datasets
+description: Effortlessly manage, upload, and share your custom datasets on Ultralytics HUB for seamless model training integration. Simplify your workflow today!.
+keywords: Ultralytics HUB, datasets, custom datasets, dataset management, model training, upload datasets, share datasets, dataset workflow
 ---
 
 # Ultralytics HUB Datasets

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Crack Segmentation using Ultralytics YOLOv8 Dataset, a large-scale benchmark for road safety analysis, and learn how to train a YOLO model using it.
-keywords: Crack Segmentation Dataset, Ultralytics, road cracks monitoring, YOLO model, object detection, object tracking, road safety
+description: Explore the extensive Roboflow Crack Segmentation Dataset, perfect for transportation and public safety studies or self-driving car model development.
+keywords: Roboflow, Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset
 ---
 
 # Roboflow Universe Crack Segmentation Dataset

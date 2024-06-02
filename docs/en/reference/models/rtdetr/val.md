@@ -1,6 +1,6 @@
 ---
-description: Explore RTDETRDataset in Ultralytics Models. Learn about the RTDETRValidator function, understand its usage in real-time object detection.
-keywords: Ultralytics, RTDETRDataset, RTDETRValidator, real-time object detection, models documentation
+description: Explore the RTDETRValidator and RTDETRDataset classes for real-time detection and tracking. Understand initialization, transformations, and post-processing.
+keywords: RTDETR, Ultralytics, object detection, tracking, YOLO, RTDETRDataset, RTDETRValidator, real-time detection
 ---
 
 # Reference for `ultralytics/models/rtdetr/val.py`

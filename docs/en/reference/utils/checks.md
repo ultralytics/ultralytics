@@ -1,6 +1,6 @@
 ---
-description: Learn about our routine checks that safeguard Ultralytics operations including ASCII, font, YOLO file, YAML, Python and torchvision checks.
-keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_python, check_torchvision, check_yaml, YOLO filename
+description: Explore utility functions for Ultralytics YOLO such as checking versions, image sizes, and requirements.
+keywords: Ultralytics, YOLO, utility functions, version checks, requirements, image size
 ---
 
 # Reference for `ultralytics/utils/checks.py`

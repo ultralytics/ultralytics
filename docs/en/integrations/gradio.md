@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to use Gradio and Ultralytics YOLOv8 for interactive object detection. Upload images and adjust detection parameters in real-time.
-keywords: Gradio, Ultralytics YOLOv8, object detection, interactive AI, Python
+description: Discover an interactive way to perform object detection with Ultralytics YOLOv8 using Gradio. Upload images and adjust settings for real-time results.
+keywords: Ultralytics, YOLOv8, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
 # Interactive Object Detection: Gradio & Ultralytics YOLOv8 🚀

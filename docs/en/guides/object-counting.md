@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Object Counting Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn to accurately identify and count objects in real-time using Ultralytics YOLOv8 for applications like crowd analysis and surveillance.
+keywords: object counting, YOLOv8, Ultralytics, real-time object detection, AI, deep learning, object tracking, crowd analysis, surveillance, resource optimization
 ---
 
 # Object Counting using Ultralytics YOLOv8 🚀

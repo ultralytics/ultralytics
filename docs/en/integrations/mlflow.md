@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Uncover the utility of MLflow for effective experiment logging in your Ultralytics YOLO projects.
-keywords: ultralytics docs, YOLO, MLflow, experiment logging, metrics tracking, parameter logging, artifact logging
+description: Learn how to set up and use MLflow logging with Ultralytics YOLO for enhanced experiment tracking, model reproducibility, and performance improvements.
+keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metrics logging, parameter logging, artifact logging
 ---
 
 # MLflow Integration for Ultralytics YOLO

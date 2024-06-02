@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Navigate through supported dataset formats, methods to utilize them and how to add your own datasets. Get insights on porting or converting label formats.
-keywords: Ultralytics, YOLO, datasets, object detection, dataset formats, label formats, data conversion
+description: Learn about dataset formats compatible with Ultralytics YOLO for robust object detection. Explore supported datasets and learn how to convert formats.
+keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, dataset conversion, training datasets
 ---
 
 # Object Detection Datasets Overview

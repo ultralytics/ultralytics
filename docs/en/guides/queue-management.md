@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Queue Management Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Queue Management, Object Counting, Object Tracking, Object Detection, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to manage and optimize queues using Ultralytics YOLOv8 to reduce wait times and increase efficiency in various real-world applications.
+keywords: queue management, YOLOv8, Ultralytics, reduce wait times, efficiency, customer satisfaction, retail, airports, healthcare, banks
 ---
 
 # Queue Management using Ultralytics YOLOv8 🚀

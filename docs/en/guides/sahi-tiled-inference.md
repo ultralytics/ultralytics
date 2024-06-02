@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide on how to use YOLOv8 with SAHI for standard and sliced inference in object detection tasks.
-keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, Large Scale Image Analysis, High-Resolution Imagery
+description: Learn how to implement YOLOv8 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
+keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
 ---
 
 # Ultralytics Docs: Using YOLOv8 with SAHI for Sliced Inference

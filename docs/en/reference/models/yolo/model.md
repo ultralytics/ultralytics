@@ -1,6 +1,6 @@
 ---
-description: Explore the powerful YOLO model for object detection, including YOLOWorld for enhanced capabilities. Learn about classification, detection, segmentation, and more.
-keywords: Ultralytics YOLO, object detection, YOLOWorld, classification, detection, segmentation, pose estimation
+description: Explore the ultralytics.models.yolo.model module for YOLO object detection. Learn initialization, model mapping, and more.
+keywords: YOLO, object detection, Ultralytics, YOLO model, machine learning, Python, model initialization
 ---
 
 # Reference for `ultralytics/models/yolo/model.py`

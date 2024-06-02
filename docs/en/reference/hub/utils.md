@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics docs for various Events, including "request_with_credentials" and "requests_with_progress". Also, understand the use of the "smart_request".
-keywords: Ultralytics, Events, request_with_credentials, smart_request, Ultralytics hub utils, requests_with_progress
+description: Explore the utilities in the Ultralytics Hub. Learn about smart_request, request_with_credentials, and more to enhance your YOLO projects.
+keywords: Ultralytics, Hub, Utilities, YOLO, smart_request, request_with_credentials
 ---
 
 # Reference for `ultralytics/hub/utils.py`

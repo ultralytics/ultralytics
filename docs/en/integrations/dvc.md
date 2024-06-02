@@ -1,7 +1,7 @@
 ---
 comments: true
-description: This guide provides a step-by-step approach to integrating DVCLive with Ultralytics YOLOv8 for advanced experiment tracking. Learn how to set up your environment, run experiments with varied configurations, and analyze results using DVCLive's powerful tracking and visualization tools.
-keywords: DVCLive, Ultralytics, YOLOv8, Machine Learning, Experiment Tracking, Data Version Control, ML Workflows, Model Training, Hyperparameter Tuning
+description: Unlock seamless YOLOv8 tracking with DVCLive. Discover how to log, visualize, and analyze experiments for optimized ML model performance.
+keywords: YOLOv8, DVCLive, experiment tracking, machine learning, model training, data visualization, Git integration
 ---
 
 # Advanced YOLOv8 Experiment Tracking with DVCLive

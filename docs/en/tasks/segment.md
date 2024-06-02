@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use instance segmentation models with Ultralytics YOLO. Instructions on training, validation, image prediction, and model export.
-keywords: yolov8, instance segmentation, Ultralytics, COCO dataset, image segmentation, object detection, model training, model validation, image prediction, model export
+description: Master instance segmentation using YOLOv8. Learn how to detect, segment and outline objects in images with detailed guides and examples.
+keywords: instance segmentation, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, COCO dataset, Ultralytics
 ---
 
 # Instance Segmentation

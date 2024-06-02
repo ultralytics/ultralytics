@@ -1,6 +1,6 @@
 ---
-description: Discover function valuation of your YOLO models with the Ultralytics Detection Validator. Enhance precision and recall rates today.
-keywords: Ultralytics, YOLO, Detection Validator, model valuation, precision, recall
+description: Explore the DetectionValidator class for YOLO models in Ultralytics. Learn validation techniques, metrics, and dataset handling for object detection.
+keywords: YOLO validation, detection validation, YOLO metrics, Ultralytics, object detection, machine learning, AI
 ---
 
 # Reference for `ultralytics/models/yolo/detect/val.py`

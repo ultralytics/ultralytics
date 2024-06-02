@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance.
-keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
+description: Learn how to gather, label, and deploy data for custom YOLOv8 models using Roboflow's powerful tools. Optimize your computer vision pipeline effortlessly.
+keywords: Roboflow, YOLOv8, data labeling, computer vision, model training, model deployment, dataset management, automated image annotation, AI tools
 ---
 
 # Roboflow

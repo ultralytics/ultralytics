@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics methods for mask data processing, transformation and encoding. Deepen your understanding of RLE encoding, image cropping and more.
-keywords: Ultralytics, Mask Data, Transformation, Encoding, RLE encoding, Image cropping, Pytorch, SAM, AMG, Ultralytics model
+description: Explore the detailed API reference for Ultralytics SAM/AMG models, including functions for mask stability scores, crop box generation, and more.
+keywords: Ultralytics, SAM, AMG, API Reference, models, mask stability, crop boxes, data processing, YOLO
 ---
 
 # Reference for `ultralytics/models/sam/amg.py`

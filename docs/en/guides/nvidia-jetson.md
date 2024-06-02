@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Quick start guide to setting up YOLOv8 on a NVIDIA Jetson device with comprehensive benchmarks.
-keywords: Ultralytics, YOLO, NVIDIA, Jetson, TensorRT, quick start guide, hardware setup, machine learning, AI
+description: Learn to deploy Ultralytics YOLOv8 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
+keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
 ---
 
 # Quick Start Guide: NVIDIA Jetson with Ultralytics YOLOv8

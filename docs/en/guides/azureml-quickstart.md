@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step Quickstart Guide to Running YOLOv8 Object Detection Models on AzureML for Fast Prototyping and Testing
-keywords: Ultralytics, YOLOv8, Object Detection, Azure Machine Learning, Quickstart Guide, Prototype, Compute Instance, Terminal, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to run YOLOv8 on AzureML. Quickstart instructions for terminal and notebooks to harness Azure's cloud computing for efficient model training.
+keywords: YOLOv8, AzureML, machine learning, cloud computing, quickstart, terminal, notebooks, model training, Python SDK, AI, Ultralytics
 ---
 
 # YOLOv8 🚀 on AzureML

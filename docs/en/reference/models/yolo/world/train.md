@@ -1,6 +1,6 @@
 ---
-description: Detailed guide on the Ultralytics YOLO WorldTrainer class, including methods for fine-tuning world models and dataset building.
-keywords: Ultralytics, YOLO, WorldTrainer, WorldModel, training, dataset, machine learning, AI, deep learning, computer vision, ViT-B/32, clip
+description: Learn how to train a World Model with Ultralytics YOLO using advanced techniques and customizable options for optimal performance.
+keywords: Ultralytics, YOLO, World Model, training, deep learning, computer vision, AI, machine learning, tutorial
 ---
 
 # Reference for `ultralytics/models/yolo/world/train.py`

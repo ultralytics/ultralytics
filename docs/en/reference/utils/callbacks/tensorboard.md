@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics YOLO Docs for a deep understanding of log_scalars, on_batch_end & other callback utilities embedded in the tensorboard module.
-keywords: Ultralytics, YOLO, documentation, callback utilities, log_scalars, on_batch_end, tensorboard
+description: Learn how to integrate and use TensorBoard with Ultralytics for effective model training visualization.
+keywords: Ultralytics, TensorBoard, callbacks, machine learning, training visualization, logging
 ---
 
 # Reference for `ultralytics/utils/callbacks/tensorboard.py`

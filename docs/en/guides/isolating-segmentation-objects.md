@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A concise guide on isolating segmented objects using Ultralytics.
-keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, dataset, prediction, instance segmentation, contours, binary mask, object mask, image processing
+description: Learn to extract isolated objects from inference results using Ultralytics Predict Mode. Step-by-step guide for segmentation object isolation.
+keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLOv8, machine learning, object detection, binary mask, image processing
 ---
 
 # Isolating Segmentation Objects

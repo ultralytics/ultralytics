@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Brain tumor detection, a leading dataset for medical imaging, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, Brain Tumor dataset, object detection, YOLO, YOLO model training, object tracking, computer vision, deep learning models
+description: Explore the brain tumor detection dataset with MRI/CT images. Essential for training AI models for early diagnosis and treatment planning.
+keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medical imaging, AI in healthcare, computer vision, early diagnosis, treatment planning
 ---
 
 # Brain Tumor Dataset

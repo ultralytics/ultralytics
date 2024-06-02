@@ -1,6 +1,6 @@
 ---
-description: Explore the utilities and functions of the Ultralytics NASValidator. Find out how it benefits allocation and optimization in AI models.
-keywords: Ultralytics, NASValidator, models.nas.val.NASValidator, AI models, allocation, optimization
+description: Explore the Ultralytics NASValidator for efficient YOLO model validation. Learn about NMS and post-processing configurations.
+keywords: Ultralytics, YOLO, NASValidator, object detection, non-maximum suppression, NMS, YOLO models, machine learning
 ---
 
 # Reference for `ultralytics/models/nas/val.py`

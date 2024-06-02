@@ -1,6 +1,6 @@
 ---
-description: Learn to use the DETRLoss function provided by Ultralytics YOLO. Understand how to utilize loss in RTDETR detection models to improve accuracy.
-keywords: Ultralytics, YOLO, Documentation, DETRLoss, Detection Loss, Loss function, DETR, RTDETR Detection Models
+description: Explore detailed implementations of loss functions for DETR and RT-DETR models in Ultralytics.
+keywords: ultralytics, YOLO, DETR, RT-DETR, loss functions, object detection, deep learning, focal loss, varifocal loss, Hungarian matcher
 ---
 
 # Reference for `ultralytics/models/utils/loss.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Boost your YOLOv5 performance with our step-by-step guide on Test-Time Augmentation (TTA). Learn to enhance your model's mAP and Recall during testing and inference.
-keywords: YOLOv5, Ultralytics, Test-Time Augmentation, TTA, mAP, Recall, model performance, guide
+description: Boost your YOLOv5 performance with Test-Time Augmentation (TTA). Learn setup, testing, and inference techniques to elevate mAP and Recall.
+keywords: YOLOv5, Test-Time Augmentation, TTA, machine learning, deep learning, object detection, mAP, Recall, PyTorch
 ---
 
 # Test-Time Augmentation (TTA)

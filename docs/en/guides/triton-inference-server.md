@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A step-by-step guide on integrating Ultralytics YOLOv8 with Triton Inference Server for scalable and high-performance deep learning inference deployments.
-keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inference
+description: Learn how to integrate Ultralytics YOLOv8 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
+keywords: Triton Inference Server, YOLOv8, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference
 ---
 
 # Triton Inference Server with Ultralytics YOLOv8

@@ -1,6 +1,6 @@
 ---
-description: Explore comprehensive documentation for utilising Comet Callbacks in Ultralytics. Learn to optimise training, logging, and experiment workflows.
-keywords: Ultralytics, Comet Callbacks, Training optimisation, Logging, Experiment Workflows
+description: Explore the integration of Comet callbacks in Ultralytics YOLO, enabling advanced logging and monitoring for your machine learning experiments.
+keywords: Ultralytics, YOLO, Comet, callbacks, logging, machine learning, monitoring, integration
 ---
 
 # Reference for `ultralytics/utils/callbacks/comet.py`

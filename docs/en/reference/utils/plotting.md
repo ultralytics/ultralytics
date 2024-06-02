@@ -1,6 +1,6 @@
 ---
-description: Master advanced plotting utils from Ultralytics including color annotations, label and image plotting, and feature visualization.
-keywords: Ultralytics, plotting, utils, color annotation, label plotting, image plotting, feature visualization
+description: Explore detailed functionalities of Ultralytics plotting utilities for data visualizations and custom annotations in ML projects.
+keywords: ultralytics, plotting, utilities, documentation, data visualization, annotations, python, ML tools
 ---
 
 # Reference for `ultralytics/utils/plotting.py`

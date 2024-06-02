@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use Ultralytics YOLO through Command Line, train models, run predictions and exports models to different formats easily using terminal commands.
-keywords: Ultralytics, YOLO, CLI, train, validation, prediction, command line interface, YOLO CLI, YOLO terminal, model training, prediction, exporting
+description: Explore the YOLOv8 command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+keywords: YOLOv8 CLI, command line interface, YOLOv8 commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface Usage

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Distance Calculation Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Distance Calculation, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to calculate distances between objects using Ultralytics YOLOv8 for accurate spatial positioning and scene understanding.
+keywords: Ultralytics, YOLOv8, distance calculation, computer vision, object tracking, spatial positioning
 ---
 
 # Distance Calculation using Ultralytics YOLOv8 🚀

@@ -1,6 +1,6 @@
 ---
-description: Explore the guide to using the DetectionPredictor in Ultralytics YOLO. Learn how to predict, detect and analyze objects accurately.
-keywords: Ultralytics, YOLO, DetectionPredictor, detect, predict, object detection, analysis
+description: Explore the Ultralytics YOLO Detection Predictor. Learn how to implement and use the DetectionPredictor class for object detection in Python.
+keywords: YOLO, Ultralytics, DetectionPredictor, object detection, Python, machine learning, AI, non_max_suppression
 ---
 
 # Reference for `ultralytics/models/yolo/detect/predict.py`

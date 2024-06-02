@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide that showcases how to export from an Ultralytics YOLOv8 model to TF.js model format for streamlined browser deployments and optimized model performance.
-keywords: Ultralytics YOLOv8, TensorFlow.js, TF.js, Model Deployment, Node.js, Model Format, Export Format, Model Conversion
+description: Convert your Ultralytics YOLOv8 models to TensorFlow.js for high-speed, local object detection. Learn how to optimize ML models for browser and Node.js apps.
+keywords: YOLOv8, TensorFlow.js, TF.js, model export, machine learning, object detection, browser ML, Node.js, Ultralytics, YOLO, export models
 ---
 
 # Export to TF.js Model Format From a YOLOv8 Model Format

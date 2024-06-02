@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover YOLOv9, the latest addition to the real-time object detection arsenal, leveraging Programmable Gradient Information and GELAN architecture for unparalleled performance.
-keywords: YOLOv9, real-time object detection, Programmable Gradient Information, GELAN architecture, Ultralytics, MS COCO dataset, open-source, lightweight model, computer vision, AI
+description: Explore YOLOv9, the latest leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
+keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
 ---
 
 # YOLOv9: A Leap Forward in Object Detection Technology

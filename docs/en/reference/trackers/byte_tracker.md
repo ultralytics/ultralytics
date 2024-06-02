@@ -1,6 +1,6 @@
 ---
-description: Step-in to explore in-depth the functionalities of Ultralytics BYTETracker under STrack. Gain advanced feature insights to streamline your operations.
-keywords: STrack, Ultralytics, BYTETracker, documentation, Ultralytics tracker, object tracking, YOLO
+description: Explore the BYTETracker module in Ultralytics for state-of-the-art object tracking using Kalman filtering. Learn about its classes, methods, and attributes.
+keywords: Ultralytics, BYTETracker, object tracking, Kalman filter, YOLOv8, documentation
 ---
 
 # Reference for `ultralytics/trackers/byte_tracker.py`

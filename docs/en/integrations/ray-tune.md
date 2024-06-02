@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to streamline hyperparameter tuning for YOLOv8 models with Ray Tune. Learn to accelerate tuning, integrate with Weights & Biases, and analyze results.
-keywords: Ultralytics, YOLOv8, Ray Tune, hyperparameter tuning, machine learning optimization, Weights & Biases integration, result analysis
+description: Optimize YOLOv8 model performance with Ray Tune. Learn efficient hyperparameter tuning using advanced search strategies, parallelism, and early stopping.
+keywords: YOLOv8, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
 # Efficient Hyperparameter Tuning with Ray Tune and YOLOv8

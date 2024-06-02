@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Quick start guide to setting up YOLOv8 on a Raspberry Pi with comprehensive benchmarks.
-keywords: Ultralytics, YOLO, Raspberry Pi, Pi Camera, rpicam, quick start guide, Raspberry Pi 4 vs Raspberry Pi 5, YOLO on Raspberry Pi, hardware setup, machine learning, AI
+description: Learn how to deploy Ultralytics YOLOv8 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
+keywords: Ultralytics, YOLOv8, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLOv8

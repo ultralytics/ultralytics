@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore xView, a large-scale, high resolution satellite imagery dataset for object detection. Dive into dataset structure, usage examples & its potential applications.
-keywords: Ultralytics, YOLO, computer vision, xView dataset, satellite imagery, object detection, overhead imagery, training, deep learning, dataset YAML
+description: Explore the xView dataset, a rich resource of 1M+ object instances in high-resolution satellite imagery. Enhance detection, learning efficiency, and more.
+keywords: xView dataset, overhead imagery, satellite images, object detection, high resolution, bounding boxes, computer vision, TensorFlow, PyTorch, dataset structure
 ---
 
 # xView Dataset

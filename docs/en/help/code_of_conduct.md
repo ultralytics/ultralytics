@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics community's Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
-keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
+description: Join our welcoming community! Learn about Ultralytics's Code of Conduct to ensure a harassment-free experience for all participants.
+keywords: Ultralytics, Contributor Covenant, Code of Conduct, community guidelines, harassment-free, inclusive community, diversity, enforcement policy
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct

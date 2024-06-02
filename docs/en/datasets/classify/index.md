@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore image classification datasets supported by Ultralytics, learn the standard dataset format, and set up your own dataset for training models.
-keywords: Ultralytics, image classification, dataset, machine learning, CIFAR-10, ImageNet, MNIST, torchvision
+description: Learn how to structure datasets for YOLO classification tasks. Detailed folder structure and usage examples for effective training.
+keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, machine learning, training data, model evaluation
 ---
 
 # Image Classification Datasets Overview

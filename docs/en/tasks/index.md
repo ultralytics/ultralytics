@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the cornerstone computer vision tasks YOLOv8 can perform including detection, segmentation, classification, and pose estimation. Understand their uses in your AI projects.
-keywords: Ultralytics, YOLOv8, Detection, Segmentation, Classification, Pose Estimation, Oriented Object Detection, AI Framework, Computer Vision Tasks
+description: Explore Ultralytics YOLOv8 for detection, segmentation, classification, OBB, and pose estimation with high accuracy and speed. Learn how to apply each task.
+keywords: Ultralytics YOLOv8, detection, segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework
 ---
 
 # Ultralytics YOLOv8 Tasks

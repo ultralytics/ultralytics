@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive deep into various oriented bounding box (OBB) dataset formats compatible with Ultralytics YOLO models. Grasp the nuances of using and converting datasets to this format.
-keywords: Ultralytics, YOLO, oriented bounding boxes, OBB, dataset formats, label formats, DOTA v2, data conversion
+description: Discover OBB dataset formats for Ultralytics YOLO models. Learn about their structure, application, and format conversions to enhance your object detection training.
+keywords: Oriented Bounding Box, OBB Datasets, YOLO, Ultralytics, Object Detection, Dataset Formats
 ---
 
 # Oriented Bounding Box (OBB) Datasets Overview

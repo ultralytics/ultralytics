@@ -1,13 +1,13 @@
 ---
-description: Explore the Ultralytics Utils package, with handy functions like colorstr, yaml_save, set_logging & more, designed to enhance your coding experience.
-keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_logging, is_kaggle, is_docker, clean_url
+description: Explore the comprehensive reference for ultralytics.utils in the Ultralytics library. Enhance your ML workflow with these utility functions.
+keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO, threading, logging, yaml, settings
 ---
 
 # Reference for `ultralytics/utils/__init__.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

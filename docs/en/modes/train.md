@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO including examples of single-GPU and multi-GPU training
-keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
+description: Learn how to efficiently train object detection models using YOLOv8 with comprehensive instructions on settings, augmentation, and hardware utilization.
+keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
 ---
 
 # Model Training with Ultralytics YOLO

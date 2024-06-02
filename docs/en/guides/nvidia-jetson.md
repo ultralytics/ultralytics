@@ -73,7 +73,7 @@ After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorr
 
 #### Install Ultralytics Package
 
-Here we will install ultralyics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensoRT will make sure we can get the maximum performance out of the Jetson devices.
+Here we will install ultralytics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -129,7 +129,7 @@ Visit the [PyTorch for Jetson page](https://forums.developer.nvidia.com/t/pytorc
 
 The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
 
-All different `onnxruntime-gpu` packages corresponsing to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support for the JetPack we are using for this guide.
+All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support for the JetPack we are using for this guide.
 
 ```bash
 wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -O onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
@@ -189,7 +189,7 @@ YOLOv8 benchmarks were run by the Ultralytics team on 10 different model formats
 
 ### Comparison Chart
 
-Eventhough all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
+Even though all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
 
 <div style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/ultralytics/assets/20147381/202950fa-c24a-43ec-90c8-4d7b6a6c406e" alt="NVIDIA Jetson Ecosystem">

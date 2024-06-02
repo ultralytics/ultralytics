@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the process of exporting Ultralytics YOLOv8 models to CoreML format, enabling efficient object detection capabilities for iOS and macOS applications on Apple devices.
-keywords: Ultralytics, YOLOv8, CoreML Export, Model Deployment, Apple Devices, Object Detection, Machine Learning
+description: Learn how to export YOLOv8 models to CoreML for optimized, on-device machine learning on iOS and macOS. Follow step-by-step instructions.
+keywords: CoreML export, YOLOv8 models, CoreML conversion, Ultralytics, iOS object detection, macOS machine learning, AI deployment, machine learning integration
 ---
 
 # CoreML Export for YOLOv8 Models

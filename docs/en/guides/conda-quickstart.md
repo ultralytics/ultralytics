@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Comprehensive guide to setting up and using Ultralytics YOLO models in a Conda environment. Learn how to install the package, manage dependencies, and get started with object detection projects.
-keywords: Ultralytics, YOLO, Conda, environment setup, object detection, package installation, deep learning, machine learning, guide
+description: Learn to set up a Conda environment for Ultralytics projects. Follow our comprehensive guide for easy installation and initialization.
+keywords: Ultralytics, Conda, setup, installation, environment, guide, machine learning, data science
 ---
 
 # Conda Quickstart Guide for Ultralytics

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how ClearML can enhance your YOLOv5 pipeline – track your training runs, version your data, remotely monitor your models and optimize performance.
-keywords: ClearML, YOLOv5, Ultralytics, AI toolbox, training data, remote training, hyperparameter optimization, YOLOv5 model
+description: Learn how to use ClearML for tracking YOLOv5 experiments, data versioning, hyperparameter optimization, and remote execution with ease.
+keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versioning, hyperparameter optimization, remote execution, ML pipeline
 ---
 
 # ClearML Integration

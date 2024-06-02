@@ -1,13 +1,13 @@
 ---
-description: Explore the exporter functionality of Ultralytics. Learn about exporting formats, IOSDetectModel, and try exporting with examples.
-keywords: Ultralytics, Exporter, IOSDetectModel, Export Formats, Try export
+description: Learn how to export YOLOv8 models to formats like ONNX, TensorRT, CoreML, and more. Optimize your exports for different platforms.
+keywords: YOLOv8, export formats, ONNX, TensorRT, CoreML, machine learning model export, AI, deep learning
 ---
 
 # Reference for `ultralytics/engine/exporter.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/exporter.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/exporter.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

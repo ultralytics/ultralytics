@@ -118,7 +118,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
 def update_markdown_files(md_filepath: Path):
     """Creates or updates a Markdown file, ensuring frontmatter is present."""
     if md_filepath.exists():
-        content = md_filepath.read_text()
+        content = md_filepath.read_text().strip()
 
         # Replace apostrophes
         content = content.replace("‘", "'").replace("’", "'")
@@ -127,6 +127,10 @@ def update_markdown_files(md_filepath: Path):
         if not content.strip().startswith("---\n"):
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
+
+        # Add EOF newline if missing
+        if not content.endswith("\n"):
+            content += "\n"
 
         # Save page
         md_filepath.write_text(content)

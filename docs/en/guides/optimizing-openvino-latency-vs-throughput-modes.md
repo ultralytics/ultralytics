@@ -37,7 +37,6 @@ Throughput optimization is crucial for scenarios serving numerous inference requ
 1. **OpenVINO Performance Hints:** A high-level, future-proof method to enhance throughput across devices using performance hints.
 
    ```python
-   import openvino.properties as props
    import openvino.properties.hint as hints
 
    config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}

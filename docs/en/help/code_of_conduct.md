@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
+description: Explore Ultralytics community's Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
 keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
 ---
 

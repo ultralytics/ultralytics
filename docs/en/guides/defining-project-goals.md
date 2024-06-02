@@ -10,13 +10,13 @@ keywords: Computer Vision Project, Defining Problems, Setting Objectives, SMART 
 
 The first step in any computer vision project is defining what you want to achieve. It's crucial to have a clear roadmap from the start, which includes everything from data collection to deploying your model.
 
-If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It’ll give you a solid overview of the whole process. Once you’re caught up, come back here so we can dive into how exactly you can define and refine the goals for your project.
+If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It'll give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
 
-Now, let’s get to the heart of defining a clear problem statement for your project and exploring the key decisions you’ll need to make along the way.
+Now, let's get to the heart of defining a clear problem statement for your project and exploring the key decisions you'll need to make along the way.
 
 ## Defining A Clear Problem Statement
 
-Setting clear goals and objectives for your project is the first big step toward finding the most effective solutions. Let’s understand how you can clearly define your project’s problem statement:
+Setting clear goals and objectives for your project is the first big step toward finding the most effective solutions. Let's understand how you can clearly define your project's problem statement:
 
 - **Identify the Core Issue:** Pinpoint the specific challenge your computer vision project aims to solve.
 - **Determine the Scope:** Define the boundaries of your problem.
@@ -25,7 +25,7 @@ Setting clear goals and objectives for your project is the first big step toward
 
 ### Example of a Business Problem Statement
 
-Let’s walk through an example.
+Let's walk through an example.
 
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
@@ -56,7 +56,7 @@ For example, if your problem is monitoring vehicle speeds on a highway, the rele
   <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664f03ba300cf6e61689862f_FIG%20444.gif" alt="Example of Object Tracking">
 </p>
 
-Other tasks, like [object detection](../tasks/detect.md), are not suitable as they don't provide continuous location or movement information. Once you’ve identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
+Other tasks, like [object detection](../tasks/detect.md), are not suitable as they don't provide continuous location or movement information. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
 
 ## Which Comes First: Model Selection, Dataset Preparation, or Model Training Approach?
 
@@ -93,14 +93,14 @@ No, pre-trained models don't "remember" classes in the traditional sense. They l
   <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQHIJdbNXjBXEQ/article-cover_image-shrink_720_1280/0/1692158503859?e=2147483647&v=beta&t=pib5jFzINB9RzKIATGHMsE0jK1_4_m5LRqx7GkYiFqA" alt="Overview of Transfer Learning">
 </p>
 
-If you want to use the classes the model was pre-trained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are also other options like freezing layers, using the pre-trained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.
+If you want to use the classes the model was pre-trained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pre-trained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.
 
 ### How Do Deployment Options Affect My Computer Vision Project?
 
 [Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project. For instance, the deployment environment must handle the computational load of your model. Here are some practical examples:
 
 - **Edge Devices**: Deploying on edge devices like smartphones or IoT devices requires lightweight models due to their limited computational resources. Example technologies include [TensorFlow Lite](../integrations/tflite.md) and [ONNX Runtime](../integrations/onnx.md), which are optimized for such environments.
-- **Cloud Servers**: Cloud deployments can handle more complex models with larger computational demands. Cloud platforms like [AWS](../integrations/amazon-sagemaker.md), Google Cloud, and Azure offer robust hardware options that can scale based on the project’s needs.
+- **Cloud Servers**: Cloud deployments can handle more complex models with larger computational demands. Cloud platforms like [AWS](../integrations/amazon-sagemaker.md), Google Cloud, and Azure offer robust hardware options that can scale based on the project's needs.
 - **On-Premise Servers**: For scenarios requiring high data privacy and security, deploying on-premise might be necessary. This involves significant upfront hardware investment but allows full control over the data and infrastructure.
 - **Hybrid Solutions**: Some projects might benefit from a hybrid approach, where some processing is done on the edge, while more complex analyses are offloaded to the cloud. This can balance performance needs with cost and latency considerations.
 
@@ -138,4 +138,4 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 
 ## Conclusion
 
-Defining a clear problem and setting measurable goals is key to a successful computer vision project. We’ve highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like GitHub or Discord is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.
+Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like GitHub or Discord is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.

@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, ONNX Format, Export YOLOv8, CUDA Support, Model D
 
 # ONNX Export for YOLOv8 Models
 
-Often, when deploying computer vision models, you’ll need a model format that's both flexible and compatible with multiple platforms.
+Often, when deploying computer vision models, you'll need a model format that's both flexible and compatible with multiple platforms.
 
 Exporting [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLOv8 models to ONNX and enhance their scalability and effectiveness in real-world applications.
 
@@ -44,7 +44,7 @@ The ability of ONNX to handle various formats can be attributed to the following
 
 ## Common Usage of ONNX
 
-Before we jump into how to export YOLOv8 models to the ONNX format, let’s take a look at where ONNX models are usually used.
+Before we jump into how to export YOLOv8 models to the ONNX format, let's take a look at where ONNX models are usually used.
 
 ### CPU Deployment
 
@@ -131,4 +131,4 @@ In this guide, you've learned how to export Ultralytics YOLOv8 models to ONNX fo
 
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
-Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.

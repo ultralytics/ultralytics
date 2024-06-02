@@ -47,7 +47,7 @@ That's it!
 
 The account balance is used to pay for [Ultralytics Cloud Training](./cloud-training.md) resources.
 
-In order to top-up your account balance, simply click on the **Top-Up** button.
+In order to top up your account balance, simply click on the **Top-Up** button.
 
 ![Ultralytics HUB screenshot of the Settings page Billing & License tab with an arrow pointing to the Top-Up button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/pro/hub_pro_account_balance_1.jpg)
 

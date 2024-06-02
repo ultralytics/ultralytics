@@ -30,11 +30,11 @@ TorchScript, a key part of the PyTorch ecosystem, provides powerful features for
 
 Here are the key features that make TorchScript a valuable tool for developers:
 
-- **Static Graph Execution**: TorchScript uses a static graph representation of the model’s computation, which is different from PyTorch’s dynamic graph execution. In static graph execution, the computational graph is defined and compiled once before the actual execution, resulting in improved performance during inference.
+- **Static Graph Execution**: TorchScript uses a static graph representation of the model's computation, which is different from PyTorch's dynamic graph execution. In static graph execution, the computational graph is defined and compiled once before the actual execution, resulting in improved performance during inference.
 
 - **Model Serialization**: TorchScript allows you to serialize PyTorch models into a platform-independent format. Serialized models can be loaded without requiring the original Python code, enabling deployment in different runtime environments.
 
-- **JIT Compilation**: TorchScript uses Just-In-Time (JIT) compilation to convert PyTorch models into an optimized intermediate representation. JIT compiles the model’s computational graph, enabling efficient execution on target devices.
+- **JIT Compilation**: TorchScript uses Just-In-Time (JIT) compilation to convert PyTorch models into an optimized intermediate representation. JIT compiles the model's computational graph, enabling efficient execution on target devices.
 
 - **Cross-Language Integration**: With TorchScript, you can export PyTorch models to other languages such as C++, Java, and JavaScript. This makes it easier to integrate PyTorch models into existing software systems written in different languages.
 
@@ -42,7 +42,7 @@ Here are the key features that make TorchScript a valuable tool for developers:
 
 ## Deployment Options in TorchScript
 
-Before we look at the code for exporting YOLOv8 models to the TorchScript format, let’s understand where TorchScript models are normally used.
+Before we look at the code for exporting YOLOv8 models to the TorchScript format, let's understand where TorchScript models are normally used.
 
 TorchScript offers various deployment options for machine learning models, such as:
 
@@ -121,6 +121,6 @@ After successfully exporting your Ultralytics YOLOv8 models to TorchScript forma
 
 In this guide, we explored the process of exporting Ultralytics YOLOv8 models to the TorchScript format. By following the provided instructions, you can optimize YOLOv8 models for performance and gain the flexibility to deploy them across various platforms and environments.
 
-For further details on usage, visit [TorchScript’s official documentation](https://pytorch.org/docs/stable/jit.html).
+For further details on usage, visit [TorchScript's official documentation](https://pytorch.org/docs/stable/jit.html).
 
-Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.

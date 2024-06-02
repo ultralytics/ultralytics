@@ -8,9 +8,9 @@ keywords: What is Data Preprocessing, Data Preprocessing Techniques, What is Dat
 
 ## Introduction
 
-After you’ve defined your computer vision [project’s goals](./defining-project-goals.md) and [collected and annotated data](./data-collection-and-annotation.md), the next step is to preprocess annotated data and prepare it for model training. Clean and consistent data are vital to creating a model that performs well. 
+After you've defined your computer vision [project's goals](./defining-project-goals.md) and [collected and annotated data](./data-collection-and-annotation.md), the next step is to preprocess annotated data and prepare it for model training. Clean and consistent data are vital to creating a model that performs well. 
 
-Preprocessing is a step in the [computer vision project workflow](./steps-of-a-cv-project.md) that includes resizing images, normalizing pixel values, augmenting the dataset, and splitting the data into training, validation, and test sets. Let’s explore the essential techniques and best practices for cleaning your data!
+Preprocessing is a step in the [computer vision project workflow](./steps-of-a-cv-project.md) that includes resizing images, normalizing pixel values, augmenting the dataset, and splitting the data into training, validation, and test sets. Let's explore the essential techniques and best practices for cleaning your data!
 
 ## Importance of Data Preprocessing
 
@@ -36,7 +36,7 @@ To make resizing a simpler task, you can use the following tools:
 - **OpenCV**: A popular computer vision library with extensive functions for image processing.
 - **PIL (Pillow)**: A Python Imaging Library for opening, manipulating, and saving image files.
 
-With respect to YOLOv8, the ‘imgsz’ parameter during [model training](../modes/train.md) allows for flexible input sizes. When set to a specific size, such as 640, the model will resize input images so their largest dimension is 640 pixels while maintaining the original aspect ratio. 
+With respect to YOLOv8, the 'imgsz' parameter during [model training](../modes/train.md) allows for flexible input sizes. When set to a specific size, such as 640, the model will resize input images so their largest dimension is 640 pixels while maintaining the original aspect ratio. 
 
 By evaluating your model's and dataset's specific needs, you can determine whether resizing is a necessary preprocessing step or if your model can efficiently handle images of varying sizes.
 
@@ -51,12 +51,12 @@ With respect to YOLOv8, normalization is seamlessly handled as part of its prepr
 
 ### Splitting the Dataset
 
-Once you’ve cleaned the data, you are ready to split the dataset. Splitting the data into training, validation, and test sets is done to ensure that the model can be evaluated on unseen data to assess its generalization performance. A common split is 70% for training, 20% for validation, and 10% for testing. There are various tools and libraries that you can use to split your data like scikit-learn or TensorFlow. 
+Once you've cleaned the data, you are ready to split the dataset. Splitting the data into training, validation, and test sets is done to ensure that the model can be evaluated on unseen data to assess its generalization performance. A common split is 70% for training, 20% for validation, and 10% for testing. There are various tools and libraries that you can use to split your data like scikit-learn or TensorFlow. 
 
 Consider the following when splitting your dataset:
 - **Maintaining Data Distribution**: Ensure that the data distribution of classes is maintained across training, validation, and test sets.
 - **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training.
--**Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or undersampling the majority class within the training set.
+-**Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or under-sampling the majority class within the training set.
 
 ### What is Data Augmentation?
 
@@ -73,7 +73,7 @@ Here are some other benefits of data augmentation:
 Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as Albumentations, Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
 
 <p align="center">
-  <img width="100%" src="https://i0.wp.com/ubiai.tools/wp-content/uploads/2023/11/UKwFg.jpg?fit=2204%2C775&ssl=1" alt="Overview of Data Augmentationsr">
+  <img width="100%" src="https://i0.wp.com/ubiai.tools/wp-content/uploads/2023/11/UKwFg.jpg?fit=2204%2C775&ssl=1" alt="Overview of Data Augmentations">
 </p>
 
 With respect to YOLOv8, you can [augment your custom dataset](../modes/train.md) by modifying the dataset configuration file, a .yaml file. In this file, you can add an augmentation section with parameters that specify how you want to augment your data.
@@ -89,11 +89,11 @@ Also, you can adjust the intensity of these augmentation techniques through spec
 
 ## A Case Study of Preprocessing
 
-Consider a project aimed at developing a model to detect and classify different types of vehicles in traffic images using YOLOv8. We’ve collected traffic images and annotated them with bounding boxes and labels. 
+Consider a project aimed at developing a model to detect and classify different types of vehicles in traffic images using YOLOv8. We've collected traffic images and annotated them with bounding boxes and labels. 
 
-Here’s what each step of preprocessing would look like for this project:
+Here's what each step of preprocessing would look like for this project:
 
-- Resizing Images: Since YOLOv8 handles flexible input sizes and performs resizing automatically, manual resizing is not required. The model will adjust the image size according to the specified ‘imgsz’ parameter during training.
+- Resizing Images: Since YOLOv8 handles flexible input sizes and performs resizing automatically, manual resizing is not required. The model will adjust the image size according to the specified 'imgsz' parameter during training.
 - Normalizing Pixel Values: YOLOv8 automatically normalizes pixel values to a range of 0 to 1 during preprocessing, so it's not required.
 - Splitting the Dataset: Divide the dataset into training (70%), validation (20%), and test (10%) sets using tools like scikit-learn. 
 - Data Augmentation: Modify the dataset configuration file (.yaml) to include data augmentation techniques such as random crops, horizontal flips, and brightness adjustments.

@@ -6,9 +6,9 @@ keywords: Ultralytics YOLOv8, TensorFlow.js, TF.js, Model Deployment, Node.js, M
 
 # Export to TF.js Model Format From a YOLOv8 Model Format
 
-Deploying machine learning models directly in the browser or on Node.js can be tricky. You’ll need to make sure your model format is optimized for faster performance so that the model can be used to run interactive applications locally on the user’s device. The TensorFlow.js, or TF.js, model format is designed to use minimal power while delivering fast performance.
+Deploying machine learning models directly in the browser or on Node.js can be tricky. You'll need to make sure your model format is optimized for faster performance so that the model can be used to run interactive applications locally on the user's device. The TensorFlow.js, or TF.js, model format is designed to use minimal power while delivering fast performance.
 
-The ‘export to TF.js model format’ feature allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for high-speed and locally-run object detection inference. In this guide, we'll walk you through converting your models to the TF.js format, making it easier for your models to perform well on various local browsers and Node.js applications.
+The 'export to TF.js model format' feature allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for high-speed and locally-run object detection inference. In this guide, we'll walk you through converting your models to the TF.js format, making it easier for your models to perform well on various local browsers and Node.js applications.
 
 ## Why Should You Export to TF.js?
 
@@ -103,7 +103,7 @@ Now that you have exported your YOLOv8 model to the TF.js format, the next step 
 
 However, for in-depth instructions on deploying your TF.js models, take a look at the following resources:
 
-- **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here’s the developer documentation for how to deploy your TF.js models to a Chrome extension.
+- **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here's the developer documentation for how to deploy your TF.js models to a Chrome extension.
 
 - **[Run TensorFlow.js in Node.js](https://www.tensorflow.org/js/guide/nodejs)**: A TensorFlow blog post on running TensorFlow.js in Node.js directly.
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Comprehensive Guide to Understanding and Creating Line Graphs, Bar Plots, and Pie Charts
-keywords: Analytics, Data Visualization, Line Graphs, Bar Plots, Pie Charts, Quickstart Guide, Data Analysis, Python, Visualization Tools
+description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!.
+keywords: Ultralytics, YOLOv8, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
 ---
 
 # Analytics using Ultralytics YOLOv8 📊

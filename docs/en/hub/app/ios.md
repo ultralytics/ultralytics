@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover real-time object detection on iOS devices using powerful YOLO models, optimized via Apple Neural Engine.
-keywords: Ultralytics, iOS app, YOLO models, real-time detection, object detection, iPhone, iPad, Apple Neural Engine, Core ML, quantization, FP16, INT8
+description: Discover the Ultralytics iOS App for running YOLO models on your iPhone or iPad. Achieve fast, real-time object detection with Apple Neural Engine.
+keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple Neural Engine, Core ML, FP16 quantization, INT8 quantization, machine learning
 ---
 
 # Ultralytics iOS App: Real-time Object Detection with YOLO Models

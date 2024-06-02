@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to optimize Ultralytics YOLOv8 models with Intel OpenVINO for maximum performance. Discover expert techniques to minimize latency and maximize throughput for real-time object detection applications.
-keywords: Ultralytics, YOLOv8, OpenVINO, optimization, latency, throughput, inference, object detection, deep learning, machine learning, guide, Intel
+description: Discover how to enhance Ultralytics YOLO model performance using Intel's OpenVINO toolkit. Boost latency and throughput efficiently.
+keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inference, throughput optimization, latency optimization, AI deployment, Intel's OpenVINO, performance tuning
 ---
 
 # Optimizing OpenVINO Inference for Ultralytics YOLO Models: A Comprehensive Guide
@@ -37,7 +37,6 @@ Throughput optimization is crucial for scenarios serving numerous inference requ
 1. **OpenVINO Performance Hints:** A high-level, future-proof method to enhance throughput across devices using performance hints.
 
    ```python
-   import openvino.properties as props
    import openvino.properties.hint as hints
 
    config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}

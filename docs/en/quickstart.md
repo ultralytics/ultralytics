@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore various methods to install Ultralytics using pip, conda, git and Docker. Learn how to use Ultralytics with command line interface or within your Python projects.
-keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultralytics, Ultralytics command line interface, Ultralytics Python interface
+description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLOv8 with thorough instructions.
+keywords: Ultralytics, YOLOv8, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
 ## Install Ultralytics

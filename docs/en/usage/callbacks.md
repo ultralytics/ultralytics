@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to utilize callbacks in the Ultralytics framework during train, val, export, and predict modes for enhanced functionality.
-keywords: Ultralytics, YOLO, callbacks guide, training callback, validation callback, export callback, prediction callback
+description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
+keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLOv8, Python, machine learning
 ---
 
 ## Callbacks

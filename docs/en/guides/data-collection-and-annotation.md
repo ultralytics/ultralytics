@@ -8,7 +8,7 @@ keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoid
 
 ## Introduction
 
-The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it’s important to understand the best practices related to data collection and data annotation.
+The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it's important to understand the best practices related to data collection and data annotation.
 
 Every consideration regarding the data should closely align with [your project's goals](./defining-project-goals.md). Changes in your annotation strategies could shift the project's focus or effectiveness and vice versa. With this in mind, let's take a closer look at the best ways to approach data collection and annotation.
 
@@ -22,7 +22,7 @@ One of the first questions when starting a computer vision project is how many c
 
 For example, if you want to monitor traffic, your classes might include "car," "truck," "bus," "motorcycle," and "bicycle." On the other hand, for tracking items in a store, your classes could be "fruits," "vegetables," "beverages," and "snacks." Defining classes based on your project goals helps keep your dataset relevant and focused.
 
-When you define your classes, another important distinction to make is whether to choose coarse or fine class counts. ‘Count' refers to the number of distinct classes you are interested in. This decision influences the granularity of your data and the complexity of your model. Here are the considerations for each approach:
+When you define your classes, another important distinction to make is whether to choose coarse or fine class counts. 'Count' refers to the number of distinct classes you are interested in. This decision influences the granularity of your data and the complexity of your model. Here are the considerations for each approach:
 
 - **Coarse Class-Count**: These are broader, more inclusive categories, such as "vehicle" and "non-vehicle." They simplify annotation and require fewer computational resources but provide less detailed information, potentially limiting the model's effectiveness in complex scenarios.
 - **Fine Class-Count**: More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
@@ -67,9 +67,9 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 
 ### Common Annotation Formats
 
-After selecting a type of annotation, it’s important to choose the appropriate format for storing and sharing annotations. 
+After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations. 
 
-Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md)) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
+Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
 
 ### Techniques of Annotation
 
@@ -78,7 +78,7 @@ Now, assuming you've chosen a type of annotation and format, it's time to establ
 - **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to understand what's expected.
 - **Consistency**: Keep your annotations uniform. Set standard criteria for annotating different types of data, so all annotations follow the same rules.
 - **Reducing Bias**: Stay neutral. Train yourself to be objective and minimize personal biases to ensure fair annotations.
-- **Efficiency**: Work smarter, not harder. Use tools and workflows that automate repetitive tasks, making the annotation process faster and more efficient..
+- **Efficiency**: Work smarter, not harder. Use tools and workflows that automate repetitive tasks, making the annotation process faster and more efficient.
 
 Regularly reviewing and updating your labeling rules will help keep your annotations accurate, consistent, and aligned with your project goals.
 
@@ -86,7 +86,7 @@ Regularly reviewing and updating your labeling rules will help keep your annotat
 
 Let's say you are ready to annotate now. There are several open-source tools available to help streamline the data annotation process. Here are some useful open annotation tools: 
 
-- **[LabeI Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
+- **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
 - **[CVAT](https://github.com/cvat-ai/cvat)**: A powerful tool that supports various annotation formats and customizable workflows, making it suitable for complex projects.
 - **[Labelme](https://github.com/labelmeai/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
 

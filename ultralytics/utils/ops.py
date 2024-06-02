@@ -414,8 +414,8 @@ def xywh2xyxy(x):
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
     wh = x[..., 2:] / 2  # half width-height
-    y[..., :2] = xy - wh  # top left
-    y[..., 2:] = xy + wh  # bottom right
+    y[..., :2] = xy - wh  # top left xy
+    y[..., 2:] = xy + wh  # bottom right xy
     return y
 
 

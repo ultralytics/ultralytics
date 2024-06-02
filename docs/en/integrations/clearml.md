@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to streamline and optimize your YOLOv8 model training with ClearML. This guide provides insights into integrating ClearML's MLOps tools for efficient model training, from initial setup to advanced experiment tracking and model management.
-keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps, Experiment Tracking, Workflow Optimization
+description: Discover how to integrate YOLOv8 with ClearML to streamline your MLOps workflow, automate experiments, and enhance model management effortlessly.
+keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detection, model training, automation, experiment management
 ---
 
 # Training YOLOv8 with ClearML: Streamlining Your MLOps Workflow
@@ -41,7 +41,7 @@ For detailed instructions and best practices related to the installation process
 
 Once you have installed the necessary packages, the next step is to initialize and configure your ClearML SDK. This involves setting up your ClearML account and obtaining the necessary credentials for a seamless connection between your development environment and the ClearML server.
 
-Begin by initializing the ClearML SDK in your environment. The ‘clearml-init’ command starts the setup process and prompts you for the necessary credentials.
+Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
 !!! Tip "Initial SDK Setup"
 
@@ -86,7 +86,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Understanding the Code
 
-Let’s understand the steps showcased in the usage code snippet above.
+Let's understand the steps showcased in the usage code snippet above.
 
 **Step 1: Creating a ClearML Task**: A new task is initialized in ClearML, specifying your project and task names. This task will track and manage your model's training.
 

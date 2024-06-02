@@ -205,7 +205,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
-- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferrable.
+- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
 
 ## Ultralytics YOLO TensorRT Export Performance
 

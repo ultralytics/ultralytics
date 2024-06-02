@@ -102,7 +102,7 @@ The Time Series feature in the TensorBoard offers a dynamic and detailed perspec
 
 #### Importance of Time Series in YOLOv8 Training
 
-The Time Series section is essential for a thorough analysis of the YOLOv8 model's training progress. It lets you track the metrics in real time to promptly identify and solve issues. It also offers a detailed view of each metric's progression, which is crucial for fine-tuning the model and enhancing its performance.
+The Time Series section is essential for a thorough analysis of the YOLOv8 model's training progress. It lets you track the metrics in real time to promptly identify and solve issues. It also offers a detailed view of each metrics progression, which is crucial for fine-tuning the model and enhancing its performance.
 
 ### Scalars
 

@@ -42,7 +42,7 @@ Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Chec
 When working with Google Colab, you might have a few common questions. Let's answer them.
 
 **Q: Why does my Google Colab session timeout?**  
-A: Google Colab sessions can timeout due to inactivity, especially for free users who have a limited session duration.
+A: Google Colab sessions can time out due to inactivity, especially for free users who have a limited session duration.
 
 **Q: Can I increase the session duration in Google Colab?**  
 A: Free users face limits, but Google Colab Pro offers extended session durations.
@@ -85,7 +85,7 @@ There are many options for training and evaluating YOLOv8 models, so what makes 
 
 - **Integration with Google Drive:** Colab seamlessly integrates with Google Drive to make data storage, access, and management simple. Datasets and models can be stored and retrieved directly from Google Drive.
 
-- **Markdown Support:** You can use markdown format for enhanced documentation within notebooks.
+- **Markdown Support:** You can use Markdown format for enhanced documentation within notebooks.
 
 - **Scheduled Execution:** Developers can set notebooks to run automatically at specified times.
 

@@ -16,7 +16,7 @@ The ability to export to PaddlePaddle model format allows you to optimize your [
   <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png?raw=true" alt="PaddlePaddle Logo">
 </p>
 
-Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source deep learning platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
+Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PArallel **D**istributed **D**eep **LE**arning) is China's first open-source deep learning platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
 
 It offers tools and resources similar to popular frameworks like TensorFlow and PyTorch, making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 

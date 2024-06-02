@@ -46,12 +46,12 @@ Explore more capabilities of YOLOv8 and Paperspace Gradient in a discussion with
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Live Session 7: It’s All About the Environment: Optimizing YOLOv8 Training With Gradient
+  <strong>Watch:</strong> Ultralytics Live Session 7: It's All About the Environment: Optimizing YOLOv8 Training With Gradient
 </p>
 
 ## Key Features of Paperspace Gradient
 
-As you explore the Paperspace console, you’ll see how each step of the machine-learning workflow is supported and enhanced. Here are some things to look out for:
+As you explore the Paperspace console, you'll see how each step of the machine-learning workflow is supported and enhanced. Here are some things to look out for:
 
 - **One-Click Notebooks:** Gradient provides pre-configured Jupyter Notebooks specifically tailored for YOLOv8, eliminating the need for environment setup and dependency management. Simply choose the desired notebook and start experimenting immediately.
 
@@ -81,6 +81,6 @@ While many options are available for training, deploying, and evaluating YOLOv8 
 
 This guide explored the Paperspace Gradient integration for training YOLOv8 models. Gradient provides the tools and infrastructure to accelerate your AI development journey from effortless model training and evaluation to streamlined deployment options.
 
-For further exploration, visit [PaperSpace’s official documentation](https://docs.digitalocean.com/products/paperspace/).
+For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
 Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your computer vision projects to the next level.

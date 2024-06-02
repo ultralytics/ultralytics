@@ -4,13 +4,13 @@ description: A guide to help determine which deployment option to choose for you
 keywords: YOLOv8, Deployment, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow, Export
 ---
 
-# Understanding YOLOv8’s Deployment Options
+# Understanding YOLOv8's Deployment Options
 
 ## Introduction
 
-You've come a long way on your journey with YOLOv8. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLOv8 model. Now, it’s time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
+You've come a long way on your journey with YOLOv8. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLOv8 model. Now, it's time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
 
-This guide walks you through YOLOv8’s deployment options and the essential factors to consider to choose the right option for your project.
+This guide walks you through YOLOv8's deployment options and the essential factors to consider to choose the right option for your project.
 
 ## How to Select the Right Deployment Option for Your YOLOv8 Model
 
@@ -18,9 +18,9 @@ When it's time to deploy your YOLOv8 model, selecting a suitable export format i
 
 The ideal format depends on your model's intended operational context, balancing speed, hardware constraints, and ease of integration. In the following section, we'll take a closer look at each export option, understanding when to choose each one.
 
-### YOLOv8’s Deployment Options
+### YOLOv8's Deployment Options
 
-Let’s walk through the different YOLOv8 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+Let's walk through the different YOLOv8 deployment options. For a detailed walkthrough of the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 #### PyTorch
 
@@ -36,27 +36,27 @@ PyTorch is an open-source machine learning library widely used for applications 
 
 - **Maintenance and Updates**: Regular updates with active development and support for new features.
 
-- **Security Considerations**: Regular patches for security issues, but security is largely dependent on the overall environment it’s deployed in.
+- **Security Considerations**: Regular patches for security issues, but security is largely dependent on the overall environment it's deployed in.
 
 - **Hardware Acceleration**: Supports CUDA for GPU acceleration, essential for speeding up model training and inference.
 
 #### TorchScript
 
-TorchScript extends PyTorch’s capabilities by allowing the exportation of models to be run in a C++ runtime environment. This makes it suitable for production environments where Python is unavailable.
+TorchScript extends PyTorch's capabilities by allowing the exportation of models to be run in a C++ runtime environment. This makes it suitable for production environments where Python is unavailable.
 
 - **Performance Benchmarks**: Can offer improved performance over native PyTorch, especially in production environments.
 
 - **Compatibility and Integration**: Designed for seamless transition from PyTorch to C++ production environments, though some advanced features might not translate perfectly.
 
-- **Community Support and Ecosystem**: Benefits from PyTorch’s large community but has a narrower scope of specialized developers.
+- **Community Support and Ecosystem**: Benefits from PyTorch's large community but has a narrower scope of specialized developers.
 
-- **Case Studies**: Widely used in industry settings where Python’s performance overhead is a bottleneck.
+- **Case Studies**: Widely used in industry settings where Python's performance overhead is a bottleneck.
 
 - **Maintenance and Updates**: Maintained alongside PyTorch with consistent updates.
 
 - **Security Considerations**: Offers improved security by enabling the running of models in environments without full Python installations.
 
-- **Hardware Acceleration**: Inherits PyTorch’s CUDA support, ensuring efficient GPU utilization.
+- **Hardware Acceleration**: Inherits PyTorch's CUDA support, ensuring efficient GPU utilization.
 
 #### ONNX
 
@@ -104,7 +104,7 @@ TensorRT is a high-performance deep learning inference optimizer and runtime fro
 
 - **Compatibility and Integration**: Best suited for NVIDIA hardware, with limited support outside this environment.
 
-- **Community Support and Ecosystem**: Strong support network through NVIDIA’s developer forums and documentation.
+- **Community Support and Ecosystem**: Strong support network through NVIDIA's developer forums and documentation.
 
 - **Case Studies**: Widely adopted in industries requiring real-time inference on video and image data.
 
@@ -116,7 +116,7 @@ TensorRT is a high-performance deep learning inference optimizer and runtime fro
 
 #### CoreML
 
-CoreML is Apple’s machine learning framework, optimized for on-device performance in the Apple ecosystem, including iOS, macOS, watchOS, and tvOS.
+CoreML is Apple's machine learning framework, optimized for on-device performance in the Apple ecosystem, including iOS, macOS, watchOS, and tvOS.
 
 - **Performance Benchmarks**: Optimized for on-device performance on Apple hardware with minimal battery usage.
 
@@ -134,7 +134,7 @@ CoreML is Apple’s machine learning framework, optimized for on-device performa
 
 #### TF SavedModel
 
-TF SavedModel is TensorFlow’s format for saving and serving machine learning models, particularly suited for scalable server environments.
+TF SavedModel is TensorFlow's format for saving and serving machine learning models, particularly suited for scalable server environments.
 
 - **Performance Benchmarks**: Offers scalable performance in server environments, especially when used with TensorFlow Serving.
 
@@ -170,7 +170,7 @@ TF GraphDef is a TensorFlow format that represents the model as a graph, which i
 
 #### TF Lite
 
-TF Lite is TensorFlow’s solution for mobile and embedded device machine learning, providing a lightweight library for on-device inference.
+TF Lite is TensorFlow's solution for mobile and embedded device machine learning, providing a lightweight library for on-device inference.
 
 - **Performance Benchmarks**: Designed for speed and efficiency on mobile and embedded devices.
 

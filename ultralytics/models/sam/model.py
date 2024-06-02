@@ -16,13 +16,13 @@ Key Features:
 
 from pathlib import Path
 
+from huggingface_hub import PyTorchModelHubMixin
+
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 
 from .build import build_sam
 from .predict import Predictor
-
-from huggingface_hub import PyTorchModelHubMixin
 
 
 class SAM(Model, PyTorchModelHubMixin, library_name="ultralytics", tags=["mask-generation", "sam"]):

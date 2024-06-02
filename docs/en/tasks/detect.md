@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Official documentation for YOLOv8 by Ultralytics. Learn how to train, validate, predict and export models in various formats. Including detailed performance stats.
-keywords: YOLOv8, Ultralytics, object detection, pretrained models, training, validation, prediction, export models, COCO, ImageNet, PyTorch, ONNX, CoreML
+description: Learn about object detection with YOLOv8. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
+keywords: object detection, YOLOv8, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
 # Object Detection
@@ -82,7 +82,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! Example
 

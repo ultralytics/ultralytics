@@ -130,6 +130,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.end2end = False  # YOLOv10
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -219,7 +220,8 @@ class Model(nn.Module):
         self.model = (model or self._smart_load("model"))(cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides["model"] = self.cfg
         self.overrides["task"] = self.task
-        self.end2end = "v10Detect" in self.model.yaml["head"][-1]  # YOLOv10
+        if hasattr(self.model, "yaml"):
+            self.end2end = "v10Detect" in self.model.yaml["head"][-1]  # YOLOv10
 
         # Below added to allow export from YAMLs
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine default and model args (prefer model args)
@@ -248,7 +250,8 @@ class Model(nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-        self.end2end = "v10Detect" in self.model.yaml["head"][-1]  # YOLOv10
+        if hasattr(self.model, "yaml"):
+            self.end2end = "v10Detect" in self.model.yaml["head"][-1]  # YOLOv10
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
         self.model_name = weights

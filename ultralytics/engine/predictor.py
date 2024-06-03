@@ -92,6 +92,7 @@ class BasePredictor:
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
+        self.args.end2end = False  # YOLOv10
 
         # Usable if setup is done
         self.model = None

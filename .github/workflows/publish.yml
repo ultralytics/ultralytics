@@ -109,7 +109,7 @@ jobs:
               f"\n\nHere's the PR diff:\n\n{combined_diff[:limit]}",
               }
             ]
-          response = client.chat.completions.create(model="gpt-4-turbo-2024-04-09", messages=messages).choices[0]
+          response = client.chat.completions.create(model="gpt-4-0125-preview", messages=messages).choices[0]
           summary = response.message.content.strip()
           
           release_url = f"https://api.github.com/repos/{repo}/releases"
@@ -127,7 +127,7 @@ jobs:
             print(f'Failed to create release {latest_tag}: {response.content}')
       - name: Publish to PyPI
         continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True' && false
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |

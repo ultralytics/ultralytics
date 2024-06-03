@@ -65,7 +65,8 @@ jobs:
       - name: Summarize version changes
         env:
           OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }} 
-          OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }} 
+          OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
           # PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
         shell: python

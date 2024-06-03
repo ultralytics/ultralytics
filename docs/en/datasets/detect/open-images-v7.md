@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into Google's Open Images V7, a comprehensive dataset offering a broad scope for computer vision research. Understand its usage with deep learning models.
-keywords: Open Images V7, object detection, segmentation masks, visual relationships, localized narratives, computer vision, deep learning, annotations, bounding boxes
+description: Explore the comprehensive Open Images V7 dataset by Google. Learn about its annotations, applications, and use YOLOv8 pretrained models for computer vision tasks.
+keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object detection, image segmentation, visual relationships, AI research, Ultralytics
 ---
 
 # Open Images V7 Dataset

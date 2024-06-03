@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide to troubleshooting common issues encountered while working with YOLOv8 in the Ultralytics ecosystem.
-keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Data, Model Performance, Hyperparameter Tuning, Deployment
+description: Comprehensive guide to troubleshoot common YOLOv8 issues, from installation errors to model training challenges. Enhance your Ultralytics projects with our expert tips.
+keywords: YOLO, YOLOv8, troubleshooting, installation errors, model training, GPU issues, Ultralytics, AI, computer vision, deep learning, Python, CUDA, PyTorch, debugging
 ---
 
 # Troubleshooting Common YOLO Issues

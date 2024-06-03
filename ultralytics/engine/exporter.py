@@ -241,9 +241,9 @@ class Exporter:
         model = model.fuse()
         for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
+                self.args.end2end = getattr(m, "end2end", False)
                 m.dynamic = self.args.dynamic
                 m.export = True
-                m.end2end = self.args.end2end
                 m.format = self.args.format
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph

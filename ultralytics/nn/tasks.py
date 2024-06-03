@@ -295,7 +295,7 @@ class DetectionModel(BaseModel):
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
-        self.end2end = end2end
+        self.end2end = "v10Detect" in self.yaml["head"][-1] or end2end
 
         # Define model
         ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
@@ -303,7 +303,7 @@ class DetectionModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
         self.model, self.save = parse_model(
-            deepcopy(self.yaml), ch=ch, verbose=verbose, end2end=end2end
+            deepcopy(self.yaml), ch=ch, verbose=verbose, end2end=self.end2end
         )  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)

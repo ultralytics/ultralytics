@@ -88,6 +88,7 @@ jobs:
           
           repo = f'ultralytics/release-test' # change to main repo later
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
+          print(headers)
 
           compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
 
@@ -98,7 +99,9 @@ jobs:
               patch = file.get('patch', '')
               if patch:
                   diffs.append(patch)       
-          combined_diff = '\n'.join(diffs)
+          combined_diff = '\n'.join(diffs)  
+          print(combined_diff)
+          
           limit = 64000 * 3 # can be changed if needed
           client = openai.AzureOpenAI(api_key=OPENAI_AZURE_API_KEY, api_version=OPENAI_AZURE_API_VERSION, azure_endpoint=OPENAI_AZURE_ENDPOINT)
           messages=[

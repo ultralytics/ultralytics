@@ -76,9 +76,10 @@ jobs:
           import json
 
           OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
-          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
           OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
           OPENAI_AZURE_API_VERSION = "2024-02-01"
+          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+          
           # we generate a release note when there is a tag increment. For testing, we manually compare two different tags
           # latest_tag = os.getenv('CURRENT_TAG') 
           # previous_tag = os.getenv('PREVIOUS_TAG')
@@ -111,6 +112,7 @@ jobs:
             ]
           response = client.chat.completions.create(model="gpt-4-0125-preview", messages=messages).choices[0]
           summary = response.message.content.strip()
+          print(summary)
           
           release_url = f"https://api.github.com/repos/{repo}/releases"
           release_payload = {

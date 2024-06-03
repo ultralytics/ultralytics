@@ -241,7 +241,7 @@ class Exporter:
         model = model.fuse()
         for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
-                self.args.end2end = getattr(m, "end2end", False)
+                self.args.end2end = m.end2end = m.__class__.__name__ == "v10Detect"
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format

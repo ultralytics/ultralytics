@@ -172,7 +172,9 @@ CFG_BOOL_KEYS = {
     "multi_scale",
 }
 BATCH_CHECK = {
-    'fraction':lambda x: 0 < x < 1.0, 'int': lambda x: isinstance(x, int) and x > 0, 'auto':lambda x: x == -1
+    "fraction": lambda x: 0 < x < 1.0,
+    "int": lambda x: isinstance(x, int) and x > 0,
+    "auto": lambda x: x == -1,
 }
 
 

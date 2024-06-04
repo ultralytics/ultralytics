@@ -24,7 +24,9 @@ def check_train_batch_size(model, imgsz=640, amp=True, fractional=None):
     """
 
     with torch.cuda.amp.autocast(amp):
-        return autobatch(deepcopy(model).train(), imgsz, fraction=fractional if fractional else 0.60)  # compute optimal batch size
+        return autobatch(
+            deepcopy(model).train(), imgsz, fraction=fractional if fractional else 0.60
+        )  # compute optimal batch size
 
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):

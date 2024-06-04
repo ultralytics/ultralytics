@@ -131,6 +131,7 @@ class BaseValidator:
                 # NOTE: `end2end` only available with detect for now
                 end2end=self.args.end2end and self.args.task == "detect",
             )
+            self.args.end2end = model.end2end  # update for exported models
             # self.model = model
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half

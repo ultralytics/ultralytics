@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the CIFAR-10 dataset, widely used for training in machine learning and computer vision, and learn how to use it with Ultralytics YOLO.
-keywords: CIFAR-10, dataset, machine learning, image classification, computer vision, YOLO, Ultralytics, training, testing, deep learning, Convolutional Neural Networks, Support Vector Machines
+description: Explore the CIFAR-10 dataset, featuring 60,000 color images in 10 classes. Learn about its structure, applications, and how to train models using YOLO.
+keywords: CIFAR-10, dataset, machine learning, computer vision, image classification, YOLO, deep learning, neural networks
 ---
 
 # CIFAR-10 Dataset

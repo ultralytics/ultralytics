@@ -325,7 +325,7 @@ class LoadImagesAndVideos:
         paths, imgs, info = [], [], []
         while len(imgs) < self.bs:
             if self.count >= self.nf:  # end of file list
-                if len(imgs) > 0:
+                if imgs:
                     return paths, imgs, info  # return last partial batch
                 else:
                     raise StopIteration
@@ -522,26 +522,43 @@ def autocast_list(source):
     return files
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, method="pytube"):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
-    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
-    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
+    This function uses the specified method to extract the video info from YouTube. It supports the following methods:
+    - "pytube": Uses the pytube library to fetch the video streams.
+    - "pafy": Uses the pafy library to fetch the video streams.
+    - "yt-dlp": Uses the yt-dlp library to fetch the video streams.
+
+    The function then finds the highest quality MP4 format that has a video codec but no audio codec, and returns the
+    URL of this video stream.
 
     Args:
         url (str): The URL of the YouTube video.
-        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
+        method (str): The method to use for extracting video info. Default is "pytube". Other options are "pafy" and
+            "yt-dlp".
 
     Returns:
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
-    if use_pafy:
+    if method == "pytube":
+        check_requirements("pytube")
+        from pytube import YouTube
+
+        streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
+        streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
+        for stream in streams:
+            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
+                return stream.url
+
+    elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))
         import pafy  # noqa
 
         return pafy.new(url).getbestvideo(preftype="mp4").url
-    else:
+
+    elif method == "yt-dlp":
         check_requirements("yt-dlp")
         import yt_dlp
 

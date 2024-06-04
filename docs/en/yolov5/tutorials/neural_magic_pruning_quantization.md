@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore how to achieve exceptional AI performance with DeepSparse's incredible inference speed. Discover how to deploy YOLOv5, and learn about model sparsification and fine-tuning with SparseML.
-keywords: YOLOv5, DeepSparse, Ultralytics, Neural Magic, sparsification, inference runtime, deep learning, deployment, model fine-tuning, SparseML, AI performance, GPU-class performance
+description: Learn how to deploy YOLOv5 using Neural Magic's DeepSparse for GPU-class performance on CPUs. Discover easy integration, flexible deployments, and more.
+keywords: YOLOv5, DeepSparse, Neural Magic, YOLO deployment, Sparse inference, Deep learning, Model sparsity, CPU optimization, No hardware accelerators, AI deployment
 ---
 
 <!--

@@ -448,7 +448,6 @@ class Model(nn.Module):
 
         if not self.predictor:
             self.predictor = predictor or self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
-            self.end2end_arg(self.predictor)  # YOLOv10
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
@@ -824,6 +823,7 @@ class Model(nn.Module):
 
     def end2end_arg(self, obj) -> None:
         """Sets end2end argument for YOLOv10 models."""
+        self.end2end |= obj.args.end2end  # for AutoBackend exported models
         obj.args.end2end = self.end2end  # YOLOv10
 
     @staticmethod

@@ -621,7 +621,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im) if self.args.nms and not self.args.end2end else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")

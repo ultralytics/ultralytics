@@ -311,6 +311,7 @@ class BasePredictor:
         self.device = self.model.device  # update device
         self.args.half = self.model.fp16  # update half
         self.model.eval()
+        self.args.end2end = self.model.end2end  # update end2end
 
     def write_results(self, i, p, im, s):
         """Write inference results to a file or directory."""

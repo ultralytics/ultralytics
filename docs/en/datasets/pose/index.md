@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand the YOLO pose dataset format and learn to use Ultralytics datasets to train your pose estimation models effectively.
-keywords: Ultralytics, YOLO, pose estimation, datasets, training, YAML, keypoints, COCO-Pose, COCO8-Pose, data conversion
+description: Learn about Ultralytics YOLO format for pose estimation datasets, supported formats, COCO-Pose, COCO8-Pose, Tiger-Pose, and how to add your own dataset.
+keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Tiger-Pose, dataset conversion, keypoints
 ---
 
 # Pose Estimation Datasets Overview

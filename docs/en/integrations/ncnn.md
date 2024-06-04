@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Uncover how to improve your Ultralytics YOLOv8 model's performance using the NCNN export format that is suitable for devices with limited computation resources.
-keywords: Ultralytics, YOLOv8, NCNN Export, Export YOLOv8, Model Deployment
+description: Optimize YOLOv8 models for mobile and embedded devices by exporting to NCNN format. Enhance performance in resource-constrained environments.
+keywords: Ultralytics, YOLOv8, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models
 ---
 
 # How to Export to NCNN from YOLOv8 for Smooth Deployment
@@ -34,7 +34,7 @@ NCNN models offer a wide range of key features that enable on-device machine lea
 
 ## Deployment Options with NCNN
 
-Before we look at the code for exporting YOLOv8 models to the NCNN format, let’s understand how NCNN models are normally used.
+Before we look at the code for exporting YOLOv8 models to the NCNN format, let's understand how NCNN models are normally used.
 
 NCNN models, designed for efficiency and performance, are compatible with a variety of deployment platforms:
 

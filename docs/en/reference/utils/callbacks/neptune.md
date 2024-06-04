@@ -1,13 +1,13 @@
 ---
-description: Explore exhaustive details about Ultralytics callbacks in Neptune, with specifics about scalar logging, routine start, and more.
-keywords: Ultralytics, Neptune callbacks, on_train_epoch_end, on_val_end, _log_plot, _log_images, on_pretrain_routine_start, on_fit_epoch_end, on_train_end
+description: Learn how to use NeptuneAI with Ultralytics for advanced logging and tracking of experiments. Detailed setup and callback functions included.
+keywords: Ultralytics, NeptuneAI, YOLO, experiment logging, machine learning, AI, callbacks, training, validation
 ---
 
 # Reference for `ultralytics/utils/callbacks/neptune.py`
 
 !!! Note
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py). If you spot a problem please help fix it by [contributing](/help/contributing.md) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/neptune.py) 🛠️. Thank you 🙏!
+    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/neptune.py) 🛠️. Thank you 🙏!
 
 <br><br>
 

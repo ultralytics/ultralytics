@@ -239,10 +239,10 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        self.args.end2end = False
+        self.end2end = False
         for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
-                self.args.end2end = m.end2end = m.__class__.__name__ == "v10Detect"
+                self.end2end = m.end2end = m.__class__.__name__ == "v10Detect"
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
@@ -285,7 +285,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
-            "end2end": self.args.end2end,
+            "end2end": self.end2end,
         }  # model metadata
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
@@ -610,6 +610,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
+        assert not self.end2end, "CoreML export is not supported for end2end models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
@@ -621,7 +622,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im) if self.args.nms and not self.args.end2end else self.model
+            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolov8n.pt'.")
@@ -647,7 +648,6 @@ class Exporter:
                 op_config = cto.OpPalettizerConfig(mode="kmeans", nbits=bits, weight_threshold=512)
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
-        self.args.nms = self.args.nms and not self.args.end2end
         if self.args.nms and self.model.task == "detect":
             if mlmodel:
                 # coremltools<=6.2 NMS export requires Python<3.11

@@ -90,7 +90,7 @@ class DetectionValidator(BaseValidator):
             preds = preds[0]
         return (
             preds
-            if self.args.end2end
+            if self.end2end
             else ops.non_max_suppression(
                 preds,
                 self.args.conf,

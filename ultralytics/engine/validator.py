@@ -77,7 +77,7 @@ class BaseValidator:
             _callbacks (dict): Dictionary to store various callback functions.
         """
         self.args = get_cfg(overrides=args)
-        self.args.end2end = False  # YOLOv10
+        self.end2end = False  # YOLOv10
         self.dataloader = dataloader
         self.pbar = pbar
         self.stride = None
@@ -129,9 +129,9 @@ class BaseValidator:
                 data=self.args.data,
                 fp16=self.args.half,
                 # NOTE: `end2end` only available with detect for now
-                end2end=self.args.end2end and self.args.task == "detect",
+                end2end=self.end2end and self.args.task == "detect",
             )
-            self.args.end2end = model.end2end  # update for exported models
+            self.end2end = model.end2end  # update for exported models
             # self.model = model
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half

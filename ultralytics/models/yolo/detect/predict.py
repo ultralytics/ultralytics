@@ -25,7 +25,7 @@ class DetectionPredictor(BasePredictor):
         if isinstance(preds, (list, tuple)):
             preds = preds[0]
 
-        if self.args.end2end:
+        if self.end2end:
             preds = [pred[pred[:, 4] > self.args.conf] for pred in preds]
         else:
             preds = ops.non_max_suppression(

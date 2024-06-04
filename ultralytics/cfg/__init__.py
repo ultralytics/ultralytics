@@ -125,7 +125,6 @@ CFG_FRACTION_KEYS = {
 CFG_INT_KEYS = {
     "epochs",
     "patience",
-    "batch",
     "workers",
     "seed",
     "close_mosaic",
@@ -171,6 +170,9 @@ CFG_BOOL_KEYS = {
     "nms",
     "profile",
     "multi_scale",
+}
+BATCH_CHECK = {
+    'fraction':lambda x: 0 < x < 1.0, 'int': lambda x: isinstance(x, int) and x > 0, 'auto':lambda x: x == -1
 }
 
 
@@ -222,6 +224,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
     # Type and Value checks
     check_cfg(cfg)
+    assert any({b(cfg["batch"]) for b in BATCH_CHECK.values()}), f"Invalid 'batch={cfg['batch']}' value."
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

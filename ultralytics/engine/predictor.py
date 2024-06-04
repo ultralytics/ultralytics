@@ -191,7 +191,7 @@ class BasePredictor:
         )
         self.dataset = load_inference_source(
             source=source,
-            batch=self.args.batch,
+            batch=np.ceil(self.args.batch).clip(1),
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
         )

@@ -134,7 +134,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
         dataset=dataset,
-        batch_size=batch,
+        batch_size=int(np.ceil(batch).clip(1)),
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,

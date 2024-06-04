@@ -191,7 +191,7 @@ class BasePredictor:
         )
         self.dataset = load_inference_source(
             source=source,
-            batch=np.ceil(self.args.batch).clip(1),
+            batch=int(np.ceil(self.args.batch).clip(1)),
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
         )
@@ -284,7 +284,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), 3, *im.shape[2:])}" % t
+                f"{(min(int(np.ceil(self.args.batch).clip(1)), self.seen), 3, *im.shape[2:])}" % t
             )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
@@ -300,7 +300,7 @@ class BasePredictor:
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.half,
-            batch=self.args.batch,
+            batch=int(np.ceil(self.args.batch).clip(1)),
             fuse=True,
             verbose=verbose,
         )

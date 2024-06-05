@@ -589,8 +589,12 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
+                        if not self.end2end:  # (1, 84, 8400)
+                            x[:, [0, 2]] *= w
+                            x[:, [1, 3]] *= h
+                        elif self.end2end:  # (1, 300, 6)
+                            x[..., :, [0, 2]] *= w
+                            x[..., :, [1, 3]] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

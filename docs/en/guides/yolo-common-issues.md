@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide to troubleshooting common issues encountered while working with YOLOv8 in the Ultralytics ecosystem.
-keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Data, Model Performance, Hyperparameter Tuning, Deployment
+description: Comprehensive guide to troubleshoot common YOLOv8 issues, from installation errors to model training challenges. Enhance your Ultralytics projects with our expert tips.
+keywords: YOLO, YOLOv8, troubleshooting, installation errors, model training, GPU issues, Ultralytics, AI, computer vision, deep learning, Python, CUDA, PyTorch, debugging
 ---
 
 # Troubleshooting Common YOLO Issues
@@ -183,7 +183,7 @@ This section will address common issues faced during model prediction.
 
 **Solution**:
 
-- Coordinate Format: YOLOv8 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let’s say your image size is 640x640. Then you would do the following:
+- Coordinate Format: YOLOv8 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
 ```python
 # Convert absolute coordinates to relative coordinates
@@ -268,7 +268,7 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 ### Forums and Channels for Getting Help
 
-**GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it’s a great place to get help with specific problems.
+**GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and the developers.
 

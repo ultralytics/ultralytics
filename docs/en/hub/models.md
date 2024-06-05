@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Streamline your AI model training on custom datasets with Ultralytics HUB. Efficient, user-friendly, and powerful.
-keywords: Ultralytics HUB, AI model training, custom datasets, YOLOv8, real-time updates, model deployment, Ultralytics
+description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLOv8. Start training today!.
+keywords: Ultralytics HUB, YOLOv8, custom AI models, model training, model deployment, model analysis, vision AI
 ---
 
 # Ultralytics HUB Models

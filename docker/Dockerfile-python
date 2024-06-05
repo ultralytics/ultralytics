@@ -5,6 +5,9 @@
 # Use the official Python 3.10 slim-bookworm as base image
 FROM python:3.10-slim-bookworm
 
+# Set environment variables
+ENV APP_HOME /usr/src/ultralytics
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -16,12 +19,12 @@ RUN apt update \
     && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 
 # Create working directory
-WORKDIR /usr/src/ultralytics
+WORKDIR $APP_HOME
 
-# Copy contents
-# COPY . /usr/src/ultralytics  # git permission issues inside container
-RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt /usr/src/ultralytics/
+# Copy contents and assign permissions
+COPY . $APP_HOME
+RUN chown -R root:root $APP_HOME
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
 # RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED

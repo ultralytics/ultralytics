@@ -24,6 +24,8 @@ class FastSAMPrompt:
 
     def __init__(self, source, results, device="cuda") -> None:
         """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
+        if isinstance(source, (str, Path)) and os.path.isdir(source):
+            raise ValueError(f"FastSAM only accepts image paths and PIL Image sources, not directories.")
         self.device = device
         self.results = results
         self.source = source
@@ -261,8 +263,6 @@ class FastSAMPrompt:
 
     def _crop_image(self, format_results):
         """Crops an image based on provided annotation format and returns cropped images and related data."""
-        if os.path.isdir(self.source):
-            raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size
         annotations = format_results
@@ -287,8 +287,6 @@ class FastSAMPrompt:
         """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
             assert bbox[2] != 0 and bbox[3] != 0
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
             masks = self.results[0].masks.data
             target_height, target_width = self.results[0].orig_shape
             h = masks.shape[1]
@@ -321,8 +319,6 @@ class FastSAMPrompt:
     def point_prompt(self, points, pointlabel):  # numpy
         """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
             masks = self._format_results(self.results[0], 0)
             target_height, target_width = self.results[0].orig_shape
             h = masks[0]["segmentation"].shape[0]

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide that goes through exporting from Ultralytics YOLOv8 models to TensorFlow SavedModel format for streamlined deployments and optimized model performance.
-keywords: Ultralytics YOLOv8, TensorFlow SavedModel, Model Deployment, TensorFlow Serving, TensorFlow Lite, Model Optimization, Computer Vision, Performance Optimization
+description: Learn how to export Ultralytics YOLOv8 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
+keywords: YOLOv8, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI
 ---
 
 # Understand How to Export to TF SavedModel Format From YOLOv8
@@ -42,7 +42,7 @@ TF SavedModel provides a range of options to deploy your machine learning models
 
 - **Mobile and Embedded Devices:** TensorFlow Lite, a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
-- **TensorFlow Runtime:** TensorFlow Runtime (tfrt) is a high-performance runtime for executing TensorFlow graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
+- **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing TensorFlow graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
 ## Exporting YOLOv8 Models to TF SavedModel
 
@@ -105,7 +105,7 @@ Now that you have exported your YOLOv8 model to the TF SavedModel format, the ne
 
 However, for in-depth instructions on deploying your TF SavedModel models, take a look at the following resources:
 
-- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: Here’s the developer documentation for how to deploy your TF SavedModel models using TensorFlow Serving.
+- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: Here's the developer documentation for how to deploy your TF SavedModel models using TensorFlow Serving.
 
 - **[Run a TensorFlow SavedModel in Node.js](https://blog.tensorflow.org/2020/01/run-tensorflow-savedmodel-in-nodejs-directly-without-conversion.html)**: A TensorFlow blog post on running a TensorFlow SavedModel in Node.js directly without conversion.
 

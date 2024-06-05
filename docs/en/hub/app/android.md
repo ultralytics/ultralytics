@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Experience rapid object detection on your Android device with the Ultralytics YOLO model app. Click to learn more!.
-keywords: Ultralytics, YOLO, Android App, real-time object detection, TensorFlow Lite, hardware acceleration, FP16, INT8, GPU
+description: Experience real-time object detection on Android with Ultralytics. Leverage YOLO models for efficient and fast object identification. Download now!.
+keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
 # Ultralytics Android App: Real-time Object Detection with YOLO Models
@@ -16,7 +16,7 @@ keywords: Ultralytics, YOLO, Android App, real-time object detection, TensorFlow
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

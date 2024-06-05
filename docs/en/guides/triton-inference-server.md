@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A step-by-step guide on integrating Ultralytics YOLOv8 with Triton Inference Server for scalable and high-performance deep learning inference deployments.
-keywords: YOLOv8, Triton Inference Server, ONNX, Deep Learning Deployment, Scalable Inference, Ultralytics, NVIDIA, Object Detection, Cloud Inference
+description: Learn how to integrate Ultralytics YOLOv8 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
+keywords: Triton Inference Server, YOLOv8, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference
 ---
 
 # Triton Inference Server with Ultralytics YOLOv8
@@ -62,8 +62,9 @@ The Triton Model Repository is a storage location where Triton can access and lo
     from pathlib import Path
 
     # Define paths
+    model_name = "yolo"
     triton_repo_path = Path("tmp") / "triton_repo"
-    triton_model_path = triton_repo_path / "yolo"
+    triton_model_path = triton_repo_path / model_name
 
     # Create directories
     (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
@@ -86,6 +87,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
 Run the Triton Inference Server using Docker:
 
 ```python
+import contextlib
 import subprocess
 import time
 

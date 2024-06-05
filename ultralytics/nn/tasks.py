@@ -49,10 +49,12 @@ from ultralytics.nn.modules import (
     Segment,
     Silence,
     WorldDetect,
+    OBB_Segment,
+    OBB_Pose,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss
+from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss, v8OBB_SegmentationLoss, v8OBB_PoseLoss
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -293,7 +295,7 @@ class DetectionModel(BaseModel):
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
+            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, OBB_Segment, OBB_Pose)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -386,6 +388,37 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
         return v8PoseLoss(self)
+
+
+class OBB_PoseModel(DetectionModel):
+    """YOLOv8 Oriented Bounding Box (OBB) Pose model."""
+    def __init__(self, cfg="yolov8n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """Initialize YOLOv8 Pose model."""
+        if not isinstance(cfg, dict):
+            cfg = yaml_model_load(cfg)  # load model YAML
+
+        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg["kpt_shape"]):
+            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
+            cfg["kpt_shape"] = data_kpt_shape
+
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the model."""
+        return v8OBB_PoseLoss(self)
+
+
+class OBB_SegmentationModel(DetectionModel):
+    """YOLOv8 Oriented Bounding Box (OBB) segmentation model."""
+
+    def __init__(self, cfg="yolov8n-obb-segment.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 OBB model with given config and parameters."""
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the model."""
+        return v8OBB_SegmentationLoss(self)
 
 
 class ClassificationModel(BaseModel):
@@ -913,10 +946,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn}:
+        elif m in {Detect, WorldDetect, Segment, Pose, OBB, OBB_Segment, OBB_Pose, ImagePoolingAttn}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+            elif m is OBB_Segment:
+                args[3] = make_divisible(min(args[3], max_channels) * width, 8)
+
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
@@ -1006,7 +1042,11 @@ def guess_model_task(model):
             return "pose"
         if m == "obb":
             return "obb"
-
+        if m == "obb_segment":
+            return "obb_segment"
+        if m == "obb_pose":
+            return "obb_pose"
+        
     # Guess from model cfg
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
@@ -1030,6 +1070,10 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
+            elif isinstance(m, (OBB_Segment)):
+                return "obb_segment"
+            elif isinstance(m, (OBB_Pose)):
+                return "obb_pose"  
             elif isinstance(m, (Detect, WorldDetect)):
                 return "detect"
 
@@ -1044,6 +1088,10 @@ def guess_model_task(model):
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:
             return "obb"
+        elif "-obb_segment" in model.stem or "obb_segment" in model.parts:
+            return "obb_segment"
+        elif "-obb_pose" in model.stem or "obb_pose" in model.parts:
+            return "obb_pose"
         elif "detect" in model.parts:
             return "detect"
 

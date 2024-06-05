@@ -698,6 +698,48 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     return masks.gt_(0.5)
 
 
+
+def process_obb_mask(protos, masks_in, bboxes,theta, shape, upsample=False):
+    """
+    Apply masks to bounding boxes using the output of the mask head.
+
+    Args:
+        protos (torch.Tensor): A tensor of shape [mask_dim, mask_h, mask_w].
+        masks_in (torch.Tensor): A tensor of shape [n, mask_dim], where n is the number of masks after NMS.
+        bboxes (torch.Tensor): A tensor of shape [n, 4], where n is the number of masks after NMS.
+        shape (tuple): A tuple of integers representing the size of the input image in the format (h, w).
+        upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
+
+    Returns:
+        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
+            are the height and width of the input image. The mask is applied to the bounding boxes.
+    """
+    c, mh, mw = protos.shape  # CHW
+    ih, iw = shape
+    masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
+    width_ratio = mw / iw
+    height_ratio = mh / ih
+
+    downsampled_bboxes = bboxes.clone()
+    downsampled_bboxes=xywh2xyxy(downsampled_bboxes)
+    downsampled_bboxes[:, 0] *= width_ratio
+    downsampled_bboxes[:, 2] *= width_ratio
+    downsampled_bboxes[:, 3] *= height_ratio
+    downsampled_bboxes[:, 1] *= height_ratio
+    downsampled_bboxes=xyxy2xywh(downsampled_bboxes)
+
+    target_obb_bboxes=torch.cat((downsampled_bboxes,theta),dim=1)
+    target_bboxes_poly=xywhr2xyxyxyxy(target_obb_bboxes)
+    target_bounding_boxes_min_xy=torch.min(target_bboxes_poly, dim=1)[0]
+    target_bounding_boxes_max_xy=torch.max(target_bboxes_poly, dim=1)[0]
+    target_bounding_boxes=torch.cat((target_bounding_boxes_min_xy,target_bounding_boxes_max_xy),dim=1)
+
+    masks = crop_mask(masks, target_bounding_boxes)  # CHW
+    if upsample:
+        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
+    return masks.gt_(0.5)
+
+
 def process_mask_native(protos, masks_in, bboxes, shape):
     """
     It takes the output of the mask head, and crops it after upsampling to the bounding boxes.

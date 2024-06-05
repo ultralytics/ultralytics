@@ -324,6 +324,10 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+            try:
+                metadata = next(Path(w).parent.rglob("metadata.yaml"))
+            except StopIteration:
+                self.end2end = frozen_func.output_shapes[0][-1] == 6  # end2end shape (1, 300, 6)
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -568,7 +572,7 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
-                if len(y) == 2 and len(self.names) == 999:  # segments and names not defined
+                if len(y) == 2 and len(self.names) == 999 and not self.end2end:  # segments and names not defined
                     ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
                     nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                     self.names = {i: f"class{i}" for i in range(nc)}
@@ -597,7 +601,7 @@ class AutoBackend(nn.Module):
                             x[..., :, [1, 3]] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2:  # segment with (det, proto) output order reversed
+            if len(y) == 2 and not self.end2end:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
@@ -605,8 +609,10 @@ class AutoBackend(nn.Module):
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
-        if isinstance(y, (list, tuple)):
+        if isinstance(y, (list, tuple)) and not self.end2end:
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
+        elif isinstance(y, (list, tuple)) and self.end2end:
+            return self.from_numpy(y[0])  # pb model
         else:
             return self.from_numpy(y)
 

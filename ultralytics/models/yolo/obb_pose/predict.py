@@ -21,6 +21,7 @@ class OBB_PosePredictor(DetectionPredictor):
         predictor.predict_cli()
         ```
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initializes PosePredictor, sets task to 'pose' and logs a warning for using 'mps' as device."""
         super().__init__(cfg, overrides, _callbacks)
@@ -57,7 +58,5 @@ class OBB_PosePredictor(DetectionPredictor):
             rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)
             # xywh, r, conf, cls
             obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
-            results.append(
-                Results(orig_img, path=img_path, names=self.model.names,  obb=obb, keypoints=pred_kpts)
-            )
+            results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb, keypoints=pred_kpts))
         return results

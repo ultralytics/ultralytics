@@ -40,6 +40,8 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    OBB_Pose,
+    OBB_Segment,
     Pose,
     RepC3,
     RepConv,
@@ -49,12 +51,18 @@ from ultralytics.nn.modules import (
     Segment,
     Silence,
     WorldDetect,
-    OBB_Segment,
-    OBB_Pose,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss, v8SegmentationLoss, v8OBB_SegmentationLoss, v8OBB_PoseLoss
+from ultralytics.utils.loss import (
+    v8ClassificationLoss,
+    v8DetectionLoss,
+    v8OBB_PoseLoss,
+    v8OBB_SegmentationLoss,
+    v8OBBLoss,
+    v8PoseLoss,
+    v8SegmentationLoss,
+)
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -295,7 +303,11 @@ class DetectionModel(BaseModel):
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, OBB_Segment, OBB_Pose)) else self.forward(x)
+            forward = (
+                lambda x: self.forward(x)[0]
+                if isinstance(m, (Segment, Pose, OBB, OBB_Segment, OBB_Pose))
+                else self.forward(x)
+            )
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -392,6 +404,7 @@ class PoseModel(DetectionModel):
 
 class OBB_PoseModel(DetectionModel):
     """YOLOv8 Oriented Bounding Box (OBB) Pose model."""
+
     def __init__(self, cfg="yolov8n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """Initialize YOLOv8 Pose model."""
         if not isinstance(cfg, dict):
@@ -402,7 +415,6 @@ class OBB_PoseModel(DetectionModel):
             cfg["kpt_shape"] = data_kpt_shape
 
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
@@ -1046,7 +1058,7 @@ def guess_model_task(model):
             return "obb_segment"
         if m == "obb_pose":
             return "obb_pose"
-        
+
     # Guess from model cfg
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
@@ -1073,7 +1085,7 @@ def guess_model_task(model):
             elif isinstance(m, (OBB_Segment)):
                 return "obb_segment"
             elif isinstance(m, (OBB_Pose)):
-                return "obb_pose"  
+                return "obb_pose"
             elif isinstance(m, (Detect, WorldDetect)):
                 return "detect"
 

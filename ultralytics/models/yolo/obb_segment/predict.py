@@ -9,7 +9,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 class OBB_SegmentationPredictor(DetectionPredictor):
     """
-    A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) Segmentation model.
+    A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) Segmentation
+    model.
 
     Example:
         ```python
@@ -54,7 +55,9 @@ class OBB_SegmentationPredictor(DetectionPredictor):
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
                 masks = ops.process_mask_native(proto[i], pred[:, 7:], pred[:, :4], orig_img.shape[:2])  # HWC
             else:
-                masks = ops.process_obb_mask(proto[i], pred[:, 7:], pred[:, :4], pred[:, 6].unsqueeze(1),img.shape[2:], upsample=True)  # HWC
+                masks = ops.process_obb_mask(
+                    proto[i], pred[:, 7:], pred[:, :4], pred[:, 6].unsqueeze(1), img.shape[2:], upsample=True
+                )  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
 
             rboxes = ops.regularize_rboxes(torch.cat([pred[:, :4], pred[:, 6].unsqueeze(1)], dim=-1))
@@ -63,5 +66,3 @@ class OBB_SegmentationPredictor(DetectionPredictor):
             obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb, masks=masks))
         return results
-    
- 

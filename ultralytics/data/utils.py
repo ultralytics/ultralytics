@@ -125,7 +125,7 @@ def verify_image_label(args):
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 if obb and keypoint:
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:9], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)                
+                    segments = [np.array(x[1:9], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
@@ -134,7 +134,7 @@ def verify_image_label(args):
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
                     if obb:
                         assert lb.shape[1] == (9 + nkpt * ndim), f"labels require {(9 + nkpt * ndim)} columns each"
-                        points = lb[:, 9:].reshape(-1, ndim)[:, :2]    
+                        points = lb[:, 9:].reshape(-1, ndim)[:, :2]
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]

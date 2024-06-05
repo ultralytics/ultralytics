@@ -698,8 +698,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     return masks.gt_(0.5)
 
 
-
-def process_obb_mask(protos, masks_in, bboxes,theta, shape, upsample=False):
+def process_obb_mask(protos, masks_in, bboxes, theta, shape, upsample=False):
     """
     Apply masks to bounding boxes using the output of the mask head.
 
@@ -721,18 +720,18 @@ def process_obb_mask(protos, masks_in, bboxes,theta, shape, upsample=False):
     height_ratio = mh / ih
 
     downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes=xywh2xyxy(downsampled_bboxes)
+    downsampled_bboxes = xywh2xyxy(downsampled_bboxes)
     downsampled_bboxes[:, 0] *= width_ratio
     downsampled_bboxes[:, 2] *= width_ratio
     downsampled_bboxes[:, 3] *= height_ratio
     downsampled_bboxes[:, 1] *= height_ratio
-    downsampled_bboxes=xyxy2xywh(downsampled_bboxes)
+    downsampled_bboxes = xyxy2xywh(downsampled_bboxes)
 
-    target_obb_bboxes=torch.cat((downsampled_bboxes,theta),dim=1)
-    target_bboxes_poly=xywhr2xyxyxyxy(target_obb_bboxes)
-    target_bounding_boxes_min_xy=torch.min(target_bboxes_poly, dim=1)[0]
-    target_bounding_boxes_max_xy=torch.max(target_bboxes_poly, dim=1)[0]
-    target_bounding_boxes=torch.cat((target_bounding_boxes_min_xy,target_bounding_boxes_max_xy),dim=1)
+    target_obb_bboxes = torch.cat((downsampled_bboxes, theta), dim=1)
+    target_bboxes_poly = xywhr2xyxyxyxy(target_obb_bboxes)
+    target_bounding_boxes_min_xy = torch.min(target_bboxes_poly, dim=1)[0]
+    target_bounding_boxes_max_xy = torch.max(target_bboxes_poly, dim=1)[0]
+    target_bounding_boxes = torch.cat((target_bounding_boxes_min_xy, target_bounding_boxes_max_xy), dim=1)
 
     masks = crop_mask(masks, target_bounding_boxes)  # CHW
     if upsample:

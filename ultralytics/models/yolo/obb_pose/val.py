@@ -2,13 +2,15 @@
 
 from pathlib import Path
 
-import torch
 import numpy as np
+import torch
+
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import OKS_SIGMA, OBB_PoseMetrics, kpt_iou,batch_probiou
+from ultralytics.utils.metrics import OKS_SIGMA, OBB_PoseMetrics, batch_probiou, kpt_iou
 from ultralytics.utils.plotting import output_to_rotated_target, plot_images
+
 
 class OBB_PoseValidator(DetectionValidator):
     """
@@ -23,6 +25,7 @@ class OBB_PoseValidator(DetectionValidator):
         validator(model=args['model'])
         ```
     """
+
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize a 'OBB_PoseValidator' object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
@@ -60,7 +63,7 @@ class OBB_PoseValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Apply non-maximum suppression and return detections with high confidence scores."""
-        return  ops.non_max_suppression(
+        return ops.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -100,7 +103,7 @@ class OBB_PoseValidator(DetectionValidator):
         kpts[..., 1] *= h
         kpts = ops.scale_coords(imgsz, kpts, ori_shape, ratio_pad=ratio_pad)
 
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad,"kpts":kpts }
+        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad, "kpts": kpts}
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares and scales keypoints in a batch for pose processing."""
@@ -177,7 +180,7 @@ class OBB_PoseValidator(DetectionValidator):
             area = gt_bboxes[:, 2:4].prod(1) * 0.53
             iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
         else:  # boxes
-            iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:,6].unsqueeze(1)], dim=-1))
+            iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, 6].unsqueeze(1)], dim=-1))
 
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
@@ -198,7 +201,7 @@ class OBB_PoseValidator(DetectionValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predictions for YOLO model."""
         pred_kpts = torch.cat([p[:, 7:].view(-1, *self.kpt_shape) for p in preds], 0)
-        pred_obbs= torch.cat([p[:, :7] for p in preds], 0).unsqueeze(1)
+        pred_obbs = torch.cat([p[:, :7] for p in preds], 0).unsqueeze(1)
         plot_images(
             batch["img"],
             *output_to_rotated_target(pred_obbs, max_det=self.args.max_det),
@@ -209,14 +212,13 @@ class OBB_PoseValidator(DetectionValidator):
             on_plot=self.on_plot,
         )
 
-
     def pred_to_json(self, predn, filename):
         """Converts YOLO predictions to COCO JSON format."""
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = torch.cat([predn[:, :4], predn[:, 6]], dim=-1)
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
-        for p, r ,b in zip(predn.tolist(), rbox.tolist(), poly.tolist()):
+        for p, r, b in zip(predn.tolist(), rbox.tolist(), poly.tolist()):
             self.jdict.append(
                 {
                     "image_id": image_id,

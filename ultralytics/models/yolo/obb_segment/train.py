@@ -9,7 +9,8 @@ from ultralytics.utils import DEFAULT_CFG, RANK
 
 class OBB_SegmentationTrainer(yolo.detect.DetectionTrainer):
     """
-    A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) Segmentation model.
+    A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) Segmentation
+    model.
 
     Example:
         ```python
@@ -20,6 +21,7 @@ class OBB_SegmentationTrainer(yolo.detect.DetectionTrainer):
         trainer.train()
         ```
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a OBBTrainer object with given arguments."""
         if overrides is None:
@@ -37,5 +39,7 @@ class OBB_SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBB_SegmentationValidator for validation of YOLO model."""
-        self.loss_names = "rbox_loss", "seg_loss","cls_loss", "dfl_loss"
-        return yolo.obb_segment.OBB_SegmentationValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        self.loss_names = "rbox_loss", "seg_loss", "cls_loss", "dfl_loss"
+        return yolo.obb_segment.OBB_SegmentationValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args)
+        )

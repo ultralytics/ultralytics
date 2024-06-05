@@ -184,10 +184,10 @@ class Pose(Detect):
             return y
 
 
-
 class OBB_Segment(Detect):
     """YOLOv8 OBB_Segment head for detection with rotation and segmentation models."""
-    def __init__(self, nc=80, ne=1,nm=32, npr=256, ch=()):
+
+    def __init__(self, nc=80, ne=1, nm=32, npr=256, ch=()):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
         super().__init__(nc, ch)
         self.ne = ne
@@ -200,6 +200,7 @@ class OBB_Segment(Detect):
 
         c5 = max(ch[0] // 4, self.nm)
         self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, self.nm, 1)) for x in ch)
+
     def forward(self, x):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         p = self.proto(x[0])  # mask protos
@@ -214,9 +215,13 @@ class OBB_Segment(Detect):
         mc = torch.cat([self.cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         x = self.detect(self, x)
         if self.training:
-            return x, angle , mc, p
-        return (torch.cat([x, angle,mc], 1), p) if self.export else (torch.cat([x[0],angle, mc], 1), (x[1], angle,mc, p))# x[0]包括xywh,cls,score cat上angel和分割mc
-    
+            return x, angle, mc, p
+        return (
+            (torch.cat([x, angle, mc], 1), p)
+            if self.export
+            else (torch.cat([x[0], angle, mc], 1), (x[1], angle, mc, p))
+        )  # x[0]包括xywh,cls,score cat上angel和分割mc
+
     def decode_bboxes(self, bboxes, anchors):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
@@ -224,7 +229,8 @@ class OBB_Segment(Detect):
 
 class OBB_Pose(Detect):
     """YOLOv8 OBB_Pose head for detection with rotation and segmentation models."""
-    def __init__(self, nc=80, ne=1,kpt_shape=(17, 3), ch=()):
+
+    def __init__(self, nc=80, ne=1, kpt_shape=(17, 3), ch=()):
         """Initialize YOLO network with default parameters and Convolutional Layers."""
         super().__init__(nc, ch)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
@@ -249,9 +255,13 @@ class OBB_Pose(Detect):
         if not self.training:
             self.angle = angle
         if self.training:
-            return x, angle,kpt
+            return x, angle, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
-        return torch.cat([x, angle , pred_kpt], 1) if self.export else (torch.cat([x[0], angle , pred_kpt], 1), (x[1], angle , kpt))
+        return (
+            torch.cat([x, angle, pred_kpt], 1)
+            if self.export
+            else (torch.cat([x[0], angle, pred_kpt], 1), (x[1], angle, kpt))
+        )
 
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""

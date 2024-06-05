@@ -7,6 +7,7 @@ from ultralytics.nn.tasks import OBB_PoseModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images, plot_results
 
+
 class OBB_PoseTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) Pose model.
@@ -20,6 +21,7 @@ class OBB_PoseTrainer(yolo.detect.DetectionTrainer):
         trainer.train()
         ```
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a OBB_PoseTrainer object with given arguments."""
         if overrides is None:
@@ -29,7 +31,9 @@ class OBB_PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return OBB_PoseModel initialized with specified config and weights."""
-        model = OBB_PoseModel(cfg, ch=3, nc=self.data["nc"],  data_kpt_shape=self.data["kpt_shape"],verbose=verbose and RANK == -1)
+        model = OBB_PoseModel(
+            cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose and RANK == -1
+        )
         if weights:
             model.load(weights)
 
@@ -42,7 +46,7 @@ class OBB_PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBB_PoseValidator for validation of YOLO model."""
-        self.loss_names = "rbox_loss","pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
+        self.loss_names = "rbox_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         return yolo.obb_pose.OBB_PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, ni):

@@ -1,20 +1,22 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
 from multiprocessing.pool import ThreadPool
+from pathlib import Path
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, ops,NUM_THREADS
-from ultralytics.utils.metrics import OBBMetrics, batch_probiou,OBB_SegmentMetrics,mask_iou
+from ultralytics.utils import LOGGER, NUM_THREADS, ops
+from ultralytics.utils.metrics import OBB_SegmentMetrics, OBBMetrics, batch_probiou, mask_iou
 from ultralytics.utils.plotting import output_to_rotated_segment_target, plot_images
 
 
 class OBB_SegmentationValidator(DetectionValidator):
     """
-    A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) Segmentation model.
+    A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) Segmentation
+    model.
 
     Example:
         ```python
@@ -25,6 +27,7 @@ class OBB_SegmentationValidator(DetectionValidator):
         validator(model=args['model'])
         ```
     """
+
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
@@ -44,6 +47,7 @@ class OBB_SegmentationValidator(DetectionValidator):
         self.is_dota = isinstance(val, str) and "DOTA" in val  # is COCO
 
         from ultralytics.utils.checks import check_requirements
+
         self.plot_masks = []
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
@@ -67,9 +71,10 @@ class OBB_SegmentationValidator(DetectionValidator):
             "mAP50",
             "mAP50-95)",
         )
+
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        p =  ops.non_max_suppression(
+        p = ops.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -83,7 +88,6 @@ class OBB_SegmentationValidator(DetectionValidator):
         proto = preds[1][-1] if len(preds[1]) == 4 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
-
     def _prepare_batch(self, si, batch):
         """Prepares and returns a batch for OBB validation."""
         idx = batch["batch_idx"] == si
@@ -96,23 +100,27 @@ class OBB_SegmentationValidator(DetectionValidator):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
 
-
         midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
         masks = batch["masks"][midx]
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad,"masks":masks }
+        return {
+            "cls": cls,
+            "bbox": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "masks": masks,
+        }
 
-    def _prepare_pred(self, pred, pbatch,proto):
+    def _prepare_pred(self, pred, pbatch, proto):
         """Prepares and returns a batch for OBB validation with scaled and padded bounding boxes."""
         predn = pred.clone()
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
 
-        pred_masks = self.process(proto, pred[:, 7:], pred[:, :4],pred[:, 6].unsqueeze(1), shape=pbatch["imgsz"])
-        return predn,pred_masks
+        pred_masks = self.process(proto, pred[:, 7:], pred[:, :4], pred[:, 6].unsqueeze(1), shape=pbatch["imgsz"])
+        return predn, pred_masks
 
-
-    
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix.
@@ -138,9 +146,8 @@ class OBB_SegmentationValidator(DetectionValidator):
                 gt_masks = gt_masks.gt_(0.5)
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
         else:
-            iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:,6].unsqueeze(1)], dim=-1))
+            iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, 6].unsqueeze(1)], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
-
 
     def update_metrics(self, preds, batch):
         """Metrics."""
@@ -199,7 +206,6 @@ class OBB_SegmentationValidator(DetectionValidator):
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
-
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
@@ -266,7 +272,7 @@ class OBB_SegmentationValidator(DetectionValidator):
         pred_masks = np.transpose(pred_masks, (2, 0, 1))
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
-        for i, (p,r, b) in enumerate(zip(predn.tolist(),  rbox.tolist(), poly.tolist())):
+        for i, (p, r, b) in enumerate(zip(predn.tolist(), rbox.tolist(), poly.tolist())):
             self.jdict.append(
                 {
                     "image_id": image_id,

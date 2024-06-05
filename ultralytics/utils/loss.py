@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.metrics import OKS_SIGMA
-from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh,xywhr2xyxyxyxy
+from ultralytics.utils.ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 
 from .metrics import bbox_iou, probiou
@@ -747,7 +747,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""
         loss = torch.zeros(4, device=self.device)  # box,seg, cls, dfl
-        feats, pred_angle,pred_masks, proto = preds if len(preds) == 4 else preds[1]
+        feats, pred_angle, pred_masks, proto = preds if len(preds) == 4 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1
@@ -784,7 +784,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
         bboxes_for_assigner[..., :4] *= stride_tensor
-        _, target_bboxes, target_scores, fg_mask,target_gt_idx = self.assigner(
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             bboxes_for_assigner.type(gt_rbboxes.dtype),
             anchor_points * stride_tensor,
@@ -801,13 +801,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
             # Bbox loss
             target_bboxes[..., :4] /= stride_tensor
             loss[0], loss[3] = self.bbox_loss(
-                pred_distri, 
-                pred_bboxes, 
-                anchor_points, 
-                target_bboxes, 
-                target_scores, 
-                target_scores_sum, 
-                fg_mask
+                pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
             )
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -815,15 +809,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
             target_bboxes[..., :4] *= stride_tensor
             loss[1] = self.calculate_obb_segmentation_loss(
-                fg_mask, 
-                masks, 
-                target_gt_idx, 
-                target_bboxes, 
-                batch_idx, 
-                proto, 
-                pred_masks, 
-                imgsz, 
-                self.overlap
+                fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap
             )
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
@@ -835,7 +821,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
-    
+
     def bbox_decode(self, anchor_points, pred_dist, pred_angle):
         """
         Decode predicted object bounding box coordinates from anchor points and distribution.
@@ -915,10 +901,10 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
         _, _, mask_h, mask_w = proto.shape
         loss = 0
         # Get the bounding rectangle of the rbboxes
-        target_bboxes_poly=xywhr2xyxyxyxy(target_obb_bboxes)
-        target_bounding_boxes_min_xy=torch.min(target_bboxes_poly, dim=2)[0]
-        target_bounding_boxes_max_xy=torch.max(target_bboxes_poly, dim=2)[0]
-        target_bounding_boxes=torch.cat((target_bounding_boxes_min_xy,target_bounding_boxes_max_xy),dim=2)
+        target_bboxes_poly = xywhr2xyxyxyxy(target_obb_bboxes)
+        target_bounding_boxes_min_xy = torch.min(target_bboxes_poly, dim=2)[0]
+        target_bounding_boxes_max_xy = torch.max(target_bboxes_poly, dim=2)[0]
+        target_bounding_boxes = torch.cat((target_bounding_boxes_min_xy, target_bounding_boxes_max_xy), dim=2)
         # Normalize to 0-1
         target_bounding_boxes_normalized = target_bounding_boxes / imgsz[[1, 0, 1, 0]]
         # Areas of target bboxes
@@ -936,7 +922,7 @@ class v8OBB_SegmentationLoss(v8DetectionLoss):
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
-                loss =loss +self.single_mask_loss(
+                loss = loss + self.single_mask_loss(
                     gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i]
                 )
 
@@ -957,7 +943,7 @@ class v8OBB_PoseLoss(v8DetectionLoss):
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max - 1, use_dfl=self.use_dfl).to(self.device)
 
-        self.varifocal_loss=VarifocalLoss()
+        self.varifocal_loss = VarifocalLoss()
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
@@ -982,7 +968,6 @@ class v8OBB_PoseLoss(v8DetectionLoss):
                     bboxes[..., :4].mul_(scale_tensor)
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
-
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
@@ -1053,7 +1038,7 @@ class v8OBB_PoseLoss(v8DetectionLoss):
             keypoints[..., 1] *= imgsz[0]
 
             loss[1], loss[2] = self.calculate_keypoints_loss(
-                fg_mask, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts,pred_bboxes
+                fg_mask, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts, pred_bboxes
             )
 
         loss[0] *= self.hyp.box  # box gain
@@ -1074,7 +1059,7 @@ class v8OBB_PoseLoss(v8DetectionLoss):
         return y
 
     def calculate_keypoints_loss(
-        self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts,pred_bboxes
+        self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts, pred_bboxes
     ):
         """
         Calculate the keypoints loss for the model.
@@ -1133,7 +1118,7 @@ class v8OBB_PoseLoss(v8DetectionLoss):
             area = target_bboxes[masks][:, 2:4].prod(1, keepdim=True)  # rbboxes area
             pred_kpt = pred_kpts[masks]
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
-            kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt,kpt_mask, area)  # pose loss     
+            kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 
             if pred_kpt.shape[-1] == 3:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
@@ -1156,5 +1141,3 @@ class v8OBB_PoseLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
-
-

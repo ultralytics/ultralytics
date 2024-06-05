@@ -4,7 +4,16 @@ from pathlib import Path
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel,OBB_PoseModel,OBB_SegmentationModel
+from ultralytics.nn.tasks import (
+    ClassificationModel,
+    DetectionModel,
+    OBB_PoseModel,
+    OBB_SegmentationModel,
+    OBBModel,
+    PoseModel,
+    SegmentationModel,
+    WorldModel,
+)
 from ultralytics.utils import ROOT, yaml_load
 
 
@@ -69,7 +78,6 @@ class YOLO(Model):
                 "predictor": yolo.obb_pose.OBB_PosePredictor,
             },
         }
-
 
 
 class YOLOWorld(Model):

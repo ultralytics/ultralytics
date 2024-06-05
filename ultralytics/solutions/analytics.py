@@ -102,7 +102,7 @@ class Analytics:
             self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize )
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
         self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.tick_params(axis="both", colors=self.fg_color)
@@ -130,7 +130,7 @@ class Analytics:
         for key in counts_dict.keys():
             y_data_dict[key] = np.append(y_data_dict[key], float(counts_dict[key]))
             if len(y_data_dict[key]) < max_length:
-                y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), 'constant')
+                y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
 
         # Remove the oldest points if the number of points exceeds max_points
         if len(x_data) > self.max_points:
@@ -140,21 +140,26 @@ class Analytics:
 
         self.ax.clear()
 
-        colors = ['#E1FF25', '#0BDBEB', '#FF64DA', '#111F68', '#042AFF']
+        colors = ["#E1FF25", "#0BDBEB", "#FF64DA", "#111F68", "#042AFF"]
         color_cycle = cycle(colors)
 
         for key, y_data in y_data_dict.items():
             color = next(color_cycle)
             self.ax.fill_between(x_data, y_data, color=color, alpha=0.6)
-            self.ax.plot(x_data, y_data, color=color, linewidth=self.line_width,
-                         marker="o", markersize=self.points_width,
-                         label=f"{key} Data Points")
+            self.ax.plot(
+                x_data,
+                y_data,
+                color=color,
+                linewidth=self.line_width,
+                marker="o",
+                markersize=self.points_width,
+                label=f"{key} Data Points",
+            )
 
         self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
         self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        legend = self.ax.legend(loc="upper left", fontsize=13,
-                                facecolor=self.bg_color, edgecolor=self.fg_color)
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.fg_color)
 
         # Set legend text color
         for text in legend.get_texts():

@@ -856,7 +856,7 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
-        self.device = "cpu" if not tf.config.list_physical_devices('GPU') else self.device
+        self.device = "cpu" if not tf.config.list_physical_devices("GPU") else self.device
         self.args.simplify = not self.end2end  # onnx slim not supported for end2end models
         f_onnx, _ = self.export_onnx()
 

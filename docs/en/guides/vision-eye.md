@@ -1,7 +1,7 @@
 ---
 comments: true
-description: VisionEye View Object Mapping using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, VisionEye, Computer Vision, Notebook, IPython Kernel, CLI, Python SDK
+description: Discover VisionEye's object mapping and tracking powered by Ultralytics YOLOv8. Simulate human eye precision, track objects, and calculate distances effortlessly.
+keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial
 ---
 
 # VisionEye View Object Mapping using Ultralytics YOLOv8 🚀

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Complete guide to setting up and using Ultralytics YOLO models with Docker. Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers.
-keywords: Ultralytics, YOLO, Docker, GPU, containerization, object detection, package installation, deep learning, machine learning, guide
+description: Learn to effortlessly set up Ultralytics in Docker, from installation to running with CPU/GPU support. Follow our comprehensive guide for seamless container experience.
+keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, container setup, Docker environment, Docker Hub, Ultralytics projects
 ---
 
 # Docker Quickstart Guide for Ultralytics
@@ -154,7 +154,7 @@ Replace `/path/on/host` with the directory path on your local machine and `/path
 
     The following instructions are experimental. Sharing a X11 socket with a Docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use `xhost`<sup>[(1)](http://users.stat.umn.edu/~geyer/secure.html)[(2)](https://linux.die.net/man/1/xhost)</sup>.
 
-Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: [X11](https://www.x.org/wiki/) (also known as the X Window System) and [Wayland](https://wayland.freedesktop.org/). Before starting it's essential to determine which graphics server you're currently using. Just run this command to find out:
+Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: [X11](https://www.x.org/wiki/) (also known as the X Window System) and [Wayland](https://wayland.freedesktop.org/). Before starting, it's essential to determine which graphics server you are currently using. Run this command to find out:
 
 ```bash
 env | grep -E -i 'x11|xorg|wayland'

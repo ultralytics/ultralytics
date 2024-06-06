@@ -592,7 +592,6 @@ class WorldModel(DetectionModel):
         self.txt_feats = txt_feats.reshape(-1, *txt_feats.shape)
         self.model[-1].nc = len(txt_feats)
 
-
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """
         Perform a forward pass through the model.

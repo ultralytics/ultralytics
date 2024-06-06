@@ -104,9 +104,10 @@ class YOLOWorld(Model):
 
         ims, names = [], []
         if images is not None:
+            from PIL import Image
+
             from ultralytics.data import load_inference_source
             from ultralytics.data.augment import classify_transforms
-            from PIL import Image
 
             dataset = load_inference_source(images, batch=1)
             assert not dataset.source_type.tensor, "`torch.Tensor` is not supported for now!"

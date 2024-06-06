@@ -93,7 +93,7 @@ class YOLOWorld(Model):
 
         Args:
             classes (List(str)): A list of categories i.e ["person"].
-            images (List(), optional): A list of images.
+            images (str, Path, PIL.Image, np.ndarray): The input image sources.
         """
         assert isinstance(classes, list), f"`classes` should be a list, but got {type(classes)}"
 
@@ -109,6 +109,7 @@ class YOLOWorld(Model):
             from PIL import Image
 
             dataset = load_inference_source(images, batch=1)
+            assert not dataset.source_type.tensor, "`torch.Tensor` is not supported for now!"
             transforms = classify_transforms(
                 mean=(0.48145466, 0.4578275, 0.40821073),
                 std=(0.26862954, 0.26130258, 0.27577711),

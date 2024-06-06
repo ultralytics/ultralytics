@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Package Segmentation using Ultralytics YOLOv8 Dataset, a large-scale benchmark for logistics, and learn how to train a YOLO model using it.
-keywords: Packet Segmentation Dataset, Ultralytics, Manufacturing, Logistics, YOLO model, object detection, object tracking
+description: Explore Roboflow's Package Segmentation Dataset. Optimize logistics and enhance vision models with curated images for package identification and sorting.
+keywords: Roboflow, Package Segmentation Dataset, computer vision, package identification, logistics, warehouse automation, segmentation models, training data
 ---
 
 # Roboflow Universe Package Segmentation Dataset

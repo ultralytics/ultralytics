@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to train datasets on single or multiple GPUs using YOLOv5. Includes setup, training modes and result profiling for efficient leveraging of multiple GPUs.
-keywords: YOLOv5, multi-GPU Training, YOLOv5 training, deep learning, machine learning, object detection, Ultralytics
+description: Learn how to train YOLOv5 on multiple GPUs for optimal performance. Guide covers single and multiple machine setups.
+keywords: YOLOv5, multiple GPUs, machine learning, deep learning, PyTorch, data parallel, distributed data parallel
 ---
 
 📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).

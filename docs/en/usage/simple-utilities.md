@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to extend the utility of the Ultralytics package to support your development process.
-keywords: Ultralytics, YOLO, custom, function, workflow, utility, support, 
+description: Explore essential utilities in the Ultralytics package to speed up and enhance your workflows. Learn about data processing, annotations, conversions, and more.
+keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, dataset conversion, bounding boxes, image compression, machine learning tools
 ---
 
 # Simple Utilities

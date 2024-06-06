@@ -41,7 +41,7 @@ ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g4
 ADD https://github.com/ultralytics/yolov5/releases/download/v1.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl
 ADD https://github.com/ultralytics/yolov5/releases/download/v1.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl \
-    https://github.com/ultralytics/yolov5/releases/download/v1.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
+    torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

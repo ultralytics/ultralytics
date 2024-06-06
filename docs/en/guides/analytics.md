@@ -229,27 +229,80 @@ This guide provides a comprehensive overview of three fundamental types of data 
         out.release()
         cv2.destroyAllWindows()
         ```
+    
+    === "Area chart"
+
+        ```python
+        import cv2
+        from ultralytics import YOLO, solutions
+        model = YOLO("yolov8s.pt")
+        
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        
+        out = cv2.VideoWriter("area_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+        
+        analytics = solutions.Analytics(
+            type="area",
+            writer=out,
+            im0_shape=(w, h),
+            view_img=True,
+        )
+        
+        clswise_count = {}
+        frame_count = 0
+        
+        while cap.isOpened():
+            success, frame = cap.read()
+            if success:
+        
+                frame_count += 1
+                results = model.track(frame, persist=True, verbose=True)
+        
+                if results[0].boxes.id is not None:
+                    boxes = results[0].boxes.xyxy.cpu()
+                    clss = results[0].boxes.cls.cpu().tolist()
+        
+                    for box, cls in zip(boxes, clss):
+                        if model.names[int(cls)] in clswise_count:
+                            clswise_count[model.names[int(cls)]] += 1
+                        else:
+                            clswise_count[model.names[int(cls)]] = 1
+        
+                analytics.update_area(frame_count, clswise_count)
+                clswise_count = {}
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+            else:
+                break
+        
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()    
+        ```
 
 ### Argument `Analytics`
 
 Here's a table with the `Analytics` arguments:
 
-| Name         | Type              | Default       | Description                                                                      |
-|--------------|-------------------|---------------|----------------------------------------------------------------------------------|
-| `type`       | `str`             | `None`        | Type of data or object.                                                          |
-| `im0_shape`  | `tuple`           | `None`        | Shape of the initial image.                                                      |
-| `writer`     | `cv2.VideoWriter` | `None`        | Object for writing video files.                                                  |
-| `title`      | `str`             | `ultralytics` | Title for the visualization.                                                     |
-| `x_label`    | `str`             | `x`           | Label for the x-axis.                                                            |
-| `y_label`    | `str`             | `y`           | Label for the y-axis.                                                            |
-| `bg_color`   | `str`             | `white`       | Background color.                                                                |
-| `fg_color`   | `str`             | `black`       | Foreground color.                                                                |
-| `line_color` | `str`             | `yellow`      | Color of the lines.                                                              |
-| `line_width` | `int`             | `2`           | Width of the lines.                                                              |
-| `fontsize`   | `int`             | `13`          | Font size for text.                                                              |
-| `view_img`   | `bool`            | `False`       | Flag to display the image or video.                                              |
-| `save_img`   | `bool`            | `True`        | Flag to save the image or video.                                                 |
-| `max_points` | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
+| Name           | Type              | Default       | Description                                                                      |
+|----------------|-------------------|---------------|----------------------------------------------------------------------------------|
+| `type`         | `str`             | `None`        | Type of data or object.                                                          |
+| `im0_shape`    | `tuple`           | `None`        | Shape of the initial image.                                                      |
+| `writer`       | `cv2.VideoWriter` | `None`        | Object for writing video files.                                                  |
+| `title`        | `str`             | `ultralytics` | Title for the visualization.                                                     |
+| `x_label`      | `str`             | `x`           | Label for the x-axis.                                                            |
+| `y_label`      | `str`             | `y`           | Label for the y-axis.                                                            |
+| `bg_color`     | `str`             | `white`       | Background color.                                                                |
+| `fg_color`     | `str`             | `black`       | Foreground color.                                                                |
+| `line_color`   | `str`             | `yellow`      | Color of the lines.                                                              |
+| `line_width`   | `int`             | `2`           | Width of the lines.                                                              |
+| `fontsize`     | `int`             | `13`          | Font size for text.                                                              |
+| `view_img`     | `bool`            | `False`       | Flag to display the image or video.                                              |
+| `save_img`     | `bool`            | `True`        | Flag to save the image or video.                                                 |
+| `max_points`   | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
+| `points_width` | `int`             | `15`          | Width of line points highlighter.                                                |
 
 ### Arguments `model.track`
 

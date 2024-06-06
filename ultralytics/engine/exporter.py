@@ -610,7 +610,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
-        assert not self.end2end, "CoreML export is not supported for end2end models."
+        assert not self.end2end, f"{prefix.strip(':')} export is not supported for end-2-end models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
@@ -832,7 +832,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-            ),
+            ) + ("cmake", "onnxsim>=0.4.33") if self.end2end else (),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 

@@ -138,8 +138,6 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
-Certainly, here is the table updated with code snippets:
-
 | Argument     | Type                    | Description                                                                                                 | Default        |
 |--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |

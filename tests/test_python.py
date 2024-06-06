@@ -554,6 +554,9 @@ def test_yolo_world():
     model.set_classes(["tree", "window"])
     model(SOURCE, conf=0.01)
 
+    model.set_classes(["tree", "window"], SOURCE)
+    model(SOURCE, conf=0.01)
+
     model = YOLO("yolov8s-worldv2.pt")  # no YOLOv8n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
     # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model

@@ -2,9 +2,6 @@
 
 from pathlib import Path
 
-from PIL import Image
-
-from ultralytics.data import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
@@ -90,33 +87,39 @@ class YOLOWorld(Model):
             }
         }
 
-    def set_classes(self, labels, images=[]):
+    def set_classes(self, classes, images=None):
         """
         Set classes.
 
         Args:
-            labels (List(str)): A list of categories i.e ["person"].
-            images (List()): A list of images.
+            classes (List(str)): A list of categories i.e ["person"].
+            images (List(), optional): A list of images.
         """
+        assert isinstance(classes, list), f"`classes` should be a list, but got {type(classes)}"
 
-        classes = labels.copy()
-        pilImages = []
-
-        for i, img in enumerate(images):
-            dataSet = load_inference_source(source=img, batch=1)
-            for batch in dataSet:
-                paths, im0s, s = batch
-                path = Path(paths[0])
-                image = Image.fromarray(im0s[0]).convert("RGB")
-                pilImages.append(image)
-                classes.append(path.name)
-
-        self.model.set_classes(labels=labels, images=pilImages)
         # Remove background if it's given
         background = " "
-        if background in labels:
-            labels.remove(background)
+        if background in classes:
+            classes.remove(background)
 
+        ims, names = [], []
+        if images is not None:
+            from ultralytics.data import load_inference_source
+            from ultralytics.data.augment import classify_transforms
+            from PIL import Image
+
+            dataset = load_inference_source(images, batch=1)
+            transforms = classify_transforms(
+                mean=(0.48145466, 0.4578275, 0.40821073),
+                std=(0.26862954, 0.26130258, 0.27577711),
+            )
+            for path, im, _ in dataset:
+                im = transforms(Image.fromarray(im[0][..., ::-1]))
+                ims.append(im)
+                names.append(Path(path[0]).stem)
+
+        self.model.set_classes(classes, ims)
+        classes.extend(names)
         self.model.names = classes
 
         # Reset method class names

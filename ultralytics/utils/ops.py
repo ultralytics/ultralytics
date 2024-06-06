@@ -536,7 +536,7 @@ def xyxyxyxy2xywhr(x):
     # NOTE: Use cv2.minAreaRect to get accurate xywhr,
     # especially some objects are cut off by augmentations in dataloader.
     if is_torch:
-        rboxes = torch.tensor(rboxes, device=corners.device, dtype=corners.dtype)
+        rboxes = torch.tensor(rboxes, device=x.device, dtype=x.dtype)
     else:
         np.array(rboxes, dtype=points.dtype)
     rboxes[:, 4] *= np.pi / 180  # degrees to radians

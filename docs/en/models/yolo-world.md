@@ -214,7 +214,7 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
         model.set_classes(["person", "bus"])
 
         # or add images to search for:
-        model.set_classes(["person", "bus"], images=[Image.open("path/to/image.jpg")])
+        model.set_classes(["person", "bus"], images=["path/to/image1.jpg", "path/to/image2.jpg"])
 
         # Execute prediction for specified categories on an image
         results = model.predict("path/to/image.jpg")

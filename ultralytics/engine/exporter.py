@@ -519,6 +519,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLOv8 Paddle export."""
+        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         check_requirements(("paddlepaddle", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -535,6 +536,7 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
+        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         check_requirements("ncnn")
         import ncnn  # noqa
 
@@ -610,7 +612,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
-        assert not self.end2end, f"{prefix.strip(':')} export is not supported for end-2-end models."
+        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)

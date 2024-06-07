@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, MACOS, LOGGER, ROOT, yaml_load
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -346,7 +346,11 @@ class AutoBackend(nn.Module):
                 ]
                 interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
             else:  # TFLite
-                assert not (MACOS and self.end2end), f"MacOS does not support TFLite end-2-end model inference."  # github.com/ultralytics/ultralytics/issues/13436
+                assert not (
+                    MACOS and self.end2end
+                ), (
+                    f"MacOS does not support TFLite end-2-end model inference."
+                )  # github.com/ultralytics/ultralytics/issues/13436
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
             interpreter.allocate_tensors()  # allocate

@@ -1,3 +1,6 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+import warnings
 from itertools import cycle
 
 import cv2
@@ -8,7 +11,7 @@ from matplotlib.figure import Figure
 
 
 class Analytics:
-    """A class to create and update various types of charts (line, bar, pie) for visual analytics."""
+    """A class to create and update various types of charts (line, bar, pie, area) for visual analytics."""
 
     def __init__(
         self,
@@ -22,16 +25,18 @@ class Analytics:
         fg_color="black",
         line_color="yellow",
         line_width=2,
+        points_width=10,
         fontsize=13,
         view_img=False,
         save_img=True,
+        max_points=50,
     ):
         """
         Initialize the Analytics class with various chart types.
 
         Args:
-            type (str): Type of chart to initialize ('line', 'bar', or 'pie').
-            writer: Video writer object to save the frames.
+            type (str): Type of chart to initialize ('line', 'bar', 'pie', or 'area').
+            writer (object): Video writer object to save the frames.
             im0_shape (tuple): Shape of the input image (width, height).
             title (str): Title of the chart.
             x_label (str): Label for the x-axis.
@@ -40,9 +45,11 @@ class Analytics:
             fg_color (str): Foreground (text) color of the chart.
             line_color (str): Line color for line charts.
             line_width (int): Width of the lines in line charts.
+            points_width (int): Width of line points highlighter
             fontsize (int): Font size for chart text.
             view_img (bool): Whether to display the image.
             save_img (bool): Whether to save the image.
+            max_points (int): Specifies when to remove the oldest points in a graph for multiple lines.
         """
 
         self.bg_color = bg_color
@@ -51,18 +58,27 @@ class Analytics:
         self.save_img = save_img
         self.title = title
         self.writer = writer
+        self.max_points = max_points
+        self.line_color = line_color
+        self.x_label = x_label
+        self.y_label = y_label
+        self.points_width = points_width
+        self.line_width = line_width
+        self.fontsize = fontsize
 
         # Set figure size based on image shape
         figsize = (im0_shape[0] / 100, im0_shape[1] / 100)
 
-        if type == "line":
-            # Initialize line plot
-            fig = Figure(facecolor=self.bg_color, figsize=figsize)
-            self.canvas = FigureCanvas(fig)
-            self.ax = fig.add_subplot(111, facecolor=self.bg_color)
-            (self.line,) = self.ax.plot([], [], color=line_color, linewidth=line_width)
+        if type in {"line", "area"}:
+            # Initialize line or area plot
+            self.lines = {}
+            self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
+            self.canvas = FigureCanvas(self.fig)
+            self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
+            if type == "line":
+                (self.line,) = self.ax.plot([], [], color=self.line_color, linewidth=self.line_width)
 
-        elif type == "bar" or type == "pie":
+        elif type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.ax.set_facecolor(self.bg_color)
@@ -86,10 +102,72 @@ class Analytics:
             self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=fontsize)
-        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=fontsize - 3)
-        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=fontsize - 3)
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
+        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 3)
+        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.tick_params(axis="both", colors=self.fg_color)
+
+    def update_area(self, frame_number, counts_dict):
+        """
+        Update the area graph with new data for multiple classes.
+
+        Args:
+            frame_number (int): The current frame number.
+            counts_dict (dict): Dictionary with class names as keys and counts as values.
+        """
+
+        x_data = np.array([])
+        y_data_dict = {key: np.array([]) for key in counts_dict.keys()}
+
+        if self.ax.lines:
+            x_data = self.ax.lines[0].get_xdata()
+            for line, key in zip(self.ax.lines, counts_dict.keys()):
+                y_data_dict[key] = line.get_ydata()
+
+        x_data = np.append(x_data, float(frame_number))
+        max_length = len(x_data)
+
+        for key in counts_dict.keys():
+            y_data_dict[key] = np.append(y_data_dict[key], float(counts_dict[key]))
+            if len(y_data_dict[key]) < max_length:
+                y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
+
+        # Remove the oldest points if the number of points exceeds max_points
+        if len(x_data) > self.max_points:
+            x_data = x_data[1:]
+            for key in counts_dict.keys():
+                y_data_dict[key] = y_data_dict[key][1:]
+
+        self.ax.clear()
+
+        colors = ["#E1FF25", "#0BDBEB", "#FF64DA", "#111F68", "#042AFF"]
+        color_cycle = cycle(colors)
+
+        for key, y_data in y_data_dict.items():
+            color = next(color_cycle)
+            self.ax.fill_between(x_data, y_data, color=color, alpha=0.6)
+            self.ax.plot(
+                x_data,
+                y_data,
+                color=color,
+                linewidth=self.line_width,
+                marker="o",
+                markersize=self.points_width,
+                label=f"{key} Data Points",
+            )
+
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
+        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
+        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.fg_color)
+
+        # Set legend text color
+        for text in legend.get_texts():
+            text.set_color(self.fg_color)
+
+        self.canvas.draw()
+        im0 = np.array(self.canvas.renderer.buffer_rgba())
+        self.write_and_display(im0)
 
     def update_line(self, frame_number, total_counts):
         """
@@ -110,9 +188,51 @@ class Analytics:
         self.ax.autoscale_view()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
+        self.write_and_display(im0)
 
-        # Display and save the updated graph
+    def update_multiple_lines(self, counts_dict, labels_list, frame_number):
+        """
+        Update the line graph with multiple classes.
+
+        Args:
+            counts_dict (int): Dictionary include each class counts.
+            labels_list (int): list include each classes names.
+            frame_number (int): The current frame number.
+        """
+        warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
+        for obj in labels_list:
+            if obj not in self.lines:
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.points_width)
+                self.lines[obj] = line
+
+            x_data = self.lines[obj].get_xdata()
+            y_data = self.lines[obj].get_ydata()
+
+            # Remove the initial point if the number of points exceeds max_points
+            if len(x_data) >= self.max_points:
+                x_data = np.delete(x_data, 0)
+                y_data = np.delete(y_data, 0)
+
+            x_data = np.append(x_data, float(frame_number))  # Ensure frame_number is converted to float
+            y_data = np.append(y_data, float(counts_dict.get(obj, 0)))  # Ensure total_count is converted to float
+            self.lines[obj].set_data(x_data, y_data)
+
+        self.ax.relim()
+        self.ax.autoscale_view()
+        self.ax.legend()
+        self.canvas.draw()
+
+        im0 = np.array(self.canvas.renderer.buffer_rgba())
+        self.view_img = False  # for multiple line view_img not supported yet, coming soon!
+        self.write_and_display(im0)
+
+    def write_and_display(self, im0):
+        """
+        Write and display the line graph
+        Args:
+            im0 (ndarray): Image for processing
+        """
+        im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         cv2.imshow(self.title, im0) if self.view_img else None
         self.writer.write(im0) if self.save_img else None
 
@@ -153,10 +273,7 @@ class Analytics:
         canvas.draw()
         buf = canvas.buffer_rgba()
         im0 = np.asarray(buf)
-        im0 = cv2.cvtColor(im0, cv2.COLOR_RGBA2BGR)
-
-        self.writer.write(im0) if self.save_img else None
-        cv2.imshow(self.title, im0) if self.view_img else None
+        self.write_and_display(im0)
 
     def update_pie(self, classes_dict):
         """
@@ -188,9 +305,7 @@ class Analytics:
         # Display and save the updated chart
         im0 = self.fig.canvas.draw()
         im0 = np.array(self.fig.canvas.renderer.buffer_rgba())
-        im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-        self.writer.write(im0) if self.save_img else None
-        cv2.imshow(self.title, im0) if self.view_img else None
+        self.write_and_display(im0)
 
 
 if __name__ == "__main__":

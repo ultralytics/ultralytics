@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use oriented object detection models with Ultralytics YOLO. Instructions on training, validation, image prediction, and model export.
-keywords: yolov8, oriented object detection, Ultralytics, DOTA dataset, rotated object detection, object detection, model training, model validation, image prediction, model export
+description: Discover how to detect objects with rotation for higher precision using YOLOv8 OBB models. Learn, train, validate, and export OBB models effortlessly.
+keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLOv8, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning
 ---
 
 # Oriented Bounding Boxes Object Detection

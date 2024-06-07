@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use Ultralytics YOLOv8 for pose estimation tasks. Find pretrained models, learn how to train, validate, predict, and export your own.
-keywords: Ultralytics, YOLO, YOLOv8, pose estimation, keypoints detection, object detection, pre-trained models, machine learning, artificial intelligence
+description: Discover how to use YOLOv8 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
+keywords: pose estimation, YOLOv8, Ultralytics, keypoints, model training, image recognition, deep learning
 ---
 
 # Pose Estimation

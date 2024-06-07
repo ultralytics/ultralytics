@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Caltech-256 dataset, a diverse collection of images used for object recognition tasks in machine learning. Learn to train a YOLO model on the dataset.
-keywords: Ultralytics, YOLO, Caltech-256, dataset, object recognition, machine learning, computer vision, deep learning
+description: Explore the Caltech-256 dataset, featuring 30,000 images across 257 categories, ideal for training and testing object recognition algorithms.
+keywords: Caltech-256 dataset, object classification, image dataset, machine learning, computer vision, deep learning, YOLO, training dataset
 ---
 
 # Caltech-256 Dataset
@@ -36,10 +36,10 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='caltech256', epochs=100, imgsz=416)
+        results = model.train(data="caltech256", epochs=100, imgsz=416)
         ```
 
     === "CLI"

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO including examples of single-GPU and multi-GPU training
-keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
+description: Learn how to efficiently train object detection models using YOLOv8 with comprehensive instructions on settings, augmentation, and hardware utilization.
+keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -47,7 +47,7 @@ The following are some notable features of YOLOv8's Train mode:
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used. See Arguments section below for a full list of training arguments.
+Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
 !!! Example "Single-GPU and CPU Training Example"
 
@@ -59,25 +59,25 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The train
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ### Multi-GPU Training
@@ -94,17 +94,17 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
         ```
 
 ### Apple M1 and M2 MPS Training
@@ -121,17 +121,17 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
         ```
 
 While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
@@ -154,7 +154,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/last.pt')  # load a partially trained model
+        model = YOLO("path/to/last.pt")  # load a partially trained model
 
         # Resume training
         results = model.train(resume=True)
@@ -178,7 +178,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | Argument          | Default  | Description                                                                                                                                                                                                          |
 |-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `model`           | `None`   | Specifies the model file for training. Accepts a path to either a `.pt` pretrained model or a `.yaml` configuration file. Essential for defining the model structure or initializing weights.                        |
-| `data`            | `None`   | Path to the dataset configuration file (e.g., `coco128.yaml`). This file contains dataset-specific parameters, including paths to training and validation data, class names, and number of classes.                  |
+| `data`            | `None`   | Path to the dataset configuration file (e.g., `coco8.yaml`). This file contains dataset-specific parameters, including paths to training and validation data, class names, and number of classes.                    |
 | `epochs`          | `100`    | Total number of training epochs. Each epoch represents a full pass over the entire dataset. Adjusting this value can affect training duration and model performance.                                                 |
 | `time`            | `None`   | Maximum training time in hours. If set, this overrides the `epochs` argument, allowing training to automatically stop after the specified duration. Useful for time-constrained training scenarios.                  |
 | `patience`        | `100`    | Number of epochs to wait without improvement in validation metrics before early stopping the training. Helps prevent overfitting by stopping training when performance plateaus.                                     |

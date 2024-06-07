@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the architecture of YOLOv5, an object detection algorithm by Ultralytics. Understand the model structure, data augmentation methods, training strategies, and loss computation techniques.
-keywords: Ultralytics, YOLOv5, Object Detection, Architecture, Model Structure, Data Augmentation, Training Strategies, Loss Computation
+description: Dive deep into the powerful YOLOv5 architecture by Ultralytics, exploring its model structure, data augmentation techniques, training strategies, and loss computations.
+keywords: YOLOv5 architecture, object detection, Ultralytics, YOLO, model structure, data augmentation, training strategies, loss computations, deep learning, machine learning
 ---
 
 # Ultralytics YOLOv5 Architecture
@@ -32,18 +32,21 @@ To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 ```python
 import time
+
 import torch
 import torch.nn as nn
 
 
 class SPP(nn.Module):
     def __init__(self):
+        """Initializes an SPP module with three different sizes of max pooling layers."""
         super().__init__()
         self.maxpool1 = nn.MaxPool2d(5, 1, padding=2)
         self.maxpool2 = nn.MaxPool2d(9, 1, padding=4)
         self.maxpool3 = nn.MaxPool2d(13, 1, padding=6)
 
     def forward(self, x):
+        """Applies three max pooling layers on input `x` and concatenates results along channel dimension."""
         o1 = self.maxpool1(x)
         o2 = self.maxpool2(x)
         o3 = self.maxpool3(x)
@@ -52,10 +55,12 @@ class SPP(nn.Module):
 
 class SPPF(nn.Module):
     def __init__(self):
+        """Initializes an SPPF module with a specific configuration of MaxPool2d layer."""
         super().__init__()
         self.maxpool = nn.MaxPool2d(5, 1, padding=2)
 
     def forward(self, x):
+        """Applies sequential max pooling and concatenates results with input tensor; expects input tensor x of any shape."""
         o1 = self.maxpool(x)
         o2 = self.maxpool(o1)
         o3 = self.maxpool(o2)
@@ -63,6 +68,7 @@ class SPPF(nn.Module):
 
 
 def main():
+    """Compares outputs and performance of SPP and SPPF on a random tensor (8, 32, 16, 16)."""
     input_tensor = torch.rand(8, 32, 16, 16)
     spp = SPP()
     sppf = SPPF()
@@ -82,7 +88,7 @@ def main():
     print(f"SPPF time: {time.time() - t_start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 

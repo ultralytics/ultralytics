@@ -1,12 +1,23 @@
 ---
 comments: true
-description: Discover YOLOv9, the latest addition to the real-time object detection arsenal, leveraging Programmable Gradient Information and GELAN architecture for unparalleled performance.
-keywords: YOLOv9, real-time object detection, Programmable Gradient Information, GELAN architecture, Ultralytics, MS COCO dataset, open-source, lightweight model, computer vision, AI
+description: Explore YOLOv9, the latest leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
+keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
 ---
 
 # YOLOv9: A Leap Forward in Object Detection Technology
 
 YOLOv9 marks a significant advancement in real-time object detection, introducing groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates remarkable improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the MS COCO dataset. The YOLOv9 project, while developed by a separate open-source team, builds upon the robust codebase provided by [Ultralytics](https://ultralytics.com) [YOLOv5](yolov5.md), showcasing the collaborative spirit of the AI research community.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZF7EAodHn1U"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
+</p>
 
 ![YOLOv9 performance comparison](https://github.com/ultralytics/ultralytics/assets/26833433/9f41ef7b-6008-43eb-8ba1-0a9b89600100)
 
@@ -71,15 +82,15 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
         | YOLOv9t                                                                               | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
         | YOLOv9s                                                                               | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
         | YOLOv9m                                                                               | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
-        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
-        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
+        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
 
     === "Segmentation (COCO)"
 
         | Model                                                                                         | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
         |-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------|-------------------|
-        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
-        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
+        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
 
@@ -110,19 +121,19 @@ This example provides simple YOLOv9 training and inference examples. For full do
         from ultralytics import YOLO
 
         # Build a YOLOv9c model from scratch
-        model = YOLO('yolov9c.yaml')
+        model = YOLO("yolov9c.yaml")
 
         # Build a YOLOv9c model from pretrained weight
-        model = YOLO('yolov9c.pt')
+        model = YOLO("yolov9c.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv9c model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

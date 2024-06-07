@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand the YOLO pose dataset format and learn to use Ultralytics datasets to train your pose estimation models effectively.
-keywords: Ultralytics, YOLO, pose estimation, datasets, training, YAML, keypoints, COCO-Pose, COCO8-Pose, data conversion
+description: Learn about Ultralytics YOLO format for pose estimation datasets, supported formats, COCO-Pose, COCO8-Pose, Tiger-Pose, and how to add your own dataset.
+keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Tiger-Pose, dataset conversion, keypoints
 ---
 
 # Pose Estimation Datasets Overview
@@ -72,16 +72,16 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo detect train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -132,7 +132,7 @@ Ultralytics provides a convenient conversion tool to convert labels from the pop
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
+        convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
         ```
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The `use_keypoints` parameter specifies whether to include keypoints (for pose estimation) in the converted labels.

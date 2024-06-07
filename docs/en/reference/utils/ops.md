@@ -1,6 +1,6 @@
 ---
-description: Explore detailed documentation for Ultralytics utility operations. Learn about methods like segment2box, make_divisible, clip_boxes, and many more.
-keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, clip_boxes, scale_image, xywh2xyxy, xyxy2xywhn, xywh2ltwh, ltwh2xywh, segments2boxes, crop_mask, process_mask, scale_masks, masks2segments
+description: Explore detailed documentation on utility operations in Ultralytics including non-max suppression, bounding box transformations, and more.
+keywords: Ultralytics, utility operations, non-max suppression, bounding box transformations, YOLOv8, machine learning
 ---
 
 # Reference for `ultralytics/utils/ops.py`

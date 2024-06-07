@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Object Counting in Different Region using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to use Ultralytics YOLOv8 for precise object counting in specified regions, enhancing efficiency across various applications.
+keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring
 ---
 
 # Object Counting in Different Regions using Ultralytics YOLOv8 🚀
 
 ## What is Object Counting in Regions?
 
-[Object counting](https://docs.ultralytics.com/guides/object-counting/) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
+[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
 
 <p align="center">
   <br>

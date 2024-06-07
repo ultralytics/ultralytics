@@ -9,6 +9,7 @@ import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
+from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -19,12 +20,9 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
+from ultralytics.utils import LINUX, RANK, colorstr
 from ultralytics.utils.checks import check_file
-
-from .dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
-from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -130,7 +128,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    nw = min([os.cpu_count() // max(nd, 1), workers])  # number of workers
+    nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)

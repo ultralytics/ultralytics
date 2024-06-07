@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get an overview of YOLOv3, YOLOv3-Ultralytics and YOLOv3u. Learn about their key features, usage, and supported tasks for object detection.
-keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Object Detection, Inference, Training, Ultralytics
+description: Discover YOLOv3 and its variants YOLOv3-Ultralytics and YOLOv3u. Learn about their features, implementations, and support for object detection tasks.
+keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, computer vision, AI models, deep learning
 ---
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u
@@ -54,16 +54,16 @@ This example provides simple YOLOv3 training and inference examples. For full do
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLOv3n model
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv3n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

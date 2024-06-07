@@ -23,7 +23,6 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
-    IS_DOCKER,
     IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -322,17 +321,18 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0") -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
 
 
 @TryExcept()
@@ -382,6 +382,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
+    @Retry(times=2, delay=1)
+    def attempt_install(packages, commands):
+        """Attempt pip install command with retries on failure."""
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
@@ -390,8 +395,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
-                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -419,7 +423,14 @@ def check_torchvision():
     """
 
     # Compatibility table
-    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+    compatibility_table = {
+        "2.3": ["0.18"],
+        "2.2": ["0.17"],
+        "2.1": ["0.16"],
+        "2.0": ["0.15"],
+        "1.13": ["0.14"],
+        "1.12": ["0.13"],
+    }
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
@@ -521,14 +532,15 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not IS_DOCKER and not IS_COLAB and not IS_KAGGLE
+            assert not IS_COLAB and not IS_KAGGLE
+            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -727,4 +739,5 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

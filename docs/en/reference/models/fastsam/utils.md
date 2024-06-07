@@ -1,6 +1,6 @@
 ---
-description: Learn how to adjust bounding boxes to image borders in Ultralytics models using the bbox_iou utility. Enhance your object detection performance.
-keywords: Ultralytics, bounding boxes, Bboxes, image borders, object detection, bbox_iou, model utilities
+description: Explore the utility functions in FastSAM for adjusting bounding boxes and calculating IoU, benefiting computer vision projects.
+keywords: FastSAM, bounding boxes, IoU, Ultralytics, image processing, computer vision
 ---
 
 # Reference for `ultralytics/models/fastsam/utils.py`

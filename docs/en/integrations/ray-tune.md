@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Discover how to streamline hyperparameter tuning for YOLOv8 models with Ray Tune. Learn to accelerate tuning, integrate with Weights & Biases, and analyze results.
-keywords: Ultralytics, YOLOv8, Ray Tune, hyperparameter tuning, machine learning optimization, Weights & Biases integration, result analysis
+description: Optimize YOLOv8 model performance with Ray Tune. Learn efficient hyperparameter tuning using advanced search strategies, parallelism, and early stopping.
+keywords: YOLOv8, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
 # Efficient Hyperparameter Tuning with Ray Tune and YOLOv8
 
-Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial’s performance.
+Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
 ## Accelerate Tuning with Ultralytics YOLOv8 and Ray Tune
 
@@ -34,7 +34,7 @@ To install the required packages, run:
 
         ```bash
         # Install and update Ultralytics and Ray Tune packages
-        pip install -U ultralytics "ray[tune]<=2.9.3"
+        pip install -U ultralytics "ray[tune]"
 
         # Optionally install W&B for logging
         pip install wandb
@@ -50,10 +50,10 @@ To install the required packages, run:
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        result_grid = model.tune(data="coco8.yaml", use_ray=True)
         ```
 
 ## `tune()` Method Parameters
@@ -112,13 +112,15 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model
-    result_grid = model.tune(data="coco128.yaml",
-                             space={"lr0": tune.uniform(1e-5, 1e-1)},
-                             epochs=50,
-                             use_ray=True)
+    result_grid = model.tune(
+        data="coco8.yaml",
+        space={"lr0": tune.uniform(1e-5, 1e-1)},
+        epochs=50,
+        use_ray=True,
+    )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
 ## Processing Ray Tune Results
 
@@ -164,10 +166,14 @@ You can plot the history of reported metrics for each trial to see how the metri
 import matplotlib.pyplot as plt
 
 for result in result_grid:
-    plt.plot(result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}")
+    plt.plot(
+        result.metrics_dataframe["training_iteration"],
+        result.metrics_dataframe["mean_accuracy"],
+        label=f"Trial {i}",
+    )
 
-plt.xlabel('Training Iterations')
-plt.ylabel('Mean Accuracy')
+plt.xlabel("Training Iterations")
+plt.ylabel("Mean Accuracy")
 plt.legend()
 plt.show()
 ```
@@ -176,4 +182,4 @@ plt.show()
 
 In this documentation, we covered common workflows to analyze the results of experiments run with Ray Tune using Ultralytics. The key steps include loading the experiment results from a directory, performing basic experiment-level and trial-level analysis and plotting metrics.
 
-Explore further by looking into Ray Tune’s [Analyze Results](https://docs.ray.io/en/latest/tune/examples/tune_analyze_results.html) docs page to get the most out of your hyperparameter tuning experiments.
+Explore further by looking into Ray Tune's [Analyze Results](https://docs.ray.io/en/latest/tune/examples/tune_analyze_results.html) docs page to get the most out of your hyperparameter tuning experiments.

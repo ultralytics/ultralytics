@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide to troubleshooting common issues encountered while working with YOLOv8 in the Ultralytics ecosystem.
-keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Data, Model Performance, Hyperparameter Tuning, Deployment
+description: Comprehensive guide to troubleshoot common YOLOv8 issues, from installation errors to model training challenges. Enhance your Ultralytics projects with our expert tips.
+keywords: YOLO, YOLOv8, troubleshooting, installation errors, model training, GPU issues, Ultralytics, AI, computer vision, deep learning, Python, CUDA, PyTorch, debugging
 ---
 
 # Troubleshooting Common YOLO Issues
@@ -13,6 +13,17 @@ keywords: Troubleshooting, Ultralytics, YOLOv8, Installation Errors, Training Da
 ## Introduction
 
 This guide serves as a comprehensive aid for troubleshooting common issues encountered while working with YOLOv8 on your Ultralytics projects. Navigating through these issues can be a breeze with the right guidance, ensuring your projects remain on track without unnecessary delays.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/TG9exsBlkDE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLOv8 Common Issues | Installation Errors, Model Training Issues
+</p>
 
 ## Common Issues
 
@@ -68,7 +79,7 @@ This section will address common issues faced while training and their respectiv
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
 ```python
-model.train(data='/path/to/your/data.yaml', batch=4)
+model.train(data="/path/to/your/data.yaml", batch=4)
 ```
 
 #### Accelerating Training with Multiple GPUs
@@ -87,7 +98,7 @@ model.train(data='/path/to/your/data.yaml', batch=4)
 
 ```python
 # Adjust the batch size and other settings as needed to optimize training speed
-model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
+model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
 ```
 
 #### Continuous Monitoring Parameters
@@ -172,7 +183,7 @@ This section will address common issues faced during model prediction.
 
 **Solution**:
 
-- Coordinate Format: YOLOv8 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let’s say your image size is 640x640. Then you would do the following:
+- Coordinate Format: YOLOv8 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
 ```python
 # Convert absolute coordinates to relative coordinates
@@ -210,10 +221,10 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 from ultralytics import YOLO
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = YOLO("yolov8n.pt")
 
 # Specify the source image
-source = 'https://ultralytics.com/images/bus.jpg'
+source = "https://ultralytics.com/images/bus.jpg"
 
 # Make predictions
 results = model.predict(source, save=True, imgsz=320, conf=0.5)
@@ -257,7 +268,7 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 ### Forums and Channels for Getting Help
 
-**GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it’s a great place to get help with specific problems.
+**GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and the developers.
 

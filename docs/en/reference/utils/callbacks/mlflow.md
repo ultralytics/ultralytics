@@ -1,6 +1,6 @@
 ---
-description: Understand routines at the end of pre-training and training in Ultralytics. Elevate your MLflow callbacks expertise.
-keywords: Ultralytics, MLflow, Callbacks, on_pretrain_routine_end, on_train_end, Machine Learning, Training
+description: Learn how to set up and customize MLflow logging for Ultralytics YOLO. Log metrics, parameters, and model artifacts easily.
+keywords: MLflow, Ultralytics YOLO, logging, metrics, parameters, model artifacts, setup, tracking, customization
 ---
 
 # Reference for `ultralytics/utils/callbacks/mlflow.py`

@@ -1,14 +1,13 @@
 ---
 comments: true
-description: Discover the features and benefits of RT-DETR, Baidu’s efficient and adaptable real-time object detector powered by Vision Transformers, including pre-trained models.
-keywords: RT-DETR, Baidu, Vision Transformers, object detection, real-time performance, CUDA, TensorRT, IoU-aware query selection, Ultralytics, Python API, PaddlePaddle
+description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pre-trained models, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision Transformer-Based Real-Time Object Detector
 
 ## Overview
-
-Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge end-to-end object detector that provides real-time performance while maintaining high accuracy. It leverages the power of Vision Transformers (ViT) to efficiently process multiscale features by decoupling intra-scale interaction and cross-scale fusion. RT-DETR is highly adaptable, supporting flexible adjustment of inference speed using different decoder layers without retraining. The model excels on accelerated backends like CUDA with TensorRT, outperforming many other real-time object detectors.
+Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge end-to-end object detector that provides real-time performance while maintaining high accuracy. It is based on the idea of DETR (the NMS-free framework), meanwhile introducing conv-based backbone and an efficient hybrid encoder to gain real-time speed. RT-DETR efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. The model is highly adaptable, supporting flexible adjustment of inference speed using different decoder layers without retraining. RT-DETR excels on accelerated backends like CUDA with TensorRT, outperforming many other real-time object detectors.
 
 <p align="center">
   <br>
@@ -48,16 +47,16 @@ This example provides simple RT-DETR training and inference examples. For full d
         from ultralytics import RTDETR
 
         # Load a COCO-pretrained RT-DETR-l model
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -76,8 +75,8 @@ This table presents the model types, the specific pre-trained weights, the tasks
 
 | Model Type          | Pre-trained Weights                                                                       | Tasks Supported                        | Inference | Validation | Training | Export |
 |---------------------|-------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
 ## Citations and Acknowledgements
 

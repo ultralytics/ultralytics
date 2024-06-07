@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into hyperparameter tuning in Ultralytics YOLO models. Learn how to optimize performance using the Tuner class and genetic evolution.
-keywords: Ultralytics, YOLO, Hyperparameter Tuning, Tuner Class, Genetic Evolution, Optimization
+description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!.
+keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
 # Ultralytics YOLO Hyperparameter Tuning Guide
@@ -77,10 +77,10 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
         from ultralytics import YOLO
 
         # Initialize the YOLO model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Tune hyperparameters on COCO8 for 30 epochs
-        model.tune(data='coco8.yaml', epochs=30, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
 ## Results

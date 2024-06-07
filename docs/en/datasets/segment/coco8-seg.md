@@ -1,7 +1,7 @@
 ---
 comments: true
-description: 'Discover the COCO8-Seg: a compact but versatile instance segmentation dataset ideal for testing Ultralytics YOLOv8 detection approaches. Complete usage guide included.'
-keywords: COCO8-Seg dataset, Ultralytics, YOLOv8, instance segmentation, dataset configuration, YAML, YOLOv8n-seg model, mosaiced dataset images
+description: Discover the versatile and manageable COCO8-Seg dataset by Ultralytics, ideal for testing and debugging segmentation models or new detection approaches.
+keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLOv8, COCO 2017, model training, computer vision, dataset configuration
 ---
 
 # COCO8-Seg Dataset
@@ -34,10 +34,10 @@ To train a YOLOv8n-seg model on the COCO8-Seg dataset for 100 epochs with an ima
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco8-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

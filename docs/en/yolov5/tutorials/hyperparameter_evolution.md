@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to optimize YOLOv5 with hyperparameter evolution using Genetic Algorithm. This guide provides steps to initialize, define, evolve and visualize hyperparameters for top performance.
-keywords: Ultralytics, YOLOv5, Hyperparameter Optimization, Genetic Algorithm, Machine Learning, Deep Learning, AI, Object Detection, Image Classification, Python
+description: Learn how to optimize YOLOv5 hyperparameters using genetic algorithms for improved training performance. Step-by-step instructions included.
+keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning, optimization, Ultralytics
 ---
 
 📚 This guide explains **hyperparameter evolution** for YOLOv5 🚀. Hyperparameter evolution is a method of [Hyperparameter Optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization.
@@ -65,7 +65,7 @@ Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness 
 
 ```python
 def fitness(x):
-    # Model fitness as a weighted combination of metrics
+    """Evaluates model fitness by summing weighted metrics [P, R, mAP@0.5, mAP@0.5:0.95], x is a numpy array of shape (n, 4)."""
     w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
     return (x[:, :4] * w).sum(1)
 ```

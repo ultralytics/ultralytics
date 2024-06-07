@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics YOLO's advanced Heatmaps feature designed to highlight areas of interest, providing an immediate, impactful way to interpret spatial information.
-keywords: Ultralytics, YOLO, heatmaps, object tracking, data visualization, real-time tracking, machine learning, object counting, computer vision, retail analytics, YOLOv8, artificial intelligence
+description: Learn how to use the Ultralytics Heatmap module for real-time video analysis with object tracking and heatmap generation.
+keywords: Ultralytics, Heatmap, Python, Real-time Video, Object Tracking, cv2, Shapely, Computer Vision, AI
 ---
 
 # Reference for `ultralytics/solutions/heatmap.py`

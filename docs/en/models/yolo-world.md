@@ -1,12 +1,23 @@
 ---
 comments: true
-description: Discover YOLO-World, a YOLOv8-based framework for real-time open-vocabulary object detection in images. It enhances user interaction, boosts computational efficiency, and adapts across various vision tasks.
-keywords: YOLO-World, YOLOv8, machine learning, CNN-based framework, object detection, real-time detection, Ultralytics, vision tasks, image processing, industrial applications, user interaction
+description: Explore the YOLO-World Model for efficient, real-time open-vocabulary object detection using Ultralytics YOLOv8 advancements. Achieve top performance with minimal computation.
+keywords: YOLO-World, Ultralytics, open-vocabulary detection, YOLOv8, real-time object detection, machine learning, computer vision, AI, deep learning, model training
 ---
 
 # YOLO-World Model
 
 The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ultralytics.com) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/cfTKj96TjSE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO World training workflow on custom dataset
+</p>
 
 ![YOLO-World Model architecture overview](https://github.com/ultralytics/ultralytics/assets/26833433/31105058-78c1-43ef-9573-4f41b06df531)
 
@@ -38,14 +49,14 @@ This section details the models available with their specific pre-trained weight
 
 | Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
 |-----------------|---------------------------------------------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
-| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ❌      |
-| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ❌        | ✅      |
+| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ❌      |
+| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
 
 ## Zero-shot Transfer on COCO Dataset
 
@@ -81,13 +92,13 @@ Object detection is straightforward with the `train` method, as illustrated belo
         from ultralytics import YOLOWorld
 
         # Load a pretrained YOLOv8s-worldv2 model
-        model = YOLOWorld('yolov8s-worldv2.pt')
+        model = YOLOWorld("yolov8s-worldv2.pt")
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -109,10 +120,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOWorld
 
         # Initialize a YOLO-World model
-        model = YOLOWorld('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLOWorld("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Execute inference with the YOLOv8s-world model on the specified image
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -139,10 +150,10 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLO
 
         # Create a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt for different sizes
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data='coco8.yaml')
+        metrics = model.val(data="coco8.yaml")
         ```
 
     === "CLI"
@@ -150,6 +161,31 @@ Model validation on a dataset is streamlined as follows:
         ```bash
         # Validate a YOLO-World model on the COCO8 dataset with a specified image size
         yolo val model=yolov8s-world.pt data=coco8.yaml imgsz=640
+        ```
+
+### Track Usage
+
+Object tracking with YOLO-World model on a video/images is streamlined as follows:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Create a YOLO-World model
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
+
+        # Track with a YOLO-World model on a video
+        results = model.track(source="path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Track with a YOLO-World model on the video with a specified image size
+        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
         ```
 
 !!! Note
@@ -172,13 +208,13 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
         from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or choose yolov8m/l-world.pt
-        
+        model = YOLO("yolov8s-world.pt")  # or choose yolov8m/l-world.pt
+
         # Define custom classes
         model.set_classes(["person", "bus"])
 
         # Execute prediction for specified categories on an image
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -196,8 +232,8 @@ You can also save a model after setting custom classes. By doing this you create
         from ultralytics import YOLO
 
         # Initialize a YOLO-World model
-        model = YOLO('yolov8s-world.pt')  # or select yolov8m/l-world.pt
-        
+        model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt
+
         # Define custom classes
         model.set_classes(["person", "bus"])
 
@@ -211,10 +247,10 @@ You can also save a model after setting custom classes. By doing this you create
         from ultralytics import YOLO
 
         # Load your custom model
-        model = YOLO('custom_yolov8s.pt')
+        model = YOLO("custom_yolov8s.pt")
 
         # Run inference to detect your custom classes
-        results = model.predict('path/to/image.jpg')
+        results = model.predict("path/to/image.jpg")
 
         # Show results
         results[0].show()
@@ -258,8 +294,8 @@ This approach provides a powerful means of customizing state-of-the-art object d
     === "Python"
 
         ```python
-        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
         from ultralytics import YOLOWorld
+        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
         data = dict(
             train=dict(
@@ -279,7 +315,6 @@ This approach provides a powerful means of customizing state-of-the-art object d
         )
         model = YOLOWorld("yolov8s-worldv2.yaml")
         model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
-
         ```
 
 ## Citations and Acknowledgements

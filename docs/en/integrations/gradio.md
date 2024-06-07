@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to use Gradio and Ultralytics YOLOv8 for interactive object detection. Upload images and adjust detection parameters in real-time.
-keywords: Gradio, Ultralytics YOLOv8, object detection, interactive AI, Python
+description: Discover an interactive way to perform object detection with Ultralytics YOLOv8 using Gradio. Upload images and adjust settings for real-time results.
+keywords: Ultralytics, YOLOv8, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
 # Interactive Object Detection: Gradio & Ultralytics YOLOv8 🚀
@@ -44,15 +44,15 @@ pip install gradio
 This section provides the Python code used to create the Gradio interface with the Ultralytics YOLOv8 model. Supports classification tasks, detection tasks, segmentation tasks, and key point tasks.
 
 ```python
-import PIL.Image as Image
 import gradio as gr
-
+import PIL.Image as Image
 from ultralytics import ASSETS, YOLO
 
 model = YOLO("yolov8n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
+    """Predicts and plots labeled objects in an image using YOLOv8 model with adjustable confidence and IOU thresholds."""
     results = model.predict(
         source=img,
         conf=conf_threshold,
@@ -74,7 +74,7 @@ iface = gr.Interface(
     inputs=[
         gr.Image(type="pil", label="Upload Image"),
         gr.Slider(minimum=0, maximum=1, value=0.25, label="Confidence threshold"),
-        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold")
+        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
@@ -82,10 +82,10 @@ iface = gr.Interface(
     examples=[
         [ASSETS / "bus.jpg", 0.25, 0.45],
         [ASSETS / "zidane.jpg", 0.25, 0.45],
-    ]
+    ],
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     iface.launch()
 ```
 

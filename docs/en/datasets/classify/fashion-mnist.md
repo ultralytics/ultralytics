@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use the Fashion-MNIST dataset for image classification with the Ultralytics YOLO model. Covers dataset structure, labels, applications, and usage.
-keywords: Ultralytics, YOLO, Fashion-MNIST, dataset, image classification, machine learning, deep learning, neural networks, training, testing
+description: Explore the Fashion-MNIST dataset, a modern replacement for MNIST with 70,000 Zalando article images. Ideal for benchmarking machine learning models.
+keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning, deep learning, CNN, dataset overview
 ---
 
 # Fashion-MNIST Dataset
@@ -53,10 +53,10 @@ To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='fashion-mnist', epochs=100, imgsz=28)
+        results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
         ```
 
     === "CLI"

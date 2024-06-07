@@ -833,9 +833,7 @@ class Exporter:
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             )
-            + (("cmake", "onnxsim>=0.4.33")
-            if self.end2end
-            else ()),
+            + (("cmake", "onnxsim>=0.4.33") if self.end2end else ()),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 

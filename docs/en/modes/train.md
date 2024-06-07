@@ -182,7 +182,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `epochs`          | `100`    | Total number of training epochs. Each epoch represents a full pass over the entire dataset. Adjusting this value can affect training duration and model performance.                                                 |
 | `time`            | `None`   | Maximum training time in hours. If set, this overrides the `epochs` argument, allowing training to automatically stop after the specified duration. Useful for time-constrained training scenarios.                  |
 | `patience`        | `100`    | Number of epochs to wait without improvement in validation metrics before early stopping the training. Helps prevent overfitting by stopping training when performance plateaus.                                     |
-| `batch`           | `16`     | Batch size for training, indicating how many images are processed before the model's internal parameters are updated. AutoBatch (`batch=-1`) dynamically adjusts the batch size based on GPU memory availability.    |
+| `batch`           | `16`     | Batch size for training, number of images processed before updates made to the model's internal parameters. AutoBatch (`batch=-1`) adjusts batch size based on GPU memory capacity (see note on fractional values).  |
 | `imgsz`           | `640`    | Target image size for training. All images are resized to this dimension before being fed into the model. Affects model accuracy and computational complexity.                                                       |
 | `save`            | `True`   | Enables saving of training checkpoints and final model weights. Useful for resuming training or model deployment.                                                                                                    |
 | `save_period`     | `-1`     | Frequency of saving model checkpoints, specified in epochs. A value of -1 disables this feature. Useful for saving interim models during long training sessions.                                                     |
@@ -225,6 +225,10 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `dropout`         | `0.0`    | Dropout rate for regularization in classification tasks, preventing overfitting by randomly omitting units during training.                                                                                          |
 | `val`             | `True`   | Enables validation during training, allowing for periodic evaluation of model performance on a separate dataset.                                                                                                     |
 | `plots`           | `False`  | Generates and saves plots of training and validation metrics, as well as prediction examples, providing visual insights into model performance and learning progression.                                             |
+
+??? info "Fractional Values for AutoBatching"
+
+    Setting `batch=-1` estimates the batch size using a conservative amount of GPU memory to try to avoid an out of memory (OOM) error. For a more control on the GPU memory allocation for AutoBatch, it's possible to use a fractional value `(0.0, 1.0)`, such as `0.85` to target a higher fractional use of the total available GPU memory. Of course this runs the risk of causing an OOM error, but provides a means for more control on how the AutoBatch estimates the batch size for training.
 
 ## Augmentation Settings and Hyperparameters
 

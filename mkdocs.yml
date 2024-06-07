@@ -309,6 +309,7 @@ nav:
       - Model Deployment Options: guides/model-deployment-options.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+      - Patch-based Inference: guides/patch-based-inference.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Conda Quickstart: guides/conda-quickstart.md

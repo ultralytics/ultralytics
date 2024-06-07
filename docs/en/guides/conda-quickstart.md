@@ -102,12 +102,6 @@ sudo docker run -it --ipc=host --gpus all $t  # all GPUs
 sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
 ```
 
----
-
-Certainly, you can include the following section in your Conda guide to inform users about speeding up installation using `libmamba`:
-
----
-
 ## Speeding Up Installation with Libmamba
 
 If you're looking to [speed up the package installation](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community) process in Conda, you can opt to use `libmamba`, a fast, cross-platform, and dependency-aware package manager that serves as an alternative solver to Conda's default.

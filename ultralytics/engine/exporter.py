@@ -211,6 +211,9 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
+        elif edgetpu and self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
+            LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
+            self.args.batch = 1
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"

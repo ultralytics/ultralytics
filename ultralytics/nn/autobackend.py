@@ -348,7 +348,11 @@ class AutoBackend(nn.Module):
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
-            assert not (tflite and MACOS and self.end2end), (f"MacOS does not support TFLite end-2-end model inference.")  # github.com/ultralytics/ultralytics/issues/13436
+            assert not (
+                tflite and MACOS and self.end2end
+            ), (
+                f"MacOS does not support TFLite end-2-end model inference."
+            )  # github.com/ultralytics/ultralytics/issues/13436
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs

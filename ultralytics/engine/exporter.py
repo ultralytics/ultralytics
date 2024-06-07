@@ -930,7 +930,7 @@ class Exporter:
         """YOLOv8 TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
         assert not (MACOS and self.end2end), f"{prefix.strip(':')} export not supported on macOS for end-2-end models."
-        
+
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

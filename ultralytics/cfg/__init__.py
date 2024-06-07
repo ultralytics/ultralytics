@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import math
 import shutil
 import subprocess
 import sys
@@ -227,6 +228,9 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     # Type and Value checks
     check_cfg(cfg)
     assert any({b(cfg["batch"]) for b in BATCH_CHECK.values()}), f"Invalid 'batch={cfg['batch']}' value."
+    # When not training, ensure integer batch size
+    if cfg["mode"] != "train" and cfg["batch"] < 1:
+        cfg["batch"] = math.ceil(cfg["batch"])
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

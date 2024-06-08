@@ -247,19 +247,17 @@ class RF100Benchmark:
                 entries = [e.strip("\n") for e in entries]
                 start_class = False
                 for e in entries:
-                    if e == "all":
-                        if "(AP)" not in entries:
-                            if "(AR)" not in entries:
-                                # parse all
-                                eval = {}
-                                eval["class"] = entries[0]
-                                eval["images"] = entries[1]
-                                eval["targets"] = entries[2]
-                                eval["precision"] = entries[3]
-                                eval["recall"] = entries[4]
-                                eval["map50"] = entries[5]
-                                eval["map95"] = entries[6]
-                                eval_lines.append(eval)
+                    if e == "all" and "(AP)" not in entries and "(AR)" not in entries:
+                        eval = {
+                            "class": entries[0],
+                            "images": entries[1],
+                            "targets": entries[2],
+                            "precision": entries[3],
+                            "recall": entries[4],
+                            "map50": entries[5],
+                            "map95": entries[6],
+                        }
+                        eval_lines.append(eval)
 
                     if e in class_names:
                         eval = {}

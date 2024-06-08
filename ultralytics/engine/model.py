@@ -742,11 +742,10 @@ class Model(nn.Module):
 
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
-        else:
-            if not self.predictor:  # export formats will not have predictor defined until predict() is called
-                self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-                self.predictor.setup_model(model=self.model, verbose=False)
-            return self.predictor.model.names
+        if not self.predictor:  # export formats will not have predictor defined until predict() is called
+            self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+            self.predictor.setup_model(model=self.model, verbose=False)
+        return self.predictor.model.names
 
     @property
     def device(self) -> torch.device:

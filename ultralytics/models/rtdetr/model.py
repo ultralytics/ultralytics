@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 """
 Interface for Baidu's RT-DETR, a Vision Transformer-based real-time object detector. RT-DETR offers real-time
 performance and high accuracy, excelling in accelerated backends like CUDA with TensorRT. It features an efficient

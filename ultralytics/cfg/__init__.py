@@ -98,7 +98,6 @@ CLI_HELP_MSG = f"""
 CFG_FLOAT_KEYS = {"warmup_epochs", "box", "cls", "dfl", "degrees", "shear", "time", "workspace"}
 CFG_FRACTION_KEYS = {
     "dropout",
-    "iou",
     "lr0",
     "lrf",
     "momentum",
@@ -125,7 +124,7 @@ CFG_FRACTION_KEYS = {
 CFG_INT_KEYS = {
     "epochs",
     "patience",
-    "batch",
+    # "batch",
     "workers",
     "seed",
     "close_mosaic",

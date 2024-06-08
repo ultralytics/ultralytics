@@ -178,9 +178,9 @@ class BaseTrainer:
             if self.args.rect:
                 LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
-            if self.args.batch == -1:
+            if self.args.batch < 1.0:
                 LOGGER.warning(
-                    "WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                    "WARNING ⚠️ 'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting "
                     "default 'batch=16'"
                 )
                 self.args.batch = 16
@@ -269,12 +269,8 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         # Batch size
-        fractional = 0 < abs(self.batch_size) < 1
-        if (self.batch_size == -1 or fractional) and RANK == -1:  # single-GPU only, estimate best batch size
-            fractional = {"fractional": self.batch_size} if fractional else {}
-            self.args.batch = self.batch_size = check_train_batch_size(
-                self.model, self.args.imgsz, self.amp, **fractional
-            )
+        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)

@@ -246,19 +246,19 @@ class RF100Benchmark:
                 entries = line.split(" ")
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]
-                for e in entries:
-                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries):
-                        eval_lines.append(
-                            {
-                                "class": entries[0],
-                                "images": entries[1],
-                                "targets": entries[2],
-                                "precision": entries[3],
-                                "recall": entries[4],
-                                "map50": entries[5],
-                                "map95": entries[6],
-                            }
-                        )
+                eval_lines.extend(
+                    {
+                        "class": entries[0],
+                        "images": entries[1],
+                        "targets": entries[2],
+                        "precision": entries[3],
+                        "recall": entries[4],
+                        "map50": entries[5],
+                        "map95": entries[6],
+                    }
+                    for e in entries
+                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries)
+                )
         map_val = 0.0
         if len(eval_lines) > 1:
             print("There's more dicts")

@@ -208,9 +208,10 @@ class RF100Benchmark:
 
         return self.ds_names, self.ds_cfg_list
 
-    def fix_yaml(self, path):
+    @staticmethod
+    def fix_yaml(path):
         """
-        Function to fix yaml train and val path.
+        Function to fix YAML train and val path.
 
         Args:
             path (str): YAML file path.
@@ -245,30 +246,31 @@ class RF100Benchmark:
                 entries = line.split(" ")
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]
-                start_class = False
                 for e in entries:
                     if e == "all" and "(AP)" not in entries and "(AR)" not in entries:
-                        eval = {
-                            "class": entries[0],
-                            "images": entries[1],
-                            "targets": entries[2],
-                            "precision": entries[3],
-                            "recall": entries[4],
-                            "map50": entries[5],
-                            "map95": entries[6],
-                        }
-                        eval_lines.append(eval)
-
+                        eval_lines.append(
+                            {
+                                "class": entries[0],
+                                "images": entries[1],
+                                "targets": entries[2],
+                                "precision": entries[3],
+                                "recall": entries[4],
+                                "map50": entries[5],
+                                "map95": entries[6],
+                            }
+                        )
                     if e in class_names:
-                        eval = {}
-                        eval["class"] = entries[0]
-                        eval["images"] = entries[1]
-                        eval["targets"] = entries[2]
-                        eval["precision"] = entries[3]
-                        eval["recall"] = entries[4]
-                        eval["map50"] = entries[5]
-                        eval["map95"] = entries[6]
-                        eval_lines.append(eval)
+                        eval_lines.append(
+                            {
+                                "class": entries[0],
+                                "images": entries[1],
+                                "targets": entries[2],
+                                "precision": entries[3],
+                                "recall": entries[4],
+                                "map50": entries[5],
+                                "map95": entries[6],
+                            }
+                        )
         map_val = 0.0
         if len(eval_lines) > 1:
             print("There's more dicts")

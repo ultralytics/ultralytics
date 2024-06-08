@@ -43,7 +43,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
 
     # Check device
     prefix = colorstr("AutoBatch: ")
-    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz}")
+    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")
     device = next(model.parameters()).device  # get model device
     if device.type == "cpu":
         LOGGER.info(f"{prefix}CUDA not detected, using default CPU batch-size {batch_size}")

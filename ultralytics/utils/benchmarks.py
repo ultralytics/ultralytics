@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 """
 Benchmark a YOLO model formats for speed and accuracy.
 

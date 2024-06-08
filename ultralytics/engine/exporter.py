@@ -126,7 +126,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    """YOLOv8 export decorator, i..e @try_export."""
+    """YOLOv8 export decorator, i.e. @try_export."""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):

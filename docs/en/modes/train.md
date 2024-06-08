@@ -226,7 +226,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `val`             | `True`   | Enables validation during training, allowing for periodic evaluation of model performance on a separate dataset.                                                                                                     |
 | `plots`           | `False`  | Generates and saves plots of training and validation metrics, as well as prediction examples, providing visual insights into model performance and learning progression.                                             |
 
-!!! info "Note on Batch Settings"
+!!! info "Note on Batch-size Settings"
     
     The `batch` argument can be configured in three ways:
     

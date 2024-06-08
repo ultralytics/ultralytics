@@ -31,7 +31,7 @@ WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
 COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
+RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Install pip packages
@@ -43,7 +43,7 @@ RUN pip install --no-cache-dir -e ".[export]" "albumentations>=1.4.6" comet pyco
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
-RUN pip install --no-cache-dir paddlepaddle>=2.6.0 x2paddle
+RUN pip install --no-cache-dir "paddlepaddle>=2.6.0" x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
 RUN pip install --no-cache-dir numpy==1.23.5
 # Remove exported models

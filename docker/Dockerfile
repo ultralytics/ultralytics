@@ -32,8 +32,9 @@ WORKDIR $APP_HOME
 # Copy contents and assign permissions
 COPY . $APP_HOME
 RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
-
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+
+RUN git pull
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

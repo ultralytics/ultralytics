@@ -12,7 +12,7 @@ from ultralytics.utils.torch_utils import profile
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     """
-    Check YOLO training batch size using the autobatch() function.
+    Compute optimal YOLO training batch size using the autobatch() function.
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
@@ -24,9 +24,7 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     """
 
     with torch.cuda.amp.autocast(amp):
-        if batch < 1:
-            fraction = batch
-        return autobatch(deepcopy(model).train(), imgsz, fraction=fraction)  # compute optimal batch size
+        return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
 
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):

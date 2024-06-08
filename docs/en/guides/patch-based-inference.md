@@ -177,10 +177,6 @@ For using `patched_yolo_infer` library with Ultralytics, here is a basic example
 
     See the GitHub repository for `patched_yolo_infer` for additional arguments, attributes, and methods available.
 
-## Improving Instance Segmentation:
-
-In this approach, all operations under the hood are performed on binary masks of recognized objects. Storing these masks consumes a lot of memory, so this method requires more RAM and slightly more processing time. However, the accuracy of recognition significantly improves, which is especially noticeable in cases of images with densely packed objects. Therefore, we recommend using this approach in production if accuracy is of greater importance than speed, and if your computational resources are capable of storing hundreds of binary masks in RAM.
-
 ## Community Project Thanks
 
 We appreciate all contributions from the Ultralytics Community and appreciate the authors of `patched_yolo_infer` for opening a Pull Request to include their guide. For more information about the Patch-Based-Inference project and its creators, visit the [GitHub repository](https://github.com/Koldim2001/YOLO-Patch-Based-Inference).

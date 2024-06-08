@@ -117,7 +117,7 @@ def on_train_end(trainer):
         LOGGER.debug(f"{PREFIX}mlflow run ended")
 
     LOGGER.info(
-        f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n" f"{PREFIX}disable with 'yolo settings mlflow=False'"
+        f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n{PREFIX}disable with 'yolo settings mlflow=False'"
     )
 
 

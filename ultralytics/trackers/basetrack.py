@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 """This module defines the base classes and structures for object tracking in YOLO."""
 
 from collections import OrderedDict

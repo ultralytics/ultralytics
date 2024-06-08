@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 

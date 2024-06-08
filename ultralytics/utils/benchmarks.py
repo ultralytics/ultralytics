@@ -247,19 +247,7 @@ class RF100Benchmark:
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]
                 for e in entries:
-                    if e == "all" and "(AP)" not in entries and "(AR)" not in entries:
-                        eval_lines.append(
-                            {
-                                "class": entries[0],
-                                "images": entries[1],
-                                "targets": entries[2],
-                                "precision": entries[3],
-                                "recall": entries[4],
-                                "map50": entries[5],
-                                "map95": entries[6],
-                            }
-                        )
-                    if e in class_names:
+                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries):
                         eval_lines.append(
                             {
                                 "class": entries[0],

@@ -6,11 +6,11 @@ keywords: Ultralytics, YOLO, Minimum Reproducible Example, MRE, bug report, issu
 
 # Creating a Minimum Reproducible Example for Bug Reports in Ultralytics YOLO Repositories
 
-When submitting a bug report for [Ultralytics](https://ultralytics.com) [YOLO](https://github.com/ultralytics) repositories, it's essential to provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) (MRE). An MRE is a small, self-contained piece of code that demonstrates the problem you're experiencing. Providing an MRE helps maintainers and contributors understand the issue and work on a fix more efficiently. This guide explains how to create an MRE when submitting bug reports to Ultralytics YOLO repositories.
+When submitting a bug report for [Ultralytics](https://ultralytics.com) [YOLO](https://github.com/ultralytics) repositories, it's essential to provide a [Minimum Reproducible Example (MRE)](https://stackoverflow.com/help/minimal-reproducible-example). An MRE is a small, self-contained piece of code that demonstrates the problem you're experiencing. Providing an MRE helps maintainers and contributors understand the issue and work on a fix more efficiently. This guide explains how to create an MRE when submitting bug reports to Ultralytics YOLO repositories.
 
 ## 1. Isolate the Problem
 
-The first step in creating an MRE is to isolate the problem. This means removing any unnecessary code or dependencies that are not directly related to the issue. Focus on the specific part of the code that is causing the problem and remove any irrelevant code.
+The first step in creating an MRE is to isolate the problem. Remove any unnecessary code or dependencies that are not directly related to the issue. Focus on the specific part of the code that is causing the problem and eliminate any irrelevant sections.
 
 ## 2. Use Public Models and Datasets
 
@@ -18,7 +18,7 @@ When creating an MRE, use publicly available models and datasets to reproduce th
 
 ## 3. Include All Necessary Dependencies
 
-Make sure to include all the necessary dependencies in your MRE. If your code relies on external libraries, specify the required packages and their versions. Ideally, list the dependencies in your bug report using `yolo checks` if you have `ultralytics` installed or `pip list` for other tools.
+Ensure all necessary dependencies are included in your MRE. If your code relies on external libraries, specify the required packages and their versions. Ideally, list the dependencies in your bug report using `yolo checks` if you have `ultralytics` installed or `pip list` for other tools.
 
 ## 4. Write a Clear Description of the Issue
 
@@ -26,7 +26,7 @@ Provide a clear and concise description of the issue you're experiencing. Explai
 
 ## 5. Format Your Code Properly
 
-When submitting an MRE, format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\```) and specifying the language:
+Format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\```) and specifying the language:
 
 ````bash
 ```python

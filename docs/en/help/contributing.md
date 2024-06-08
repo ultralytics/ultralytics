@@ -46,7 +46,7 @@ Before we can accept your pull request, you must sign a [Contributor License Agr
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 
 ```
-I have read the CLA Document and I sign the CLA.
+I have read the CLA Document and I sign the CLA
 ```
 
 ### Google-Style Docstrings

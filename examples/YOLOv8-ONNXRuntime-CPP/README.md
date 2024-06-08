@@ -52,7 +52,7 @@ In order to run example, you also need to download coco.yaml. You can download t
 ## Dependencies ⚙️
 
 | Dependency                       | Version        |
-|----------------------------------|----------------|
+| -------------------------------- | -------------- |
 | Onnxruntime(linux,windows,macos) | >=1.14.1       |
 | OpenCV                           | >=4.0.0        |
 | C++ Standard                     | >=17           |

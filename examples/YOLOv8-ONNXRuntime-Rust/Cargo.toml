@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 [package]
 name = "yolov8-rs"
 version = "0.1.0"

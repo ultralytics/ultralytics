@@ -269,8 +269,13 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         # Batch size
-        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
-            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+        if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(
+                model=self.model,
+                imgsz=self.args.imgsz,
+                amp=self.amp,
+                batch=self.batch_size,
+            )
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)

@@ -5,7 +5,7 @@ This repository features a collection of real-world applications and walkthrough
 ### Ultralytics YOLO Example Applications
 
 | Title                                                                                                                                     | Format             | Contributor                                                                               |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+|-------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------|
 | [YOLO ONNX Detection Inference with C++](./YOLOv8-CPP-Inference)                                                                          | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)                                         |
 | [YOLO OpenCV ONNX Detection Python](./YOLOv8-OpenCV-ONNX-Python)                                                                          | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro)                                       |
 | [YOLOv8 .NET ONNX ImageSharp](https://github.com/dme-compunet/YOLOv8)                                                                     | C#/ONNX/ImageSharp | [Compunet](https://github.com/dme-compunet)                                               |

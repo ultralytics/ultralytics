@@ -172,7 +172,7 @@ class ObjectCounter:
                 if self.draw_tracks:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=self.track_color if self.track_color else colors(int(track_id), True),
+                        color=self.track_color or colors(int(track_id), True),
                         track_thickness=self.track_thickness,
                     )
 

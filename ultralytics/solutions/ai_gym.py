@@ -93,7 +93,7 @@ class AIGym:
                         self.stage[ind] = "up"
                         self.count[ind] += 1
 
-                elif self.pose_type == "pushup" or self.pose_type == "squat":
+                elif self.pose_type in {"pushup", "squat"}:
                     if self.angle[ind] > self.poseup_angle:
                         self.stage[ind] = "up"
                     if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":

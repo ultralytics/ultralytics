@@ -179,7 +179,7 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 | [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅        | `imgsz`, `keras`, `int8`, `batch`                                    |
 | [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-seg.pb`              | ❌        | `imgsz`, `batch`                                                     |
 | [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-seg.tflite`          | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`, `batch`                                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`                                                              |
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                             |

@@ -43,6 +43,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")

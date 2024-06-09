@@ -169,12 +169,18 @@ class BasePredictor:
 
     def predict_cli(self, source=None, model=None):
         """
-        Method used for CLI prediction.
+        Method used for Command Line Interface (CLI) prediction.
 
-        It uses always generator as outputs as not required by CLI mode.
+        This function is designed to run predictions using the CLI. It sets up the source and model, then processes
+        the inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
+        generator without storing results.
+
+        Note:
+            Do not modify this function or remove the generator. The generator ensures that no outputs are
+            accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """
         gen = self.stream_inference(source, model)
-        for _ in gen:  # noqa, running CLI inference without accumulating any outputs (do not modify)
+        for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
     def setup_source(self, source):

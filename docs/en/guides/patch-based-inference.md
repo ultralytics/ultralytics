@@ -65,13 +65,13 @@ For using `patched_yolo_infer` library with Ultralytics, here is a basic example
 
     ```python
     import cv2
-    from patched_yolo_infer import MakeCropsDetectThem, CombineDetections, visualize_results
+    from patched_yolo_infer import CombineDetections, MakeCropsDetectThem, visualize_results
     ```
 
 2. Loading the image:
 
     ```python
-    img_path = 'path/to/image.jpg'
+    img_path = "path/to/image.jpg"
     img = cv2.imread(img_path)
     ```
 
@@ -95,19 +95,19 @@ For using `patched_yolo_infer` library with Ultralytics, here is a basic example
 4. Next, use the `CombineDetections` class, that implements the combination of masks or boxes from multiple crops + NMS (Non-maximal suppression), to mesh all model patch-inference results. Select a match metric of [IOU](./yolo-performance-metrics.md#object-detection-metrics) or IOS (intersection over smaller). IOS is a custom metric defined by the `patched_yolo_infer` library.
 
     ```python
-    result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS')  
+    result = CombineDetections(element_crops, nms_threshold=0.25, match_metric="IOS")
     ```
 
 5. Access data from the `result` object
 
     ```python
     # Final Results:
-    img=result.image
-    confidences=result.filtered_confidences
-    boxes=result.filtered_boxes
-    polygons=result.filtered_polygons
-    classes_ids=result.filtered_classes_id
-    classes_names=result.filtered_classes_names
+    img = result.image
+    confidences = result.filtered_confidences
+    boxes = result.filtered_boxes
+    polygons = result.filtered_polygons
+    classes_ids = result.filtered_classes_id
+    classes_names = result.filtered_classes_names
     ```
 
 6. Visualizes custom results of object detection or segmentation on an image.
@@ -129,12 +129,12 @@ For using `patched_yolo_infer` library with Ultralytics, here is a basic example
 
     ```python
     import cv2
-    from patched_yolo_infer import MakeCropsDetectThem, CombineDetections, visualize_results
-    
-    img_path = 'path/to/image.jpg'
+    from patched_yolo_infer import CombineDetections, MakeCropsDetectThem, visualize_results
+
+    img_path = "path/to/image.jpg"
     img = cv2.imread(img_path)
-    
-    result = CombineDetections(element_crops, nms_threshold=0.25, match_metric='IOS')  
+
+    result = CombineDetections(element_crops, nms_threshold=0.25, match_metric="IOS")
 
     element_crops = MakeCropsDetectThem(
         image=img,

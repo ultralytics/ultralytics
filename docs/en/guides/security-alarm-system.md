@@ -38,6 +38,7 @@ from time import time
 import cv2
 import numpy as np
 import torch
+
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator, colors
 ```

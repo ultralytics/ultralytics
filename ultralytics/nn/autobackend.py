@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load, NUM_THREADS
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -378,6 +378,8 @@ class AutoBackend(nn.Module):
 
             net = pyncnn.Net()
             net.opt.use_vulkan_compute = cuda
+            # Use only "big" cores for faster edge inference https://github.com/ultralytics/ultralytics/issues/13449
+            net.opt.num_threads = round(NUM_THREADS / (2 if ARM64 else 1))
             w = Path(w)
             if not w.is_file():  # if not *.param
                 w = next(w.glob("*.param"))  # get *.param file from *_ncnn_model dir

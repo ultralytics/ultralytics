@@ -565,10 +565,10 @@ class TinyViT(nn.Module):
         img_size=224,
         in_chans=3,
         num_classes=1000,
-        embed_dims=None,
-        depths=None,
-        num_heads=None,
-        window_sizes=None,
+        embed_dims=(96, 192, 384, 768),
+        depths=(2, 2, 6, 2),
+        num_heads=(3, 6, 12, 24),
+        window_sizes=(7, 7, 14, 7),
         mlp_ratio=4.0,
         drop_rate=0.0,
         drop_path_rate=0.1,
@@ -596,14 +596,6 @@ class TinyViT(nn.Module):
             local_conv_size (int, optional): Local convolution kernel size. Defaults to 3.
             layer_lr_decay (float, optional): Layer-wise learning rate decay. Defaults to 1.0.
         """
-        if embed_dims is None:
-            embed_dims = [96, 192, 384, 768]
-        if depths is None:
-            depths = [2, 2, 6, 2]
-        if num_heads is None:
-            num_heads = [3, 6, 12, 24]
-        if window_sizes is None:
-            window_sizes = [7, 7, 14, 7]
         super().__init__()
         self.img_size = img_size
         self.num_classes = num_classes
@@ -740,8 +732,8 @@ class TinyViT(nn.Module):
         for i in range(start_i, len(self.layers)):
             layer = self.layers[i]
             x = layer(x)
-        B, _, C = x.shape
-        x = x.view(B, 64, 64, C)
+        batch, _, channel = x.shape
+        x = x.view(batch, 64, 64, channel)
         x = x.permute(0, 3, 1, 2)
         return self.neck(x)
 

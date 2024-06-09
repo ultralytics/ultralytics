@@ -86,7 +86,7 @@ def load_yolo_dota(data_root, split="train"):
     return annos
 
 
-def get_windows(im_size, crop_sizes=None, gaps=None, im_rate_thr=0.6, eps=0.01):
+def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0.01):
     """
     Get the coordinates of windows.
 
@@ -95,11 +95,8 @@ def get_windows(im_size, crop_sizes=None, gaps=None, im_rate_thr=0.6, eps=0.01):
         crop_sizes (List(int)): Crop size of windows.
         gaps (List(int)): Gap between crops.
         im_rate_thr (float): Threshold of windows areas divided by image ares.
+        eps (float): Epsilon value for math operations.
     """
-    if crop_sizes is None:
-        crop_sizes = [1024]
-    if gaps is None:
-        gaps = [200]
     h, w = im_size
     windows = []
     for crop_size, gap in zip(crop_sizes, gaps):
@@ -191,7 +188,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
                 f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 
-def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=None, gaps=None):
+def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024,), gaps=(200,)):
     """
     Split both images and labels.
 
@@ -209,10 +206,6 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=None,
                 - labels
                     - split
     """
-    if crop_sizes is None:
-        crop_sizes = [1024]
-    if gaps is None:
-        gaps = [200]
     im_dir = Path(save_dir) / "images" / split
     im_dir.mkdir(parents=True, exist_ok=True)
     lb_dir = Path(save_dir) / "labels" / split
@@ -225,7 +218,7 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=None,
         crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
 
 
-def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=None):
+def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     """
     Split train and val set of DOTA.
 
@@ -247,8 +240,6 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=None):
                     - train
                     - val
     """
-    if rates is None:
-        rates = [1.0]
     crop_sizes, gaps = [], []
     for r in rates:
         crop_sizes.append(int(crop_size / r))
@@ -257,7 +248,7 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=None):
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 
-def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=None):
+def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     """
     Split test set of DOTA, labels are not included within this set.
 
@@ -271,8 +262,6 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=None):
                 - images
                     - test
     """
-    if rates is None:
-        rates = [1.0]
     crop_sizes, gaps = [], []
     for r in rates:
         crop_sizes.append(int(crop_size / r))

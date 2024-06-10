@@ -89,7 +89,6 @@ class AutoBackend(nn.Module):
         batch=1,
         fuse=True,
         verbose=True,
-        end2end=False,
     ):
         """
         Initialize the AutoBackend for inference.
@@ -103,7 +102,6 @@ class AutoBackend(nn.Module):
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
-            end2end (bool): Whether to use end2end inference pipeline, only available for pt or nn_module.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -127,7 +125,6 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        self.end2end = end2end
         model, metadata = None, None
 
         # Set device
@@ -149,7 +146,7 @@ class AutoBackend(nn.Module):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            setattr(model.model[-1], "end2end", self.end2end)
+            setattr(model.model[-1], "end2end", getattr(model, "end2end", False))
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -165,7 +162,7 @@ class AutoBackend(nn.Module):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            setattr(model.model[-1], "end2end", self.end2end)
+            setattr(model.model[-1], "end2end", getattr(model, "end2end", False))
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
 
@@ -328,8 +325,6 @@ class AutoBackend(nn.Module):
 
             with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
-            if not metadata:
-                self.end2end = frozen_func.output_shapes[0][-1] == 6  # end2end shape (1, 300, 6)
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -575,7 +570,7 @@ class AutoBackend(nn.Module):
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
                 if (
-                    (self.task == "segment" or len(y) == 2) and len(self.names) == 999 and not self.end2end
+                    (self.task == "segment" or len(y) == 2) and len(self.names) == 999
                 ):  # segments and names not defined
                     ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
                     nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
@@ -597,15 +592,11 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        if not self.end2end:  # (1, 84, 8400)
-                            x[:, [0, 2]] *= w
-                            x[:, [1, 3]] *= h
-                        elif self.end2end:  # (1, 300, 6)
-                            x[..., :, [0, 2]] *= w
-                            x[..., :, [1, 3]] *= h
+                        x[:, [0, 2]] *= w
+                        x[:, [1, 3]] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2 and not self.end2end:  # segment with (det, proto) output order reversed
+            if len(y) == 2:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
@@ -613,10 +604,8 @@ class AutoBackend(nn.Module):
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
-        if isinstance(y, (list, tuple)) and not self.end2end:
+        if isinstance(y, (list, tuple)):
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
-        elif isinstance(y, (list, tuple)) and self.end2end:
-            return self.from_numpy(y[0])  # pb model
         else:
             return self.from_numpy(y)
 

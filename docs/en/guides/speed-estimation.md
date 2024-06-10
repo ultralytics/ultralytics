@@ -44,6 +44,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")

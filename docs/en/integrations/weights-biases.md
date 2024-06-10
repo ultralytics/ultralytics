@@ -64,8 +64,9 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
     === "Python"
        ```python
        import wandb
-       from ultralytics import YOLO
        from wandb.integration.ultralytics import add_wandb_callback
+
+       from ultralytics import YOLO
 
        # Step 1: Initialize a Weights & Biases run
        wandb.init(project="ultralytics", job_type="training")

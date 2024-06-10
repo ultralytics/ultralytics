@@ -23,8 +23,7 @@ WORKDIR $APP_HOME
 
 # Copy contents (previously used git clone to avoid permission errors)
 COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
-# RUN git clone https://github.com/ultralytics/ultralytics -b main $APP_HOME
+RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
@@ -37,8 +36,8 @@ RUN pip install --no-cache-dir -e ".[export]" --extra-index-url https://download
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
-# Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
-# RUN pip install --no-cache-dir paddlepaddle>=2.6.0 x2paddle
+# Requires Python<=3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
+# RUN pip install --no-cache-dir "paddlepaddle>=2.6.0" x2paddle
 # Remove exported models
 RUN rm -rf tmp
 

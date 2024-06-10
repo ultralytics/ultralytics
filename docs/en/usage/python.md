@@ -127,6 +127,7 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
         ```python
         import cv2
         from PIL import Image
+
         from ultralytics import YOLO
 
         model = YOLO("model.pt")

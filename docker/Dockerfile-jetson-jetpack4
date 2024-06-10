@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:jetson-jp4 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Builds ultralytics/ultralytics:jetson-jetpack4 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Supports JetPack4.x for YOLOv8 on Jetson Nano, TX2, Xavier NX, AGX Xavier
 
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda
@@ -52,13 +52,13 @@ RUN pip install --no-cache-dir -e ".[export]"
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-jetson-jp4 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jp4 -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack4 -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-jetson-jp4 && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker run -it --ipc=host $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-jetson-jp4 && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with NVIDIA runtime
-# t=ultralytics/ultralytics:latest-jetson-jp4 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

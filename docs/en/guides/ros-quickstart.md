@@ -216,4 +216,100 @@ If instead of republishing the image with the detected objects, you want to publ
 
         This code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. The detected objects are then annotated on the image and published back as Image messages for visualization or further processing.
 
-## Use Ultralytics with ROS `sensor_msgs/PoinCloud2`
+## Use Ultralytics with ROS Depth Images
+
+In addition to RGB images, ROS also supports depth images, which provide information about the distance of objects from the camera. Depth images are commonly used in robotic applications for tasks such as obstacle avoidance, 3D mapping, and localization. The `sensor_msgs/Image` message type can be used to represent depth images in ROS, with additional fields for encoding, height, width, and pixel data.
+
+
+!!! Example "Usage"
+
+    === "ROS Noetic"
+
+        ``` py
+        import rospy
+        import time
+        from ultralytics import YOLO
+        import ros_numpy
+        import numpy as np
+        from sensor_msgs.msg import Image
+        from std_msgs.msg import String
+        rospy.init_node('integration')
+        time.sleep(1)
+
+        segmentation_model = YOLO("yolov8m-seg.pt")
+
+        classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
+
+        def callback(data):
+            image = rospy.wait_for_message("/camera/color/image_raw", Image)
+            image = ros_numpy.numpify(image)
+            depth = ros_numpy.numpify(data)
+            result = segmentation_model(image)
+            
+            all_objects = []
+            for index, cls in enumerate(result[0].boxes.cls):
+                class_index = int(cls.cpu().numpy())
+                name = result[0].names[class_index]
+                mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
+                obj = depth[mask == 1]
+                obj = obj[~np.isnan(obj)]
+                avg_distance = np.mean(obj) if len(obj) else np.inf
+                all_objects.append((name, avg_distance))
+                
+            msg = String()
+            msg.data = str(all_objects)
+            classes_pub.publish(msg)
+
+        rospy.Subscriber("/camera/depth/image_raw", Image, callback)
+
+        while True:
+            rospy.spin()
+        ```
+
+        This code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. The detected objects are then annotated on the image and published back as Image messages for visualization or further processing.
+
+    === "ROS 2 Humble"
+
+        ``` py
+        import rospy
+        import time
+        from ultralytics import YOLO
+        import ros_numpy
+        import numpy as np
+        from sensor_msgs.msg import Image
+        from std_msgs.msg import String
+        rospy.init_node('integration')
+        time.sleep(1)
+
+        segmentation_model = YOLO("yolov8m-seg.pt")
+
+        classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
+
+        def callback(data):
+            image = rospy.wait_for_message("/camera/color/image_raw", Image)
+            image = ros_numpy.numpify(image)
+            depth = ros_numpy.numpify(data)
+            result = segmentation_model(image)
+            
+            all_objects = []
+            for index, cls in enumerate(result[0].boxes.cls):
+                class_index = int(cls.cpu().numpy())
+                name = result[0].names[class_index]
+                mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
+                obj = depth[mask == 1]
+                obj = obj[~np.isnan(obj)]
+                avg_distance = np.mean(obj) if len(obj) else np.inf
+                all_objects.append((name, avg_distance))
+                
+            msg = String()
+            msg.data = str(all_objects)
+            classes_pub.publish(msg)
+
+        rospy.Subscriber("/camera/depth/image_raw", Image, callback)
+
+        while True:
+            rospy.spin()
+        ```
+
+        This code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. The detected objects are then annotated on the image and published back as Image messages for visualization or further processing.
+

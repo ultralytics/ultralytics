@@ -569,9 +569,7 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
-                if (
-                    (self.task == "segment" or len(y) == 2) and len(self.names) == 999
-                ):  # segments and names not defined
+                if (self.task == "segment" or len(y) == 2) and len(self.names) == 999:  # segments and names not defined
                     ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
                     nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                     self.names = {i: f"class{i}" for i in range(nc)}

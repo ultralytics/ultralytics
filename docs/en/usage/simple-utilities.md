@@ -130,6 +130,7 @@ If you have a dataset that uses the [segmentation dataset format](../datasets/se
 
 ```python
 import numpy as np
+
 from ultralytics.utils.ops import segments2boxes
 
 segments = np.array(
@@ -194,6 +195,7 @@ Convert a single polygon (as list) to a binary mask of the specified image size.
 
 ```python
 import numpy as np
+
 from ultralytics.data.utils import polygon2mask
 
 imgsz = (1080, 810)
@@ -215,6 +217,7 @@ To manage bounding box data, the `Bboxes` class will help to convert between box
 
 ```python
 import numpy as np
+
 from ultralytics.utils.instance import Bboxes
 
 boxes = Bboxes(
@@ -259,6 +262,7 @@ When scaling and image up or down, corresponding bounding box coordinates can be
 ```{ .py .annotate }
 import cv2 as cv
 import numpy as np
+
 from ultralytics.utils.ops import scale_boxes
 
 image = cv.imread("ultralytics/assets/bus.jpg")
@@ -307,6 +311,7 @@ Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, h
 
 ```python
 import numpy as np
+
 from ultralytics.utils.ops import xyxy2xywh
 
 xyxy_boxes = np.array(
@@ -359,6 +364,7 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
 ```{ .py .annotate }
 import cv2 as cv
 import numpy as np
+
 from ultralytics.utils.plotting import Annotator, colors
 
 names = {  # (1)!
@@ -402,6 +408,7 @@ image_with_bboxes = ann.result()
 ```python
 import cv2 as cv
 import numpy as np
+
 from ultralytics.utils.plotting import Annotator, colors
 
 obb_names = {10: "small vehicle"}

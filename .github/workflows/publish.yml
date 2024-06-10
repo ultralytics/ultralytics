@@ -25,6 +25,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
+      - name: Git config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
@@ -40,26 +44,75 @@ jobs:
           import os
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version
-
           v_local = tuple(map(int, ultralytics.__version__.split('.')))
           v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
-
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
-
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-
           increment_patch = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # publish if patch version increments by 1 or 2
           increment_minor = (d[0] == 0) and (d[1] == 1) and v_local[2] == 0  # publish if minor version increments
-
           increment = increment_patch or increment_minor
-
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi
+      - name: Publish new tag
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        run: |
+          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
+          git push origin "v${{ steps.check_pypi.outputs.version }}"
+      - name: Publish new release
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        env:
+          OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }}
+          OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
+          OPENAI_AZURE_API_VERSION: ${{ secrets.OPENAI_AZURE_API_VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
+          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
+        shell: python
+        run: |
+          import openai
+          import os
+          import requests
+          import json
+          import subprocess
+          
+          latest_tag = f"v{os.getenv('CURRENT_TAG')}"
+          previous_tag = f"v{os.getenv('PREVIOUS_TAG')}"
+          repo = 'ultralytics/ultralytics'
+          headers = {"Authorization": f"token {os.getenv('GITHUB_TOKEN')}", "Accept": "application/vnd.github.v3.diff"}
+          url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
+          response = requests.get(url, headers=headers)
+          diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
+          
+          client = openai.AzureOpenAI(api_key=os.getenv('OPENAI_AZURE_API_KEY'), api_version=os.getenv('OPENAI_AZURE_API_VERSION'), azure_endpoint=os.getenv('OPENAI_AZURE_ENDPOINT'))
+          messages = [
+              {"role": "system",
+               "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
+              {"role": "user",
+               "content": f"Summarize the updates made on the Ultralytics '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+                          f"### 🌟 Summary (single-line synopsis)\n"
+                          f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
+                          f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
+                          f"\n\nHere's the release diff:\n\n{diff[:96000]}",
+               }
+          ]
+          summary = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages).choices[0].message.content.strip()
+          commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()
+          release = {
+              'tag_name': latest_tag,
+              'name': f"{latest_tag} - {commit_message}",
+              'body': summary,
+              'draft': False,
+              'prerelease': False
+          }
+          response = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers, data=json.dumps(release))
+          if response.status_code == 201:
+              print(f'Successfully created release {latest_tag}')
+          else:
+              print(f'Failed to create release {latest_tag}: {response.content}')
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
@@ -77,8 +130,6 @@ jobs:
         run: |
           export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
-          git config --global user.name "Glenn Jocher"
-          git config --global user.email "glenn.jocher@ultralytics.com"
           git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
           git checkout gh-pages || git checkout -b gh-pages

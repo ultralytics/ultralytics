@@ -21,6 +21,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     import cv2
     import numpy as np
+
     from ultralytics import YOLO
     ```
 
@@ -272,6 +273,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
 m = YOLO("yolov8n-seg.pt")  # (4)!

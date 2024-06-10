@@ -64,6 +64,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```python
         from clearml import Task
+
         from ultralytics import YOLO
 
         # Step 1: Creating a ClearML Task

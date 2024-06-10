@@ -92,7 +92,6 @@ class BasePredictor:
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
-        self.end2end = False  # YOLOv10
 
         # Usable if setup is done
         self.model = None
@@ -310,14 +309,11 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            # NOTE: `end2end` only available with detect for now
-            end2end=self.end2end and self.args.task == "detect",
         )
 
         self.device = self.model.device  # update device
         self.args.half = self.model.fp16  # update half
         self.model.eval()
-        self.end2end = self.model.end2end  # update end2end
 
     def write_results(self, i, p, im, s):
         """Write inference results to a file or directory."""

@@ -22,6 +22,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -71,7 +72,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.predict`
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |

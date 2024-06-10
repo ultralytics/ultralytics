@@ -30,7 +30,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 ## Samples
 
 |                                                          Instance Segmentation                                                          |                                                           Instance Segmentation + Object Tracking                                                            |
-|:---------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics Instance Segmentation](https://github.com/RizwanMunawar/ultralytics/assets/62513924/d4ad3499-1f33-4871-8fbc-1be0b2643aa2) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2e5c38cc-fd5c-4145-9682-fa94ae2010a0) |
 |                                                  Ultralytics Instance Segmentation 😍                                                   |                                                  Ultralytics Instance Segmentation with Object Tracking 🔥                                                   |
 
@@ -40,6 +40,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         ```python
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -82,6 +83,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         from collections import defaultdict
 
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -124,7 +126,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 ### `seg_bbox` Arguments
 
 | Name          | Type    | Default         | Description                            |
-|---------------|---------|-----------------|----------------------------------------|
+| ------------- | ------- | --------------- | -------------------------------------- |
 | `mask`        | `array` | `None`          | Segmentation mask coordinates          |
 | `mask_color`  | `tuple` | `(255, 0, 255)` | Mask color for every segmented box     |
 | `det_label`   | `str`   | `None`          | Label for segmented object             |

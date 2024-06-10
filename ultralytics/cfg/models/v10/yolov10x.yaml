@@ -3,6 +3,7 @@
 
 # Parameters
 nc: 80 # number of classes
+end2end: True
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
   x: [1.00, 1.25, 512]

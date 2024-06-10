@@ -3,6 +3,7 @@
 
 # Parameters
 nc: 80 # number of classes
+end2end: True
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024]
@@ -40,3 +41,4 @@ head:
   - [-1, 3, C2fCIB, [1024, True, True]] # 22 (P5/32-large)
 
   - [[16, 19, 22], 1, v10Detect, [nc]] # Detect(P3, P4, P5)
+ 

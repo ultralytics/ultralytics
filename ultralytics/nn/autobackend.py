@@ -326,9 +326,9 @@ class AutoBackend(nn.Module):
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
 
-            try:  # attempt to retrieve metadata from SavedModel file potentially alongside GraphDef file
+            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
-            except StopIteration:  # no metadata file found
+            if not metadata:
                 self.end2end = frozen_func.output_shapes[0][-1] == 6  # end2end shape (1, 300, 6)
 
         # TFLite or TFLite Edge TPU

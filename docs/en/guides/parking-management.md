@@ -19,7 +19,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ## Real World Applications
 
 |                                                                Parking Management System                                                                |                                                                  Parking Management System                                                                   |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/e3d4bc3e-cf4a-4da9-b42e-0da55cc74ad6) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/fe186719-1aca-43c9-b388-1ded91280eb5) |
 |                                                 Parking management Aerial View using Ultralytics YOLOv8                                                 |                                                     Parking management Top View using Ultralytics YOLOv8                                                     |
 
@@ -60,6 +60,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         import cv2
+
         from ultralytics import solutions
 
         # Path to json file, that created with above point selection app
@@ -100,7 +101,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ### Optional Arguments `ParkingManagement`
 
 | Name                     | Type    | Default           | Description                            |
-|--------------------------|---------|-------------------|----------------------------------------|
+| ------------------------ | ------- | ----------------- | -------------------------------------- |
 | `model_path`             | `str`   | `None`            | Path to the YOLOv8 model.              |
 | `txt_color`              | `tuple` | `(0, 0, 0)`       | RGB color tuple for text.              |
 | `bg_color`               | `tuple` | `(255, 255, 255)` | RGB color tuple for background.        |
@@ -111,7 +112,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

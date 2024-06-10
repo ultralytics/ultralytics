@@ -674,8 +674,7 @@ class CBLinear(nn.Module):
 
     def forward(self, x):
         """Forward pass through CBLinear layer."""
-        outs = self.conv(x).split(self.c2s, dim=1)
-        return outs
+        return self.conv(x).split(self.c2s, dim=1)
 
 
 class CBFuse(nn.Module):
@@ -690,8 +689,7 @@ class CBFuse(nn.Module):
         """Forward pass through CBFuse layer."""
         target_size = xs[-1].shape[2:]
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
-        out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
-        return out
+        return torch.sum(torch.stack(res + xs[-1:]), dim=0)
 
 
 class RepVGGDW(torch.nn.Module):
@@ -936,3 +934,4 @@ class SCDown(nn.Module):
             (torch.Tensor): Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))
+        return torch.sum(torch.stack(res + xs[-1:]), dim=0)

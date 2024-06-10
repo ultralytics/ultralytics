@@ -60,7 +60,7 @@ jobs:
       - name: Publish new tag
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
-          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
+          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)" || true  # i.e. "v0.1.2 commit message"
           git push origin "v${{ steps.check_pypi.outputs.version }}" || true
       - name: Publish new release
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

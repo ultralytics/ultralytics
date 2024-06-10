@@ -90,7 +90,7 @@ class DetectionValidator(BaseValidator):
             preds = preds[0]
         return (
             preds
-            if self.end2end
+            if preds.shape[-1] == 6  # end-to-end model
             else ops.non_max_suppression(
                 preds,
                 self.args.conf,

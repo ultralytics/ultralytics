@@ -61,7 +61,7 @@ The Apple Neural Engine (ANE) is a dedicated hardware component integrated into 
 By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics iOS App achieves real-time object detection on your iOS device without compromising on accuracy or performance.
 
 | Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | ANE TOPs |
-|--------------|------------------------------------------------------|-------------------------------------------------------|-----------|----------|
+| ------------ | ---------------------------------------------------- | ----------------------------------------------------- | --------- | -------- |
 | 2017         | [iPhone X](https://en.wikipedia.org/wiki/IPhone_X)   | [A11 Bionic](https://en.wikipedia.org/wiki/Apple_A11) | 10 nm     | 0.6      |
 | 2018         | [iPhone XS](https://en.wikipedia.org/wiki/IPhone_XS) | [A12 Bionic](https://en.wikipedia.org/wiki/Apple_A12) | 7 nm      | 5        |
 | 2019         | [iPhone 11](https://en.wikipedia.org/wiki/IPhone_11) | [A13 Bionic](https://en.wikipedia.org/wiki/Apple_A13) | 7 nm      | 6        |

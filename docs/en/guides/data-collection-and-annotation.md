@@ -14,7 +14,7 @@ Every consideration regarding the data should closely align with [your project's
 
 ## Setting Up Classes and Collecting Data
 
-Collecting images and video for a computer vision project involves defining the number of classes, sourcing data, and considering ethical implications. Before you start gathering your data, you need to be clear about: 
+Collecting images and video for a computer vision project involves defining the number of classes, sourcing data, and considering ethical implications. Before you start gathering your data, you need to be clear about:
 
 ### Choosing the Right Classes for Your Project
 
@@ -31,13 +31,13 @@ Something to note is that starting with more specific classes can be very helpfu
 
 ### Sources of Data
 
-You can use public datasets or gather your own custom data. Public datasets like those on [Kaggle](https://www.kaggle.com/datasets) and [Google Dataset Search Engine](https://datasetsearch.research.google.com/) offer well-annotated, standardized data, making them great starting points for training and validating models. 
+You can use public datasets or gather your own custom data. Public datasets like those on [Kaggle](https://www.kaggle.com/datasets) and [Google Dataset Search Engine](https://datasetsearch.research.google.com/) offer well-annotated, standardized data, making them great starting points for training and validating models.
 
 Custom data collection, on the other hand, allows you to customize your dataset to your specific needs. You might capture images and videos with cameras or drones, scrape the web for images, or use existing internal data from your organization. Custom data gives you more control over its quality and relevance. Combining both public and custom data sources helps create a diverse and comprehensive dataset.
 
 ### Avoiding Bias in Data Collection
 
-Bias occurs when certain groups or scenarios are underrepresented or overrepresented in your dataset. It leads to a model that performs well on some data but poorly on others. It's crucial to avoid bias so that your computer vision model can perform well in a variety of scenarios. 
+Bias occurs when certain groups or scenarios are underrepresented or overrepresented in your dataset. It leads to a model that performs well on some data but poorly on others. It's crucial to avoid bias so that your computer vision model can perform well in a variety of scenarios.
 
 Here is how you can avoid bias while collecting data:
 
@@ -67,7 +67,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 
 ### Common Annotation Formats
 
-After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations. 
+After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations.
 
 Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
 
@@ -84,7 +84,7 @@ Regularly reviewing and updating your labeling rules will help keep your annotat
 
 ### Popular Annotation Tools
 
-Let's say you are ready to annotate now. There are several open-source tools available to help streamline the data annotation process. Here are some useful open annotation tools: 
+Let's say you are ready to annotate now. There are several open-source tools available to help streamline the data annotation process. Here are some useful open annotation tools:
 
 - **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
 - **[CVAT](https://github.com/cvat-ai/cvat)**: A powerful tool that supports various annotation formats and customizable workflows, making it suitable for complex projects.
@@ -98,7 +98,7 @@ These open-source tools are budget-friendly and provide a range of features to m
 
 ### Some More Things to Consider Before Annotating Data
 
-Before you dive into annotating your data, there are a few more things to keep in mind. You should be aware of accuracy, precision, outliers, and quality control to avoid labeling your data in a counterproductive manner. 
+Before you dive into annotating your data, there are a few more things to keep in mind. You should be aware of accuracy, precision, outliers, and quality control to avoid labeling your data in a counterproductive manner.
 
 #### Understanding Accuracy and Precision
 
@@ -135,6 +135,7 @@ While reviewing, if you find errors, correct them and update the guidelines to a
 Here are some questions that might encounter while collecting and annotating data:
 
 - **Q1:** What is active learning in the context of data annotation?
+
     - **A1:** Active learning in data annotation is a technique where a machine learning model iteratively selects the most informative data points for labeling. This improves the model's performance with fewer labeled examples. By focusing on the most valuable data, active learning accelerates the training process and improves the model's ability to generalize from limited data.
 
 <p align="center">
@@ -142,9 +143,11 @@ Here are some questions that might encounter while collecting and annotating dat
 </p>
 
 - **Q2:** How does automated annotation work?
+
     - **A2:** Automated annotation uses pre-trained models and algorithms to label data without needing human effort. These models, which have been trained on large datasets, can identify patterns and features in new data. Techniques like transfer learning adjust these models for specific tasks, and active learning helps by selecting the most useful data points for labeling. However, this approach is only possible in certain cases where the model has been trained on sufficiently similar data and tasks.
 
 - **Q3:** How many images do I need to collect for [YOLOv8 custom training](../modes/train.md)?
+
     - **A3:** For transfer learning and object detection, a good general rule of thumb is to have a minimum of a few hundred annotated objects per class. However, when training a model to detect just one class, it is advisable to start with at least 100 annotated images and train for around 100 epochs. For complex tasks, you may need thousands of images per class to achieve reliable model performance.
 
 ## Share Your Thoughts with the Community

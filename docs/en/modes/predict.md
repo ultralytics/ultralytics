@@ -178,6 +178,7 @@ Below are code examples for using each source type:
         Run inference on an image opened with Python Imaging Library (PIL).
         ```python
         from PIL import Image
+
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
@@ -195,6 +196,7 @@ Below are code examples for using each source type:
         Run inference on an image read with OpenCV.
         ```python
         import cv2
+
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
@@ -212,6 +214,7 @@ Below are code examples for using each source type:
         Run inference on an image represented as a numpy array.
         ```python
         import numpy as np
+
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
@@ -229,6 +232,7 @@ Below are code examples for using each source type:
         Run inference on an image represented as a PyTorch tensor.
         ```python
         import torch
+
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
@@ -246,6 +250,7 @@ Below are code examples for using each source type:
         Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
         ```python
         import torch
+
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
@@ -673,6 +678,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 
     ```python
     from PIL import Image
+
     from ultralytics import YOLO
 
     # Load a pretrained YOLOv8n model
@@ -754,6 +760,7 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # Load the YOLOv8 model

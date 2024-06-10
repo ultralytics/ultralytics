@@ -22,6 +22,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 

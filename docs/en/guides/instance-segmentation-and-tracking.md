@@ -40,6 +40,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         ```python
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -82,6 +83,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         from collections import defaultdict
 
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 

@@ -403,6 +403,7 @@ Expand sections below for information on how these models were exported and test
 
     ```py
     import cv2
+
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.engine")

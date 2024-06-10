@@ -60,6 +60,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         import cv2
+
         from ultralytics import solutions
 
         # Path to json file, that created with above point selection app

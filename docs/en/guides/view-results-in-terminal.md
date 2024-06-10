@@ -48,6 +48,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     import cv2 as cv
     from sixel import SixelWriter
+
     from ultralytics import YOLO
     ```
 
@@ -111,6 +112,7 @@ import io
 
 import cv2 as cv
 from sixel import SixelWriter
+
 from ultralytics import YOLO
 
 # Load a model

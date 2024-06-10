@@ -18,10 +18,10 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ## Visuals
 
-|                                                                               Airport Luggage                                                                                |                                                                                                                         
-|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                                               Airport Luggage                                                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/648f46be-f233-4307-a8e5-046eea38d2e4) |
-|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |                                                                                                       
+|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |
 
 !!! Example "Object Cropping using YOLOv8 Example"
 
@@ -84,7 +84,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.predict`
 
 | Argument        | Type           | Default                | Description                                                                                                                                                                                                                          |
-|-----------------|----------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `source`        | `str`          | `'ultralytics/assets'` | Specifies the data source for inference. Can be an image path, video file, directory, URL, or device ID for live feeds. Supports a wide range of formats and sources, enabling flexible application across different types of input. |
 | `conf`          | `float`        | `0.25`                 | Sets the minimum confidence threshold for detections. Objects detected with confidence below this threshold will be disregarded. Adjusting this value can help reduce false positives.                                               |
 | `iou`           | `float`        | `0.7`                  | Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values result in fewer detections by eliminating overlapping boxes, useful for reducing duplicates.                                                 |

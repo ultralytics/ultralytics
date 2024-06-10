@@ -62,7 +62,6 @@ jobs:
         run: |
           git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
           git push origin "v${{ steps.check_pypi.outputs.version }}"
-          pip install openai
       - name: Publish new release
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
@@ -80,26 +79,20 @@ jobs:
           import json
           import subprocess
           
-          OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
-          OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
-          OPENAI_AZURE_API_VERSION = os.getenv('OPENAI_AZURE_API_VERSION')
-          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-          
           latest_tag = f"v{os.getenv('CURRENT_TAG')}"
           previous_tag = f"v{os.getenv('PREVIOUS_TAG')}"
-          
           repo = 'ultralytics/ultralytics'
-          headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
+          headers = {"Authorization": f"token {os.getenv('GITHUB_TOKEN')}", "Accept": "application/vnd.github.v3.diff"}
           url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
           response = requests.get(url, headers=headers)
           diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
           
-          client = openai.AzureOpenAI(api_key=OPENAI_AZURE_API_KEY, api_version=OPENAI_AZURE_API_VERSION, azure_endpoint=OPENAI_AZURE_ENDPOINT)
+          client = openai.AzureOpenAI(api_key=os.getenv('OPENAI_AZURE_API_KEY'), api_version=os.getenv('OPENAI_AZURE_API_VERSION'), azure_endpoint=os.getenv('OPENAI_AZURE_ENDPOINT'))
           messages = [
               {"role": "system",
                "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
               {"role": "user",
-               "content": f"Summarize the updates made on '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+               "content": f"Summarize the updates made on the Ultralytics '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
                           f"### 🌟 Summary (single-line synopsis)\n"
                           f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
                           f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"

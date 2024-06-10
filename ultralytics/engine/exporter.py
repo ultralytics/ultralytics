@@ -838,8 +838,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-            )
-            + (("cmake", "onnxsim>=0.4.33") if self.end2end else ()),
+            ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
@@ -863,8 +862,7 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
-        self.device = "cpu" if not tf.config.list_physical_devices("GPU") else self.device
-        self.args.simplify = not self.end2end  # onnx slim not supported for end2end models
+        self.args.simplify = True
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
@@ -887,12 +885,11 @@ class Exporter:
         onnx2tf.convert(
             input_onnx_file_path=f_onnx,
             output_folder_path=str(f),
-            not_use_onnxsim=not self.end2end,  # use onnx simplify for end2end models
+            not_use_onnxsim=True,
             verbosity=verbosity,
             output_integer_quantized_tflite=self.args.int8,
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
-            disable_group_convolution=self.end2end,  # required to output in saved_model format
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 

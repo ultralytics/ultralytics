@@ -44,8 +44,9 @@ jobs:
           import os
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version
+          latest_pypi_version = check_latest_pypi_version()
           v_local = tuple(map(int, ultralytics.__version__.split('.')))
-          v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
+          v_pypi = tuple(map(int, latest_pypi_version.split('.')))
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
@@ -54,6 +55,7 @@ jobs:
           increment = increment_patch or increment_minor
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "previous_version={latest_pypi_version}" >> $GITHUB_OUTPUT')
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi
@@ -78,16 +80,43 @@ jobs:
           import requests
           import json
           import subprocess
+
+          # Retrieve environment variables
+          OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
+          OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
+          OPENAI_AZURE_API_VERSION = os.getenv('OPENAI_AZURE_API_VERSION')
+          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+          CURRENT_TAG = os.getenv('CURRENT_TAG')
+          PREVIOUS_TAG = os.getenv('PREVIOUS_TAG')
           
-          latest_tag = f"v{os.getenv('CURRENT_TAG')}"
-          previous_tag = f"v{os.getenv('PREVIOUS_TAG')}"
+          # Check for required environment variables
+          if not all([OPENAI_AZURE_API_KEY, OPENAI_AZURE_ENDPOINT, OPENAI_AZURE_API_VERSION, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
+              print(OPENAI_AZURE_API_KEY)
+              print(OPENAI_AZURE_ENDPOINT)
+              print(OPENAI_AZURE_API_VERSION)
+              print(GITHUB_TOKEN)
+              print(CURRENT_TAG)
+              print(PREVIOUS_TAG)
+              raise ValueError("One or more required environment variables are missing.")
+          
+          latest_tag = f"v{CURRENT_TAG}"
+          previous_tag = f"v{PREVIOUS_TAG}"
           repo = 'ultralytics/ultralytics'
-          headers = {"Authorization": f"token {os.getenv('GITHUB_TOKEN')}", "Accept": "application/vnd.github.v3.diff"}
+          headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
+          
+          # Get the diff between the tags
           url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
           response = requests.get(url, headers=headers)
           diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
           
-          client = openai.AzureOpenAI(api_key=os.getenv('OPENAI_AZURE_API_KEY'), api_version=os.getenv('OPENAI_AZURE_API_VERSION'), azure_endpoint=os.getenv('OPENAI_AZURE_ENDPOINT'))
+          # Set up OpenAI client
+          client = openai.AzureOpenAI(
+              api_key=OPENAI_AZURE_API_KEY,
+              api_version=OPENAI_AZURE_API_VERSION,
+              azure_endpoint=OPENAI_AZURE_ENDPOINT
+          )
+          
+          # Prepare messages for OpenAI completion
           messages = [
               {"role": "system",
                "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
@@ -99,8 +128,18 @@ jobs:
                           f"\n\nHere's the release diff:\n\n{diff[:96000]}",
                }
           ]
-          summary = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages).choices[0].message.content.strip()
+          
+          try:
+              completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
+              summary = completion.choices[0].message.content.strip()
+          except openai.error.OpenAIError as e:
+              print(f"Failed to generate summary: {e}")
+              raise
+          
+          # Get the latest commit message
           commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()
+          
+          # Prepare release data
           release = {
               'tag_name': latest_tag,
               'name': f"{latest_tag} - {commit_message}",
@@ -108,11 +147,14 @@ jobs:
               'draft': False,
               'prerelease': False
           }
-          response = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers, data=json.dumps(release))
-          if response.status_code == 201:
+          
+          # Create the release on GitHub
+          release_url = f"https://api.github.com/repos/{repo}/releases"
+          release_response = requests.post(release_url, headers=headers, data=json.dumps(release))
+          if release_response.status_code == 201:
               print(f'Successfully created release {latest_tag}')
           else:
-              print(f'Failed to create release {latest_tag}: {response.content}')
+              print(f'Failed to create release {latest_tag}: {release_response.content}')
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'

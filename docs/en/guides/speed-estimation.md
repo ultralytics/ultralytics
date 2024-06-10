@@ -34,7 +34,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 ## Real World Applications
 
 |                                                                     Transportation                                                                      |                                                                      Transportation                                                                       |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Speed Estimation on Road using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c8a0fd4a-d394-436d-8de3-d5b754755fc7) | ![Speed Estimation on Bridge using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cee10e02-b268-4304-b73a-5b9cb42da669) |
 |                                                    Speed Estimation on Road using Ultralytics YOLOv8                                                    |                                                    Speed Estimation on Bridge using Ultralytics YOLOv8                                                    |
 
@@ -89,7 +89,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 ### Arguments `SpeedEstimator`
 
 | Name               | Type   | Default                    | Description                                          |
-|--------------------|--------|----------------------------|------------------------------------------------------|
+| ------------------ | ------ | -------------------------- | ---------------------------------------------------- |
 | `names`            | `dict` | `None`                     | Dictionary of class names.                           |
 | `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
 | `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |
@@ -100,7 +100,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

@@ -38,7 +38,7 @@ This guide assumes that you already have a working Raspberry Pi OS install and h
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the right version for your operating system.
 
 | Raspberry Pi OS | High frequency mode | Version to download                        |
-|-----------------|:-------------------:|--------------------------------------------|
+| --------------- | :-----------------: | ------------------------------------------ |
 | Bullseye 32bit  |         No          | `libedgetpu1-std_ ... .bullseye_armhf.deb` |
 | Bullseye 64bit  |         No          | `libedgetpu1-std_ ... .bullseye_arm64.deb` |
 | Bullseye 32bit  |         Yes         | `libedgetpu1-max_ ... .bullseye_armhf.deb` |
@@ -64,10 +64,10 @@ After installing the runtime, you need to plug in your Coral Edge TPU into a USB
 
     ```bash
     # If you installed the standard version
-    sudo apt remove libedgetpu1-std 
+    sudo apt remove libedgetpu1-std
 
     # If you installed the high frequency version
-    sudo apt remove libedgetpu1-max 
+    sudo apt remove libedgetpu1-max
     ```
 
 ## Export your model to a Edge TPU compatible model

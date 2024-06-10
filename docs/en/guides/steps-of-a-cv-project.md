@@ -41,9 +41,11 @@ The first step in any computer vision project is clearly defining the problem yo
 Here are some examples of project objectives and the computer vision tasks that can be used to reach these objectives:
 
 - **Objective:** To develop a system that can monitor and manage the flow of different vehicle types on highways, improving traffic management and safety.
+
     - **Computer Vision Task:** Object detection is ideal for traffic monitoring because it efficiently locates and identifies multiple vehicles. It is less computationally demanding than image segmentation, which provides unnecessary detail for this task, ensuring faster, real-time analysis.
 
 - **Objective:** To develop a tool that assists radiologists by providing precise, pixel-level outlines of tumors in medical imaging scans.
+
     - **Computer Vision Task:** Image segmentation is suitable for medical imaging because it provides accurate and detailed boundaries of tumors that are crucial for assessing size, shape, and treatment planning.
 
 - **Objective:** To create a digital system that categorizes various documents (e.g., invoices, receipts, legal paperwork) to improve organizational efficiency and document retrieval.
@@ -103,7 +105,7 @@ After splitting your data, you can perform data augmentation by applying transfo
 
 <p align="center">
   <img width="100%" src="https://www.labellerr.com/blog/content/images/size/w2000/2022/11/banner-data-augmentation--1-.webp" alt="Examples of Data Augmentations">
-</p> 
+</p>
 
 Libraries like OpenCV, Albumentations, and TensorFlow offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
 
@@ -111,7 +113,7 @@ To understand your data better, you can use tools like [Matplotlib](https://matp
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0" alt="The Ultralytics Explorer Tool">
-</p> 
+</p>
 
 By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
@@ -165,7 +167,7 @@ Monitoring tools can help you track key performance indicators (KPIs) and detect
 
 <p align="center">
   <img width="100%" src="https://www.kdnuggets.com/wp-content/uploads//ai-infinite-training-maintaining-loop.jpg" alt="Model Monitoring">
-</p> 
+</p>
 
 In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively monitoring, maintaining, and documenting your model, you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.
 
@@ -174,15 +176,19 @@ In addition to monitoring and maintenance, documentation is also key. Thoroughly
 Here are some common questions that might arise during a computer vision project:
 
 - **Q1:** How do the steps change if I already have a dataset or data when starting a computer vision project?
+
     - **A1:** Starting with a pre-existing dataset or data affects the initial steps of your project. In Step 1, along with deciding the computer vision task and model, you'll also need to explore your dataset thoroughly. Understanding its quality, variety, and limitations will guide your choice of model and training approach. Your approach should align closely with the data's characteristics for more effective outcomes. Depending on your data or dataset, you may be able to skip Step 2 as well.
 
-- **Q2:**  I'm not sure what computer vision project to start my AI learning journey with.
-    - **A2:**  Check out our [guides on Real-World Projects](./index.md) for inspiration and guidance.
+- **Q2:** I'm not sure what computer vision project to start my AI learning journey with.
+
+    - **A2:** Check out our [guides on Real-World Projects](./index.md) for inspiration and guidance.
 
 - **Q3:** I don't want to train a model. I just want to try running a model on an image. How can I do that?
+
     - **A3:** You can use a pre-trained model to run predictions on an image without training a new model. Check out the [YOLOv8 predict docs page](../modes/predict.md) for instructions on how to use a pre-trained YOLOv8 model to make predictions on your images.
 
 - **Q4:** Where can I find more detailed articles and updates about computer vision applications and YOLOv8?
+
     - **A4:** For more detailed articles, updates, and insights about computer vision applications and YOLOv8, visit the [Ultralytics blog page](https://www.ultralytics.com/blog). The blog covers a wide range of topics and provides valuable information to help you stay updated and improve your projects.
 
 ## Engaging with the Community

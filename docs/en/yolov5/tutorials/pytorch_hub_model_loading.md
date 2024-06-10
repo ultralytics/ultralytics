@@ -285,42 +285,42 @@ results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 
 ```json
 [
-  {
-    "xmin": 749.5,
-    "ymin": 43.5,
-    "xmax": 1148.0,
-    "ymax": 704.5,
-    "confidence": 0.8740234375,
-    "class": 0,
-    "name": "person"
-  },
-  {
-    "xmin": 433.5,
-    "ymin": 433.5,
-    "xmax": 517.5,
-    "ymax": 714.5,
-    "confidence": 0.6879882812,
-    "class": 27,
-    "name": "tie"
-  },
-  {
-    "xmin": 115.25,
-    "ymin": 195.75,
-    "xmax": 1096.0,
-    "ymax": 708.0,
-    "confidence": 0.6254882812,
-    "class": 0,
-    "name": "person"
-  },
-  {
-    "xmin": 986.0,
-    "ymin": 304.0,
-    "xmax": 1028.0,
-    "ymax": 420.0,
-    "confidence": 0.2873535156,
-    "class": 27,
-    "name": "tie"
-  }
+    {
+        "xmin": 749.5,
+        "ymin": 43.5,
+        "xmax": 1148.0,
+        "ymax": 704.5,
+        "confidence": 0.8740234375,
+        "class": 0,
+        "name": "person"
+    },
+    {
+        "xmin": 433.5,
+        "ymin": 433.5,
+        "xmax": 517.5,
+        "ymax": 714.5,
+        "confidence": 0.6879882812,
+        "class": 27,
+        "name": "tie"
+    },
+    {
+        "xmin": 115.25,
+        "ymin": 195.75,
+        "xmax": 1096.0,
+        "ymax": 708.0,
+        "confidence": 0.6254882812,
+        "class": 0,
+        "name": "person"
+    },
+    {
+        "xmin": 986.0,
+        "ymin": 304.0,
+        "xmax": 1028.0,
+        "ymax": 420.0,
+        "confidence": 0.2873535156,
+        "class": 27,
+        "name": "tie"
+    }
 ]
 ```
 

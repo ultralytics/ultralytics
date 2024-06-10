@@ -819,6 +819,7 @@ class Exporter:
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """YOLOv8 TensorFlow SavedModel export."""
         cuda = torch.cuda.is_available()
+        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         try:
             import tensorflow as tf  # noqa
         except ImportError:

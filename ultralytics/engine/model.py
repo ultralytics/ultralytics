@@ -130,7 +130,6 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
-        self.end2end = False  # YOLOv10
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -151,7 +150,6 @@ class Model(nn.Module):
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
-        self.check_end2end()
 
     def __call__(
         self,
@@ -446,7 +444,6 @@ class Model(nn.Module):
 
         if not self.predictor:
             self.predictor = predictor or self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
-            self.predictor.end2end = self.end2end  # assure set before model setup
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
@@ -454,7 +451,6 @@ class Model(nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
-        self.end2end_attr(self.predictor)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(
@@ -530,7 +526,6 @@ class Model(nn.Module):
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        self.end2end_attr(validator)
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics
@@ -659,7 +654,6 @@ class Model(nn.Module):
             args["resume"] = self.ckpt_path
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
-        self.end2end_attr(self.trainer)
         if not args.get("resume"):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
@@ -818,16 +812,6 @@ class Model(nn.Module):
         """
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
-
-    def check_end2end(self) -> None:
-        """Checks if model an end-to-end YOLOv10 type."""
-        if hasattr(self.model, "yaml"):
-            self.end2end = "v10Detect" in self.model.yaml["head"][-1]  # YOLOv10
-
-    def end2end_attr(self, obj) -> None:
-        """Sets end2end argument for YOLOv10 models."""
-        self.end2end |= obj.end2end  # for AutoBackend exported models
-        obj.end2end = self.end2end  # YOLOv10
 
     @staticmethod
     def _reset_ckpt_args(args: dict) -> dict:

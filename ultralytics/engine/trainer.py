@@ -178,9 +178,9 @@ class BaseTrainer:
             if self.args.rect:
                 LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
-            if self.args.batch == -1:
+            if self.args.batch < 1.0:
                 LOGGER.warning(
-                    "WARNING ⚠️ 'batch=-1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                    "WARNING ⚠️ 'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting "
                     "default 'batch=16'"
                 )
                 self.args.batch = 16
@@ -269,8 +269,13 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         # Batch size
-        if self.batch_size == -1 and RANK == -1:  # single-GPU only, estimate best batch size
-            self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+        if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
+            self.args.batch = self.batch_size = check_train_batch_size(
+                model=self.model,
+                imgsz=self.args.imgsz,
+                amp=self.amp,
+                batch=self.batch_size,
+            )
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
@@ -527,13 +532,13 @@ class BaseTrainer:
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
-        model, weights = self.model, None
+        cfg, weights = self.model, None
         ckpt = None
-        if str(model).endswith(".pt"):
-            weights, ckpt = attempt_load_one_weight(model)
+        if str(self.model).endswith(".pt"):
+            weights, ckpt = attempt_load_one_weight(self.model)
             cfg = weights.yaml
-        else:
-            cfg = model
+        elif isinstance(self.args.pretrained, (str, Path)):
+            weights, _ = attempt_load_one_weight(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 

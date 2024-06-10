@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the thrilling features of YOLOv8, the latest version of our real-time object detector! Learn how advanced architectures, pre-trained models and optimal balance between accuracy & speed make YOLOv8 the perfect choice for your object detection tasks.
-keywords: YOLOv8, Ultralytics, real-time object detector, pre-trained models, documentation, object detection, YOLO series, advanced architectures, accuracy, speed
+description: Discover YOLOv8, the latest advancement in real-time object detection, optimizing performance with an array of pre-trained models for diverse tasks.
+keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, advanced object detection, AI, machine learning, deep learning
 ---
 
 # YOLOv8
@@ -139,16 +139,16 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into YOLOv5 for object detection with our easy-to-follow guide on setup, model training, and image inference using PyTorch. Get started now!
-keywords: YOLOv5 Tutorial, Object Detection Guide, PyTorch Model Training, Inference with YOLOv5, Ultralytics YOLOv5 Setup
+description: Kickstart your real-time object detection journey with YOLOv5! This guide covers installation, inference, and training to help you master YOLOv5 quickly.
+keywords: YOLOv5, Quickstart, real-time object detection, AI, ML, PyTorch, inference, training, Ultralytics, machine learning, deep learning
 ---
 
 # YOLOv5 Quickstart 🚀

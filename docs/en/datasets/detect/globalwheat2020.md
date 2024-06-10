@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand how to utilize the vast Global Wheat Head Dataset for building wheat head detection models. Features, structure, applications, usage, sample data, and citation.
-keywords: Ultralytics, YOLO, Global Wheat Head Dataset, wheat head detection, plant phenotyping, crop management, deep learning, outdoor images, annotations, YAML configuration
+description: Explore the Global Wheat Head Dataset to develop accurate wheat head detection models. Includes training images, annotations, and usage for crop management.
+keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, crop management, deep learning, object detection, training datasets
 ---
 
 # Global Wheat Head Dataset
@@ -48,10 +48,10 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='GlobalWheat2020.yaml', epochs=100, imgsz=640)
+        results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

@@ -108,7 +108,7 @@ np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format}) 
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress verbose TF compiler warnings in Colab
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
@@ -515,7 +515,7 @@ def is_online() -> bool:
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=1.0).close()
+            socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
     return False
 
@@ -806,8 +806,8 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
-    specified number of times with an exponentially increasing delay between retries.
+    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries.
 
     Examples:
         Example usage as a decorator:
@@ -815,11 +815,6 @@ class Retry(contextlib.ContextDecorator):
         >>> def test_func():
         >>>     # Replace with function logic that may raise exceptions
         >>>     return True
-
-        Example usage as a context manager:
-        >>> with Retry(times=3, delay=2):
-        >>>     # Replace with code block that may raise exceptions
-        >>>     pass
     """
 
     def __init__(self, times=3, delay=2):
@@ -845,20 +840,6 @@ class Retry(contextlib.ContextDecorator):
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
-
-    def __enter__(self):
-        """Enter the runtime context related to this object."""
-        self._attempts = 0
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context related to this object with exponential backoff."""
-        if exc_type is not None:
-            self._attempts += 1
-            if self._attempts < self.times:
-                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
-                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
-                return True  # Suppresses the exception and retries
-        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):

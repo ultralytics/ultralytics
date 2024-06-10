@@ -126,7 +126,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    """YOLOv8 export decorator, i..e @try_export."""
+    """YOLOv8 export decorator, i.e. @try_export."""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -184,6 +184,7 @@ class Exporter:
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
         if fmt == "engine" and self.args.device is None:
@@ -195,6 +196,9 @@ class Exporter:
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
+        if self.args.half and self.args.int8:
+            LOGGER.warning("WARNING ⚠️ half=True and int8=True are mutually exclusive, setting half=False.")
+            self.args.half = False
         if self.args.half and onnx and self.device.type == "cpu":
             LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
@@ -205,8 +209,12 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
-        if edgetpu and not LINUX:
-            raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
+        if edgetpu:
+            if not LINUX:
+                raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
+            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
+                LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
+                self.args.batch = 1
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
@@ -240,7 +248,7 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-            elif isinstance(m, C2f) and not any((saved_model, pb, tflite, edgetpu, tfjs)):
+            elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
@@ -300,7 +308,7 @@ class Exporter:
             f[3], _ = self.export_openvino()
         if coreml:  # CoreML
             f[4], _ = self.export_coreml()
-        if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
+        if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
             f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
@@ -380,9 +388,7 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
-            if ARM64:
-                check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
+            requirements += ["onnxslim==0.1.28", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -419,14 +425,17 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                import onnxsim
+                import onnxslim
 
-                LOGGER.info(f"{prefix} simplifying with onnxsim {onnxsim.__version__}...")
-                # subprocess.run(f'onnxsim "{f}" "{f}"', shell=True)
-                model_onnx, check = onnxsim.simplify(model_onnx)
-                assert check, "Simplified ONNX model could not be validated"
+                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+                model_onnx = onnxslim.slim(model_onnx)
+
+                # ONNX Simplifier (deprecated as must be compiled with 'cmake' in aarch64 and Conda CI environments)
+                # import onnxsim
+                # model_onnx, check = onnxsim.simplify(model_onnx)
+                # assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
-                LOGGER.info(f"{prefix} simplifier failure: {e}")
+                LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
         # Metadata
         for k, v in self.metadata.items():
@@ -670,8 +679,8 @@ class Exporter:
     def export_engine(self, prefix=colorstr("TensorRT:")):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
-        self.args.simplify = True
-        f_onnx, _ = self.export_onnx()  # run before trt import https://github.com/ultralytics/ultralytics/issues/7016
+        # self.args.simplify = True
+        f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
             import tensorrt as trt  # noqa
@@ -774,11 +783,10 @@ class Exporter:
                     _ = self.cache.write_bytes(cache)
 
             # Load dataset w/ builder (for batching) and calibrate
-            dataset = self.get_int8_calibration_dataloader(prefix)
             config.int8_calibrator = EngineCalibrator(
-                dataset=dataset,
+                dataset=self.get_int8_calibration_dataloader(prefix),
                 batch=2 * self.args.batch,
-                cache=self.file.with_suffix(".cache"),
+                cache=str(self.file.with_suffix(".cache")),
             )
 
         elif half:
@@ -809,29 +817,29 @@ class Exporter:
             import tensorflow as tf  # noqa
         except ImportError:
             suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
-            version = "" if ARM64 else "<=2.13.1"
+            version = ">=2.0.0"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
-        if ARM64:
-            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(
             (
+                "keras",  # required by onnx2tf package
+                "tf_keras",  # required by onnx2tf package
                 "onnx>=1.12.0",
-                "onnx2tf>=1.15.4,<=1.17.5",
+                "onnx2tf>1.17.5,<=1.22.3",
                 "sng4onnx>=1.0.1",
-                "onnxsim>=0.4.33",
+                "onnxslim==0.1.28",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
             ),
-            cmds="--extra-index-url https://pypi.ngc.nvidia.com",
-        )  # onnx_graphsurgeon only on NVIDIA
+            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,
-            "<=2.13.1",
+            ">=2.0.0",
             name="tensorflow",
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",
@@ -852,24 +860,17 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
-        tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         np_data = None
         if self.args.int8:
+            tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
             verbosity = "info"
             if self.args.data:
-                # Generate calibration data for integer quantization
-                dataloader = self.get_int8_calibration_dataloader(prefix)
-                images = []
-                for i, batch in enumerate(dataloader):
-                    if i >= 100:  # maximum number of calibration images
-                        break
-                    im = batch["img"].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
-                    images.append(im)
                 f.mkdir()
+                images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
                 images = torch.cat(images, 0).float()
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
-                np.save(str(tmp_file), images.numpy())  # BHWC
+                np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
         else:
             verbosity = "error"
@@ -1012,12 +1013,18 @@ class Exporter:
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
-        from tflite_support import flatbuffers  # noqa
-        from tflite_support import metadata as _metadata  # noqa
-        from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
+        import flatbuffers
+
+        if ARM64:
+            from tflite_support import metadata  # noqa
+            from tflite_support import metadata_schema_py_generated as schema  # noqa
+        else:
+            # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
+            from tensorflow_lite_support.metadata import metadata_schema_py_generated as schema  # noqa
+            from tensorflow_lite_support.metadata.python import metadata  # noqa
 
         # Create model info
-        model_meta = _metadata_fb.ModelMetadataT()
+        model_meta = schema.ModelMetadataT()
         model_meta.name = self.metadata["description"]
         model_meta.version = self.metadata["version"]
         model_meta.author = self.metadata["author"]
@@ -1028,41 +1035,41 @@ class Exporter:
         with open(tmp_file, "w") as f:
             f.write(str(self.metadata))
 
-        label_file = _metadata_fb.AssociatedFileT()
+        label_file = schema.AssociatedFileT()
         label_file.name = tmp_file.name
-        label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
+        label_file.type = schema.AssociatedFileType.TENSOR_AXIS_LABELS
 
         # Create input info
-        input_meta = _metadata_fb.TensorMetadataT()
+        input_meta = schema.TensorMetadataT()
         input_meta.name = "image"
         input_meta.description = "Input image to be detected."
-        input_meta.content = _metadata_fb.ContentT()
-        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
-        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
-        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
+        input_meta.content = schema.ContentT()
+        input_meta.content.contentProperties = schema.ImagePropertiesT()
+        input_meta.content.contentProperties.colorSpace = schema.ColorSpaceType.RGB
+        input_meta.content.contentPropertiesType = schema.ContentProperties.ImageProperties
 
         # Create output info
-        output1 = _metadata_fb.TensorMetadataT()
+        output1 = schema.TensorMetadataT()
         output1.name = "output"
         output1.description = "Coordinates of detected objects, class labels, and confidence score"
         output1.associatedFiles = [label_file]
         if self.model.task == "segment":
-            output2 = _metadata_fb.TensorMetadataT()
+            output2 = schema.TensorMetadataT()
             output2.name = "output"
             output2.description = "Mask protos"
             output2.associatedFiles = [label_file]
 
         # Create subgraph info
-        subgraph = _metadata_fb.SubGraphMetadataT()
+        subgraph = schema.SubGraphMetadataT()
         subgraph.inputTensorMetadata = [input_meta]
         subgraph.outputTensorMetadata = [output1, output2] if self.model.task == "segment" else [output1]
         model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)
-        b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
+        b.Finish(model_meta.Pack(b), metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
         metadata_buf = b.Output()
 
-        populator = _metadata.MetadataPopulator.with_model_file(str(file))
+        populator = metadata.MetadataPopulator.with_model_file(str(file))
         populator.load_metadata_buffer(metadata_buf)
         populator.load_associated_files([str(tmp_file)])
         populator.populate()

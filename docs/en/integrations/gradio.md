@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to use Gradio and Ultralytics YOLOv8 for interactive object detection. Upload images and adjust detection parameters in real-time.
-keywords: Gradio, Ultralytics YOLOv8, object detection, interactive AI, Python
+description: Discover an interactive way to perform object detection with Ultralytics YOLOv8 using Gradio. Upload images and adjust settings for real-time results.
+keywords: Ultralytics, YOLOv8, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
 # Interactive Object Detection: Gradio & Ultralytics YOLOv8 🚀
@@ -9,6 +9,17 @@ keywords: Gradio, Ultralytics YOLOv8, object detection, interactive AI, Python
 ## Introduction to Interactive Object Detection
 
 This Gradio interface provides an easy and interactive way to perform object detection using the [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/pWYiene9lYw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8
+</p>
 
 ## Why Use Gradio for Object Detection?
 
@@ -44,8 +55,8 @@ pip install gradio
 This section provides the Python code used to create the Gradio interface with the Ultralytics YOLOv8 model. Supports classification tasks, detection tasks, segmentation tasks, and key point tasks.
 
 ```python
-import PIL.Image as Image
 import gradio as gr
+import PIL.Image as Image
 
 from ultralytics import ASSETS, YOLO
 
@@ -75,7 +86,7 @@ iface = gr.Interface(
     inputs=[
         gr.Image(type="pil", label="Upload Image"),
         gr.Slider(minimum=0, maximum=1, value=0.25, label="Confidence threshold"),
-        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold")
+        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
@@ -83,10 +94,10 @@ iface = gr.Interface(
     examples=[
         [ASSETS / "bus.jpg", 0.25, 0.45],
         [ASSETS / "zidane.jpg", 0.25, 0.45],
-    ]
+    ],
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     iface.launch()
 ```
 

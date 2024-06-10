@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A guide that walks you step-by-step through how to export Ultralytics YOLOv8 models to TF GraphDef format for smooth deployment and efficient model performance.
-keywords: Ultralytics, YOLOv8, TF GraphDef Export, Model Deployment, TensorFlow Ecosystem, Cross-Platform Compatibility, Performance Optimization  
+description: Learn how to export YOLOv8 models to the TF GraphDef format for seamless deployment on various platforms, including mobile and web.
+keywords: YOLOv8, export, TensorFlow, GraphDef, model deployment, TensorFlow Serving, TensorFlow Lite, TensorFlow.js, machine learning, AI, computer vision
 ---
 
 # How to Export to TF GraphDef from YOLOv8 for Deployment
@@ -81,16 +81,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TF GraphDef format
-        model.export(format='pb')  # creates 'yolov8n.pb'
+        model.export(format="pb")  # creates 'yolov8n.pb'
 
         # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO('yolov8n.pb')
+        tf_graphdef_model = YOLO("yolov8n.pb")
 
         # Run inference
-        results = tf_graphdef_model('https://ultralytics.com/images/bus.jpg')
+        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -107,7 +107,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLOv8 TF GraphDef Models
 
-Once you’ve exported your YOLOv8 model to the TF GraphDef format, the next step is deployment. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("model.pb") method, as previously shown in the usage code snippet.
+Once you've exported your YOLOv8 model to the TF GraphDef format, the next step is deployment. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("model.pb") method, as previously shown in the usage code snippet.
 
 However, for more information on deploying your TF GraphDef models, take a look at the following resources:
 

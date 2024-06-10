@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO including examples of single-GPU and multi-GPU training
-keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
+description: Learn how to efficiently train object detection models using YOLOv8 with comprehensive instructions on settings, augmentation, and hardware utilization.
+keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -59,12 +59,12 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The trainin
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -154,7 +154,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/last.pt')  # load a partially trained model
+        model = YOLO("path/to/last.pt")  # load a partially trained model
 
         # Resume training
         results = model.train(resume=True)
@@ -182,7 +182,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `epochs`          | `100`    | Total number of training epochs. Each epoch represents a full pass over the entire dataset. Adjusting this value can affect training duration and model performance.                                                 |
 | `time`            | `None`   | Maximum training time in hours. If set, this overrides the `epochs` argument, allowing training to automatically stop after the specified duration. Useful for time-constrained training scenarios.                  |
 | `patience`        | `100`    | Number of epochs to wait without improvement in validation metrics before early stopping the training. Helps prevent overfitting by stopping training when performance plateaus.                                     |
-| `batch`           | `16`     | Batch size for training, indicating how many images are processed before the model's internal parameters are updated. AutoBatch (`batch=-1`) dynamically adjusts the batch size based on GPU memory availability.    |
+| `batch`           | `16`     | Batch size, with three modes: set as an integer (e.g., `batch=16`), auto mode for 60% GPU memory utilization (`batch=-1`), or auto mode with specified utilization fraction (`batch=0.70`).                          |
 | `imgsz`           | `640`    | Target image size for training. All images are resized to this dimension before being fed into the model. Affects model accuracy and computational complexity.                                                       |
 | `save`            | `True`   | Enables saving of training checkpoints and final model weights. Useful for resuming training or model deployment.                                                                                                    |
 | `save_period`     | `-1`     | Frequency of saving model checkpoints, specified in epochs. A value of -1 disables this feature. Useful for saving interim models during long training sessions.                                                     |
@@ -225,6 +225,14 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `dropout`         | `0.0`    | Dropout rate for regularization in classification tasks, preventing overfitting by randomly omitting units during training.                                                                                          |
 | `val`             | `True`   | Enables validation during training, allowing for periodic evaluation of model performance on a separate dataset.                                                                                                     |
 | `plots`           | `False`  | Generates and saves plots of training and validation metrics, as well as prediction examples, providing visual insights into model performance and learning progression.                                             |
+
+!!! info "Note on Batch-size Settings"
+    
+    The `batch` argument can be configured in three ways:
+    
+    - **Fixed Batch Size**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
+    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
 
 ## Augmentation Settings and Hyperparameters
 

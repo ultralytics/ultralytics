@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the Ultralytics Android App, enabling real-time object detection using YOLO models. Discover in-app features, quantization methods, and delegate options for optimal performance.
-keywords: Ultralytics, Android App, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, CPU, GPU, Hexagon, NNAPI
+description: Experience real-time object detection on Android with Ultralytics. Leverage YOLO models for efficient and fast object identification. Download now!.
+keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
 # Ultralytics Android App: Real-time Object Detection with YOLO Models
@@ -16,7 +16,7 @@ keywords: Ultralytics, Android App, real-time object detection, YOLO models, Ten
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

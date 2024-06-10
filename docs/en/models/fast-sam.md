@@ -1,12 +1,25 @@
 ---
 comments: true
-description: Explore FastSAM, a CNN-based solution for real-time object segmentation in images. Enhanced user interaction, computational efficiency and adaptable across vision tasks.
-keywords: FastSAM, machine learning, CNN-based solution, object segmentation, real-time solution, Ultralytics, vision tasks, image processing, industrial applications, user interaction
+description: Discover FastSAM, a real-time CNN-based solution for segmenting any object in an image. Efficient, competitive, and ideal for various vision tasks.
+keywords: FastSAM, Fast Segment Anything Model, Ultralytics, real-time segmentation, CNN, YOLOv8-seg, object segmentation, image processing, computer vision
 ---
 
 # Fast Segment Anything Model (FastSAM)
 
 The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based solution for the Segment Anything task. This task is designed to segment any object within an image based on various possible user interaction prompts. FastSAM significantly reduces computational demands while maintaining competitive performance, making it a practical choice for a variety of vision tasks.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/F7db-EHhxss"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Object Tracking using FastSAM with Ultralytics
+</p>
+
+## Model Architecture
 
 ![Fast Segment Anything Model (FastSAM) architecture overview](https://user-images.githubusercontent.com/26833433/248551984-d98f0f6d-7535-45d0-b380-2e1440b52ad7.jpg)
 
@@ -56,16 +69,16 @@ To perform object detection on an image, use the `predict` method as shown below
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # Define an inference source
-        source = 'path/to/bus.jpg'
+        source = "path/to/bus.jpg"
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Run inference on an image
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Prepare a Prompt Process object
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # Everything prompt
         ann = prompt_process.everything_prompt()
@@ -74,13 +87,13 @@ To perform object detection on an image, use the `predict` method as shown below
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # Text prompt
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
         # Point prompt
         # points default [[0,0]] [[x1,y1],[x2,y2]]
         # point_label default [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -104,10 +117,10 @@ Validation of the model on a dataset can be done as follows:
         from ultralytics import FastSAM
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Validate the model
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -131,7 +144,7 @@ To perform object tracking on an image, use the `track` method as shown below:
         from ultralytics import FastSAM
 
         # Create a FastSAM model
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Track with a FastSAM model on a video
         results = model.track(source="path/to/video.mp4", imgsz=640)

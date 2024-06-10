@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import json
 from tkinter import filedialog, messagebox
 
@@ -8,35 +10,38 @@ from PIL import Image, ImageTk
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
-check_requirements("tkinter")
-import tkinter as tk
-
 
 class ParkingPtsSelection:
-    def __init__(self, master):
+    def __init__(self):
         """Initializes the UI for selecting parking zone points in a tkinter window."""
-        self.master = master
-        master.title("Ultralytics Parking Zones Points Selector")
+        check_requirements("tkinter")
 
-        # Resizable false
-        master.resizable(False, False)
+        import tkinter as tk
+
+        self.tk = tk
+        self.master = tk.Tk()
+        self.master.title("Ultralytics Parking Zones Points Selector")
+
+        # Disable window resizing
+        self.master.resizable(False, False)
 
         # Setup canvas for image display
-        self.canvas = tk.Canvas(master, bg="white")
+        self.canvas = self.tk.Canvas(self.master, bg="white")
 
         # Setup buttons
-        button_frame = tk.Frame(master)
-        button_frame.pack(side=tk.TOP)
+        button_frame = self.tk.Frame(self.master)
+        button_frame.pack(side=self.tk.TOP)
 
-        tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
-        tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(row=0, column=1)
-        tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
+        self.tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
+        self.tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(
+            row=0, column=1
+        )
+        self.tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
 
         # Initialize properties
         self.image_path = None
         self.image = None
         self.canvas_image = None
-        self.canvas = None
         self.bounding_boxes = []
         self.current_box = []
         self.img_width = 0
@@ -45,6 +50,8 @@ class ParkingPtsSelection:
         # Constants
         self.canvas_max_width = 1280
         self.canvas_max_height = 720
+
+        self.master.mainloop()
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
@@ -70,12 +77,12 @@ class ParkingPtsSelection:
         if self.canvas:
             self.canvas.destroy()  # Destroy previous canvas
 
-        self.canvas = tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
+        self.canvas = self.tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
         resized_image = self.image.resize((canvas_width, canvas_height), Image.LANCZOS)
         self.canvas_image = ImageTk.PhotoImage(resized_image)
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.canvas_image)
+        self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
 
-        self.canvas.pack(side=tk.BOTTOM)
+        self.canvas.pack(side=self.tk.BOTTOM)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
         # Reset bounding boxes and current box
@@ -101,7 +108,6 @@ class ParkingPtsSelection:
         Args:
             box (list): Bounding box data
         """
-
         for i in range(4):
             x1, y1 = box[i]
             x2, y2 = box[(i + 1) % 4]
@@ -112,7 +118,7 @@ class ParkingPtsSelection:
         if self.bounding_boxes:
             self.bounding_boxes.pop()  # Remove the last bounding box
             self.canvas.delete("all")  # Clear the canvas
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.canvas_image)  # Redraw the image
+            self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)  # Redraw the image
 
             # Redraw all bounding boxes
             for box in self.bounding_boxes:
@@ -151,6 +157,17 @@ class ParkingManagement:
         available_region_color=(0, 0, 255),
         margin=10,
     ):
+        """
+        Initializes the parking management system with a YOLOv8 model and visualization settings.
+
+        Args:
+            model_path (str): Path to the YOLOv8 model.
+            txt_color (tuple): RGB color tuple for text.
+            bg_color (tuple): RGB color tuple for background.
+            occupied_region_color (tuple): RGB color tuple for occupied regions.
+            available_region_color (tuple): RGB color tuple for available regions.
+            margin (int): Margin for text display.
+        """
         # Model path and initialization
         self.model_path = model_path
         self.model = self.load_model()
@@ -166,7 +183,7 @@ class ParkingManagement:
         self.available_region_color = available_region_color
 
         self.window_name = "Ultralytics YOLOv8 Parking Management System"
-        # Check if environment support imshow
+        # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
 
     def load_model(self):
@@ -184,7 +201,6 @@ class ParkingManagement:
         Args:
             json_file (str): file that have all parking slot points
         """
-
         with open(json_file, "r") as json_file:
             return json.load(json_file)
 
@@ -197,6 +213,7 @@ class ParkingManagement:
             im0 (ndarray): inference image
             boxes (list): bounding boxes data
             clss (list): bounding boxes classes list
+
         Returns:
             filled_slots (int): total slots that are filled in parking lot
             empty_slots (int): total slots that are available in parking lot

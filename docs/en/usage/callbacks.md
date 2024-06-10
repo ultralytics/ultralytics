@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to utilize callbacks in the Ultralytics framework during train, val, export, and predict modes for enhanced functionality.
-keywords: Ultralytics, YOLO, callbacks guide, training callback, validation callback, export callback, prediction callback
+description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
+keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLOv8, Python, machine learning
 ---
 
 ## Callbacks
@@ -41,13 +41,13 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO(f'yolov8n.pt')
+model = YOLO(f"yolov8n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
 # Iterate through the results and frames
-for (result, frame) in model.predict():  # or model.track()
+for result, frame in model.predict():  # or model.track()
     pass
 ```
 

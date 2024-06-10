@@ -197,12 +197,11 @@ def layout():
     imgs = []
     if st.session_state.get("error"):
         st.error(st.session_state["error"])
+    elif st.session_state.get("imgs"):
+        imgs = st.session_state.get("imgs")
     else:
-        if st.session_state.get("imgs"):
-            imgs = st.session_state.get("imgs")
-        else:
-            imgs = exp.table.to_lance().to_table(columns=["im_file"]).to_pydict()["im_file"]
-            st.session_state["res"] = exp.table.to_arrow()
+        imgs = exp.table.to_lance().to_table(columns=["im_file"]).to_pydict()["im_file"]
+        st.session_state["res"] = exp.table.to_arrow()
     total_imgs, selected_imgs = len(imgs), []
     with col1:
         subcol1, subcol2, subcol3, subcol4, subcol5 = st.columns(5)

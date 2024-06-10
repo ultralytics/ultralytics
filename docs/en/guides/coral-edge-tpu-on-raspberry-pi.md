@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Guide on how to use Ultralytics with a Coral Edge TPU on a Raspberry Pi for increased inference performance.
-keywords: Ultralytics, YOLOv8, Object Detection, Coral, Edge TPU, Raspberry Pi, embedded, edge compute, sbc, accelerator, mobile
+description: Learn how to boost your Raspberry Pi's ML performance using Coral Edge TPU with Ultralytics YOLOv8. Follow our detailed setup and installation guide.
+keywords: Coral Edge TPU, Raspberry Pi, YOLOv8, Ultralytics, TensorFlow Lite, ML inference, machine learning, AI, installation guide, setup tutorial
 ---
 
 # Coral Edge TPU on a Raspberry Pi with Ultralytics YOLOv8 🚀
@@ -82,10 +82,10 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/model.pt')  # Load an official model or custom model
+        model = YOLO("path/to/model.pt")  # Load an official model or custom model
 
         # Export the model
-        model.export(format='edgetpu')
+        model.export(format="edgetpu")
         ```
 
     === "CLI"
@@ -108,7 +108,7 @@ After exporting your model, you can run inference with it using the following co
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/edgetpu_model.tflite')  # Load an official model or custom model
+        model = YOLO("path/to/edgetpu_model.tflite")  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")

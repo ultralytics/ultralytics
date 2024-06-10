@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the power of deploying your Ultralytics YOLOv8 model using OpenVINO format for up to 10x speedup vs PyTorch.
-keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, OpenVINO, OpenVINO format
+description: Learn to export YOLOv8 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
+keywords: YOLOv8, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
 ---
 
 # Intel OpenVINO Export
@@ -35,16 +35,16 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model
-        model.export(format='openvino')  # creates 'yolov8n_openvino_model/'
+        model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO('yolov8n_openvino_model/')
+        ov_model = YOLO("yolov8n_openvino_model/")
 
         # Run inference
-        results = ov_model('https://ultralytics.com/images/bus.jpg')
+        results = ov_model("https://ultralytics.com/images/bus.jpg")
         ```
     === "CLI"
 
@@ -69,7 +69,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular deep learning frameworks such as PyTorch, TensorFlow, TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
-4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/main/notebooks/230-yolov8-optimization)) teaching different aspects of the toolkit.
+4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov8-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
 
@@ -95,7 +95,7 @@ In your deployment application, you would typically do the following steps:
 4. Prepare the input (image, text, audio, etc.).
 5. Run inference using `compiled_model(input_data)`.
 
-For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/main/notebooks/002-openvino-api/002-openvino-api.ipynb).
+For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/latest/notebooks/openvino-api/openvino-api.ipynb).
 
 ## OpenVINO YOLOv8 Benchmarks
 
@@ -259,10 +259,10 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        results= model.benchmarks(data='coco8.yaml')
+        results = model.benchmarks(data="coco8.yaml")
         ```
     === "CLI"
 

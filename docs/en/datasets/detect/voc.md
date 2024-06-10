@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A complete guide to the PASCAL VOC dataset used for object detection, segmentation and classification tasks with relevance to YOLO model training.
-keywords: Ultralytics, PASCAL VOC dataset, object detection, segmentation, image classification, YOLO, model training, VOC.yaml, deep learning
+description: Discover the PASCAL VOC dataset, essential for object detection, segmentation, and classification. Learn key features, applications, and usage tips.
+keywords: PASCAL VOC, VOC dataset, object detection, segmentation, classification, YOLO, Faster R-CNN, Mask R-CNN, image annotations, computer vision
 ---
 
 # VOC Dataset
@@ -49,10 +49,10 @@ To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='VOC.yaml', epochs=100, imgsz=640)
+        results = model.train(data="VOC.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

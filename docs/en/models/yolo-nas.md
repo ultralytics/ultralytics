@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore detailed documentation of YOLO-NAS, a superior object detection model. Learn about its features, pre-trained models, usage with Ultralytics Python API, and more.
-keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architecture search, Ultralytics Python API, YOLO model, pre-trained models, quantization, optimization, COCO, Objects365, Roboflow 100
+description: Discover YOLO-NAS by Deci AI - a state-of-the-art object detection model with quantization support. Explore features, pretrained models, and implementation examples.
+keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architecture Search, Ultralytics, Python API, YOLO model, SuperGradients, pretrained models, quantization, AutoNAC
 ---
 
 # YOLO-NAS
@@ -55,16 +55,16 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         from ultralytics import NAS
 
         # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # Display model information (optional)
         model.info()
 
         # Validate the model on the COCO8 example dataset
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

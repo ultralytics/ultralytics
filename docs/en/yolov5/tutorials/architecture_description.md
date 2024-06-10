@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the architecture of YOLOv5, an object detection algorithm by Ultralytics. Understand the model structure, data augmentation methods, training strategies, and loss computation techniques.
-keywords: Ultralytics, YOLOv5, Object Detection, Architecture, Model Structure, Data Augmentation, Training Strategies, Loss Computation
+description: Dive deep into the powerful YOLOv5 architecture by Ultralytics, exploring its model structure, data augmentation techniques, training strategies, and loss computations.
+keywords: YOLOv5 architecture, object detection, Ultralytics, YOLO, model structure, data augmentation, training strategies, loss computations, deep learning, machine learning
 ---
 
 # Ultralytics YOLOv5 Architecture
@@ -32,6 +32,7 @@ To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 ```python
 import time
+
 import torch
 import torch.nn as nn
 
@@ -87,7 +88,7 @@ def main():
     print(f"SPPF time: {time.time() - t_start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 

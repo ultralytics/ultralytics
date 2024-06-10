@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage.
-keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
+description: Explore Meituan YOLOv6, a top-tier object detector balancing speed and accuracy. Learn about its unique features and performance metrics on Ultralytics Docs.
+keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, Anchor-Aided Training, COCO dataset, high-performance models, Ultralytics Docs
 ---
 
 # Meituan YOLOv6
@@ -46,16 +46,16 @@ This example provides simple YOLOv6 training and inference examples. For full do
         from ultralytics import YOLO
 
         # Build a YOLOv6n model from scratch
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

@@ -28,6 +28,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -76,6 +77,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -136,6 +138,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -185,6 +188,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -234,52 +238,53 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
+
         model = YOLO("yolov8s.pt")
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("area_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-        
+
         analytics = solutions.Analytics(
             type="area",
             writer=out,
             im0_shape=(w, h),
             view_img=True,
         )
-        
+
         clswise_count = {}
         frame_count = 0
-        
+
         while cap.isOpened():
             success, frame = cap.read()
             if success:
-        
                 frame_count += 1
                 results = model.track(frame, persist=True, verbose=True)
-        
+
                 if results[0].boxes.id is not None:
                     boxes = results[0].boxes.xyxy.cpu()
                     clss = results[0].boxes.cls.cpu().tolist()
-        
+
                     for box, cls in zip(boxes, clss):
                         if model.names[int(cls)] in clswise_count:
                             clswise_count[model.names[int(cls)]] += 1
                         else:
                             clswise_count[model.names[int(cls)]] = 1
-        
+
                 analytics.update_area(frame_count, clswise_count)
                 clswise_count = {}
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             else:
                 break
-        
+
         cap.release()
         out.release()
-        cv2.destroyAllWindows()    
+        cv2.destroyAllWindows()
         ```
 
 ### Argument `Analytics`

@@ -45,6 +45,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -82,6 +83,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -121,6 +123,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     === "Polygon Counting"
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -162,6 +165,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -203,6 +207,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")  # YOLOv8 custom/pretrained model
@@ -227,6 +232,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")

@@ -101,7 +101,7 @@ Validate trained YOLOv8n-human model accuracy on the COCO8-human dataset. No arg
         metrics.box.map50  # map50
         metrics.box.map75  # map75
         metrics.box.maps  # a list contains map50-95 of each category
-        metrics.attrs_accuracy # human attributes estimation accuracy
+        metrics.attrs_accuracy  # human attributes estimation accuracy
         ```
     === "CLI"
 

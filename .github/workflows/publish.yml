@@ -17,7 +17,7 @@ on:
 
 jobs:
   publish:
-    # if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
     runs-on: macos-14
     steps:
@@ -25,6 +25,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
+      - name: Git config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
@@ -34,106 +38,91 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel build twine
           pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
-          pip install openai
       - name: Check PyPI version
         shell: python
         run: |
           import os
           import ultralytics
           from ultralytics.utils.checks import check_latest_pypi_version
-
           v_local = tuple(map(int, ultralytics.__version__.split('.')))
           v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
-
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
-
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-
           increment_patch = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # publish if patch version increments by 1 or 2
           increment_minor = (d[0] == 0) and (d[1] == 1) and v_local[2] == 0  # publish if minor version increments
-
           increment = increment_patch or increment_minor
-
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_version={check_latest_pypi_version()}" >> $GITHUB_OUTPUT')
-
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi
-      - name: Summarize version changes
+      - name: Publish new tag
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        run: |
+          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
+          git push origin "v${{ steps.check_pypi.outputs.version }}"
+          pip install openai
+      - name: Publish new release
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
-          OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }} 
+          OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }}
           OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
+          OPENAI_AZURE_API_VERSION: ${{ secrets.OPENAI_AZURE_API_VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
-          # PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
+          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
         shell: python
         run: |
           import openai
           import os
           import requests
           import json
-
+          import subprocess
+          
           OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
           OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
-          OPENAI_AZURE_API_VERSION = "2024-02-01"
+          OPENAI_AZURE_API_VERSION = os.getenv('OPENAI_AZURE_API_VERSION')
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
           
-          # we generate a release note when there is a tag increment. For testing, we manually compare two different tags
-          # latest_tag = os.getenv('CURRENT_TAG') 
-          # previous_tag = os.getenv('PREVIOUS_TAG')
-          latest_tag = "v8.2.0"
-          previous_tag = "v8.1.0"
+          latest_tag = f"v{os.getenv('CURRENT_TAG')}"
+          previous_tag = f"v{os.getenv('PREVIOUS_TAG')}"
           
-          repo = f'ultralytics/release-test' # change to main repo later
-          headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-          print(headers)
-
-          compare_tags_url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
-
-          response = requests.get(compare_tags_url, headers=headers).json()
-          diffs = []
-          files = response.get('files', [])
-          for file in files:
-              patch = file.get('patch', '')
-              if patch:
-                  diffs.append(patch)       
-          combined_diff = '\n'.join(diffs)  
-          print(combined_diff)
+          repo = 'ultralytics/ultralytics'
+          headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
+          url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
+          response = requests.get(url, headers=headers)
+          diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
           
-          limit = 64000 * 3 # can be changed if needed
           client = openai.AzureOpenAI(api_key=OPENAI_AZURE_API_KEY, api_version=OPENAI_AZURE_API_VERSION, azure_endpoint=OPENAI_AZURE_ENDPOINT)
-          messages=[
-              {"role": "system", "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub PRs from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
-              {"role": "user", "content": f"Summarize the updates made on '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
-              f"### 🌟 Summary (single-line synopsis)\n"
-              f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
-              f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
-              f"\n\nHere's the PR diff:\n\n{combined_diff[:limit]}",
-              }
-            ]
-          response = client.chat.completions.create(model="gpt-4-0125-preview", messages=messages).choices[0]
-          summary = response.message.content.strip()
-          print(summary)
-          
-          release_url = f"https://api.github.com/repos/{repo}/releases"
-          release_payload = {
-                  'tag_name': latest_tag,
-                  'name': f'Release YOLO{latest_tag}',
-                  'body': summary,
-                  'draft': False,
-                  'prerelease': False
-              }
-          response = requests.post(release_url, headers=headers, data=json.dumps(release_payload))
+          messages = [
+              {"role": "system",
+               "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
+              {"role": "user",
+               "content": f"Summarize the updates made on '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+                          f"### 🌟 Summary (single-line synopsis)\n"
+                          f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
+                          f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
+                          f"\n\nHere's the release diff:\n\n{diff[:96000]}",
+               }
+          ]
+          summary = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages).choices[0].message.content.strip()
+          commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()
+          release = {
+              'tag_name': latest_tag,
+              'name': f"{latest_tag} - {commit_message}",
+              'body': summary,
+              'draft': False,
+              'prerelease': False
+          }
+          response = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers, data=json.dumps(release))
           if response.status_code == 201:
-            print(f'Successfully created release {latest_tag}')
+              print(f'Successfully created release {latest_tag}')
           else:
-            print(f'Failed to create release {latest_tag}: {response.content}')
+              print(f'Failed to create release {latest_tag}: {response.content}')
       - name: Publish to PyPI
         continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True' && false
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
@@ -148,8 +137,6 @@ jobs:
         run: |
           export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
-          git config --global user.name "Glenn Jocher"
-          git config --global user.email "glenn.jocher@ultralytics.com"
           git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
           git checkout gh-pages || git checkout -b gh-pages
@@ -183,7 +170,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
       - name: Notify on Slack (Failure)
-        if: failure() && false
+        if: failure()
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |

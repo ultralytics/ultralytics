@@ -28,6 +28,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -71,6 +72,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")

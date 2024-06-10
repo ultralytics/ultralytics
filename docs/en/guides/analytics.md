@@ -28,6 +28,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -76,6 +77,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -136,6 +138,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")
@@ -185,6 +188,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8s.pt")

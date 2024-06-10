@@ -92,7 +92,7 @@ Before diving into the usage instructions, it's important to note that while all
           ```bash
           # Export a YOLOv8n PyTorch model to NCNN format
           yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
-          
+
           # Run inference with the exported model
           yolo predict model='./yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
           ```

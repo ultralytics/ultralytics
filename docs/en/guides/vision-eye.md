@@ -13,7 +13,7 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
 ## Samples
 
 |                                                                        VisionEye View                                                                        |                                                                        VisionEye View With Object Tracking                                                                        |                                                                 VisionEye View With Distance Calculation                                                                  |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![VisionEye View Object Mapping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d593acc-2e37-41b0-ad0e-92b4ffae6647) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/fcd85952-390f-451e-8fb0-b82e943af89c) | ![VisionEye View with Distance Calculation using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/18c4dafe-a22e-4fa9-a7d4-2bb293562a95) |
 |                                                    VisionEye View Object Mapping using Ultralytics YOLOv8                                                    |                                                    VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8                                                    |                                                     VisionEye View with Distance Calculation using Ultralytics YOLOv8                                                     |
 
@@ -107,9 +107,9 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
         cap.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "VisionEye with Distance Calculation"
-    
+
         ```python
         import math
 
@@ -170,7 +170,7 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
 ### `visioneye` Arguments
 
 | Name        | Type    | Default          | Description                    |
-|-------------|---------|------------------|--------------------------------|
+| ----------- | ------- | ---------------- | ------------------------------ |
 | `color`     | `tuple` | `(235, 219, 11)` | Line and object centroid color |
 | `pin_color` | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color       |
 

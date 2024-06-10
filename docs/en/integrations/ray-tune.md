@@ -61,7 +61,7 @@ To install the required packages, run:
 The `tune()` method in YOLOv8 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
 | Parameter       | Type             | Description                                                                                                                                                                                                                                                                                    | Default Value |
-|-----------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and validation data paths, as well as other dataset-specific settings.                                                                                                              |               |
 | `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                     |               |
 | `grace_period`  | `int, optional`  | The grace period in epochs for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
@@ -76,7 +76,7 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 The following table lists the default search space parameters for hyperparameter tuning in YOLOv8 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
 | Parameter         | Value Range                | Description                              |
-|-------------------|----------------------------|------------------------------------------|
+| ----------------- | -------------------------- | ---------------------------------------- |
 | `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate                    |
 | `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor               |
 | `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                 |

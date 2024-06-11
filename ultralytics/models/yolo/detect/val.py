@@ -86,20 +86,14 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        if isinstance(preds, (list, tuple)):
-            preds = preds[0]
-        return (
-            preds
-            if preds.shape[-1] == 6  # end-to-end model
-            else ops.non_max_suppression(
-                preds,
-                self.args.conf,
-                self.args.iou,
-                labels=self.lb,
-                multi_label=True,
-                agnostic=self.args.single_cls,
-                max_det=self.args.max_det,
-            )
+        return ops.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
         )
 
     def _prepare_batch(self, si, batch):

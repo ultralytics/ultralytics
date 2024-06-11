@@ -73,7 +73,7 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
       - name: Commit and Push Docs changes
-        if: always()
+        if: always() && github.event_name == 'pull_request_target'
         run: |
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token

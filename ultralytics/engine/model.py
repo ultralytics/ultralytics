@@ -450,6 +450,10 @@ class Model(nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
+
+        cycle = int(args.get("warmup_epochs", 0))
+        if cycle > 0:
+            self.warmup(from_cli=is_cli, cycles=cycle, **args.copy())
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(
@@ -843,3 +847,12 @@ class Model(nn.Module):
             task_map (dict): The map of model task to mode classes.
         """
         raise NotImplementedError("Please provide task map for your model!")
+
+    def warmup(self, from_cli, cycles, **kwargs):
+        """Warmup model."""
+        if self.predictor and not self.predictor.done_warmup:
+            self.predictor.args.verbose = self.predictor.args.save = False  # silent
+            _ = [self.predictor(source=np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8),) for _ in range(cycles)]
+            self.predictor.args.verbose = from_cli or kwargs.get("verbose", True)
+            self.predictor.args.save = kwargs.get("save", from_cli)  # reset
+            self.predictor.done_warmup = True

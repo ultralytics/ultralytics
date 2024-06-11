@@ -231,7 +231,10 @@ class BasePredictor:
 
             # Warmup model
             if not self.done_warmup:
-                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz), cycles=self.args.warmup_epochs)
+                self.model.warmup(
+                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz),
+                    cycles=self.args.warmup_epochs,
+                )
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None

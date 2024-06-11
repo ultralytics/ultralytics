@@ -1453,7 +1453,7 @@ class RandomRotation90:
         """
         self.p = p
 
-    def apply_keypoints(self, keypoints, k):
+    def _apply_keypoints(self, keypoints, k):
         if not np.any(keypoints):
             return keypoints
         if k == 1:
@@ -1461,7 +1461,7 @@ class RandomRotation90:
         else:
             return np.stack([1 - keypoints[:, :, 1], keypoints[:, :, 0], keypoints[:, :, 2]], axis=-1)
 
-    def apply_segments(self, segments, k):
+    def _apply_segments(self, segments, k):
         if not np.any(segments):
             return segments
         if k == 1:
@@ -1469,7 +1469,7 @@ class RandomRotation90:
         else:
             return np.stack([1 - segments[:, :, 1], segments[:, :, 0]], axis=-1)
 
-    def apply_bboxes(self, bboxes, k):
+    def _apply_bboxes(self, bboxes, k):
         if not np.any(bboxes):
             return bboxes
         for idx, bbox in enumerate(bboxes):
@@ -1500,9 +1500,9 @@ class RandomRotation90:
             img = np.rot90(img, k=k)
             labels["img"] = np.ascontiguousarray(img)
             new_instances = Instances(
-                self.apply_bboxes(instances.bboxes, k),
-                self.apply_segments(instances.segments, k),
-                self.apply_keypoints(instances.keypoints, k),
+                self._apply_bboxes(instances.bboxes, k),
+                self._apply_segments(instances.segments, k),
+                self._apply_keypoints(instances.keypoints, k),
                 bbox_format="xyxy",
                 normalized=True,
             )

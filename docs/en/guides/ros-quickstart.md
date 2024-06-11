@@ -62,7 +62,7 @@ Apart from the ROS environment, you will need to install the following dependenc
   
     ``` bash
     pip install ultralytics
-    ```
+    ``` 
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
@@ -78,12 +78,12 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
         from ultralytics import YOLO
         import ros_numpy
         from sensor_msgs.msg import Image
-        detection_model = YOLO("yolov8n.pt")
+        detection_model = YOLO("yolov8n.pt") # (1) 
         segmentation_model = YOLO("yolov8n-seg.pt")
-        rospy.init_node('ultralytics') # Initialize ROS node
-        time.sleep(1) # Wait for node to initialize
+        rospy.init_node('ultralytics') # (2)
+        time.sleep(1) # (3)
 
-        # create 2 publishers for detection and segmentation
+        # (4)
         det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
         seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
 
@@ -92,10 +92,10 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
             """
             Callback function to process incoming image data
             """
-            array = ros_numpy.numpify(data)
-            if det_image_pub.get_num_connections():
-                det_result = detection_model(array)
-                det_annotated = det_result[0].plot(show=False)
+            array = ros_numpy.numpify(data) # (5) 
+            if det_image_pub.get_num_connections(): # (6)
+                det_result = detection_model(array) # (7)
+                det_annotated = det_result[0].plot(show=False) # (8)
                 det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding='rgb8'))
             
             if seg_image_pub.get_num_connections():
@@ -103,13 +103,23 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
                 seg_annotated = seg_result[0].plot(show=False)
                 seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding='rgb8'))
             
-        # create a subscriber to listen to the camera topic
-        rospy.Subscriber("/camera/color/image_raw", Image, callback)
+        rospy.Subscriber("/camera/color/image_raw", Image, callback) # (9)
 
-        # keep the node running
-        while True:
+        while True: # (10)
             rospy.spin()
         ```
+        
+        1. Load the YOLO models for detection and segmentation.
+        2. Initialize ROS node with the name `ultralytics`.
+        3. Wait for the node to initialize before starting the main loop.
+        4. Create 2 publishers topic for detection and segmentation
+        5. Convert the ROS Image message to a numpy array for processing with YOLO.
+        6. Check if there are any subscribers to the publishers before publishing the annotated images, this is to avoid unnecessary processing.
+        7. Process the incoming image using YOLO.
+        8. Annotate the detected objects on the image and publish it back as an Image message for visualization or further processing.
+        9. Create a subscriber to listen to the camera topic and call the callback function to process the incoming image data.
+        10. Keep the node running to continue processing incoming messages.
+   
 
         This code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. The detected objects are then annotated on the image and published back as Image messages for visualization or further processing.
 
@@ -123,7 +133,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
         from sensor_msgs.msg import Image
         detection_model = YOLO("yolov8n.pt")
         segmentation_model = YOLO("yolov8n-seg.pt")
-        rospy.init_node('integration')
+        rospy.init_node('ultralytics')
         time.sleep(1)
 
         det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
@@ -150,7 +160,19 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
             rospy.spin()
         ```
 
-If instead of republishing the image with the detected objects, you want to publish the detected classes you can use the following code:
+???+ tip "Debugging"
+
+    Debugging ROS (Robot Operating System) nodes can be challenging due to the system's distributed nature. Several tools can assist with this process:
+
+    1. `rostopic echo <TOPIC-NAME>` : This command allows you to view messages published on a specific topic, helping you inspect the data flow.
+    2. `rostopic list`: Use this command to list all available topics in the ROS system, giving you an overview of the active data streams.
+    3. `rqt_graph`: This visualization tool displays the communication graph between nodes, providing insights into how nodes are interconnected and how they interact.
+    4. For more complex visualizations, such as 3D representations, you can use RViz. RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g. `sensors_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
+
+Standard ROS messages also include `std_msgs/String` messages. In many applications, it is not necessary to republish the entire annotated image; instead, only the classes present in the robot's view are needed. The following example demonstrates how to use `std_msgs/String` messages to republish the detected classes on the `/ultralytics/detection/classes` topic. These messages are more lightweight and provide essential information, making them valuable for various applications.
+
+#### Example Use Case
+Consider a warehouse robot equipped with a camera and object detection model. Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box" "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
 
 !!! Example "Usage"
 
@@ -163,27 +185,37 @@ If instead of republishing the image with the detected objects, you want to publ
         import ros_numpy
         from sensor_msgs.msg import Image
         from std_msgs.msg import String
-        detection_model = YOLO("yolov8n.pt")
-        rospy.init_node('integration')
+        detection_model = YOLO("yolov8n.pt") # (1)
+        rospy.init_node('ultralytics') # (2)
         time.sleep(1)
 
-        classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5)
+        classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5) # (3)
 
         def callback(data):
-            array = ros_numpy.numpify(data)
+            """
+            Callback function to process incoming image data
+            """
+            array = ros_numpy.numpify(data) # (4)
             if classes_pub.get_num_connections():
-                det_result = detection_model(array)
+                det_result = detection_model(array) # (5)
                 classes = det_result[0].boxes.cls.cpu().numpy().astype(int)
-                names = [det_result[0].names[i] for i in classes]
-                classes_pub.publish(String(data=str(names)))
+                names = [det_result[0].names[i] for i in classes] # (6)
+                classes_pub.publish(String(data=str(names))) # (7)
 
         rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
         while True:
             rospy.spin()
         ```
+        1. Load the YOLO model for detection.
+        2. Initialize ROS node with the name `ultralytics`.
+        3. Create a publisher topic for detected classes.
+        4. Use `ros_numpy` to convert the ROS Image message to a numpy array for processing with YOLO.
+        5. Process the incoming image using YOLO.
+        6. Extract the detected classes from the YOLO result.
+        7. Create a `std_msgs/String` message containing the detected classes and publish it to the `/ultralytics/detection/classes` topic.
 
-        This code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. The detected objects are then annotated on the image and published back as Image messages for visualization or further processing.
+        This example demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topic `/ultralytics/detection/classes` using `std_msgs/String` messages. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. 
 
     === "ROS 2 Humble"
 

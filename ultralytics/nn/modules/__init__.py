@@ -56,7 +56,8 @@ from .block import (
     C3s2,
     C3k3,
     C3m1,
-    SCDown
+    SCDown,
+    PSA
 )
 from .conv import (
     CBAM,
@@ -125,6 +126,7 @@ __all__ = (
     "C3n2",
     "C3m1",
     "SCDown",
+    "PSA",
     "C2fAttn",
     "C3x",
     "C3TR",

@@ -1449,8 +1449,7 @@ class RandomRotation90:
         Initializes the RandomRotation90 class with probability.
 
         Args:
-            p (float, optional): The probability of applying the rotation.
-            Must be between 0 and 1, default is 0.0.
+            p (float, optional): The probability of applying the rotation. Must be between 0 and 1, default is 0.0.
         """
         self.p = p
 

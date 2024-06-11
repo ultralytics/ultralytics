@@ -1114,10 +1114,7 @@ class RandomLoadText:
             pos_labels = set(random.sample(pos_labels, k=self.max_samples))
 
         neg_samples = min(min(num_classes, self.max_samples) - len(pos_labels), random.randint(*self.neg_samples))
-        neg_labels = []
-        for i in range(num_classes):
-            if i not in pos_labels:
-                neg_labels.append(i)
+        neg_labels = [i for i in range(num_classes) if i not in pos_labels]
         neg_labels = random.sample(neg_labels, k=neg_samples)
 
         sampled_labels = pos_labels + neg_labels

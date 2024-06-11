@@ -168,7 +168,7 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
     ??? info "Use GPUs"
             If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
-    
+
     === "X11"
 
         If you're using X11, you can run the following command to allow the Docker container to access the X11 socket:

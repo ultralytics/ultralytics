@@ -27,7 +27,7 @@ YOLOv5 inference is officially supported in 11 formats:
 💡 ProTip: Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613). 💡 ProTip: Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
 
 | Format                                                                     | `export.py --include` | Model                     |
-|:---------------------------------------------------------------------------|:----------------------|:--------------------------|
+| :------------------------------------------------------------------------- | :-------------------- | :------------------------ |
 | [PyTorch](https://pytorch.org/)                                            | -                     | `yolov5s.pt`              |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`         | `yolov5s.torchscript`     |
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |

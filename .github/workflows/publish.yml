@@ -118,15 +118,18 @@ jobs:
           
           # Prepare messages for OpenAI completion
           messages = [
-              {"role": "system",
-               "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is accurate, concise, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple, concise terms."},
-              {"role": "user",
-               "content": f"Summarize the updates made on the Ultralytics '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and concise, suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
-                          f"### 🌟 Summary (single-line synopsis)\n"
-                          f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
-                          f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
-                          f"\n\nHere's the release diff:\n\n{diff[:96000]}",
-               }
+              {
+                  "role": "system",
+                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
+              },
+              {
+                  "role": "user",
+                  "content": f"Summarize the updates made in the [Ultralytics](https://ultralytics.com) '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+                             f"### 🌟 Summary (single-line synopsis)\n"
+                             f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
+                             f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
+                             f"\n\nHere's the release diff:\n\n{diff[:96000]}",
+              }
           ]
           
           try:

@@ -247,7 +247,6 @@ class Model(nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
         self.model_name = weights

@@ -320,10 +320,8 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
-            try:  # attempt to retrieve metadata from SavedModel file potentially alongside GraphDef file
+            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
-            except StopIteration:
-                pass  # no metadata file found
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python

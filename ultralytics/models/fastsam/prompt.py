@@ -25,7 +25,7 @@ class FastSAMPrompt:
     def __init__(self, source, results, device="cuda") -> None:
         """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
         if isinstance(source, (str, Path)) and os.path.isdir(source):
-            raise ValueError(f"FastSAM only accepts image paths and PIL Image sources, not directories.")
+            raise ValueError("FastSAM only accepts image paths and PIL Image sources, not directories.")
         self.device = device
         self.results = results
         self.source = source

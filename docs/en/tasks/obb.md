@@ -44,7 +44,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 ## Visual Samples
 
 |                                                    Ships Detection using OBB                                                    |                                                    Vehicle Detection using OBB                                                    |
-|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ships Detection using OBB](https://github.com/RizwanMunawar/ultralytics/assets/62513924/5051d324-416f-4b58-ab62-f1bf9d7134b0) | ![Vehicle Detection using OBB](https://github.com/RizwanMunawar/ultralytics/assets/62513924/9a366262-910a-403b-a5e2-9c68b75700d3) |
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
@@ -54,7 +54,7 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------------|--------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-obb](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-obb.pt) | 1024                  | 78.0               | 204.77                         | 3.57                                | 3.1                | 23.3              |
 | [YOLOv8s-obb](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-obb.pt) | 1024                  | 79.5               | 424.88                         | 4.07                                | 11.4               | 76.3              |
 | [YOLOv8m-obb](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-obb.pt) | 1024                  | 80.5               | 763.48                         | 7.61                                | 26.4               | 208.6             |
@@ -185,19 +185,19 @@ Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-obb export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-obb.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                            |
-|---------------------------------------------------|-------------------|-------------------------------|----------|----------------------------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-obb.pt`              | ✅        | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-obb.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-obb.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-obb_openvino_model/` | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-obb.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-obb.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-obb_saved_model/`    | ✅        | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-obb.pb`              | ❌        | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-obb.tflite`          | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-obb_edgetpu.tflite`  | ✅        | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-obb_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-obb_paddle_model/`   | ✅        | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-obb_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                             |
+| ------------------------------------------------- | ----------------- | ----------------------------- | -------- | -------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-obb.pt`              | ✅       | -                                                                    |
+| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-obb.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
+| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-obb.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-obb_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-obb.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-obb.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-obb_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-obb.pb`              | ❌       | `imgsz`, `batch`                                                     |
+| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-obb.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-obb_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
+| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-obb_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-obb_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
+| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-obb_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.

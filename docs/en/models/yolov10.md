@@ -45,11 +45,11 @@ YOLOv10 comes in various model scales to cater to different application needs:
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
 | Model     | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
-|-----------|------------|------------------|-----------|--------------|
-| YOLOv10-N | 640        | 38.5             | **6.7**   | **1.84**     | 
+| --------- | ---------- | ---------------- | --------- | ------------ |
+| YOLOv10-N | 640        | 38.5             | **6.7**   | **1.84**     |
 | YOLOv10-S | 640        | 46.3             | 21.6      | 2.49         |
 | YOLOv10-M | 640        | 51.1             | 59.1      | 4.74         |
-| YOLOv10-B | 640        | 52.5             | 92.0      | 5.74         |  
+| YOLOv10-B | 640        | 52.5             | 92.0      | 5.74         |
 | YOLOv10-L | 640        | 53.2             | 120.3     | 7.28         |
 | YOLOv10-X | 640        | **54.4**         | 160.4     | 10.70        |
 
@@ -91,7 +91,7 @@ Compared to other state-of-the-art detectors:
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
 | Model         | Params (M) | FLOPs (G) | APval (%) | Latency (ms) | Latency (Forward) (ms) |
-|---------------|------------|-----------|-----------|--------------|------------------------|
+| ------------- | ---------- | --------- | --------- | ------------ | ---------------------- |
 | YOLOv6-3.0-N  | 4.7        | 11.4      | 37.0      | 2.69         | **1.76**               |
 | Gold-YOLO-N   | 5.6        | 12.1      | **39.6**  | 2.92         | 1.82                   |
 | YOLOv8-N      | 3.2        | 8.7       | 37.3      | 6.16         | 1.77                   |

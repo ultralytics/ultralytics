@@ -188,8 +188,19 @@ nav:
           - Advanced Customization: usage/engine.md
       - Modes:
           - modes/index.md
+          - Train: modes/train.md
+          - Val: modes/val.md
+          - Predict: modes/predict.md
+          - Export: modes/export.md
+          - Track: modes/track.md
+          - Benchmark: modes/benchmark.md
       - Tasks:
           - tasks/index.md
+          - Detect: tasks/detect.md
+          - Segment: tasks/segment.md
+          - Classify: tasks/classify.md
+          - Pose: tasks/pose.md
+          - OBB: tasks/obb.md
       - Models:
           - models/index.md
       - Datasets:
@@ -382,6 +393,7 @@ nav:
       - Paperspace Gradient: integrations/paperspace.md
       - Google Colab: integrations/google-colab.md
   - HUB:
+      - hub/index.md
       - Web:
           - hub/index.md
           - Quickstart: hub/quickstart.md

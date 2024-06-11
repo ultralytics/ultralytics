@@ -34,7 +34,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-|----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
+| -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt) | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
@@ -163,19 +163,19 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-cls export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                            |
-|---------------------------------------------------|-------------------|-------------------------------|----------|----------------------------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-cls.pt`              | ✅        | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-cls.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-cls.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-cls_openvino_model/` | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-cls.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-cls.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅        | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-cls.pb`              | ❌        | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-cls.tflite`          | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅        | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-cls_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅        | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                             |
+| ------------------------------------------------- | ----------------- | ----------------------------- | -------- | -------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-cls.pt`              | ✅       | -                                                                    |
+| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-cls.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
+| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-cls.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-cls_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-cls.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-cls.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-cls.pb`              | ❌       | `imgsz`, `batch`                                                     |
+| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-cls.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
+| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-cls_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
+| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.

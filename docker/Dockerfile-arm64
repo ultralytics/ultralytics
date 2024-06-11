@@ -25,7 +25,7 @@ WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
 COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
+RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
 # Remove python3.11/EXTERNALLY-MANAGED to avoid 'externally-managed-environment' issue, Debian 12 Bookworm error

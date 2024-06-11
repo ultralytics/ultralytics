@@ -92,7 +92,7 @@ class YOLOWorld(Model):
         Set classes.
 
         Args:
-            classes (List(str)): A list of categories i.e ["person"].
+            classes (List(str)): A list of categories i.e. ["person"].
             images (str, Path, PIL.Image, np.ndarray): The input image sources.
         """
         assert isinstance(classes, list), f"`classes` should be a list, but got {type(classes)}"

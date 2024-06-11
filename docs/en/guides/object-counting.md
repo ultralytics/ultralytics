@@ -42,7 +42,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ## Real World Applications
 
 |                                                                           Logistics                                                                           |                                                                     Aquaculture                                                                     |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/70e2d106-510c-4c6c-a57a-d34a765aa757) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
 |                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |
 
@@ -52,6 +52,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -88,11 +89,12 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Count in Polygon"
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -129,11 +131,12 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Count in Line"
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -175,6 +178,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -221,7 +225,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 Here's a table with the `ObjectCounter` arguments:
 
 | Name                 | Type    | Default                    | Description                                                            |
-|----------------------|---------|----------------------------|------------------------------------------------------------------------|
+| -------------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
 | `classes_names`      | `dict`  | `None`                     | Dictionary of class names.                                             |
 | `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
 | `count_reg_color`    | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
@@ -241,7 +245,7 @@ Here's a table with the `ObjectCounter` arguments:
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

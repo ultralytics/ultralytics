@@ -147,6 +147,25 @@ model = YOLO("yolov10n.yaml")
 model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
+## Exporting YOLOv10
+
+Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
+
+| Export Format                                     | Supported |
+| ------------------------------------------------- | --------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅        |
+| [ONNX](../integrations/onnx.md)                   | ✅        |
+| [OpenVINO](../integrations/openvino.md)           | ✅        |
+| [TensorRT](../integrations/tensorrt.md)           | ✅        |
+| [CoreML](../integrations/coreml.md)               | ❌        |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ❌        |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ❌        |
+| [TF Lite](../integrations/tflite.md)              | ❌        |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ❌        |
+| [TF.js](../integrations/tfjs.md)                  | ❌        |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌        |
+| [NCNN](../integrations/ncnn.md)                   | ❌        |
+
 ## Conclusion
 
 YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of real-world applications.

@@ -243,10 +243,8 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
-        self.end2end = False
         for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
-                self.end2end = m.end2end
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
@@ -522,7 +520,6 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLOv8 Paddle export."""
-        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         check_requirements(("paddlepaddle", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -539,7 +536,6 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
-        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         check_requirements("ncnn")
         import ncnn  # noqa
 
@@ -615,7 +611,6 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
-        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
@@ -818,7 +813,6 @@ class Exporter:
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """YOLOv8 TensorFlow SavedModel export."""
         cuda = torch.cuda.is_available()
-        assert not self.end2end, f"{prefix.strip(':')} export not supported for end-2-end models."
         try:
             import tensorflow as tf  # noqa
         except ImportError:
@@ -927,8 +921,6 @@ class Exporter:
     def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
         """YOLOv8 TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        assert not (MACOS and self.end2end), f"{prefix.strip(':')} export not supported on macOS for end-2-end models."
-
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

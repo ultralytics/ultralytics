@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover real-time object detection on your Android with the Ultralytics App using optimized YOLO models.
-keywords: Ultralytics, YOLO, Android app, real-time object detection, TensorFlow Lite, model optimization, AI mobile application
+description: Experience real-time object detection on Android with Ultralytics. Leverage YOLO models for efficient and fast object identification. Download now!.
+keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
 # Ultralytics Android App: Real-time Object Detection with YOLO Models
@@ -70,7 +70,7 @@ Different delegates are available on Android devices to accelerate model inferen
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:
 
 | Vendor                                  | Product Lines                                                                        | Popular Devices                                                                                                                                                                | Delegates Supported      |
-|-----------------------------------------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
 | [Qualcomm](https://www.qualcomm.com/)   | [Snapdragon (e.g., 800 series)](https://www.qualcomm.com/snapdragon)                 | [Samsung Galaxy S21](https://www.samsung.com/global/galaxy/galaxy-s21-5g/), [OnePlus 9](https://www.oneplus.com/9), [Google Pixel 6](https://store.google.com/product/pixel_6) | CPU, GPU, Hexagon, NNAPI |
 | [Samsung](https://www.samsung.com/)     | [Exynos (e.g., Exynos 2100)](https://www.samsung.com/semiconductor/minisite/exynos/) | [Samsung Galaxy S21 (Global version)](https://www.samsung.com/global/galaxy/galaxy-s21-5g/)                                                                                    | CPU, GPU, NNAPI          |
 | [MediaTek](https://i.mediatek.com/)     | [Dimensity (e.g., Dimensity 1200)](https://i.mediatek.com/dimensity-1200)            | [Realme GT](https://www.realme.com/global/realme-gt), [Xiaomi Redmi Note](https://www.mi.com/en/phone/redmi/note-list)                                                         | CPU, GPU, NNAPI          |

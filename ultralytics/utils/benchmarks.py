@@ -208,9 +208,10 @@ class RF100Benchmark:
 
         return self.ds_names, self.ds_cfg_list
 
-    def fix_yaml(self, path):
+    @staticmethod
+    def fix_yaml(path):
         """
-        Function to fix yaml train and val path.
+        Function to fix YAML train and val path.
 
         Args:
             path (str): YAML file path.
@@ -245,32 +246,19 @@ class RF100Benchmark:
                 entries = line.split(" ")
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]
-                start_class = False
-                for e in entries:
-                    if e == "all":
-                        if "(AP)" not in entries:
-                            if "(AR)" not in entries:
-                                # parse all
-                                eval = {}
-                                eval["class"] = entries[0]
-                                eval["images"] = entries[1]
-                                eval["targets"] = entries[2]
-                                eval["precision"] = entries[3]
-                                eval["recall"] = entries[4]
-                                eval["map50"] = entries[5]
-                                eval["map95"] = entries[6]
-                                eval_lines.append(eval)
-
-                    if e in class_names:
-                        eval = {}
-                        eval["class"] = entries[0]
-                        eval["images"] = entries[1]
-                        eval["targets"] = entries[2]
-                        eval["precision"] = entries[3]
-                        eval["recall"] = entries[4]
-                        eval["map50"] = entries[5]
-                        eval["map95"] = entries[6]
-                        eval_lines.append(eval)
+                eval_lines.extend(
+                    {
+                        "class": entries[0],
+                        "images": entries[1],
+                        "targets": entries[2],
+                        "precision": entries[3],
+                        "recall": entries[4],
+                        "map50": entries[5],
+                        "map95": entries[6],
+                    }
+                    for e in entries
+                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries)
+                )
         map_val = 0.0
         if len(eval_lines) > 1:
             print("There's more dicts")
@@ -457,6 +445,8 @@ class ProfileModels:
 
         input_tensor = sess.get_inputs()[0]
         input_type = input_tensor.type
+        dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
+        input_shape = (1, 3, self.imgsz, self.imgsz) if dynamic else input_tensor.shape
 
         # Mapping ONNX datatype to numpy datatype
         if "float16" in input_type:
@@ -472,7 +462,7 @@ class ProfileModels:
         else:
             raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
+        input_data = np.random.rand(*input_shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 

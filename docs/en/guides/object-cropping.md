@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to isolate and extract specific objects from images and videos using YOLOv8 object cropping.
-keywords: Ultralytics, YOLOv8, Object Detection, Object Cropping, Image Analysis, Video Processing, Data Extraction, Python
+description: Learn how to crop and extract objects using Ultralytics YOLOv8 for focused analysis, reduced data volume, and enhanced precision.
+keywords: Ultralytics, YOLOv8, object cropping, object detection, image processing, video analysis, AI, machine learning
 ---
 
 # Object Cropping using Ultralytics YOLOv8 🚀
@@ -18,10 +18,10 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ## Visuals
 
-|                                                                               Airport Luggage                                                                                |                                                                                                                         
-|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                                               Airport Luggage                                                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/648f46be-f233-4307-a8e5-046eea38d2e4) |
-|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |                                                                                                       
+|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |
 
 !!! Example "Object Cropping using YOLOv8 Example"
 
@@ -31,6 +31,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         import os
 
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -83,7 +84,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.predict`
 
 | Argument        | Type           | Default                | Description                                                                                                                                                                                                                          |
-|-----------------|----------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `source`        | `str`          | `'ultralytics/assets'` | Specifies the data source for inference. Can be an image path, video file, directory, URL, or device ID for live feeds. Supports a wide range of formats and sources, enabling flexible application across different types of input. |
 | `conf`          | `float`        | `0.25`                 | Sets the minimum confidence threshold for detections. Objects detected with confidence below this threshold will be disregarded. Adjusting this value can help reduce false positives.                                               |
 | `iou`           | `float`        | `0.7`                  | Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values result in fewer detections by eliminating overlapping boxes, useful for reducing duplicates.                                                 |
@@ -98,4 +99,4 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | `agnostic_nms`  | `bool`         | `False`                | Enables class-agnostic Non-Maximum Suppression (NMS), which merges overlapping boxes of different classes. Useful in multi-class detection scenarios where class overlap is common.                                                  |
 | `classes`       | `list[int]`    | `None`                 | Filters predictions to a set of class IDs. Only detections belonging to the specified classes will be returned. Useful for focusing on relevant objects in multi-class detection tasks.                                              |
 | `retina_masks`  | `bool`         | `False`                | Uses high-resolution segmentation masks if available in the model. This can enhance mask quality for segmentation tasks, providing finer detail.                                                                                     |
-| `embed`         | `list[int]`    | `None`                 | Specifies the layers from which to extract feature vectors or embeddings. Useful for downstream tasks like clustering or similarity search.                                                                                          
+| `embed`         | `list[int]`    | `None`                 | Specifies the layers from which to extract feature vectors or embeddings. Useful for downstream tasks like clustering or similarity search.                                                                                          |

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover real-time object detection on iOS devices using powerful YOLO models, optimized via Apple Neural Engine.
-keywords: Ultralytics, iOS app, YOLO models, real-time detection, object detection, iPhone, iPad, Apple Neural Engine, Core ML, quantization, FP16, INT8
+description: Discover the Ultralytics iOS App for running YOLO models on your iPhone or iPad. Achieve fast, real-time object detection with Apple Neural Engine.
+keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple Neural Engine, Core ML, FP16 quantization, INT8 quantization, machine learning
 ---
 
 # Ultralytics iOS App: Real-time Object Detection with YOLO Models
@@ -61,7 +61,7 @@ The Apple Neural Engine (ANE) is a dedicated hardware component integrated into 
 By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics iOS App achieves real-time object detection on your iOS device without compromising on accuracy or performance.
 
 | Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | ANE TOPs |
-|--------------|------------------------------------------------------|-------------------------------------------------------|-----------|----------|
+| ------------ | ---------------------------------------------------- | ----------------------------------------------------- | --------- | -------- |
 | 2017         | [iPhone X](https://en.wikipedia.org/wiki/IPhone_X)   | [A11 Bionic](https://en.wikipedia.org/wiki/Apple_A11) | 10 nm     | 0.6      |
 | 2018         | [iPhone XS](https://en.wikipedia.org/wiki/IPhone_XS) | [A12 Bionic](https://en.wikipedia.org/wiki/Apple_A12) | 7 nm      | 5        |
 | 2019         | [iPhone 11](https://en.wikipedia.org/wiki/IPhone_11) | [A13 Bionic](https://en.wikipedia.org/wiki/Apple_A13) | 7 nm      | 6        |

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to view image results inside a compatible VSCode terminal.
-keywords: YOLOv8, VSCode, Terminal, Remote Development, Ultralytics, SSH, Object Detection, Inference, Results, Remote Tunnel, Images, Helpful, Productivity Hack
+description: Learn how to visualize YOLO inference results directly in a VSCode terminal using sixel on Linux and MacOS.
+keywords: YOLO, inference results, VSCode terminal, sixel, display images, Linux, MacOS
 ---
 
 # Viewing Inference Results in a Terminal
@@ -48,6 +48,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     import cv2 as cv
     from sixel import SixelWriter
+
     from ultralytics import YOLO
     ```
 
@@ -111,6 +112,7 @@ import io
 
 import cv2 as cv
 from sixel import SixelWriter
+
 from ultralytics import YOLO
 
 # Load a model

@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to contribute to Ultralytics YOLO projects – guidelines for pull requests, reporting bugs, code conduct and CLA signing.
-keywords: Ultralytics, YOLO, open-source, contribute, pull request, bug report, coding guidelines, CLA, code of conduct, GitHub
+description: Learn how to contribute to Ultralytics YOLO open-source repositories. Follow guidelines for pull requests, code of conduct, and bug reporting.
+keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of conduct, bug reporting, GitHub, CLA, Google-style docstrings
 ---
 
 # Contributing to Ultralytics Open-Source YOLO Repositories
 
-First of all, thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will help improve the project and benefit the community. This document provides guidelines and best practices to get you started.
+Thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will enhance the project and benefit the entire community. This document provides guidelines and best practices to help you get started.
 
 ## Table of Contents
 
@@ -21,27 +21,27 @@ First of all, thank you for your interest in contributing to Ultralytics open-so
 
 ## Code of Conduct
 
-All contributors are expected to adhere to the [Code of Conduct](https://docs.ultralytics.com/help/code_of_conduct/) to ensure a welcoming and inclusive environment for everyone.
+All contributors must adhere to the [Code of Conduct](code_of_conduct.md) to ensure a welcoming and inclusive environment for everyone.
 
 ## Contributing via Pull Requests
 
-We welcome contributions in the form of pull requests. To make the review process smoother, please follow these guidelines:
+We welcome contributions in the form of pull requests. To streamline the review process, please follow these guidelines:
 
-1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)**: Fork the Ultralytics YOLO repository to your own GitHub account.
+1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)**: Fork the Ultralytics YOLO repository to your GitHub account.
 
 2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop)**: Create a new branch in your forked repository with a descriptive name for your changes.
 
-3. **Make your changes**: Make the changes you want to contribute. Ensure that your changes follow the coding style of the project and do not introduce new errors or warnings.
+3. **Make your changes**: Ensure that your changes follow the project's coding style and do not introduce new errors or warnings.
 
-4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests)**: Test your changes locally to ensure that they work as expected and do not introduce new issues.
+4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests)**: Test your changes locally to ensure they work as expected and do not introduce new issues.
 
-5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop)**: Commit your changes with a descriptive commit message. Make sure to include any relevant issue numbers in your commit message.
+5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop)**: Commit your changes with a descriptive commit message. Include any relevant issue numbers in your commit message.
 
-6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)**: Create a pull request from your forked repository to the main Ultralytics YOLO repository. In the pull request description, provide a clear explanation of your changes and how they improve the project.
+6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)**: Create a pull request from your forked repository to the main Ultralytics YOLO repository. Provide a clear explanation of your changes and how they improve the project.
 
 ### CLA Signing
 
-Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
+Before we can accept your pull request, you must sign a [Contributor License Agreement (CLA)](CLA.md). This legal document ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 
@@ -51,7 +51,7 @@ I have read the CLA Document and I sign the CLA
 
 ### Google-Style Docstrings
 
-When adding new functions or classes, please include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This will help ensure that your contributions are easy to understand and maintain.
+When adding new functions or classes, include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This helps ensure your contributions are easy to understand and maintain.
 
 #### Google-style
 
@@ -60,7 +60,7 @@ This example shows a Google-style docstring. Note that both input and output `ty
 ```python
 def example_function(arg1, arg2=4):
     """
-    Example function that demonstrates Google-style docstrings.
+    This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
 
     Args:
         arg1 (int): The first argument.
@@ -84,7 +84,7 @@ This example shows both a Google-style docstring and argument and return type hi
 ```python
 def example_function(arg1: int, arg2: int = 4) -> bool:
     """
-    Example function that demonstrates Google-style docstrings.
+    This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
 
     Args:
         arg1: The first argument.
@@ -129,4 +129,4 @@ Users and developers are encouraged to familiarize themselves with the terms of 
 
 Thank you for your interest in contributing to [Ultralytics open-source](https://github.com/ultralytics) YOLO projects. Your participation is crucial in shaping the future of our software and fostering a community of innovation and collaboration. Whether you're improving code, reporting bugs, or suggesting features, your contributions make a significant impact.
 
-We're eager to see your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟
+We look forward to seeing your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟

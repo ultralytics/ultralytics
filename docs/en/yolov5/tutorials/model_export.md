@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to export a trained YOLOv5 model from PyTorch to different formats including TorchScript, ONNX, OpenVINO, TensorRT, and CoreML, and how to use these models.
-keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow
+description: Learn to export YOLOv5 models to various formats like TFLite, ONNX, CoreML and TensorRT. Increase model efficiency and deployment flexibility with our step-by-step guide.
+keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv5 tutorial, PyTorch export
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export
@@ -27,7 +27,7 @@ YOLOv5 inference is officially supported in 11 formats:
 💡 ProTip: Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613). 💡 ProTip: Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
 
 | Format                                                                     | `export.py --include` | Model                     |
-|:---------------------------------------------------------------------------|:----------------------|:--------------------------|
+| :------------------------------------------------------------------------- | :-------------------- | :------------------------ |
 | [PyTorch](https://pytorch.org/)                                            | -                     | `yolov5s.pt`              |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`         | `yolov5s.torchscript`     |
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: An in-depth guide demonstrating the implementation of K-Fold Cross Validation with the Ultralytics ecosystem for object detection datasets, leveraging Python, YOLO, and sklearn.
-keywords: K-Fold cross validation, Ultralytics, YOLO detection format, Python, sklearn, object detection
+description: Learn to implement K-Fold Cross Validation for object detection datasets using Ultralytics YOLO. Improve your model's reliability and robustness.
+keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn, pandas, PyYaml, machine learning, dataset split
 ---
 
 # K-Fold Cross Validation with Ultralytics
@@ -29,7 +29,7 @@ Without further ado, let's dive in!
     - It includes 6 class labels, each with its total instance counts listed below.
 
 | Class Label | Instance Count |
-|:------------|:--------------:|
+| :---------- | :------------: |
 | Apple       |      7049      |
 | Grapes      |      7202      |
 | Pineapple   |      1613      |
@@ -69,6 +69,7 @@ Without further ado, let's dive in!
     import pandas as pd
     import yaml
     from sklearn.model_selection import KFold
+
     from ultralytics import YOLO
     ```
 
@@ -172,7 +173,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
         fold_lbl_distrb.loc[f"split_{n}"] = ratio
     ```
 
-   The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
+    The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
 4. Next, we create the directories and dataset YAML files for each split.
 
@@ -218,7 +219,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
 
-    - __NOTE:__ The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
+    - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
     ```python
     for image, label in zip(images, labels):

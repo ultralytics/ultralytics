@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A concise guide on isolating segmented objects using Ultralytics.
-keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, dataset, prediction, instance segmentation, contours, binary mask, object mask, image processing
+description: Learn to extract isolated objects from inference results using Ultralytics Predict Mode. Step-by-step guide for segmentation object isolation.
+keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLOv8, machine learning, object detection, binary mask, image processing
 ---
 
 # Isolating Segmentation Objects
@@ -14,13 +14,14 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1. Begin with the necessary imports
+1.  Begin with the necessary imports
 
     ```python
     from pathlib import Path
 
     import cv2
     import numpy as np
+
     from ultralytics import YOLO
     ```
 
@@ -30,7 +31,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-2. Load a model and run `predict()` method on a source.
+2.  Load a model and run `predict()` method on a source.
 
     ```python
     from ultralytics import YOLO
@@ -57,7 +58,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
@@ -80,7 +81,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
@@ -139,7 +140,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-5. Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5.  Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
@@ -250,7 +251,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -272,6 +273,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
 m = YOLO("yolov8n-seg.pt")  # (4)!

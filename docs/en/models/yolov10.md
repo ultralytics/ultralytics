@@ -147,6 +147,15 @@ model = YOLO("yolov10n.yaml")
 model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
+## Supported Tasks and Modes
+
+The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+
+| Model   | Filenames                                                              | Tasks                                        | Inference | Validation | Training | Export |
+|---------|------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| YOLOv10 |  `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅        | ✅       | ✅    |
+
+
 ## Exporting YOLOv10
 
 Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.

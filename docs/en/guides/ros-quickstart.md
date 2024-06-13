@@ -68,6 +68,10 @@ Apart from the ROS environment, you will need to install the following dependenc
 
 The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, object detection, and navigation.
 
+<p align="center">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/85bd6793-4262-4802-af26-c59921b0df89" alt="Detection and Segmentation in ROS Gazebo">
+</p>
+
 !!! Example "Usage"
 
     The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. 
@@ -271,6 +275,11 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
+<p align="center">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/f6393fbe-68a5-459b-ae44-3321375bbd3c" alt="Detection and Segmentation in ROS Gazebo">
+</p>
+
+
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
 
 A point cloud is a collection of data points defined within a three-dimensional coordinate system. These data points represent the external surface of an object or a scene, captured via 3D scanning technologies. Each point in the cloud has `X`, `Y`, and `Z` coordinates, which correspond to its position in space, and may also include additional information such as color and intensity.
@@ -357,3 +366,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         pcd.colors = o3d.utility.Vector3dVector(rgb.reshape((ros_cloud.height* ros_cloud.width, 3)) / 255)
         o3d.visualization.draw_geometries([pcd])
     ```
+
+<p align="center">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/3caafc4a-0edd-4e5f-8dd1-37e30be70123" alt="Point Cloud Segmentation with Ultralytics ">
+</p>

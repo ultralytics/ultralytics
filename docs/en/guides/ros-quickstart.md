@@ -239,7 +239,9 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
     import rospy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
+
     from ultralytics import YOLO
+
     rospy.init_node("ultralytics")
     time.sleep(1)
 

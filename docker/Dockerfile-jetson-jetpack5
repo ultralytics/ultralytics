@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:jetson image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Supports JetPack for YOLOv8 on Jetson Nano, TX1/TX2, Xavier NX, AGX Xavier, AGX Orin, and Orin NX
+# Builds ultralytics/ultralytics:jetson-jetson-jetpack5 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Supports JetPack5.x for YOLOv8 on Jetson Xavier NX, AGX Xavier, AGX Orin, Orin Nano and Orin NX
 
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch
 FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
@@ -43,13 +43,13 @@ RUN pip install --no-cache-dir -e ".[export]"
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-jetson && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack5 -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-jetson && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker run -it --ipc=host $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with NVIDIA runtime
-# t=ultralytics/ultralytics:latest-jetson && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

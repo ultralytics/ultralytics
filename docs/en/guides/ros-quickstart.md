@@ -27,7 +27,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ???+ note "Evolution of ROS Versions"
 
-    Since its development in 2007, ROS has evolved through multiple versions, each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys.
+    Since its development in 2007, ROS has evolved through multiple versions, each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
 
     ### ROS 1 vs. ROS 2
 
@@ -45,7 +45,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 
 ## Setting Up Ultralytics YOLO with ROS
 
-This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros.git), which is a fork of the Rosbot ROS repository. This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the Husarion ROSbot robot. The code examples provided should work in any ROS environment, including both simulation and real-world applications.
+This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros.git), which is a fork of the Rosbot ROS repository. This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the Husarion ROSbot robot. The code examples provided will work in any ROS environment, including both simulation and real-world.
 
 
 ### Dependencies Installation
@@ -238,7 +238,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
     classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
     ```
 
-    Next, we define a callback function that processes the incoming depth image message. The function waits for the depth image and RGB image messages, converts them into numpy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image. Finally, it publishes the detected objects along with their average distances to the `/ultralytics/detection/distance` topic.
+    Next, we define a callback function that processes the incoming depth image message. The function waits for the depth image and RGB image messages, converts them into numpy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image. Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`. Finally, it publishes the detected objects along with their average distances to the `/ultralytics/detection/distance` topic.
 
     ```py
     def callback(data):
@@ -291,6 +291,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
 !!! Example "Usage"
 
+    Import the necessary libraries and instantiate the YOLO model for segmentation.
 
     ``` py
     import rospy
@@ -302,9 +303,14 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     import open3d as o3d
     import cv2
     import sys
-    rospy.init_node('ultralytics') # (1)
+    rospy.init_node('ultralytics')
     time.sleep(1)
+    segmentation_model = YOLO("yolov8m-seg.pt")
+    ```
 
+    Let's create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two numpy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information. The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`.
+
+    ``` py
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
         """
         Convert a ROS PointCloud2 message to a numpy array
@@ -322,12 +328,13 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         xyz[nan_rows] = [0, 0, 0]
         rgb[nan_rows] = [0, 0, 0]
         return xyz, rgb
+    ```
+    Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors. 
 
-
-    segmentation_model = YOLO("yolov8m-seg.pt") # (2)
-    ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2) # (3)
-    xyz, rgb = pointcloud2_to_array(ros_cloud) # (4)
-    result = segmentation_model(rgb) # (5)
+    ``` py
+    ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
+    xyz, rgb = pointcloud2_to_array(ros_cloud)
+    result = segmentation_model(rgb)
 
     if not len(result[0].boxes.cls):
         print("No objects detected")
@@ -335,26 +342,14 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
     classes = result[0].boxes.cls.cpu().numpy().astype(int)
     for index, class_id in enumerate(classes):
-        mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int) # (6)
+        mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
         mask_expanded = np.stack([mask, mask, mask], axis=2)
         
-        rgb = rgb * mask_expanded # (7)
-        xyz = xyz * mask_expanded # (8)
+        rgb = rgb * mask_expanded
+        xyz = xyz * mask_expanded
         
-        pcd = o3d.geometry.PointCloud() # (9)
+        pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(xyz.reshape((ros_cloud.height* ros_cloud.width, 3)))
         pcd.colors = o3d.utility.Vector3dVector(rgb.reshape((ros_cloud.height* ros_cloud.width, 3)) / 255)
         o3d.visualization.draw_geometries([pcd])
     ```
-
-    1. Initialize ROS node with the name `ultralytics`.
-    2. Initialize the YOLO model for segmentation.
-    3. Take the first point cloud message from the `/camera/depth/points` topic.
-    4. Convert the point cloud message to a numpy array containing the XYZ coordinates and RGB values.
-    5. Process the RGB image using YOLO and extract the segmented objects.
-    6. Extract the segmentation mask for each segmented object.
-    7. Apply the segmentation mask to the RGB image to isolate the object.
-    8. Apply the segmentation mask to the XYZ coordinates to isolate the object in 3D space.
-    9. Create an Open3D point cloud object and visualize the segmented object in 3D space with colors.
-
-    This code initializes a ROS node named `ultralytics` and a YOLO model for segmentation. It then listens for a point cloud message from the `/camera/depth/points` topic, converts this message into a numpy array with XYZ coordinates and RGB values, and processes the RGB image using the YOLO model to extract segmented objects. For each detected object, the code extracts the segmentation mask and applies it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Finally, it creates an Open3D point cloud object and visualizes the segmented object in 3D with associated colors.

@@ -48,6 +48,9 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     if device.type == "cpu":
         LOGGER.info(f"{prefix}CUDA not detected, using default CPU batch-size {batch_size}")
         return batch_size
+    if device.type == "mps":
+        LOGGER.info(f"{prefix} ⚠️ Requires torch.device('cuda'), using default batch-size {batch_size}")
+        return batch_size
     if torch.backends.cudnn.benchmark:
         LOGGER.info(f"{prefix} ⚠️ Requires torch.backends.cudnn.benchmark=False, using default batch-size {batch_size}")
         return batch_size

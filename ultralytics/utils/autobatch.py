@@ -10,9 +10,9 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 from ultralytics.utils.torch_utils import profile
 
 
-def check_train_batch_size(model, imgsz=640, amp=True):
+def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     """
-    Check YOLO training batch size using the autobatch() function.
+    Compute optimal YOLO training batch size using the autobatch() function.
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
@@ -24,7 +24,7 @@ def check_train_batch_size(model, imgsz=640, amp=True):
     """
 
     with torch.cuda.amp.autocast(amp):
-        return autobatch(deepcopy(model).train(), imgsz)  # compute optimal batch size
+        return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
 
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
@@ -43,7 +43,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
 
     # Check device
     prefix = colorstr("AutoBatch: ")
-    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz}")
+    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")
     device = next(model.parameters()).device  # get model device
     if device.type == "cpu":
         LOGGER.info(f"{prefix}CUDA not detected, using default CPU batch-size {batch_size}")

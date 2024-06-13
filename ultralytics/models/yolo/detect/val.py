@@ -300,22 +300,22 @@ class DetectionValidator(BaseValidator):
 
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                    eval = COCOeval(anno, pred, "bbox")
+                    val = COCOeval(anno, pred, "bbox")
                 else:
                     from lvis import LVIS, LVISEval
 
                     anno = LVIS(str(anno_json))  # init annotations api
                     pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
-                    eval = LVISEval(anno, pred, "bbox")
-                eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
-                eval.evaluate()
-                eval.accumulate()
-                eval.summarize()
+                    val = LVISEval(anno, pred, "bbox")
+                val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                val.evaluate()
+                val.accumulate()
+                val.summarize()
                 if self.is_lvis:
-                    eval.print_results()  # explicitly call print_results
+                    val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    eval.stats[:2] if self.is_coco else [eval.results["AP50"], eval.results["AP"]]
+                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
                 )
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")

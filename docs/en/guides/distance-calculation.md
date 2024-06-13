@@ -23,8 +23,8 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |
+| :---------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/6b6b735d-3c49-4b84-a022-2bf6e3c72f8b) |
 
 ## Advantages of Distance Calculation?
@@ -43,6 +43,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -81,7 +82,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `DistanceCalculation()`
 
 | `Name`             | `Type`  | `Default`       | Description                                               |
-|--------------------|---------|-----------------|-----------------------------------------------------------|
+| ------------------ | ------- | --------------- | --------------------------------------------------------- |
 | `names`            | `dict`  | `None`          | Dictionary mapping class indices to class names.          |
 | `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
 | `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
@@ -92,7 +93,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

@@ -45,7 +45,11 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 
 ## Setting Up Ultralytics YOLO with ROS
 
-This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros.git), which is a fork of the Rosbot ROS repository. This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the Husarion ROSbot robot. The code examples provided will work in any ROS environment, including both simulation and real-world.
+This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), which is a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/). The code examples provided will work in any ROS Noetic/Melodic environment, including both simulation and real-world.
+
+<p align="center">
+  <img width="50%" src="https://robots.ros.org/assets/img/robots/husarion-rosbot-2r/rosbot2r.png" alt="Husarion ROSbot 2 PRO">
+</p>
 
 
 ### Dependencies Installation
@@ -161,7 +165,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     1. `rostopic echo <TOPIC-NAME>` : This command allows you to view messages published on a specific topic, helping you inspect the data flow.
     2. `rostopic list`: Use this command to list all available topics in the ROS system, giving you an overview of the active data streams.
     3. `rqt_graph`: This visualization tool displays the communication graph between nodes, providing insights into how nodes are interconnected and how they interact.
-    4. For more complex visualizations, such as 3D representations, you can use RViz. RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g. `sensors_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
+    4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g. `sensors_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
 
 ### Publish Detected Classes with `std_msgs/String`
 Standard ROS messages also include `std_msgs/String` messages. In many applications, it is not necessary to republish the entire annotated image; instead, only the classes present in the robot's view are needed. The following example demonstrates how to use `std_msgs/String` messages to republish the detected classes on the `/ultralytics/detection/classes` topic. These messages are more lightweight and provide essential information, making them valuable for various applications.
@@ -205,13 +209,14 @@ In addition to RGB images, ROS supports depth images, which provide information 
 
 A depth image is an image where each pixel represents the distance from the camera to an object. Unlike RGB images that capture color, depth images capture spatial information, enabling robots to perceive the 3D structure of their environment.
 
-#### Obtaining Depth Images
 
-Depth images can be obtained using various sensors:
+!!! tip "Obtaining Depth Images" 
 
-1. Stereo Cameras: Use two cameras to calculate depth based on image disparity.
-2. Time-of-Flight (ToF) Cameras: Measure the time light takes to return from an object.
-3. Structured Light Sensors: Project a pattern and measure its deformation on surfaces.
+    Depth images can be obtained using various sensors:
+
+    1. [Stereo Cameras](https://en.wikipedia.org/wiki/Stereo_camera): Use two cameras to calculate depth based on image disparity.
+    2. [Time-of-Flight (ToF) Cameras](https://en.wikipedia.org/wiki/Time-of-flight_camera): Measure the time light takes to return from an object.
+    3. [Structured Light Sensors](https://en.wikipedia.org/wiki/Structured-light_3D_scanner): Project a pattern and measure its deformation on surfaces.
 
 #### Using YOLO with Depth Images
 In ROS, depth images are represented by the `sensor_msgs/Image` message type, which includes fields for encoding, height, width, and pixel data. The encoding field for depth images often uses a format like "16UC1", indicating a 16-bit unsigned integer per pixel, where each value represents the distance to the object. Depth images are commonly used in conjunction with RGB images to provide a more comprehensive view of the environment.
@@ -219,7 +224,7 @@ In ROS, depth images are represented by the `sensor_msgs/Image` message type, wh
 Using YOLO, it is possible to extract and combine information from both RGB and depth images. For instance, YOLO can detect objects within an RGB image, and this detection can be used to pinpoint corresponding regions in the depth image. This allows for the extraction of precise depth information for detected objects, enhancing the robot's ability to understand its environment in three dimensions.
 
 !!! warning "RGB-D Cameras"
-    When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the Intel RealSense series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment. 
+    When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment. 
 
 
 !!! Example "Usage"
@@ -284,16 +289,17 @@ The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_
 
 A point cloud is a collection of data points defined within a three-dimensional coordinate system. These data points represent the external surface of an object or a scene, captured via 3D scanning technologies. Each point in the cloud has `X`, `Y`, and `Z` coordinates, which correspond to its position in space, and may also include additional information such as color and intensity.
 
-!!! warning "RGB-D Cameras"
+!!! warning "reference frame"
     When working with `sensor_msgs/PointCloud2`, it's essential to consider the reference frame of the sensor from which the point cloud data was acquired. The point cloud is initially captured in the sensor's reference frame. You can determine this reference frame by listening to the `/tf_static` topic. However, depending on your specific application requirements, you might need to convert the point cloud into another reference frame. This transformation can be achieved using the `tf2_ros` package, which provides tools for managing coordinate frames and transforming data between them.
 
-#### Obtaining Point clouds 
-Point Clouds can be obtained using various sensors:
+!!! tip "Obtaining Point clouds" 
 
-1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-precision 3D maps.
-2. **Depth Cameras**: Capture depth information for each pixel, allowing for 3D reconstruction of the scene.
-3. **Stereo Cameras**: Utilize two or more cameras to obtain depth information through triangulation.
-4. **Structured Light Scanners**: Project a known pattern onto a surface and measure the deformation to calculate depth.
+    Point Clouds can be obtained using various sensors:
+
+    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-precision 3D maps.
+    2. **Depth Cameras**: Capture depth information for each pixel, allowing for 3D reconstruction of the scene.
+    3. **Stereo Cameras**: Utilize two or more cameras to obtain depth information through triangulation.
+    4. **Structured Light Scanners**: Project a known pattern onto a surface and measure the deformation to calculate depth.
 
 #### Using YOLO with Point Clouds
 
@@ -358,12 +364,12 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
         mask_expanded = np.stack([mask, mask, mask], axis=2)
         
-        rgb = rgb * mask_expanded
-        xyz = xyz * mask_expanded
+        obj_rgb = rgb * mask_expanded
+        obj_xyz = xyz * mask_expanded
         
         pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(xyz.reshape((ros_cloud.height* ros_cloud.width, 3)))
-        pcd.colors = o3d.utility.Vector3dVector(rgb.reshape((ros_cloud.height* ros_cloud.width, 3)) / 255)
+        pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height* ros_cloud.width, 3)))
+        pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height* ros_cloud.width, 3)) / 255)
         o3d.visualization.draw_geometries([pcd])
     ```
 

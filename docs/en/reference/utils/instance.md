@@ -1,6 +1,6 @@
 ---
-description: Dive into Ultralytics detailed utility guide. Learn about Bboxes, _ntuple and more from Ultralytics utils.instance module.
-keywords: Ultralytics, Bboxes, _ntuple, utility, ultralytics utils.instance
+description: Explore Ultralytics utilities for bounding boxes and instances, providing detailed documentation on handling bbox formats, conversions, and more.
+keywords: Ultralytics, bounding boxes, Instances, bbox formats, conversions, AI, deep learning, YOLO, xyxy, xywh, ltwh
 ---
 
 # Reference for `ultralytics/utils/instance.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: This guide explains how to export Ultralytics YOLOv8 models to the PaddlePaddle format for wide device support and harnessing the power of Baidu's ML framework.
-keywords: Ultralytics, YOLOv8, PaddlePaddle Export, Model Deployment, Flexible Deployment,  Industrial-Grade Deep Learning, Baidu, Cross-Platform Compatibility
+description: Learn how to export YOLOv8 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
+keywords: YOLOv8, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
 ---
 
 # How to Export to PaddlePaddle Format from YOLOv8 Models
@@ -20,7 +20,7 @@ Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**ra
 
 It offers tools and resources similar to popular frameworks like TensorFlow and PyTorch, making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 
-By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap into PaddlePaddle’s strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLOv8 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
+By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap into PaddlePaddle's strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLOv8 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
 
 ## Key Features of PaddlePaddle Models
 
@@ -44,7 +44,7 @@ PaddlePaddle provides a range of options, each offering a distinct balance of ea
 
 - **Paddle Lite**: Paddle Lite is designed for deployment on mobile and embedded devices where resources are limited. It optimizes models for smaller sizes and faster inference on ARM CPUs, GPUs, and other specialized hardware.
 
-- **Paddle.js**:  Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pre-trained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
+- **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pre-trained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
 
 ## Export to PaddlePaddle: Converting Your YOLOv8 Model
 
@@ -57,7 +57,7 @@ To install the required package, run:
 !!! Tip "Installation"
 
     === "CLI"
-    
+
         ```bash
         # Install the required package for YOLOv8
         pip install ultralytics
@@ -77,16 +77,16 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format='paddle')  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO('./yolov8n_paddle_model')
+        paddle_model = YOLO("./yolov8n_paddle_model")
 
         # Run inference
-        results = paddle_model('https://ultralytics.com/images/bus.jpg')
+        results = paddle_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -119,4 +119,4 @@ In this guide, we explored the process of exporting Ultralytics YOLOv8 models to
 
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 
-Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights. 
+Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights.

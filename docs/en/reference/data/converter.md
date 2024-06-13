@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics data converter functions like coco91_to_coco80_class, merge_multi_segment, rle2polygon for efficient data handling.
-keywords: Ultralytics, Data Converter, coco91_to_coco80_class, merge_multi_segment, rle2polygon
+description: Explore comprehensive data conversion tools for YOLO models including COCO, DOTA, and YOLO bbox2segment converters.
+keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segment, machine learning, annotations
 ---
 
 # Reference for `ultralytics/data/converter.py`

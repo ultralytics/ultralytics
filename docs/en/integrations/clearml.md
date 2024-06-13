@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to streamline and optimize your YOLOv8 model training with ClearML. This guide provides insights into integrating ClearML's MLOps tools for efficient model training, from initial setup to advanced experiment tracking and model management.
-keywords: Ultralytics, YOLOv8, Object Detection, ClearML, Model Training, MLOps, Experiment Tracking, Workflow Optimization
+description: Discover how to integrate YOLOv8 with ClearML to streamline your MLOps workflow, automate experiments, and enhance model management effortlessly.
+keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detection, model training, automation, experiment management
 ---
 
 # Training YOLOv8 with ClearML: Streamlining Your MLOps Workflow
@@ -41,7 +41,7 @@ For detailed instructions and best practices related to the installation process
 
 Once you have installed the necessary packages, the next step is to initialize and configure your ClearML SDK. This involves setting up your ClearML account and obtaining the necessary credentials for a seamless connection between your development environment and the ClearML server.
 
-Begin by initializing the ClearML SDK in your environment. The ‘clearml-init’ command starts the setup process and prompts you for the necessary credentials.
+Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
 !!! Tip "Initial SDK Setup"
 
@@ -64,23 +64,21 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```python
         from clearml import Task
+
         from ultralytics import YOLO
 
         # Step 1: Creating a ClearML Task
-        task = Task.init(
-            project_name="my_project",
-            task_name="my_yolov8_task"
-        )
+        task = Task.init(project_name="my_project", task_name="my_yolov8_task")
 
         # Step 2: Selecting the YOLOv8 Model
         model_variant = "yolov8n"
         task.set_parameter("model_variant", model_variant)
 
         # Step 3: Loading the YOLOv8 Model
-        model = YOLO(f'{model_variant}.pt')
+        model = YOLO(f"{model_variant}.pt")
 
         # Step 4: Setting Up Training Arguments
-        args = dict(data="coco128.yaml", epochs=16)
+        args = dict(data="coco8.yaml", epochs=16)
         task.connect(args)
 
         # Step 5: Initiating Model Training
@@ -89,7 +87,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Understanding the Code
 
-Let’s understand the steps showcased in the usage code snippet above.
+Let's understand the steps showcased in the usage code snippet above.
 
 **Step 1: Creating a ClearML Task**: A new task is initialized in ClearML, specifying your project and task names. This task will track and manage your model's training.
 
@@ -97,7 +95,7 @@ Let’s understand the steps showcased in the usage code snippet above.
 
 **Step 3: Loading the YOLOv8 Model**: The selected YOLOv8 model is loaded using Ultralytics' YOLO class, preparing it for training.
 
-**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco128.yaml`) and the number of epochs (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco8.yaml`) and the number of epochs (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
 
 **Step 5: Initiating Model Training**: The model training is started with the specified arguments. The results of the training process are captured in the `results` variable.
 

@@ -1,6 +1,6 @@
 ---
-description: Learn about how Ultralytics collects and uses data to improve user experience, ensure software stability, and address privacy concerns, with options to opt-out.
-keywords: Ultralytics, Data Collection, User Privacy, Google Analytics, Sentry, Crash Reporting, Anonymized Data, Privacy Settings, Opt-Out
+description: Discover how Ultralytics collects and uses anonymized data to enhance the YOLO Python package while prioritizing user privacy and control.
+keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, Sentry, privacy, anonymized data, user control, crash reporting
 ---
 
 # Data Collection for Ultralytics Python Package
@@ -85,7 +85,7 @@ To gain insight into the current configuration of your settings, you can view th
         print(settings)
 
         # Return analytics and crash reporting setting
-        value = settings['sync']
+        value = settings["sync"]
         ```
 
     === "CLI"
@@ -106,7 +106,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         from ultralytics import settings
 
         # Disable analytics and crash reporting
-        settings.update({'sync': False})
+        settings.update({"sync": False})
 
         # Reset settings to default values
         settings.reset()

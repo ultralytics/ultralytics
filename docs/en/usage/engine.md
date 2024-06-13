@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to customize and extend base Ultralytics YOLO Trainer engines. Support your custom model and dataloader by overriding built-in functions.
-keywords: Ultralytics, YOLO, trainer engines, BaseTrainer, DetectionTrainer, customizing trainers, extending trainers, custom model, custom dataloader
+description: Learn to customize the YOLOv8 Trainer for specific tasks. Step-by-step instructions with Python examples for maximum model performance.
+keywords: Ultralytics, YOLOv8, Trainer Customization, Python, Machine Learning, AI, Model Training, DetectionTrainer, Custom Models
 ---
 
 Both the Ultralytics YOLO command-line and Python interfaces are simply a high-level abstraction on the base engine executors. Let's take a look at the Trainer engine.
@@ -46,6 +46,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
+        """Loads a custom detection model given configuration and weight files."""
         ...
 
 
@@ -65,16 +66,19 @@ from ultralytics.nn.tasks import DetectionModel
 
 class MyCustomModel(DetectionModel):
     def init_criterion(self):
+        """Initializes the loss function and adds a callback for uploading the model to Google Drive every 10 epochs."""
         ...
 
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
+        """Returns a customized detection model instance configured with specified config and weights."""
         return MyCustomModel(...)
 
 
 # callback to upload model weights
 def log_model(trainer):
+    """Logs the path of the last model weight used by the trainer."""
     last_weight_path = trainer.last
     print(last_weight_path)
 

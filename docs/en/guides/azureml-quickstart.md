@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Step-by-step Quickstart Guide to Running YOLOv8 Object Detection Models on AzureML for Fast Prototyping and Testing
-keywords: Ultralytics, YOLOv8, Object Detection, Azure Machine Learning, Quickstart Guide, Prototype, Compute Instance, Terminal, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to run YOLOv8 on AzureML. Quickstart instructions for terminal and notebooks to harness Azure's cloud computing for efficient model training.
+keywords: YOLOv8, AzureML, machine learning, cloud computing, quickstart, terminal, notebooks, model training, Python SDK, AI, Ultralytics
 ---
 
 # YOLOv8 🚀 on AzureML
@@ -74,7 +74,7 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 Train a detection model for 10 epochs with an initial learning_rate of 0.01:
 
 ```bash
-yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
 You can find more [instructions to use the Ultralytics CLI here](../quickstart.md#use-ultralytics-with-cli).
@@ -131,7 +131,7 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")  # load an official YOLOv8n model
 
 # Use the model
-model.train(data="coco128.yaml", epochs=3)  # train the model
+model.train(data="coco8.yaml", epochs=3)  # train the model
 metrics = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format

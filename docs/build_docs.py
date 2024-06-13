@@ -32,11 +32,12 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 
-def build_docs(clone_repos=True):
+def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -55,10 +56,9 @@ def build_docs(clone_repos=True):
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
         print(f"Cloned/Updated {repo} in {local_dir}")
 
-    # Build the main documentation
-    print(f"Building docs from {DOCS}")
-    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml", check=True, shell=True)
-    print(f"Site built at {SITE}")
+    # Add frontmatter
+    for file in tqdm((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
+        update_markdown_files(file)
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -115,17 +115,36 @@ def update_subdir_edit_links(subdir="", docs_url=""):
             file.write(str(soup))
 
 
-def main():
-    """Builds docs, updates titles and edit links, and prints local server command."""
-    build_docs()
+def update_markdown_files(md_filepath: Path):
+    """Creates or updates a Markdown file, ensuring frontmatter is present."""
+    if md_filepath.exists():
+        content = md_filepath.read_text().strip()
 
-    # Update titles
+        # Replace apostrophes
+        content = content.replace("‘", "'").replace("’", "'")
+
+        # Add frontmatter if missing
+        if not content.strip().startswith("---\n"):
+            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            content = header + content
+
+        # Add EOF newline if missing
+        if not content.endswith("\n"):
+            content += "\n"
+
+        # Save page
+        md_filepath.write_text(content)
+    return
+
+
+def update_docs_html():
+    """Updates titles, edit links and head sections of HTML documentation for improved accessibility and relevance."""
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
     update_subdir_edit_links(
         subdir="hub/sdk/",  # do not use leading slash
-        docs_url="https://github.com/ultralytics/hub-sdk/tree/develop/docs/",
+        docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
     )
 
     # Update HTML file head section
@@ -133,8 +152,21 @@ def main():
     if any(script):
         update_html_head(script)
 
+
+def main():
+    """Builds docs, updates titles and edit links, and prints local server command."""
+    prepare_docs_markdown()
+
+    # Build the main documentation
+    print(f"Building docs from {DOCS}")
+    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
+    print(f"Site built at {SITE}")
+
+    # Update docs HTML pages
+    update_docs_html()
+
     # Show command to serve built website
-    print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
 
 
 if __name__ == "__main__":

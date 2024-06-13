@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Uncover the utility of MLflow for effective experiment logging in your Ultralytics YOLO projects.
-keywords: ultralytics docs, YOLO, MLflow, experiment logging, metrics tracking, parameter logging, artifact logging
+description: Learn how to set up and use MLflow logging with Ultralytics YOLO for enhanced experiment tracking, model reproducibility, and performance improvements.
+keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metrics logging, parameter logging, artifact logging
 ---
 
 # MLflow Integration for Ultralytics YOLO
@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](https://docs.ultralytics.com/quickstart/#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
 !!! Example "Update Ultralytics MLflow Settings"
 
@@ -42,7 +42,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
         from ultralytics import settings
 
         # Update a setting
-        settings.update({'mlflow': True})
+        settings.update({"mlflow": True})
 
         # Reset settings to default values
         settings.reset()
@@ -68,7 +68,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
     ```
 
-   Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
+    Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
@@ -76,7 +76,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_RUN=<your_run_name>
     ```
 
-   Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
+    Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
 3. **Start Local MLflow Server**: To start tracking, use:
 
@@ -84,7 +84,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     mlflow server --backend-store-uri runs/mlflow'
     ```
 
-   This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
+    This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
 
 4. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
 

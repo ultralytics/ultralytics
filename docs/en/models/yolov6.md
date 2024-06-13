@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage.
-keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
+description: Explore Meituan YOLOv6, a top-tier object detector balancing speed and accuracy. Learn about its unique features and performance metrics on Ultralytics Docs.
+keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, Anchor-Aided Training, COCO dataset, high-performance models, Ultralytics Docs
 ---
 
 # Meituan YOLOv6
@@ -46,16 +46,16 @@ This example provides simple YOLOv6 training and inference examples. For full do
         from ultralytics import YOLO
 
         # Build a YOLOv6n model from scratch
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -75,12 +75,12 @@ This example provides simple YOLOv6 training and inference examples. For full do
 The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 

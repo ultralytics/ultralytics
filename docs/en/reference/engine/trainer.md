@@ -1,6 +1,6 @@
 ---
-description: Learn about the BaseTrainer class in the Ultralytics library. From training control, customization to advanced usage.
-keywords: Ultralytics, BaseTrainer, Machine Learning, Training Control, Python library
+description: Learn how to use BaseTrainer in Ultralytics YOLO for efficient model training. Comprehensive guide for configurations, datasets, and optimization.
+keywords: Ultralytics, YOLO, BaseTrainer, model training, configuration, datasets, optimization, machine learning
 ---
 
 # Reference for `ultralytics/engine/trainer.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore various methods to install Ultralytics using pip, conda, git and Docker. Learn how to use Ultralytics with command line interface or within your Python projects.
-keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultralytics, Ultralytics command line interface, Ultralytics Python interface
+description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLOv8 with thorough instructions.
+keywords: Ultralytics, YOLOv8, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
 ## Install Ultralytics
@@ -21,11 +21,14 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
 !!! Example "Install"
 
+    <p align="left" style="margin-bottom: -20px;">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)<p>
+
     === "Pip install (recommended)"
 
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
-        [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
+        [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/)
+        [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
         ```bash
         # Install the ultralytics package from PyPI
@@ -43,8 +46,10 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
-
-        [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
+        [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics)
+        [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
+        [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics)
+        [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
         ```bash
         # Install the ultralytics package using conda
@@ -76,7 +81,12 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         ```
 
     === "Git clone"
+
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+
+        [![GitHub last commit](https://img.shields.io/github/last-commit/ultralytics/ultralytics?logo=github)](https://github.com/ultralytics/ultralytics)
+        [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ultralytics/ultralytics)](https://github.com/ultralytics/ultralytics)
+
         ```bash
         # Clone the ultralytics repository
         git clone https://github.com/ultralytics/ultralytics
@@ -92,7 +102,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         Utilize Docker to effortlessly execute the `ultralytics` package in an isolated container, ensuring consistent and smooth performance across various environments. By choosing one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you not only avoid the complexity of local installation but also benefit from access to a verified working environment. Ultralytics offers 5 main supported Docker images, each designed to provide high compatibility and efficiency for different platforms and use cases:
 
-        <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
+        [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
+        [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
         - **Dockerfile:** GPU image recommended for training.
         - **Dockerfile-arm64:** Optimized for ARM64 architecture, allowing deployment on devices like Raspberry Pi and other ARM64-based platforms.
@@ -126,9 +137,9 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
         Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
-        For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](https://docs.ultralytics.com/guides/docker-quickstart/).
+        For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](./guides/docker-quickstart.md).
 
-See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
+See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
 !!! Tip "Tip"
 
@@ -161,7 +172,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
         ```bash
-        yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -175,7 +186,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
         Val a pretrained detection model at batch-size 1 and image size 640:
         ```bash
-        yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
@@ -220,22 +231,22 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
-    # Train the model using the 'coco128.yaml' dataset for 3 epochs
-    results = model.train(data='coco128.yaml', epochs=3)
+    # Train the model using the 'coco8.yaml' dataset for 3 epochs
+    results = model.train(data="coco8.yaml", epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()
 
     # Perform object detection on an image using the model
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Export the model to ONNX format
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Python Guide](usage/python.md){.md-button .md-button--primary}
@@ -259,7 +270,7 @@ To gain insight into the current configuration of your settings, you can view th
         print(settings)
 
         # Return a specific setting
-        value = settings['runs_dir']
+        value = settings["runs_dir"]
         ```
 
     === "CLI"
@@ -280,10 +291,10 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         from ultralytics import settings
 
         # Update a setting
-        settings.update({'runs_dir': '/path/to/runs'})
+        settings.update({"runs_dir": "/path/to/runs"})
 
         # Update multiple settings
-        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+        settings.update({"runs_dir": "/path/to/runs", "tensorboard": False})
 
         # Reset settings to default values
         settings.reset()
@@ -307,7 +318,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
-|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |

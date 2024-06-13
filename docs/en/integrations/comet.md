@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to track and enhance YOLOv8 model training with Comet ML's logging tools, from setup to monitoring key metrics and managing experiments for in-depth analysis.
-keywords: Ultralytics, YOLOv8, Object Detection, Comet ML, Model Training, Model Metrics Logging, Experiment Tracking, Offline Experiment Management
+description: Learn to simplify the logging of YOLOv8 training with Comet ML. This guide covers installation, setup, real-time insights, and custom logging.
+keywords: YOLOv8, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
 ---
 
 # Elevating YOLOv8 Training: Simplify Your Logging Process with Comet ML
@@ -37,7 +37,7 @@ To install the required packages, run:
 
 ## Configuring Comet ML
 
-After installing the required packages, you’ll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
+After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
 !!! Tip "Configuring Comet ML"
 
@@ -74,12 +74,12 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         # train the model
         results = model.train(
-        data="coco128.yaml",
-        project="comet-example-yolov8-coco128",
-        batch=32,
-        save_period=1,
-        save_json=True,
-        epochs=3
+            data="coco8.yaml",
+            project="comet-example-yolov8-coco128",
+            batch=32,
+            save_period=1,
+            save_json=True,
+            epochs=3,
         )
         ```
 
@@ -89,7 +89,7 @@ Comet automatically logs the following data with no additional configuration: me
 
 ## Understanding Your Model's Performance with Comet ML Visualizations
 
-Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here’s a quick tour:
+Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
 
 **Experiment Panels**
 
@@ -144,7 +144,7 @@ Comet ML allows you to specify how often batches of image predictions are logged
 ```python
 import os
 
-os.environ['COMET_EVAL_BATCH_LOGGING_INTERVAL'] = "4"
+os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
 ```
 
 ### Disabling Confusion Matrix Logging

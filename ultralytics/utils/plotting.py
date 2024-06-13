@@ -13,9 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-
-from .checks import check_font, check_version, is_ascii
-from .files import increment_path
+from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.files import increment_path
 
 
 class Colors:
@@ -241,7 +240,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25):
         """
         Plot keypoints on the image.
 
@@ -267,7 +266,7 @@ class Annotator:
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if len(k) == 3:
                     conf = k[2]
-                    if conf < 0.5:
+                    if conf < conf_thres:
                         continue
                 cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
@@ -279,7 +278,7 @@ class Annotator:
                 if ndim == 3:
                     conf1 = kpts[(sk[0] - 1), 2]
                     conf2 = kpts[(sk[1] - 1), 2]
-                    if conf1 < 0.5 or conf2 < 0.5:
+                    if conf1 < conf_thres or conf2 < conf_thres:
                         continue
                 if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
                     continue
@@ -379,7 +378,7 @@ class Annotator:
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0), fontsize=0.7):
+    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
@@ -388,14 +387,14 @@ class Annotator:
             points (tuple): region points for center point calculation to display text
             region_color (RGB): queue region color
             txt_color (RGB): text display color
-            fontsize (float): text fontsize
         """
+
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)
         center_y = sum(y_values) // len(points)
 
-        text_size = cv2.getTextSize(label, 0, fontScale=fontsize, thickness=self.tf)[0]
+        text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_width = text_size[0]
         text_height = text_size[1]
 
@@ -414,62 +413,65 @@ class Annotator:
             label,
             (text_x, text_y),
             0,
-            fontScale=fontsize,
+            fontScale=self.sf,
             color=txt_color,
             thickness=self.tf,
             lineType=cv2.LINE_AA,
         )
 
-    def display_counts(self, counts=None, count_bg_color=(0, 0, 0), count_txt_color=(255, 255, 255)):
+    def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
         """
-        Display counts on im0 with text background and border.
+        Display the bounding boxes labels in parking management app.
 
         Args:
-            counts (str): objects count data
-            count_bg_color (RGB Color): counts highlighter color
-            count_txt_color (RGB Color): counts display color
+            im0 (ndarray): inference image
+            text (str): object/class name
+            txt_color (bgr color): display color for text foreground
+            bg_color (bgr color): display color for text background
+            x_center (float): x position center point for bounding box
+            y_center (float): y position center point for bounding box
+            margin (int): gap between text and rectangle for better display
         """
 
-        tl = self.tf or round(0.002 * (self.im.shape[0] + self.im.shape[1]) / 2) + 1
-        tf = max(tl - 1, 1)
+        text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
+        text_x = x_center - text_size[0] // 2
+        text_y = y_center + text_size[1] // 2
 
-        t_sizes = [cv2.getTextSize(str(count), 0, fontScale=self.sf, thickness=self.tf)[0] for count in counts]
+        rect_x1 = text_x - margin
+        rect_y1 = text_y - text_size[1] - margin
+        rect_x2 = text_x + text_size[0] + margin
+        rect_y2 = text_y + margin
+        cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
+        cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
-        max_text_width = max([size[0] for size in t_sizes])
-        max_text_height = max([size[1] for size in t_sizes])
+    def display_analytics(self, im0, text, txt_color, bg_color, margin):
+        """
+        Display the overall statistics for parking lots
+        Args:
+            im0 (ndarray): inference image
+            text (dict): labels dictionary
+            txt_color (bgr color): display color for text foreground
+            bg_color (bgr color): display color for text background
+            margin (int): gap between text and rectangle for better display
+        """
 
-        text_x = self.im.shape[1] - int(self.im.shape[1] * 0.025 + max_text_width)
-        text_y = int(self.im.shape[0] * 0.025)
-
-        # Calculate dynamic gap between each count value based on the width of the image
-        dynamic_gap = max(1, self.im.shape[1] // 100) * tf
-
-        for i, count in enumerate(counts):
-            text_x_pos = text_x
-            text_y_pos = text_y + i * dynamic_gap  # Adjust vertical position with dynamic gap
-
-            # Draw the border
-            cv2.rectangle(
-                self.im,
-                (text_x_pos - (10 * tf), text_y_pos - (10 * tf)),
-                (text_x_pos + max_text_width + (10 * tf), text_y_pos + max_text_height + (10 * tf)),
-                count_bg_color,
-                -1,
-            )
-
-            # Draw the count text
-            cv2.putText(
-                self.im,
-                str(count),
-                (text_x_pos, text_y_pos + max_text_height),
-                0,
-                fontScale=self.sf,
-                color=count_txt_color,
-                thickness=self.tf,
-                lineType=cv2.LINE_AA,
-            )
-
-            text_y_pos += tf * max_text_height
+        horizontal_gap = int(im0.shape[1] * 0.02)
+        vertical_gap = int(im0.shape[0] * 0.01)
+        text_y_offset = 0
+        for label, value in text.items():
+            txt = f"{label}: {value}"
+            text_size = cv2.getTextSize(txt, 0, self.sf, self.tf)[0]
+            if text_size[0] < 5 or text_size[1] < 5:
+                text_size = (5, 5)
+            text_x = im0.shape[1] - text_size[0] - margin * 2 - horizontal_gap
+            text_y = text_y_offset + text_size[1] + margin * 2 + vertical_gap
+            rect_x1 = text_x - margin * 2
+            rect_y1 = text_y - text_size[1] - margin * 2
+            rect_x2 = text_x + text_size[0] + margin * 2
+            rect_y2 = text_y + margin * 2
+            cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
+            cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
+            text_y_offset = rect_y2
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
@@ -491,7 +493,7 @@ class Annotator:
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=[2, 5, 7], shape=(640, 640), radius=2):
+    def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
@@ -501,18 +503,22 @@ class Annotator:
             shape (tuple): imgsz for model inference
             radius (int): Keypoint radius value
         """
+        if indices is None:
+            indices = [2, 5, 7]
         for i, k in enumerate(keypoints):
             if i in indices:
                 x_coord, y_coord = k[0], k[1]
                 if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                     if len(k) == 3:
                         conf = k[2]
-                        if conf < 0.5:
+                        if conf < conf_thres:
                             continue
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, line_thickness=2):
+    def plot_angle_and_count_and_stage(
+        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+    ):
         """
         Plot the pose angle, count value and step stage.
 
@@ -521,16 +527,17 @@ class Annotator:
             count_text (str): counts value for workout monitoring
             stage_text (str): stage decision for workout monitoring
             center_kpt (int): centroid pose index for workout monitoring
-            line_thickness (int): thickness for text display
+            color (tuple): text background color for workout monitoring
+            txt_color (tuple): text foreground color for workout monitoring
         """
+
         angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
-        font_scale = 0.6 + (line_thickness / 10.0)
 
         # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, font_scale, line_thickness)
+        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
         angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
         angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (line_thickness * 2))
+        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
         cv2.rectangle(
             self.im,
             angle_background_position,
@@ -538,19 +545,19 @@ class Annotator:
                 angle_background_position[0] + angle_background_size[0],
                 angle_background_position[1] + angle_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
 
         # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, font_scale, line_thickness)
+        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
         count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
         count_background_position = (
             angle_background_position[0],
             angle_background_position[1] + angle_background_size[1] + 5,
         )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + (line_thickness * 2))
+        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
 
         cv2.rectangle(
             self.im,
@@ -559,13 +566,13 @@ class Annotator:
                 count_background_position[0] + count_background_size[0],
                 count_background_position[1] + count_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, count_text, count_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
 
         # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, font_scale, line_thickness)
+        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
         stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
         stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
         stage_background_size = (stage_text_width + 10, stage_text_height + 10)
@@ -577,10 +584,10 @@ class Annotator:
                 stage_background_position[0] + stage_background_size[0],
                 stage_background_position[1] + stage_background_size[1],
             ),
-            (255, 255, 255),
+            color,
             -1,
         )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, font_scale, (0, 0, 0), line_thickness)
+        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
         """
@@ -620,29 +627,30 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), (255, 255, 255), -1)
+
+        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance M: {distance_m:.2f}m",
             (20, 50),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, 0.8, 2)
-        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), (255, 255, 255), -1)
+        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, self.sf, self.tf)
+        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), line_color, -1)
         cv2.putText(
             self.im,
             f"Distance MM: {distance_mm:.2f}mm",
             (20, 100),
             0,
-            0.8,
-            (0, 0, 0),
-            2,
+            self.sf,
+            centroid_color,
+            self.tf,
             cv2.LINE_AA,
         )
 
@@ -650,7 +658,7 @@ class Annotator:
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255), thickness=2, pins_radius=10):
+    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
         """
         Function for pinpoint human-vision eye mapping and plotting.
 
@@ -659,13 +667,11 @@ class Annotator:
             center_point (tuple): center point for vision eye view
             color (tuple): object centroid and line color value
             pin_color (tuple): visioneye point color value
-            thickness (int): int value for line thickness
-            pins_radius (int): visioneye point radius value
         """
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        cv2.circle(self.im, center_point, pins_radius, pin_color, -1)
-        cv2.circle(self.im, center_bbox, pins_radius, color, -1)
-        cv2.line(self.im, center_point, center_bbox, color, thickness)
+        cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
+        cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
+        cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
@@ -876,7 +882,7 @@ def plot_images(
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
                     if labels or conf[j] > conf_thres:
-                        annotator.kpts(kpts_[j])
+                        annotator.kpts(kpts_[j], conf_thres=conf_thres)
 
             # Plot masks
             if len(masks):
@@ -1099,23 +1105,24 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
         save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
     """
-    for m in ["Detect", "Pose", "Segment"]:
+    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:
             return
-    _, channels, height, width = x.shape  # batch, channels, height, width
-    if height > 1 and width > 1:
-        f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
+    if isinstance(x, torch.Tensor):
+        _, channels, height, width = x.shape  # batch, channels, height, width
+        if height > 1 and width > 1:
+            f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
 
-        blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-        n = min(n, channels)  # number of plots
-        _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
-        ax = ax.ravel()
-        plt.subplots_adjust(wspace=0.05, hspace=0.05)
-        for i in range(n):
-            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
-            ax[i].axis("off")
+            blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
+            n = min(n, channels)  # number of plots
+            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+            ax = ax.ravel()
+            plt.subplots_adjust(wspace=0.05, hspace=0.05)
+            for i in range(n):
+                ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+                ax[i].axis("off")
 
-        LOGGER.info(f"Saving {f}... ({n}/{channels})")
-        plt.savefig(f, dpi=300, bbox_inches="tight")
-        plt.close()
-        np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+            LOGGER.info(f"Saving {f}... ({n}/{channels})")
+            plt.savefig(f, dpi=300, bbox_inches="tight")
+            plt.close()
+            np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save

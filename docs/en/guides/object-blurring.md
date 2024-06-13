@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to blur objects using Ultralytics YOLOv8 for privacy in images and videos.
-keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protection, Image Processing, Video Analysis, AI, Machine Learning
+description: Learn how to use Ultralytics YOLOv8 for real-time object blurring to enhance privacy and focus in your images and videos.
+keywords: YOLOv8, object blurring, real-time processing, privacy protection, image manipulation, video editing, Ultralytics
 ---
 
 # Object Blurring using Ultralytics YOLOv8 🚀
@@ -9,6 +9,17 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Blurring, Privacy Protec
 ## What is Object Blurring?
 
 Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves applying a blurring effect to specific detected objects in an image or video. This can be achieved using the YOLOv8 model capabilities to identify and manipulate objects within a given scene.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ydGdibB5Mds"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Object Blurring using Ultralytics YOLOv8
+</p>
 
 ## Advantages of Object Blurring?
 
@@ -21,9 +32,10 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     === "Object Blurring"
 
         ```python
+        import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
-        import cv2
 
         model = YOLO("yolov8n.pt")
         names = model.names
@@ -36,9 +48,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         blur_ratio = 50
 
         # Video writer
-        video_writer = cv2.VideoWriter("object_blurring_output.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps, (w, h))
+        video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -55,14 +65,14 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
                 for box, cls in zip(boxes, clss):
                     annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
 
-                    obj = im0[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+                    obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     blur_obj = cv2.blur(obj, (blur_ratio, blur_ratio))
 
-                    im0[int(box[1]):int(box[3]), int(box[0]):int(box[2])] = blur_obj
+                    im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
 
             cv2.imshow("ultralytics", im0)
             video_writer.write(im0)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         cap.release()
@@ -73,7 +83,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.predict`
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |

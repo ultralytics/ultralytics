@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to view image results inside a compatible VSCode terminal.
-keywords: YOLOv8, VSCode, Terminal, Remote Development, Ultralytics, SSH, Object Detection, Inference, Results, Remote Tunnel, Images, Helpful, Productivity Hack
+description: Learn how to visualize YOLO inference results directly in a VSCode terminal using sixel on Linux and MacOS.
+keywords: YOLO, inference results, VSCode terminal, sixel, display images, Linux, MacOS
 ---
 
 # Viewing Inference Results in a Terminal
@@ -10,7 +10,7 @@ keywords: YOLOv8, VSCode, Terminal, Remote Development, Ultralytics, SSH, Object
   <img width="800" src="https://raw.githubusercontent.com/saitoha/libsixel/data/data/sixel.gif" alt="Sixel example of image in Terminal">
 </p>
 
-Image from the the [libsixel](https://saitoha.github.io/libsixel/) website.
+Image from the [libsixel](https://saitoha.github.io/libsixel/) website.
 
 ## Motivation
 
@@ -47,9 +47,9 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     import io
 
     import cv2 as cv
+    from sixel import SixelWriter
 
     from ultralytics import YOLO
-    from sixel import SixelWriter
     ```
 
 1. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
@@ -62,9 +62,9 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     # Run inference on an image
     results = model.predict(source="ultralytics/assets/bus.jpg")
-    
+
     # Plot inference results
-    plot = results[0].plot() #(1)!
+    plot = results[0].plot()  # (1)!
     ```
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
@@ -74,9 +74,9 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     ```{ .py .annotate }
     # Results image as bytes
     im_bytes = cv.imencode(
-        ".png", #(1)!
+        ".png",  # (1)!
         plot,
-        )[1].tobytes() #(2)!
+    )[1].tobytes()  # (2)!
 
     # Image bytes as a file-like object
     mem_file = io.BytesIO(im_bytes)
@@ -111,9 +111,9 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 import io
 
 import cv2 as cv
+from sixel import SixelWriter
 
 from ultralytics import YOLO
-from sixel import SixelWriter
 
 # Load a model
 model = YOLO("yolov8n.pt")
@@ -122,13 +122,13 @@ model = YOLO("yolov8n.pt")
 results = model.predict(source="ultralytics/assets/bus.jpg")
 
 # Plot inference results
-plot = results[0].plot() #(3)!
+plot = results[0].plot()  # (3)!
 
 # Results image as bytes
 im_bytes = cv.imencode(
-    ".png", #(1)!
+    ".png",  # (1)!
     plot,
-    )[1].tobytes() #(2)!
+)[1].tobytes()  # (2)!
 
 mem_file = io.BytesIO(im_bytes)
 w = SixelWriter()

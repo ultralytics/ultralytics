@@ -1,6 +1,6 @@
 ---
-description: Discover how to use PosePredictor in the Ultralytics YOLO model. Includes detailed guides, code examples, and explanations.
-keywords: Ultralytics, YOLO, PosePredictor, machine learning, AI, predictive models
+description: Learn about the PosePredictor class for YOLO model predictions on pose data. Get setup instructions, example usage, and implementation details.
+keywords: YOLO, Pose Prediction, Ultralytics, PosePredictor, YOLOv8, Machine Learning, Deep Learning, Python, AI Models
 ---
 
 # Reference for `ultralytics/models/yolo/pose/predict.py`

@@ -223,14 +223,17 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
     In this example, we use YOLO to segment an image and apply the extracted mask to segment the object in the depth image. This allows us to determine the distance of each pixel of the object of interest from the camera's focal center. By obtaining this distance information, we can calculate the distance between the camera and the specific object in the scene. We begin by importing the necessary libraries, creating a ROS node, and instantiating a segmentation model and a ROS topic.
 
     ```py
-    import rospy
     import time
-    from ultralytics import YOLO
-    import ros_numpy
+
     import numpy as np
+    import ros_numpy
+    import rospy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
-    rospy.init_node('ultralytics')
+
+    from ultralytics import YOLO
+
+    rospy.init_node("ultralytics")
     time.sleep(1)
 
     segmentation_model = YOLO("yolov8m-seg.pt")
@@ -246,17 +249,18 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
         image = ros_numpy.numpify(image)
         depth = ros_numpy.numpify(data)
         result = segmentation_model(image)
-        
-        all_objects = [] # (6)
+
+        all_objects = []  # (6)
         for index, cls in enumerate(result[0].boxes.cls):
             class_index = int(cls.cpu().numpy())
             name = result[0].names[class_index]
-            mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
+            mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
             obj = depth[mask == 1]
             obj = obj[~np.isnan(obj)]
             avg_distance = np.mean(obj) if len(obj) else np.inf
             all_objects.append((name, avg_distance))
-        classes_pub.publish(String(data = str(all_objects)))
+        classes_pub.publish(String(data=str(all_objects)))
+
 
     rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 

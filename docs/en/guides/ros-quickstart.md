@@ -239,9 +239,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
     import rospy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
-
     from ultralytics import YOLO
-
     rospy.init_node("ultralytics")
     time.sleep(1)
 
@@ -317,10 +315,9 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     import time
     from ultralytics import YOLO
     import ros_numpy
-    from sensor_msgs.msg import Image, PointCloud2
+    from sensor_msgs.msg import PointCloud2
     import numpy as np
     import open3d as o3d
-    import cv2
     import sys
     rospy.init_node('ultralytics')
     time.sleep(1)

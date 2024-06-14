@@ -1,8 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-"""Convolution modules."""
-
 import math
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -33,21 +29,55 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     return p
 
 
+def calculate_running_stats(input_tensor, groups):
+    """
+    Calculate running mean and variance for Group Normalization (GroupNorm).
+    """
+    batch_size, num_channels, height, width = input_tensor.size()
+    reshaped_tensor = input_tensor.view(batch_size, groups, -1)     # Reshape the input tensor to (N, G, -1) where G is the number of groups
+    group_mean = reshaped_tensor.mean(dim=-1, keepdim=True).view(batch_size, groups, 1, 1, 1)     # Calculate the mean and variance along the last dimension (within each group)
+    group_var = reshaped_tensor.var(dim=-1, keepdim=True, unbiased=False).view(batch_size, groups, 1, 1, 1)
+    running_mean = group_mean.mean(dim=0).repeat(1, num_channels // groups, height, width).view(num_channels, height, width).detach()     # Average the group means and variances across the batch dimension
+    running_var = group_var.mean(dim=0).repeat(1, num_channels // groups, height, width).view(num_channels, height, width).detach()
+    return running_mean, running_var
+
+
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
-
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
-        """Initialize Conv layer with given arguments including activation."""
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True, norm_type='none'):
+        """Initialize Conv layer with given arguments including activation and normalization type."""
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
-        self.bn = nn.BatchNorm2d(c2)
+        self.norm_type = norm_type
+        if norm_type == 'group':
+            num_groups = int(c2 / 2)
+            self.bn = nn.GroupNorm(num_groups, c2)
+            self.num_groups = num_groups
+            self.running_mean = None
+            self.running_var = None
+        elif norm_type == 'batch':
+            self.bn = nn.BatchNorm2d(c2)
+            self.running_mean = None
+            self.running_var = None
+        elif norm_type == 'none':
+            self.bn = nn.BatchNorm2d(c2)
+            self.running_mean = None
+            self.running_var = None
+        else:
+            raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
-        """Apply convolution, batch normalization and activation to input tensor."""
-        return self.act(self.bn(self.conv(x)))
+        """Apply convolution, normalization, and activation to input tensor."""
+        x = self.conv(x)
+        if isinstance(self.bn, nn.GroupNorm):
+            self.running_mean, self.running_var = calculate_running_stats(x, self.num_groups)
+        else:
+            x = self.bn(x)
+        x = self.act(x)
+        return x
 
     def forward_fuse(self, x):
         """Perform transposed convolution of 2D data."""
@@ -57,24 +87,29 @@ class Conv(nn.Module):
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing."""
 
-    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True):
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True, norm_type='none'):
         """Initialize Conv layer with given arguments including activation."""
-        super().__init__(c1, c2, k, s, p, g=g, d=d, act=act)
+        super().__init__(c1, c2, k, s, p, g=g, d=d, act=act, norm_type=norm_type)
         self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
 
     def forward(self, x):
-        """Apply convolution, batch normalization and activation to input tensor."""
-        return self.act(self.bn(self.conv(x) + self.cv2(x)))
+        """Apply convolution, group normalization and activation to input tensor."""
+        x = self.conv(x)
+        x = self.bn(x + self.cv2(x))
+        if isinstance(self.bn, nn.GroupNorm):
+            self.running_mean, self.running_var = calculate_running_stats(x, self.num_groups)
+        x = self.act(x)
+        return x
 
     def forward_fuse(self, x):
-        """Apply fused convolution, batch normalization and activation to input tensor."""
-        return self.act(self.bn(self.conv(x)))
+        """Apply fused convolution and activation to input tensor."""
+        return self.act(self.conv(x))
 
     def fuse_convs(self):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
-        w[:, :, i[0] : i[0] + 1, i[1] : i[1] + 1] = self.cv2.weight.data.clone()
+        w[:, :, i[0]:i[0] + 1, i[1]:i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__("cv2")
         self.forward = self.forward_fuse
@@ -87,11 +122,11 @@ class LightConv(nn.Module):
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
-    def __init__(self, c1, c2, k=1, act=nn.ReLU()):
+    def __init__(self, c1, c2, k=1, act=nn.ReLU(), norm_type='none'):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__()
-        self.conv1 = Conv(c1, c2, 1, act=False)
-        self.conv2 = DWConv(c2, c2, k, act=act)
+        self.conv1 = Conv(c1, c2, 1, act=False, norm_type=norm_type)
+        self.conv2 = DWConv(c2, c2, k, act=act, norm_type=norm_type)
 
     def forward(self, x):
         """Apply 2 convolutions to input tensor."""
@@ -101,9 +136,9 @@ class LightConv(nn.Module):
 class DWConv(Conv):
     """Depth-wise convolution."""
 
-    def __init__(self, c1, c2, k=1, s=1, d=1, act=True):  # ch_in, ch_out, kernel, stride, dilation, activation
+    def __init__(self, c1, c2, k=1, s=1, d=1, act=True, norm_type='none'):  # ch_in, ch_out, kernel, stride, dilation, activation
         """Initialize Depth-wise convolution with given parameters."""
-        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act)
+        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act, norm_type=norm_type)
 
 
 class DWConvTranspose2d(nn.ConvTranspose2d):
@@ -119,16 +154,29 @@ class ConvTranspose(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True):
+    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True, norm_type='none'):
         """Initialize ConvTranspose2d layer with batch normalization and activation function."""
         super().__init__()
         self.conv_transpose = nn.ConvTranspose2d(c1, c2, k, s, p, bias=not bn)
-        self.bn = nn.BatchNorm2d(c2) if bn else nn.Identity()
+        self.norm_type = norm_type
+        if norm_type == 'group':
+            self.bn = nn.GroupNorm(int(c2 / 2), c2)
+        elif norm_type == 'batch':
+            self.bn = nn.BatchNorm2d(c2)
+        elif norm_type == 'none':
+            self.bn = nn.BatchNorm2d(c2)
+        else:
+            raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
-        """Applies transposed convolutions, batch normalization and activation to input."""
-        return self.act(self.bn(self.conv_transpose(x)))
+        """Applies transposed convolutions, group normalization and activation to input."""
+        x = self.conv_transpose(x)
+        x = self.bn(x)
+        if isinstance(self.bn, nn.GroupNorm):
+            self.running_mean, self.running_var = calculate_running_stats(x, self.bn.num_groups)
+        x = self.act(x)
+        return x
 
     def forward_fuse(self, x):
         """Applies activation and convolution transpose operation to input."""
@@ -138,11 +186,10 @@ class ConvTranspose(nn.Module):
 class Focus(nn.Module):
     """Focus wh information into c-space."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, norm_type='none'):
         """Initializes Focus object with user defined channel, convolution, padding, group and activation values."""
         super().__init__()
-        self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act)
-        # self.contract = Contract(gain=2)
+        self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act, norm_type=norm_type)
 
     def forward(self, x):
         """
@@ -151,20 +198,19 @@ class Focus(nn.Module):
         Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
         """
         return self.conv(torch.cat((x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]), 1))
-        # return self.conv(self.contract(x))
 
 
 class GhostConv(nn.Module):
     """Ghost Convolution https://github.com/huawei-noah/ghostnet."""
 
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, norm_type='none'):
         """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and
         activation.
         """
         super().__init__()
         c_ = c2 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
-        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
+        self.cv1 = Conv(c1, c_, k, s, None, g, act=act, norm_type=norm_type)
+        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act, norm_type=norm_type)
 
     def forward(self, x):
         """Forward propagation through a Ghost Bottleneck layer with skip connection."""
@@ -182,7 +228,7 @@ class RepConv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, norm_type='none'):
         """Initializes Light Convolution layer with inputs, outputs & optional activation function."""
         super().__init__()
         assert k == 3 and p == 1
@@ -191,9 +237,20 @@ class RepConv(nn.Module):
         self.c2 = c2
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
-        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
-        self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
-        self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
+        self.norm_type = norm_type
+        if norm_type == 'group':
+            num_groups = int(c1 / 2)
+            self.bn = nn.GroupNorm(num_groups, c2)
+            self.bn = nn.GroupNorm(num_groups, c1) if bn and c2 == c1 and s == 1 else None
+            self.num_groups = num_groups
+        elif norm_type == 'batch':
+            self.bn = nn.BatchNorm2d(c1)
+        elif norm_type == 'none':
+            self.bn = nn.BatchNorm2d(c2)
+        else:
+            raise ValueError(f"Unsupported normalization type: {norm_type}")
+        self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False, norm_type=norm_type)
+        self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False, norm_type=norm_type)
 
     def forward_fuse(self, x):
         """Forward process."""
@@ -230,6 +287,19 @@ class RepConv(nn.Module):
             beta = branch.bn.bias
             eps = branch.bn.eps
         elif isinstance(branch, nn.BatchNorm2d):
+            if not hasattr(self, "id_tensor"):
+                input_dim = self.c1 // self.g
+                kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)
+                for i in range(self.c1):
+                    kernel_value[i, i % input_dim, 1, 1] = 1
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
+            kernel = self.id_tensor
+            running_mean = branch.running_mean
+            running_var = branch.running_var
+            gamma = branch.weight
+            beta = branch.bias
+            eps = branch.eps
+        elif isinstance(branch, nn.GroupNorm):
             if not hasattr(self, "id_tensor"):
                 input_dim = self.c1 // self.g
                 kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)

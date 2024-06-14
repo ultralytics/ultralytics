@@ -22,16 +22,21 @@ from ultralytics.utils.instance import to_2tuple
 
 class Conv2d_BN(torch.nn.Sequential):
     """A sequential container that performs 2D convolution followed by batch normalization."""
-
-    def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, bn_weight_init=1):
+    def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, norm_type='none', num_groups=None, bn_weight_init=1):
         """Initializes the MBConv model with given input channels, output channels, expansion ratio, activation, and
         drop path.
         """
         super().__init__()
         self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
-        bn = torch.nn.BatchNorm2d(b)
-        torch.nn.init.constant_(bn.weight, bn_weight_init)
-        torch.nn.init.constant_(bn.bias, 0)
+        if norm_type == 'batch':
+            bn = torch.nn.BatchNorm2d(b)
+            torch.nn.init.constant_(bn.weight, bn_weight_init)
+            torch.nn.init.constant_(bn.bias, 0)
+        elif norm_type == 'group':
+            assert num_groups is not None, "num_groups must be specified for GroupNorm"
+            norm_layer = torch.nn.GroupNorm(num_groups, b)
+        else:
+            raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.add_module("bn", bn)
 
 

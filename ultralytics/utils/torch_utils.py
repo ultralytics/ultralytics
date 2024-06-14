@@ -146,17 +146,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    "please specify a valid batch size, i.e. batch=16."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
+        if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
+            raise ValueError(
+                f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
+            )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -183,33 +177,36 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
-    fusedconv = (
-        nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
-    )
+    """
+    Fuse convolution and normalization layers.
+    This function handles the fusion of a Conv2d layer followed by a normalization layer.
+    """
+    with torch.no_grad():
+        w_conv = conv.weight.clone().view(conv.out_channels, -1)
+        w_norm = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+        fused_weight = w_conv * w_norm.view(-1, 1)
 
-    # Prepare filters
-    w_conv = conv.weight.clone().view(conv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
+        fused_bias = (conv.bias if conv.bias is not None else torch.zeros(conv.out_channels, device=w_conv.device))
+        if isinstance(bn, nn.GroupNorm):
+            fused_bias = fused_bias - bn.weight * bn.running_mean / torch.sqrt(bn.eps + bn.running_var)
+        elif isinstance(bn, nn.BatchNorm2d):
+            fused_bias = bn.bias + bn.weight * (fused_bias - bn.running_mean) / torch.sqrt(bn.running_var + bn.eps)
+        else:
+            raise ValueError("Unsupported normalization type.")
 
-    # Prepare spatial bias
-    b_conv = torch.zeros(conv.weight.shape[0], device=conv.weight.device) if conv.bias is None else conv.bias
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+        fused_conv = nn.Conv2d(conv.in_channels,
+                               conv.out_channels,
+                               kernel_size=conv.kernel_size,
+                               stride=conv.stride,
+                               padding=conv.padding,
+                               dilation=conv.dilation,
+                               groups=conv.groups,
+                               bias=True).to(conv.weight.device)
 
-    return fusedconv
+        fused_conv.weight.copy_(fused_weight.view(fused_conv.weight.size()))
+        fused_conv.bias.copy_(fused_bias)
+
+        return fused_conv
 
 
 def fuse_deconv_and_bn(deconv, bn):
@@ -370,6 +367,10 @@ def initialize_weights(model):
         elif t is nn.BatchNorm2d:
             m.eps = 1e-3
             m.momentum = 0.03
+        elif t is nn.GroupNorm:
+            m.eps = 1e-5
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
         elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
             m.inplace = True
 

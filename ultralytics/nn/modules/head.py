@@ -270,23 +270,25 @@ class RTDETRDecoder(nn.Module):
     export = False  # export mode
 
     def __init__(
-        self,
-        nc=80,
-        ch=(512, 1024, 2048),
-        hd=256,  # hidden dim
-        nq=300,  # num queries
-        ndp=4,  # num decoder points
-        nh=8,  # num head
-        ndl=6,  # num decoder layers
-        d_ffn=1024,  # dim of feedforward
-        dropout=0.0,
-        act=nn.ReLU(),
-        eval_idx=-1,
-        # Training args
-        nd=100,  # num denoising
-        label_noise_ratio=0.5,
-        box_noise_scale=1.0,
-        learnt_init_query=False,
+            self,
+            nc=80,
+            ch=(512, 1024, 2048),
+            hd=256,  # hidden dim
+            nq=300,  # num queries
+            ndp=4,  # num decoder points
+            nh=8,  # num head
+            ndl=6,  # num decoder layers
+            d_ffn=1024,  # dim of feedforward
+            dropout=0.0,
+            act=nn.ReLU(),
+            eval_idx=-1,
+            norm_type='batch',  # normalization type
+            num_groups=None,  # number of groups for GroupNorm if used
+            # Training args
+            nd=100,  # num denoising
+            label_noise_ratio=0.5,
+            box_noise_scale=1.0,
+            learnt_init_query=False,
     ):
         """
         Initializes the RTDETRDecoder module with the given parameters.
@@ -303,6 +305,8 @@ class RTDETRDecoder(nn.Module):
             dropout (float): Dropout rate. Default is 0.
             act (nn.Module): Activation function. Default is nn.ReLU.
             eval_idx (int): Evaluation index. Default is -1.
+            norm_type (str): Type of normalization to use ('batch', 'layer', 'group'). Default is 'batch'.
+            num_groups (int): Number of groups for GroupNorm. Required if norm_type is 'group'.
             nd (int): Number of denoising. Default is 100.
             label_noise_ratio (float): Label noise ratio. Default is 0.5.
             box_noise_scale (float): Box noise scale. Default is 1.0.
@@ -317,9 +321,7 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
 
         # Backbone feature projection
-        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
-        # NOTE: simplified version but it's not consistent with .pt weights.
-        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
+        self.input_proj = nn.ModuleList(self._make_input_proj(x, hd, norm_type, num_groups) for x in ch)
 
         # Transformer module
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
@@ -347,6 +349,21 @@ class RTDETRDecoder(nn.Module):
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         self._reset_parameters()
+
+
+    def _make_input_proj(self, in_channels, out_channels, norm_type, num_groups):
+        """Create input projection layer with specified normalization."""
+        layers = [nn.Conv2d(in_channels, out_channels, 1, bias=False)]
+        if norm_type == 'batch':
+            norm_layer = nn.BatchNorm2d(out_channels)
+        elif norm_type == 'group':
+            assert num_groups is not None, "num_groups must be specified for GroupNorm"
+            norm_layer = nn.GroupNorm(num_groups, out_channels)
+        else:
+            raise ValueError(f"Unsupported normalization type: {norm_type}")
+        layers.append(norm_layer)
+        return nn.Sequential(*layers)
+
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
@@ -398,7 +415,7 @@ class RTDETRDecoder(nn.Module):
 
             valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** i)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
@@ -463,7 +480,6 @@ class RTDETRDecoder(nn.Module):
 
         return embeddings, refer_bbox, enc_bboxes, enc_scores
 
-    # TODO
     def _reset_parameters(self):
         """Initializes or resets the parameters of the model's various components with predefined weights and biases."""
         # Class and bbox head init

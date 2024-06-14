@@ -1,7 +1,7 @@
 ---
 comments: true
 description: todo
-keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys,compatibility, performance, stability
+keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV, 
 ---
 
 # ROS (Robot Operating System) quickstart guide
@@ -51,7 +51,6 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
   <img width="50%" src="https://robots.ros.org/assets/img/robots/husarion-rosbot-2r/rosbot2r.png" alt="Husarion ROSbot 2 PRO">
 </p>
 
-
 ### Dependencies Installation
 
 Apart from the ROS environment, you will need to install the following dependencies:
@@ -61,12 +60,11 @@ Apart from the ROS environment, you will need to install the following dependenc
     pip install ros_numpy
     ```
 
-
 - **Ultralytics package**:
   
     ``` bash
     pip install ultralytics
-    ``` 
+    ```
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
@@ -157,7 +155,6 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
         rospy.spin()
     ```
 
-
 ???+ tip "Debugging"
 
     Debugging ROS (Robot Operating System) nodes can be challenging due to the system's distributed nature. Several tools can assist with this process:
@@ -171,7 +168,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 Standard ROS messages also include `std_msgs/String` messages. In many applications, it is not necessary to republish the entire annotated image; instead, only the classes present in the robot's view are needed. The following example demonstrates how to use `std_msgs/String` messages to republish the detected classes on the `/ultralytics/detection/classes` topic. These messages are more lightweight and provide essential information, making them valuable for various applications.
 
 #### Example Use Case
-Consider a warehouse robot equipped with a camera and object detection model. Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box" "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
+Consider a warehouse robot equipped with a camera and object detection model. Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
 
 !!! Example "Usage"
 
@@ -202,13 +199,11 @@ Consider a warehouse robot equipped with a camera and object detection model. In
 
     This example demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topic `/ultralytics/detection/classes` using `std_msgs/String` messages. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. 
 
-
 ## Use Ultralytics with ROS Depth Images
 
 In addition to RGB images, ROS supports depth images, which provide information about the distance of objects from the camera. Depth images are crucial for robotic applications such as obstacle avoidance, 3D mapping, and localization.
 
 A depth image is an image where each pixel represents the distance from the camera to an object. Unlike RGB images that capture color, depth images capture spatial information, enabling robots to perceive the 3D structure of their environment.
-
 
 !!! tip "Obtaining Depth Images" 
 
@@ -225,7 +220,6 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
 !!! warning "RGB-D Cameras"
     When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment. 
-
 
 !!! Example "Usage"
 
@@ -277,13 +271,11 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
         rospy.spin()
     ```
 
-
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/f6393fbe-68a5-459b-ae44-3321375bbd3c" alt="Detection and Segmentation in ROS Gazebo">
 </p>
-
 
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
 
@@ -306,7 +298,6 @@ A point cloud is a collection of data points defined within a three-dimensional 
 To integrate YOLO with `sensor_msgs/PointCloud2` type messages, we can employ a method similar to the one used for depth maps. By leveraging the color information embedded in the point cloud, we can extract a 2D image, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
 
 For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
-
 
 !!! Example "Usage"
 
@@ -347,6 +338,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         rgb[nan_rows] = [0, 0, 0]
         return xyz, rgb
     ```
+
     Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors. 
 
     ``` py

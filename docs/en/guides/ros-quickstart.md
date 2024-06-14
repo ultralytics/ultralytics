@@ -263,6 +263,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
         classes_pub.publish(String(data=str(all_objects)))
 
+
     rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 
     while True:

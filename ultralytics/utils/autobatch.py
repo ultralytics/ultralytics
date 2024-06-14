@@ -45,8 +45,8 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     prefix = colorstr("AutoBatch: ")
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")
     device = next(model.parameters()).device  # get model device
-    if device.type == "cpu":
-        LOGGER.info(f"{prefix}CUDA not detected, using default CPU batch-size {batch_size}")
+    if device.type in {"cpu", "mps"}:
+        LOGGER.info(f"{prefix} ⚠️ intended for CUDA devices, using default batch-size {batch_size}")
         return batch_size
     if torch.backends.cudnn.benchmark:
         LOGGER.info(f"{prefix} ⚠️ Requires torch.backends.cudnn.benchmark=False, using default batch-size {batch_size}")

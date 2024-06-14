@@ -174,19 +174,21 @@ class Annotator:
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside_w = p1[0] + w <= self.im.size[0]
-                outside_h = p1[1] - h >= 0
+                outside_h_upper = p1[1] - h >= 0
+                outside_h_lower = p2[1] + h <= self.im.size[1]
                 self.draw.rectangle(
                     (
                         p1[0] if outside_w else self.im.size[0] - w - 1,
-                        p1[1] - h if outside_h else p2[1],
+                        p1[1] - h if outside_h_upper else p2[1] if outside_h_lower else p1[1],
                         p1[0] + w + 1 if outside_w else self.im.size[0] - 1,
-                        p1[1] + 1 if outside_h else p2[1] + h + 1,
+                        p1[1] + 1 if outside_h_upper else p2[1] + h + 1 if outside_h_lower else p1[1] + h + 1,
                     ),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text(
-                    (p1[0] if outside_w else self.im.size[0] - w, p1[1] - h if outside_h else p2[1]),
+                    (p1[0] if outside_w else self.im.size[0] - w,
+                     p1[1] - h if outside_h_upper else p2[1] if outside_h_lower else p1[1]),
                     label,
                     fill=txt_color,
                     font=self.font,
@@ -201,15 +203,17 @@ class Annotator:
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                outside_h = p1[1] - h >= 3
+                outside_h_upper = p1[1] - h >= 3
+                outside_h_lower = p2[1] + h <= self.im.shape[0] - 3
                 outside_w = p1[0] + w <= self.im.shape[1] - 3
-                p1 = p1[0] if outside_w else self.im.shape[1] - w - 3, p1[1] if outside_h else p2[1]
-                p2 = p1[0] + w, p1[1] - h - 3 if outside_h else p1[1] + h + 3
+                p1 = p1[0] if outside_w else self.im.shape[1] - w - 3, p1[
+                    1] if outside_h_upper or not outside_h_lower else p2[1]
+                p2 = p1[0] + w, p1[1] - h - 3 if outside_h_upper else p1[1] + h + 3
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     self.im,
                     label,
-                    (p1[0], p1[1] - 2 if outside_h else p2[1] - 2),
+                    (p1[0], p1[1] - 2 if outside_h_upper else p2[1] - 2 if outside_h_lower else p1[1] + h - 2),
                     0,
                     self.sf,
                     txt_color,

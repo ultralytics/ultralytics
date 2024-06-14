@@ -15,7 +15,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ### Key Features of ROS
 
-1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called nodes. Each node typically performs a specific function, and nodes communicate with each other using messages over topics or services.
+1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes). Each node typically performs a specific function, and nodes communicate with each other using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
 
 2. **Communication Middleware**: ROS offers a robust communication infrastructure that supports inter-process communication and distributed computing. This is achieved through a publish-subscribe model for data streams (topics) and a request-reply model for service calls.
 
@@ -27,7 +27,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ???+ note "Evolution of ROS Versions"
 
-    Since its development in 2007, ROS has evolved through multiple versions, each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
+    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
 
     ### ROS 1 vs. ROS 2
 
@@ -41,7 +41,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ### ROS Messages and Topics
 
-In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image messages and camera topics.
+In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image, Depth and PointCloud messages and camera topics.
 
 ## Setting Up Ultralytics YOLO with ROS
 
@@ -55,7 +55,7 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
 
 Apart from the ROS environment, you will need to install the following dependencies:
 
-- **ROS Numpy package**: This is required for fast conversion between ROS Image messages and numpy arrays.
+- **[ROS Numpy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and numpy arrays.
     ``` bash
     pip install ros_numpy
     ```
@@ -76,10 +76,10 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
 !!! Example "Usage"
 
-    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. 
+    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md). 
 
     ### Step-by-Step Explanation
-    First, we import the necessary libraries and instantiate two models: one for segmentation and one for detection. Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
+    First, we import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
 
     ``` py
     import rospy
@@ -93,7 +93,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     time.sleep(1)
     ```
 
-    We initialize two ROS topics: one for detection and one for segmentation. These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
+    We initialize two ROS topics: one for [detection](../tasks/detect.md) and one for [segmentation](../tasks/segment.md). These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
 
     ```py
     det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
@@ -253,7 +253,6 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
         depth = ros_numpy.numpify(data)
         result = segmentation_model(image)
 
-        all_objects = []  # (6)
         for index, cls in enumerate(result[0].boxes.cls):
             class_index = int(cls.cpu().numpy())
             name = result[0].names[class_index]
@@ -261,9 +260,8 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
             obj = depth[mask == 1]
             obj = obj[~np.isnan(obj)]
             avg_distance = np.mean(obj) if len(obj) else np.inf
-            all_objects.append((name, avg_distance))
-        classes_pub.publish(String(data=str(all_objects)))
 
+        classes_pub.publish(String(data=str(all_objects)))
 
     rospy.Subscriber("/camera/depth/image_raw", Image, callback)
 

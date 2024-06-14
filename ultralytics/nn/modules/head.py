@@ -270,25 +270,25 @@ class RTDETRDecoder(nn.Module):
     export = False  # export mode
 
     def __init__(
-            self,
-            nc=80,
-            ch=(512, 1024, 2048),
-            hd=256,  # hidden dim
-            nq=300,  # num queries
-            ndp=4,  # num decoder points
-            nh=8,  # num head
-            ndl=6,  # num decoder layers
-            d_ffn=1024,  # dim of feedforward
-            dropout=0.0,
-            act=nn.ReLU(),
-            eval_idx=-1,
-            norm_type='batch',  # normalization type
-            num_groups=None,  # number of groups for GroupNorm if used
-            # Training args
-            nd=100,  # num denoising
-            label_noise_ratio=0.5,
-            box_noise_scale=1.0,
-            learnt_init_query=False,
+        self,
+        nc=80,
+        ch=(512, 1024, 2048),
+        hd=256,  # hidden dim
+        nq=300,  # num queries
+        ndp=4,  # num decoder points
+        nh=8,  # num head
+        ndl=6,  # num decoder layers
+        d_ffn=1024,  # dim of feedforward
+        dropout=0.0,
+        act=nn.ReLU(),
+        eval_idx=-1,
+        norm_type="batch",  # normalization type
+        num_groups=None,  # number of groups for GroupNorm if used
+        # Training args
+        nd=100,  # num denoising
+        label_noise_ratio=0.5,
+        box_noise_scale=1.0,
+        learnt_init_query=False,
     ):
         """
         Initializes the RTDETRDecoder module with the given parameters.
@@ -350,20 +350,18 @@ class RTDETRDecoder(nn.Module):
 
         self._reset_parameters()
 
-
     def _make_input_proj(self, in_channels, out_channels, norm_type, num_groups):
         """Create input projection layer with specified normalization."""
         layers = [nn.Conv2d(in_channels, out_channels, 1, bias=False)]
-        if norm_type == 'batch':
+        if norm_type == "batch":
             norm_layer = nn.BatchNorm2d(out_channels)
-        elif norm_type == 'group':
+        elif norm_type == "group":
             assert num_groups is not None, "num_groups must be specified for GroupNorm"
             norm_layer = nn.GroupNorm(num_groups, out_channels)
         else:
             raise ValueError(f"Unsupported normalization type: {norm_type}")
         layers.append(norm_layer)
         return nn.Sequential(*layers)
-
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
@@ -415,7 +413,7 @@ class RTDETRDecoder(nn.Module):
 
             valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** i)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)

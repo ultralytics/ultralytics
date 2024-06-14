@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -30,38 +31,51 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 
 
 def calculate_running_stats(input_tensor, groups):
-    """
-    Calculate running mean and variance for Group Normalization (GroupNorm).
-    """
+    """Calculate running mean and variance for Group Normalization (GroupNorm)."""
     batch_size, num_channels, height, width = input_tensor.size()
-    reshaped_tensor = input_tensor.view(batch_size, groups, -1)     # Reshape the input tensor to (N, G, -1) where G is the number of groups
-    group_mean = reshaped_tensor.mean(dim=-1, keepdim=True).view(batch_size, groups, 1, 1, 1)     # Calculate the mean and variance along the last dimension (within each group)
+    reshaped_tensor = input_tensor.view(
+        batch_size, groups, -1
+    )  # Reshape the input tensor to (N, G, -1) where G is the number of groups
+    group_mean = reshaped_tensor.mean(dim=-1, keepdim=True).view(
+        batch_size, groups, 1, 1, 1
+    )  # Calculate the mean and variance along the last dimension (within each group)
     group_var = reshaped_tensor.var(dim=-1, keepdim=True, unbiased=False).view(batch_size, groups, 1, 1, 1)
-    running_mean = group_mean.mean(dim=0).repeat(1, num_channels // groups, height, width).view(num_channels, height, width).detach()     # Average the group means and variances across the batch dimension
-    running_var = group_var.mean(dim=0).repeat(1, num_channels // groups, height, width).view(num_channels, height, width).detach()
+    running_mean = (
+        group_mean.mean(dim=0)
+        .repeat(1, num_channels // groups, height, width)
+        .view(num_channels, height, width)
+        .detach()
+    )  # Average the group means and variances across the batch dimension
+    running_var = (
+        group_var.mean(dim=0)
+        .repeat(1, num_channels // groups, height, width)
+        .view(num_channels, height, width)
+        .detach()
+    )
     return running_mean, running_var
 
 
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
+
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True, norm_type='none'):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True, norm_type="none"):
         """Initialize Conv layer with given arguments including activation and normalization type."""
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.norm_type = norm_type
-        if norm_type == 'group':
+        if norm_type == "group":
             num_groups = int(c2 / 2)
             self.bn = nn.GroupNorm(num_groups, c2)
             self.num_groups = num_groups
             self.running_mean = None
             self.running_var = None
-        elif norm_type == 'batch':
+        elif norm_type == "batch":
             self.bn = nn.BatchNorm2d(c2)
             self.running_mean = None
             self.running_var = None
-        elif norm_type == 'none':
+        elif norm_type == "none":
             self.bn = nn.BatchNorm2d(c2)
             self.running_mean = None
             self.running_var = None
@@ -87,7 +101,7 @@ class Conv(nn.Module):
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing."""
 
-    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True, norm_type='none'):
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True, norm_type="none"):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__(c1, c2, k, s, p, g=g, d=d, act=act, norm_type=norm_type)
         self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
@@ -109,7 +123,7 @@ class Conv2(Conv):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
-        w[:, :, i[0]:i[0] + 1, i[1]:i[1] + 1] = self.cv2.weight.data.clone()
+        w[:, :, i[0] : i[0] + 1, i[1] : i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__("cv2")
         self.forward = self.forward_fuse
@@ -122,7 +136,7 @@ class LightConv(nn.Module):
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
-    def __init__(self, c1, c2, k=1, act=nn.ReLU(), norm_type='none'):
+    def __init__(self, c1, c2, k=1, act=nn.ReLU(), norm_type="none"):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__()
         self.conv1 = Conv(c1, c2, 1, act=False, norm_type=norm_type)
@@ -136,7 +150,9 @@ class LightConv(nn.Module):
 class DWConv(Conv):
     """Depth-wise convolution."""
 
-    def __init__(self, c1, c2, k=1, s=1, d=1, act=True, norm_type='none'):  # ch_in, ch_out, kernel, stride, dilation, activation
+    def __init__(
+        self, c1, c2, k=1, s=1, d=1, act=True, norm_type="none"
+    ):  # ch_in, ch_out, kernel, stride, dilation, activation
         """Initialize Depth-wise convolution with given parameters."""
         super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act, norm_type=norm_type)
 
@@ -154,16 +170,16 @@ class ConvTranspose(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True, norm_type='none'):
+    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True, norm_type="none"):
         """Initialize ConvTranspose2d layer with batch normalization and activation function."""
         super().__init__()
         self.conv_transpose = nn.ConvTranspose2d(c1, c2, k, s, p, bias=not bn)
         self.norm_type = norm_type
-        if norm_type == 'group':
+        if norm_type == "group":
             self.bn = nn.GroupNorm(int(c2 / 2), c2)
-        elif norm_type == 'batch':
+        elif norm_type == "batch":
             self.bn = nn.BatchNorm2d(c2)
-        elif norm_type == 'none':
+        elif norm_type == "none":
             self.bn = nn.BatchNorm2d(c2)
         else:
             raise ValueError(f"Unsupported normalization type: {norm_type}")
@@ -186,7 +202,7 @@ class ConvTranspose(nn.Module):
 class Focus(nn.Module):
     """Focus wh information into c-space."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, norm_type='none'):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, norm_type="none"):
         """Initializes Focus object with user defined channel, convolution, padding, group and activation values."""
         super().__init__()
         self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act, norm_type=norm_type)
@@ -203,7 +219,7 @@ class Focus(nn.Module):
 class GhostConv(nn.Module):
     """Ghost Convolution https://github.com/huawei-noah/ghostnet."""
 
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, norm_type='none'):
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, norm_type="none"):
         """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and
         activation.
         """
@@ -228,7 +244,7 @@ class RepConv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, norm_type='none'):
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, norm_type="none"):
         """Initializes Light Convolution layer with inputs, outputs & optional activation function."""
         super().__init__()
         assert k == 3 and p == 1
@@ -238,14 +254,14 @@ class RepConv(nn.Module):
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
         self.norm_type = norm_type
-        if norm_type == 'group':
+        if norm_type == "group":
             num_groups = int(c1 / 2)
             self.bn = nn.GroupNorm(num_groups, c2)
             self.bn = nn.GroupNorm(num_groups, c1) if bn and c2 == c1 and s == 1 else None
             self.num_groups = num_groups
-        elif norm_type == 'batch':
+        elif norm_type == "batch":
             self.bn = nn.BatchNorm2d(c1)
-        elif norm_type == 'none':
+        elif norm_type == "none":
             self.bn = nn.BatchNorm2d(c2)
         else:
             raise ValueError(f"Unsupported normalization type: {norm_type}")

@@ -827,7 +827,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     return model, ckpt
 
 
-def parse_model(d, ch, verbose=True, norm_type='none'):  # model_dict, input_channels(3), normalization type
+def parse_model(d, ch, verbose=True, norm_type="none"):  # model_dict, input_channels(3), normalization type
     """Parse a YOLO model.yaml dictionary into a PyTorch model."""
     import ast
 
@@ -932,7 +932,11 @@ def parse_model(d, ch, verbose=True, norm_type='none'):  # model_dict, input_cha
         norm_type = d.get("norm_type", "none")  # Default to 'none' if not specified
         # Conditionally add norm_type for Conv class
         if m == Conv:
-            m_ = nn.Sequential(*(m(*args, norm_type=norm_type) for _ in range(n))) if n > 1 else m(*args, norm_type=norm_type)  # module
+            m_ = (
+                nn.Sequential(*(m(*args, norm_type=norm_type) for _ in range(n)))
+                if n > 1
+                else m(*args, norm_type=norm_type)
+            )  # module
         else:
             m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type

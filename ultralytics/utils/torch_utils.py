@@ -179,6 +179,7 @@ def time_sync():
 def fuse_conv_and_bn(conv, bn):
     """
     Fuse convolution and normalization layers.
+
     This function handles the fusion of a Conv2d layer followed by a normalization layer.
     """
     with torch.no_grad():
@@ -186,7 +187,7 @@ def fuse_conv_and_bn(conv, bn):
         w_norm = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
         fused_weight = w_conv * w_norm.view(-1, 1)
 
-        fused_bias = (conv.bias if conv.bias is not None else torch.zeros(conv.out_channels, device=w_conv.device))
+        fused_bias = conv.bias if conv.bias is not None else torch.zeros(conv.out_channels, device=w_conv.device)
         if isinstance(bn, nn.GroupNorm):
             fused_bias = fused_bias - bn.weight * bn.running_mean / torch.sqrt(bn.eps + bn.running_var)
         elif isinstance(bn, nn.BatchNorm2d):
@@ -194,14 +195,16 @@ def fuse_conv_and_bn(conv, bn):
         else:
             raise ValueError("Unsupported normalization type.")
 
-        fused_conv = nn.Conv2d(conv.in_channels,
-                               conv.out_channels,
-                               kernel_size=conv.kernel_size,
-                               stride=conv.stride,
-                               padding=conv.padding,
-                               dilation=conv.dilation,
-                               groups=conv.groups,
-                               bias=True).to(conv.weight.device)
+        fused_conv = nn.Conv2d(
+            conv.in_channels,
+            conv.out_channels,
+            kernel_size=conv.kernel_size,
+            stride=conv.stride,
+            padding=conv.padding,
+            dilation=conv.dilation,
+            groups=conv.groups,
+            bias=True,
+        ).to(conv.weight.device)
 
         fused_conv.weight.copy_(fused_weight.view(fused_conv.weight.size()))
         fused_conv.bias.copy_(fused_bias)

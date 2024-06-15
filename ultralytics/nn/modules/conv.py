@@ -33,25 +33,23 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 def calculate_running_stats(input_tensor, groups):
     """Calculate running mean and variance for Group Normalization (GroupNorm)."""
     batch_size, num_channels, height, width = input_tensor.size()
-    reshaped_tensor = input_tensor.view(
-        batch_size, groups, -1
-    )  # Reshape the input tensor to (N, G, -1) where G is the number of groups
-    group_mean = reshaped_tensor.mean(dim=-1, keepdim=True).view(
-        batch_size, groups, 1, 1, 1
-    )  # Calculate the mean and variance along the last dimension (within each group)
-    group_var = reshaped_tensor.var(dim=-1, keepdim=True, unbiased=False).view(batch_size, groups, 1, 1, 1)
-    running_mean = (
-        group_mean.mean(dim=0)
-        .repeat(1, num_channels // groups, height, width)
-        .view(num_channels, height, width)
-        .detach()
-    )  # Average the group means and variances across the batch dimension
-    running_var = (
-        group_var.mean(dim=0)
-        .repeat(1, num_channels // groups, height, width)
-        .view(num_channels, height, width)
-        .detach()
-    )
+
+    # Reshape the input tensor to (N, G, C//G, H, W)
+    reshaped_tensor = input_tensor.view(batch_size, groups, num_channels // groups, height, width)
+
+    # Calculate the mean and variance along (N, C//G, H, W)
+    group_mean = reshaped_tensor.mean(dim=[0, 2, 3, 4])
+    group_var = reshaped_tensor.var(dim=[0, 2, 3, 4], unbiased=False)
+
+    # Average the group means and variances across the groups
+    running_mean = group_mean.repeat(num_channels // groups).detach()
+    running_var = group_var.repeat(num_channels // groups).detach()
+
+    #print(f"Group mean: {group_mean}")
+    #print(f"Group variance: {group_var}")
+    #print(f"Running mean: {running_mean}")
+    #print(f"Running variance: {running_var}")
+
     return running_mean, running_var
 
 
@@ -68,17 +66,11 @@ class Conv(nn.Module):
         if norm_type == "group":
             num_groups = int(c2 / 2)
             self.bn = nn.GroupNorm(num_groups, c2)
-            self.num_groups = num_groups
-            self.running_mean = None
-            self.running_var = None
+            self.bn.num_groups = num_groups
         elif norm_type == "batch":
             self.bn = nn.BatchNorm2d(c2)
-            self.running_mean = None
-            self.running_var = None
         elif norm_type == "none":
             self.bn = nn.BatchNorm2d(c2)
-            self.running_mean = None
-            self.running_var = None
         else:
             raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
@@ -87,7 +79,8 @@ class Conv(nn.Module):
         """Apply convolution, normalization, and activation to input tensor."""
         x = self.conv(x)
         if isinstance(self.bn, nn.GroupNorm):
-            self.running_mean, self.running_var = calculate_running_stats(x, self.num_groups)
+            self.bn.running_mean, self.bn.running_var = calculate_running_stats(x, self.bn.num_groups)
+            x = self.bn(x)
         else:
             x = self.bn(x)
         x = self.act(x)
@@ -107,11 +100,12 @@ class Conv2(Conv):
         self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
 
     def forward(self, x):
-        """Apply convolution, group normalization and activation to input tensor."""
+        """Apply convolution, normalization, and activation to input tensor."""
         x = self.conv(x)
         x = self.bn(x + self.cv2(x))
         if isinstance(self.bn, nn.GroupNorm):
-            self.running_mean, self.running_var = calculate_running_stats(x, self.num_groups)
+            self.bn.running_mean, self.bn.running_var = calculate_running_stats(x, self.bn.num_groups)
+        x = self.bn(x)
         x = self.act(x)
         return x
 
@@ -190,7 +184,7 @@ class ConvTranspose(nn.Module):
         x = self.conv_transpose(x)
         x = self.bn(x)
         if isinstance(self.bn, nn.GroupNorm):
-            self.running_mean, self.running_var = calculate_running_stats(x, self.bn.num_groups)
+            self.bn.running_mean, self.bn.running_var = calculate_running_stats(x, self.bn.num_groups)
         x = self.act(x)
         return x
 
@@ -256,13 +250,12 @@ class RepConv(nn.Module):
         self.norm_type = norm_type
         if norm_type == "group":
             num_groups = int(c1 / 2)
-            self.bn = nn.GroupNorm(num_groups, c2)
             self.bn = nn.GroupNorm(num_groups, c1) if bn and c2 == c1 and s == 1 else None
-            self.num_groups = num_groups
+            self.bn.num_groups = num_groups
         elif norm_type == "batch":
             self.bn = nn.BatchNorm2d(c1)
         elif norm_type == "none":
-            self.bn = nn.BatchNorm2d(c2)
+            self.bn = nn.BatchNorm2d(c1)
         else:
             raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False, norm_type=norm_type)

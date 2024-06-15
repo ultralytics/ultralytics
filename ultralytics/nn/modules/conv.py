@@ -33,10 +33,14 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 def calculate_running_stats(input_tensor, groups):
     """Calculate running mean and variance for Group Normalization (GroupNorm)."""
     batch_size, num_channels, height, width = input_tensor.size()
-    reshaped_tensor = input_tensor.view(batch_size, groups, num_channels // groups, height, width)     # Reshape the input tensor to (N, G, C//G, H, W)
-    group_mean = reshaped_tensor.mean(dim=[0, 2, 3, 4])     # Calculate the mean and variance along (N, C//G, H, W)
+    reshaped_tensor = input_tensor.view(
+        batch_size, groups, num_channels // groups, height, width
+    )  # Reshape the input tensor to (N, G, C//G, H, W)
+    group_mean = reshaped_tensor.mean(dim=[0, 2, 3, 4])  # Calculate the mean and variance along (N, C//G, H, W)
     group_var = reshaped_tensor.var(dim=[0, 2, 3, 4], unbiased=False)
-    running_mean = group_mean.repeat(num_channels // groups).detach()     # Average the group means and variances across the groups
+    running_mean = group_mean.repeat(
+        num_channels // groups
+    ).detach()  # Average the group means and variances across the groups
     running_var = group_var.repeat(num_channels // groups).detach()
     return running_mean, running_var
 

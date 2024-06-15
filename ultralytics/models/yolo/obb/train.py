@@ -21,9 +21,14 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None,
+    def __init__(
+        self,
+        cfg=DEFAULT_CFG,
+        overrides=None,
+        _callbacks=None,
         override_label_transforms=None,
-        append_label_transforms=None,):
+        append_label_transforms=None,
+    ):
         """Initialize a OBBTrainer object with given arguments."""
         if overrides is None:
             overrides = {}

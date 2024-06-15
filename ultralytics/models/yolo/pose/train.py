@@ -22,14 +22,25 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None,
+    def __init__(
+        self,
+        cfg=DEFAULT_CFG,
+        overrides=None,
+        _callbacks=None,
         override_label_transforms=None,
-        append_label_transforms=None,):
+        append_label_transforms=None,
+    ):
         """Initialize a PoseTrainer object with specified configurations and overrides."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "pose"
-        super().__init__(cfg, overrides, _callbacks, override_label_transforms = override_label_transforms, append_label_transforms = append_label_transforms)
+        super().__init__(
+            cfg,
+            overrides,
+            _callbacks,
+            override_label_transforms=override_label_transforms,
+            append_label_transforms=append_label_transforms,
+        )
 
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(

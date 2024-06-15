@@ -22,12 +22,14 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         ```
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None,
+        override_label_transforms=None,
+        append_label_transforms=None,):
         """Initialize a SegmentationTrainer object with given arguments."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "segment"
-        super().__init__(cfg, overrides, _callbacks)
+        super().__init__(cfg, overrides, _callbacks, override_label_transforms=override_label_transforms, append_label_transforms=append_label_transforms)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return SegmentationModel initialized with specified config and weights."""

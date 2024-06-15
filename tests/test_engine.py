@@ -143,12 +143,28 @@ def test_classify():
 
 
 def test_transforms():
+    """Test model training with custom transforms and non-standard (1) image channels."""
+
+    # Classification Trainer
     overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "imagenet10"
     cfg.imgsz = 32
-    # YOLO(CFG_SEG).train(**overrides)  # works
-
-    # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer.train()
+
+    # Detection Trainer
+    overrides = {"data": "coco8.yaml", "model": "yolov8n.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    cfg = get_cfg(DEFAULT_CFG)
+    cfg.data = "coco8.yaml"
+    cfg.imgsz = 32
+    trainer = detect.DetectionTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer.train()
+
+    # Segmentation Trainer
+    overrides = {"data": "coco8-seg.yaml", "model": "yolov8n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    cfg = get_cfg(DEFAULT_CFG)
+    cfg.data = "coco8-seg.yaml"
+    cfg.imgsz = 32
+    trainer = segment.SegmentationTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
     trainer.train()

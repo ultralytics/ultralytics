@@ -407,7 +407,8 @@ def yaml_load(file="data.yaml", append_filename=False):
         if append_filename:
             data["yaml_file"] = str(file)
         return data
-    
+
+
 def json_load(file="data.json", append_filename=False):
     """
     Load JSON data from a file.
@@ -421,9 +422,8 @@ def json_load(file="data.json", append_filename=False):
     """
     assert Path(file).suffix in {".json"}, f"Attempting to load non-JSON file {file} with json_load()"
     with open(file, "r", errors="ignore", encoding="utf-8") as f:
-        
         # Add JSON filename to dict and return
-        data = json.load(f) or {}  
+        data = json.load(f) or {}
         if append_filename:
             data["json_file"] = str(file)
         return data

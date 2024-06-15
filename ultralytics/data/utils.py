@@ -28,9 +28,9 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     is_dir_writeable,
+    json_load,
     json_save,
     yaml_load,
-    json_load,
     yaml_save,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii

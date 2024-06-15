@@ -56,12 +56,12 @@ Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n-cls.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.yaml").load("yolov8n-cls.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='mnist160', epochs=100, imgsz=64)
+        results = model.train(data="mnist160", epochs=100, imgsz=64)
         ```
 
     === "CLI"
@@ -93,13 +93,13 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-cls.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.top1   # top1 accuracy
-        metrics.top5   # top5 accuracy
+        metrics.top1  # top1 accuracy
+        metrics.top5  # top5 accuracy
         ```
     === "CLI"
 
@@ -120,11 +120,11 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-cls.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
     === "CLI"
 
@@ -147,11 +147,11 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained model
+        model = YOLO("yolov8n-cls.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
 
         # Export the model
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 

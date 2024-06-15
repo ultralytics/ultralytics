@@ -73,18 +73,18 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```python
           from ultralytics import YOLO
-          
+
           # Load the YOLOv8 model
-          model = YOLO('yolov8n.pt')
-          
+          model = YOLO("yolov8n.pt")
+
           # Export the model to NCNN format
-          model.export(format='ncnn') # creates '/yolov8n_ncnn_model'
-          
+          model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
+
           # Load the exported NCNN model
-          ncnn_model = YOLO('./yolov8n_ncnn_model')
-          
+          ncnn_model = YOLO("./yolov8n_ncnn_model")
+
           # Run inference
-          results = ncnn_model('https://ultralytics.com/images/bus.jpg')
+          results = ncnn_model("https://ultralytics.com/images/bus.jpg")
           ```
 
     === "CLI"

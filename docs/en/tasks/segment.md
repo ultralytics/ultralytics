@@ -56,12 +56,12 @@ Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. F
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n-seg.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='coco8-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -93,19 +93,19 @@ retains its training `data` and arguments as model attributes.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-seg.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.box.map    # map50-95(B)
+        metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps   # a list contains map50-95(B) of each category
-        metrics.seg.map    # map50-95(M)
+        metrics.box.maps  # a list contains map50-95(B) of each category
+        metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # a list contains map50-95(M) of each category
+        metrics.seg.maps  # a list contains map50-95(M) of each category
         ```
     === "CLI"
 
@@ -126,11 +126,11 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n-seg.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
     === "CLI"
 
@@ -153,11 +153,11 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained model
+        model = YOLO("yolov8n-seg.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
 
         # Export the model
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 

@@ -75,7 +75,7 @@ iface = gr.Interface(
     inputs=[
         gr.Image(type="pil", label="Upload Image"),
         gr.Slider(minimum=0, maximum=1, value=0.25, label="Confidence threshold"),
-        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold")
+        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
@@ -83,10 +83,10 @@ iface = gr.Interface(
     examples=[
         [ASSETS / "bus.jpg", 0.25, 0.45],
         [ASSETS / "zidane.jpg", 0.25, 0.45],
-    ]
+    ],
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     iface.launch()
 ```
 

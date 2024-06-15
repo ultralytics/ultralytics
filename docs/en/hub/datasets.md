@@ -52,7 +52,7 @@ After zipping your dataset, you should validate it before uploading it to Ultral
 ```py
 from ultralytics.hub import check_dataset
 
-check_dataset('path/to/coco8.zip')
+check_dataset("path/to/coco8.zip")
 ```
 
 Once your dataset ZIP is ready, navigate to the [Datasets](https://hub.ultralytics.com/datasets) page by clicking on the **Datasets** button in the sidebar.

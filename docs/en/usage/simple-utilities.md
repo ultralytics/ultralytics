@@ -25,10 +25,10 @@ Dataset annotation is a very resource intensive and time-consuming process. If y
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(#(1)!
-    data='path/to/new/data',
-    det_model='yolov8n.pt',
-    sam_model='mobile_sam.pt',
+auto_annotate(  # (1)!
+    data="path/to/new/data",
+    det_model="yolov8n.pt",
+    sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",
 )
@@ -47,9 +47,9 @@ Use to convert COCO JSON annotations into proper YOLO format. For object detecti
 ```{ .py .annotate }
 from ultralytics.data.converter import convert_coco
 
-convert_coco(#(1)!
-    '../datasets/coco/annotations/',
-    use_segments=False, 
+convert_coco(  # (1)!
+    "../datasets/coco/annotations/",
+    use_segments=False,
     use_keypoints=False,
     cls91to80=True,
 )
@@ -102,10 +102,10 @@ data
 ```{ .py .annotate }
 from ultralytics.data.converter import yolo_bbox2segment
 
-yolo_bbox2segment(#(1)!
+yolo_bbox2segment(  # (1)!
     im_dir="path/to/images",
-    save_dir=None, # saved to "labels-segment" in images directory
-    sam_model="sam_b.pt"
+    save_dir=None,  # saved to "labels-segment" in images directory
+    sam_model="sam_b.pt",
 )
 ```
 
@@ -146,8 +146,8 @@ Compresses a single image file to reduced size while preserving its aspect ratio
 from pathlib import Path
 from ultralytics.data.utils import compress_one_image
 
-for f in Path('path/to/dataset').rglob('*.jpg'):
-    compress_one_image(f)#(1)!
+for f in Path("path/to/dataset").rglob("*.jpg"):
+    compress_one_image(f)  # (1)!
 ```
 
 1. Nothing returns from this function
@@ -159,10 +159,10 @@ Automatically split a dataset into `train`/`val`/`test` splits and save the resu
 ```{ .py .annotate }
 from ultralytics.data.utils import autosplit
 
-autosplit( #(1)!
+autosplit(  # (1)!
     path="path/to/images",
-    weights=(0.9, 0.1, 0.0), # (train, validation, test) fractional splits
-    annotated_only=False     # split only images with annotation file when True
+    weights=(0.9, 0.1, 0.0),  # (train, validation, test) fractional splits
+    annotated_only=False,  # split only images with annotation file when True
 )
 ```
 
@@ -184,15 +184,15 @@ from ultralytics.data.utils import polygon2mask
 
 imgsz = (1080, 810)
 polygon = np.array(
-    [805, 392, 797, 400, ..., 808, 714, 808, 392], # (238, 2)
+    [805, 392, 797, 400, ..., 808, 714, 808, 392],  # (238, 2)
 )
 
 mask = polygon2mask(
-    imgsz,     # tuple
-    [polygon], # input as list
-    color=255, # 8-bit binary
-    downsample_ratio=1
-) 
+    imgsz,  # tuple
+    [polygon],  # input as list
+    color=255,  # 8-bit binary
+    downsample_ratio=1,
+)
 ```
 
 ## Bounding Boxes
@@ -316,8 +316,8 @@ xywh
 
 ```python
 from ultralytics.utils.ops import xywh2xyxy
-from ultralytics.utils.ops import xywhn2xyxy # normalized → pixel
-from ultralytics.utils.ops import xyxy2xywhn # pixel → normalized
+from ultralytics.utils.ops import xywhn2xyxy  # normalized → pixel
+from ultralytics.utils.ops import xyxy2xywhn  # pixel → normalized
 from ultralytics.utils.ops import xywh2ltwh  # xywh → top-left corner, w, h
 from ultralytics.utils.ops import xyxy2ltwh  # xyxy → top-left corner, w, h
 from ultralytics.utils.ops import ltwh2xywh
@@ -383,17 +383,48 @@ from ultralytics.utils.plotting import Annotator, colors
 obb_names = {10: "small vehicle"}
 obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
 obb_boxes = np.array(
-    [[ 0, 635, 560, 919, 719, 1087, 420, 803,  261,], # class-idx x1 y1 x2 y2 x3 y2 x4 y4
-     [ 0, 331,  19, 493, 260, 776,   70, 613, -171,],
-     [ 9, 869, 161, 886, 147, 851,  101, 833,  115,]
+    [
+        [
+            0,
+            635,
+            560,
+            919,
+            719,
+            1087,
+            420,
+            803,
+            261,
+        ],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
+        [
+            0,
+            331,
+            19,
+            493,
+            260,
+            776,
+            70,
+            613,
+            -171,
+        ],
+        [
+            9,
+            869,
+            161,
+            886,
+            147,
+            851,
+            101,
+            833,
+            115,
+        ],
     ]
 )
 ann = Annotator(
     obb_image,
     line_width=None,  # default auto-size
-    font_size=None,   # default auto-size
-    font="Arial.ttf", # must be ImageFont compatible
-    pil=False,        # use PIL, otherwise uses OpenCV
+    font_size=None,  # default auto-size
+    font="Arial.ttf",  # must be ImageFont compatible
+    pil=False,  # use PIL, otherwise uses OpenCV
 )
 for obb in obb_boxes:
     c_idx, *obb = obb

@@ -101,7 +101,7 @@ To enable TCP streams via SSH or the CLI, minor modifications are needed in `det
 2. Find and modify the `is_url` line to accept TCP streams:
 
     ```python
-    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
+    is_url = source.lower().startswith(("rtsp://", "rtmp://", "http://", "https://", "tcp://"))
     ```
 
 3. Comment out the `view_img` line:
@@ -176,8 +176,8 @@ To perform inference with YOLOv8, you can use the following Python code snippet:
 ```python
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')
-results = model('tcp://127.0.0.1:8888', stream=True)
+model = YOLO("yolov8n.pt")
+results = model("tcp://127.0.0.1:8888", stream=True)
 
 while True:
     for result in results:

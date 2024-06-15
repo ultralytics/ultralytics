@@ -45,10 +45,10 @@ def calculate_running_stats(input_tensor, groups):
     running_mean = group_mean.repeat(num_channels // groups).detach()
     running_var = group_var.repeat(num_channels // groups).detach()
 
-    #print(f"Group mean: {group_mean}")
-    #print(f"Group variance: {group_var}")
-    #print(f"Running mean: {running_mean}")
-    #print(f"Running variance: {running_var}")
+    # print(f"Group mean: {group_mean}")
+    # print(f"Group variance: {group_var}")
+    # print(f"Running mean: {running_mean}")
+    # print(f"Running variance: {running_var}")
 
     return running_mean, running_var
 

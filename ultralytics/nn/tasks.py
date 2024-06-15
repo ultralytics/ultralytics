@@ -181,13 +181,15 @@ class BaseModel(nn.Module):
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
                         m.fuse_convs()
-                    m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
-                    delattr(m, "bn")  # remove batchnorm
-                    m.forward = m.forward_fuse  # update forward
+                    if isinstance(m.bn, (nn.BatchNorm2d)):
+                        m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
+                        delattr(m, "bn")  # remove batchnorm
+                        m.forward = m.forward_fuse  # update forward
                 if isinstance(m, ConvTranspose) and hasattr(m, "bn"):
-                    m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
-                    delattr(m, "bn")  # remove batchnorm
-                    m.forward = m.forward_fuse  # update forward
+                    if isinstance(m.bn, (nn.BatchNorm2d)):
+                        m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
+                        delattr(m, "bn")  # remove batchnorm or groupnorm
+                        m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepConv):
                     m.fuse_convs()
                     m.forward = m.forward_fuse  # update forward

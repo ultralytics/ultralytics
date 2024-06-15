@@ -29,6 +29,7 @@ from ultralytics.utils import (
     emojis,
     is_dir_writeable,
     yaml_load,
+    json_load,
     yaml_save,
     json_save
 )
@@ -308,7 +309,7 @@ def check_det_dataset(dataset, extension, autodownload=True):
 
     # Read JSON
     if extension == "json":
-        data = json.load(file)
+        data = json_load(file, append_filename=True)
 
     # Checks
     for k in "train", "val":

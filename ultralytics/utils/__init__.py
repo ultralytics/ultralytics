@@ -407,6 +407,26 @@ def yaml_load(file="data.yaml", append_filename=False):
         if append_filename:
             data["yaml_file"] = str(file)
         return data
+    
+def json_load(file="data.json", append_filename=False):
+    """
+    Load JSON data from a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.json'.
+        append_filename (bool): Add the JSON filename to the JSON dictionary. Default is False.
+
+    Returns:
+        (dict): JSON data and file name.
+    """
+    assert Path(file).suffix in {".json"}, f"Attempting to load non-JSON file {file} with json_load()"
+    with open(file, "r", errors="ignore", encoding="utf-8") as f:
+        
+        # Add JSON filename to dict and return
+        data = json.load(f) or {}  
+        if append_filename:
+            data["json_file"] = str(file)
+        return data
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:

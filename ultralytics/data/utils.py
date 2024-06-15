@@ -28,10 +28,10 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     is_dir_writeable,
+    json_save,
     yaml_load,
     json_load,
     yaml_save,
-    json_save
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -495,14 +495,14 @@ class HUBDatasetStats:
             _, data_dir, path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
-                if str(path.split(".")[-1]) == "yaml":
+                if str(path).split(".")[-1] == "yaml":
                     data = yaml_load(path)
                     data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
                     yaml_save(path, data)
                     data = check_det_dataset(path, "yaml", autodownload)  # dict
                     data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
-                
-                elif str(path.split(".")[-1]) == "json":
+
+                elif str(path).split(".")[-1] == "json":
                     data = json.load(path)
                     data["path"] = ""  # strip path since JSON should be in dataset root for all HUB datasets
                     json_save(path, data)
@@ -542,8 +542,8 @@ class HUBDatasetStats:
             elif self.task == "segment":
                 coordinates = [x.flatten() for x in labels["segments"]]
             elif self.task == "pose":
-                n = labels["keypoints"].shape[0]
-                coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, -1)), 1)
+                n, nk, nd = labels["keypoints"].shape
+                coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, nk * nd)), 1)
             else:
                 raise ValueError("Undefined dataset task.")
             zipped = zip(labels["cls"], coordinates)

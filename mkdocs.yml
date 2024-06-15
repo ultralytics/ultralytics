@@ -1,5 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+# Configuration file for building the Ultralytics YOLO documentation site using MkDocs.
+# Provides settings to control site metadata, customize the appearance using the
+# Material theme, define the navigation structure, and enable various plugins.
+
+# Site metadata
 site_name: Ultralytics YOLOv8 Docs
 site_description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
@@ -11,6 +16,7 @@ remote_name: https://github.com/ultralytics/docs
 docs_dir: "docs/en/" # where to find the markdown files
 site_dir: "site/" # where to publish to
 
+# Theme customization
 theme:
   name: material
   language: en
@@ -42,7 +48,6 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
   features:
-    # - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy
@@ -71,40 +76,6 @@ extra: # version:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-  #  alternate: # language drop-down
-  #    - name: 🇬🇧 English
-  #      link: /
-  #      lang: en
-  #    - name: 🇨🇳 简体中文
-  #      link: /zh/
-  #      lang: zh
-  #    - name: 🇰🇷 한국어
-  #      link: /ko/
-  #      lang: ko
-  #    - name: 🇯🇵 日本語
-  #      link: /ja/
-  #      lang: ja
-  #    - name: 🇷🇺 Русский
-  #      link: /ru/
-  #      lang: ru
-  #    - name: 🇩🇪 Deutsch
-  #      link: /de/
-  #      lang: de
-  #    - name: 🇫🇷 Français
-  #      link: /fr/
-  #      lang: fr
-  #    - name: 🇪🇸 Español
-  #      link: /es/
-  #      lang: es
-  #    - name: 🇵🇹 Português
-  #      link: /pt/
-  #      lang: pt
-  #    - name: 🇮🇳 हिन्दी
-  #      link: /hi/
-  #      lang: hi
-  #    - name: 🇸🇦 العربية
-  #      link: /ar/
-  #      lang: ar
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics
@@ -150,6 +121,17 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
+# Validation settings https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  nav:
+    omitted_files: info
+    not_found: warn
+    absolute_links: info
+  links:
+    absolute_links: relative_to_docs
+    anchors: warn
+    unrecognized_links: warn
+
 # Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
   - Home:
@@ -176,7 +158,8 @@ nav:
           - datasets/index.md
       - Guides:
           - guides/index.md
-      - NEW 🚀 Explorer:
+      - New 🚀 Parking Management: guides/parking-management.md
+      - Explorer:
           - datasets/explorer/index.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
@@ -319,6 +302,7 @@ nav:
           - Speed Estimation: guides/speed-estimation.md
           - Distance Calculation: guides/distance-calculation.md
           - Queue Management: guides/queue-management.md
+          - Parking Management: guides/parking-management.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -369,6 +353,8 @@ nav:
       - Gradio: integrations/gradio.md
       - TensorBoard: integrations/tensorboard.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - Paperspace Gradient: integrations/paperspace.md
+      - Google Colab: integrations/google-colab.md
   - HUB:
       - Cloud:
           - hub/index.md
@@ -515,6 +501,7 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - parking_management: reference/solutions/parking_management.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

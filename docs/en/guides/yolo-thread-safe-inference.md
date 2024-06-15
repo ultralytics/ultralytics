@@ -36,6 +36,7 @@ shared_model = YOLO("yolov8n.pt")
 
 
 def predict(image_path):
+    """Predicts objects in an image using a preloaded YOLO model, take path string to image as argument."""
     results = shared_model.predict(image_path)
     # Process results
 
@@ -62,6 +63,7 @@ shared_model_2 = YOLO("yolov8n_2.pt")
 
 
 def predict(model, image_path):
+    """Runs prediction on an image using a specified YOLO model, returning the results."""
     results = model.predict(image_path)
     # Process results
 
@@ -88,7 +90,7 @@ from threading import Thread
 
 
 def thread_safe_predict(image_path):
-    # Instantiate a new model inside the thread
+    """Predict on an image using a new YOLO model instance in a thread-safe manner; takes image path as input."""
     local_model = YOLO("yolov8n.pt")
     results = local_model.predict(image_path)
     # Process results

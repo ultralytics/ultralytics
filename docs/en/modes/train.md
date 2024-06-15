@@ -257,6 +257,7 @@ Augmentation techniques are essential for improving the robustness and performan
 | `auto_augment`  | `str`   | `randaugment` | -             | Automatically applies a predefined augmentation policy (`randaugment`, `autoaugment`, `augmix`), optimizing for classification tasks by diversifying the visual features. |
 | `erasing`       | `float` | `0.4`         | `0.0 - 0.9`   | Randomly erases a portion of the image during classification training, encouraging the model to focus on less obvious features for recognition.                           |
 | `crop_fraction` | `float` | `1.0`         | `0.1 - 1.0`   | Crops the classification image to a fraction of its size to emphasize central features and adapt to object scales, reducing background distractions.                      |
+| `input_Ch` | `int` | `3`         | `0-np.inf`   | The number of input channels that the model needs to accept being passed into it. To be used in situations where a user wants the images to not be the standard 3 channel image (ex: Grayscale images would require the model to accept only 1 channel)                      |
 
 These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the optimal augmentation strategy that leads to the best model performance.
 

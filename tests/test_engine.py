@@ -9,7 +9,14 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from torchvision.transforms.functional import rgb_to_grayscale
 
+class RGBToGrayscale(object):
+    def __init__(self):
+        pass
+    def __call__(self, labels):
+        labels['img'] = rgb_to_grayscale(labels['img'])
+        return labels
 
 def test_func(*args):  # noqa
     """Test function callback."""
@@ -129,3 +136,14 @@ def test_classify():
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
+
+def test_transforms():
+    overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    cfg = get_cfg(DEFAULT_CFG)
+    cfg.data = "imagenet10"
+    cfg.imgsz = 32
+    # YOLO(CFG_SEG).train(**overrides)  # works
+
+    # Trainer
+    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer.train()

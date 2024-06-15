@@ -97,7 +97,7 @@ class Model(nn.Module):
         model: Union[str, Path] = "yolov8n.pt",
         task: str = None,
         verbose: bool = False,
-        inputCh=3,
+        input_Ch=3,
     ) -> None:
         """
         Initializes a new instance of the YOLO model class.
@@ -131,7 +131,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
-        self.inputCh = inputCh
+        self.input_Ch = input_Ch
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -606,6 +606,8 @@ class Model(nn.Module):
     def train(
         self,
         trainer=None,
+        override_label_transforms=None,
+        append_label_transforms=None,
         **kwargs,
     ):
         """
@@ -624,6 +626,8 @@ class Model(nn.Module):
         Args:
             trainer (BaseTrainer, optional): An instance of a custom trainer class for training the model. If None, the
                 method uses a default trainer. Defaults to None.
+            override_label_transforms (list, optional): A list of label transforms to override the default transforms. If None, will not override the default transforms.
+            append_label_transforms (list, optional): A list of label transforms to append to the default transforms. If None, will not append to the default transforms.
             **kwargs (any): Arbitrary keyword arguments representing the training configuration. These arguments are
                 used to customize various aspects of the training process.
 
@@ -654,7 +658,7 @@ class Model(nn.Module):
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 
-        self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
+        self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks, override_label_transforms=override_label_transforms, append_label_transforms=append_label_transforms)
         if not args.get("resume"):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model

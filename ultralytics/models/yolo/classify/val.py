@@ -35,11 +35,11 @@ class ClassificationValidator(BaseValidator):
         _callbacks=None,
         override_label_transforms=None,
         append_label_transforms=None,
-        inputCh=3,
+        input_Ch=3,
     ):
         """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
         super().__init__(
-            dataloader, save_dir, pbar, args, _callbacks, override_label_transforms, append_label_transforms, inputCh
+            dataloader, save_dir, pbar, args, _callbacks, override_label_transforms, append_label_transforms, input_Ch
         )
         self.targets = None
         self.pred = None

@@ -50,7 +50,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
-        model = ClassificationModel(cfg, self.inputCh, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = ClassificationModel(cfg, self.input_Ch, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
@@ -135,7 +135,7 @@ class ClassificationTrainer(BaseTrainer):
             self.save_dir,
             override_label_transforms=self.override_label_transforms,
             append_label_transforms=self.append_label_transforms,
-            inputCh=self.inputCh,
+            input_Ch=self.input_Ch,
             _callbacks=self.callbacks,
         )
 
@@ -171,7 +171,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""
-        if self.inputCh == 3:
+        if self.input_Ch == 3:
             plot_images(
                 images=batch["img"],
                 batch_idx=torch.arange(len(batch["img"])),

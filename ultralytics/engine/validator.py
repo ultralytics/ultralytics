@@ -74,7 +74,7 @@ class BaseValidator:
         _callbacks=None,
         override_label_transforms=None,
         append_label_transforms=None,
-        inputCh=3,
+        input_Ch=3,
     ):
         """
         Initializes a BaseValidator instance.
@@ -113,7 +113,7 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.override_label_transforms = override_label_transforms
         self.append_label_transforms = append_label_transforms
-        self.inputCh = inputCh
+        self.input_Ch = input_Ch
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -167,7 +167,7 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.inputCh, imgsz, imgsz))  # warmup
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.input_Ch, imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (
@@ -200,7 +200,7 @@ class BaseValidator:
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3 and self.inputCh == 3:
+            if self.args.plots and batch_i < 3 and self.input_Ch == 3:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 

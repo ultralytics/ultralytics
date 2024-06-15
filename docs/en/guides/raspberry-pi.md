@@ -29,15 +29,15 @@ Raspberry Pi is a small, affordable, single-board computer. It has become popula
 
 ## Raspberry Pi Series Comparison
 
-|                   | Raspberry Pi 3                         | Raspberry Pi 4                          | Raspberry Pi 5                          |
-|-------------------|----------------------------------------|-----------------------------------------|-----------------------------------------|
-| CPU               | Broadcom BCM2837, Cortex-A53 64Bit SoC | Broadcom BCM2711,  Cortex-A72 64Bit SoC | Broadcom BCM2712,  Cortex-A76 64Bit SoC |
-| CPU Max Frequency | 1.4GHz                                 | 1.8GHz                                  | 2.4GHz                                  |
-| GPU               | Videocore IV                           | Videocore VI                            | VideoCore VII                           |
-| GPU Max Frequency | 400Mhz                                 | 500Mhz                                  | 800Mhz                                  |
-| Memory            | 1GB LPDDR2 SDRAM                       | 1GB, 2GB, 4GB, 8GB LPDDR4-3200 SDRAM    | 4GB, 8GB LPDDR4X-4267 SDRAM             |
-| PCIe              | N/A                                    | N/A                                     | 1xPCIe 2.0 Interface                    |
-| Max Power Draw    | 2.5A@5V                                | 3A@5V                                   | 5A@5V (PD enabled)                      |
+|                   | Raspberry Pi 3                         | Raspberry Pi 4                         | Raspberry Pi 5                         |
+| ----------------- | -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| CPU               | Broadcom BCM2837, Cortex-A53 64Bit SoC | Broadcom BCM2711, Cortex-A72 64Bit SoC | Broadcom BCM2712, Cortex-A76 64Bit SoC |
+| CPU Max Frequency | 1.4GHz                                 | 1.8GHz                                 | 2.4GHz                                 |
+| GPU               | Videocore IV                           | Videocore VI                           | VideoCore VII                          |
+| GPU Max Frequency | 400Mhz                                 | 500Mhz                                 | 800Mhz                                 |
+| Memory            | 1GB LPDDR2 SDRAM                       | 1GB, 2GB, 4GB, 8GB LPDDR4-3200 SDRAM   | 4GB, 8GB LPDDR4X-4267 SDRAM            |
+| PCIe              | N/A                                    | N/A                                    | 1xPCIe 2.0 Interface                   |
+| Max Power Draw    | 2.5A@5V                                | 3A@5V                                  | 5A@5V (PD enabled)                     |
 
 ## What is Raspberry Pi OS?
 
@@ -190,7 +190,7 @@ The below table represents the benchmark results for two different models (YOLOv
         | TF Lite       | ✅      | 42.8              | 0.7136      | 1013.27                |
         | PaddlePaddle  | ✅      | 85.5              | 0.7136      | 1560.23                |
         | NCNN          | ✅      | 42.7              | 0.7204      | 211.26                 |
-    
+
     === "YOLOv8n on RPi4"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
@@ -267,7 +267,7 @@ rpicam-hello
 
 !!! Tip
 
-    Learn more about [`rpicam-hello` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello) 
+    Learn more about [`rpicam-hello` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello)
 
 ### Inference with Camera
 
@@ -286,6 +286,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 ```python
                 import cv2
                 from picamera2 import Picamera2
+
                 from ultralytics import YOLO
 
                 # Initialize the Picamera2
@@ -328,7 +329,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
         rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
         ```
 
-        Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid) 
+        Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid)
 
         !!! Example
 

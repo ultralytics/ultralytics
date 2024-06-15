@@ -10,6 +10,17 @@ keywords: Ultralytics, YOLOv8, object cropping, object detection, image processi
 
 Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves isolating and extracting specific detected objects from an image or video. The YOLOv8 model capabilities are utilized to accurately identify and delineate objects, enabling precise cropping for further analysis or manipulation.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ydGdibB5Mds"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Object Cropping using Ultralytics YOLOv8
+</p>
+
 ## Advantages of Object Cropping?
 
 - **Focused Analysis**: YOLOv8 facilitates targeted object cropping, allowing for in-depth examination or processing of individual items within a scene.
@@ -18,10 +29,10 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ## Visuals
 
-|                                                                               Airport Luggage                                                                                |                                                                                                                         
-|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                                               Airport Luggage                                                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/648f46be-f233-4307-a8e5-046eea38d2e4) |
-|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |                                                                                                       
+|                                                     Suitcases Cropping at airport conveyor belt using Ultralytics YOLOv8                                                     |
 
 !!! Example "Object Cropping using YOLOv8 Example"
 
@@ -31,6 +42,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         import os
 
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -83,7 +95,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 ### Arguments `model.predict`
 
 | Argument        | Type           | Default                | Description                                                                                                                                                                                                                          |
-|-----------------|----------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `source`        | `str`          | `'ultralytics/assets'` | Specifies the data source for inference. Can be an image path, video file, directory, URL, or device ID for live feeds. Supports a wide range of formats and sources, enabling flexible application across different types of input. |
 | `conf`          | `float`        | `0.25`                 | Sets the minimum confidence threshold for detections. Objects detected with confidence below this threshold will be disregarded. Adjusting this value can help reduce false positives.                                               |
 | `iou`           | `float`        | `0.7`                  | Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values result in fewer detections by eliminating overlapping boxes, useful for reducing duplicates.                                                 |

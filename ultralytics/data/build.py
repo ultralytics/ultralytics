@@ -21,7 +21,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import LINUX, RANK, colorstr
+from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 
 

@@ -92,7 +92,7 @@ class YOLOWorld(Model):
         Set classes.
 
         Args:
-            classes (List(str)): A list of categories i.e ["person"].
+            classes (List(str)): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given

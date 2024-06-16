@@ -51,7 +51,7 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
-    Silence,
+    Silence,  # noqa (equivalent to nn.Identity, unused in file but required to load YOLOv9 models)
     WorldDetect,
     v10Detect,
 )

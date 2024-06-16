@@ -59,7 +59,7 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br>
 
-## ::: ultralytics.utils.metrics.\_get_covariance_matrix
+## ::: ultralytics.utils.metrics._get_covariance_matrix
 
 <br><br>
 

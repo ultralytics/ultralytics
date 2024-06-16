@@ -27,7 +27,7 @@ keywords: Ultralytics, SAM model, Segment Anything Model, SAM ViT, Mobile-SAM, m
 
 <br><br>
 
-## ::: ultralytics.models.sam.build.\_build_sam
+## ::: ultralytics.models.sam.build._build_sam
 
 <br><br>
 

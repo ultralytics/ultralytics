@@ -11,83 +11,83 @@ keywords: Ultralytics, YOLO, Comet, callbacks, logging, machine learning, monito
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_get_comet_mode
+## ::: ultralytics.utils.callbacks.comet._get_comet_mode
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_get_comet_model_name
+## ::: ultralytics.utils.callbacks.comet._get_comet_model_name
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_get_eval_batch_logging_interval
+## ::: ultralytics.utils.callbacks.comet._get_eval_batch_logging_interval
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_get_max_image_predictions_to_log
+## ::: ultralytics.utils.callbacks.comet._get_max_image_predictions_to_log
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_scale_confidence_score
+## ::: ultralytics.utils.callbacks.comet._scale_confidence_score
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_should_log_confusion_matrix
+## ::: ultralytics.utils.callbacks.comet._should_log_confusion_matrix
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_should_log_image_predictions
+## ::: ultralytics.utils.callbacks.comet._should_log_image_predictions
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_get_experiment_type
+## ::: ultralytics.utils.callbacks.comet._get_experiment_type
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_create_experiment
+## ::: ultralytics.utils.callbacks.comet._create_experiment
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_fetch_trainer_metadata
+## ::: ultralytics.utils.callbacks.comet._fetch_trainer_metadata
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_scale_bounding_box_to_original_image_shape
+## ::: ultralytics.utils.callbacks.comet._scale_bounding_box_to_original_image_shape
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_format_ground_truth_annotations_for_detection
+## ::: ultralytics.utils.callbacks.comet._format_ground_truth_annotations_for_detection
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_format_prediction_annotations_for_detection
+## ::: ultralytics.utils.callbacks.comet._format_prediction_annotations_for_detection
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_fetch_annotations
+## ::: ultralytics.utils.callbacks.comet._fetch_annotations
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_create_prediction_metadata_map
+## ::: ultralytics.utils.callbacks.comet._create_prediction_metadata_map
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_log_confusion_matrix
+## ::: ultralytics.utils.callbacks.comet._log_confusion_matrix
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_log_images
+## ::: ultralytics.utils.callbacks.comet._log_images
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_log_image_predictions
+## ::: ultralytics.utils.callbacks.comet._log_image_predictions
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_log_plots
+## ::: ultralytics.utils.callbacks.comet._log_plots
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.comet.\_log_model
+## ::: ultralytics.utils.callbacks.comet._log_model
 
 <br><br>
 

@@ -26,10 +26,10 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
 1. First, you must enable settings `terminal.integrated.enableImages` and `terminal.integrated.gpuAcceleration` in VSCode.
 
-    ```yaml
-    "terminal.integrated.gpuAcceleration": "auto" # "auto" is default, can also use "on"
-    "terminal.integrated.enableImages": false
-    ```
+   ```yaml
+   "terminal.integrated.gpuAcceleration": "auto" # "auto" is default, can also use "on"
+   "terminal.integrated.enableImages": false
+   ```
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/ultralytics/assets/62214284/d158ab1c-893c-4397-a5de-2f9f74f81175" alt="VSCode enable terminal images setting">
@@ -37,63 +37,63 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
 1. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
 
-    ```bash
-    pip install sixel
-    ```
+   ```bash
+   pip install sixel
+   ```
 
 1. Import the relevant libraries
 
-    ```py
-    import io
+   ```py
+   import io
 
-    import cv2 as cv
-    from sixel import SixelWriter
+   import cv2 as cv
+   from sixel import SixelWriter
 
-    from ultralytics import YOLO
-    ```
+   from ultralytics import YOLO
+   ```
 
 1. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
-    ```{ .py .annotate }
-    from ultralytics import YOLO
+   ```{ .py .annotate }
+   from ultralytics import YOLO
 
-    # Load a model
-    model = YOLO("yolov8n.pt")
+   # Load a model
+   model = YOLO("yolov8n.pt")
 
-    # Run inference on an image
-    results = model.predict(source="ultralytics/assets/bus.jpg")
+   # Run inference on an image
+   results = model.predict(source="ultralytics/assets/bus.jpg")
 
-    # Plot inference results
-    plot = results[0].plot()  # (1)!
-    ```
+   # Plot inference results
+   plot = results[0].plot()  # (1)!
+   ```
 
-    1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
+   1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
 1. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
-    ```{ .py .annotate }
-    # Results image as bytes
-    im_bytes = cv.imencode(
-        ".png",  # (1)!
-        plot,
-    )[1].tobytes()  # (2)!
+   ```{ .py .annotate }
+   # Results image as bytes
+   im_bytes = cv.imencode(
+       ".png",  # (1)!
+       plot,
+   )[1].tobytes()  # (2)!
 
-    # Image bytes as a file-like object
-    mem_file = io.BytesIO(im_bytes)
-    ```
+   # Image bytes as a file-like object
+   mem_file = io.BytesIO(im_bytes)
+   ```
 
-    1. It's possible to use other image extensions as well.
-    2. Only the object at index `1` that is returned is needed.
+   1. It's possible to use other image extensions as well.
+   2. Only the object at index `1` that is returned is needed.
 
 1. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
 
-    ```py
-    # Create sixel writer object
-    w = SixelWriter()
+   ```py
+   # Create sixel writer object
+   w = SixelWriter()
 
-    # Draw the sixel image in the terminal
-    w.draw(mem_file)
-    ```
+   # Draw the sixel image in the terminal
+   w.draw(mem_file)
+   ```
 
 ## Example Inference Results
 

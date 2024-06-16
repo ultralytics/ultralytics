@@ -64,14 +64,14 @@ The order of model selection, dataset preparation, and training approach depends
 
 - **Clear Understanding of the Problem**: If your problem and objectives are well-defined, start with model selection. Then, prepare your dataset and decide on the training approach based on the model's requirements.
 
-    - **Example**: Start by selecting a model for a traffic monitoring system that estimates vehicle speeds. Choose an object tracking model, gather and annotate highway videos, and then train the model with techniques for real-time video processing.
+  - **Example**: Start by selecting a model for a traffic monitoring system that estimates vehicle speeds. Choose an object tracking model, gather and annotate highway videos, and then train the model with techniques for real-time video processing.
 
 - **Unique or Limited Data**: If your project is constrained by unique or limited data, begin with dataset preparation. For instance, if you have a rare dataset of medical images, annotate and prepare the data first. Then, select a model that performs well on such data, followed by choosing a suitable training approach.
 
-    - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for transfer learning. Finally, decide on a training approach, including data augmentation, to expand the dataset.
+  - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for transfer learning. Finally, decide on a training approach, including data augmentation, to expand the dataset.
 
 - **Need for Experimentation**: In projects where experimentation is crucial, start with the training approach. This is common in research projects where you might initially test different training techniques. Refine your model selection after identifying a promising method and prepare the dataset based on your findings.
-    - **Example**: In a project exploring new methods for detecting manufacturing defects, start with experimenting on a small data subset. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.
+  - **Example**: In a project exploring new methods for detecting manufacturing defects, start with experimenting on a small data subset. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.
 
 ## Common Discussion Points in the Community
 
@@ -113,7 +113,7 @@ Each deployment option offers different benefits and challenges, and the choice 
 Here are some questions that might encounter while defining your computer vision project:
 
 - **Q1:** How do I set effective and measurable objectives for my computer vision project?
-    - **A1:** To set effective and measurable objectives, follow the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bound. Define what success looks like, how it will be measured, ensure the goals are attainable with available resources, align them with broader project aims, and set a deadline.
+  - **A1:** To set effective and measurable objectives, follow the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bound. Define what success looks like, how it will be measured, ensure the goals are attainable with available resources, align them with broader project aims, and set a deadline.
 
 <p align="center">
   <img width="100%" src="https://ugc.futurelearn.com/uploads/assets/58/fa/58fa21ca-e284-4086-a1ce-58689ea49982.png" alt="Overview of SMART criteria">
@@ -121,10 +121,10 @@ Here are some questions that might encounter while defining your computer vision
 
 - **Q2:** Can the scope of a computer vision project change after the problem statement is defined?
 
-    - **A2:** Yes, the scope of a computer vision project can change as new information becomes available or as project requirements evolve. It's important to regularly review and adjust the problem statement and objectives to reflect any new insights or changes in project direction.
+  - **A2:** Yes, the scope of a computer vision project can change as new information becomes available or as project requirements evolve. It's important to regularly review and adjust the problem statement and objectives to reflect any new insights or changes in project direction.
 
 - **Q3:** What are some common challenges in defining the problem for a computer vision project?
-    - **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
+  - **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
 
 ## Connecting with the Community
 

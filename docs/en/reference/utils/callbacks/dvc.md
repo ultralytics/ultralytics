@@ -11,15 +11,15 @@ keywords: Ultralytics, DVC, DVCLive, machine learning, logging, training, callba
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.dvc._log_images
+## ::: ultralytics.utils.callbacks.dvc.\_log_images
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.dvc._log_plots
+## ::: ultralytics.utils.callbacks.dvc.\_log_plots
 
 <br><br>
 
-## ::: ultralytics.utils.callbacks.dvc._log_confusion_matrix
+## ::: ultralytics.utils.callbacks.dvc.\_log_confusion_matrix
 
 <br><br>
 

@@ -81,23 +81,23 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 1. Update packages list, install pip and upgrade to latest
 
-    ```bash
-    sudo apt update
-    sudo apt install python3-pip -y
-    pip install -U pip
-    ```
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip -y
+   pip install -U pip
+   ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-    ```bash
-    pip install ultralytics[export]
-    ```
+   ```bash
+   pip install ultralytics[export]
+   ```
 
 3. Reboot the device
 
-    ```bash
-    sudo reboot
-    ```
+   ```bash
+   sudo reboot
+   ```
 
 ##### Install PyTorch and Torchvision
 
@@ -105,27 +105,27 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 1. Uninstall currently installed PyTorch and Torchvision
 
-    ```bash
-    pip uninstall torch torchvision
-    ```
+   ```bash
+   pip uninstall torch torchvision
+   ```
 
 2. Install PyTorch 2.1.0 according to JP5.1.3
 
-    ```bash
-    sudo apt-get install -y libopenblas-base libopenmpi-dev
-    wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    ```
+   ```bash
+   sudo apt-get install -y libopenblas-base libopenmpi-dev
+   wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
+   pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
+   ```
 
 3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
 
-    ```bash
-    sudo apt install -y libjpeg-dev zlib1g-dev
-    git clone https://github.com/pytorch/vision torchvision
-    cd torchvision
-    git checkout v0.16.2
-    python3 setup.py install --user
-    ```
+   ```bash
+   sudo apt install -y libjpeg-dev zlib1g-dev
+   git clone https://github.com/pytorch/vision torchvision
+   cd torchvision
+   git checkout v0.16.2
+   python3 setup.py install --user
+   ```
 
 Visit the [PyTorch for Jetson page](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) to access all different versions of PyTorch for different JetPack versions. For a more detailed list on the PyTorch, Torchvision compatibility, visit the [PyTorch and Torchvision compatibility page](https://github.com/pytorch/vision).
 
@@ -324,30 +324,30 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 1. Enable MAX Power Mode
 
-    Enabling MAX Power Mode on the Jetson will make sure all CPU, GPU cores are turned on.
+   Enabling MAX Power Mode on the Jetson will make sure all CPU, GPU cores are turned on.
 
-    ```bash
-    sudo nvpmodel -m 0
-    ```
+   ```bash
+   sudo nvpmodel -m 0
+   ```
 
 2. Enable Jetson Clocks
 
-    Enabling Jetson Clocks will make sure all CPU, GPU cores are clocked at their maximum frequency.
+   Enabling Jetson Clocks will make sure all CPU, GPU cores are clocked at their maximum frequency.
 
-    ```bash
-    sudo jetson_clocks
-    ```
+   ```bash
+   sudo jetson_clocks
+   ```
 
 3. Install Jetson Stats Application
 
-    We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
+   We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
 
-    ```bash
-    sudo apt update
-    sudo pip install jetson-stats
-    sudo reboot
-    jtop
-    ```
+   ```bash
+   sudo apt update
+   sudo pip install jetson-stats
+   sudo reboot
+   jtop
+   ```
 
 <img width="1024" src="https://github.com/ultralytics/ultralytics/assets/20147381/f7017975-6eaa-4d02-8007-ab52314cebfd" alt="Jetson Stats">
 

@@ -41,8 +41,8 @@ pip install gradio
 
 1. **Upload Image:** Click on 'Upload Image' to choose an image file for object detection.
 2. **Adjust Parameters:**
-    - **Confidence Threshold:** Slider to set the minimum confidence level for detecting objects.
-    - **IoU Threshold:** Slider to set the IoU threshold for distinguishing different objects.
+   - **Confidence Threshold:** Slider to set the minimum confidence level for detecting objects.
+   - **IoU Threshold:** Slider to set the IoU threshold for distinguishing different objects.
 3. **View Results:** The processed image with detected objects and their labels will be displayed.
 
 ## Example Use Cases

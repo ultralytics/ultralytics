@@ -136,7 +136,7 @@ Here are some questions that might encounter while collecting and annotating dat
 
 - **Q1:** What is active learning in the context of data annotation?
 
-    - **A1:** Active learning in data annotation is a technique where a machine learning model iteratively selects the most informative data points for labeling. This improves the model's performance with fewer labeled examples. By focusing on the most valuable data, active learning accelerates the training process and improves the model's ability to generalize from limited data.
+  - **A1:** Active learning in data annotation is a technique where a machine learning model iteratively selects the most informative data points for labeling. This improves the model's performance with fewer labeled examples. By focusing on the most valuable data, active learning accelerates the training process and improves the model's ability to generalize from limited data.
 
 <p align="center">
   <img width="100%" src="https://assets-global.website-files.com/5d7b77b063a9066d83e1209c/63b413cc43a073846453dca4_633a98dcd9b9793e1eebdfb6_HERO_Active%2520Learning%2520.png" alt="Overview of Active Learning">
@@ -144,11 +144,11 @@ Here are some questions that might encounter while collecting and annotating dat
 
 - **Q2:** How does automated annotation work?
 
-    - **A2:** Automated annotation uses pre-trained models and algorithms to label data without needing human effort. These models, which have been trained on large datasets, can identify patterns and features in new data. Techniques like transfer learning adjust these models for specific tasks, and active learning helps by selecting the most useful data points for labeling. However, this approach is only possible in certain cases where the model has been trained on sufficiently similar data and tasks.
+  - **A2:** Automated annotation uses pre-trained models and algorithms to label data without needing human effort. These models, which have been trained on large datasets, can identify patterns and features in new data. Techniques like transfer learning adjust these models for specific tasks, and active learning helps by selecting the most useful data points for labeling. However, this approach is only possible in certain cases where the model has been trained on sufficiently similar data and tasks.
 
 - **Q3:** How many images do I need to collect for [YOLOv8 custom training](../modes/train.md)?
 
-    - **A3:** For transfer learning and object detection, a good general rule of thumb is to have a minimum of a few hundred annotated objects per class. However, when training a model to detect just one class, it is advisable to start with at least 100 annotated images and train for around 100 epochs. For complex tasks, you may need thousands of images per class to achieve reliable model performance.
+  - **A3:** For transfer learning and object detection, a good general rule of thumb is to have a minimum of a few hundred annotated objects per class. However, when training a model to detect just one class, it is advisable to start with at least 100 annotated images and train for around 100 epochs. For complex tasks, you may need thousands of images per class to achieve reliable model performance.
 
 ## Share Your Thoughts with the Community
 

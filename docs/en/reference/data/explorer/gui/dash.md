@@ -12,7 +12,7 @@ keywords: Ultralytics, Explorer, GUI, dash, documentation, data explorer, AI que
 
 <br><br>
 
-## ::: ultralytics.data.explorer.gui.dash._get_explorer
+## ::: ultralytics.data.explorer.gui.dash.\_get_explorer
 
 <br><br>
 

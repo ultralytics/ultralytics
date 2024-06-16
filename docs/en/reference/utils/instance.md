@@ -19,6 +19,6 @@ keywords: Ultralytics, bounding boxes, Instances, bbox formats, conversions, AI,
 
 <br><br>
 
-## ::: ultralytics.utils.instance._ntuple
+## ::: ultralytics.utils.instance.\_ntuple
 
 <br><br>

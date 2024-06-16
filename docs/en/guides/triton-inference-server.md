@@ -34,9 +34,9 @@ Ensure you have the following prerequisites before proceeding:
 
 - Docker installed on your machine.
 - Install `tritonclient`:
-    ```bash
-    pip install tritonclient[all]
-    ```
+  ```bash
+  pip install tritonclient[all]
+  ```
 
 ## Exporting YOLOv8 to ONNX Format
 
@@ -58,29 +58,29 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
 1. Create the necessary directory structure:
 
-    ```python
-    from pathlib import Path
+   ```python
+   from pathlib import Path
 
-    # Define paths
-    model_name = "yolo"
-    triton_repo_path = Path("tmp") / "triton_repo"
-    triton_model_path = triton_repo_path / model_name
+   # Define paths
+   model_name = "yolo"
+   triton_repo_path = Path("tmp") / "triton_repo"
+   triton_model_path = triton_repo_path / model_name
 
-    # Create directories
-    (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
-    ```
+   # Create directories
+   (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
+   ```
 
 2. Move the exported ONNX model to the Triton repository:
 
-    ```python
-    from pathlib import Path
+   ```python
+   from pathlib import Path
 
-    # Move ONNX model to Triton Model path
-    Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
+   # Move ONNX model to Triton Model path
+   Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
 
-    # Create config file
-    (triton_model_path / "config.pbtxt").touch()
-    ```
+   # Create config file
+   (triton_model_path / "config.pbtxt").touch()
+   ```
 
 ## Running Triton Inference Server
 

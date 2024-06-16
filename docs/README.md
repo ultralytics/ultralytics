@@ -21,21 +21,21 @@ To install the ultralytics package in developer mode, ensure you have Git and Py
 
 1. Clone the ultralytics repository to your local machine using Git:
 
-    ```bash
-    git clone https://github.com/ultralytics/ultralytics.git
-    ```
+   ```bash
+   git clone https://github.com/ultralytics/ultralytics.git
+   ```
 
 2. Navigate to the cloned repository's root directory:
 
-    ```bash
-    cd ultralytics
-    ```
+   ```bash
+   cd ultralytics
+   ```
 
 3. Install the package in developer mode using pip (or pip3 for Python 3):
 
-    ```bash
-    pip install -e '.[dev]'
-    ```
+   ```bash
+   pip install -e '.[dev]'
+   ```
 
 - This command installs the ultralytics package along with all development dependencies, allowing you to modify the package code and have the changes immediately reflected in your Python environment.
 
@@ -49,13 +49,13 @@ mkdocs serve
 
 - #### Command Breakdown:
 
-    - `mkdocs` is the main MkDocs command-line interface.
-    - `serve` is the subcommand to build and locally serve your documentation.
+  - `mkdocs` is the main MkDocs command-line interface.
+  - `serve` is the subcommand to build and locally serve your documentation.
 
 - 🧐 Note:
 
-    - Grasp changes to the docs in real-time as `mkdocs serve` supports live reloading.
-    - To stop the local server, press `CTRL+C`.
+  - Grasp changes to the docs in real-time as `mkdocs serve` supports live reloading.
+  - To stop the local server, press `CTRL+C`.
 
 ## 🌍 Building and Serving Multi-Language
 
@@ -63,31 +63,31 @@ Supporting multi-language documentation? Follow these steps:
 
 1. Stage all new language \*.md files with Git:
 
-    ```bash
-    git add docs/**/*.md -f
-    ```
+   ```bash
+   git add docs/**/*.md -f
+   ```
 
 2. Build all languages to the `/site` folder, ensuring relevant root-level files are present:
 
-    ```bash
-    # Clear existing /site directory
-    rm -rf site
+   ```bash
+   # Clear existing /site directory
+   rm -rf site
 
-    # Loop through each language config file and build
-    mkdocs build -f docs/mkdocs.yml
-    for file in docs/mkdocs_*.yml; do
-      echo "Building MkDocs site with $file"
-      mkdocs build -f "$file"
-    done
-    ```
+   # Loop through each language config file and build
+   mkdocs build -f docs/mkdocs.yml
+   for file in docs/mkdocs_*.yml; do
+     echo "Building MkDocs site with $file"
+     mkdocs build -f "$file"
+   done
+   ```
 
 3. To preview your site, initiate a simple HTTP server:
 
-    ```bash
-    cd site
-    python -m http.server
-    # Open in your preferred browser
-    ```
+   ```bash
+   cd site
+   python -m http.server
+   # Open in your preferred browser
+   ```
 
 - 🖥️ Access the live site at `http://localhost:8000`.
 
@@ -100,9 +100,9 @@ Choose a hosting provider and deployment method for your MkDocs documentation:
 
 * ### GitHub Pages Deployment Example:
 
-    ```bash
-    mkdocs gh-deploy
-    ```
+  ```bash
+  mkdocs gh-deploy
+  ```
 
 - Update the "Custom domain" in your repository's settings for a personalized URL.
 

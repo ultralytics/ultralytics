@@ -43,27 +43,27 @@ Additionally, here are some common installation issues users have encountered, a
 
 - Import Errors or Dependency Issues - If you're getting errors during the import of YOLOv8, or you're having issues related to dependencies, consider the following troubleshooting steps:
 
-    - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
+  - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
 
-    - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
+  - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
 
-    - **Check Dependencies**: Verify that all required dependencies are correctly installed and are of the compatible versions.
+  - **Check Dependencies**: Verify that all required dependencies are correctly installed and are of the compatible versions.
 
-    - **Review Changes**: If you initially cloned or installed an older version, be aware that significant updates might affect the library's structure or functionalities. Always refer to the official documentation or changelogs to understand any major changes.
+  - **Review Changes**: If you initially cloned or installed an older version, be aware that significant updates might affect the library's structure or functionalities. Always refer to the official documentation or changelogs to understand any major changes.
 
-    - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
+  - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
 
 - Running YOLOv8 on GPU - If you're having trouble running YOLOv8 on GPU, consider the following troubleshooting steps:
 
-    - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
+  - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
-    - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+  - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
 
-    - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
+  - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 
-    - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
+  - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
 
-    - **Program Configuration**: Check if the program or code specifies GPU usage. In YOLOv8, this might be in the settings or configuration.
+  - **Program Configuration**: Check if the program or code specifies GPU usage. In YOLOv8, this might be in the settings or configuration.
 
 ### Model Training Issues
 

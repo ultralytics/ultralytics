@@ -74,23 +74,23 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 1. Update packages list, install pip and upgrade to latest
 
-    ```bash
-    sudo apt update
-    sudo apt install python3-pip -y
-    pip install -U pip
-    ```
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip -y
+   pip install -U pip
+   ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-    ```bash
-    pip install ultralytics[export]
-    ```
+   ```bash
+   pip install ultralytics[export]
+   ```
 
 3. Reboot the device
 
-    ```bash
-    sudo reboot
-    ```
+   ```bash
+   sudo reboot
+   ```
 
 ## Use NCNN on Raspberry Pi
 
@@ -360,11 +360,11 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 1. Use an SSD
 
-    When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
+   When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
 
 2. Flash without GUI
 
-    When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
+   When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
 
 ## Next Steps
 

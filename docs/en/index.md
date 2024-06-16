@@ -52,7 +52,6 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
-
 ## Where to Start
 
 - **Install** `ultralytics` with pip and get up and running in minutes &nbsp; [:material-clock-fast: Get Started](quickstart.md){ .md-button }

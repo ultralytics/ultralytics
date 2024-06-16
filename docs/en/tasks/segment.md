@@ -34,7 +34,7 @@ YOLOv8 pretrained Segment models are shown here. Detect, Segment and Pose models
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | 317.0                          | 2.18                                | 27.3               | 110.2             |
@@ -169,19 +169,19 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                            |
-|---------------------------------------------------|-------------------|-------------------------------|----------|----------------------------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-seg.pt`              | ✅        | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-seg.torchscript`     | ✅        | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-seg.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-seg_openvino_model/` | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-seg.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-seg.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅        | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-seg.pb`              | ❌        | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-seg.tflite`          | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅        | `imgsz`, `half`, `batch`                                             |
+| ------------------------------------------------- | ----------------- | ----------------------------- | -------- | -------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-seg.pt`              | ✅       | -                                                                    |
+| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-seg.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
+| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-seg.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-seg_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-seg.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-seg.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-seg.pb`              | ❌       | `imgsz`, `batch`                                                     |
+| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-seg.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
+| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-seg_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
+| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.

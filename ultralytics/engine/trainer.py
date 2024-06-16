@@ -785,7 +785,8 @@ class BaseTrainer:
         try:
             from ultralytics.hub.session import HUBTrainingSession
 
-            self.hub_session = HUBTrainingSession(self.args.model) if session.client.authenticated else self.hub_session
+            session = HUBTrainingSession(self.args.model)
+            self.hub_session = session if session.client.authenticated else self.hub_session
             if self.hub_session:
                 self.hub_session.create_model(self.args)
                 # Check model was created

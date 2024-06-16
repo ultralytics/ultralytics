@@ -48,7 +48,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     Segment,
-    Silence,
+    Silence,  # noqa (equivalent to nn.Identity, unused in file but required to load YOLOv9 models)
     WorldDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load

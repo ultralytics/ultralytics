@@ -34,7 +34,9 @@ try:
     from pathlib import Path
 
     PREFIX = colorstr("MLflow: ")
-    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
+
+    def SANITIZE(x):
+        return {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 except (ImportError, AssertionError):
     mlflow = None

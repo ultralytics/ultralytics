@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv9t
+# YOLOv9t object detection model. For Usage examples see https://docs.ultralytics.com/models/yolov9
 # 917 layers, 2128720 parameters, 8.5 GFLOPs
 
-# parameters
+# Parameters
 nc: 80 # number of classes
 
-# gelan backbone
+# GELAN backbone
 backbone:
   - [-1, 1, Conv, [16, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [32, 3, 2]] # 1-P2/4

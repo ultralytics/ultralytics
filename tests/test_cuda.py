@@ -19,6 +19,7 @@ def test_checks():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

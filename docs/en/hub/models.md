@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to efficiently train vision AI models using the user-friendly Ultralytics HUB with YOLOv8.
-keywords: train AI models, Ultralytics HUB, YOLOv8, custom datasets, vision AI, model training
+description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLOv8. Start training today!.
+keywords: Ultralytics HUB, YOLOv8, custom AI models, model training, model deployment, model analysis, vision AI
 ---
 
 # Ultralytics HUB Models
@@ -75,6 +75,17 @@ By default, your model will use a pre-trained model (trained on the [COCO](https
 !!! note "Note"
 
     You can easily change the most common model configuration options (such as the number of epochs) but you can also use the **Custom** option to access all [Train Settings](https://docs.ultralytics.com/modes/train/#train-settings) relevant to [Ultralytics HUB](https://bit.ly/ultralytics_hub).
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Unt4Lfid7aY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Configure Ultralytics YOLOv8 Training Parameters in Ultralytics HUB
+</p>
 
 Alternatively, you start training from one of your previously trained models by clicking on the **Custom** tab.
 

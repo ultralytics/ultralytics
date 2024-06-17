@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Transform model training with Ultralytics HUB Cloud. Efficient, simple cloud-based training for Pro users.
-keywords: Ultralytics HUB, cloud training, model training, Pro users, cloud-based ML, machine learning, AI model training
+description: Discover Ultralytics HUB Cloud Training for easy model training. Upgrade to Pro and start training with a single click. Streamline your workflow now!.
+keywords: Ultralytics HUB, cloud training, model training, Pro Plan, easy AI setup
 ---
 
 # Ultralytics HUB Cloud Training

@@ -128,7 +128,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    """YOLOv8 export decorator, i..e @try_export."""
+    """YOLOv8 export decorator, i.e. @try_export."""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -211,8 +211,12 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
-        if edgetpu and not LINUX:
-            raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
+        if edgetpu:
+            if not LINUX:
+                raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
+            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
+                LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
+                self.args.batch = 1
         if self.args.separate_outputs:
             assert format not in (
                 "-", "torchscript", "saved_model", "pb", "ncnn"
@@ -411,9 +415,7 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
-            if ARM64:
-                check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
+            requirements += ["onnxslim==0.1.28", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -450,14 +452,17 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                import onnxsim
+                import onnxslim
 
-                LOGGER.info(f"{prefix} simplifying with onnxsim {onnxsim.__version__}...")
-                # subprocess.run(f'onnxsim "{f}" "{f}"', shell=True)
-                model_onnx, check = onnxsim.simplify(model_onnx)
-                assert check, "Simplified ONNX model could not be validated"
+                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+                model_onnx = onnxslim.slim(model_onnx)
+
+                # ONNX Simplifier (deprecated as must be compiled with 'cmake' in aarch64 and Conda CI environments)
+                # import onnxsim
+                # model_onnx, check = onnxsim.simplify(model_onnx)
+                # assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
-                LOGGER.info(f"{prefix} simplifier failure: {e}")
+                LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
         # Metadata
         for k, v in self.metadata.items():
@@ -702,8 +707,8 @@ class Exporter:
     def export_engine(self, prefix=colorstr("TensorRT:")):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
-        self.args.simplify = True
-        f_onnx, _ = self.export_onnx()  # run before trt import https://github.com/ultralytics/ultralytics/issues/7016
+        # self.args.simplify = True
+        f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
             import tensorrt as trt  # noqa
@@ -843,15 +848,14 @@ class Exporter:
             version = ">=2.0.0"
             check_requirements(f"tensorflow{suffix}{version}")
             import tensorflow as tf  # noqa
-        if ARM64:
-            check_requirements("cmake")  # 'cmake' is needed to build onnxsim on aarch64
         check_requirements(
             (
-                "keras",
+                "keras",  # required by onnx2tf package
+                "tf_keras",  # required by onnx2tf package
                 "onnx>=1.12.0",
                 "onnx2tf>1.17.5,<=1.22.3",
                 "sng4onnx>=1.0.1",
-                "onnxsim>=0.4.33",
+                "onnxslim==0.1.28",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package

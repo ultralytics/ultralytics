@@ -1,4 +1,4 @@
-# Ultralytics 🚀 - AGPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 # Ultralytics Actions https://github.com/ultralytics/actions
 # This workflow automatically formats code and documentation in PRs to official Ultralytics standards
 
@@ -13,14 +13,15 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, do not modify
           python: true # format Python code and docstrings
-          markdown: true # format Markdown and YAML
+          markdown: true # format Markdown
+          prettier: true # format YAML
           spelling: true # check spelling
           links: false # check broken links
           summary: true # print PR summary with GPT4 (requires 'openai_api_key' or 'openai_azure_api_key' and 'openai_azure_endpoint')

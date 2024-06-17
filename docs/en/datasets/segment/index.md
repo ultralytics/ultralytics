@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how Ultralytics YOLO supports various dataset formats for instance segmentation. This guide includes information on data conversions, auto-annotations, and dataset usage.
-keywords: Ultralytics, YOLO, Instance Segmentation, Dataset, YAML, COCO, Auto-Annotation, Image Segmentation
+description: Explore the supported dataset formats for Ultralytics YOLO and learn how to prepare and use datasets for training object segmentation models.
+keywords: Ultralytics, YOLO, instance segmentation, dataset formats, auto-annotation, COCO, segmentation models, training data
 ---
 
 # Instance Segmentation Datasets Overview
@@ -137,8 +137,6 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
 
         auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
-
-Certainly, here is the table updated with code snippets:
 
 | Argument     | Type                    | Description                                                                                                 | Default        |
 |--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|

@@ -140,7 +140,8 @@ def test_youtube():
     model = YOLO(MODEL)
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
-    except urllib.error.HTTPError as e:  # handle 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
+    # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
+    except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
 
 

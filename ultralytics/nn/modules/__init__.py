@@ -13,7 +13,7 @@ Example:
     m = Conv(128, 128)
     f = f'{m._get_name()}.onnx'
     torch.onnx.export(m, x, f)
-    os.system(f'onnxsim {f} {f} && open {f}')
+    os.system(f'onnxslim {f} {f} && open {f}')  # pip install onnxslim
     ```
 """
 
@@ -24,10 +24,11 @@ from .block import (
     C3TR,
     CIB,
     DFL,
-    PSA,
+    ELAN1,
     SPP,
     SPPELAN,
     SPPF,
+    AConv,
     ADown,
     Attention,
     BNContrastiveHead,
@@ -50,8 +51,6 @@ from .block import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
-    SCDown,
-    Silence,
 )
 from .conv import (
     CBAM,
@@ -144,11 +143,6 @@ __all__ = (
     "SPPELAN",
     "CBFuse",
     "CBLinear",
-    "Silence",
-    "RepVGGDW",
-    "CIB",
-    "C2fCIB",
-    "Attention",
-    "PSA",
-    "SCDown",
+    "AConv",
+    "ELAN1",
 )

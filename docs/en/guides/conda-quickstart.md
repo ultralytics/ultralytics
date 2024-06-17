@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Comprehensive guide to setting up and using Ultralytics YOLO models in a Conda environment. Learn how to install the package, manage dependencies, and get started with object detection projects.
-keywords: Ultralytics, YOLO, Conda, environment setup, object detection, package installation, deep learning, machine learning, guide
+description: Learn to set up a Conda environment for Ultralytics projects. Follow our comprehensive guide for easy installation and initialization.
+keywords: Ultralytics, Conda, setup, installation, environment, guide, machine learning, data science
 ---
 
 # Conda Quickstart Guide for Ultralytics
@@ -101,12 +101,6 @@ Run the image:
 sudo docker run -it --ipc=host --gpus all $t  # all GPUs
 sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
 ```
-
----
-
-Certainly, you can include the following section in your Conda guide to inform users about speeding up installation using `libmamba`:
-
----
 
 ## Speeding Up Installation with Libmamba
 

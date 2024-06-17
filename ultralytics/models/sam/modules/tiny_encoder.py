@@ -31,16 +31,16 @@ class Conv2d_BN(torch.nn.Sequential):
         """
         super().__init__()
         self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
-        if norm_type == "batch":
+        self.norm_type = norm_type
+        if norm_type == "group":
+            num_groups = int(b/2)
+            bn = torch.nn.GroupNorm(num_groups, b)
+        else:
             bn = torch.nn.BatchNorm2d(b)
             torch.nn.init.constant_(bn.weight, bn_weight_init)
             torch.nn.init.constant_(bn.bias, 0)
-        elif norm_type == "group":
-            assert num_groups is not None, "num_groups must be specified for GroupNorm"
-            norm_layer = torch.nn.GroupNorm(num_groups, b)
-        else:
-            raise ValueError(f"Unsupported normalization type: {norm_type}")
         self.add_module("bn", bn)
+
 
 
 class PatchEmbed(nn.Module):

@@ -88,7 +88,7 @@ jobs:
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
           CURRENT_TAG = os.getenv('CURRENT_TAG')
           PREVIOUS_TAG = os.getenv('PREVIOUS_TAG')
-          
+
           # Check for required environment variables
           if not all([OPENAI_AZURE_API_KEY, OPENAI_AZURE_ENDPOINT, OPENAI_AZURE_API_VERSION, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
               print(OPENAI_AZURE_API_KEY)
@@ -98,24 +98,24 @@ jobs:
               print(CURRENT_TAG)
               print(PREVIOUS_TAG)
               raise ValueError("One or more required environment variables are missing.")
-          
+
           latest_tag = f"v{CURRENT_TAG}"
           previous_tag = f"v{PREVIOUS_TAG}"
           repo = 'ultralytics/ultralytics'
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
-          
+
           # Get the diff between the tags
           url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
           response = requests.get(url, headers=headers)
           diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
-          
+
           # Set up OpenAI client
           client = openai.AzureOpenAI(
               api_key=OPENAI_AZURE_API_KEY,
               api_version=OPENAI_AZURE_API_VERSION,
               azure_endpoint=OPENAI_AZURE_ENDPOINT
           )
-          
+
           # Prepare messages for OpenAI completion
           messages = [
               {
@@ -131,17 +131,17 @@ jobs:
                              f"\n\nHere's the release diff:\n\n{diff[:96000]}",
               }
           ]
-          
+
           try:
               completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
               summary = completion.choices[0].message.content.strip()
           except openai.error.OpenAIError as e:
               print(f"Failed to generate summary: {e}")
               raise
-          
+
           # Get the latest commit message
           commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()
-          
+
           # Prepare release data
           release = {
               'tag_name': latest_tag,
@@ -150,7 +150,7 @@ jobs:
               'draft': False,
               'prerelease': False
           }
-          
+
           # Create the release on GitHub
           release_url = f"https://api.github.com/repos/{repo}/releases"
           release_response = requests.post(release_url, headers=headers, data=json.dumps(release))

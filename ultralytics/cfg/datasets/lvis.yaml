@@ -221,8 +221,7 @@ names:
   204: cape
   205: cappuccino/coffee cappuccino
   206: car/car automobile/auto/auto automobile/automobile
-  207: railcar/railcar part of a train/railway car/railway car part of a train/railroad
-    car/railroad car part of a train
+  207: railcar/railcar part of a train/railway car/railway car part of a train/railroad car/railroad car part of a train
   208: elevator car
   209: car battery/automobile battery
   210: identity card
@@ -241,8 +240,7 @@ names:
   223: cast/plaster cast/plaster bandage
   224: cat
   225: cauliflower
-  226: cayenne/cayenne spice/cayenne pepper/cayenne pepper spice/red pepper/red pepper
-    spice
+  226: cayenne/cayenne spice/cayenne pepper/cayenne pepper spice/red pepper/red pepper spice
   227: CD player
   228: celery
   229: cellular telephone/cellular phone/cellphone/mobile phone/smart phone
@@ -258,8 +256,7 @@ names:
   239: chessboard
   240: chicken/chicken animal
   241: chickpea/garbanzo
-  242: chili/chili vegetable/chili pepper/chili pepper vegetable/chilli/chilli vegetable/chilly/chilly
-    vegetable/chile/chile vegetable
+  242: chili/chili vegetable/chili pepper/chili pepper vegetable/chilli/chilli vegetable/chilly/chilly vegetable/chile/chile vegetable
   243: chime/gong
   244: chinaware
   245: crisp/crisp potato chip/potato chip
@@ -1061,8 +1058,7 @@ names:
   1041: sweater
   1042: sweatshirt
   1043: sweet potato
-  1044: swimsuit/swimwear/bathing suit/swimming costume/bathing costume/swimming trunks/bathing
-    trunks
+  1044: swimsuit/swimwear/bathing suit/swimming costume/bathing costume/swimming trunks/bathing trunks
   1045: sword
   1046: syringe
   1047: Tabasco sauce

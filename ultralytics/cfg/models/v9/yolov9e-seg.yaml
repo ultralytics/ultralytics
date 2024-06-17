@@ -7,7 +7,7 @@ nc: 80 # number of classes
 
 # gelan backbone
 backbone:
-  - [-1, 1, Silence, []]
+  - [-1, 1, nn.Identity, []]
   - [-1, 1, Conv, [64, 3, 2]] # 1-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 2-P2/4
   - [-1, 1, RepNCSPELAN4, [256, 128, 64, 2]] # 3

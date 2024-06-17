@@ -51,7 +51,6 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    Silence,
 )
 from .conv import (
     CBAM,
@@ -140,7 +139,6 @@ __all__ = (
     "SPPELAN",
     "CBFuse",
     "CBLinear",
-    "Silence",
     "RepVGGDW",
     "CIB",
     "C2fCIB",

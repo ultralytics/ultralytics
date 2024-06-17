@@ -34,11 +34,13 @@ try:
     from pathlib import Path
 
     PREFIX = colorstr("MLflow: ")
-    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 except (ImportError, AssertionError):
     mlflow = None
 
+def sanitize_dict(x):
+    """Sanitize dictionary keys by removing parentheses and converting values to floats."""
+    return {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 def on_pretrain_routine_end(trainer):
     """
@@ -88,8 +90,8 @@ def on_train_epoch_end(trainer):
     if mlflow:
         mlflow.log_metrics(
             metrics={
-                **SANITIZE(trainer.lr),
-                **SANITIZE(trainer.label_loss_items(trainer.tloss, prefix="train")),
+                **sanitize_dict(trainer.lr),
+                **sanitize_dict(trainer.label_loss_items(trainer.tloss, prefix="train")),
             },
             step=trainer.epoch,
         )
@@ -98,7 +100,7 @@ def on_train_epoch_end(trainer):
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
-        mlflow.log_metrics(metrics=SANITIZE(trainer.metrics), step=trainer.epoch)
+        mlflow.log_metrics(metrics=sanitize_dict(trainer.metrics), step=trainer.epoch)
 
 
 def on_train_end(trainer):

@@ -15,8 +15,13 @@ from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr, resample_segments
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
+
+from segment_anything import SamAutomaticMaskGenerator, SamPredictor, sam_model_registry
+import os
+from pathlib import Path
+import multiprocessing as mp
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -859,6 +864,143 @@ class CopyPaste:
         labels["instances"] = instances
         return labels
 
+   
+class CopyPasteWithAutoSegmentation:
+    """
+    Implements the Copy-Paste augmentation as described in the paper https://arxiv.org/abs/2012.07177,
+    via automatically generating a segmentation mask from SAM. This class is responsible for
+    generating instances corresponding to an image and applying the Copy-Paste augmentation.
+    """
+
+    def __init__(self, p=0.5, background_imdir='bg_photos') -> None:
+        """
+        Initializes the CopyPaste class with a given probability using segmentation maps from SAM.
+
+        Args:
+            p (float, optional): The probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
+                                 Default is 0.5.
+            background_imdir (str, optional): Directory containing background images to copy image segments onto.
+        """
+        self.p = p
+        this_fpath = os.path.split(Path(__file__).absolute())[:-1]
+        self.background_imdir = os.path.join(*(*this_fpath, '../../'+background_imdir))
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.sam = sam_model_registry["vit_b"](
+            checkpoint=os.path.join(*(*this_fpath, '../../sam_vit_b_01ec64.pth'))
+        )
+
+    def predict(self, model, box = None):
+        """Execute SAM on an image with an optional bounding box provided"""
+        masks, predictions , _ = model.predict(box=box)
+        nonzero_masks = []
+        nonzero_predictions = []
+        for i in range(masks.shape[0]):
+            if masks[i].sum() > 0:
+                nonzero_masks.append(masks[i])
+                nonzero_predictions.append(predictions[i])
+        return nonzero_masks, nonzero_predictions
+
+    def extract_info(self, labels) -> None:
+        """Apply SAM mask generation to obtain image instances"""
+        # Build model
+        model = SamPredictor(self.sam.to(self.device)) 
+
+        # Extract given info
+        im = labels["img"]
+        h, w = im.shape[:2]
+        cls = labels["cls"]
+        instances = labels["instances"]
+
+        # Potentially flip the input image
+        if random.random() > 0.5:
+            im = np.fliplr(im)
+            instances.fliplr(w)
+        
+        # Get given instances in correct format
+        instances.convert_bbox(format="xyxy")
+        instances.denormalize(w, h)
+
+        # Set the models image
+        model.set_image(im)
+
+        # Predict with bounding box
+        masks, predictions = self.predict(model, instances.bboxes[0])
+
+        # If no predictions are given, try again with no bounding box
+        if len(predictions) == 0:
+            masks, predictions = self.predict(model)
+
+            # If no predictions are still given return potentially flipped images
+            # with unaltered classes
+            if len(predictions) == 0:
+                return im, cls, instances
+        
+        # Take the mask with the highest score and convert binary to indices
+        best_mask = masks[np.argmax(predictions)]
+        segments = np.argwhere(best_mask)
+
+        # Set the instance for any future augmentations to use
+        instances.segments = np.array([segments], dtype=np.float32)
+
+        return im, cls, instances
+    
+    def __call__(self, labels):
+        """
+        Applies the Copy-Paste augmentation to the given image after generating instances.
+
+        Args:
+            labels (dict): A dictionary containing:
+                           - 'img': The image to augment.
+                           - 'cls': Class labels associated with the instances.
+                           - 'instances': Object containing bounding boxes.
+
+        Returns:
+            (dict): Dict with augmented image and updated instances under the 'img', 'cls', and 'instances' keys.
+
+        Notes:
+            1. Instances are potentailly overwritten by SAM counterparts.
+            2. This method modifies the input dictionary 'labels' in place.
+        """
+        if random.random() < self.p: # Randomly execute Augmentation
+            im, cls, instances = self.extract_info(labels) # Use SAM to extract information
+            h, w = im.shape[:2]
+            if len(instances.segments) > 0: # Only execute if SAM was successful in building a mask
+
+                # Randomly select a background image, and randomly flip it
+                fpaths = os.listdir(self.background_imdir)
+                np.random.shuffle(fpaths)
+                background_img = np.array(Image.open(os.path.join(self.background_imdir, fpaths[0])))
+                background_img_resized = cv2.resize(background_img, (w, h))
+                if random.random() > 0.5:
+                    background_img_resized = np.fliplr(background_img_resized)
+                
+                # Get mask indices
+                m = instances.segments[0].astype(int)
+                
+                # Separate row and column indices
+                row_indices = m[:, 0]
+                col_indices = m[:, 1]
+                
+                # Find a random position to place the segment on the background image
+                offset_x = random.randint(0, w - (col_indices.max() - col_indices.min() + 1))
+                offset_y = random.randint(0, h - (row_indices.max() - row_indices.min() + 1))
+                
+                # Create the translated segment mask
+                background_img_resized[
+                    offset_y + (row_indices - row_indices.min()), 
+                    offset_x + (col_indices - col_indices.min())
+                ] = im[row_indices, col_indices]
+
+                # Update instance bounding box to reflect the new translated location
+                instances.bboxes[:, [0,2]] += offset_x
+                instances.bboxes[:, [1,3]] += offset_y
+
+                # Modify labels in place
+                labels["img"] = background_img_resized
+                labels["cls"] = cls
+                labels["instances"] = instances
+        return labels
+
 
 class Albumentations:
     """
@@ -1151,19 +1293,26 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
+    compose_list = []
+    if hyp.mosaic > 0:
+        compose_list.append(Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic))
+    if hyp.copy_paste > 0:
+        compose_list.append(CopyPaste(p=hyp.copy_paste))
+    if hyp.copy_paste_sam > 0:
+        compose_list.append(CopyPasteWithAutoSegmentation(
+            p = hyp.copy_paste_sam, 
+            background_imdir=hyp.cpsam_imdir
+        ))
+    compose_list.append(RandomPerspective(
+        degrees=hyp.degrees,
+        translate=hyp.translate,
+        scale=hyp.scale,
+        shear=hyp.shear,
+        perspective=hyp.perspective,
+        pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+    ))
     pre_transform = Compose(
-        [
-            Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
-            CopyPaste(p=hyp.copy_paste),
-            RandomPerspective(
-                degrees=hyp.degrees,
-                translate=hyp.translate,
-                scale=hyp.scale,
-                shear=hyp.shear,
-                perspective=hyp.perspective,
-                pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-            ),
-        ]
+        compose_list
     )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation
     if dataset.use_keypoints:

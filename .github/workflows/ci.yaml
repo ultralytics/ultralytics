@@ -6,7 +6,7 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     branches: [main]
   schedule:
     - cron: "0 0 * * *" # runs at 00:00 UTC every day
@@ -39,6 +39,7 @@ on:
 
 jobs:
   Docs:
+    # TODO: break this job out into it's own action with pull_request_target to allow changes to user forks
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: macos-14
     steps:
@@ -73,7 +74,8 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
       - name: Commit and Push Docs changes
-        if: always() && github.event_name == 'pull_request_target'
+        continue-on-error: true
+        if: always() && github.event_name == 'pull_request'
         run: |
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token

@@ -13,10 +13,12 @@ from ultralytics.nn.modules import (
     C2,
     C3,
     C3TR,
+    ELAN1,
     OBB,
     SPP,
     SPPELAN,
     SPPF,
+    AConv,
     ADown,
     Bottleneck,
     BottleneckCSP,
@@ -47,7 +49,6 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     Segment,
-    Silence,  # noqa (equivalent to nn.Identity, unused in file but required to load YOLOv9 models)
     WorldDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
@@ -879,7 +880,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             RepNCSPELAN4,
+            ELAN1,
             ADown,
+            AConv,
             SPPELAN,
             C2fAttn,
             C3,

@@ -25,6 +25,7 @@ from .block import (
     CIB,
     DFL,
     ELAN1,
+    PSA,
     SPP,
     SPPELAN,
     SPPF,
@@ -51,6 +52,7 @@ from .block import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
+    SCDown,
 )
 from .conv import (
     CBAM,
@@ -145,4 +147,10 @@ __all__ = (
     "CBLinear",
     "AConv",
     "ELAN1",
+    "RepVGGDW",
+    "CIB",
+    "C2fCIB",
+    "Attention",
+    "PSA",
+    "SCDown",
 )

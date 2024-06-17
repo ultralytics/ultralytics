@@ -28,7 +28,8 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_regress_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_regress_dataset
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
@@ -128,8 +129,6 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
-                # NOTE: `end2end` only available with detect for now
-                end2end=self.args.end2end and self.args.task == "detect",
             )
             # self.model = model
             self.device = model.device  # update device
@@ -144,7 +143,7 @@ class BaseValidator:
 
             if self.args.task == "regress":
                 self.data = check_regress_dataset(self.args.data)
-            elif str(self.args.data).split(".")[-1] in ("yaml", "yml"):
+            if str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)

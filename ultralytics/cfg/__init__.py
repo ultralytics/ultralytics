@@ -53,7 +53,7 @@ TASK2METRIC = {
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
-    "obb": "metrics/mAP50-95(OBB)",
+    "obb": "metrics/mAP50-95(B)",
     "regress": "metrics/MAE",
 }
 MODELS = {TASK2MODEL[task] for task in TASKS}

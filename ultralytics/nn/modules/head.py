@@ -16,7 +16,6 @@ from .transformer import MLP, DeformableTransformerDecoder, DeformableTransforme
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
-__all__ += "Regress", "Regress6", 
 
 
 class Detect(nn.Module):
@@ -29,7 +28,6 @@ class Detect(nn.Module):
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
-    separate_outputs = False
 
     def __init__(self, nc=80, ch=()):
         """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
@@ -174,7 +172,10 @@ class Detect(nn.Module):
         index = index // nc
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
 
-        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)
+        return torch.cat(
+            [boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)],
+            dim=-1,
+        )
 
 
 class Segment(Detect):
@@ -195,11 +196,12 @@ class Segment(Detect):
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
 
-        mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         if self.separate_outputs and self.export:
             mc = torch.cat(
                 [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)],
                 1)  # mask coefficients
+        else:
+            mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         x = Detect.forward(self, x)
         if self.training:
             return x, mc, p
@@ -663,6 +665,8 @@ class v10Detect(Detect):
         bias_init(self): Initializes biases of the Detect module.
 
     """
+
+    end2end = True
 
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)

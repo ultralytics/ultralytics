@@ -89,29 +89,16 @@ class DetectionValidator(BaseValidator):
         """Apply Non-maximum suppression to prediction outputs."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
             preds = decode_bbox(preds, img_shape, self.device)
-            return ops.non_max_suppression(
-                preds,
-                self.args.conf,
-                self.args.iou,
-                labels=self.lb,
-                multi_label=True,
-                agnostic=self.args.single_cls,
-                max_det=self.args.max_det
-            )
-        else:
-            return (
-                preds
-                if self.args.end2end
-                else ops.non_max_suppression(
-                    preds,
-                    self.args.conf,
-                    self.args.iou,
-                    labels=self.lb,
-                    multi_label=True,
-                    agnostic=self.args.single_cls,
-                    max_det=self.args.max_det,
-                )
-            )
+
+        return ops.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
+        )
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch of images and annotations for validation."""
@@ -282,7 +269,7 @@ class DetectionValidator(BaseValidator):
     def pred_to_json(self, predn, filename):
         """Serialize YOLO predictions to COCO json format."""
         stem = Path(filename).stem
-        image_id = (int(stem) if stem.isnumeric() else stem) if self.is_coco else os.path.basename(filename)
+        image_id = (int(stem) if stem.isnumeric() else stem) if (self.is_coco or self.is_lvis) else os.path.basename(filename)
         box = ops.xyxy2xywh(predn[:, :4])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for p, b in zip(predn.tolist(), box.tolist()):
@@ -325,12 +312,12 @@ class DetectionValidator(BaseValidator):
 
                     anno = LVIS(str(anno_json))  # init annotations api
                     pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
-                    eval = LVISEval(anno, pred, "bbox")
+                    val = LVISEval(anno, pred, "bbox")
                 if self.is_coco or self.is_lvis:
-                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
-                eval.evaluate()
-                eval.accumulate()
-                eval.summarize()
+                    val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                val.evaluate()
+                val.accumulate()
+                val.summarize()
                 if self.is_lvis:
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50

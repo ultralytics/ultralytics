@@ -67,11 +67,11 @@ import torch
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.dataset import ClassificationDataset, RegressionDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.data.utils import check_regress_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder, Regress6
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+from ultralytics.nn.modules import Regress6
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -257,7 +257,6 @@ class Exporter:
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
-                m.end2end = self.args.end2end
                 m.format = self.args.format
                 m.separate_outputs = self.args.separate_outputs
             elif isinstance(m, C2f):
@@ -314,7 +313,7 @@ class Exporter:
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
-            f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
+            f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)'
         )
 
         # Exports
@@ -346,7 +345,7 @@ class Exporter:
             f[11], _ = self.export_ncnn()
 
         # Finish
-        f = [str(x) for x in f if x]  # filter out "" and None
+        f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
             f = str(Path(f[-1]))
             square = self.imgsz[0] == self.imgsz[1]
@@ -360,11 +359,11 @@ class Exporter:
             predict_data = f"data={data}" if model.task == "segment" and fmt == "pb" else ""
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
             LOGGER.info(
-                f"\nExport complete ({time.time() - t:.1f}s)"
+                f'\nExport complete ({time.time() - t:.1f}s)'
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q} {predict_data}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
-                f"\nVisualize:       https://netron.app"
+                f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q} {predict_data}'
+                f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}'
+                f'\nVisualize:       https://netron.app'
             )
 
         self.run_callbacks("on_export_end")
@@ -860,7 +859,6 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-                "tensorflow==2.15.0"
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
@@ -907,14 +905,6 @@ class Exporter:
             verbosity = "error"
 
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
-
-        param_replacement_file = {
-            "detect": "ultralytics/utils/replace.json",
-            "segment": "ultralytics/utils/replace.json",
-            "pose": "",
-            "classify": "",
-        }
-
         onnx2tf.convert(
             input_onnx_file_path=f_onnx,
             output_folder_path=str(f),
@@ -924,8 +914,6 @@ class Exporter:
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
             input_output_quant_dtype=io_quant_dtype,
-            # output_signaturedefs=True,
-            param_replacement_file=param_replacement_file.get(self.model.task, "") if self.args.separate_outputs else "",
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
@@ -965,6 +953,7 @@ class Exporter:
     @try_export
     def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
         """YOLOv8 TensorFlow Lite export."""
+        # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance.
-keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
+description: Learn how to gather, label, and deploy data for custom YOLOv8 models using Roboflow's powerful tools. Optimize your computer vision pipeline effortlessly.
+keywords: Roboflow, YOLOv8, data labeling, computer vision, model training, model deployment, dataset management, automated image annotation, AI tools
 ---
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you’re in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
+[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
 
 !!! Question "Licensing"
 
@@ -22,7 +22,7 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 - Gather data for training a custom YOLOv8 model
 - Upload, convert and label data for YOLOv8 format
 - Pre-process and augment data for model robustness
-- Dataset management for [YOLOv8](https://docs.ultralytics.com/models/yolov8/)
+- Dataset management for [YOLOv8](../models/yolov8.md)
 - Export data in 40+ formats for model training
 - Upload custom YOLOv8 model weights for testing and deployment
 - Gather Data for Training a Custom YOLOv8 Model
@@ -157,7 +157,7 @@ When your dataset version has been generated, you can export your data into a ra
 <img src="https://media.roboflow.com/ultralytics/rf_export_data.png" alt="Exporting a dataset" width="800">
 </p>
 
-You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
+You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](../modes/train.md).
 
 ## Upload Custom YOLOv8 Model Weights for Testing and Deployment
 

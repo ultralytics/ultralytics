@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how to leverage the CIFAR-100 dataset for machine learning and computer vision tasks with YOLO. Gain insights on its structure, use, and utilization for model training.
-keywords: Ultralytics, YOLO, CIFAR-100 dataset, image classification, machine learning, computer vision, YOLO model training
+description: Explore the CIFAR-100 dataset, consisting of 60,000 32x32 color images across 100 classes. Ideal for machine learning and computer vision tasks.
+keywords: CIFAR-100, dataset, machine learning, computer vision, image classification, deep learning, YOLO, training, testing, Alex Krizhevsky
 ---
 
 # CIFAR-100 Dataset
@@ -39,10 +39,10 @@ To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='cifar100', epochs=100, imgsz=32)
+        results = model.train(data="cifar100", epochs=100, imgsz=32)
         ```
 
     === "CLI"

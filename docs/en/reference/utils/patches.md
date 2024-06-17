@@ -1,6 +1,6 @@
 ---
-description: Learn about Ultralytics utils patches including imread, imshow and torch_save. Enhance your image processing skills.
-keywords: Ultralytics, Utils, Patches, imread, imshow, torch_save, image processing
+description: Explore and contribute to Ultralytics' utils/patches.py. Learn about the imread, imwrite, imshow, and torch_save functions.
+keywords: Ultralytics, utils, patches, imread, imwrite, imshow, torch_save, OpenCV, PyTorch, GitHub
 ---
 
 # Reference for `ultralytics/utils/patches.py`

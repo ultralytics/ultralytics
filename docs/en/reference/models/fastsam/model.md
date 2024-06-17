@@ -1,6 +1,6 @@
 ---
-description: Learn all about Ultralytics FastSAM model. Dive into our comprehensive guide for seamless integration and efficient model training.
-keywords: Ultralytics, FastSAM model, Model documentation, Efficient model training
+description: Discover how to use the FastSAM model with Ultralytics. Learn about its interface and implementation details with practical examples.
+keywords: FastSAM, Ultralytics, model interface, YOLO, deep learning, machine learning, segmentation, predictor, validator, Python
 ---
 
 # Reference for `ultralytics/models/fastsam/model.py`

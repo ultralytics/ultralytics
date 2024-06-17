@@ -1,6 +1,6 @@
 ---
-description: Learn about TwoWayTransformer and Attention modules in Ultralytics. Leverage these tools to enhance your AI models.
-keywords: Ultralytics, TwoWayTransformer, Attention, AI models, transformers
+description: Explore the TwoWayTransformer module in Ultralytics, designed for simultaneous attention to image and query points. Ideal for object detection and segmentation tasks.
+keywords: Ultralytics, TwoWayTransformer, module, deep learning, transformer, object detection, image segmentation, attention mechanism, neural networks
 ---
 
 # Reference for `ultralytics/models/sam/modules/transformer.py`

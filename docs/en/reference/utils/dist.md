@@ -1,6 +1,6 @@
 ---
-description: Discover the role of dist.find_free_network_port & dist.generate_ddp_command in Ultralytics DDP utilities. Use our guide for efficient deployment.
-keywords: Ultralytics, DDP, DDP utility functions, Distributed Data Processing, find free network port, generate DDP command
+description: Explore Ultralytics' utilities for distributed training including DDP file generation, command setup, and cleanup. Improve multi-node training efficiency.
+keywords: Ultralytics, distributed training, DDP, multi-node training, network port, DDP file generation, DDP command, training utilities
 ---
 
 # Reference for `ultralytics/utils/dist.py`

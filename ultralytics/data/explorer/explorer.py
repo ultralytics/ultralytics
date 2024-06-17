@@ -64,7 +64,7 @@ class Explorer:
         import lancedb
 
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name.lower() + "_" + model.lower()
+        self.table_name = f"{Path(data).name.lower()}_{model.lower()}"
         self.sim_idx_base_name = (
             f"{self.table_name}_sim_idx".lower()
         )  # Use this name and append thres and top_k to reuse the table
@@ -268,10 +268,7 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
-        assert return_type in {
-            "pandas",
-            "arrow",
-        }, f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        assert return_type in {"pandas", "arrow"}, f"Return type should be `pandas` or `arrow`, but got {return_type}"
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 

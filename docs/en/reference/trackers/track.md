@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics documentation on prediction function starters & register trackers. Understand our code & its applications better.
-keywords: Ultralytics, YOLO, on predict start, register tracker, prediction functions, documentation
+description: Explore the track.py script for Ultralytics object tracking. Learn how on_predict_start, on_predict_postprocess_end, and register_tracker functions work.
+keywords: Ultralytics, YOLO, object tracking, track.py, on_predict_start, on_predict_postprocess_end, register_tracker
 ---
 
 # Reference for `ultralytics/trackers/track.py`

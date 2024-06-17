@@ -1,6 +1,6 @@
 ---
-description: Explore various Ultralytics convolution modules including Conv2, DWConv, ConvTranspose, GhostConv, Channel Attention and more.
-keywords: Ultralytics, Convolution Modules, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
+description: Explore detailed documentation on convolution modules like Conv, LightConv, GhostConv, and more used in Ultralytics models.
+keywords: Ultralytics, convolution modules, Conv, LightConv, GhostConv, YOLO, deep learning, neural networks
 ---
 
 # Reference for `ultralytics/nn/modules/conv.py`

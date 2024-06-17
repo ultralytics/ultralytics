@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the versatile COCO8-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
-keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
+description: Explore the compact, versatile COCO8-Pose dataset for testing and debugging object detection models. Ideal for quick experiments with YOLOv8.
+keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOLOv8, machine learning, computer vision, training data
 ---
 
 # COCO8-Pose Dataset
@@ -34,10 +34,10 @@ To train a YOLOv8n-pose model on the COCO8-Pose dataset for 100 epochs with an i
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

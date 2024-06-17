@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore image classification datasets supported by Ultralytics, learn the standard dataset format, and set up your own dataset for training models.
-keywords: Ultralytics, image classification, dataset, machine learning, CIFAR-10, ImageNet, MNIST, torchvision
+description: Learn how to structure datasets for YOLO classification tasks. Detailed folder structure and usage examples for effective training.
+keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, machine learning, training data, model evaluation
 ---
 
 # Image Classification Datasets Overview
@@ -86,10 +86,10 @@ This structured approach ensures that the model can effectively learn from well-
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='path/to/dataset', epochs=100, imgsz=640)
+        results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
         ```
     === "CLI"
 

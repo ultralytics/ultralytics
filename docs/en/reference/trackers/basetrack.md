@@ -1,6 +1,6 @@
 ---
-description: Get familiar with TrackState in Ultralytics. Learn how it is used in the BaseTrack of the Ultralytics tracker for enhanced functionality.
-keywords: Ultralytics, TrackState, BaseTrack, Ultralytics tracker, Ultralytics documentation
+description: Discover the BaseTrack classes and methods for object tracking in YOLO by Ultralytics. Learn about TrackState, BaseTrack attributes, and methods.
+keywords: Ultralytics, YOLO, object tracking, BaseTrack, TrackState, tracking methods, TrackState enumeration, object detection
 ---
 
 # Reference for `ultralytics/trackers/basetrack.py`

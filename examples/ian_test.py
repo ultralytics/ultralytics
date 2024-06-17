@@ -1,14 +1,14 @@
-import torch
-import multiprocessing as mp
-from ultralytics import YOLO, SAM, FastSAM
-from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 import os
 from pathlib import Path
-from PIL import Image
-import numpy as np
-from ultralytics.utils.instance import Instances
+
 import matplotlib.pyplot as plt
-from ultralytics.utils.ops import resample_segments
+import numpy as np
+import torch
+from PIL import Image
+from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
+
+from ultralytics import YOLO
+from ultralytics.utils.instance import Instances
 
 this_fpath = os.path.split(Path(__file__).absolute())[:-1]
 

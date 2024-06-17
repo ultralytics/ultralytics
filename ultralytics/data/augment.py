@@ -1,27 +1,25 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+import os
 import random
 from copy import deepcopy
+from pathlib import Path
 from typing import Tuple, Union
 
 import cv2
 import numpy as np
 import torch
 from PIL import Image
+from segment_anything import SamPredictor, sam_model_registry
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr, resample_segments
+from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
-
-from segment_anything import SamAutomaticMaskGenerator, SamPredictor, sam_model_registry
-import os
-from pathlib import Path
-import multiprocessing as mp
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -958,7 +956,7 @@ class CopyPasteWithAutoSegmentation:
             (dict): Dict with augmented image and updated instances under the 'img', 'cls', and 'instances' keys.
 
         Notes:
-            1. Instances are potentailly overwritten by SAM counterparts.
+            1. Instances are potentially overwritten by SAM counterparts.
             2. This method modifies the input dictionary 'labels' in place.
         """
         if random.random() < self.p: # Randomly execute Augmentation

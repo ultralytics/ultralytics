@@ -3,7 +3,7 @@ val: ../valid/images
 test: ../test/images
 
 nc: 1
-names: ['brake-shoes']
+names: ["brake-shoes"]
 
 roboflow:
   workspace: cpsam

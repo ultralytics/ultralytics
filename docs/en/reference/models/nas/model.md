@@ -1,6 +1,6 @@
 ---
-description: Learn how our NAS model operates in Ultralytics. Comprehensive guide with detailed examples. Master the nuances of Ultralytics NAS model.
-keywords: Ultralytics, NAS model, NAS guide, machine learning, model documentation
+description: Explore the YOLO-NAS model interface and learn how to utilize pre-trained YOLO-NAS models for object detection with Ultralytics.
+keywords: Ultralytics, YOLO, YOLO-NAS, object detection, pre-trained models, machine learning, deep learning, NAS model
 ---
 
 # Reference for `ultralytics/models/nas/model.py`

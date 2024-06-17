@@ -1,6 +1,6 @@
 ---
-description: Delve into Classification Trainer at Ultralytics YOLO docs and optimize your model's training process with insights from the masters!.
-keywords: Ultralytics, YOLO, Classification Trainer, deep learning, training process, AI models, documentation
+description: Explore the train.py module in Ultralytics YOLO for efficient classification model training. Learn more with examples and detailed code documentation.
+keywords: YOLO, Ultralytics, classification, training, machine learning, deep learning, PyTorch, train.py
 ---
 
 # Reference for `ultralytics/models/yolo/classify/train.py`

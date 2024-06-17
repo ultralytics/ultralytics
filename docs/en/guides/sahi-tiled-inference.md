@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide on how to use YOLOv8 with SAHI for standard and sliced inference in object detection tasks.
-keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, Large Scale Image Analysis, High-Resolution Imagery
+description: Learn how to implement YOLOv8 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
+keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
 ---
 
 # Ultralytics Docs: Using YOLOv8 with SAHI for Sliced Inference
@@ -60,21 +60,28 @@ pip install -U ultralytics sahi
 Here's how to import the necessary modules and download a YOLOv8 model and some test images:
 
 ```python
-from sahi.utils.yolov8 import download_yolov8s_model
+from pathlib import Path
+
+from IPython.display import Image
 from sahi import AutoDetectionModel
+from sahi.predict import get_prediction, get_sliced_prediction, predict
 from sahi.utils.cv import read_image
 from sahi.utils.file import download_from_url
-from sahi.predict import get_prediction, get_sliced_prediction, predict
-from pathlib import Path
-from IPython.display import Image
+from sahi.utils.yolov8 import download_yolov8s_model
 
 # Download YOLOv8 model
 yolov8_model_path = "models/yolov8s.pt"
 download_yolov8s_model(yolov8_model_path)
 
 # Download test images
-download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg', 'demo_data/small-vehicles1.jpeg')
-download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png', 'demo_data/terrain2.png')
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg",
+    "demo_data/small-vehicles1.jpeg",
+)
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png",
+    "demo_data/terrain2.png",
+)
 ```
 
 ## Standard Inference with YOLOv8
@@ -85,7 +92,7 @@ You can instantiate a YOLOv8 model for object detection like this:
 
 ```python
 detection_model = AutoDetectionModel.from_pretrained(
-    model_type='yolov8',
+    model_type="yolov8",
     model_path=yolov8_model_path,
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
@@ -124,7 +131,7 @@ result = get_sliced_prediction(
     slice_height=256,
     slice_width=256,
     overlap_height_ratio=0.2,
-    overlap_width_ratio=0.2
+    overlap_width_ratio=0.2,
 )
 ```
 

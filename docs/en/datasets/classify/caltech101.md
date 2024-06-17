@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the Caltech-101 dataset, its structure and uses in machine learning. Includes instructions to train a YOLO model using this dataset.
-keywords: Caltech-101, dataset, YOLO training, machine learning, object recognition, ultralytics
+description: Explore the widely-used Caltech-101 dataset with 9,000 images across 101 categories. Ideal for object recognition tasks in machine learning and computer vision.
+keywords: Caltech-101, dataset, object recognition, machine learning, computer vision, YOLO, deep learning, research, AI
 ---
 
 # Caltech-101 Dataset
@@ -36,10 +36,10 @@ To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='caltech101', epochs=100, imgsz=416)
+        results = model.train(data="caltech101", epochs=100, imgsz=416)
         ```
 
     === "CLI"

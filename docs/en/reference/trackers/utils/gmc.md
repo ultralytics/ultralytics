@@ -1,6 +1,6 @@
 ---
-description: Explore the Ultralytics GMC tool in our comprehensive documentation. Learn how it works, best practices, and implementation advice.
-keywords: Ultralytics, GMC utility, Ultralytics documentation, Ultralytics tracker, machine learning tools
+description: Explore the Generalized Motion Compensation (GMC) class for tracking and object detection with methods like ORB, SIFT, ECC, and more.
+keywords: GMC, Generalized Motion Compensation, Ultralytics, tracking, object detection, ORB, SIFT, ECC, Sparse Optical Flow, computer vision, video frames
 ---
 
 # Reference for `ultralytics/trackers/utils/gmc.py`

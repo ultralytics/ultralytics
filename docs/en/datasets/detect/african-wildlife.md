@@ -1,7 +1,7 @@
 ---
 comments: true
-description: African Wildlife objects detection, a leading dataset for object detection in forests, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, African Wildlife dataset, object detection, YOLO, YOLO model training, object tracking, computer vision, deep learning models, forest research, animals tracking
+description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
+keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLOv8, wildlife research, conservation, dataset
 ---
 
 # African Wildlife Dataset
@@ -42,10 +42,10 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='african-wildlife.yaml', epochs=100, imgsz=640)
+        results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -63,7 +63,7 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/best.pt')  # load a brain-tumor fine-tuned model
+        model = YOLO("path/to/best.pt")  # load a brain-tumor fine-tuned model
 
         # Inference using the model
         results = model.predict("https://ultralytics.com/assets/african-wildlife-sample.jpg")

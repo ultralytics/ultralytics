@@ -32,7 +32,9 @@ __all__ = (
     "RepC3",
     "ResNetLayer",
     "RepNCSPELAN4",
+    "ELAN1",
     "ADown",
+    "AConv",
     "SPPELAN",
     "CBFuse",
     "CBLinear",
@@ -603,6 +605,33 @@ class RepNCSPELAN4(nn.Module):
         return self.cv4(torch.cat(y, 1))
 
 
+class ELAN1(RepNCSPELAN4):
+    """ELAN1 module with 4 convolutions."""
+
+    def __init__(self, c1, c2, c3, c4):
+        """Initializes ELAN1 layer with specified channel sizes."""
+        super().__init__(c1, c2, c3, c4)
+        self.c = c3 // 2
+        self.cv1 = Conv(c1, c3, 1, 1)
+        self.cv2 = Conv(c3 // 2, c4, 3, 1)
+        self.cv3 = Conv(c4, c4, 3, 1)
+        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
+
+
+class AConv(nn.Module):
+    """AConv."""
+
+    def __init__(self, c1, c2):
+        """Initializes AConv module with convolution layers."""
+        super().__init__()
+        self.cv1 = Conv(c1, c2, 3, 2, 1)
+
+    def forward(self, x):
+        """Forward pass through AConv layer."""
+        x = torch.nn.functional.avg_pool2d(x, 2, 1, 0, False, True)
+        return self.cv1(x)
+
+
 class ADown(nn.Module):
     """ADown."""
 
@@ -666,8 +695,7 @@ class CBLinear(nn.Module):
 
     def forward(self, x):
         """Forward pass through CBLinear layer."""
-        outs = self.conv(x).split(self.c2s, dim=1)
-        return outs
+        return self.conv(x).split(self.c2s, dim=1)
 
 
 class CBFuse(nn.Module):
@@ -682,5 +710,4 @@ class CBFuse(nn.Module):
         """Forward pass through CBFuse layer."""
         target_size = xs[-1].shape[2:]
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
-        out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
-        return out
+        return torch.sum(torch.stack(res + xs[-1:]), dim=0)

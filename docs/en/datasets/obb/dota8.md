@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the versatile DOTA8 dataset, perfect for testing and debugging oriented detection models. Learn how to get started with YOLOv8-obb model training.
-keywords: Ultralytics, YOLOv8, oriented detection, DOTA8 dataset, dataset, model training, YAML
+description: Explore the DOTA8 dataset - a small, versatile oriented object detection dataset ideal for testing and debugging object detection models using Ultralytics YOLOv8.
+keywords: DOTA8 dataset, Ultralytics, YOLOv8, object detection, debugging, training models, oriented object detection, dataset YAML
 ---
 
 # DOTA8 Dataset
@@ -34,10 +34,10 @@ To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-obb.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-obb.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='dota8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

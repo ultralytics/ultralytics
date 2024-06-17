@@ -1,6 +1,6 @@
 ---
-description: Master building SAM ViT models with Ultralytics. Discover steps to leverage the power of SAM and Vision Transformer sessions.
-keywords: Ultralytics, SAM, build sam, vision transformer, vits, build_sam_vit_l, build_sam_vit_b, build_sam
+description: Discover detailed instructions for building various Segment Anything Model (SAM) architectures with Ultralytics, including SAM ViT and Mobile-SAM.
+keywords: Ultralytics, SAM model, Segment Anything Model, SAM ViT, Mobile-SAM, model building, deep learning, AI
 ---
 
 # Reference for `ultralytics/models/sam/build.py`

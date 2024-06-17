@@ -1,6 +1,6 @@
 ---
-description: Learn how to use the RTDETRPredictor model of the Ultralytics package. Detailed documentation, usage instructions, and advice.
-keywords: Ultralytics, RTDETRPredictor, model documentation, guide, real-time object detection
+description: Access the complete reference for the RTDETRPredictor class in Ultralytics. Learn about its attributes, methods, and example usage for real-time object detection.
+keywords: RTDETRPredictor, Ultralytics, Real-Time Detection Transformer, object detection, Vision Transformers, documentation, RT-DETR, Python class
 ---
 
 # Reference for `ultralytics/models/rtdetr/predict.py`

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A concise guide on isolating segmented objects using Ultralytics.
-keywords: Ultralytics, YOLO, segmentation, Python, object detection, inference, dataset, prediction, instance segmentation, contours, binary mask, object mask, image processing
+description: Learn to extract isolated objects from inference results using Ultralytics Predict Mode. Step-by-step guide for segmentation object isolation.
+keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLOv8, machine learning, object detection, binary mask, image processing
 ---
 
 # Isolating Segmentation Objects
@@ -14,13 +14,14 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1. Begin with the necessary imports
+1.  Begin with the necessary imports
 
     ```python
     from pathlib import Path
 
     import cv2
     import numpy as np
+
     from ultralytics import YOLO
     ```
 
@@ -30,13 +31,13 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-2. Load a model and run `predict()` method on a source.
+2.  Load a model and run `predict()` method on a source.
 
     ```python
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO('yolov8n-seg.pt')
+    model = YOLO("yolov8n-seg.pt")
 
     # Run inference
     results = model.predict()
@@ -57,19 +58,18 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
-        img_name = Path(r.path).stem # source image base-name
+        img_name = Path(r.path).stem  # source image base-name
 
         # Iterate each object contour (multiple detections)
-        for ci,c in enumerate(r):
+        for ci, c in enumerate(r):
             # (1) Get detection class name
             label = c.names[c.boxes.cls.tolist().pop()]
-
     ```
 
     1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
@@ -81,7 +81,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
@@ -98,17 +98,12 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 
     # Draw contour onto mask
-    _ = cv2.drawContours(b_mask,
-                        [contour],
-                        -1,
-                        (255, 255, 255),
-                        cv2.FILLED)
-
+    _ = cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
     ```
 
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
-    2. Here, the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
+    2. Here the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
 
     3. The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
 
@@ -145,7 +140,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-5. Next the there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5.  Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
@@ -159,7 +154,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
             # Isolate object with binary mask
             isolated = cv2.bitwise_and(mask3ch, img)
-
             ```
 
             ??? question "How does this work?"
@@ -209,7 +203,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
             ```py
             # Isolate object with transparent background (when saved as PNG)
             isolated = np.dstack([img, b_mask])
-
             ```
 
             ??? question "How does this work?"
@@ -258,7 +251,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -266,7 +259,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         ```py
         # Save isolated object to file
-        _ = cv2.imwrite(f'{img_name}_{label}-{ci}.png', iso_crop)
+        _ = cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
         ```
 
         - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the object detection (in case of multiple instances with the same class name).
@@ -280,18 +273,19 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
-m = YOLO('yolov8n-seg.pt')#(4)!
-res = m.predict()#(3)!
+m = YOLO("yolov8n-seg.pt")  # (4)!
+res = m.predict()  # (3)!
 
-# iterate detection results (5)
+# Iterate detection results (5)
 for r in res:
     img = np.copy(r.orig_img)
     img_name = Path(r.path).stem
 
-    # iterate each object contour (6)
-    for ci,c in enumerate(r):
+    # Iterate each object contour (6)
+    for ci, c in enumerate(r):
         label = c.names[c.boxes.cls.tolist().pop()]
 
         b_mask = np.zeros(img.shape[:2], np.uint8)
@@ -314,7 +308,6 @@ for r in res:
         iso_crop = isolated[y1:y2, x1:x2]
 
         # TODO your actions go here (2)
-
 ```
 
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.

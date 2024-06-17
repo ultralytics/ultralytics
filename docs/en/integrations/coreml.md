@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the process of exporting Ultralytics YOLOv8 models to CoreML format, enabling efficient object detection capabilities for iOS and macOS applications on Apple devices.
-keywords: Ultralytics, YOLOv8, CoreML Export, Model Deployment, Apple Devices, Object Detection, Machine Learning
+description: Learn how to export YOLOv8 models to CoreML for optimized, on-device machine learning on iOS and macOS. Follow step-by-step instructions.
+keywords: CoreML export, YOLOv8 models, CoreML conversion, Ultralytics, iOS object detection, macOS machine learning, AI deployment, machine learning integration
 ---
 
 # CoreML Export for YOLOv8 Models
@@ -40,7 +40,7 @@ Apple's CoreML framework offers robust features for on-device machine learning. 
 
 ## CoreML Deployment Options
 
-Before we look at the code for exporting YOLOv8 models to the CoreML format, let’s understand where CoreML models are usually used.
+Before we look at the code for exporting YOLOv8 models to the CoreML format, let's understand where CoreML models are usually used.
 
 CoreML offers various deployment options for machine learning models, including:
 
@@ -50,7 +50,7 @@ CoreML offers various deployment options for machine learning models, including:
 
     - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
 
-- **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It’s ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues​.
+- **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues​.
 
 ## Exporting YOLOv8 Models to CoreML
 
@@ -63,7 +63,7 @@ To install the required package, run:
 !!! Tip "Installation"
 
     === "CLI"
-    
+
         ```bash
         # Install the required package for YOLOv8
         pip install ultralytics
@@ -83,16 +83,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to CoreML format
-        model.export(format='coreml')  # creates 'yolov8n.mlpackage'
+        model.export(format="coreml")  # creates 'yolov8n.mlpackage'
 
         # Load the exported CoreML model
-        coreml_model = YOLO('yolov8n.mlpackage')
+        coreml_model = YOLO("yolov8n.mlpackage")
 
         # Run inference
-        results = coreml_model('https://ultralytics.com/images/bus.jpg')
+        results = coreml_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -123,4 +123,4 @@ In this guide, we went over how to export Ultralytics YOLOv8 models to CoreML fo
 
 For further details on usage, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
 
-Also, if you’d like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.

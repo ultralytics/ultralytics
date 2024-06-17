@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Object Counting in Different Region using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to use Ultralytics YOLOv8 for precise object counting in specified regions, enhancing efficiency across various applications.
+keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring
 ---
 
 # Object Counting in Different Regions using Ultralytics YOLOv8 🚀
 
 ## What is Object Counting in Regions?
 
-[Object counting](https://docs.ultralytics.com/guides/object-counting/) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
+[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Counting, Object Trackin
 ## Real World Applications
 
 |                                                                               Retail                                                                               |                                                                          Market Streets                                                                           |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![People Counting in Different Region using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf) | ![Crowd Counting in Different Region using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca) |
 |                                                    People Counting in Different Region using Ultralytics YOLOv8                                                    |                                                    Crowd Counting in Different Region using Ultralytics YOLOv8                                                    |
 
@@ -76,7 +76,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ### Optional Arguments
 
 | Name                 | Type   | Default      | Description                                |
-|----------------------|--------|--------------|--------------------------------------------|
+| -------------------- | ------ | ------------ | ------------------------------------------ |
 | `--source`           | `str`  | `None`       | Path to video file, for webcam 0           |
 | `--line_thickness`   | `int`  | `2`          | Bounding Box thickness                     |
 | `--save-img`         | `bool` | `False`      | Save the predicted video/image             |

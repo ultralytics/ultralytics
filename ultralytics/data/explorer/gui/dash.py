@@ -259,7 +259,7 @@ def layout():
 
     with col2:
         similarity_form(selected_imgs)
-        display_labels = st.checkbox("Labels", value=False, key="display_labels")
+        st.checkbox("Labels", value=False, key="display_labels")
         utralytics_explorer_docs_callback()
 
 

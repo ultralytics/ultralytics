@@ -18,7 +18,7 @@ When connecting to a remote machine, normally visualizing image results is not p
 
 !!! warning
 
-    Only compatible with Linux and MacOS. Check the VSCode [repository](https://github.com/microsoft/vscode), check [Issue status](https://github.com/microsoft/vscode/issues/198622), or [documentation](https://code.visualstudio.com/docs) for updates about Windows support to view images in terminal with `sixel`.
+    Only compatible with Linux and MacOS. Check the [VSCode repository](https://github.com/microsoft/vscode), check [Issue status](https://github.com/microsoft/vscode/issues/198622), or [documentation](https://code.visualstudio.com/docs) for updates about Windows support to view images in terminal with `sixel`.
 
 The VSCode compatible protocols for viewing images using the integrated terminal are [`sixel`](https://en.wikipedia.org/wiki/Sixel) and [`iTerm`](https://iterm2.com/documentation-images.html). This guide will demonstrate use of the `sixel` protocol.
 
@@ -31,23 +31,28 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     "terminal.integrated.enableImages": false
     ```
 
-<p align="center">
-  <img width="800" src="https://github.com/ultralytics/ultralytics/assets/62214284/d158ab1c-893c-4397-a5de-2f9f74f81175" alt="VSCode enable terminal images setting">
-</p>
+    <p align="center">
+      <img width="800" src="https://github.com/ultralytics/ultralytics/assets/62214284/d158ab1c-893c-4397-a5de-2f9f74f81175" alt="VSCode enable terminal images setting">
+    </p>
 
-1. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
+2. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
 
     ```bash
     pip install sixel
     ```
 
-1. Import the relevant libraries
-
-    ```py
+3. Import the relevant libraries
 
     ```
+    import io
 
-1. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
+    import cv2 as cv
+    from sixel import SixelWriter
+
+    from ultralytics import YOLO
+    ```
+
+4. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
     ```{ .py .annotate }
     from ultralytics import YOLO
@@ -64,7 +69,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
-1. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
+5. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
     ```{ .py .annotate }
     # Results image as bytes
@@ -80,7 +85,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     1. It's possible to use other image extensions as well.
     2. Only the object at index `1` that is returned is needed.
 
-1. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
+6. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
 
     ```py
     # Create sixel writer object

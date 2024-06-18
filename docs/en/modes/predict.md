@@ -249,7 +249,6 @@ Below are code examples for using each source type:
 
         Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
         ```python
-
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model

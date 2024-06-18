@@ -1,6 +1,6 @@
-from ultralytics import YOLO
-
 import argparse
+
+from ultralytics import YOLO
 
 parser = argparse.ArgumentParser(description='Process SegmentPoseModel.')
 parser.add_argument('-w','--weights', default='', type=str, help='path to weights model')

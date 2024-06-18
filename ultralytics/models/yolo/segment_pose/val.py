@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import SegmentPoseMetrics, box_iou, mask_iou, kpt_iou, OKS_SIGMA
+from ultralytics.utils.metrics import OKS_SIGMA, SegmentPoseMetrics, box_iou, kpt_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 

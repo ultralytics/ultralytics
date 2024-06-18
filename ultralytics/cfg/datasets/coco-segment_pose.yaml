@@ -161,7 +161,7 @@ download: |
                           line_kpt = *(keypoints[i]),  # cls, box, keypoints
                           line_seg = *(segments[i]
                                   if use_segments and len(segments[i]) > 0 else bboxes[i]),  # cls, box or segments
-                          line = line_kpt + line_seg[1:] # [1:] for drop dublicate `class_label`` at 0 index in keypoints, bboxes in segments
+                          line = line_kpt + line_seg[1:] # [1:] for drop duplicate `class_label`` at 0 index in keypoints, bboxes in segments
                       elif use_keypoints:
                           line = *(keypoints[i]),  # cls, box, keypoints
                       else:

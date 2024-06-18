@@ -165,9 +165,6 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        # setup hub training
-        if RANK in {-1, 0}:
-            self._setup_hub()
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
@@ -319,6 +316,8 @@ class BaseTrainer:
 
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
+        if RANK in {-1, 0}:
+            self._setup_hub()
         if world_size > 1:
             self._setup_ddp(world_size)
         self._setup_train(world_size)

@@ -14,15 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  Begin with the necessary imports
-
-    ```python
-
-    ```
-
-    ???+ tip "Ultralytics Install"
-
-        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
 
     ***
 
@@ -56,6 +48,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
+    from pathlib import Path
+    import numpy as np
+    
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
@@ -81,6 +76,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
     ```{ .py .annotate }
+    import cv2
+
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
 

@@ -785,6 +785,7 @@ class BaseTrainer:
         try:
             from ultralytics.hub.session import HUBTrainingSession
 
+            print("hub_model_url:", self.hub_model_url)
             session = HUBTrainingSession(self.hub_model_url or self.args.model)
             self.hub_session = session if session.client.authenticated else self.hub_session
             if self.hub_session:

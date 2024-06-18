@@ -145,6 +145,7 @@ class HUBTrainingSession:
         # Initialize variables
         api_key, model_id, filename = None, None, None
 
+        print("debug:", identifier.startswith(f"{HUB_WEB_ROOT}/models/"))
         # Check if identifier is a HUB URL
         if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
             # Extract the model_id after the HUB_WEB_ROOT URL

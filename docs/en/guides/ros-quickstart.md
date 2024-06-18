@@ -83,6 +83,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
     ```python
     import time
+
     import rospy
 
     from ultralytics import YOLO

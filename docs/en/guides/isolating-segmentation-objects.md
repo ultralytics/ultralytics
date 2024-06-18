@@ -49,8 +49,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ```{ .py .annotate }
     from pathlib import Path
+
     import numpy as np
-    
+
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)

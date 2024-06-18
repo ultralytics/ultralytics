@@ -183,7 +183,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -230,7 +229,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)

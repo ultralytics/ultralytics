@@ -27,22 +27,6 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
 
 ### Code
 
-#### Import Libraries
-
-```python
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from time import time
-
-import cv2
-import numpy as np
-import torch
-
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
-```
-
 #### Set up the parameters of the message
 
 ???+ tip "Note"
@@ -60,6 +44,8 @@ to_email = ""  # receiver email
 #### Server creation and authentication
 
 ```python
+import smtplib
+
 server = smtplib.SMTP("smtp.gmail.com: 587")
 server.starttls()
 server.login(from_email, password)
@@ -68,6 +54,10 @@ server.login(from_email, password)
 #### Email Send Function
 
 ```python
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+
 def send_email(to_email, from_email, object_detected=1):
     """Sends an email notification indicating the number of objects detected; defaults to 1 object."""
     message = MIMEMultipart()
@@ -84,6 +74,15 @@ def send_email(to_email, from_email, object_detected=1):
 #### Object Detection and Alert Sender
 
 ```python
+from time import time
+
+import cv2
+import torch
+
+from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator, colors
+
+
 class ObjectDetection:
     def __init__(self, capture_index):
         """Initializes an ObjectDetection instance with a given camera index."""
@@ -109,7 +108,7 @@ class ObjectDetection:
     def display_fps(self, im0):
         """Displays the FPS on an image `im0` by calculating and overlaying as white text on a black rectangle."""
         self.end_time = time()
-        fps = 1 / np.round(self.end_time - self.start_time, 2)
+        fps = 1 / round(self.end_time - self.start_time, 2)
         text = f"FPS: {int(fps)}"
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
         gap = 10

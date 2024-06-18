@@ -178,7 +178,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/103dbf90-c169-4f77-b791-76cdf09c6f22){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
@@ -225,7 +225,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/5910244f-d1e1-44af-af7f-6dea4c688da8){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region

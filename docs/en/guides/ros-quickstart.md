@@ -105,9 +105,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     
     ```python
     def callback(data):
-    """
-    Callback function to process image and publish annotated images
-    """
+    """Callback function to process image and publish annotated images."""
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
@@ -146,9 +144,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
 
     def callback(data):
-        """
-        Callback function to process image and publish annotated images
-        """
+        """Callback function to process image and publish annotated images."""
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
@@ -201,9 +197,7 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
 
 
     def callback(data):
-        """
-        Callback function to process image and publish detected classes
-        """
+        """Callback function to process image and publish detected classes."""
         array = ros_numpy.numpify(data)
         if classes_pub.get_num_connections():
             det_result = detection_model(array)
@@ -265,9 +259,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     ```python
     def callback(data):
-        """
-        Callback function to process depth image and RGB image
-        """
+        """Callback function to process depth image and RGB image."""
         image = rospy.wait_for_message("/camera/color/image_raw", Image)
         image = ros_numpy.numpify(image)
         depth = ros_numpy.numpify(data)
@@ -339,11 +331,11 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     ```python
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
         """
-        Convert a ROS PointCloud2 message to a numpy array
-        
+        Convert a ROS PointCloud2 message to a numpy array.
+
         Args:
             pointcloud2 (PointCloud2): the PointCloud2 message
-            
+
         Returns:
             (tuple): tuple containing (xyz, rgb)
         """

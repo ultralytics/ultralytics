@@ -80,7 +80,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
 5. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
 
-    ```py
+    ```python
     from sixel import SixelWriter
 
     # Create sixel writer object

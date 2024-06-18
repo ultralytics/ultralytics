@@ -56,13 +56,13 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
 Apart from the ROS environment, you will need to install the following dependencies:
 
 - **[ROS Numpy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and numpy arrays.
-    ``` bash
+    ```bash
     pip install ros_numpy
     ```
 
 - **Ultralytics package**:
   
-    ``` bash
+    ```bash
     pip install ultralytics
     ```
 

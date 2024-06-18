@@ -28,7 +28,7 @@ To access the [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API us
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
@@ -117,7 +117,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -185,7 +185,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -257,7 +257,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -331,7 +331,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -400,7 +400,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}

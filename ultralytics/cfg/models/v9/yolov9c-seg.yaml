@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv9c-seg
+# YOLOv9c-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/models/yolov9
 # 654 layers, 27897120 parameters, 159.4 GFLOPs
 
-# parameters
+# Parameters
 nc: 80 # number of classes
 
-# gelan backbone
+# GELAN backbone
 backbone:
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4

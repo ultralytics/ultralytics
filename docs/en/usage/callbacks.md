@@ -41,7 +41,7 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO(f"yolov8n.pt")
+model = YOLO("yolov8n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)

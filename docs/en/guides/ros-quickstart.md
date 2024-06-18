@@ -87,9 +87,10 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     from ultralytics import YOLO
     import ros_numpy
     from sensor_msgs.msg import Image
+
     detection_model = YOLO("yolov8m.pt")
     segmentation_model = YOLO("yolov8m-seg.pt")
-    rospy.init_node('ultralytics')
+    rospy.init_node("ultralytics")
     time.sleep(1)
     ```
 
@@ -112,12 +113,12 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
             det_result = detection_model(array)
             det_annotated = det_result[0].plot(show=False)
             det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding='rgb8'))
-        
+    
         if seg_image_pub.get_num_connections():
             seg_result = segmentation_model(array)
             seg_annotated = seg_result[0].plot(show=False)
             seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding='rgb8'))
-        
+    
     rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
     while True:
@@ -132,14 +133,16 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     from ultralytics import YOLO
     import ros_numpy
     from sensor_msgs.msg import Image
+
     detection_model = YOLO("yolov8m.pt")
     segmentation_model = YOLO("yolov8m-seg.pt")
-    rospy.init_node('ultralytics')
+    rospy.init_node("ultralytics")
     time.sleep(1)
-    
+
     det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
     seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
-    
+
+
     def callback(data):
         """
         Callback function to process image and publish annotated images
@@ -148,13 +151,14 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
             det_annotated = det_result[0].plot(show=False)
-            det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding='rgb8'))
-        
+            det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+
         if seg_image_pub.get_num_connections():
             seg_result = segmentation_model(array)
             seg_annotated = seg_result[0].plot(show=False)
-            seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding='rgb8'))
-        
+            seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
+
+
     rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
     while True:
@@ -185,10 +189,12 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
     import ros_numpy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
+
     detection_model = YOLO("yolov8m.pt")
-    rospy.init_node('ultralytics')
+    rospy.init_node("ultralytics")
     time.sleep(1)
     classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5)
+
 
     def callback(data):
         """
@@ -200,6 +206,7 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
             classes = det_result[0].boxes.cls.cpu().numpy().astype(int)
             names = [det_result[0].names[i] for i in classes]
             classes_pub.publish(String(data=str(names)))
+
 
     rospy.Subscriber("/camera/color/image_raw", Image, callback)
     while True:
@@ -323,7 +330,8 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     import numpy as np
     import open3d as o3d
     import sys
-    rospy.init_node('ultralytics')
+
+    rospy.init_node("ultralytics")
     time.sleep(1)
     segmentation_model = YOLO("yolov8m-seg.pt")
     ```
@@ -341,7 +349,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         """
         pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
         split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
-        rgb = np.stack([split['b'], split['g'], split['r']], axis=2)
+        rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
         xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
         xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
         nan_rows = np.isnan(xyz).all(axis=2)
@@ -363,15 +371,15 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
     classes = result[0].boxes.cls.cpu().numpy().astype(int)
     for index, class_id in enumerate(classes):
-        mask = result[0].masks.data.cpu().numpy()[index,:,:].astype(int)
+        mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
         mask_expanded = np.stack([mask, mask, mask], axis=2)
-        
+
         obj_rgb = rgb * mask_expanded
         obj_xyz = xyz * mask_expanded
-        
+
         pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height* ros_cloud.width, 3)))
-        pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height* ros_cloud.width, 3)) / 255)
+        pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((ros_cloud.height * ros_cloud.width, 3)))
+        pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((ros_cloud.height * ros_cloud.width, 3)) / 255)
         o3d.visualization.draw_geometries([pcd])
     ```
 

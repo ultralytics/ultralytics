@@ -145,6 +145,7 @@ class BaseTrainer:
 
         # hub
         self.hub_session = None
+        self.hub_model_url = ''
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -784,7 +785,7 @@ class BaseTrainer:
         try:
             from ultralytics.hub.session import HUBTrainingSession
 
-            session = HUBTrainingSession(self.args.model)
+            session = HUBTrainingSession(self.hub_model_url or self.args.model)
             self.hub_session = session if session.client.authenticated else self.hub_session
             if self.hub_session:
                 self.hub_session.create_model(self.args)

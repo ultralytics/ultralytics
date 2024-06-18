@@ -340,7 +340,25 @@ print(xywh)
 ### All Bounding Box Conversions
 
 ```python
+from ultralytics.utils.ops import (
+    ltwh2xywh,
+    ltwh2xyxy,
+    xywh2ltwh,  # xywh → top-left corner, w, h
+    xywh2xyxy,
+    xywhn2xyxy,  # normalized → pixel
+    xyxy2ltwh,  # xyxy → top-left corner, w, h
+    xyxy2xywhn,  # pixel → normalized
+)
 
+for func in (
+    ltwh2xywh,
+    ltwh2xyxy,
+    xywh2ltwh,
+    xywh2xyxy,
+    xywhn2xyxy,
+    xyxy2ltwh,
+    xyxy2xywhn):
+  print(help(func))  # print function docstrings
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.

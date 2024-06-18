@@ -41,18 +41,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     pip install sixel
     ```
 
-3. Import the relevant libraries
-
-    ```
-    import io
-
-    import cv2 as cv
-    from sixel import SixelWriter
-
-    from ultralytics import YOLO
-    ```
-
-4. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
+3. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
     ```{ .py .annotate }
     from ultralytics import YOLO
@@ -69,11 +58,14 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
-5. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
+4. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
     ```{ .py .annotate }
+    import io
+    import cv2
+
     # Results image as bytes
-    im_bytes = cv.imencode(
+    im_bytes = cv2.imencode(
         ".png",  # (1)!
         plot,
     )[1].tobytes()  # (2)!
@@ -85,9 +77,11 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     1. It's possible to use other image extensions as well.
     2. Only the object at index `1` that is returned is needed.
 
-6. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
+5. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
 
     ```py
+    from sixel import SixelWriter
+
     # Create sixel writer object
     w = SixelWriter()
 
@@ -109,10 +103,8 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
 ```{ .py .annotate }
 import io
-
-import cv2 as cv
 from sixel import SixelWriter
-
+import cv2
 from ultralytics import YOLO
 
 # Load a model
@@ -125,7 +117,7 @@ results = model.predict(source="ultralytics/assets/bus.jpg")
 plot = results[0].plot()  # (3)!
 
 # Results image as bytes
-im_bytes = cv.imencode(
+im_bytes = cv2.imencode(
     ".png",  # (1)!
     plot,
 )[1].tobytes()  # (2)!

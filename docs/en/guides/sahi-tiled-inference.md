@@ -100,7 +100,7 @@ detection_model = AutoDetectionModel.from_pretrained(
 Perform standard inference using an image path or a numpy image.
 
 ```python
-from sahi.predict import get_prediction, get_sliced_prediction, predict
+from sahi.predict import get_prediction
 
 # With an image path
 result = get_prediction("demo_data/small-vehicles1.jpeg", detection_model)

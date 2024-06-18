@@ -1,7 +1,7 @@
 ---
 comments: true
 description: todo
-keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys,compatibility, performance, stability
+keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV, 
 ---
 
 # ROS (Robot Operating System) quickstart guide
@@ -15,7 +15,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ### Key Features of ROS
 
-1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called nodes. Each node typically performs a specific function, and nodes communicate with each other using messages over topics or services.
+1. **Modular Architecture**: ROS has a modular architecture, allowing developers to build complex systems by combining smaller, reusable components called [nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes). Each node typically performs a specific function, and nodes communicate with each other using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
 
 2. **Communication Middleware**: ROS offers a robust communication infrastructure that supports inter-process communication and distributed computing. This is achieved through a publish-subscribe model for data streams (topics) and a request-reply model for service calls.
 
@@ -27,7 +27,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ???+ note "Evolution of ROS Versions"
 
-    Since its development in 2007, ROS has evolved through multiple versions, each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
+    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
 
     ### ROS 1 vs. ROS 2
 
@@ -41,7 +41,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ### ROS Messages and Topics
 
-In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image messages and camera topics.
+In ROS, communication between nodes is facilitated through [messages](https://wiki.ros.org/Messages) and [topics](https://wiki.ros.org/Topics). A message is a data structure that defines the information exchanged between nodes, while a topic is a named channel over which messages are sent and received. Nodes can publish messages to a topic or subscribe to messages from a topic, enabling them to communicate with each other. This publish-subscribe model allows for asynchronous communication and decoupling between nodes. Each sensor or actuator in a robotic system typically publishes data to a topic, which can then be consumed by other nodes for processing or control. For the purpose of this guide, we will focus on Image, Depth and PointCloud messages and camera topics.
 
 ## Setting Up Ultralytics YOLO with ROS
 
@@ -51,22 +51,20 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
   <img width="50%" src="https://robots.ros.org/assets/img/robots/husarion-rosbot-2r/rosbot2r.png" alt="Husarion ROSbot 2 PRO">
 </p>
 
-
 ### Dependencies Installation
 
 Apart from the ROS environment, you will need to install the following dependencies:
 
-- **ROS Numpy package**: This is required for fast conversion between ROS Image messages and numpy arrays.
+- **[ROS Numpy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and numpy arrays.
     ``` bash
     pip install ros_numpy
     ```
-
 
 - **Ultralytics package**:
   
     ``` bash
     pip install ultralytics
-    ``` 
+    ```
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
@@ -78,10 +76,10 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
 !!! Example "Usage"
 
-    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for detection and segmentation. 
+    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md). 
 
     ### Step-by-Step Explanation
-    First, we import the necessary libraries and instantiate two models: one for segmentation and one for detection. Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
+    First, we import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
 
     ``` py
     import rospy
@@ -95,7 +93,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     time.sleep(1)
     ```
 
-    We initialize two ROS topics: one for detection and one for segmentation. These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
+    We initialize two ROS topics: one for [detection](../tasks/detect.md) and one for [segmentation](../tasks/segment.md). These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
 
     ```py
     det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
@@ -157,7 +155,6 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
         rospy.spin()
     ```
 
-
 ???+ tip "Debugging"
 
     Debugging ROS (Robot Operating System) nodes can be challenging due to the system's distributed nature. Several tools can assist with this process:
@@ -168,10 +165,10 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g. `sensors_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
 
 ### Publish Detected Classes with `std_msgs/String`
-Standard ROS messages also include `std_msgs/String` messages. In many applications, it is not necessary to republish the entire annotated image; instead, only the classes present in the robot's view are needed. The following example demonstrates how to use `std_msgs/String` messages to republish the detected classes on the `/ultralytics/detection/classes` topic. These messages are more lightweight and provide essential information, making them valuable for various applications.
+Standard ROS messages also include `std_msgs/String` messages. In many applications, it is not necessary to republish the entire annotated image; instead, only the classes present in the robot's view are needed. The following example demonstrates how to use `std_msgs/String` [messages](https://docs.ros.org/en/noetic/api/std_msgs/html/msg/String.html) to republish the detected classes on the `/ultralytics/detection/classes` topic. These messages are more lightweight and provide essential information, making them valuable for various applications.
 
 #### Example Use Case
-Consider a warehouse robot equipped with a camera and object detection model. Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box" "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
+Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
 
 !!! Example "Usage"
 
@@ -202,13 +199,11 @@ Consider a warehouse robot equipped with a camera and object detection model. In
 
     This example demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topic `/ultralytics/detection/classes` using `std_msgs/String` messages. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. 
 
-
 ## Use Ultralytics with ROS Depth Images
 
-In addition to RGB images, ROS supports depth images, which provide information about the distance of objects from the camera. Depth images are crucial for robotic applications such as obstacle avoidance, 3D mapping, and localization.
+In addition to RGB images, ROS supports [depth images](https://en.wikipedia.org/wiki/Depth_map), which provide information about the distance of objects from the camera. Depth images are crucial for robotic applications such as obstacle avoidance, 3D mapping, and localization.
 
 A depth image is an image where each pixel represents the distance from the camera to an object. Unlike RGB images that capture color, depth images capture spatial information, enabling robots to perceive the 3D structure of their environment.
-
 
 !!! tip "Obtaining Depth Images" 
 
@@ -225,7 +220,6 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
 !!! warning "RGB-D Cameras"
     When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment. 
-
 
 !!! Example "Usage"
 
@@ -259,7 +253,6 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
         depth = ros_numpy.numpify(data)
         result = segmentation_model(image)
 
-        all_objects = []  # (6)
         for index, cls in enumerate(result[0].boxes.cls):
             class_index = int(cls.cpu().numpy())
             name = result[0].names[class_index]
@@ -267,7 +260,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
             obj = depth[mask == 1]
             obj = obj[~np.isnan(obj)]
             avg_distance = np.mean(obj) if len(obj) else np.inf
-            all_objects.append((name, avg_distance))
+
         classes_pub.publish(String(data=str(all_objects)))
 
 
@@ -277,13 +270,11 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
         rospy.spin()
     ```
 
-
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/f6393fbe-68a5-459b-ae44-3321375bbd3c" alt="Detection and Segmentation in ROS Gazebo">
 </p>
-
 
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
 
@@ -306,7 +297,6 @@ A point cloud is a collection of data points defined within a three-dimensional 
 To integrate YOLO with `sensor_msgs/PointCloud2` type messages, we can employ a method similar to the one used for depth maps. By leveraging the color information embedded in the point cloud, we can extract a 2D image, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
 
 For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
-
 
 !!! Example "Usage"
 
@@ -347,6 +337,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         rgb[nan_rows] = [0, 0, 0]
         return xyz, rgb
     ```
+
     Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors. 
 
     ``` py

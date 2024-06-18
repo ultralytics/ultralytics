@@ -138,4 +138,5 @@ __all__ = (
     "CBLinear",
     "AConv",
     "ELAN1",
+    "Silence"
 )

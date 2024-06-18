@@ -261,9 +261,13 @@ class WorldDetect(Detect):
 class HumanDetect(Detect):
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
-        c4, c5 = max((16, ch[0] // 4, self.reg_max * 3)), 32
+        c4, c5 = max((16, ch[0] // 4, self.reg_max * 2)), 32
+        c7 = c4 // 2
         self.cv4 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max * 3, 1)) for x in ch
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max * 2, 1)) for x in ch
+        )
+        self.cv7 = nn.ModuleList(
+            nn.Sequential(Conv(x, c7, 3), Conv(c7, c7, 3), nn.Conv2d(c7, self.reg_max, 1)) for x in ch
         )
         # gender, 2 classes
         self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
@@ -272,12 +276,12 @@ class HumanDetect(Detect):
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        x_wha = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max * 3, -1) for i in range(self.nl)], -1)
+        x_wh = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max * 2, -1) for i in range(self.nl)], -1)
         gender = torch.cat([self.cv5[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
         ethnicity = torch.cat([self.cv6[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
-        weight = x_wha[:, : self.reg_max]
-        height = x_wha[:, self.reg_max : 2 * self.reg_max]
-        age = x_wha[:, 2 * self.reg_max :]
+        weight = x_wh[:, : self.reg_max]
+        height = x_wh[:, self.reg_max :]
+        age = torch.cat([self.cv7[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
         attributes = dict(weight=weight, height=height, age=age, gender=gender, ethnicity=ethnicity)
         # boxes
         x = Detect.forward(self, x)

@@ -340,10 +340,12 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
         """
         Convert a ROS PointCloud2 message to a numpy array
+        
         Args:
             pointcloud2 (PointCloud2): the PointCloud2 message
+            
         Returns:
-            tuple: tuple containing: (xyz, rgb)
+            (tuple): tuple containing (xyz, rgb)
         """
         pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
         split = ros_numpy.point_cloud2.split_rgb_field(pc_array)

@@ -57,6 +57,7 @@ server.login(from_email, password)
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+
 def send_email(to_email, from_email, object_detected=1):
     """Sends an email notification indicating the number of objects detected; defaults to 1 object."""
     message = MIMEMultipart()
@@ -73,12 +74,14 @@ def send_email(to_email, from_email, object_detected=1):
 #### Object Detection and Alert Sender
 
 ```python
+from time import time
+
 import cv2
 import torch
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator, colors
-from time import time
+
 
 class ObjectDetection:
     def __init__(self, capture_index):

@@ -134,7 +134,7 @@ class ObjectDetection:
         return im0, class_ids
 
     def __call__(self):
-        """Executes object detection on video frames from a specified camera index, plotting bounding boxes and returning modified frames."""
+        """Run object detection on video frames from a camera stream, plotting and showing the results."""
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)

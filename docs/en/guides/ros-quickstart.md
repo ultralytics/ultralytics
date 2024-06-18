@@ -81,7 +81,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     ### Step-by-Step Explanation
     First, we import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
 
-    ``` py
+    ```python
     import rospy
     import time
     from ultralytics import YOLO
@@ -95,15 +95,18 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
     We initialize two ROS topics: one for [detection](../tasks/detect.md) and one for [segmentation](../tasks/segment.md). These topics will be used to publish the annotated images, making them accessible for further processing. The communication between nodes is facilitated using `sensor_msgs/Image` messages.
 
-    ```py
+    ```python
     det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
     seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
     ```
 
     Finally, we create a subscriber that listens to messages on the `/camera/color/image_raw` topic and calls a callback function for each new message. This callback function receives messages of type `sensor_msgs/Image`, converts them into a numpy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics: `/ultralytics/detection/image` for detection and `/ultralytics/segmentation/image` for segmentation.
     
-    ``` py
+    ```python
     def callback(data):
+    """
+    Callback function to process image and publish annotated images
+    """
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
@@ -123,7 +126,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
     ### Complete code
 
-    ``` py
+    ```python
     import rospy
     import time
     from ultralytics import YOLO
@@ -138,6 +141,9 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     seg_image_pub = rospy.Publisher("/ultralytics/segmentation/image", Image, queue_size=5)
     
     def callback(data):
+        """
+        Callback function to process image and publish annotated images
+        """
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
@@ -172,7 +178,7 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
 
 !!! Example "Usage"
 
-    ``` py
+    ```python
     import rospy
     import time
     from ultralytics import YOLO
@@ -185,6 +191,9 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
     classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5)
 
     def callback(data):
+        """
+        Callback function to process image and publish detected classes
+        """
         array = ros_numpy.numpify(data)
         if classes_pub.get_num_connections():
             det_result = detection_model(array)
@@ -225,7 +234,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     In this example, we use YOLO to segment an image and apply the extracted mask to segment the object in the depth image. This allows us to determine the distance of each pixel of the object of interest from the camera's focal center. By obtaining this distance information, we can calculate the distance between the camera and the specific object in the scene. We begin by importing the necessary libraries, creating a ROS node, and instantiating a segmentation model and a ROS topic.
 
-    ```py
+    ```python
     import time
 
     import numpy as np
@@ -246,8 +255,11 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
     Next, we define a callback function that processes the incoming depth image message. The function waits for the depth image and RGB image messages, converts them into numpy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image. Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`. Finally, it publishes the detected objects along with their average distances to the `/ultralytics/detection/distance` topic.
 
-    ```py
+    ```python
     def callback(data):
+        """
+        Callback function to process depth image and RGB image
+        """
         image = rospy.wait_for_message("/camera/color/image_raw", Image)
         image = ros_numpy.numpify(image)
         depth = ros_numpy.numpify(data)
@@ -302,7 +314,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
     Import the necessary libraries and instantiate the YOLO model for segmentation.
 
-    ``` py
+    ```python
     import rospy
     import time
     from ultralytics import YOLO
@@ -318,7 +330,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
     Let's create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two numpy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information. The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`.
 
-    ``` py
+    ```python
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
         """
         Convert a ROS PointCloud2 message to a numpy array
@@ -340,7 +352,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 
     Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors. 
 
-    ``` py
+    ```python
     ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
     xyz, rgb = pointcloud2_to_array(ros_cloud)
     result = segmentation_model(rgb)

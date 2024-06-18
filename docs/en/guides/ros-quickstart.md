@@ -82,11 +82,11 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     First, we import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
 
     ```python
-    import rospy
     import time
+
+    import rospy
+
     from ultralytics import YOLO
-    import ros_numpy
-    from sensor_msgs.msg import Image
 
     detection_model = YOLO("yolov8m.pt")
     segmentation_model = YOLO("yolov8m-seg.pt")
@@ -128,11 +128,13 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     ### Complete code
 
     ```python
-    import rospy
     import time
-    from ultralytics import YOLO
+
     import ros_numpy
+    import rospy
     from sensor_msgs.msg import Image
+
+    from ultralytics import YOLO
 
     detection_model = YOLO("yolov8m.pt")
     segmentation_model = YOLO("yolov8m-seg.pt")
@@ -183,12 +185,14 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
 !!! Example "Usage"
 
     ```python
-    import rospy
     import time
-    from ultralytics import YOLO
+
     import ros_numpy
+    import rospy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
+
+    from ultralytics import YOLO
 
     detection_model = YOLO("yolov8m.pt")
     rospy.init_node("ultralytics")
@@ -244,10 +248,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
     ```python
     import time
 
-    import numpy as np
-    import ros_numpy
     import rospy
-    from sensor_msgs.msg import Image
     from std_msgs.msg import String
 
     from ultralytics import YOLO
@@ -322,14 +323,11 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
     Import the necessary libraries and instantiate the YOLO model for segmentation.
 
     ```python
-    import rospy
     import time
+
+    import rospy
+
     from ultralytics import YOLO
-    import ros_numpy
-    from sensor_msgs.msg import PointCloud2
-    import numpy as np
-    import open3d as o3d
-    import sys
 
     rospy.init_node("ultralytics")
     time.sleep(1)

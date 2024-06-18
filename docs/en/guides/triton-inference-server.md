@@ -126,7 +126,7 @@ Then run inference using the Triton Server model:
 from ultralytics import YOLO
 
 # Load the Triton Server model
-model = YOLO(f"http://localhost:8000/yolo", task="detect")
+model = YOLO("http://localhost:8000/yolo", task="detect")
 
 # Run inference on the server
 results = model("path/to/image.jpg")

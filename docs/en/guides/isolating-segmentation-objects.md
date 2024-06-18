@@ -17,12 +17,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 1.  Begin with the necessary imports
 
     ```python
-    from pathlib import Path
 
-    import cv2
-    import numpy as np
-
-    from ultralytics import YOLO
     ```
 
     ???+ tip "Ultralytics Install"

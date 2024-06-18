@@ -659,7 +659,7 @@ class Model(nn.Module):
             self.model = self.trainer.model
 
         self.trainer.hub_session = self.session  # attach optional HUB session
-        self.trainer.hub_model = self.hub_model_url
+        self.trainer.hub_model_url = self.hub_model_url
         self.trainer.train()
         # Update model and cfg after training
         if RANK in {-1, 0}:

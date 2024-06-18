@@ -303,9 +303,10 @@ class HumanDetect(Detect):
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
         m = self  # self.model[-1]  # Detect() module
-        for b, w in zip(m.cv2, m.cv4):
+        for b, w, a in zip(m.cv2, m.cv4, m.cv7):
             b[-1].bias.data[:] = 1.0  # box
-            w[-1].bias.data[:] = 1.0  # weight, height, age
+            w[-1].bias.data[:] = 1.0  # weight, height
+            a[-1].bias.data[:] = 1.0  # age
         for c, g, r, s in zip(m.cv3, m.cv5, m.cv6, m.stride):  # from
             c[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
             g[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)

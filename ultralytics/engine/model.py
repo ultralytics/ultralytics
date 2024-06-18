@@ -137,6 +137,7 @@ class Model(nn.Module):
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.6")
             self.hub_model_url = model   # for ddp training from hub
+            print("Model hub_model_url:", self.hub_model_url)
             self.session = self._get_hub_session(model)
             model = self.session.model_file
 

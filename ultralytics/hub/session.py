@@ -57,6 +57,7 @@ class HUBTrainingSession:
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
+        print("filename:", self.filename)
 
         # Get credentials
         active_key = api_key or SETTINGS.get("api_key")

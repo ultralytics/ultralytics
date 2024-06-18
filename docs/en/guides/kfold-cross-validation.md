@@ -81,7 +81,7 @@ Without further ado, let's dive in!
 
     ```python
     import pandas as pd
-    
+
     indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
@@ -173,7 +173,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     ```python
     import datetime
-    
+
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
     # Initialize an empty list to store image file paths
@@ -219,7 +219,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     ```python
     import shutil
-    
+
     for image, label in zip(images, labels):
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory

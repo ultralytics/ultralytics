@@ -157,11 +157,13 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                     f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
                     f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
                 )
+            arg = "cuda:0"
+        else:
+            arg = "cuda:" + device if device else "cuda:0"
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
-        arg = "cuda:" + device if device else "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

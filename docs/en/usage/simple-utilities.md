@@ -349,6 +349,16 @@ from ultralytics.utils.ops import (
     xyxy2ltwh,  # xyxy → top-left corner, w, h
     xyxy2xywhn,  # pixel → normalized
 )
+
+for func in (
+    ltwh2xywh,
+    ltwh2xyxy,
+    xywh2ltwh,
+    xywh2xyxy,
+    xywhn2xyxy,
+    xyxy2ltwh,
+    xyxy2xywhn):
+  print(help(func))  # print function docstrings
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.
@@ -467,7 +477,10 @@ Want or need to use the formats of [images or videos types supported](../modes/p
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# >>> ('bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm')
+# {'tiff', 'pfm', 'bmp', 'mpo', 'dng', 'jpeg', 'png', 'webp', 'tif', 'jpg'}
+
+print(VID_FORMATS)
+# {'avi', 'mpg', 'wmv', 'mpeg', 'm4v', 'mov', 'mp4', 'asf', 'mkv', 'ts', 'gif', 'webm'}
 ```
 
 ### Make Divisible

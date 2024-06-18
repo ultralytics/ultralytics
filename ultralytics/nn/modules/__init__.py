@@ -23,9 +23,11 @@ from .block import (
     C3,
     C3TR,
     DFL,
+    ELAN1,
     SPP,
     SPPELAN,
     SPPF,
+    AConv,
     ADown,
     BNContrastiveHead,
     Bottleneck,
@@ -133,4 +135,6 @@ __all__ = (
     "SPPELAN",
     "CBFuse",
     "CBLinear",
+    "AConv",
+    "ELAN1",
 )

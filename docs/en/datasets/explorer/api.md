@@ -300,8 +300,6 @@ You can also visualize the embedding space using the plotting tool of your choic
 
 ```python
 import matplotlib.pyplot as plt
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 
 # Reduce dimensions using PCA to 3 components for visualization in 3D

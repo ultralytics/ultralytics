@@ -158,7 +158,7 @@ class Annotator:
 
         self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
-        self.dark_colors = (
+        self.dark_colors = {
             (235, 219, 11),
             (243, 243, 243),
             (183, 223, 0),
@@ -168,8 +168,8 @@ class Annotator:
             (255, 255, 0),
             (179, 255, 1),
             (11, 255, 162),
-        )
-        self.light_colors = (
+        }
+        self.light_colors = {
             (255, 42, 4),
             (79, 68, 255),
             (255, 0, 189),
@@ -181,7 +181,7 @@ class Annotator:
             (108, 27, 255),
             (47, 109, 252),
             (104, 31, 17),
-        )
+        }
 
     def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """Add one xyxy box to image with label."""

@@ -105,17 +105,18 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     
     ```python
     def callback(data):
-    """Callback function to process image and publish annotated images."""
+        """Callback function to process image and publish annotated images."""
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)
             det_annotated = det_result[0].plot(show=False)
-            det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding='rgb8'))
+            det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
 
         if seg_image_pub.get_num_connections():
             seg_result = segmentation_model(array)
             seg_annotated = seg_result[0].plot(show=False)
-            seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding='rgb8'))
+            seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
+
 
     rospy.Subscriber("/camera/color/image_raw", Image, callback)
 

@@ -161,10 +161,7 @@ class Detect(nn.Module):
         index = index // nc
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
 
-        return torch.cat(
-            [boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)],
-            dim=-1,
-        )
+        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)],dim=-1)
 
 
 class Segment(Detect):

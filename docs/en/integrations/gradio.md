@@ -64,7 +64,7 @@ model = YOLO("yolov8n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
-    """Predicts and plots labeled objects in an image using YOLOv8 model with adjustable confidence and IOU thresholds."""
+    """Predicts objects in an image using a YOLOv8 model with adjustable confidence and IOU thresholds."""
     results = model.predict(
         source=img,
         conf=conf_threshold,

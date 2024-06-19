@@ -279,6 +279,12 @@ class DetectionModel(BaseModel):
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+        if self.yaml["backbone"][0][2] == "Silence":
+            LOGGER.warning(
+                "WARNING ⚠️ YOLOv9 `Silence` module is deprecated in favor of nn.Identity. "
+                "Please delete local *.pt file and re-download the latest model checkpoint."
+            )
+            self.yaml["backbone"][0][2] = "nn.Identity"
 
         # Define model
         ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels

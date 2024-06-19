@@ -350,15 +350,8 @@ from ultralytics.utils.ops import (
     xyxy2xywhn,  # pixel → normalized
 )
 
-for func in (
-    ltwh2xywh,
-    ltwh2xyxy,
-    xywh2ltwh,
-    xywh2xyxy,
-    xywhn2xyxy,
-    xyxy2ltwh,
-    xyxy2xywhn):
-  print(help(func))  # print function docstrings
+for func in (ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xywhn2xyxy, xyxy2ltwh, xyxy2xywhn):
+    print(help(func))  # print function docstrings
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.

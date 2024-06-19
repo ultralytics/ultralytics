@@ -60,7 +60,8 @@ This example shows a Google-style docstring. Note that both input and output `ty
 ```python
 def example_function(arg1, arg2=4):
     """
-    This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
+    This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by
+    parentheses, i.e., `(bool)`.
 
     Args:
         arg1 (int): The first argument.
@@ -84,7 +85,8 @@ This example shows both a Google-style docstring and argument and return type hi
 ```python
 def example_function(arg1: int, arg2: int = 4) -> bool:
     """
-    This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
+    This example shows both a Google-style docstring and argument and return type hints, though both are not required;
+    one can be used without the other.
 
     Args:
         arg1: The first argument.

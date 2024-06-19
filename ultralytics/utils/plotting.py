@@ -186,11 +186,7 @@ class Annotator:
     def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """Add one xyxy box to image with label."""
         txt_color = (
-            (104, 31, 17)
-            if color in self.dark_colors
-            else (255, 255, 255)
-            if color in self.light_colors
-            else txt_color
+            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
         )
         if isinstance(box, torch.Tensor):
             box = box.tolist()

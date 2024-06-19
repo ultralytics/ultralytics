@@ -213,7 +213,7 @@ def non_max_suppression(
 
     if isinstance(prediction, dict):  # model.pt, output = {"one2many": torch.Tensor, "one2one": torch.Tensor }
         prediction = prediction.get("one2one", prediction)
-        
+
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
 

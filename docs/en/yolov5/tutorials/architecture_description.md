@@ -60,7 +60,7 @@ class SPPF(nn.Module):
         self.maxpool = nn.MaxPool2d(5, 1, padding=2)
 
     def forward(self, x):
-        """Applies sequential max pooling and concatenates results with input tensor; expects input tensor x of any shape."""
+        """Applies sequential max pooling and concatenates results with input tensor."""
         o1 = self.maxpool(x)
         o2 = self.maxpool(o1)
         o3 = self.maxpool(o2)

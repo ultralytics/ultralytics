@@ -25,6 +25,7 @@ from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorst
 
 try:
     import os
+
     assert not TESTS_RUNNING or "test_mlflow" in os.environ.get("PYTEST_CURRENT_TEST", "")  # do not log pytest
     assert SETTINGS["mlflow"] is True  # verify integration is enabled
     import mlflow

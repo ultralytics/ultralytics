@@ -786,10 +786,10 @@ class v8HumanLoss(v8DetectionLoss):
 
             # one-hot
 
-            loss[3] = self.dfl_loss_wha(pred_attributes["weight"][fg_mask], (gt_attributes[:, 0] / 12.5)) * self.hyp.dfl
-            loss[4] = self.dfl_loss_wha(pred_attributes["height"][fg_mask], gt_attributes[:, 1] / 16) * self.hyp.dfl
+            loss[3] = self.dfl_loss_wha(pred_attributes["weight"][fg_mask], (gt_attributes[:, 0] / 25)) * self.hyp.dfl
+            loss[4] = self.dfl_loss_wha(pred_attributes["height"][fg_mask], gt_attributes[:, 1] / 32) * self.hyp.dfl
             loss[5] = F.cross_entropy(pred_attributes["gender"][fg_mask], gt_attributes[:, 2].long()) * self.hyp.cls
-            loss[6] = self.dfl_loss_wha(pred_attributes["age"][fg_mask], gt_attributes[:, 3] / 6.25) * self.hyp.dfl
+            loss[6] = self.dfl_loss_wha(pred_attributes["age"][fg_mask], gt_attributes[:, 3] / 12.5) * self.hyp.dfl
             loss[7] = F.cross_entropy(pred_attributes["ethnicity"][fg_mask], gt_attributes[:, 4].long()) * self.hyp.cls
 
         loss[0] *= self.hyp.box  # box gain

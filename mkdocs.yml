@@ -89,6 +89,8 @@ extra: # version:
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/bilibili
+      link: https://ultralytics.com/bilibili
     - icon: fontawesome/brands/discord
       link: https://ultralytics.com/discord
 

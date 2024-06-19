@@ -105,7 +105,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     
     ```python
     def callback(data):
-    """Callback function to process image and publish annotated images."""
+        """Callback function to process image and publish annotated images."""
         array = ros_numpy.numpify(data)
         if det_image_pub.get_num_connections():
             det_result = detection_model(array)

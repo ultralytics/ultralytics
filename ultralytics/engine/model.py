@@ -128,7 +128,7 @@ class Model(nn.Module):
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
-        self.hub_model_url = ""  # for ddp training from hub
+        self.hub_model_url = ""  # for DDP training from HUB
         self.task = task  # task type
         model = str(model).strip()
 
@@ -136,7 +136,7 @@ class Model(nn.Module):
         if self.is_hub_model(model):
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.6")
-            self.hub_model_url = model  # for ddp training from hub
+            self.hub_model_url = model  # for DDP training from HUB
             self.session = self._get_hub_session(model)
             model = self.session.model_file
 

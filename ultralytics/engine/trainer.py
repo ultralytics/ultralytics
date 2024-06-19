@@ -145,7 +145,7 @@ class BaseTrainer:
 
         # hub
         self.hub_session = None
-        self.hub_model_url = ''
+        self.hub_model_url = ""
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -787,7 +787,7 @@ class BaseTrainer:
 
             session = HUBTrainingSession(self.hub_model_url or self.args.model)
             self.hub_session = session if session.client.authenticated else self.hub_session
-            if self.hub_session and self.hub_model_url == '':
+            if self.hub_session and self.hub_model_url == "":
                 self.hub_session.create_model(self.args)
                 # Check model was created
                 if not getattr(self.hub_session.model, "id", None):

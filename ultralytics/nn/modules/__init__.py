@@ -47,7 +47,6 @@ from .block import (
     RepC3,
     RepNCSPELAN4,
     ResNetLayer,
-    Silence,
 )
 from .conv import (
     CBAM,
@@ -138,5 +137,4 @@ __all__ = (
     "CBLinear",
     "AConv",
     "ELAN1",
-    "Silence"
 )

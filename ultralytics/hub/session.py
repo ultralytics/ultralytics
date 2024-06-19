@@ -368,5 +368,5 @@ class HUBTrainingSession:
         Returns:
             None
         """
-        for data in response.iter_content(chunk_size=1024):
+        for _ in response.iter_content(chunk_size=1024):
             pass  # Do nothing with data chunks

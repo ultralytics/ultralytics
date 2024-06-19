@@ -14,23 +14,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1. Begin with the necessary imports
-
-    ```python
-    from pathlib import Path
-
-    import cv2
-    import numpy as np
-    from ultralytics import YOLO
-    ```
-
-    ???+ tip "Ultralytics Install"
-
-        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
 
     ***
 
-2. Load a model and run `predict()` method on a source.
+2.  Load a model and run `predict()` method on a source.
 
     ```python
     from ultralytics import YOLO
@@ -57,9 +45,13 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-3. Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
+3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
+    from pathlib import Path
+
+    import numpy as np
+
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
@@ -80,11 +72,13 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-4. Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
+4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
     ```{ .py .annotate }
+    import cv2
+
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
 
@@ -139,7 +133,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-5. Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+5.  Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
     ### Object Isolation Options
 
@@ -177,12 +171,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/103dbf90-c169-4f77-b791-76cdf09c6f22){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -224,12 +217,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/5910244f-d1e1-44af-af7f-6dea4c688da8){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -250,7 +242,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-6. <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
+6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
@@ -272,6 +264,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
 m = YOLO("yolov8n-seg.pt")  # (4)!

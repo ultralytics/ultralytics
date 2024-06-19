@@ -18,7 +18,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 ## Real World Applications
 
 |                                                                                  Logistics                                                                                  |                                                                           Retail                                                                           |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Queue management at airport ticket counter using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/10487e76-bf60-4a9c-a0f3-5a75a05fa7a3) | ![Queue monitoring in crowd using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/dcc6d2ca-5576-434d-83c6-e57fe07bc693) |
 |                                                     Queue management at airport ticket counter Using Ultralytics YOLOv8                                                     |                                                        Queue monitoring in crowd Ultralytics YOLOv8                                                        |
 
@@ -28,6 +28,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -71,6 +72,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         ```python
         import cv2
+
         from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
@@ -113,7 +115,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 ### Arguments `QueueManager`
 
 | Name                | Type             | Default                    | Description                                                                         |
-|---------------------|------------------|----------------------------|-------------------------------------------------------------------------------------|
+| ------------------- | ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
 | `classes_names`     | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
 | `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
 | `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
@@ -130,7 +132,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

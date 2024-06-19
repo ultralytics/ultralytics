@@ -10,11 +10,22 @@ keywords: Ultralytics, YOLOv8, Gradio, object detection, interactive, real-time,
 
 This Gradio interface provides an easy and interactive way to perform object detection using the [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/pWYiene9lYw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8
+</p>
+
 ## Why Use Gradio for Object Detection?
 
-* **User-Friendly Interface:** Gradio offers a straightforward platform for users to upload images and visualize detection results without any coding requirement.
-* **Real-Time Adjustments:** Parameters such as confidence and IoU thresholds can be adjusted on the fly, allowing for immediate feedback and optimization of detection results.
-* **Broad Accessibility:** The Gradio web interface can be accessed by anyone, making it an excellent tool for demonstrations, educational purposes, and quick experiments.
+- **User-Friendly Interface:** Gradio offers a straightforward platform for users to upload images and visualize detection results without any coding requirement.
+- **Real-Time Adjustments:** Parameters such as confidence and IoU thresholds can be adjusted on the fly, allowing for immediate feedback and optimization of detection results.
+- **Broad Accessibility:** The Gradio web interface can be accessed by anyone, making it an excellent tool for demonstrations, educational purposes, and quick experiments.
 
 <p align="center">
    <img width="800" alt="Gradio example screenshot" src="https://github.com/RizwanMunawar/ultralytics/assets/26833433/52ee3cd2-ac59-4c27-9084-0fd05c6c33be">
@@ -30,14 +41,14 @@ pip install gradio
 
 1. **Upload Image:** Click on 'Upload Image' to choose an image file for object detection.
 2. **Adjust Parameters:**
-    * **Confidence Threshold:** Slider to set the minimum confidence level for detecting objects.
-    * **IoU Threshold:** Slider to set the IoU threshold for distinguishing different objects.
+    - **Confidence Threshold:** Slider to set the minimum confidence level for detecting objects.
+    - **IoU Threshold:** Slider to set the IoU threshold for distinguishing different objects.
 3. **View Results:** The processed image with detected objects and their labels will be displayed.
 
 ## Example Use Cases
 
-* **Sample Image 1:** Bus detection with default thresholds.
-* **Sample Image 2:** Detection on a sports image with default thresholds.
+- **Sample Image 1:** Bus detection with default thresholds.
+- **Sample Image 2:** Detection on a sports image with default thresholds.
 
 ## Usage Example
 
@@ -46,13 +57,14 @@ This section provides the Python code used to create the Gradio interface with t
 ```python
 import gradio as gr
 import PIL.Image as Image
+
 from ultralytics import ASSETS, YOLO
 
 model = YOLO("yolov8n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
-    """Predicts and plots labeled objects in an image using YOLOv8 model with adjustable confidence and IOU thresholds."""
+    """Predicts objects in an image using a YOLOv8 model with adjustable confidence and IOU thresholds."""
     results = model.predict(
         source=img,
         conf=conf_threshold,
@@ -92,7 +104,7 @@ if __name__ == "__main__":
 ## Parameters Explanation
 
 | Parameter Name   | Type    | Description                                              |
-|------------------|---------|----------------------------------------------------------|
+| ---------------- | ------- | -------------------------------------------------------- |
 | `img`            | `Image` | The image on which object detection will be performed.   |
 | `conf_threshold` | `float` | Confidence threshold for detecting objects.              |
 | `iou_threshold`  | `float` | Intersection-over-union threshold for object separation. |
@@ -100,7 +112,7 @@ if __name__ == "__main__":
 ### Gradio Interface Components
 
 | Component    | Description                              |
-|--------------|------------------------------------------|
+| ------------ | ---------------------------------------- |
 | Image Input  | To upload the image for detection.       |
 | Sliders      | To adjust confidence and IoU thresholds. |
 | Image Output | To display the detection results.        |

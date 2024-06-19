@@ -28,7 +28,7 @@ To access the [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API us
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
@@ -70,7 +70,7 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 See the table below for a full list of available inference arguments.
 
 | Argument     | Default | Type    | Description                                                          |
-|--------------|---------|---------|----------------------------------------------------------------------|
+| ------------ | ------- | ------- | -------------------------------------------------------------------- |
 | `image`      |         | `image` | Image file to be used for inference.                                 |
 | `url`        |         | `str`   | URL of the image if not passing a file.                              |
 | `size`       | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
@@ -117,7 +117,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -185,7 +185,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -257,7 +257,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -331,7 +331,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -400,7 +400,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}

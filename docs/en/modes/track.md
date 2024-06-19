@@ -33,7 +33,7 @@ The output from Ultralytics trackers is consistent with standard object detectio
 ## Real-world Applications
 
 |           Transportation           |              Retail              |         Aquaculture          |
-|:----------------------------------:|:--------------------------------:|:----------------------------:|
+| :--------------------------------: | :------------------------------: | :--------------------------: |
 | ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
 |          Vehicle Tracking          |         People Tracking          |        Fish Tracking         |
 
@@ -159,6 +159,7 @@ Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking o
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # Load the YOLOv8 model
@@ -210,6 +211,7 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
 
     import cv2
     import numpy as np
+
     from ultralytics import YOLO
 
     # Load the YOLOv8 model
@@ -285,6 +287,7 @@ Finally, after all threads have completed their task, the windows displaying the
     import threading
 
     import cv2
+
     from ultralytics import YOLO
 
 
@@ -362,7 +365,5 @@ To initiate your contribution, please refer to our [Contributing Guide](../help/
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 
 [fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
-
 [people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
-
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab

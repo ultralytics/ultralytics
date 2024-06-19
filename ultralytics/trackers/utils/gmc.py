@@ -44,7 +44,7 @@ class GMC:
         super().__init__()
 
         self.method = method
-        self.downscale = max(1, int(downscale))
+        self.downscale = max(1, downscale)
 
         if self.method == "orb":
             self.detector = cv2.FastFeatureDetector_create(20)

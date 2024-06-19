@@ -434,10 +434,9 @@ def check_torchvision():
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
-    v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
-
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             print(
                 f"WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"

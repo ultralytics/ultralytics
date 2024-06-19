@@ -10,7 +10,7 @@ This dataset showcases four common animal classes typically found in South Afric
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://youtu.be/biIW5Z6GYl0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/biIW5Z6GYl0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

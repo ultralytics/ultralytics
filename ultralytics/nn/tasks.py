@@ -300,6 +300,7 @@ class DetectionModel(BaseModel):
         # Build strides
         m = self.model[-1]  # Detect()
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+
             def _forward(x):
                 """Performs a forward pass through the model, handling different Detect subclass types accordingly."""
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB, HumanDetect)) else self.forward(x)

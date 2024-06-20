@@ -81,6 +81,7 @@ def benchmark(
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
+    is_end2end = getattr(model.model.model[-1], "end2end", False)
 
     y = []
     t0 = time.time()
@@ -96,14 +97,18 @@ def benchmark(
                 assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
                 assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
                 assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
+                assert not is_end2end, "End-to-end models not supported by CoreML and TF.js yet"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
             if i in {6, 7, 8, 9, 10}:  # All TF formats
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+                assert not is_end2end, "End-to-end models not supported by onnx2tf yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
+                assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
             if i in {12}:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+                assert not is_end2end, "End-to-end models not supported by NCNN yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

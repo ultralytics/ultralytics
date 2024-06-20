@@ -69,10 +69,6 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
 **Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
 
-??? question "When will other model scales be available?"
-
-    Despite all metrics shown for the various model scales in the table below, **only** the configurations for `YOLOv9c` and `YOLOv9e` have been published. The Ultralytics Team will work swiftly to add other configurations as they become available, so be sure to check back here regularly for updates.
-
 !!! tip "Performance"
 
     === "Detection (COCO)"
@@ -153,7 +149,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model      | Filenames                                               | Tasks                                        | Inference | Validation | Training | Export |
-|------------|---------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| ---------- | ------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv9     | `yolov9t` `yolov9s` `yolov9m` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
 | YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                       | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 

@@ -6,7 +6,6 @@ Usage:
     $ yolo mode=train model=yolov8n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
-
 import gc
 import math
 import os

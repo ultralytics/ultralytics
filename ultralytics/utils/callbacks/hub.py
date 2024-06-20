@@ -4,7 +4,7 @@ import json
 from time import time
 
 from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
-from ultralytics.utils import LOGGER, SETTINGS, RANK
+from ultralytics.utils import LOGGER, RANK, SETTINGS
 
 
 def on_pretrain_routine_start(trainer):

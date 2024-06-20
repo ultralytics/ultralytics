@@ -116,6 +116,7 @@ def callback(data):
         seg_annotated = seg_result[0].plot(show=False)
         seg_image_pub.publish(ros_numpy.msgify(Image, seg_annotated, encoding="rgb8"))
 
+
 rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
 while True:
@@ -260,9 +261,10 @@ classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_s
 Next, define a callback function that processes the incoming depth image message. The function waits for the depth image and RGB image messages, converts them into numpy arrays, and applies the segmentation model to the RGB image. It then extracts the segmentation mask for each detected object and calculates the average distance of the object from the camera using the depth image. Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`. Finally, it publishes the detected objects along with their average distances to the `/ultralytics/detection/distance` topic.
 
 ```python
-import ros_numpy
 import numpy as np
+import ros_numpy
 from sensor_msgs.msg import Image
+
 
 def callback(data):
     """Callback function to process depth image and RGB image."""
@@ -292,14 +294,13 @@ while True:
     ```python
     import time
 
+    import numpy as np
+    import ros_numpy
     import rospy
+    from sensor_msgs.msg import Image
     from std_msgs.msg import String
 
     from ultralytics import YOLO
-
-    import ros_numpy
-    import numpy as np
-    from sensor_msgs.msg import Image
 
     rospy.init_node("ultralytics")
     time.sleep(1)
@@ -307,6 +308,7 @@ while True:
     segmentation_model = YOLO("yolov8m-seg.pt")
 
     classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
+
 
     def callback(data):
         """Callback function to process depth image and RGB image."""
@@ -381,8 +383,9 @@ Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointC
 The function returns the `xyz` coordinates and `RGB` values in the format of the original camera resolution (`width x height`). Most sensors have a maximum distance, known as the clip distance, beyond which values are represented as inf (`np.inf`). Before processing, it is important to filter out these null values and assign them a value of `0`.
 
 ```python
-import ros_numpy
 import numpy as np
+import ros_numpy
+
 
 def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
     """
@@ -411,6 +414,7 @@ Processing the mask is straightforward since it consists of binary values, with 
 
 ```python
 import sys
+
 import open3d as o3d
 
 ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
@@ -437,19 +441,20 @@ for index, class_id in enumerate(classes):
 
 ??? Example "Complete code"
     ```python
+    import sys
     import time
 
-    import rospy
-    import sys
+    import numpy as np
     import open3d as o3d
     import ros_numpy
-    import numpy as np
+    import rospy
 
     from ultralytics import YOLO
 
     rospy.init_node("ultralytics")
     time.sleep(1)
     segmentation_model = YOLO("yolov8m-seg.pt")
+
 
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
         """
@@ -470,6 +475,7 @@ for index, class_id in enumerate(classes):
         xyz[nan_rows] = [0, 0, 0]
         rgb[nan_rows] = [0, 0, 0]
         return xyz, rgb
+
 
     ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
     xyz, rgb = pointcloud2_to_array(ros_cloud)

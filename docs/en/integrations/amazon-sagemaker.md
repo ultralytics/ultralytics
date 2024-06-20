@@ -119,7 +119,9 @@ import json
 
 
 def output_fn(prediction_output, content_type):
-    """Formats model outputs as JSON string according to content_type, extracting attributes like boxes, masks, keypoints."""
+    """Formats model outputs as JSON string according to content_type, extracting attributes like boxes, masks,
+    keypoints.
+    """
     print("Executing output_fn from inference.py ...")
     infer = {}
     for result in prediction_output:

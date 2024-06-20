@@ -340,15 +340,7 @@ print(xywh)
 ### All Bounding Box Conversions
 
 ```python
-from ultralytics.utils.ops import (
-    ltwh2xywh,
-    ltwh2xyxy,
-    xywh2ltwh,  # xywh → top-left corner, w, h
-    xywh2xyxy,
-    xywhn2xyxy,  # normalized → pixel
-    xyxy2ltwh,  # xyxy → top-left corner, w, h
-    xyxy2xywhn,  # pixel → normalized
-)
+
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.
@@ -464,7 +456,7 @@ print(dt)
 Want or need to use the formats of [images or videos types supported](../modes/predict.md#image-and-video-formats) by Ultralytics programmatically? Use these constants if you need.
 
 ```python
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.data.utils import IMG_FORMATS
 
 print(IMG_FORMATS)
 # >>> ('bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm')

@@ -60,17 +60,7 @@ Without further ado, let's dive in!
 1. Start by creating a new Python file and import the required libraries.
 
     ```python
-    import datetime
-    import shutil
-    from collections import Counter
-    from pathlib import Path
 
-    import numpy as np
-    import pandas as pd
-    import yaml
-    from sklearn.model_selection import KFold
-
-    from ultralytics import YOLO
     ```
 
 2. Proceed to retrieve all label files for your dataset.

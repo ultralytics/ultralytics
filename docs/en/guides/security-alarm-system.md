@@ -30,17 +30,7 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
 #### Import Libraries
 
 ```python
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from time import time
 
-import cv2
-import numpy as np
-import torch
-
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
 ```
 
 #### Set up the parameters of the message
@@ -135,7 +125,9 @@ class ObjectDetection:
         return im0, class_ids
 
     def __call__(self):
-        """Executes object detection on video frames from a specified camera index, plotting bounding boxes and returning modified frames."""
+        """Executes object detection on video frames from a specified camera index, plotting bounding boxes and
+        returning modified frames.
+        """
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)

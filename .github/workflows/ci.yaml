@@ -179,6 +179,9 @@ jobs:
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
+      - name: Benchmark YOLOv10Model
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov10n.pt' imgsz=160 verbose=0.178
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml

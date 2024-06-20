@@ -116,7 +116,7 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
         import cv2
 
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.utils.plotting import Annotator
 
         model = YOLO("yolov8s.pt")
         cap = cv2.VideoCapture("Path/to/video/file.mp4")

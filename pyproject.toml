@@ -149,7 +149,6 @@ markers = [
 ]
 norecursedirs = [".git", "dist", "build"]
 
-
 [tool.coverage.run]
 source = ["ultralytics/"]
 data_file = "tests/.coverage"

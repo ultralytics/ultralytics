@@ -710,7 +710,9 @@ def temporary_modules(modules={}, attributes={}):
             old_module, old_attr = old[:old_idx], old[old_idx + 1 :]
             new_module, new_attr = new[:new_idx], new[new_idx + 1 :]
             setattr(
-                importlib.import_module(old_module), old_attr, getattr(importlib.import_module(new_module), new_attr)
+                importlib.import_module(old_module),
+                old_attr,
+                getattr(importlib.import_module(new_module), new_attr),
             )
 
         # Set modules in sys.modules under their old name

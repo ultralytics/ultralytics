@@ -57,13 +57,25 @@ Without further ado, let's dive in!
 
 ## Generating Feature Vectors for Object Detection Dataset
 
-1. Start by creating a new `example.py` Python file for the steps below.
+1. Start by creating a new Python file and import the required libraries.
+
+    ```python
+    import datetime
+    import shutil
+    from collections import Counter
+    from pathlib import Path
+
+    import numpy as np
+    import pandas as pd
+    import yaml
+    from sklearn.model_selection import KFold
+
+    from ultralytics import YOLO
+    ```
 
 2. Proceed to retrieve all label files for your dataset.
 
     ```python
-    from pathlib import Path
-
     dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
     labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
     ```
@@ -80,8 +92,6 @@ Without further ado, let's dive in!
 4. Initialize an empty `pandas` DataFrame.
 
     ```python
-    import pandas as pd
-
     indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
@@ -89,8 +99,6 @@ Without further ado, let's dive in!
 5. Count the instances of each class-label present in the annotation files.
 
     ```python
-    from collections import Counter
-
     for label in labels:
         lbl_counter = Counter()
 
@@ -134,8 +142,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
     ```python
-    from sklearn.model_selection import KFold
-
     ksplit = 5
     kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
@@ -172,8 +178,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
-    import datetime
-
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
     # Initialize an empty list to store image file paths
@@ -218,8 +222,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
     ```python
-    import shutil
-
     for image, label in zip(images, labels):
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory
@@ -245,8 +247,6 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 1. First, load the YOLO model.
 
     ```python
-    from ultralytics import YOLO
-
     weights_path = "path/to/weights.pt"
     model = YOLO(weights_path, task="detect")
     ```

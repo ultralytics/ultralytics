@@ -16,7 +16,7 @@ from .utils import bias_init_with_prob, linear_init
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"
 
 
-class Detect(nn.Module):
+class DetectOld(nn.Module):
     """YOLOv8 Detect head for detection models."""
 
     dynamic = False  # force grid reconstruction
@@ -96,7 +96,7 @@ class Detect(nn.Module):
         return dist2bbox(bboxes, anchors, xywh=True, dim=1)
 
 
-class LightDetect(nn.Module):
+class Detect(nn.Module):
     """YOLOv8 Detect head for detection models."""
 
     dynamic = False  # force grid reconstruction

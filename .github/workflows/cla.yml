@@ -40,5 +40,5 @@ jobs:
 
           remote-organization-name: ultralytics
           remote-repository-name: cla
-          custom-pr-sign-comment: I have read the CLA Document and I sign the CLA
+          custom-pr-sign-comment: "I have read the CLA Document and I sign the CLA"
           custom-allsigned-prcomment: All Contributors have signed the CLA. ✅

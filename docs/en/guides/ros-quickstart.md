@@ -56,12 +56,13 @@ This guide has been tested using [this ROS environment](https://github.com/ambit
 Apart from the ROS environment, you will need to install the following dependencies:
 
 - **[ROS Numpy package](https://github.com/eric-wieser/ros_numpy)**: This is required for fast conversion between ROS Image messages and numpy arrays.
+
     ```bash
     pip install ros_numpy
     ```
 
 - **Ultralytics package**:
-  
+
     ```bash
     pip install ultralytics
     ```
@@ -76,7 +77,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
 
 !!! Example "Usage"
 
-    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md). 
+    The following code snippet demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topics for [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md).
 
     ### Step-by-Step Explanation
     First, we import the necessary libraries and instantiate two models: one for [segmentation](../tasks/segment.md) and one for [detection](../tasks/detect.md). Next, we initialize a ROS node (with the name `ultralytics`) to enable communication with the ROS master. To ensure a stable connection, we include a brief pause, giving the node sufficient time to establish the connection before proceeding.
@@ -102,7 +103,7 @@ The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/h
     ```
 
     Finally, we create a subscriber that listens to messages on the `/camera/color/image_raw` topic and calls a callback function for each new message. This callback function receives messages of type `sensor_msgs/Image`, converts them into a numpy array using `ros_numpy`, processes the images with the previously instantiated YOLO models, annotates the images, and then publishes them back to the respective topics: `/ultralytics/detection/image` for detection and `/ultralytics/segmentation/image` for segmentation.
-    
+
     ```python
     def callback(data):
         """Callback function to process image and publish annotated images."""
@@ -214,7 +215,7 @@ Consider a warehouse robot equipped with a camera and object [detection model](.
         rospy.spin()
     ```
 
-    This example demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topic `/ultralytics/detection/classes` using `std_msgs/String` messages. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO. 
+    This example demonstrates how to use the Ultralytics YOLO package with ROS. In this example, we subscribe to a camera topic, process the incoming image using YOLO, and publish the detected objects to new topic `/ultralytics/detection/classes` using `std_msgs/String` messages. The `ros_numpy` package is used to convert the ROS Image message to a numpy array for processing with YOLO.
 
 ## Use Ultralytics with ROS Depth Images
 
@@ -222,7 +223,7 @@ In addition to RGB images, ROS supports [depth images](https://en.wikipedia.org/
 
 A depth image is an image where each pixel represents the distance from the camera to an object. Unlike RGB images that capture color, depth images capture spatial information, enabling robots to perceive the 3D structure of their environment.
 
-!!! tip "Obtaining Depth Images" 
+!!! tip "Obtaining Depth Images"
 
     Depth images can be obtained using various sensors:
 
@@ -231,12 +232,13 @@ A depth image is an image where each pixel represents the distance from the came
     3. [Structured Light Sensors](https://en.wikipedia.org/wiki/Structured-light_3D_scanner): Project a pattern and measure its deformation on surfaces.
 
 #### Using YOLO with Depth Images
+
 In ROS, depth images are represented by the `sensor_msgs/Image` message type, which includes fields for encoding, height, width, and pixel data. The encoding field for depth images often uses a format like "16UC1", indicating a 16-bit unsigned integer per pixel, where each value represents the distance to the object. Depth images are commonly used in conjunction with RGB images to provide a more comprehensive view of the environment.
 
 Using YOLO, it is possible to extract and combine information from both RGB and depth images. For instance, YOLO can detect objects within an RGB image, and this detection can be used to pinpoint corresponding regions in the depth image. This allows for the extraction of precise depth information for detected objects, enhancing the robot's ability to understand its environment in three dimensions.
 
 !!! warning "RGB-D Cameras"
-    When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment. 
+When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
 
 !!! Example "Usage"
 
@@ -296,9 +298,9 @@ The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_
 A point cloud is a collection of data points defined within a three-dimensional coordinate system. These data points represent the external surface of an object or a scene, captured via 3D scanning technologies. Each point in the cloud has `X`, `Y`, and `Z` coordinates, which correspond to its position in space, and may also include additional information such as color and intensity.
 
 !!! warning "reference frame"
-    When working with `sensor_msgs/PointCloud2`, it's essential to consider the reference frame of the sensor from which the point cloud data was acquired. The point cloud is initially captured in the sensor's reference frame. You can determine this reference frame by listening to the `/tf_static` topic. However, depending on your specific application requirements, you might need to convert the point cloud into another reference frame. This transformation can be achieved using the `tf2_ros` package, which provides tools for managing coordinate frames and transforming data between them.
+When working with `sensor_msgs/PointCloud2`, it's essential to consider the reference frame of the sensor from which the point cloud data was acquired. The point cloud is initially captured in the sensor's reference frame. You can determine this reference frame by listening to the `/tf_static` topic. However, depending on your specific application requirements, you might need to convert the point cloud into another reference frame. This transformation can be achieved using the `tf2_ros` package, which provides tools for managing coordinate frames and transforming data between them.
 
-!!! tip "Obtaining Point clouds" 
+!!! tip "Obtaining Point clouds"
 
     Point Clouds can be obtained using various sensors:
 
@@ -353,7 +355,7 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
         return xyz, rgb
     ```
 
-    Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors. 
+    Next, we subscribe to the `/camera/depth/points` topic to receive the point cloud message. We then convert the `sensor_msgs/PointCloud2` message into numpy arrays containing the XYZ coordinates and RGB values (using the `pointcloud2_to_array` function). We process the RGB image using the YOLO model to extract segmented objects. For each detected object, we extract the segmentation mask and apply it to both the RGB image and the XYZ coordinates to isolate the object in 3D space. Processing the mask is straightforward since it consists of binary values, with `1` indicating the presence of the object and `0` indicating the absence. To apply the mask, simply multiply the original channels by the mask. This operation effectively isolates the object of interest within the image. Finally, we create an Open3D point cloud object and visualize the segmented object in 3D space with associated colors.
 
     ```python
     ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)

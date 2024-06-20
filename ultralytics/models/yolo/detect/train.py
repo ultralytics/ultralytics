@@ -103,7 +103,7 @@ class DetectionTrainer(BaseTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
-        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1, ch=self.inputCh)
+        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1, ch=self.input_Ch)
         if weights:
             model.load(weights)
         return model
@@ -116,7 +116,7 @@ class DetectionTrainer(BaseTrainer):
             save_dir=self.save_dir,
             args=copy(self.args),
             _callbacks=self.callbacks,
-            inputCh=self.inputCh,
+            input_Ch=self.input_Ch,
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):

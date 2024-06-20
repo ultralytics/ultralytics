@@ -675,7 +675,7 @@ class Ensemble(nn.ModuleList):
 
 
 @contextlib.contextmanager
-def temporary_modules(modules=None):
+def temporary_modules(modules={}, attributes={}):
     """
     Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
 
@@ -685,11 +685,13 @@ def temporary_modules(modules=None):
 
     Args:
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
+        attributes (dict, optional): A dictionary mapping old module attributes to new module attributes.
 
     Example:
         ```python
-        with temporary_modules({'old.module.path': 'new.module.path'}):
+        with temporary_modules({'old.module.path': 'new.module.path'}, {'old.module.attribute': 'new.module.attribute'}):
             import old.module.path  # this will now import new.module.path
+            from old.module import attribute  # this will now import new.module.attribute
         ```
 
     Note:
@@ -697,13 +699,21 @@ def temporary_modules(modules=None):
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
     """
-    if not modules:
-        modules = {}
 
     import importlib
     import sys
 
     try:
+        # Set attributes in sys.modules under their old name
+        for old, new in attributes.items():
+            old_module, old_attr = old.rsplit(".", 1)
+            new_module, new_attr = new.rsplit(".", 1)
+            setattr(
+                importlib.import_module(old_module),
+                old_attr,
+                getattr(importlib.import_module(new_module), new_attr),
+            )
+
         # Set modules in sys.modules under their old name
         for old, new in modules.items():
             sys.modules[old] = importlib.import_module(new)
@@ -734,11 +744,14 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules(
-            {
+            modules={
                 "ultralytics.yolo.utils": "ultralytics.utils",
                 "ultralytics.yolo.v8": "ultralytics.models.yolo",
                 "ultralytics.yolo.data": "ultralytics.data",
-            }
+            },
+            attributes={
+                "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",
+            },
         ):  # for legacy 8.0 Classify and Pose models
             ckpt = torch.load(file, map_location="cpu")
 

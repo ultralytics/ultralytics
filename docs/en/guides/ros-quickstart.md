@@ -293,7 +293,8 @@ while True:
 ```
 
 ??? Example "Complete code"
-```python
+
+````python
 import time
 
     import numpy as np
@@ -368,7 +369,6 @@ For handling point clouds, we recommend using Open3D (`pip install open3d`), a u
 #### Step-by-Step Usage
 
 Import the necessary libraries and instantiate the YOLO model for segmentation.
-
 ```python
 import time
 
@@ -379,7 +379,7 @@ from ultralytics import YOLO
 rospy.init_node("ultralytics")
 time.sleep(1)
 segmentation_model = YOLO("yolov8m-seg.pt")
-```
+````
 
 Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two numpy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
 
@@ -443,7 +443,8 @@ for index, class_id in enumerate(classes):
 ```
 
 ??? Example "Complete code"
-```python
+
+````python
 import sys
 import time
 
@@ -505,3 +506,4 @@ import time
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/3caafc4a-0edd-4e5f-8dd1-37e30be70123" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
+````

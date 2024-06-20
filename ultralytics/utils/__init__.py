@@ -304,7 +304,7 @@ class ThreadingLocked:
 
         @ThreadingLocked()
         def my_function():
-    """Executes the decorated function with a threading lock to ensure only one thread accesses it at a time."""
+            # Your code here
             pass
         ```
     """

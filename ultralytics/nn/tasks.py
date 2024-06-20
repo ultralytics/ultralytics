@@ -718,7 +718,7 @@ def temporary_modules(modules={}, attributes={}):
         applications or libraries. Use this function with caution.
     """
 
-    import importlib
+    from importlib import import_module
     import sys
 
     try:
@@ -726,15 +726,11 @@ def temporary_modules(modules={}, attributes={}):
         for old, new in attributes.items():
             old_module, old_attr = old.rsplit(".", 1)
             new_module, new_attr = new.rsplit(".", 1)
-            setattr(
-                importlib.import_module(old_module),
-                old_attr,
-                getattr(importlib.import_module(new_module), new_attr),
-            )
+            setattr(import_module(old_module), old_attr, getattr(import_module(new_module), new_attr))
 
         # Set modules in sys.modules under their old name
         for old, new in modules.items():
-            sys.modules[old] = importlib.import_module(new)
+            sys.modules[old] = import_module(new)
 
         yield
     finally:
@@ -768,9 +764,10 @@ def torch_safe_load(weight):
                 "ultralytics.yolo.data": "ultralytics.data",
             },
             attributes={
-                "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",
+                "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
+                "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
             },
-        ):  # for legacy 8.0 Classify and Pose models
+        ):
             ckpt = torch.load(file, map_location="cpu")
 
     except ModuleNotFoundError as e:  # e.name is missing module name

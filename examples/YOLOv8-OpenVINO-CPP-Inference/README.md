@@ -17,7 +17,7 @@ This example demonstrates how to perform inference using YOLOv8 in C++ with Open
 | C++        | >=14     |
 | CMake      | >=3.12.0 |
 
-## Build 
+## Build
 
 ```bash
 git clone https://github.com/ultralytics/ultralytics.git
@@ -29,6 +29,7 @@ cmake ..
 make
 
 ```
+
 ## Usage
 
 ```bash

@@ -718,8 +718,8 @@ def temporary_modules(modules={}, attributes={}):
         applications or libraries. Use this function with caution.
     """
 
-    from importlib import import_module
     import sys
+    from importlib import import_module
 
     try:
         # Set attributes in sys.modules under their old name

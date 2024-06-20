@@ -783,6 +783,7 @@ class CIB(nn.Module):
     """
 
     def __init__(self, c1, c2, shortcut=True, e=0.5, lk=False):
+        """Initializes the custom model with optional shortcut, scaling factor, and RepVGGDW layer."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = nn.Sequential(
@@ -823,6 +824,7 @@ class C2fCIB(C2f):
     """
 
     def __init__(self, c1, c2, n=1, shortcut=False, lk=False, g=1, e=0.5):
+        """Initializes the module with specified parameters for channel, shortcut, local key, groups, and expansion."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(CIB(self.c, self.c, shortcut, e=1.0, lk=lk) for _ in range(n))
 
@@ -847,6 +849,7 @@ class Attention(nn.Module):
     """
 
     def __init__(self, dim, num_heads=8, attn_ratio=0.5):
+        """Initializes multi-head attention module with query, key, and value convolutions and positional encoding."""
         super().__init__()
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
@@ -900,6 +903,7 @@ class PSA(nn.Module):
     """
 
     def __init__(self, c1, c2, e=0.5):
+        """Initializes convolution layers, attention module, and feed-forward network with channel reduction."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)

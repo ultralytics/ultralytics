@@ -13,6 +13,12 @@ on:
       - opened
       - synchronize
 
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   CLA:
     if: github.repository == 'ultralytics/ultralytics'
@@ -23,17 +29,16 @@ jobs:
         uses: contributor-assistant/github-action@v2.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # must be repository secret PAT
+          # Must be repository secret PAT
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: "signatures/version1/cla.json"
           path-to-document: "https://docs.ultralytics.com/help/CLA" # CLA document
-          # branch should not be protected
-          branch: "main"
+          # Branch must not be protected
+          branch: cla-signatures
           allowlist: dependabot[bot],github-actions,[pre-commit*,pre-commit*,bot*
 
           remote-organization-name: ultralytics
           remote-repository-name: cla
           custom-pr-sign-comment: "I have read the CLA Document and I sign the CLA"
           custom-allsigned-prcomment: All Contributors have signed the CLA. ✅
-          #custom-notsigned-prcomment: 'pull request comment with Introductory message to ask new contributors to sign'

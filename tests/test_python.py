@@ -577,3 +577,12 @@ def test_yolo_world():
         close_mosaic=1,
         trainer=WorldTrainerFromScratch,
     )
+
+
+def test_yolov10():
+    """A simple test for yolov10 for now."""
+    model = YOLO("yolov10n.yaml")
+    # train/val/predict
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8.yaml", imgsz=32)
+    model(SOURCE)

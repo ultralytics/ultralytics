@@ -963,4 +963,3 @@ class SCDown(nn.Module):
             (torch.Tensor): Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))
-        return torch.sum(torch.stack(res + xs[-1:]), dim=0)

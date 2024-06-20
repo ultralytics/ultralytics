@@ -64,6 +64,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "numpy<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -77,7 +78,7 @@ dependencies = [
     "py-cpuinfo", # display CPU info
     "pandas>=1.1.4",
     "seaborn>=0.11.0", # plotting
-    "ultralytics-thop>=0.2.5", # FLOPs computation https://github.com/ultralytics/thop
+    "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.45", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.0.48", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
@@ -147,7 +148,6 @@ markers = [
     "slow: skip slow tests unless --slow is set",
 ]
 norecursedirs = [".git", "dist", "build"]
-
 
 [tool.coverage.run]
 source = ["ultralytics/"]

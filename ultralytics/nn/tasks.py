@@ -706,9 +706,8 @@ def temporary_modules(modules={}, attributes={}):
     try:
         # Set attributes in sys.modules under their old name
         for old, new in attributes.items():
-            old_idx, new_idx = old.rfind("."), new.rfind(".")
-            old_module, old_attr = old[:old_idx], old[old_idx + 1 :]
-            new_module, new_attr = new[:new_idx], new[new_idx + 1 :]
+            old_module, old_attr = old.rsplit(".", 1)
+            new_module, new_attr = new.rsplit(".", 1)
             setattr(
                 importlib.import_module(old_module),
                 old_attr,

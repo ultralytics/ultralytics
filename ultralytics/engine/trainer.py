@@ -6,6 +6,7 @@ Usage:
     $ yolo mode=train model=yolov8n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
+
 import gc
 import math
 import os
@@ -317,8 +318,6 @@ class BaseTrainer:
 
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
-        if RANK in {-1, 0}:
-            self._setup_hub()
         if world_size > 1:
             self._setup_ddp(world_size)
         self._setup_train(world_size)
@@ -773,25 +772,3 @@ class BaseTrainer:
             f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
         )
         return optimizer
-
-    def _setup_hub(self):
-        """Setup session for Hub Training."""
-        from ultralytics.utils import SETTINGS
-
-        if SETTINGS["hub"] is False or self.hub_session is not None:
-            return
-
-        # Create a model in HUB
-        try:
-            from ultralytics.hub.session import HUBTrainingSession
-
-            session = HUBTrainingSession(self.hub_model_url or self.args.model)
-            self.hub_session = session if session.client.authenticated else None
-            if self.hub_session and self.hub_model_url == "":
-                self.hub_session.create_model(self.args)
-                # Check model was created
-                if not getattr(self.hub_session.model, "id", None):
-                    self.hub_session = None
-        except (PermissionError, ModuleNotFoundError):
-            # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
-            pass

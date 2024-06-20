@@ -673,14 +673,6 @@ class WorldModel(DetectionModel):
         return self.criterion(preds, batch)
 
 
-# NOTE: keep YOLOv10DetectionModel for compatibility with yolov10 pretrained weights.
-class YOLOv10DetectionModel(DetectionModel):
-    """YOLOv10 Detection model."""
-
-    def __init__(self, cfg="yolov10n.yaml", ch=3, nc=None, verbose=True, end2end=True):
-        super().__init__(cfg, ch, nc, verbose, end2end)
-
-
 class Ensemble(nn.ModuleList):
     """Ensemble of models."""
 

@@ -74,6 +74,7 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
+    IS_RASPBERRYPI,
     IS_JETSON,
     LINUX,
     LOGGER,
@@ -215,6 +216,8 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
+        if tfjs:
+            assert not (IS_RASPBERRYPI or IS_JETSON), "TF.js export not supported on Raspberry Pi and NVIDIA Jetson"
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
@@ -966,9 +969,6 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLOv8 TensorFlow.js export."""
         check_requirements("tensorflowjs")
-        if ARM64:
-            # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
-            check_requirements("numpy==1.23.5")
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 

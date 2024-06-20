@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Model head modules."""
 
+import copy
 import math
 
 import torch
@@ -14,7 +15,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -22,6 +23,8 @@ class Detect(nn.Module):
 
     dynamic = False  # force grid reconstruction
     export = False  # export mode
+    end2end = False  # end2end
+    max_det = 300  # max_det
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
@@ -41,13 +44,48 @@ class Detect(nn.Module):
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
+        if self.end2end:
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+            self.one2one_cv3 = copy.deepcopy(self.cv3)
+
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
+        if self.end2end:
+            return self.forward_end2end(x)
+
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
+        y = self._inference(x)
+        return y if self.export else (y, x)
 
+    def forward_end2end(self, x):
+        """
+        Performs forward pass of the v10Detect module.
+
+        Args:
+            x (tensor): Input tensor.
+
+        Returns:
+            (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
+                           If in training mode, returns a dictionary containing the outputs of one2many and one2one detections separately.
+        """
+        x_detach = [xi.detach() for xi in x]
+        one2one = [
+            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
+        ]
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:  # Training path
+            return {"one2many": x, "one2one": one2one}
+
+        y = self._inference(one2one)
+        y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else (y, {"one2many": x, "one2one": one2one})
+
+    def _inference(self, x):
+        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
         # Inference path
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
@@ -73,7 +111,7 @@ class Detect(nn.Module):
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         y = torch.cat((dbox, cls.sigmoid()), 1)
-        return y if self.export else (y, x)
+        return y
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
@@ -83,10 +121,47 @@ class Detect(nn.Module):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+        if self.end2end:
+            for a, b, s in zip(m.one2one_cv2, m.one2one_cv3, m.stride):  # from
+                a[-1].bias.data[:] = 1.0  # box
+                b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode bounding boxes."""
-        return dist2bbox(bboxes, anchors, xywh=True, dim=1)
+        return dist2bbox(bboxes, anchors, xywh=not self.end2end, dim=1)
+
+    @staticmethod
+    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
+        """
+        Post-processes the predictions obtained from a YOLOv10 model.
+
+        Args:
+            preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
+            max_det (int): The maximum number of detections to keep.
+            nc (int, optional): The number of classes. Defaults to 80.
+
+        Returns:
+            (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
+                including bounding boxes, scores and cls.
+        """
+        assert 4 + nc == preds.shape[-1]
+        boxes, scores = preds.split([4, nc], dim=-1)
+        max_scores = scores.amax(dim=-1)
+        max_scores, index = torch.topk(max_scores, min(max_det, max_scores.shape[1]), axis=-1)
+        index = index.unsqueeze(-1)
+        boxes = torch.gather(boxes, dim=1, index=index.repeat(1, 1, boxes.shape[-1]))
+        scores = torch.gather(scores, dim=1, index=index.repeat(1, 1, scores.shape[-1]))
+
+        # NOTE: simplify but result slightly lower mAP
+        # scores, labels = scores.max(dim=-1)
+        # return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)
+
+        scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
+        labels = index % nc
+        index = index // nc
+        boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
+
+        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)], dim=-1)
 
 
 class Segment(Detect):
@@ -487,3 +562,39 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class v10Detect(Detect):
+    """
+    v10 Detection head from https://arxiv.org/pdf/2405.14458
+
+    Args:
+        nc (int): Number of classes.
+        ch (tuple): Tuple of channel sizes.
+
+    Attributes:
+        max_det (int): Maximum number of detections.
+
+    Methods:
+        __init__(self, nc=80, ch=()): Initializes the v10Detect object.
+        forward(self, x): Performs forward pass of the v10Detect module.
+        bias_init(self): Initializes biases of the Detect module.
+
+    """
+
+    end2end = True
+
+    def __init__(self, nc=80, ch=()):
+        """Initializes the v10Detect object with the specified number of classes and input channels."""
+        super().__init__(nc, ch)
+        c3 = max(ch[0], min(self.nc, 100))  # channels
+        # Light cls head
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(
+                nn.Sequential(Conv(x, x, 3, g=x), Conv(x, c3, 1)),
+                nn.Sequential(Conv(c3, c3, 3, g=c3), Conv(c3, c3, 1)),
+                nn.Conv2d(c3, self.nc, 1),
+            )
+            for x in ch
+        )
+        self.one2one_cv3 = copy.deepcopy(self.cv3)

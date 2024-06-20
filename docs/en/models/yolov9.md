@@ -149,7 +149,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model      | Filenames                                               | Tasks                                        | Inference | Validation | Training | Export |
-|------------|---------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| ---------- | ------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv9     | `yolov9t` `yolov9s` `yolov9m` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
 | YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                       | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 

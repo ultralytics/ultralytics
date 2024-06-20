@@ -183,6 +183,15 @@ class Annotator:
             (104, 31, 17),
         }
 
+    def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
+        """Assign text color based on background color."""
+        if color in self.dark_colors:
+            return 104, 31, 17
+        elif color in self.light_colors:
+            return 255, 255, 255
+        else:
+            return txt_color
+
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
         """
         Draws a label with a background rectangle centered within a given bounding box.
@@ -195,9 +204,6 @@ class Annotator:
             margin (int, optional): The margin between the text and the rectangle border.
         """
 
-        txt_color = (
-            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
-        )
         # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
             print(
@@ -223,7 +229,7 @@ class Annotator:
             (text_x, text_y),
             cv2.FONT_HERSHEY_SIMPLEX,
             self.sf - 0.15,
-            txt_color,
+            self.get_txt_color(color, txt_color),
             self.tf,
             lineType=cv2.LINE_AA,
         )
@@ -240,9 +246,6 @@ class Annotator:
             margin (int, optional): The margin between the text and the rectangle border.
         """
 
-        txt_color = (
-            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
-        )
         # Calculate the center of the bounding box
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         # Get the size of the text
@@ -264,7 +267,7 @@ class Annotator:
             (text_x, text_y),
             cv2.FONT_HERSHEY_SIMPLEX,
             self.sf - 0.1,
-            txt_color,
+            self.get_txt_color(color, txt_color),
             self.tf,
             lineType=cv2.LINE_AA,
         )
@@ -281,9 +284,7 @@ class Annotator:
             rotated (bool, optional): Variable used to check if task is OBB
         """
 
-        txt_color = (
-            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
-        )
+        txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):

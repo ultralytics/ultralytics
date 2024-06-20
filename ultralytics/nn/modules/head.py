@@ -585,6 +585,7 @@ class v10Detect(Detect):
     end2end = True
 
     def __init__(self, nc=80, ch=()):
+        """Initializes the v10Detect object with the specified number of classes and input channels."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
         # Light cls head

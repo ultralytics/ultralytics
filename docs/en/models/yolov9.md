@@ -69,10 +69,6 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
 **Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
 
-??? question "When will other model scales be available?"
-
-    Despite all metrics shown for the various model scales in the table below, **only** the configurations for `YOLOv9c` and `YOLOv9e` have been published. The Ultralytics Team will work swiftly to add other configurations as they become available, so be sure to check back here regularly for updates.
-
 !!! tip "Performance"
 
     === "Detection (COCO)"

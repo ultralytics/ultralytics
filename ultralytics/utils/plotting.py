@@ -183,11 +183,108 @@ class Annotator:
             (104, 31, 17),
         }
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
-        """Add one xyxy box to image with label."""
-        txt_color = (
-            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
+    def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
+        """Assign text color based on background color."""
+        if color in self.dark_colors:
+            return 104, 31, 17
+        elif color in self.light_colors:
+            return 255, 255, 255
+        else:
+            return txt_color
+
+    def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
+        """
+        Draws a label with a background rectangle centered within a given bounding box.
+
+        Args:
+            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
+            label (str): The text label to be displayed.
+            color (tuple, optional): The background color of the rectangle (R, G, B).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+            margin (int, optional): The margin between the text and the rectangle border.
+        """
+
+        # If label have more than 3 characters, skip other characters, due to circle size
+        if len(label) > 3:
+            print(
+                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
+            )
+            label = label[:3]
+
+        # Calculate the center of the box
+        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+        # Get the text size
+        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]
+        # Calculate the required radius to fit the text with the margin
+        required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin
+        # Draw the circle with the required radius
+        cv2.circle(self.im, (x_center, y_center), required_radius, color, -1)
+        # Calculate the position for the text
+        text_x = x_center - text_size[0] // 2
+        text_y = y_center + text_size[1] // 2
+        # Draw the text
+        cv2.putText(
+            self.im,
+            str(label),
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            self.sf - 0.15,
+            self.get_txt_color(color, txt_color),
+            self.tf,
+            lineType=cv2.LINE_AA,
         )
+
+    def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
+        """
+        Draws a label with a background rectangle centered within a given bounding box.
+
+        Args:
+            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
+            label (str): The text label to be displayed.
+            color (tuple, optional): The background color of the rectangle (R, G, B).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+            margin (int, optional): The margin between the text and the rectangle border.
+        """
+
+        # Calculate the center of the bounding box
+        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+        # Get the size of the text
+        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.1, self.tf)[0]
+        # Calculate the top-left corner of the text (to center it)
+        text_x = x_center - text_size[0] // 2
+        text_y = y_center + text_size[1] // 2
+        # Calculate the coordinates of the background rectangle
+        rect_x1 = text_x - margin
+        rect_y1 = text_y - text_size[1] - margin
+        rect_x2 = text_x + text_size[0] + margin
+        rect_y2 = text_y + margin
+        # Draw the background rectangle
+        cv2.rectangle(self.im, (rect_x1, rect_y1), (rect_x2, rect_y2), color, -1)
+        # Draw the text on top of the rectangle
+        cv2.putText(
+            self.im,
+            label,
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            self.sf - 0.1,
+            self.get_txt_color(color, txt_color),
+            self.tf,
+            lineType=cv2.LINE_AA,
+        )
+
+    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+        """
+        Draws a bounding box to image with label.
+
+        Args:
+            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
+            label (str): The text label to be displayed.
+            color (tuple, optional): The background color of the rectangle (R, G, B).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+            rotated (bool, optional): Variable used to check if task is OBB
+        """
+
+        txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):
@@ -242,6 +339,7 @@ class Annotator:
             alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
             retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
+
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -281,6 +379,7 @@ class Annotator:
         Note:
             `kpt_line=True` currently only supports human pose plotting.
         """
+
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -376,6 +475,7 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
+
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
         height = y_max - y_min
@@ -390,6 +490,7 @@ class Annotator:
             color (tuple): Region Color value
             thickness (int): Region area thickness value
         """
+
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
@@ -401,6 +502,7 @@ class Annotator:
             color (tuple): tracks line color
             track_thickness (int): track line thickness value
         """
+
         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
@@ -513,6 +615,7 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
+
         a, b, c = np.array(a), np.array(b), np.array(c)
         radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
         angle = np.abs(radians * 180.0 / np.pi)
@@ -530,6 +633,7 @@ class Annotator:
             shape (tuple): imgsz for model inference
             radius (int): Keypoint radius value
         """
+
         if indices is None:
             indices = [2, 5, 7]
         for i, k in enumerate(keypoints):
@@ -626,6 +730,7 @@ class Annotator:
             det_label (str): Detection label text
             track_label (str): Tracking label text
         """
+
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f"Track ID: {track_label}" if track_label else det_label
@@ -695,6 +800,7 @@ class Annotator:
             color (tuple): object centroid and line color value
             pin_color (tuple): visioneye point color value
         """
+
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)

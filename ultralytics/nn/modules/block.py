@@ -672,18 +672,6 @@ class SPPELAN(nn.Module):
         return self.cv5(torch.cat(y, 1))
 
 
-class Silence(nn.Module):
-    """Silence."""
-
-    def __init__(self):
-        """Initializes the Silence module."""
-        super(Silence, self).__init__()
-
-    def forward(self, x):
-        """Forward pass through Silence layer."""
-        return x
-
-
 class CBLinear(nn.Module):
     """CBLinear."""
 

@@ -33,14 +33,13 @@ class Conv2d_BN(torch.nn.Sequential):
         self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
         self.norm_type = norm_type
         if norm_type == "group":
-            num_groups = int(b/2)
+            num_groups = int(b / 2)
             bn = torch.nn.GroupNorm(num_groups, b)
         else:
             bn = torch.nn.BatchNorm2d(b)
             torch.nn.init.constant_(bn.weight, bn_weight_init)
             torch.nn.init.constant_(bn.bias, 0)
         self.add_module("bn", bn)
-
 
 
 class PatchEmbed(nn.Module):

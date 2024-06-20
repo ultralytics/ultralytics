@@ -360,11 +360,9 @@ class LoadImagesAndVideos:
                         self._new_video(self.files[self.count])
             else:
                 self.mode = "image"
-                if not os.path.exists(path):
-                    raise FileNotFoundError(f"Image Not Found {path}")
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    raise FileNotFoundError(f"Image File Open Error {path}")
+                    raise FileNotFoundError(f"Image Not Found or Unable to Open Error {path}")
                 paths.append(path)
                 imgs.append(im0)
                 info.append(f"image {self.count + 1}/{self.nf} {path}: ")

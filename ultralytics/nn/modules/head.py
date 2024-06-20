@@ -15,7 +15,6 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "HumanDetect", "v10Detect"
 
 

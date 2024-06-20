@@ -60,12 +60,10 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
-    v8ClassificationLoss,
-    v8DetectionLoss,
-    v8HumanLoss,
     E2EDetectLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8HumanLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,

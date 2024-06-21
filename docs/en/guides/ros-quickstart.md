@@ -108,6 +108,7 @@ Finally, create a subscriber that listens to messages on the `/camera/color/imag
 ```python
 import ros_numpy
 
+
 def callback(data):
     """Callback function to process image and publish annotated images."""
     array = ros_numpy.numpify(data)

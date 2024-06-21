@@ -393,9 +393,13 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
 
         if norm_type == "group":
-            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd/2), hd)) for x in ch)
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd / 2), hd)) for x in ch
+            )
         else:
-            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
+            )
             # NOTE: simplified version but it's not consistent with .pt weights.
             # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
@@ -425,7 +429,6 @@ class RTDETRDecoder(nn.Module):
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         self._reset_parameters()
-
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""

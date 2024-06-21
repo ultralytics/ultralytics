@@ -1225,13 +1225,15 @@ def classify_transforms(
         tfl = [T.Resize(scale_size)]
     tfl.append(T.CenterCrop(size))
 
-    tfl.extand([
-        T.ToTensor(),
-        T.Normalize(
-            mean=torch.tensor(mean),
-            std=torch.tensor(std),
-        ),
-    ])
+    tfl.extand(
+        [
+            T.ToTensor(),
+            T.Normalize(
+                mean=torch.tensor(mean),
+                std=torch.tensor(std),
+            ),
+        ]
+    )
 
     return T.Compose(tfl)
 
@@ -1326,7 +1328,7 @@ def classify_augmentations(
     final_tfl = [
         T.ToTensor(),
         T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
-        T.RandomErasing(p=erasing, inplace=True)
+        T.RandomErasing(p=erasing, inplace=True),
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)

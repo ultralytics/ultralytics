@@ -789,7 +789,7 @@ class CIB(nn.Module):
         self.cv1 = nn.Sequential(
             Conv(c1, c1, 3, g=c1),
             Conv(c1, 2 * c_, 1),
-            Conv(2 * c_, 2 * c_, 3, g=2 * c_) if not lk else RepVGGDW(2 * c_),
+            RepVGGDW(2 * c_) if lk else Conv(2 * c_, 2 * c_, 3, g=2 * c_),
             Conv(2 * c_, c2, 1),
             Conv(c2, c2, 3, g=c2),
         )

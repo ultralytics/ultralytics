@@ -1225,7 +1225,7 @@ def classify_transforms(
         tfl = [T.Resize(scale_size)]
     tfl.append(T.CenterCrop(size))
 
-    tfl.extand(
+    tfl.extend(
         [
             T.ToTensor(),
             T.Normalize(

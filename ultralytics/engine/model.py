@@ -142,7 +142,6 @@ class Model(nn.Module):
         # Check if Triton Server model
         elif self.is_triton_model(model):
             self.model_name = self.model = model
-            self.task = task
             return
 
         # Load or create new YOLO model

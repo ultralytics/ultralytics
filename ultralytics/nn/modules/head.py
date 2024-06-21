@@ -16,7 +16,7 @@ from .transformer import MLP, DeformableTransformerDecoder, DeformableTransforme
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
-
+__all__ += "Regress", "Regress6",
 
 class Detect(nn.Module):
     """YOLOv8 Detect head for detection models."""

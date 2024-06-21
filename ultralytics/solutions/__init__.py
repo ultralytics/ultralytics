@@ -15,6 +15,7 @@ __all__ = (
     "Heatmap",
     "ObjectCounter",
     "ParkingManagement",
+    "ParkingPtsSelection",
     "QueueManager",
     "SpeedEstimator",
     "Analytics",

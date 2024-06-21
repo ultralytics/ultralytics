@@ -414,12 +414,12 @@ class TinyViTBlock(nn.Module):
             if padding:
                 x = x[:, :h, :w].contiguous()
 
-            x = x.view(b, l, c)
+            x = x.view(b, hw, c)
 
         x = res_x + self.drop_path(x)
         x = x.transpose(1, 2).reshape(b, c, h, w)
         x = self.local_conv(x)
-        x = x.view(b, c, l).transpose(1, 2)
+        x = x.view(b, c, hw).transpose(1, 2)
 
         return x + self.drop_path(self.mlp(x))
 

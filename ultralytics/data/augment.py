@@ -1223,18 +1223,13 @@ def classify_transforms(
     else:
         # Resize the shortest edge to matching target dim for non-square target
         tfl = [T.Resize(scale_size)]
-    tfl.append(T.CenterCrop(size))
-
     tfl.extend(
         [
+            T.CenterCrop(size),
             T.ToTensor(),
-            T.Normalize(
-                mean=torch.tensor(mean),
-                std=torch.tensor(std),
-            ),
+            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
         ]
     )
-
     return T.Compose(tfl)
 
 

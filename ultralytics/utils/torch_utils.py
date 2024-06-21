@@ -25,7 +25,7 @@ from ultralytics.utils import (
     __version__,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_version, check_requirements
 
 try:
     import thop
@@ -39,7 +39,7 @@ TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
-
+HAS_XPU = hasattr(torch, "xpu")
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
@@ -118,14 +118,20 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
+    xpu = device == "xpu"  # Intel XPU
+    if cpu or mps or xpu:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
-        if device == "cuda":
+        if device == "cuda" and not xpu:
             device = "0"
-        visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+            visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
+            os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+        elif "xpu" in device:
+            check_requirements("intel-extension-for-pytorch>=2.1.10+xpu")  # might have to verify valid/matching torch install
+            import intel_extension_for_pytorch as ipex
+            HAS_XPU = hasattr(torch, "xpu")
+            device = device.replace("xpu:", "")
+        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(",")) and xpu):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -142,8 +148,22 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
+        elif xpu and not(torch.xpu.device_count() >= len(device.split(","))):
+            LOGGER.info(s)
+            install = (
+                "See https://intel.github.io/intel-extension-for-pytorch/#installation for up-to-date XPU package "
+                "install.\n"
+                if torch.xpu.device_count() == 0 or not HAS_XPU
+                else ""
+            )
+            raise ValueError(
+                f"Invalid XPU 'device={device}' requested."
+                f" Use 'device=cpu' or pass valid XPU device(s) if available,"
+                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-XPU.\n"
+                f"\n{torch.xpu.device_count() = }" if HAS_XPU else f"{install}"
+            )
 
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if not (cpu and mps and xpu) and (torch.cuda.is_available() or (HAS_XPU and torch.xpu.device_count() >= 1)):  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
@@ -158,10 +178,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                     f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
                 )
         space = " " * (len(s) + 1)
+        dev_type = "XPU" if xpu and HAS_XPU else "CUDA"
         for i, d in enumerate(devices):
-            p = torch.cuda.get_device_properties(i)
-            s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
-        arg = "cuda:0"
+            p = torch.xpu.get_device_properties(i) if xpu and HAS_XPU else torch.cuda.get_device_properties(i)
+            s += f"{'' if i == 0 else space}{dev_type}:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
+        arg = f"{dev_type.lower()}:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

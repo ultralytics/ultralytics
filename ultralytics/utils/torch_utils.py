@@ -112,27 +112,30 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         return device
 
     s = f"Ultralytics YOLOv{__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
-    global HAS_XPU
+    
     HAS_XPU = False
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    xpu = device == "xpu"  # Intel XPU
-    if cpu or mps or xpu:
+    xpu = "xpu" in device or any(device.split(","))  # Intel XPU
+
+    if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         if device == "cuda" and not xpu:
             device = "0"
-            visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
             os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        elif "xpu" in device:
+        elif xpu:
             check_requirements("intel-extension-for-pytorch>=2.1.10+xpu")  # might have to verify valid/matching torch install
             import intel_extension_for_pytorch as ipex
             HAS_XPU = hasattr(torch, "xpu")
-            device = device.replace("xpu:", "")
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(",")) and xpu):
+            device = "0" if device == "xpu" else device.replace("xpu:", "")
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+        
+        visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
+        if not xpu and not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "

@@ -39,7 +39,6 @@ TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
-HAS_XPU = hasattr(torch, "xpu")
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
@@ -113,6 +112,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         return device
 
     s = f"Ultralytics YOLOv{__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    global HAS_XPU
+    HAS_XPU = hasattr(torch, "xpu")
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'

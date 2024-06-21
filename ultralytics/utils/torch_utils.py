@@ -164,7 +164,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"\n{torch.xpu.device_count() = }" if HAS_XPU else f"{install}"
             )
 
-    if not (cpu and mps and xpu) and (torch.cuda.is_available() or (HAS_XPU and torch.xpu.device_count() >= 1)):  # prefer GPU if available
+    if not (cpu and mps) and (torch.cuda.is_available() or (HAS_XPU and torch.xpu.device_count() >= 1)):  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
         if n > 1:  # multi-GPU

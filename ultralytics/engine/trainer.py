@@ -311,7 +311,7 @@ class BaseTrainer:
             iterations=iterations,
         )
         if self._has_xpu:
-            self.model, self.optimizer = ipex.optimize(self.model, optimizer=self.optimizer, dtype=torch.bfloat16)
+            self.model, self.optimizer = ipex.optimize(self.model, optimizer=self.optimizer, dtype=torch.bfloat16 if self.amp else torch.float32)
         # Scheduler
         self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
@@ -380,7 +380,7 @@ class BaseTrainer:
 
                 # Forward
                 _amp = torch.cuda.amp if not self._has_xpu else torch.xpu.amp
-                with _amp.autocast(self.amp):
+                with _amp.autocast(enabled=self.amp, dtype=torch.bfloat16 if self._has_xpu and (self.amp and self._has_xpu) else torch.float16):
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:

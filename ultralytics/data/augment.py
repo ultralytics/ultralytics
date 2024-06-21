@@ -1323,7 +1323,7 @@ def classify_augmentations(
             )
 
     if not disable_color_jitter:
-        secondary_tfla.append(T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h))
+        secondary_tfl.append(T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h))
 
     final_tfl = [
         T.ToTensor(),

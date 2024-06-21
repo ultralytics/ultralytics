@@ -49,7 +49,10 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
 )
-
+try:  # try-except avoids linting error
+    import intel_extension_for_pytorch as ipex
+except ImportError:
+    pass
 
 class BaseTrainer:
     """
@@ -99,9 +102,12 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
+        self._has_xpu = "xpu" == self.device.type
         self.validator = None
         self.metrics = None
         self.plots = {}
+        if self._has_xpu:
+            import intel_extension_for_pytorch as ipex
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -259,7 +265,7 @@ class BaseTrainer:
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp and not self._has_xpu)
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK])
 
@@ -304,6 +310,8 @@ class BaseTrainer:
             decay=weight_decay,
             iterations=iterations,
         )
+        if self._has_xpu:
+            self.model, self.optimizer = ipex.optimize(self.model, optimizer=self.optimizer, dtype=torch.bfloat16)
         # Scheduler
         self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
@@ -371,7 +379,8 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with torch.cuda.amp.autocast(self.amp):
+                _amp = torch.cuda.amp if not self._has_xpu else torch.xpu.amp
+                with _amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:

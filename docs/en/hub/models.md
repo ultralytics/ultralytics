@@ -6,9 +6,9 @@ keywords: Ultralytics HUB, YOLOv8, custom AI models, model training, model deplo
 
 # Ultralytics HUB Models
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) models provide a streamlined solution for training vision AI models on custom datasets.
+[Ultralytics HUB](https://ultralytics.com/hub) models provide a streamlined solution for training vision AI models on custom datasets.
 
-The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Ultralytics YOLOv8. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, [Ultralytics HUB](https://bit.ly/ultralytics_hub) offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
+The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Ultralytics YOLOv8. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, [Ultralytics HUB](https://ultralytics.com/hub) offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YVlkq5H2tAQ"
@@ -56,9 +56,9 @@ In this step, you have to choose the project in which you want to create your mo
 
     Ultralytics HUB will try to pre-select the project.
 
-    If you opened the **Train Model** dialog as described above, [Ultralytics HUB](https://bit.ly/ultralytics_hub) will pre-select the last project you used.
+    If you opened the **Train Model** dialog as described above, [Ultralytics HUB](https://ultralytics.com/hub) will pre-select the last project you used.
 
-    If you opened the **Train Model** dialog from the Project page, [Ultralytics HUB](https://bit.ly/ultralytics_hub) will pre-select the project you were inside of.
+    If you opened the **Train Model** dialog from the Project page, [Ultralytics HUB](https://ultralytics.com/hub) will pre-select the project you were inside of.
 
     ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_5.jpg)
 
@@ -74,7 +74,7 @@ By default, your model will use a pre-trained model (trained on the [COCO](https
 
 !!! note "Note"
 
-    You can easily change the most common model configuration options (such as the number of epochs) but you can also use the **Custom** option to access all [Train Settings](https://docs.ultralytics.com/modes/train/#train-settings) relevant to [Ultralytics HUB](https://bit.ly/ultralytics_hub).
+    You can easily change the most common model configuration options (such as the number of epochs) but you can also use the **Custom** option to access all [Train Settings](https://docs.ultralytics.com/modes/train/#train-settings) relevant to [Ultralytics HUB](https://ultralytics.com/hub).
 
 <p align="center">
   <br>
@@ -103,7 +103,7 @@ In this step, you will start training you model.
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/cloud-training/hub_cloud_training_train_model_2.jpg)
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) offers three training options:
+[Ultralytics HUB](https://ultralytics.com/hub) offers three training options:
 
 - [Ultralytics Cloud](./cloud-training.md)
 - Google Colab
@@ -119,7 +119,7 @@ To train models using our [Cloud Training](./cloud-training.md) solution, read t
 
 #### b. Google Colab
 
-To start training your model using [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb), follow the instructions shown in the [Ultralytics HUB](https://bit.ly/ultralytics_hub) **Train Model** dialog or on the [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb) notebook.
+To start training your model using [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb), follow the instructions shown in the [Ultralytics HUB](https://ultralytics.com/hub) **Train Model** dialog or on the [Google Colab](https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb) notebook.
 
 <a href="https://colab.research.google.com/github/ultralytics/hub/blob/master/hub.ipynb" target="_blank">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
@@ -151,7 +151,7 @@ When the training starts, you can click **Done** and monitor the training progre
   <strong>Watch:</strong> Bring your Own Agent model training using Ultralytics HUB
 </p>
 
-To start training your model using your own agent, follow the instructions shown in the [Ultralytics HUB](https://bit.ly/ultralytics_hub) **Train Model** dialog.
+To start training your model using your own agent, follow the instructions shown in the [Ultralytics HUB](https://ultralytics.com/hub) **Train Model** dialog.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with arrows pointing to instructions](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_12.jpg)
 
@@ -243,13 +243,13 @@ Read the [Ultralytics Inference API](./inference-api.md) documentation for more 
 
 !!! info "Info"
 
-    [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s sharing functionality provides a convenient way to share models with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://bit.ly/ultralytics_hub) users and those who have yet to create an account.
+    [Ultralytics HUB](https://ultralytics.com/hub)'s sharing functionality provides a convenient way to share models with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://ultralytics.com/hub) users and those who have yet to create an account.
 
 ??? note "Note"
 
     You have control over the general access of your models.
 
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the model, regardless of whether they have an [Ultralytics HUB](https://bit.ly/ultralytics_hub) account or not.
+    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the model, regardless of whether they have an [Ultralytics HUB](https://ultralytics.com/hub) account or not.
 
 Navigate to the Model page of the model you want to share, open the model actions dropdown and click on the **Share** option. This action will trigger the **Share Model** dialog.
 

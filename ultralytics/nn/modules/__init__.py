@@ -134,6 +134,7 @@ __all__ = (
     "OBB",
     "WorldDetect",
     "HumanDetect",
+    "v10Detect",
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",

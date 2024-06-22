@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
+description: Explore the COCO dataset for object detection and segmentation. Learn about its structure, usage, pretrained models, and key features.
+keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
 ---
 
 # COCO Dataset
@@ -70,10 +70,10 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

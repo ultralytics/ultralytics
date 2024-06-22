@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Detailed guide on the special COCO-Pose Dataset in Ultralytics. Learn about its key features, structure, and usage in pose estimation tasks with YOLO.
-keywords: Ultralytics YOLO, COCO-Pose Dataset, Deep Learning, Pose Estimation, Training Models, Dataset YAML, openpose, YOLO
+description: Explore the COCO-Pose dataset for advanced pose estimation. Learn about datasets, pretrained models, metrics, and applications for training with YOLO.
+keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, YOLO, deep learning, computer vision
 ---
 
 # COCO-Pose Dataset
@@ -61,10 +61,10 @@ To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an im
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Distance Calculation Using Ultralytics YOLOv8
-keywords: Ultralytics, YOLOv8, Object Detection, Distance Calculation, Object Tracking, Notebook, IPython Kernel, CLI, Python SDK
+description: Learn how to calculate distances between objects using Ultralytics YOLOv8 for accurate spatial positioning and scene understanding.
+keywords: Ultralytics, YOLOv8, distance calculation, computer vision, object tracking, spatial positioning
 ---
 
 # Distance Calculation using Ultralytics YOLOv8 🚀
@@ -23,8 +23,8 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |                                                                
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |
+| :---------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/6b6b735d-3c49-4b84-a022-2bf6e3c72f8b) |
 
 ## Advantages of Distance Calculation?
@@ -42,9 +42,9 @@ Measuring the gap between two objects is known as distance calculation within a 
     === "Video Stream"
 
         ```python
-        from ultralytics import YOLO
-        from ultralytics.solutions import distance_calculation
         import cv2
+
+        from ultralytics import YOLO, solutions
 
         model = YOLO("yolov8n.pt")
         names = model.model.names
@@ -54,14 +54,10 @@ Measuring the gap between two objects is known as distance calculation within a 
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
-        video_writer = cv2.VideoWriter("distance_calculation.avi",
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       fps,
-                                       (w, h))
+        video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init distance-calculation obj
-        dist_obj = distance_calculation.DistanceCalculation()
-        dist_obj.set_args(names=names, view_img=True)
+        dist_obj = solutions.DistanceCalculation(names=names, view_img=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -76,7 +72,6 @@ Measuring the gap between two objects is known as distance calculation within a 
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ???+ tip "Note"
@@ -84,20 +79,21 @@ Measuring the gap between two objects is known as distance calculation within a 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
-### Optional Arguments `set_args`
+### Arguments `DistanceCalculation()`
 
-| Name             | Type   | Default         | Description                                            |
-|------------------|--------|-----------------|--------------------------------------------------------|
-| `names`          | `dict` | `None`          | Classes names                                          |
-| `view_img`       | `bool` | `False`         | Display frames with counts                             |
-| `line_thickness` | `int`  | `2`             | Increase bounding boxes thickness                      |
-| `line_color`     | `RGB`  | `(255, 255, 0)` | Line Color for centroids mapping on two bounding boxes |
-| `centroid_color` | `RGB`  | `(255, 0, 255)` | Centroid color for each bounding box                   |
+| `Name`             | `Type`  | `Default`       | Description                                               |
+| ------------------ | ------- | --------------- | --------------------------------------------------------- |
+| `names`            | `dict`  | `None`          | Dictionary mapping class indices to class names.          |
+| `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
+| `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
+| `line_thickness`   | `int`   | `2`             | Thickness of the lines drawn on the image.                |
+| `line_color`       | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
+| `centroid_color`   | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
 
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

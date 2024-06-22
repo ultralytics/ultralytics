@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to train datasets on single or multiple GPUs using YOLOv5. Includes setup, training modes and result profiling for efficient leveraging of multiple GPUs.
-keywords: YOLOv5, multi-GPU Training, YOLOv5 training, deep learning, machine learning, object detection, Ultralytics
+description: Learn how to train YOLOv5 on multiple GPUs for optimal performance. Guide covers single and multiple machine setups.
+keywords: YOLOv5, multiple GPUs, machine learning, deep learning, PyTorch, data parallel, distributed data parallel
 ---
 
 📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).
@@ -16,7 +16,7 @@ cd yolov5
 pip install -r requirements.txt  # install
 ```
 
-💡 ProTip! **Docker Image** is recommended for all Multi-GPU trainings. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+💡 ProTip! **Docker Image** is recommended for all Multi-GPU trainings. See [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 💡 ProTip! `torch.distributed.run` replaces `torch.distributed.launch` in **PyTorch>=1.9**. See [docs](https://pytorch.org/docs/stable/distributed.html) for details.
 
@@ -121,7 +121,7 @@ python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
 
 ## Results
 
-DDP profiling results on an [AWS EC2 P4d instance](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
+DDP profiling results on an [AWS EC2 P4d instance](../environments/aws_quickstart_tutorial.md) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
 
 <details>
   <summary>Profiling code</summary>
@@ -143,7 +143,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 </details>
 
 | GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
-|--------------|------------|------------------------------|--------------------|------------------|
+| ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
 | 1x           | 16         | 26GB                         | 20:39              | 0:55             |
 | 2x           | 32         | 26GB                         | 11:43              | 0:57             |
 | 4x           | 64         | 26GB                         | 5:57               | 0:55             |

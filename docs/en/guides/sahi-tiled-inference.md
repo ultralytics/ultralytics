@@ -1,7 +1,7 @@
 ---
 comments: true
-description: A comprehensive guide on how to use YOLOv8 with SAHI for standard and sliced inference in object detection tasks.
-keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, Large Scale Image Analysis, High-Resolution Imagery
+description: Learn how to implement YOLOv8 with SAHI for sliced inference. Optimize memory usage and enhance detection accuracy for large-scale applications.
+keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
 ---
 
 # Ultralytics Docs: Using YOLOv8 with SAHI for Sliced Inference
@@ -15,6 +15,17 @@ Welcome to the Ultralytics documentation on how to use YOLOv8 with [SAHI](https:
 ## Introduction to SAHI
 
 SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimize object detection algorithms for large-scale and high-resolution imagery. Its core functionality lies in partitioning images into manageable slices, running object detection on each slice, and then stitching the results back together. SAHI is compatible with a range of object detection models, including the YOLO series, thereby offering flexibility while ensuring optimized use of computational resources.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/tq3FU_QczxE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLOv8
+</p>
 
 ### Key Features of SAHI
 
@@ -60,21 +71,22 @@ pip install -U ultralytics sahi
 Here's how to import the necessary modules and download a YOLOv8 model and some test images:
 
 ```python
-from sahi.utils.yolov8 import download_yolov8s_model
-from sahi import AutoDetectionModel
-from sahi.utils.cv import read_image
 from sahi.utils.file import download_from_url
-from sahi.predict import get_prediction, get_sliced_prediction, predict
-from pathlib import Path
-from IPython.display import Image
+from sahi.utils.yolov8 import download_yolov8s_model
 
 # Download YOLOv8 model
 yolov8_model_path = "models/yolov8s.pt"
 download_yolov8s_model(yolov8_model_path)
 
 # Download test images
-download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg', 'demo_data/small-vehicles1.jpeg')
-download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png', 'demo_data/terrain2.png')
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg",
+    "demo_data/small-vehicles1.jpeg",
+)
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png",
+    "demo_data/terrain2.png",
+)
 ```
 
 ## Standard Inference with YOLOv8
@@ -84,8 +96,10 @@ download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_da
 You can instantiate a YOLOv8 model for object detection like this:
 
 ```python
+from sahi import AutoDetectionModel
+
 detection_model = AutoDetectionModel.from_pretrained(
-    model_type='yolov8',
+    model_type="yolov8",
     model_path=yolov8_model_path,
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
@@ -97,6 +111,8 @@ detection_model = AutoDetectionModel.from_pretrained(
 Perform standard inference using an image path or a numpy image.
 
 ```python
+from sahi.predict import get_prediction
+
 # With an image path
 result = get_prediction("demo_data/small-vehicles1.jpeg", detection_model)
 
@@ -118,13 +134,15 @@ Image("demo_data/prediction_visual.png")
 Perform sliced inference by specifying the slice dimensions and overlap ratios:
 
 ```python
+from sahi.predict import get_sliced_prediction
+
 result = get_sliced_prediction(
     "demo_data/small-vehicles1.jpeg",
     detection_model,
     slice_height=256,
     slice_width=256,
     overlap_height_ratio=0.2,
-    overlap_width_ratio=0.2
+    overlap_width_ratio=0.2,
 )
 ```
 
@@ -148,6 +166,8 @@ result.to_fiftyone_detections()[:3]
 For batch prediction on a directory of images:
 
 ```python
+from sahi.predict import predict
+
 predict(
     model_type="yolov8",
     model_path="path/to/yolov8n.pt",

@@ -1,19 +1,19 @@
 ---
 comments: true
-description: Discover how to train your YOLOv8 models efficiently with Weights & Biases. This guide walks through integrating Weights & Biases with YOLOv8 to enable seamless experiment tracking, result visualization, and model explainability.
-keywords: Ultralytics, YOLOv8, Object Detection, Weights & Biases, Model Training, Experiment Tracking, Visualizing Results
+description: Learn how to enhance YOLOv8 experiment tracking and visualization with Weights & Biases for better model performance and management.
+keywords: YOLOv8, Weights & Biases, model training, experiment tracking, Ultralytics, machine learning, computer vision, model visualization
 ---
 
 # Enhancing YOLOv8 Experiment Tracking and Visualization with Weights & Biases
 
 Object detection models like [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) have become integral to many computer vision applications. However, training, evaluating, and deploying these complex models introduces several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require substantial instrumentation and experiment management.
 
-This guide showcases Ultralytics YOLOv8 integration with Weights & Biases’ for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases’ interactive features.
+This guide showcases Ultralytics YOLOv8 integration with Weights & Biases' for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases
 
 <p align="center">
-  <img width="640" src="https://docs.wandb.ai/assets/images/wandb_demo_experiments-4797af7fe7236d6c5c42adbdc93deb4c.gif" alt="Weights & Biases Overview">
+  <img width="800" src="https://docs.wandb.ai/assets/images/wandb_demo_experiments-4797af7fe7236d6c5c42adbdc93deb4c.gif" alt="Weights & Biases Overview">
 </p>
 
 [Weights & Biases](https://wandb.ai/site) is a cutting-edge MLOps platform designed for tracking, visualizing, and managing machine learning experiments. It features automatic logging of training metrics for full experiment reproducibility, an interactive UI for streamlined data analysis, and efficient model management tools for deploying across various environments.
@@ -63,9 +63,10 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 
     === "Python"
        ```python
-       from ultralytics import YOLO
-       from wandb.integration.ultralytics import add_wandb_callback
        import wandb
+       from wandb.integration.ultralytics import add_wandb_callback
+
+       from ultralytics import YOLO
 
        # Step 1: Initialize a Weights & Biases run
        wandb.init(project="ultralytics", job_type="training")
@@ -93,7 +94,7 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 
 ### Understanding the Code
 
-Let’s understand the steps showcased in the usage code snippet above.
+Let's understand the steps showcased in the usage code snippet above.
 
 - **Step 1: Initialize a Weights & Biases Run**: Start by initializing a Weights & Biases run, specifying the project name and the job type. This run will track and manage the training and validation processes of your model.
 
@@ -114,7 +115,7 @@ Let’s understand the steps showcased in the usage code snippet above.
 Upon running the usage code snippet above, you can expect the following key outputs:
 
 - The setup of a new run with its unique ID, indicating the start of the training process.
-- A concise summary of the model’s structure, including the number of layers and parameters.
+- A concise summary of the model's structure, including the number of layers and parameters.
 - Regular updates on important metrics such as box loss, cls loss, dfl loss, precision, recall, and mAP scores during each training epoch.
 - At the end of training, detailed metrics including the model's inference speed, and overall accuracy metrics are displayed.
 - Links to the Weights & Biases dashboard for in-depth analysis and visualization of the training process, along with information on local log file locations.
@@ -125,31 +126,25 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 ## Key Features of the Weights & Biases Dashboard
 
-- **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning.
-
-    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/TB76U9O"><a href="//imgur.com/D6NVnmN">Take a look at how the experiments are tracked using Weights & Biases.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+- **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning. [See how experiments are tracked using Weights & Biases](https://imgur.com/D6NVnmN).
 
 - **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as learning rate, batch size, and more, enhancing the performance of YOLOv8.
 
 - **Comparative Analysis**: The platform allows side-by-side comparisons of different training runs, essential for assessing the impact of various model configurations.
 
-- **Visualization of Training Progress**: Graphical representations of key metrics provide an intuitive understanding of the model's performance across epochs.
-
-    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/kU5h7W4" data-context="false" ><a href="//imgur.com/a/kU5h7W4">Take a look at how Weights & Biases helps you visualize validation results.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+- **Visualization of Training Progress**: Graphical representations of key metrics provide an intuitive understanding of the model's performance across epochs. [See how Weights & Biases helps you visualize validation results](https://imgur.com/a/kU5h7W4).
 
 - **Resource Monitoring**: Keep track of CPU, GPU, and memory usage to optimize the efficiency of the training process.
 
 - **Model Artifacts Management**: Access and share model checkpoints, facilitating easy deployment and collaboration.
 
-- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information on Weights & Biases’ image overlay capabilities, check out this [link](https://docs.wandb.ai/guides/track/log/media#image-overlays).
-
-    <div style="text-align:center;"><blockquote class="imgur-embed-pub" lang="en" data-id="a/UTSiufs" data-context="false" ><a href="//imgur.com/a/UTSiufs">Take a look at how Weights & Biases’ image overlays helps visualize model inferences.</a></blockquote></div><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information on Weights & Biases' image overlay capabilities, check out this [link](https://docs.wandb.ai/guides/track/log/media#image-overlays). [See how Weights & Biases' image overlays helps visualize model inferences](https://imgur.com/a/UTSiufs).
 
 By using these features, you can effectively track, analyze, and optimize your YOLOv8 model's training, ensuring the best possible performance and efficiency.
 
 ## Summary
 
-This guide helped you explore Ultralytics’ YOLOv8 integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training and prediction results.
+This guide helped you explore Ultralytics' YOLOv8 integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training and prediction results.
 
 For further details on usage, visit [Weights & Biases' official documentation](https://docs.wandb.ai/guides/integrations/ultralytics).
 

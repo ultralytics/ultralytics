@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand how to use ImageNet, an extensive annotated image dataset for object recognition research, with Ultralytics YOLO models. Learn about its structure, usage, and significance in computer vision.
-keywords: Ultralytics, YOLO, ImageNet, dataset, object recognition, deep learning, computer vision, machine learning, dataset training, model training, image classification, object detection
+description: Explore the extensive ImageNet dataset and discover its role in advancing deep learning in computer vision. Access pretrained models and training examples.
+keywords: ImageNet, deep learning, visual recognition, computer vision, pretrained models, YOLO, dataset, object detection, image classification
 ---
 
 # ImageNet Dataset
@@ -49,10 +49,10 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='imagenet', epochs=100, imgsz=224)
+        results = model.train(data="imagenet", epochs=100, imgsz=224)
         ```
 
     === "CLI"

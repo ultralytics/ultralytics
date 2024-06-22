@@ -1,6 +1,6 @@
 ---
-description: Get practical insights about our SegmentationValidator in YOLO Ultralytics models. Discover functionality details, methods, inputs, and outputs.
-keywords: Ultralytics, YOLO, SegmentationValidator, model segmentation, image classification, object detection
+description: Explore the YOLO Segmentation Validator module for validating segment models. Understand its usage, metrics, and implementation within the Ultralytics framework.
+keywords: YOLO, segmentation, validator, Ultralytics, model validation, machine learning, deep learning, AI, computer vision
 ---
 
 # Reference for `ultralytics/models/yolo/segment/val.py`

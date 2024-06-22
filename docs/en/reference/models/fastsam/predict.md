@@ -1,6 +1,6 @@
 ---
-description: Get detailed insights about Ultralytics FastSAMPredictor. Learn to predict and optimize your AI models with our properly documented guidelines.
-keywords: Ultralytics, FastSAMPredictor, predictive modeling, AI optimization, machine learning, deep learning, Ultralytics documentation
+description: Explore the Fast SAM Predictor in the Ultralytics YOLO framework. Learn about its segmentation prediction tasks, configuration, and post-processing steps.
+keywords: Ultralytics, Fast SAM Predictor, YOLO, segmentation, prediction, AI model, non-max suppression, mask prediction, tutorial
 ---
 
 # Reference for `ultralytics/models/fastsam/predict.py`

@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics neural network utils, such as bias_init_with_prob, inverse_sigmoid and multi_scale_deformable_attn_pytorch functions.
-keywords: Ultralytics, neural network, nn.modules.utils, bias_init_with_prob, inverse_sigmoid, multi_scale_deformable_attn_pytorch
+description: Explore the detailed reference of utility functions in the Ultralytics PyTorch modules. Learn about initialization, inverse sigmoid, and multiscale deformable attention.
+keywords: Ultralytics, PyTorch, utils, initialization, inverse sigmoid, multiscale deformable attention, deep learning, neural networks
 ---
 
 # Reference for `ultralytics/nn/modules/utils.py`

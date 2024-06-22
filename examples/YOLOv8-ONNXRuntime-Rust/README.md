@@ -1,10 +1,17 @@
 # YOLOv8-ONNXRuntime-Rust for All the Key YOLO Tasks
 
-This repository provides a Rust demo for performing YOLOv8 tasks like `Classification`, `Segmentation`, `Detection` and `Pose Detection` using ONNXRuntime.
+This repository provides a Rust demo for performing YOLOv8 tasks like `Classification`, `Segmentation`, `Detection`, `Pose Detection` and `OBB` using ONNXRuntime.
+
+## Recently Updated
+
+- Add YOLOv8-OBB demo
+- Update ONNXRuntime to 1.17.x
+
+Newly updated YOLOv8 example code is located in this repository (https://github.com/jamjamjon/usls/tree/main/examples/yolov8)
 
 ## Features
 
-- Support `Classification`, `Segmentation`, `Detection`, `Pose(Keypoints)-Detection` tasks.
+- Support `Classification`, `Segmentation`, `Detection`, `Pose(Keypoints)-Detection`, `OBB` tasks.
 - Support `FP16` & `FP32` ONNX models.
 - Support `CPU`, `CUDA` and `TensorRT` execution provider to accelerate computation.
 - Support dynamic input shapes(`batch`, `width`, `height`).

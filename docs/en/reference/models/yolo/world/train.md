@@ -1,3 +1,8 @@
+---
+description: Learn how to train a World Model with Ultralytics YOLO using advanced techniques and customizable options for optimal performance.
+keywords: Ultralytics, YOLO, World Model, training, deep learning, computer vision, AI, machine learning, tutorial
+---
+
 # Reference for `ultralytics/models/yolo/world/train.py`
 
 !!! Note

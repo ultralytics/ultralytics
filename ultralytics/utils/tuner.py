@@ -57,7 +57,7 @@ def run_ray_tune(
     except (ImportError, AssertionError):
         wandb = False
 
-    checks.check_version(ray.__version__, "<=2.9.3", "ray")
+    checks.check_version(ray.__version__, ">=2.0.0", "ray")
     default_space = {
         # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
         "lr0": tune.uniform(1e-5, 1e-1),

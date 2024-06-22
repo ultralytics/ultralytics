@@ -1,6 +1,6 @@
 ---
-description: Explore details about the HUBTrainingSession in Ultralytics framework. Learn to utilize this functionality for effective model training.
-keywords: Ultralytics, HUBTrainingSession, Documentation, Model Training, AI, Machine Learning, YOLO
+description: Explore the HUBTrainingSession class for managing Ultralytics YOLO model training, heartbeats, and checkpointing.
+keywords: Ultralytics, YOLO, HUBTrainingSession, model training, heartbeats, checkpointing, Python
 ---
 
 # Reference for `ultralytics/hub/session.py`

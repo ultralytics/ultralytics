@@ -1,6 +1,6 @@
 ---
-description: Learn to utilize the run_ray_tune function with Ultralytics. Make your machine learning tuning process easier and more efficient.
-keywords: Ultralytics, run_ray_tune, machine learning tuning, machine learning efficiency
+description: Explore how to use ultralytics.utils.tuner.py for efficient hyperparameter tuning with Ray Tune. Learn implementation details and example usage.
+keywords: Ultralytics, tuner, hyperparameter tuning, Ray Tune, YOLO, machine learning, AI, optimization
 ---
 
 # Reference for `ultralytics/utils/tuner.py`

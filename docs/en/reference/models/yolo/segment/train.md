@@ -1,6 +1,6 @@
 ---
-description: Maximize your YOLO model's performance with our SegmentationTrainer. Explore comprehensive guides and tutorials on ultralytics.com.
-keywords: Ultralytics, YOLO, SegmentationTrainer, image segmentation, object detection, model training, YOLO model
+description: Learn how to train YOLO models for segmentation tasks with Ultralytics. Explore the SegmentationTrainer class and its functionalities.
+keywords: YOLO, segmentation, train, Ultralytics, SegmentationTrainer, Python, machine learning, deep learning, tutorials
 ---
 
 # Reference for `ultralytics/models/yolo/segment/train.py`

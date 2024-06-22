@@ -1,3 +1,8 @@
+---
+description: Explore the WorldTrainerFromScratch in YOLO for open-set datasets. Learn how to build, train, and evaluate models efficiently.
+keywords: YOLO, WorldTrainer, open-set datasets, training, evaluation, build dataset, YOLO World, machine learning
+---
+
 # Reference for `ultralytics/models/yolo/world/train_world.py`
 
 !!! Note

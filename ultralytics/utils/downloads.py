@@ -23,6 +23,7 @@ GITHUB_ASSETS_NAMES = (
     + [f"yolov8{k}-world.pt" for k in "smlx"]
     + [f"yolov8{k}-worldv2.pt" for k in "smlx"]
     + [f"yolov9{k}.pt" for k in "ce"]
+    + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
@@ -418,7 +419,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset('yolov5s.pt', repo='ultralytics/assets', release='latest')
+        file_path = attempt_download_asset('yolov8n.pt', repo='ultralytics/assets', release='latest')
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import

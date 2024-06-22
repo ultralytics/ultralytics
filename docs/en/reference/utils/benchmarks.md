@@ -1,6 +1,6 @@
 ---
-description: Discover how to profile your models using Ultralytics utilities. Enhance performance, optimize your benchmarks, and learn best practices.
-keywords: Ultralytics, ProfileModels, benchmarks, model profiling, performance optimization
+description: Explore YOLO model benchmarking for speed and accuracy with formats like PyTorch, ONNX, TensorRT, and more. Detailed profiling & usage guides.
+keywords: YOLO, model benchmarking, ONNX, TensorRT, PyTorch, TensorFlow, CoreML, profiling, Ultralytics, model performance
 ---
 
 # Reference for `ultralytics/utils/benchmarks.py`

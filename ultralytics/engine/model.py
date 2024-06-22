@@ -2,12 +2,13 @@
 
 import inspect
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 import torch
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+from ultralytics.engine.results import Results
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (
@@ -141,7 +142,6 @@ class Model(nn.Module):
         # Check if Triton Server model
         elif self.is_triton_model(model):
             self.model_name = self.model = model
-            self.task = task
             return
 
         # Load or create new YOLO model
@@ -399,7 +399,7 @@ class Model(nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs,
-    ) -> list:
+    ) -> List[Results]:
         """
         Performs predictions on the given image source using the YOLO model.
 
@@ -457,7 +457,7 @@ class Model(nn.Module):
         stream: bool = False,
         persist: bool = False,
         **kwargs,
-    ) -> list:
+    ) -> List[Results]:
         """
         Conducts object tracking on the specified input source using the registered trackers.
 
@@ -572,7 +572,7 @@ class Model(nn.Module):
     def export(
         self,
         **kwargs,
-    ):
+    ) -> str:
         """
         Exports the model to a different format suitable for deployment.
 
@@ -588,7 +588,7 @@ class Model(nn.Module):
                 model's overrides and method defaults.
 
         Returns:
-            (object): The exported model in the specified format, or an object related to the export process.
+            (str): The exported model filename in the specified format, or an object related to the export process.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -741,11 +741,10 @@ class Model(nn.Module):
 
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
-        else:
-            if not self.predictor:  # export formats will not have predictor defined until predict() is called
-                self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-                self.predictor.setup_model(model=self.model, verbose=False)
-            return self.predictor.model.names
+        if not self.predictor:  # export formats will not have predictor defined until predict() is called
+            self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+            self.predictor.setup_model(model=self.model, verbose=False)
+        return self.predictor.model.names
 
     @property
     def device(self) -> torch.device:

@@ -17,7 +17,6 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     LOGGER,
     RANK,
-    SETTINGS,
     callbacks,
     checks,
     emojis,
@@ -655,19 +654,6 @@ class Model(nn.Module):
         if not args.get("resume"):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
-
-            if SETTINGS["hub"] is True and not self.session:
-                # Create a model in HUB
-                try:
-                    self.session = self._get_hub_session(self.model_name)
-                    if self.session:
-                        self.session.create_model(args)
-                        # Check model was created
-                        if not getattr(self.session.model, "id", None):
-                            self.session = None
-                except (PermissionError, ModuleNotFoundError):
-                    # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
-                    pass
 
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()

@@ -93,13 +93,11 @@ class HUBTrainingSession:
                 "imageSize": model_args.get("imgsz", 640),
                 "patience": model_args.get("patience", 100),
                 "device": model_args.get("device", ""),
-                "cache": model_args.get("cache", "ram"),
+                "cache": str(model_args.get("cache", "ram")),  # requires str() conversion
             },
             "dataset": {"name": model_args.get("data")},
             "lineage": {
-                "architecture": {
-                    "name": self.filename.replace(".pt", "").replace(".yaml", ""),
-                },
+                "architecture": {"name": self.filename.replace(".pt", "").replace(".yaml", "")},
                 "parent": {},
             },
             "meta": {"name": self.filename},

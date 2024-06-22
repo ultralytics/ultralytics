@@ -22,10 +22,10 @@ def on_pretrain_routine_start(trainer):
 
         session = HUBTrainingSession(trainer.args.model)
         trainer.hub_session = session if session.client.authenticated else None
-        if trainer.hub_session and not getattr(trainer.hub_session.model, "id"):
+        if trainer.hub_session and trainer.hub_session.model.id is None:
             trainer.hub_session.create_model(trainer.args)
             # Check model was created
-            if not getattr(trainer.hub_session.model, "id", None):
+            if trainer.hub_session.model.id is None:
                 trainer.hub_session = None
 
 

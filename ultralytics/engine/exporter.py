@@ -827,7 +827,7 @@ class Exporter:
                 "onnx>=1.12.0",
                 "onnx2tf>1.17.5,<=1.22.3",
                 "sng4onnx>=1.0.1",
-                "onnxslim==0.1.28",
+                "onnxslim>=0.1.31",
                 "onnx_graphsurgeon>=0.3.26",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package

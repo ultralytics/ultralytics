@@ -20,7 +20,7 @@ def on_pretrain_routine_start(trainer):
         # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
         from ultralytics.hub.session import HUBTrainingSession
 
-        session = HUBTrainingSession(trainer.hub_model_url or trainer.args.model)
+        session = HUBTrainingSession(trainer.args.model)
         trainer.hub_session = session if session.client.authenticated else None
         if trainer.hub_session and trainer.hub_model_url == "":
             trainer.hub_session.create_model(trainer.args)

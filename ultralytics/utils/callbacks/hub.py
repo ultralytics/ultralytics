@@ -12,7 +12,7 @@ def on_pretrain_routine_start(trainer):
     """Setup session for HUB Training."""
     if RANK not in {-1, 0}:
         return
-    if SETTINGS["hub"] is False or trainer.get("hub_session") is not None:
+    if SETTINGS["hub"] is False or getattr(trainer, "hub_session") is not None:
         return
 
     # Create a model in HUB

@@ -26,8 +26,8 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         bbox2 (np.ndarray): Bounding boxes, (n ,4).
     """
     polygon1 = polygon1.reshape(-1, 4, 2)
-    lt_point = np.min(polygon1, axis=-2)
-    rb_point = np.max(polygon1, axis=-2)
+    lt_point = np.min(polygon1, axis=-2)  # left-top
+    rb_point = np.max(polygon1, axis=-2)  # right-bottom
     bbox1 = np.concatenate([lt_point, rb_point], axis=-1)
 
     lt = np.maximum(bbox1[:, None, :2], bbox2[..., :2])
@@ -35,8 +35,8 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     wh = np.clip(rb - lt, 0, np.inf)
     h_overlaps = wh[..., 0] * wh[..., 1]
 
-    l, t, r, b = (bbox2[..., i] for i in range(4))
-    polygon2 = np.stack([l, t, r, t, r, b, l, b], axis=-1).reshape(-1, 4, 2)
+    left, top, right, bottom = (bbox2[..., i] for i in range(4))
+    polygon2 = np.stack([left, top, right, top, right, bottom, left, bottom], axis=-1).reshape(-1, 4, 2)
 
     sg_polys1 = [Polygon(p) for p in polygon1]
     sg_polys2 = [Polygon(p) for p in polygon2]

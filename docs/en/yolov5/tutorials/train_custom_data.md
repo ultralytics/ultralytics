@@ -18,7 +18,7 @@ pip install -r requirements.txt  # install
 
 ## Train On Custom Data
 
-<a href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/integrations-loop.png" alt="Ultralytics active learning"></a>
 <br>
 <br>

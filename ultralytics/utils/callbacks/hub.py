@@ -1,10 +1,32 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 import json
 from time import time
 
 from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
-from ultralytics.utils import LOGGER, SETTINGS
+from ultralytics.utils import LOGGER, SETTINGS, RANK
+
+
+def on_pretrain_routine_start(trainer):
+    """Setup session for HUB Training."""
+    if RANK not in {-1, 0}:
+        return
+    if SETTINGS["hub"] is False or trainer.hub_session is not None:
+        return
+
+    # Create a model in HUB
+    with contextlib.suppress(PermissionError, ModuleNotFoundError):
+        # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
+        from ultralytics.hub.session import HUBTrainingSession
+
+        session = HUBTrainingSession(trainer.hub_model_url or trainer.args.model)
+        trainer.hub_session = session if session.client.authenticated else None
+        if trainer.hub_session and trainer.hub_model_url == "":
+            trainer.hub_session.create_model(trainer.args)
+            # Check model was created
+            if not getattr(trainer.hub_session.model, "id", None):
+                trainer.hub_session = None
 
 
 def on_pretrain_routine_end(trainer):
@@ -91,6 +113,7 @@ def on_export_start(exporter):
 
 callbacks = (
     {
+        "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,

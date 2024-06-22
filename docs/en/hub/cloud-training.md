@@ -6,9 +6,9 @@ keywords: Ultralytics HUB, cloud training, model training, Pro Plan, easy AI set
 
 # Ultralytics HUB Cloud Training
 
-We've listened to the high demand and widespread interest and are thrilled to unveil [Ultralytics HUB](https://bit.ly/ultralytics_hub) Cloud Training, offering a single-click training experience for our [Pro](./pro.md) users!
+We've listened to the high demand and widespread interest and are thrilled to unveil [Ultralytics HUB](https://ultralytics.com/hub) Cloud Training, offering a single-click training experience for our [Pro](./pro.md) users!
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) [Pro](./pro.md) users can finetune [Ultralytics HUB](https://bit.ly/ultralytics_hub) models on a custom dataset using our Cloud Training solution, making the model training process easy. Say goodbye to complex setups and hello to streamlined workflows with [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s intuitive interface.
+[Ultralytics HUB](https://ultralytics.com/hub) [Pro](./pro.md) users can finetune [Ultralytics HUB](https://ultralytics.com/hub) models on a custom dataset using our Cloud Training solution, making the model training process easy. Say goodbye to complex setups and hello to streamlined workflows with [Ultralytics HUB](https://ultralytics.com/hub)'s intuitive interface.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ie3vLUDNYZo"

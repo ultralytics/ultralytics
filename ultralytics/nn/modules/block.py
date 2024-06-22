@@ -40,7 +40,6 @@ __all__ = (
     "SPPELAN",
     "CBFuse",
     "CBLinear",
-    "Silence",
     "RepVGGDW",
     "CIB",
     "C2fCIB",

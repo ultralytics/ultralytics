@@ -6,29 +6,29 @@ keywords: Ultralytics HUB, Roboflow integration, dataset import, model training,
 
 # Ultralytics HUB Integrations
 
-Learn about [Ultralytics HUB](https://bit.ly/ultralytics_hub) integrations with various platforms and formats.
+Learn about [Ultralytics HUB](https://ultralytics.com/hub) integrations with various platforms and formats.
 
 ## Datasets
 
-Seamlessly import your datasets in [Ultralytics HUB](https://bit.ly/ultralytics_hub) for [model training](./models.md#train-model).
+Seamlessly import your datasets in [Ultralytics HUB](https://ultralytics.com/hub) for [model training](./models.md#train-model).
 
-After a dataset is imported in [Ultralytics HUB](https://bit.ly/ultralytics_hub), you can [train a model](./models.md#train-model) on your dataset just like you would using the [Ultralytics HUB](https://bit.ly/ultralytics_hub) datasets.
+After a dataset is imported in [Ultralytics HUB](https://ultralytics.com/hub), you can [train a model](./models.md#train-model) on your dataset just like you would using the [Ultralytics HUB](https://ultralytics.com/hub) datasets.
 
 ### Roboflow
 
-You can easily filter the [Roboflow](https://roboflow.com/?ref=ultralytics) datasets on the [Ultralytics HUB](https://bit.ly/ultralytics_hub) [Datasets](https://hub.ultralytics.com/datasets) page.
+You can easily filter the [Roboflow](https://roboflow.com/?ref=ultralytics) datasets on the [Ultralytics HUB](https://ultralytics.com/hub) [Datasets](https://hub.ultralytics.com/datasets) page.
 
 ![Ultralytics HUB screenshot of the Datasets page with Roboflow provider filter](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/integrations/hub_roboflow_1.jpg)
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) supports two types of integrations with [Roboflow](https://roboflow.com/?ref=ultralytics), [Universe](#universe) and [Workspace](#workspace).
+[Ultralytics HUB](https://ultralytics.com/hub) supports two types of integrations with [Roboflow](https://roboflow.com/?ref=ultralytics), [Universe](#universe) and [Workspace](#workspace).
 
 #### Universe
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Universe integration allows you to import one dataset at a time into [Ultralytics HUB](https://bit.ly/ultralytics_hub) from [Roboflow](https://roboflow.com/?ref=ultralytics).
+The [Roboflow](https://roboflow.com/?ref=ultralytics) Universe integration allows you to import one dataset at a time into [Ultralytics HUB](https://ultralytics.com/hub) from [Roboflow](https://roboflow.com/?ref=ultralytics).
 
 ##### Import
 
-When you export a [Roboflow](https://roboflow.com/?ref=ultralytics) dataset, select the [Ultralytics HUB](https://bit.ly/ultralytics_hub) format. This action will redirect you to [Ultralytics HUB](https://bit.ly/ultralytics_hub) and trigger the **Dataset Import** dialog.
+When you export a [Roboflow](https://roboflow.com/?ref=ultralytics) dataset, select the [Ultralytics HUB](https://ultralytics.com/hub) format. This action will redirect you to [Ultralytics HUB](https://ultralytics.com/hub) and trigger the **Dataset Import** dialog.
 
 You can import your [Roboflow](https://roboflow.com/?ref=ultralytics) dataset by clicking on the **Import** button.
 
@@ -52,7 +52,7 @@ Navigate to the Dataset page of the [Roboflow](https://roboflow.com/?ref=ultraly
 
 #### Workspace
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace integration allows you to import an entire [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace at once into [Ultralytics HUB](https://bit.ly/ultralytics_hub).
+The [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace integration allows you to import an entire [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace at once into [Ultralytics HUB](https://ultralytics.com/hub).
 
 ##### Import
 
@@ -66,7 +66,7 @@ Type your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace private AP
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to the Integrations button in the sidebar and one to the Add button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/integrations/hub_roboflow_workspace_import_1.jpg)
 
-This will connect your [Ultralytics HUB](https://bit.ly/ultralytics_hub) account with your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace and make your [Roboflow](https://roboflow.com/?ref=ultralytics) datasets available in [Ultralytics HUB](https://bit.ly/ultralytics_hub).
+This will connect your [Ultralytics HUB](https://ultralytics.com/hub) account with your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace and make your [Roboflow](https://roboflow.com/?ref=ultralytics) datasets available in [Ultralytics HUB](https://ultralytics.com/hub).
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to one of the connected workspaces](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/integrations/hub_roboflow_workspace_import_2.jpg)
 

@@ -8,51 +8,50 @@
 
 namespace yolo {
 
-// Structure to store the detection result
 struct Detection {
-	short class_id;        // Class ID of the detected object
-	float confidence;      // Confidence score of the detection
-	cv::Rect box;          // Bounding box around the detected object
+	short class_id;
+	float confidence;
+	cv::Rect box;
 };
 
 class Inference {
  public:
-	// Default constructor
 	Inference() {}
-
-// Constructor to initialize the model with default input shape
+	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
-
-// Constructor to initialize the model with specified input shape
+	// Constructor to initialize the model with specified input shape
 	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold);
 
-	// Method to run inference on an input frame
-	std::vector<Detection> RunInference(const cv::Mat &frame);
+	void RunInference(cv::Mat &frame);
 
  private:
-	// Method to initialize the model
-	void InitialModel(const std::string &model_path);
-
-	// Method to preprocess the input frame
+	void InitializeModel(const std::string &model_path);
 	void Preprocessing(const cv::Mat &frame);
-
-	// Method to postprocess the inference results
-	void PostProcessing();
-
-	// Method to get the bounding box in the correct scale
+	void PostProcessing(cv::Mat &frame);
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
+	void DrawDetectedObject(cv::Mat &frame, const Detection &detections) const;
 
-	cv::Point2f factor_;             // Scaling factor for the input frame
-	cv::Size2f model_input_shape_;   // Input shape of the model
-	cv::Size model_output_shape_;    // Output shape of the model
+	cv::Point2f scale_factor_;			// Scaling factor for the input frame
+	cv::Size2f model_input_shape_;	// Input shape of the model
+	cv::Size model_output_shape_;		// Output shape of the model
 
 	ov::InferRequest inference_request_;  // OpenVINO inference request
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 
-	std::vector<Detection> detections_;  // Vector to store the detection results
-
 	float model_confidence_threshold_;  // Confidence threshold for detections
 	float model_NMS_threshold_;         // Non-Maximum Suppression threshold
+
+	std::vector<std::string> classes_ {
+		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", 
+		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", 
+		"elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", 
+		"skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", 
+		"tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", 
+		"sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", 
+		"potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", 
+		"cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", 
+		"scissors", "teddy bear", "hair drier", "toothbrush"
+	};
 };
 
 } // namespace yolo

@@ -86,9 +86,11 @@ class TorchDistributedZeroFirst(ContextDecorator):
 
     def __call__(self, func):
         """Allows the class to be used as a decorator."""
+
         def wrapped_func(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
+
         return wrapped_func
 
 

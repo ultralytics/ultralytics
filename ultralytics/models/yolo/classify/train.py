@@ -85,7 +85,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
-        with TorchDistributedZeroFirst(rank):  # init dataset *.cache only once if DDP
+        with TorchDistributedZeroFirst():  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)

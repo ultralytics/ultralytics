@@ -979,7 +979,7 @@ class SettingsManager(dict):
 
         super().__init__(copy.deepcopy(self.defaults))
 
-        with TorchDistributedZeroFirst(RANK):
+        with TorchDistributedZeroFirst():
             if not self.file.exists():
                 self.save()
 

@@ -346,7 +346,9 @@ def check_det_dataset(dataset, autodownload=True):
             LOGGER.info(f"Dataset download {s}\n")
     check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 
-    print(f'DEBUG ENDING RUNNING ON RANK {RANK}')
+    if RANK == 0:
+        time.sleep(3)
+    print(f"DEBUG ENDING RUNNING ON RANK {RANK}")
     return data  # dictionary
 
 

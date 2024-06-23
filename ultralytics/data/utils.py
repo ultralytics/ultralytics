@@ -269,7 +269,7 @@ def check_det_dataset(dataset, autodownload=True):
         (dict): Parsed dataset information and paths.
     """
 
-    print(f'DEBUG RUNNING ON RANK {RANK}')
+    print(f"DEBUG RUNNING ON RANK {RANK}")
 
     file = check_file(dataset)
 

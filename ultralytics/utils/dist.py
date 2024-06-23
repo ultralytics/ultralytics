@@ -38,8 +38,7 @@ if __name__ == "__main__":
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
     if {trainer.hub_session} is not None:
-        if {trainer.hub_session.model_url} is not None:
-            trainer.hub_model_url = '{trainer.hub_session.model_url}'
+        trainer.hub_model_url = '{trainer.hub_session.model_url}'
     results = trainer.train()
 """
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

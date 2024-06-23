@@ -94,8 +94,8 @@ class HUBTrainingSession:
                 "epochs": model_args.get("epochs", 300),
                 "imageSize": model_args.get("imgsz", 640),
                 "patience": model_args.get("patience", 100),
-                "device": model_args.get("device", ""),
-                "cache": str(model_args.get("cache", "ram")),
+                "device": str(model_args.get("device", "")),  # convert None to string
+                "cache": str(model_args.get("cache", "ram")),  # convert True, False, None to string
             },
             "dataset": {"name": model_args.get("data")},
             "lineage": {

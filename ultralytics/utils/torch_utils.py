@@ -5,7 +5,7 @@ import math
 import os
 import random
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, ContextDecorator
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
@@ -41,15 +41,28 @@ TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 
 
-@contextmanager
-def torch_distributed_zero_first(local_rank: int):
+class TorchDistributedZeroFirst(ContextDecorator):
     """Decorator to make all processes in distributed training wait for each local_master to do something."""
-    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
-    if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank])
-    yield
-    if initialized and local_rank == 0:
-        dist.barrier(device_ids=[0])
+
+    def __init__(self, local_rank: int):
+        self.local_rank = local_rank
+        self.initialized = dist.is_available() and dist.is_initialized()
+
+    def __enter__(self):
+        if self.initialized and self.local_rank not in {-1, 0}:
+            dist.barrier(device_ids=[self.local_rank])
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.initialized and self.local_rank == 0:
+            dist.barrier(device_ids=[0])
+        return False  # Do not suppress exceptions
+
+    def __call__(self, func):
+        def wrapped_func(*args, **kwargs):
+            with self:
+                return func(*args, **kwargs)
+        return wrapped_func
 
 
 def smart_inference_mode():

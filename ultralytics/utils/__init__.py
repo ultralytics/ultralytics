@@ -950,7 +950,7 @@ class SettingsManager(dict):
         import hashlib
 
         from ultralytics.utils.checks import check_version
-        from ultralytics.utils.torch_utils import torch_distributed_zero_first
+        from ultralytics.utils.torch_utils import TorchDistributedZeroFirst
 
         root = GIT_DIR or Path()
         datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
@@ -979,7 +979,7 @@ class SettingsManager(dict):
 
         super().__init__(copy.deepcopy(self.defaults))
 
-        with torch_distributed_zero_first(RANK):
+        with TorchDistributedZeroFirst(RANK):
             if not self.file.exists():
                 self.save()
 

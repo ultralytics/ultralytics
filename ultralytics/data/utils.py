@@ -30,10 +30,12 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
+    RANK,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
+from ultralytics.utils.torch_utils import TorchDistributedZeroFirst
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"}  # image suffixes
@@ -250,6 +252,7 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
+@TorchDistributedZeroFirst(RANK)
 def check_det_dataset(dataset, autodownload=True):
     """
     Download, verify, and/or unzip a dataset if not found locally.
@@ -344,6 +347,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
+@TorchDistributedZeroFirst(RANK)
 def check_cls_dataset(dataset, split=""):
     """
     Checks a classification dataset such as Imagenet.

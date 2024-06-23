@@ -52,11 +52,7 @@ class HUBTrainingSession:
         """
         from hub_sdk import HUBClient
 
-        self.rate_limits = {
-            "metrics": 3.0,
-            "ckpt": 900.0,
-            "heartbeat": 300.0,
-        }  # rate limits (seconds)
+        self.rate_limits = {"metrics": 3.0, "ckpt": 900.0, "heartbeat": 300.0}  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
         self.metrics_upload_failed_queue = {}  # holds metrics for each epoch if upload failed
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
@@ -107,9 +103,7 @@ class HUBTrainingSession:
             },
             "dataset": {"name": model_args.get("data")},
             "lineage": {
-                "architecture": {
-                    "name": self.filename.replace(".pt", "").replace(".yaml", ""),
-                },
+                "architecture": {"name": self.filename.replace(".pt", "").replace(".yaml", "")},
                 "parent": {},
             },
             "meta": {"name": self.filename},

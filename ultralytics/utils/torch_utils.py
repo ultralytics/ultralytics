@@ -75,13 +75,13 @@ class TorchDistributedZeroFirst(ContextDecorator):
     def __enter__(self):
         """Enters the context manager, setting a barrier for non-master ranks."""
         if self.initialized and self.local_rank not in {-1, 0}:
-            dist.barrier(device_ids=[self.local_rank])
+            dist.barrier()  # Ensure non-master ranks wait at this barrier
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Exits the context manager, setting a barrier for the master rank."""
-        if self.initialized and self.local_rank == 0:
-            dist.barrier(device_ids=[0])
+        """Exits the context manager, setting a barrier for all ranks."""
+        if self.initialized:
+            dist.barrier()  # Ensure all ranks synchronize here
         return False  # Do not suppress exceptions
 
     def __call__(self, func):

@@ -14,3 +14,7 @@ keywords: Ultralytics, YOLO, HUBTrainingSession, model training, heartbeats, che
 ## ::: ultralytics.hub.session.HUBTrainingSession
 
 <br><br>
+
+## ::: ultralytics.hub.session.get_hub_session
+
+<br><br>

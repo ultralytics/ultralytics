@@ -150,7 +150,7 @@ def test_transforms():
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "imagenet10"
     cfg.imgsz = 32
-    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
     trainer.train()
 
     # Detection Trainer
@@ -158,7 +158,7 @@ def test_transforms():
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8.yaml"
     cfg.imgsz = 32
-    trainer = detect.DetectionTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer = detect.DetectionTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
     trainer.train()
 
     # Segmentation Trainer
@@ -166,5 +166,5 @@ def test_transforms():
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
     cfg.imgsz = 32
-    trainer = segment.SegmentationTrainer(overrides=overrides, append_label_transforms=[RGBToGrayscale()])
+    trainer = segment.SegmentationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
     trainer.train()

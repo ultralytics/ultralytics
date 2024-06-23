@@ -71,10 +71,12 @@ class HUBTrainingSession:
         # Initialize client
         self.client = HUBClient(credentials)
 
-        if model_id:
-            self.load_model(model_id)  # load existing model
-        else:
-            self.model = self.client.model()  # load empty model
+        # Load models if authenticated
+        if self.client.authenticated:
+            if model_id:
+                self.load_model(model_id)  # load existing model
+            else:
+                self.model = self.client.model()  # load empty model
 
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""

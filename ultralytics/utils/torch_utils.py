@@ -68,29 +68,27 @@ class TorchDistributedZeroFirst(ContextDecorator):
     """
 
     def __init__(self, local_rank: int):
-        """Initializes with the given local rank and checks if distributed training is available and initialized."""
+        """Initializes with the given local rank."""
         self.local_rank = local_rank
-        self.initialized = dist.is_available() and dist.is_initialized()
 
     def __enter__(self):
         """Enters the context manager, setting a barrier for non-master ranks."""
+        self.initialized = dist.is_available() and dist.is_initialized()
         if self.initialized and self.local_rank not in {-1, 0}:
-            dist.barrier()  # Ensure non-master ranks wait at this barrier
+            dist.barrier(device_ids=[self.local_rank])
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Exits the context manager, setting a barrier for all ranks."""
-        if self.initialized:
-            dist.barrier()  # Ensure all ranks synchronize here
+        """Exits the context manager, setting a barrier for the master rank."""
+        if self.initialized and self.local_rank == 0:
+            dist.barrier(device_ids=[0])
         return False  # Do not suppress exceptions
 
     def __call__(self, func):
         """Allows the class to be used as a decorator."""
-
         def wrapped_func(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
-
         return wrapped_func
 
 

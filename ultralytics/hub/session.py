@@ -15,7 +15,7 @@ AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version_
 
 
 def get_hub_session(model: str):
-    """Creates a session for Hub Training."""
+    """Creates a session for HUB Training."""
     session = HUBTrainingSession(model)
     return session if session.client.authenticated else None
 

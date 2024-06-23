@@ -95,7 +95,7 @@ class HUBTrainingSession:
                 "imageSize": model_args.get("imgsz", 640),
                 "patience": model_args.get("patience", 100),
                 "device": model_args.get("device", ""),
-                "cache": model_args.get("cache", "ram"),
+                "cache": str(model_args.get("cache", "ram")),
             },
             "dataset": {"name": model_args.get("data")},
             "lineage": {

@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 import threading
 import time
 from http import HTTPStatus
@@ -67,10 +66,18 @@ class HUBTrainingSession:
                 self.model = self.client.model()  # load empty model
 
     @classmethod
-    def create_session(cls, identifier):
+    def create_session(cls, identifier, args=None):
         """Class method to create an authenticated HUBTrainingSession or return None."""
-        session = cls(identifier)
-        return session if session.client.authenticated else None
+        try:
+            session = cls(identifier)
+            assert session.client.authenticated, "HUB not authenticated"
+            if args:
+                session.create_model(args)
+                assert session.model.id, "HUB model not loaded correctly"
+            return session
+        # PermissionError and ModuleNotFoundError indicate hub-sdk not installed
+        except (PermissionError, ModuleNotFoundError, AssertionError):
+            return None
 
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""
@@ -113,7 +120,7 @@ class HUBTrainingSession:
         # Model could not be created
         # TODO: improve error handling
         if not self.model.id:
-            return
+            return None
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

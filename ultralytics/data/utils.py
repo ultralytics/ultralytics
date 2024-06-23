@@ -292,9 +292,13 @@ def check_det_dataset(dataset, autodownload=True):
                 LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
                 data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
         if "names" not in data and "nc" not in data:
-            raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+            raise SyntaxError(
+                emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs.")
+            )
         if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
-            raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
+            raise SyntaxError(
+                emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match.")
+            )
         if "names" not in data:
             data["names"] = [f"class_{i}" for i in range(data["nc"])]
         else:
@@ -341,7 +345,11 @@ def check_det_dataset(dataset, autodownload=True):
                 else:  # python script
                     exec(s, {"yaml": data})
                 dt = f"({round(time.time() - t, 1)}s)"
-                s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
+                s = (
+                    f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}"
+                    if r in {0, None}
+                    else f"failure {dt} ❌"
+                )
                 LOGGER.info(f"Dataset download {s}\n")
         check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 

@@ -48,6 +48,7 @@ from ultralytics.utils.torch_utils import (
     one_cycle,
     select_device,
     strip_optimizer,
+    torch_distributed_zero_first,
 )
 
 
@@ -127,7 +128,8 @@ class BaseTrainer:
 
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        self.trainset, self.testset = self.get_dataset()
+        with torch_distributed_zero_first(RANK):  # avoid auto-downloading dataset multiple times
+            self.trainset, self.testset = self.get_dataset()
         self.ema = None
 
         # Optimization utils init

@@ -9,7 +9,7 @@ from ultralytics.utils import LOGGER, SETTINGS
 
 def on_pretrain_routine_start(trainer):
     """Create a remote Ultralytics HUB session to log local model training."""
-    if SETTINGS["hub"] is True and not getattr(trainer, "hub_session", None):
+    if SETTINGS["hub"] is True and SETTINGS["api_key"] and not getattr(trainer, "hub_session", None):
         trainer.hub_session = HUBTrainingSession.create_session(trainer.args.model, trainer.args)
 
 

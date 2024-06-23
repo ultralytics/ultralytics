@@ -4,7 +4,7 @@ import contextlib
 import json
 from time import time
 
-from ultralytics.hub.session import get_hub_session
+from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
 from ultralytics.utils import LOGGER, RANK, SETTINGS
 
@@ -14,7 +14,7 @@ def on_pretrain_routine_start(trainer):
     if RANK in {-1, 0} and SETTINGS["hub"] is True and not getattr(trainer, "hub_session", None):
         # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
         with contextlib.suppress(PermissionError, ModuleNotFoundError):
-            trainer.hub_session = get_hub_session(trainer.args.model)
+            trainer.hub_session = HUBTrainingSession.create_session(trainer.args.model)
             if trainer.hub_session:  # None if not authenticated
                 trainer.hub_session.create_model(trainer.args)
                 # Check model was created

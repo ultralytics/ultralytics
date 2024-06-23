@@ -14,12 +14,6 @@ from ultralytics.utils.errors import HUBModelError
 AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
 
 
-def get_hub_session(model: str):
-    """Creates a session for HUB Training."""
-    session = HUBTrainingSession(model)
-    return session if session.client.authenticated else None
-
-
 class HUBTrainingSession:
     """
     HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
@@ -71,6 +65,12 @@ class HUBTrainingSession:
                 self.load_model(model_id)  # load existing model
             else:
                 self.model = self.client.model()  # load empty model
+
+    @classmethod
+    def create_session(cls, identifier):
+        """Class method to create an authenticated HUBTrainingSession or return None."""
+        session = cls(identifier)
+        return session if session.client.authenticated else None
 
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""

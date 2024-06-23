@@ -9,7 +9,7 @@ import torch
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.hub.session import get_hub_session
+from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import HUB_WEB_ROOT
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (
@@ -135,7 +135,7 @@ class Model(nn.Module):
         if self.is_hub_model(model):
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.6")
-            self.session = get_hub_session(model)
+            self.session = HUBTrainingSession.create_session(model)
             model = self.session.model_file
 
         # Check if Triton Server model

@@ -78,27 +78,26 @@ class TorchDistributedZeroFirst(ContextDecorator):
         ```
     """
 
-    class TorchDistributedZeroFirst:
-        def __init__(self):
-            self.rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
-            self.world_size = torch.distributed.get_world_size() if torch.distributed.is_initialized() else 1
+    def __init__(self):
+        self.rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+        self.world_size = torch.distributed.get_world_size() if torch.distributed.is_initialized() else 1
 
-        def __enter__(self):
-            if self.world_size > 1 and self.rank != 0:
-                torch.distributed.barrier()
-            return self
+    def __enter__(self):
+        if self.world_size > 1 and self.rank != 0:
+            torch.distributed.barrier()
+        return self
 
-        def __exit__(self, exc_type, exc_value, traceback):
-            if self.world_size > 1 and self.rank == 0:
-                torch.distributed.barrier()
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.world_size > 1 and self.rank == 0:
+            torch.distributed.barrier()
 
-        def __call__(self, func):
-            @functools.wraps(func)
-            def wrapped(*args, **kwargs):
-                with self:
-                    return func(*args, **kwargs)
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            with self:
+                return func(*args, **kwargs)
 
-            return wrapped
+        return wrapped
 
 
 def smart_inference_mode():

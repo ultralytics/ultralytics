@@ -47,7 +47,8 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     select_device,
-    strip_optimizer, torch_distributed_zero_first,
+    strip_optimizer,
+    torch_distributed_zero_first,
 )
 
 

@@ -104,6 +104,7 @@ class TorchDistributedZeroFirst(ContextDecorator):
 
         return wrapped_func
 
+
 def smart_inference_mode():
     """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
 

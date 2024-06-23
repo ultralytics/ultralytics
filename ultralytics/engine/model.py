@@ -127,7 +127,6 @@ class Model(nn.Module):
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
-        self.hub_model_url = ""  # for DDP training from HUB
         self.task = task  # task type
         model = str(model).strip()
 
@@ -648,7 +647,6 @@ class Model(nn.Module):
             self.model = self.trainer.model
 
         self.trainer.hub_session = self.session  # attach optional HUB session
-        self.trainer.hub_model_url = self.hub_model_url
         self.trainer.train()
         # Update model and cfg after training
         if RANK in {-1, 0}:

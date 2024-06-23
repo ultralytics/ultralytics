@@ -145,6 +145,9 @@ class BaseTrainer:
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
 
+        # HUB
+        self.hub_session = None
+
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in {-1, 0}:

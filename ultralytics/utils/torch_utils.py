@@ -5,7 +5,7 @@ import math
 import os
 import random
 import time
-from contextlib import ContextDecorator
+from contextlib import ContextDecorator, contextmanager
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
@@ -41,6 +41,17 @@ TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 
 
+@contextmanager
+def torch_distributed_zero_first(local_rank: int):
+    """Decorator to make all processes in distributed training wait for each local_master to do something."""
+    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
+    if initialized and local_rank not in {-1, 0}:
+        dist.barrier(device_ids=[local_rank])
+    yield
+    if initialized and local_rank == 0:
+        dist.barrier(device_ids=[0])
+
+
 class TorchDistributedZeroFirst(ContextDecorator):
     """
     Ensures that all processes in distributed training wait for the local master (rank 0) to complete a task first.
@@ -70,10 +81,10 @@ class TorchDistributedZeroFirst(ContextDecorator):
     def __init__(self, local_rank: int):
         """Initializes with the given local rank."""
         self.local_rank = local_rank
+        self.initialized = dist.is_available() and dist.is_initialized()
 
     def __enter__(self):
         """Enters the context manager, setting a barrier for non-master ranks."""
-        self.initialized = dist.is_available() and dist.is_initialized()
         if self.initialized and self.local_rank not in {-1, 0}:
             dist.barrier(device_ids=[self.local_rank])
         return self
@@ -92,7 +103,6 @@ class TorchDistributedZeroFirst(ContextDecorator):
                 return func(*args, **kwargs)
 
         return wrapped_func
-
 
 def smart_inference_mode():
     """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""

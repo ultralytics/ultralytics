@@ -38,7 +38,7 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         (bool): True if authentication is successful, False otherwise.
     """
-    checks.check_requirements("hub-sdk>=0.0.6")
+    checks.check_requirements("hub-sdk>=0.0.8")
     from hub_sdk import HUBClient
 
     api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # set the redirect URL

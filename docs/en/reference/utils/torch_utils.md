@@ -11,15 +11,15 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br>
 
+## ::: ultralytics.utils.torch_utils.TorchDistributedZeroFirst
+
+<br><br>
+
 ## ::: ultralytics.utils.torch_utils.ModelEMA
 
 <br><br>
 
 ## ::: ultralytics.utils.torch_utils.EarlyStopping
-
-<br><br>
-
-## ::: ultralytics.utils.torch_utils.torch_distributed_zero_first
 
 <br><br>
 

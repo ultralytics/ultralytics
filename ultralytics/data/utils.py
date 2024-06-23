@@ -21,6 +21,7 @@ from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
     NUM_THREADS,
+    RANK,
     ROOT,
     SETTINGS_YAML,
     TQDM,
@@ -30,7 +31,6 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
-    RANK,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

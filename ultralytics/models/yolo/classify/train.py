@@ -8,7 +8,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, TorchDistributedZeroFirst
+from ultralytics.utils.torch_utils import TorchDistributedZeroFirst, is_parallel, strip_optimizer
 
 
 class ClassificationTrainer(BaseTrainer):

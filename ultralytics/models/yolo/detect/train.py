@@ -13,7 +13,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.torch_utils import de_parallel, TorchDistributedZeroFirst
+from ultralytics.utils.torch_utils import TorchDistributedZeroFirst, de_parallel
 
 
 class DetectionTrainer(BaseTrainer):

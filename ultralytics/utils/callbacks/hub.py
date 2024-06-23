@@ -9,8 +9,9 @@ from ultralytics.utils import LOGGER, RANK, SETTINGS
 def on_pretrain_routine_start(trainer):
     """Create a remote Ultralytics HUB session to log local model training."""
     if RANK in {-1, 0} and SETTINGS["hub"] is True and not getattr(trainer, "hub_session", None):
-        args = None if trainer.hub_model_url else trainer.args
-        trainer.hub_session = HUBTrainingSession.create_session(trainer.hub_model_url or trainer.args.model, args)
+        trainer.hub_session = HUBTrainingSession.create_session(
+            getattr(trainer, "hub_model_url", "") or trainer.args.model, trainer.args
+        )
 
 
 def on_pretrain_routine_end(trainer):

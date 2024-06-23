@@ -145,7 +145,6 @@ class BaseTrainer:
 
         # HUB
         self.hub_session = None
-        self.hub_model_url = ""
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

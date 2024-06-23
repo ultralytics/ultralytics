@@ -1,5 +1,7 @@
-import torch
 import functools
+
+import torch
+
 
 class TorchDistributedZeroFirst:
     def __init__(self, rank=0):
@@ -20,7 +22,9 @@ class TorchDistributedZeroFirst:
         def wrapped(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
+
         return wrapped
+
 
 # Usage as a context manager with custom rank
 with TorchDistributedZeroFirst(rank=0):
@@ -28,12 +32,14 @@ with TorchDistributedZeroFirst(rank=0):
     # Code that should run first on the specified RANK
     print(f"DEBUG ENDING RUNNING ON RANK {torch.distributed.get_rank()}")
 
+
 # Usage as a decorator with custom rank
 @TorchDistributedZeroFirst(rank=0)
 def my_function():
     print(f"DEBUG START RUNNING ON RANK {torch.distributed.get_rank()}")
     # Function code that should run first on the specified RANK
     print(f"DEBUG ENDING RUNNING ON RANK {torch.distributed.get_rank()}")
+
 
 # Example function call
 if torch.distributed.is_initialized():

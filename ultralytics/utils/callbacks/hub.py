@@ -4,7 +4,7 @@ import contextlib
 import json
 from time import time
 
-from ultralytics.hub import HUB_WEB_ROOT, PREFIX, events, HUBTrainingSession
+from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession, events
 from ultralytics.utils import LOGGER, RANK, SETTINGS
 
 

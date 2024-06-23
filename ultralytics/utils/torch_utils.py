@@ -5,7 +5,7 @@ import math
 import os
 import random
 import time
-from contextlib import contextmanager, ContextDecorator
+from contextlib import ContextDecorator
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
@@ -42,26 +42,55 @@ TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 
 
 class TorchDistributedZeroFirst(ContextDecorator):
-    """Decorator to make all processes in distributed training wait for each local_master to do something."""
+    """
+    Ensures that all processes in distributed training wait for the local master (rank 0) to complete a task first.
+
+    This class can be used both as a context manager and a decorator. When used, it ensures that the local rank 0
+    process executes the wrapped code first, while other processes wait at a synchronization barrier. This is
+    useful for operations that should only be performed once in a distributed environment, such as downloading
+    a dataset.
+
+    Args:
+        local_rank (int): The rank of the current process. Should be -1 or 0 for the local master process.
+
+    Examples:
+        Using as a context manager:
+        ```python
+        with TorchDistributedZeroFirst(local_rank=0):
+            # Code here that first runs on RANK 0
+        ```
+        Using as a decorator:
+        ```python
+            @TorchDistributedZeroFirst(local_rank=0)
+            def func():
+                # Function here that first runs on RANK 0
+        ```
+    """
 
     def __init__(self, local_rank: int):
+        """Initializes with the given local rank and checks if distributed training is available and initialized."""
         self.local_rank = local_rank
         self.initialized = dist.is_available() and dist.is_initialized()
 
     def __enter__(self):
+        """Enters the context manager, setting a barrier for non-master ranks."""
         if self.initialized and self.local_rank not in {-1, 0}:
             dist.barrier(device_ids=[self.local_rank])
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Exits the context manager, setting a barrier for the master rank."""
         if self.initialized and self.local_rank == 0:
             dist.barrier(device_ids=[0])
         return False  # Do not suppress exceptions
 
     def __call__(self, func):
+        """Allows the class to be used as a decorator."""
+
         def wrapped_func(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
+
         return wrapped_func
 
 

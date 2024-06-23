@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import inspect
 from pathlib import Path
 from typing import List, Union
@@ -19,7 +18,6 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     LOGGER,
     RANK,
-    SETTINGS,
     callbacks,
     checks,
     emojis,

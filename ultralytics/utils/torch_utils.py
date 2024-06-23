@@ -5,7 +5,7 @@ import math
 import os
 import random
 import time
-from contextlib import contextmanager, ContextDecorator
+from contextlib import ContextDecorator
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
@@ -62,6 +62,7 @@ class TorchDistributedZeroFirst(ContextDecorator):
         def wrapped_func(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
+
         return wrapped_func
 
 

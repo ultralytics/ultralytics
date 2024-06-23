@@ -64,7 +64,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "numpy<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
+    "numpy>=1.23.5,<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -85,8 +85,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ipython",
-    "check-manifest",
-    "pre-commit",
     "pytest",
     "pytest-cov",
     "coverage[toml]",
@@ -119,7 +117,7 @@ logging = [
     "dvclive>=2.12.0",
 ]
 extra = [
-    "hub-sdk>=0.0.5", # Ultralytics HUB
+    "hub-sdk>=0.0.8", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP

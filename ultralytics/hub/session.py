@@ -72,7 +72,7 @@ class HUBTrainingSession:
         try:
             session = cls(identifier)
             assert session.client.authenticated, "HUB not authenticated"
-            if args:
+            if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)
                 assert session.model.id, "HUB model not loaded correctly"
             return session

@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import functools
 import gc
 import math
 import os
@@ -78,31 +78,27 @@ class TorchDistributedZeroFirst(ContextDecorator):
         ```
     """
 
-    def __init__(self, local_rank: int):
-        """Initializes with the given local rank."""
-        self.local_rank = local_rank
-        self.initialized = dist.is_available() and dist.is_initialized()
+    class TorchDistributedZeroFirst:
+        def __init__(self):
+            self.rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            self.world_size = torch.distributed.get_world_size() if torch.distributed.is_initialized() else 1
 
-    def __enter__(self):
-        """Enters the context manager, setting a barrier for non-master ranks."""
-        if self.initialized and self.local_rank not in {-1, 0}:
-            dist.barrier(device_ids=[self.local_rank])
-        return self
+        def __enter__(self):
+            if self.world_size > 1 and self.rank != 0:
+                torch.distributed.barrier()
+            return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exits the context manager, setting a barrier for the master rank."""
-        if self.initialized and self.local_rank == 0:
-            dist.barrier(device_ids=[0])
-        return False  # Do not suppress exceptions
+        def __exit__(self, exc_type, exc_value, traceback):
+            if self.world_size > 1 and self.rank == 0:
+                torch.distributed.barrier()
 
-    def __call__(self, func):
-        """Allows the class to be used as a decorator."""
+        def __call__(self, func):
+            @functools.wraps(func)
+            def wrapped(*args, **kwargs):
+                with self:
+                    return func(*args, **kwargs)
 
-        def wrapped_func(*args, **kwargs):
-            with self:
-                return func(*args, **kwargs)
-
-        return wrapped_func
+            return wrapped
 
 
 def smart_inference_mode():

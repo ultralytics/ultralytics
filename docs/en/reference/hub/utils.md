@@ -1,6 +1,6 @@
 ---
-description: Explore the utilities in the Ultralytics Hub. Learn about smart_request, request_with_credentials, and more to enhance your YOLO projects.
-keywords: Ultralytics, Hub, Utilities, YOLO, smart_request, request_with_credentials
+description: Explore the utilities in the Ultralytics HUB. Learn about smart_request, request_with_credentials, and more to enhance your YOLO projects.
+keywords: Ultralytics, HUB, Utilities, YOLO, smart_request, request_with_credentials
 ---
 
 # Reference for `ultralytics/hub/utils.py`

@@ -649,17 +649,6 @@ class Model(nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-            if SETTINGS["hub"] is True and not self.session:
-                # Create a model in HUB
-                with contextlib.suppress(PermissionError, ModuleNotFoundError):
-                    # Ignore PermissionError and ModuleNotFoundError which indicates hub-sdk not installed
-                    self.session = get_hub_session(self.model_name)
-                    if self.session:
-                        self.session.create_model(args)
-                        # Check model was created
-                        if not getattr(self.session.model, "id", None):
-                            self.session = None
-
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training

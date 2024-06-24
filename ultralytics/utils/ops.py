@@ -664,7 +664,7 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0)
+    return masks.gt_(0.0)
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):
@@ -698,7 +698,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
-    return masks.gt_(0)
+    return masks.gt_(0.0)
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -718,7 +718,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0)
+    return masks.gt_(0.0)
 
 
 def scale_masks(masks, shape, padding=True):

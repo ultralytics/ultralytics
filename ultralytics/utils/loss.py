@@ -216,6 +216,9 @@ class v8DetectionLoss:
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
+        gt_labels = gt_labels.to(torch.int32)
+        mask_gt = mask_gt.to(torch.bool)
+
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 

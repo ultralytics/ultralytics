@@ -929,7 +929,7 @@ class Attention(nn.Module):
         nh_kd = nh_kd = self.key_dim * num_heads
         h = dim + nh_kd * 2
         self.qkv = Conv(dim, h, 1, act=False)
-        self.proj = Conv(dim, dim, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=True)
         self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
 
     def forward(self, x):
@@ -981,7 +981,7 @@ class PSA(nn.Module):
         self.cv2 = Conv(2 * self.c, c1, 1)
 
         self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=True))
 
     def forward(self, x):
         """

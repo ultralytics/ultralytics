@@ -40,7 +40,6 @@ __all__ = (
     "SPPELAN",
     "CBFuse",
     "CBLinear",
-    "Silence",
     "RepVGGDW",
     "CIB",
     "C2fCIB",
@@ -716,18 +715,6 @@ class SPPELAN(nn.Module):
         return self.cv5(torch.cat(y, 1))
 
 
-class Silence(nn.Module):
-    """Silence."""
-
-    def __init__(self):
-        """Initializes the Silence module."""
-        super(Silence, self).__init__()
-
-    def forward(self, x):
-        """Forward pass through Silence layer."""
-        return x
-
-
 class CBLinear(nn.Module):
     """CBLinear."""
 
@@ -831,12 +818,13 @@ class CIB(nn.Module):
     """
 
     def __init__(self, c1, c2, shortcut=True, e=0.5, lk=False):
+        """Initializes the custom model with optional shortcut, scaling factor, and RepVGGDW layer."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = nn.Sequential(
             Conv(c1, c1, 3, g=c1),
             Conv(c1, 2 * c_, 1),
-            Conv(2 * c_, 2 * c_, 3, g=2 * c_) if not lk else RepVGGDW(2 * c_),
+            RepVGGDW(2 * c_) if lk else Conv(2 * c_, 2 * c_, 3, g=2 * c_),
             Conv(2 * c_, c2, 1),
             Conv(c2, c2, 3, g=c2),
         )
@@ -871,6 +859,7 @@ class C2fCIB(C2f):
     """
 
     def __init__(self, c1, c2, n=1, shortcut=False, lk=False, g=1, e=0.5):
+        """Initializes the module with specified parameters for channel, shortcut, local key, groups, and expansion."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(CIB(self.c, self.c, shortcut, e=1.0, lk=lk) for _ in range(n))
 
@@ -895,6 +884,7 @@ class Attention(nn.Module):
     """
 
     def __init__(self, dim, num_heads=8, attn_ratio=0.5):
+        """Initializes multi-head attention module with query, key, and value convolutions and positional encoding."""
         super().__init__()
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
@@ -948,6 +938,7 @@ class PSA(nn.Module):
     """
 
     def __init__(self, c1, c2, e=0.5):
+        """Initializes convolution layers, attention module, and feed-forward network with channel reduction."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
@@ -999,4 +990,3 @@ class SCDown(nn.Module):
             (torch.Tensor): Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))
-        return torch.sum(torch.stack(res + xs[-1:]), dim=0)

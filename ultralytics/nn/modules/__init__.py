@@ -137,6 +137,7 @@ __all__ = (
     "ResNetLayer",
     "OBB",
     "WorldDetect",
+    "v10Detect",
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",

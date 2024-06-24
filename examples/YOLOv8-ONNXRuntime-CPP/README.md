@@ -72,21 +72,21 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
 
 3. Create a build directory and navigate to it:
 
-    ```console
-    mkdir build && cd build
-    ```
+   ```console
+   mkdir build && cd build
+   ```
 
 4. Run CMake to generate the build files:
 
-    ```console
-    cmake ..
-    ```
+   ```console
+   cmake ..
+   ```
 
 5. Build the project:
 
-    ```console
-    make
-    ```
+   ```console
+   make
+   ```
 
 6. The built executable should now be located in the `build` directory.
 

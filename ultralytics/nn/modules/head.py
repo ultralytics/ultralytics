@@ -62,11 +62,12 @@ class Detect(nn.Module):
                 boxes.append(a)
                 probs.append(b)
             return [torch.permute(x, (0, 2, 3, 1)).reshape(x.shape[0], -1, x.shape[1]) for x in boxes + probs]
-        else:
-            if self.end2end:
-                return self.forward_end2end(x)
-            for i in range(self.nl):
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+
+        if self.end2end:
+            return self.forward_end2end(x)
+
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
         y = self._inference(x)
@@ -122,8 +123,7 @@ class Detect(nn.Module):
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
-        y = torch.cat((dbox, cls.sigmoid()), 1)
-        return y
+        return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
@@ -173,10 +173,7 @@ class Detect(nn.Module):
         index = index // nc
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
 
-        return torch.cat(
-            [boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)],
-            dim=-1,
-        )
+        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)], dim=-1)
 
 
 class Segment(Detect):
@@ -670,6 +667,7 @@ class v10Detect(Detect):
     end2end = True
 
     def __init__(self, nc=80, ch=()):
+        """Initializes the v10Detect object with the specified number of classes and input channels."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
         # Light cls head

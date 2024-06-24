@@ -14,20 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  Begin with the necessary imports
-
-    ```python
-    from pathlib import Path
-
-    import cv2
-    import numpy as np
-
-    from ultralytics import YOLO
-    ```
-
-    ???+ tip "Ultralytics Install"
-
-        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
 
     ***
 
@@ -61,6 +48,10 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
+    from pathlib import Path
+
+    import numpy as np
+
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
@@ -86,6 +77,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
     ```{ .py .annotate }
+    import cv2
+
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
 
@@ -178,12 +171,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/103dbf90-c169-4f77-b791-76cdf09c6f22){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -225,12 +217,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/5910244f-d1e1-44af-af7f-6dea4c688da8){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)

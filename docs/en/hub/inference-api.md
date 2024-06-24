@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image p
 
 # Ultralytics HUB Inference API
 
-The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
+The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Ultralytics Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
 
@@ -22,13 +22,13 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API allows you t
 
 ## Python
 
-To access the [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API using Python, use the following code:
+To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using Python, use the following code:
 
 ```python
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
@@ -50,7 +50,7 @@ print(response.json())
 
 ## cURL
 
-To access the [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API using cURL, use the following code:
+To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using cURL, use the following code:
 
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -79,7 +79,7 @@ See the table below for a full list of available inference arguments.
 
 ## Response
 
-The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JSON response.
+The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON response.
 
 ### Classification
 
@@ -117,7 +117,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -185,7 +185,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -257,7 +257,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -331,7 +331,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -400,7 +400,7 @@ The [Ultralytics HUB](https://bit.ly/ultralytics_hub) Inference API returns a JS
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}

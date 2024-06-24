@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project mana
 
 # Ultralytics HUB Quickstart
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
+[Ultralytics HUB](https://ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
@@ -20,7 +20,7 @@ keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project mana
 
 ## Get Started
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) offers a variety easy of signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
+[Ultralytics HUB](https://ultralytics.com/hub) offers a variety easy of signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
 
 ![Ultralytics HUB screenshot of the Signup page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_1.jpg)
 
@@ -36,7 +36,7 @@ During the signup, you will be asked to complete your profile.
 
 ## Home
 
-After signing in, you will be directed to the [Home](https://hub.ultralytics.com/home) page of [Ultralytics HUB](https://bit.ly/ultralytics_hub), which provides a comprehensive overview, quick links, and updates.
+After signing in, you will be directed to the [Home](https://hub.ultralytics.com/home) page of [Ultralytics HUB](https://ultralytics.com/hub), which provides a comprehensive overview, quick links, and updates.
 
 The sidebar conveniently offers links to important modules of the platform, such as [Datasets](https://hub.ultralytics.com/datasets), [Projects](https://hub.ultralytics.com/projects), and [Models](https://hub.ultralytics.com/models).
 

@@ -13,27 +13,10 @@ from ultralytics import YOLO
 from ultralytics.data.loaders import get_best_youtube_url
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
+from transformers import AutoProcessor, AutoModel
 
-# Editable variables
-crop_margin_percentage = 10  # 10 means 10% margin around the person
-num_video_sequence_samples = 8  # number of video sequence samples
-skip_frame = 1  # 4 means 1 out of 4 detection from each track will be used for video classification
-video_cls_overlap_ratio = 0.25  # 0.5 means 50% overlap between each video sequence samples
-fp16 = True  # use FP16 for inference
-video_classifier_model = (
-    "microsoft/xclip-base-patch32"  # choose from VideoClassifier.available_model_names or hf video classifier model
-)
-zero_shot_labels = [
-    "walking",
-    "running",
-    "brushing teeth",
-    "looking into phone",
-    "weight lifting",
-    "cooking",
-    "sitting",
-]  # labels for zero-shot video classification
-source = "https://www.youtube.com/watch?v=uXlWYZ022zU"
-output_path = "output_video.mp4"
+import time
+from typing import List, Tuple
 
 
 class TorchVisionVideoClassifier:

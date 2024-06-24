@@ -22,7 +22,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 RUN conda config --set solver libmamba && \
     conda install pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia && \
     conda install -c conda-forge ultralytics mkl
-    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics mkl
+    # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics mkl
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
@@ -37,4 +37,4 @@ RUN conda config --set solver libmamba && \
 # t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t
+# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/usr/src/datasets $t

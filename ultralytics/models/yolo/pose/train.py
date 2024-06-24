@@ -50,7 +50,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get pose estimation model with specified configuration and weights."""
-        model = PoseModel(cfg, ch=3, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose)
+        model = PoseModel(cfg, ch=self.input_Ch, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose)
         if weights:
             model.load(weights)
 
@@ -70,22 +70,27 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
-        images = batch["img"]
-        kpts = batch["keypoints"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(
-            images,
-            batch_idx,
-            cls,
-            bboxes,
-            kpts=kpts,
-            paths=paths,
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
-        )
+        if self.input_Ch == 3:
+            images = batch["img"]
+            kpts = batch["keypoints"]
+            cls = batch["cls"].squeeze(-1)
+            bboxes = batch["bboxes"]
+            paths = batch["im_file"]
+            batch_idx = batch["batch_idx"]
+            plot_images(
+                images,
+                batch_idx,
+                cls,
+                bboxes,
+                kpts=kpts,
+                paths=paths,
+                fname=self.save_dir / f"train_batch{ni}.jpg",
+                on_plot=self.on_plot,
+            )
+        else:
+            if not self.loggedNonStandardChMsg:
+                LOGGER.info("Skipping plotting training samples for images that do not have 3 input channels.")
+                self.loggedNonStandardChMsg = True
 
     def plot_metrics(self):
         """Plots training/val metrics."""

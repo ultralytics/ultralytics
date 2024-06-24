@@ -12,13 +12,30 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
+import torch
 
-class RGBToGrayscale(object):
+class RGBToGrayscaleClassification(object):
     def __init__(self):
         pass
 
     def __call__(self, labels):
-        labels["img"] = rgb_to_grayscale(labels["img"])
+        labels = rgb_to_grayscale(labels)
+        return labels
+    
+class RGBToGrayscaleDetection(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, labels):
+        labels['img'] = rgb_to_grayscale(labels['img'])
+        return labels
+    
+class RGBToGrayscaleSegmentation(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, labels):
+        labels['img'] = rgb_to_grayscale(labels['img'])
         return labels
 
 
@@ -146,25 +163,25 @@ def test_transforms():
     """Test model training with custom transforms and non-standard (1) image channels."""
 
     # Classification Trainer
-    overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False, "input_Ch": 1}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "imagenet10"
     cfg.imgsz = 32
-    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
+    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscaleClassification())
     trainer.train()
 
     # Detection Trainer
-    overrides = {"data": "coco8.yaml", "model": "yolov8n.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "coco8.yaml", "model": "yolov8n.yaml", "imgsz": 32, "epochs": 1, "save": False, "input_Ch": 1}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8.yaml"
     cfg.imgsz = 32
-    trainer = detect.DetectionTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
+    trainer = detect.DetectionTrainer(overrides=overrides, append_label_transforms=RGBToGrayscaleDetection())
     trainer.train()
 
     # Segmentation Trainer
-    overrides = {"data": "coco8-seg.yaml", "model": "yolov8n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "coco8-seg.yaml", "model": "yolov8n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False, "input_Ch": 1}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
     cfg.imgsz = 32
-    trainer = segment.SegmentationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscale())
+    trainer = segment.SegmentationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscaleSegmentation())
     trainer.train()

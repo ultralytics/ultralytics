@@ -61,6 +61,7 @@ jobs:
         run: python docs/build_reference.py
       - name: Commit and Push Reference Section Changes
         run: |
+          git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           git config --global user.name "UltralyticsAssistant"
@@ -77,6 +78,7 @@ jobs:
         continue-on-error: true
         if: always() && github.event_name == 'pull_request'
         run: |
+          git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then

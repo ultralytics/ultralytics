@@ -4,7 +4,7 @@
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
 FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
-RUN pip install --no-cache-dir nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
+RUN pip install --no-cache-dir tensorrt
 
 # Set environment variables
 ENV APP_HOME /usr/src/ultralytics

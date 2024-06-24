@@ -24,6 +24,7 @@ To ensure smooth execution, please make sure you have the following dependencies
 Follow these steps to build the project:
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/ultralytics/ultralytics.git
    cd ultralytics/YOLOv8-OpenVINO-CPP-Inference
@@ -56,9 +57,11 @@ yolo export model=yolov8s.pt imgsz=640 format=openvino
 ## 📸 Screenshots
 
 ### Running Using OpenVINO Model
+
 ![Running OpenVINO Model](https://github.com/ultralytics/ultralytics/assets/76827698/2d7cf201-3def-4357-824c-12446ccf85a9)
 
 ### Running Using ONNX Model
+
 ![Running ONNX Model](https://github.com/ultralytics/ultralytics/assets/76827698/9b90031c-cc81-4cfb-8b34-c619e09035a7)
 
 ## ❤️ Contributions

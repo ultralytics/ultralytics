@@ -587,7 +587,9 @@ class RandomPerspective:
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances = Instances(
+            bboxes, segments, keypoints, attributes=instances.attributes, bbox_format="xyxy", normalized=False
+        )
         # Clip
         new_instances.clip(*self.size)
 
@@ -1050,6 +1052,9 @@ class Format:
         # Then we can use collate_fn
         if self.batch_idx:
             labels["batch_idx"] = torch.zeros(nl)
+
+        if instances.attributes is not None:
+            labels["attributes"] = torch.from_numpy(instances.attributes) if nl else torch.zeros((nl, 5))
         return labels
 
     def _format_img(self, img):

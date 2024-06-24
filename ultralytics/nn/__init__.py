@@ -4,6 +4,9 @@ from .tasks import (
     BaseModel,
     ClassificationModel,
     DetectionModel,
+    HumanModel,
+    OBBModel,
+    PoseModel,
     SegmentationModel,
     attempt_load_one_weight,
     attempt_load_weights,
@@ -26,4 +29,7 @@ __all__ = (
     "SegmentationModel",
     "ClassificationModel",
     "BaseModel",
+    "PoseModel",
+    "OBBModel",
+    "HumanModel",
 )

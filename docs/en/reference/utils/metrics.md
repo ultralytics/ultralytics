@@ -39,6 +39,10 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br>
 
+## ::: ultralytics.utils.metrics.HumanMetrics
+
+<br><br>
+
 ## ::: ultralytics.utils.metrics.bbox_ioa
 
 <br><br>

@@ -15,7 +15,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "HumanDetect", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -330,6 +330,65 @@ class WorldDetect(Detect):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+
+
+class HumanDetect(Detect):
+    def __init__(self, nc=80, ch=()):
+        super().__init__(nc, ch)
+        c4, c5 = self.reg_max, max((16, min(ch[0] // 8, 32)))
+        # height
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # weight
+        self.cv5 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # age
+        self.cv6 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch
+        )
+        # gender, 2 classes
+        self.cv7 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 2, 1)) for x in ch)
+        # ethnicity, 6 classes
+        self.cv8 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, 6, 1)) for x in ch)
+
+    def forward(self, x):
+        bs = x[0].shape[0]  # batch size
+        height = torch.cat([self.cv4[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        weight = torch.cat([self.cv5[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        age = torch.cat([self.cv6[i](x[i]).view(bs, self.reg_max, -1) for i in range(self.nl)], -1)
+        gender = torch.cat([self.cv7[i](x[i]).view(bs, 2, -1) for i in range(self.nl)], -1)
+        ethnicity = torch.cat([self.cv8[i](x[i]).view(bs, 6, -1) for i in range(self.nl)], -1)
+        attributes = dict(weight=weight, height=height, age=age, gender=gender, ethnicity=ethnicity)
+        # boxes
+        x = Detect.forward(self, x)
+        if self.training:
+            return x, attributes
+        pred_attributes = self.decode_attributes(**attributes)
+        return (
+            torch.cat([x, pred_attributes], 1)
+            if self.export
+            else (torch.cat([x[0], pred_attributes], 1), (x[1], attributes))
+        )
+
+    def decode_attributes(self, weight, height, age, gender, ethnicity):
+        weight = self.dfl(weight) * 12.5  # 0-200kg
+        height = self.dfl(height) * 16  # 0-250cm
+        age = self.dfl(age) * 6.25  # 0-100
+        return torch.cat([weight, height, age, gender.softmax(1), ethnicity.softmax(1)], dim=1)
+
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        m = self  # self.model[-1]  # Detect() module
+        for b, w, a in zip(m.cv2, m.cv4, m.cv7):
+            b[-1].bias.data[:] = 1.0  # box
+            w[-1].bias.data[:] = 1.0  # weight, height
+            a[-1].bias.data[:] = 1.0  # age
+        for c, g, r, s in zip(m.cv3, m.cv5, m.cv6, m.stride):  # from
+            c[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+            g[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+            r[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
 
 
 class RTDETRDecoder(nn.Module):

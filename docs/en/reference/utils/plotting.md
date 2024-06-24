@@ -23,6 +23,10 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br>
 
+## ::: ultralytics.utils.plotting.plot_attributes
+
+<br><br>
+
 ## ::: ultralytics.utils.plotting.save_one_box
 
 <br><br>

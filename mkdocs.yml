@@ -152,6 +152,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
+          - Human: tasks/human.md
       - Models:
           - models/index.md
       - Datasets:
@@ -226,6 +227,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - Human: tasks/human.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -242,6 +244,7 @@ nav:
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+      - YOLO-Human (Human Attribute Estimation): models/yolo-human.md
   - Datasets:
       - datasets/index.md
       - Explorer:
@@ -294,6 +297,9 @@ nav:
           - datasets/obb/index.md
           - DOTAv2: datasets/obb/dota-v2.md
           - DOTA8: datasets/obb/dota8.md
+      - Human:
+          - datasets/human/index.md
+          - COCO8-human: datasets/human/coco8-human.md
       - Multi-Object Tracking:
           - datasets/track/index.md
   - NEW 🚀 Solutions:

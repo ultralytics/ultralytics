@@ -38,3 +38,7 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 ## ::: ultralytics.engine.results.OBB
 
 <br><br>
+
+## ::: ultralytics.engine.results.Human
+
+<br><br>

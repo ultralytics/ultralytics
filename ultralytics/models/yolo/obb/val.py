@@ -2,8 +2,10 @@
 
 from pathlib import Path
 
+import numpy as np
 import torch
 
+from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
@@ -118,13 +120,11 @@ class OBBValidator(DetectionValidator):
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
-        gn = torch.tensor(shape)[[1, 0]]  # normalization gain whwh
-        for *xywh, conf, cls, angle in predn.tolist():
-            xywha = torch.tensor([*xywh, angle]).view(1, 5)
-            xyxyxyxy = (ops.xywhr2xyxyxyxy(xywha) / gn).view(-1).tolist()  # normalized xywh
-            line = (cls, *xyxyxyxy, conf) if save_conf else (cls, *xyxyxyxy)  # label format
-            with open(file, "a") as f:
-                f.write(("%g " * len(line)).rstrip() % line + "\n")
+        rboxes = torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)
+        # xywh, r, conf, cls
+        obb = torch.cat([rboxes, predn[:, 4:6]], dim=-1)
+        im = np.zeros((shape[0], shape[1]), dtype=np.uint8)
+        Results(im, path=None, names=self.names, obb=obb).save_txt(file, save_conf=save_conf)
 
     def eval_json(self, stats):
         """Evaluates YOLO output in JSON format and returns performance statistics."""

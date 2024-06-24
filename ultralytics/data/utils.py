@@ -503,6 +503,8 @@ class HUBDatasetStats:
             elif self.task == "pose":
                 n, nk, nd = labels["keypoints"].shape
                 coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, nk * nd)), 1)
+            elif self.task == "human":
+                coordinates = np.concatenate((labels["bboxes"], labels["attributes"]), 1)  # attributes concatenated
             else:
                 raise ValueError(f"Undefined dataset task={self.task}.")
             zipped = zip(labels["cls"], coordinates)
@@ -535,9 +537,11 @@ class HUBDatasetStats:
                     "labels": [{Path(k).name: v} for k, v in dataset.imgs],
                 }
             else:
-                from ultralytics.data import YOLODataset
+                from ultralytics.data import HumanDataset, YOLODataset
 
-                dataset = YOLODataset(img_path=self.data[split], data=self.data, task=self.task)
+                dataset = (HumanDataset if self.task == "human" else YOLODataset)(
+                    img_path=self.data[split], data=self.data, task=self.task
+                )
                 x = np.array(
                     [
                         np.bincount(label["cls"].astype(int).flatten(), minlength=self.data["nc"])
@@ -567,13 +571,13 @@ class HUBDatasetStats:
 
     def process_images(self):
         """Compress images for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import HumanDataset, YOLODataset  # ClassificationDataset
 
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue
-            dataset = YOLODataset(img_path=self.data[split], data=self.data)
+            dataset = (HumanDataset if self.task == "human" else YOLODataset)(img_path=self.data[split], data=self.data)
             with ThreadPool(NUM_THREADS) as pool:
                 for _ in TQDM(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f"{split} images"):
                     pass

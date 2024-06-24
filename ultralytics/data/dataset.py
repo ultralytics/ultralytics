@@ -30,6 +30,7 @@ from .base import BaseDataset
 from .utils import (
     HELP_URL,
     LOGGER,
+    exif_size,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -227,7 +228,7 @@ class YOLODataset(BaseDataset):
         return label
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, concat_keys={"masks", "keypoints", "bboxes", "cls", "segments", "obb"}):
         """Collates data samples into batches."""
         new_batch = {}
         keys = batch[0].keys()
@@ -236,7 +237,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+            if k in concat_keys:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch["batch_idx"] = list(new_batch["batch_idx"])
@@ -263,7 +264,7 @@ class YOLOMultiModalDataset(YOLODataset):
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
-        """Add texts information for multi modal model training."""
+        """Add texts information for multimodal model training."""
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
         labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
@@ -504,3 +505,58 @@ class ClassificationDataset:
         x["msgs"] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return samples
+
+
+class HumanDataset(YOLODataset):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("task", None)
+        kwargs.pop("data", None)
+        super().__init__(*args, task="detect", data={}, **kwargs)
+
+    def get_labels(self):
+        self.label_files = img2label_paths(self.im_files)
+        desc = f"{self.prefix}Reading {Path(self.label_files[0]).parent}..."
+        pbar = TQDM(self.label_files, desc=desc, total=len(self.label_files))
+        labels = []
+
+        for i, lb_file in enumerate(pbar):
+            im_file = self.im_files[i]
+            im = Image.open(im_file)
+            im.verify()  # PIL verify
+            shape = exif_size(im)  # image size
+            shape = (shape[1], shape[0])  # hw
+
+            with open(lb_file) as f:
+                lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+            lb = np.array(lb, dtype=np.float32)
+            nl = len(lb)
+            if nl:
+                assert lb.shape[1] == 10, f"labels require 10 columns, {lb.shape[1]} columns detected"
+            else:
+                lb = np.zeros((0, 10), dtype=np.float32)
+            labels.append(
+                {
+                    "im_file": self.im_files[i],
+                    "shape": shape,
+                    "cls": lb[:, 0:1],  # n, 1
+                    "bboxes": lb[:, 1:5],  # n, 4
+                    "attributes": lb[:, 5:],  # n, 5  (weight(kg), height(cm), gender, age, ethnicity)
+                    "segments": [],
+                    "keypoints": None,
+                    "normalized": True,
+                    "bbox_format": "xywh",
+                }
+            )
+        return labels
+
+    def update_labels_info(self, label):
+        """Custom your label format here."""
+        attributes = label.pop("attributes", None)
+        label = super().update_labels_info(label)
+        label["instances"].attributes = attributes
+        return label
+
+    @staticmethod
+    def collate_fn(batch):
+        """Collates data samples into batches."""
+        return YOLODataset.collate_fn(batch, concat_keys={"bboxes", "cls", "attributes"})

@@ -9,7 +9,7 @@ keywords: Ultralytics YOLOv8, detection, segmentation, classification, oriented 
 <br>
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png" alt="Ultralytics YOLO supported tasks">
 
-YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
+YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), [pose](pose.md) estimation and [human](human.md) attributes estimation. Each of these tasks has a different objective and use case.
 
 <p align="center">
   <br>
@@ -51,6 +51,12 @@ Pose/keypoint detection is a task that involves detecting specific points in an 
 Oriented object detection goes a step further than regular object detection with introducing an extra angle to locate objects more accurate in an image. YOLOv8 can detect rotated objects in an image or video frame with high accuracy and speed.
 
 [Oriented Detection](obb.md){ .md-button }
+
+## [Human](human.md)
+
+Human detection and attribute estimation is a task that involves identifying humans in an image or video stream and estimating their attributes, such as age, gender, weight, height, and ethnicity. YOLOv8 can detect humans in an image or video frame with high accuracy and speed.
+
+[Human Examples](human.md){ .md-button }
 
 ## Conclusion
 

@@ -28,7 +28,7 @@ class SegmentationValidator(DetectionValidator):
         ```
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, input_Ch = 3):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, input_Ch=3):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks, input_Ch=input_Ch)
         self.plot_masks = None

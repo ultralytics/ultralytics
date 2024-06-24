@@ -50,7 +50,9 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get pose estimation model with specified configuration and weights."""
-        model = PoseModel(cfg, ch=self.input_Ch, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose)
+        model = PoseModel(
+            cfg, ch=self.input_Ch, nc=self.data["nc"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose
+        )
         if weights:
             model.load(weights)
 

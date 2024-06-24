@@ -4,9 +4,8 @@ from copy import copy
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
-from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.utils import LOGGER, RANK
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
@@ -55,7 +54,11 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         """Return an instance of SegmentationValidator for validation of YOLO model."""
         self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss"
         return yolo.segment.SegmentationValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks, input_Ch=self.input_Ch
+            self.test_loader,
+            save_dir=self.save_dir,
+            args=copy(self.args),
+            _callbacks=self.callbacks,
+            input_Ch=self.input_Ch,
         )
 
     def plot_training_samples(self, batch, ni):

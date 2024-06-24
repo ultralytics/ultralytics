@@ -12,7 +12,6 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
-import torch
 
 class RGBToGrayscaleClassification(object):
     def __init__(self):
@@ -21,21 +20,23 @@ class RGBToGrayscaleClassification(object):
     def __call__(self, labels):
         labels = rgb_to_grayscale(labels)
         return labels
-    
+
+
 class RGBToGrayscaleDetection(object):
     def __init__(self):
         pass
 
     def __call__(self, labels):
-        labels['img'] = rgb_to_grayscale(labels['img'])
+        labels["img"] = rgb_to_grayscale(labels["img"])
         return labels
-    
+
+
 class RGBToGrayscaleSegmentation(object):
     def __init__(self):
         pass
 
     def __call__(self, labels):
-        labels['img'] = rgb_to_grayscale(labels['img'])
+        labels["img"] = rgb_to_grayscale(labels["img"])
         return labels
 
 
@@ -163,11 +164,20 @@ def test_transforms():
     """Test model training with custom transforms and non-standard (1) image channels."""
 
     # Classification Trainer
-    overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False, "input_Ch": 1}
+    overrides = {
+        "data": "imagenet10",
+        "model": "yolov8n-cls.yaml",
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+        "input_Ch": 1,
+    }
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "imagenet10"
     cfg.imgsz = 32
-    trainer = classify.ClassificationTrainer(overrides=overrides, append_label_transforms=RGBToGrayscaleClassification())
+    trainer = classify.ClassificationTrainer(
+        overrides=overrides, append_label_transforms=RGBToGrayscaleClassification()
+    )
     trainer.train()
 
     # Detection Trainer
@@ -179,7 +189,14 @@ def test_transforms():
     trainer.train()
 
     # Segmentation Trainer
-    overrides = {"data": "coco8-seg.yaml", "model": "yolov8n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False, "input_Ch": 1}
+    overrides = {
+        "data": "coco8-seg.yaml",
+        "model": "yolov8n-seg.yaml",
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+        "input_Ch": 1,
+    }
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
     cfg.imgsz = 32

@@ -1,17 +1,18 @@
 import argparse
-from urllib.parse import urlparse
-import cv2
-import torch
-import numpy as np
+import time
 from collections import defaultdict
+from typing import List, Tuple
+from urllib.parse import urlparse
+
+import cv2
+import numpy as np
+import torch
+from transformers import AutoModel, AutoProcessor
+
 from ultralytics import YOLO
 from ultralytics.data.loaders import get_best_youtube_url
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
-from transformers import AutoProcessor, AutoModel
-
-import time
-from typing import List, Tuple
 
 # Editable variables
 crop_margin_percentage = 10  # 10 means 10% margin around the person
@@ -19,15 +20,37 @@ num_video_sequence_samples = 8  # number of video sequence samples
 skip_frame = 1  # 4 means 1 out of 4 detection from each track will be used for video classification
 video_cls_overlap_ratio = 0.25  # 0.5 means 50% overlap between each video sequence samples
 fp16 = True  # use FP16 for inference
-video_classifier_model = "microsoft/xclip-base-patch32"  # choose from VideoClassifier.available_model_names or hf video classifier model
-zero_shot_labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]  # labels for zero-shot video classification
+video_classifier_model = (
+    "microsoft/xclip-base-patch32"  # choose from VideoClassifier.available_model_names or hf video classifier model
+)
+zero_shot_labels = [
+    "walking",
+    "running",
+    "brushing teeth",
+    "looking into phone",
+    "weight lifting",
+    "cooking",
+    "sitting",
+]  # labels for zero-shot video classification
 source = "https://www.youtube.com/watch?v=uXlWYZ022zU"
 output_path = "output_video.mp4"
 
 
 class TorchVisionVideoClassifier:
-    from torchvision.models.video import (s3d, S3D_Weights, r3d_18, R3D_18_Weights, swin3d_t, Swin3D_T_Weights,
-        swin3d_b, Swin3D_B_Weights, mvit_v1_b, MViT_V1_B_Weights, mvit_v2_s, MViT_V2_S_Weights)
+    from torchvision.models.video import (
+        MViT_V1_B_Weights,
+        MViT_V2_S_Weights,
+        R3D_18_Weights,
+        S3D_Weights,
+        Swin3D_B_Weights,
+        Swin3D_T_Weights,
+        mvit_v1_b,
+        mvit_v2_s,
+        r3d_18,
+        s3d,
+        swin3d_b,
+        swin3d_t,
+    )
 
     model_name_to_model_and_weights = {
         "s3d": (s3d, S3D_Weights.DEFAULT),
@@ -78,11 +101,13 @@ class TorchVisionVideoClassifier:
         """
         from torchvision.transforms import v2
 
-        transform = v2.Compose([
-            v2.ToDtype(torch.float32, scale=True),
-            v2.Resize(input_size, antialias=True),
-            v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
-        ])
+        transform = v2.Compose(
+            [
+                v2.ToDtype(torch.float32, scale=True),
+                v2.Resize(input_size, antialias=True),
+                v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
+            ]
+        )
 
         processed_crops = [transform(torch.from_numpy(crop).permute(2, 0, 1)) for crop in crops]
         return torch.stack(processed_crops).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
@@ -125,7 +150,13 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
-    def __init__(self, labels: List[str], model_name: str = "microsoft/xclip-base-patch16-zero-shot", device: str or torch.device = "", fp16: bool = False):
+    def __init__(
+        self,
+        labels: List[str],
+        model_name: str = "microsoft/xclip-base-patch16-zero-shot",
+        device: str or torch.device = "",
+        fp16: bool = False,
+    ):
         """
         Initialize the HuggingFaceVideoClassifier with the specified model name.
 
@@ -157,14 +188,18 @@ class HuggingFaceVideoClassifier:
         """
         from torchvision.transforms import v2
 
-        transform = v2.Compose([
-            v2.ToDtype(torch.float32, scale=True),
-            v2.Resize(input_size, antialias=True),
-            v2.Normalize(mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std),
-        ])
+        transform = v2.Compose(
+            [
+                v2.ToDtype(torch.float32, scale=True),
+                v2.Resize(input_size, antialias=True),
+                v2.Normalize(
+                    mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
+                ),
+            ]
+        )
 
-        processed_crops = [transform(torch.from_numpy(crop).permute(2, 0, 1)) for crop in crops] # (T, C, H, W)
-        output =  torch.stack(processed_crops).unsqueeze(0).to(self.device) # (1, T, C, H, W)
+        processed_crops = [transform(torch.from_numpy(crop).permute(2, 0, 1)) for crop in crops]  # (T, C, H, W)
+        output = torch.stack(processed_crops).unsqueeze(0).to(self.device)  # (1, T, C, H, W)
         if self.fp16:
             output = output.half()
         return output
@@ -231,8 +266,10 @@ def crop_and_pad(frame, box, margin_percent):
     size = max(y2 - y1, x2 - x1)
     center_y, center_x = (y1 + y2) // 2, (x1 + x2) // 2
     half_size = size // 2
-    square_crop = frame[max(0, center_y - half_size):min(frame.shape[0], center_y + half_size),
-                        max(0, center_x - half_size):min(frame.shape[1], center_x + half_size)]
+    square_crop = frame[
+        max(0, center_y - half_size) : min(frame.shape[0], center_y + half_size),
+        max(0, center_x - half_size) : min(frame.shape[1], center_x + half_size),
+    ]
 
     return cv2.resize(square_crop, (224, 224), interpolation=cv2.INTER_LINEAR)
 
@@ -248,7 +285,15 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    zero_shot_labels: List[str] = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
+    zero_shot_labels: List[str] = [
+        "walking",
+        "running",
+        "brushing teeth",
+        "looking into phone",
+        "weight lifting",
+        "cooking",
+        "sitting",
+    ],
 ) -> None:
     """
     Run action recognition on a video source using YOLO for object detection and a video classifier.
@@ -277,7 +322,9 @@ def run(
         print("fp16 is not supported for TorchVisionVideoClassifier. Setting fp16 to False.")
         video_classifier = TorchVisionVideoClassifier(video_classifier_model, device=device)
     else:
-        video_classifier = HuggingFaceVideoClassifier(zero_shot_labels, model_name=video_classifier_model, device=device, fp16=fp16)
+        video_classifier = HuggingFaceVideoClassifier(
+            zero_shot_labels, model_name=video_classifier_model, device=device, fp16=fp16
+        )
 
     # Initialize video capture
     if source.startswith("http") and urlparse(source).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:
@@ -295,7 +342,7 @@ def run(
 
     # Initialize VideoWriter
     if output_path is not None:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
     # Initialize track history
@@ -345,7 +392,10 @@ def run(
                     crops_to_infer.append(crops)
                     track_ids_to_infer.append(track_id)
 
-            if crops_to_infer and (not pred_labels or frame_counter % int(num_video_sequence_samples * skip_frame * (1-video_cls_overlap_ratio)) == 0):
+            if crops_to_infer and (
+                not pred_labels
+                or frame_counter % int(num_video_sequence_samples * skip_frame * (1 - video_cls_overlap_ratio)) == 0
+            ):
                 crops_batch = torch.cat(crops_to_infer, dim=0)
 
                 start_inference_time = time.time()
@@ -385,18 +435,34 @@ def parse_opt():
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--source", type=str, required=True, help="video file path or youtube URL")
     parser.add_argument("--output-path", type=str, default="output_video.mp4", help="output video file path")
-    parser.add_argument("--crop-margin-percentage", type=int, default=10, help="percentage of margin to add around detected objects")
-    parser.add_argument("--num-video-sequence-samples", type=int, default=8, help="number of video frames to use for classification")
+    parser.add_argument(
+        "--crop-margin-percentage", type=int, default=10, help="percentage of margin to add around detected objects"
+    )
+    parser.add_argument(
+        "--num-video-sequence-samples", type=int, default=8, help="number of video frames to use for classification"
+    )
     parser.add_argument("--skip-frame", type=int, default=1, help="number of frames to skip between detections")
-    parser.add_argument("--video-cls-overlap-ratio", type=float, default=0.25, help="overlap ratio between video sequences")
+    parser.add_argument(
+        "--video-cls-overlap-ratio", type=float, default=0.25, help="overlap ratio between video sequences"
+    )
     parser.add_argument("--fp16", action="store_true", help="use FP16 for inference")
-    parser.add_argument("--video-classifier-model", type=str, default="microsoft/xclip-base-patch32", help="video classifier model name")
-    parser.add_argument("--zero-shot-labels", nargs="+", type=str, default=["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"], help="labels for zero-shot video classification")
+    parser.add_argument(
+        "--video-classifier-model", type=str, default="microsoft/xclip-base-patch32", help="video classifier model name"
+    )
+    parser.add_argument(
+        "--zero-shot-labels",
+        nargs="+",
+        type=str,
+        default=["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"],
+        help="labels for zero-shot video classification",
+    )
     return parser.parse_args()
+
 
 def main(opt):
     """Main function."""
     run(**vars(opt))
+
 
 if __name__ == "__main__":
     opt = parse_opt()

@@ -84,7 +84,15 @@ Action recognition is a computational method used to identify and classify actio
 Yes, the Action Recognition module supports custom action labels for zero-shot video classification. You can specify your own set of labels by modifying the `zero_shot_labels` variable in the `action_recognition.py` file. Here's an example of how to set custom labels:
 
 ```python
-zero_shot_labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
+zero_shot_labels = [
+    "walking",
+    "running",
+    "brushing teeth",
+    "looking into phone",
+    "weight lifting",
+    "cooking",
+    "sitting",
+]
 ```
 
 You can adjust these labels to match the specific actions you want to recognize in your video. The system will then attempt to classify the detected actions based on these custom labels.
@@ -93,16 +101,16 @@ Additionally, you can choose between different video classification models:
 
 1. For Hugging Face models, you can use any compatible video classification model. The default is set to:
 
-    - "microsoft/xclip-base-patch32"
+   - "microsoft/xclip-base-patch32"
 
 2. For TorchVision models (no support for zero-shot labels), you can select from the following options:
 
-    - "s3d"
-    - "r3d_18"
-    - "swin3d_t"
-    - "swin3d_b"
-    - "mvit_v1_b"
-    - "mvit_v2_s"
+   - "s3d"
+   - "r3d_18"
+   - "swin3d_t"
+   - "swin3d_b"
+   - "mvit_v1_b"
+   - "mvit_v2_s"
 
 **3. Why Combine Action Recognition with YOLOv8?**
 

@@ -66,7 +66,3 @@ keywords: Ultralytics, convolution modules, Conv, LightConv, GhostConv, YOLO, de
 ## ::: ultralytics.nn.modules.conv.autopad
 
 <br><br>
-
-## ::: ultralytics.nn.modules.conv.calculate_running_stats
-
-<br><br>

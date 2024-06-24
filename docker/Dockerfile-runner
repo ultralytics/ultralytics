@@ -17,6 +17,7 @@ RUN FILENAME=actions-runner-linux-x64-2.309.0.tar.gz && \
 # Install runner dependencies
 ENV RUNNER_ALLOW_RUNASROOT=1
 ENV DEBIAN_FRONTEND=noninteractive
+RUN pip install --no-cache-dir pytest-cov
 RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 

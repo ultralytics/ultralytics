@@ -13,10 +13,6 @@ from ultralytics import YOLO
 from ultralytics.data.loaders import get_best_youtube_url
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
-from transformers import AutoProcessor, AutoModel
-
-import time
-from typing import List, Tuple
 
 
 class TorchVisionVideoClassifier:

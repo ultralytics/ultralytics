@@ -119,7 +119,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    xpu = "xpu" in device or any(device.split(","))  # Intel XPU
+    xpu = "xpu" in device  # Intel XPU
 
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
@@ -152,20 +152,24 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
-        elif xpu and not(torch.xpu.device_count() >= len(device.split(","))):
-            LOGGER.info(s)
-            install = (
-                "See https://intel.github.io/intel-extension-for-pytorch/#installation for up-to-date XPU package "
-                "install.\n"
-                if torch.xpu.device_count() == 0 or not HAS_XPU
-                else ""
-            )
-            raise ValueError(
-                f"Invalid XPU 'device={device}' requested."
-                f" Use 'device=cpu' or pass valid XPU device(s) if available,"
-                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-XPU.\n"
-                f"\n{torch.xpu.device_count() = }" if HAS_XPU else f"{install}"
-            )
+        elif xpu:
+            check_requirements("intel-extension-for-pytorch>=2.1.10+xpu")  # attempt install for DDP
+            import intel_extension_for_pytorch as ipex
+            HAS_XPU = hasattr(torch, "xpu")
+            if not (torch.xpu.device_count() >= len(device.split(","))):
+                LOGGER.info(s)
+                install = (
+                    "See https://intel.github.io/intel-extension-for-pytorch/#installation for up-to-date XPU package "
+                    "install.\n"
+                    if torch.xpu.device_count() == 0 or not HAS_XPU
+                    else ""
+                )
+                raise ValueError(
+                    f"Invalid XPU 'device={device}' requested."
+                    f" Use 'device=cpu' or pass valid XPU device(s) if available,"
+                    f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-XPU.\n"
+                    f"\n{torch.xpu.device_count() = }" if HAS_XPU else f"{install}"
+                )
 
     if not (cpu and mps) and (torch.cuda.is_available() or (HAS_XPU and torch.xpu.device_count() >= 1)):  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7

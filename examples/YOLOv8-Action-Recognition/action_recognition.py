@@ -423,7 +423,7 @@ def parse_opt():
     parser.add_argument(
         "--num-video-sequence-samples", type=int, default=8, help="number of video frames to use for classification"
     )
-    parser.add_argument("--skip-frame", type=int, default=1, help="number of frames to skip between detections")
+    parser.add_argument("--skip-frame", type=int, default=2, help="number of frames to skip between detections")
     parser.add_argument(
         "--video-cls-overlap-ratio", type=float, default=0.25, help="overlap ratio between video sequences"
     )

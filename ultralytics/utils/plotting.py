@@ -298,6 +298,9 @@ class Annotator:
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] - h >= 0  # label fits outside box
+                outside_right = p1[0] + w - self.im.size[0]  # pixels run out of the right border
+                if outside_right > 0:
+                    p1 = p1[0] - outside_right, p1[1]
                 self.draw.rectangle(
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
@@ -315,9 +318,9 @@ class Annotator:
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
-                outside_left = p1[0] + w - self.im.shape[1]
-                if outside_left > 0:
-                    p1 = p1[0] - outside_left, p1[1]
+                outside_right = p1[0] + w - self.im.shape[1]  # pixels run out of the right border
+                if outside_right > 0:
+                    p1 = p1[0] - outside_right, p1[1]
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(

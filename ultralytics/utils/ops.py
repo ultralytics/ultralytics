@@ -333,7 +333,6 @@ def clip_boxes(boxes, shape):
     return clipped_boxes
 
 
-
 def clip_coords(coords, shape):
     """
     Clip line coordinates to the image boundaries.

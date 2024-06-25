@@ -339,8 +339,8 @@ class DetectionModel(BaseModel):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
         if self.end2end:
             LOGGER.warning(
-                f"WARNING ⚠️ End2End models do not support augmented inference yet. "
-                f"Reverting to single-scale inference instead."
+                "WARNING ⚠️ End2End models do not support augmented inference yet. "
+                "Reverting to single-scale inference instead."
             )
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width

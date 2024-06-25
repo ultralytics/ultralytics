@@ -96,16 +96,16 @@ Additionally, you can choose between different video classification models:
 
 1. For Hugging Face models, you can use any compatible video classification model. The default is set to:
 
-    - "microsoft/xclip-base-patch32"
+   - "microsoft/xclip-base-patch32"
 
 2. For TorchVision models (no support for zero-shot labels), you can select from the following options:
 
-    - "s3d"
-    - "r3d_18"
-    - "swin3d_t"
-    - "swin3d_b"
-    - "mvit_v1_b"
-    - "mvit_v2_s"
+   - "s3d"
+   - "r3d_18"
+   - "swin3d_t"
+   - "swin3d_b"
+   - "mvit_v1_b"
+   - "mvit_v2_s"
 
 **3. Why Combine Action Recognition with YOLOv8?**
 

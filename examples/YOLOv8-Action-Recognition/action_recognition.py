@@ -414,7 +414,12 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolov8n.pt", help="ultralytics detector model path")
     parser.add_argument("--device", default="", help='cuda device, i.e. 0 or 0,1,2,3 or cpu/mps, "" for auto-detection')
-    parser.add_argument("--source", type=str, default="https://www.youtube.com/watch?v=dQw4w9WgXcQ", help="video file path or youtube URL")
+    parser.add_argument(
+        "--source",
+        type=str,
+        default="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        help="video file path or youtube URL",
+    )
     parser.add_argument("--output-path", type=str, default="output_video.mp4", help="output video file path")
     parser.add_argument(
         "--crop-margin-percentage", type=int, default=10, help="percentage of margin to add around detected objects"

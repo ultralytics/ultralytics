@@ -264,7 +264,7 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    zero_shot_labels: List[str] = [
+    labels: List[str] = [
         "walking",
         "running",
         "brushing teeth",
@@ -289,7 +289,7 @@ def run(
         video_cls_overlap_ratio (float, optional): The overlap ratio between video sequences. Defaults to 0.25.
         fp16 (bool, optional): Whether to use half-precision floating point. Defaults to False.
         video_classifier_model (str, optional): The name or path of the video classifier model. Defaults to "microsoft/xclip-base-patch32".
-        zero_shot_labels (List[str], optional): List of labels for zero-shot classification. Defaults to ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"].
+        labels (List[str], optional): List of labels for zero-shot classification. Defaults to ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"].
 
     Returns:
         None
@@ -298,11 +298,12 @@ def run(
     device = select_device(device)
     yolo_model = YOLO(weights).to(device)
     if video_classifier_model in TorchVisionVideoClassifier.available_model_names():
-        print("fp16 is not supported for TorchVisionVideoClassifier. Setting fp16 to False.")
+        print("'fp16' is not supported for TorchVisionVideoClassifier. Setting fp16 to False.")
+        print("'labels' is not used for TorchVisionVideoClassifier. Ignoring the provided labels and using Kinetics-400 labels.")
         video_classifier = TorchVisionVideoClassifier(video_classifier_model, device=device)
     else:
         video_classifier = HuggingFaceVideoClassifier(
-            zero_shot_labels, model_name=video_classifier_model, device=device, fp16=fp16
+            labels, model_name=video_classifier_model, device=device, fp16=fp16
         )
 
     # Initialize video capture
@@ -429,7 +430,7 @@ def parse_opt():
         "--video-classifier-model", type=str, default="microsoft/xclip-base-patch32", help="video classifier model name"
     )
     parser.add_argument(
-        "--zero-shot-labels",
+        "--labels",
         nargs="+",
         type=str,
         default=["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"],

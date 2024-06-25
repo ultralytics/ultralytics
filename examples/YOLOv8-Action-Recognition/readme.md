@@ -34,33 +34,39 @@ Here are the basic commands for running the inference:
 The action recognition model will automatically detect and track people in the video, and classify their actions based on the specified labels. The results will be displayed in real-time on the video output. You can customize the action labels by modifying the `--labels` argument when running the script.
 
 ```bash
-# Basic usage
-python action_recognition.py --source path/to/video.mp4 --labels "dancing" "singing" "jumping"
+# Quick start
+python action_recognition.py
 
-# YouTube video inference
-python action_recognition.py --source https://www.youtube.com/watch?v=dQw4w9WgXcQ --labels "dancing" "singing" "jumping"
+# Basic usage
+python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --labels "dancing" "singing a song"
+
+# Use local video file
+python action_recognition.py --source path/to/video.mp4
+
+# Better detector performance
+python action_recognition.py --weights yolov8m.pt
 
 # Run on CPU
-python action_recognition.py --source path/to/video.mp4 --device cpu
+python action_recognition.py --device cpu
 
 # Use a different video classifier model
-python action_recognition.py --source path/to/video.mp4 --video-classifier-model "s3d"
+python action_recognition.py --video-classifier-model "s3d"
 
 # Use FP16 for inference (only for HuggingFace models)
-python action_recognition.py --source path/to/video.mp4 --fp16
+python action_recognition.py --fp16
 
 # Export output as mp4
-python action_recognition.py --source path/to/video.mp4 --output-path output.mp4
+python action_recognition.py --output-path output.mp4
 
 # Combine multiple options
-python action_recognition.py --source https://www.youtube.com/watch?v=dQw4w9WgXcQ --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "dancing" "singing" "playing guitar" --fp16
+python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "dancing" "singing a song" --fp16
 ```
 
 ## Usage Options
 
 - `--weights`: Path to the YOLO model weights (default: "yolov8n.pt")
 - `--device`: Cuda device, i.e. 0 or 0,1,2,3 or cpu (default: auto-detect)
-- `--source`: Video file path or YouTube URL (required)
+- `--source`: Video file path or YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
 - `--output-path`: Output video file path
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects (default: 10)
 - `--num-video-sequence-samples`: Number of video frames to use for classification (default: 8)
@@ -68,7 +74,7 @@ python action_recognition.py --source https://www.youtube.com/watch?v=dQw4w9WgXc
 - `--video-cls-overlap-ratio`: Overlap ratio between video sequences (default: 0.25)
 - `--fp16`: Use FP16 for inference (only for HuggingFace models)
 - `--video-classifier-model`: Video classifier model name or path (default: "microsoft/xclip-base-patch32")
-- `--labels`: Labels for zero-shot video classification (default: \["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"\])
+- `--labels`: Labels for zero-shot video classification (default: \["dancing" "singing a song"\])
 
 ## FAQ
 
@@ -90,16 +96,16 @@ Additionally, you can choose between different video classification models:
 
 1. For Hugging Face models, you can use any compatible video classification model. The default is set to:
 
-   - "microsoft/xclip-base-patch32"
+    - "microsoft/xclip-base-patch32"
 
 2. For TorchVision models (no support for zero-shot labels), you can select from the following options:
 
-   - "s3d"
-   - "r3d_18"
-   - "swin3d_t"
-   - "swin3d_b"
-   - "mvit_v1_b"
-   - "mvit_v2_s"
+    - "s3d"
+    - "r3d_18"
+    - "swin3d_t"
+    - "swin3d_b"
+    - "mvit_v1_b"
+    - "mvit_v2_s"
 
 **3. Why Combine Action Recognition with YOLOv8?**
 

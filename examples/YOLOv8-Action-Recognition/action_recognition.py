@@ -1,7 +1,7 @@
 import argparse
 import time
 from collections import defaultdict
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 import cv2
@@ -254,13 +254,13 @@ def crop_and_pad(frame, box, margin_percent):
 
 
 def run(
-    weights: str,
-    device: str,
-    source: str,
-    output_path: str = None,
+    weights: str = "yolov8n.pt",
+    device: str = "",
+    source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    output_path: Optional[str] = None,
     crop_margin_percentage: int = 10,
     num_video_sequence_samples: int = 8,
-    skip_frame: int = 4,
+    skip_frame: int = 2,
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
@@ -278,21 +278,20 @@ def run(
     Run action recognition on a video source using YOLO for object detection and a video classifier.
 
     Args:
-        weights (str): Path to the YOLO model weights.
-                      Use 'cuda' for NVIDIA GPU acceleration, 'mps' for Apple Silicon GPU acceleration if available,
-                      otherwise defaults to 'cpu'.
-        source (str): The path to mp4 video file or YouTube URL.
-        output_path (str): The path to save the output video.
-        crop_margin_percentage (int, optional): The percentage of margin to add around detected objects. Defaults to 10.
-        num_video_sequence_samples (int, optional): The number of video frames to use for classification. Defaults to 8.
-        skip_frame (int, optional): The number of frames to skip between detections. Defaults to 4.
-        video_cls_overlap_ratio (float, optional): The overlap ratio between video sequences. Defaults to 0.25.
+        weights (str): Path to the YOLO model weights. Defaults to "yolov8n.pt".
+        device (str): Device to run the model on. Use 'cuda' for NVIDIA GPU, 'mps' for Apple Silicon, or 'cpu'. Defaults to auto-detection.
+        source (str): Path to mp4 video file or YouTube URL. Defaults to a sample YouTube video.
+        output_path (Optional[str], optional): Path to save the output video. Defaults to None.
+        crop_margin_percentage (int, optional): Percentage of margin to add around detected objects. Defaults to 10.
+        num_video_sequence_samples (int, optional): Number of video frames to use for classification. Defaults to 8.
+        skip_frame (int, optional): Number of frames to skip between detections. Defaults to 4.
+        video_cls_overlap_ratio (float, optional): Overlap ratio between video sequences. Defaults to 0.25.
         fp16 (bool, optional): Whether to use half-precision floating point. Defaults to False.
-        video_classifier_model (str, optional): The name or path of the video classifier model. Defaults to "microsoft/xclip-base-patch32".
-        labels (List[str], optional): List of labels for zero-shot classification. Defaults to ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"].
+        video_classifier_model (str, optional): Name or path of the video classifier model. Defaults to "microsoft/xclip-base-patch32".
+        labels (List[str], optional): List of labels for zero-shot classification. Defaults to predefined list.
 
     Returns:
-        None
+        None</edit>
     """
     # Initialize models and device
     device = select_device(device)
@@ -414,8 +413,8 @@ def parse_opt():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolov8n.pt", help="ultralytics detector model path")
-    parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
-    parser.add_argument("--source", type=str, required=True, help="video file path or youtube URL")
+    parser.add_argument("--device", default="", help='cuda device, i.e. 0 or 0,1,2,3 or cpu/mps, "" for auto-detection')
+    parser.add_argument("--source", type=str, default="https://www.youtube.com/watch?v=dQw4w9WgXcQ", help="video file path or youtube URL")
     parser.add_argument("--output-path", type=str, default="output_video.mp4", help="output video file path")
     parser.add_argument(
         "--crop-margin-percentage", type=int, default=10, help="percentage of margin to add around detected objects"
@@ -435,7 +434,7 @@ def parse_opt():
         "--labels",
         nargs="+",
         type=str,
-        default=["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"],
+        default=["dancing", "singing a song"],
         help="labels for zero-shot video classification",
     )
     return parser.parse_args()

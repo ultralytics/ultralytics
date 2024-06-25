@@ -214,7 +214,10 @@ def non_max_suppression(
         prediction = prediction[0]  # select only inference output
 
     if prediction.shape[-1] == 6:  # end-to-end model
-        return [pred[pred[:, 4] > conf_thres] for pred in prediction]
+        output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
+        if classes is not None:
+            output = [pred[(pred[:, 5:6] == torch.tensor(classes, device=pred.device)).any(1)] for pred in output]
+        return output
 
     bs = prediction.shape[0]  # batch size
     nc = nc or (prediction.shape[1] - 4)  # number of classes

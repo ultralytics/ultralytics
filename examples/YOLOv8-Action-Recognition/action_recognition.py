@@ -299,7 +299,9 @@ def run(
     yolo_model = YOLO(weights).to(device)
     if video_classifier_model in TorchVisionVideoClassifier.available_model_names():
         print("'fp16' is not supported for TorchVisionVideoClassifier. Setting fp16 to False.")
-        print("'labels' is not used for TorchVisionVideoClassifier. Ignoring the provided labels and using Kinetics-400 labels.")
+        print(
+            "'labels' is not used for TorchVisionVideoClassifier. Ignoring the provided labels and using Kinetics-400 labels."
+        )
         video_classifier = TorchVisionVideoClassifier(video_classifier_model, device=device)
     else:
         video_classifier = HuggingFaceVideoClassifier(

@@ -2,8 +2,9 @@
 
 import contextlib
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 import torch
+
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
     # WARNING: do not move SummaryWriter import due to protobuf bug https://github.com/ultralytics/ultralytics/pull/4674
@@ -84,7 +85,7 @@ def on_train_start(trainer):
     """Log TensorBoard graph."""
     if WRITER:
         _log_tensorboard_graph(trainer)
-        if trainer.device.type == 'cuda':
+        if trainer.device.type == "cuda":
             torch.cuda.empty_cache()
 
 

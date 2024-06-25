@@ -283,7 +283,7 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
         """
-        image_w = self.im.shape[1]
+        image_w = self.im.size[1]
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()

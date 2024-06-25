@@ -223,7 +223,7 @@ class v8DetectionLoss:
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor,
-            gt_labels.to(torch.int32),
+            gt_labels.int(),
             gt_bboxes,
             mask_gt,
         )

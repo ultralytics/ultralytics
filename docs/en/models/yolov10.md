@@ -172,7 +172,6 @@ For training YOLOv10 on a custom dataset:
         yolo predict model=yolov10n.yaml source=path/to/bus.jpg
         ```
 
-
 ## Supported Tasks and Modes
 
 The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.

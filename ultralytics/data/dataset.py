@@ -6,6 +6,7 @@ from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+from copy import deepcopy
 
 import cv2
 import numpy as np
@@ -30,6 +31,7 @@ from .base import BaseDataset
 from .utils import (
     HELP_URL,
     LOGGER,
+    exif_size,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -504,3 +506,60 @@ class ClassificationDataset:
         x["msgs"] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return samples
+
+
+class HumanDataset(torch.utils.data.Dataset):
+    def __init__(self, img_path, args, augment=False, prefix="") -> None:
+        super().__init__()
+        self.im_files = BaseDataset.get_img_files(img_path, prefix=prefix)
+        self.prefix = prefix
+        self.labels = self.get_labels()
+
+        scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
+        self.torch_transforms = (
+            classify_augmentations(
+                size=args.imgsz,
+                scale=scale,
+                hflip=args.fliplr,
+                vflip=args.flipud,
+                erasing=args.erasing,
+                auto_augment=args.auto_augment,
+                hsv_h=args.hsv_h,
+                hsv_s=args.hsv_s,
+                hsv_v=args.hsv_v,
+            )
+            if augment
+            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+        )
+
+    def get_labels(self):
+        self.label_files = img2label_paths(self.im_files)
+        desc = f"{self.prefix}Reading {Path(self.label_files[0]).parent}..."
+        pbar = TQDM(self.label_files, desc=desc, total=len(self.label_files))
+        labels = []
+
+        for i, lb_file in enumerate(pbar):
+            im_file = self.im_files[i]
+            im = Image.open(im_file)
+            im.verify()  # PIL verify
+            shape = exif_size(im)  # image size
+            shape = (shape[1], shape[0])  # hw
+
+            with open(lb_file) as f:
+                lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+            lb = np.array(lb, dtype=np.float32)
+            nl = len(lb)
+            if nl:
+                assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
+            else:
+                lb = np.zeros((0, 5), dtype=np.float32)
+            # (N, 5), weight(kg), height(cm), gender, age, ethnicity
+            labels.append({"im_file": self.im_files[i], "attributes": lb})
+        return labels
+
+    def __getitem__(self, index):
+        label = deepcopy(self.labels[index])
+        im = Image.open(label["im_file"]).convert("RGB")
+        label["img"] = self.torch_transforms(im)
+        label["attributes"] = torch.from_numpy(label["attributes"])
+        return label

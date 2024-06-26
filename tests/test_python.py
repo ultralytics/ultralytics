@@ -95,7 +95,7 @@ def test_predict_img(model_name):
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
-    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32, augment=True)) == len(batch)  # multiple sources in a batch
 
 
 @pytest.mark.parametrize("model", MODELS)

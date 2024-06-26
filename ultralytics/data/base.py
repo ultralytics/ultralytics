@@ -70,7 +70,7 @@ class BaseDataset(Dataset):
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
-        self.im_files = self.get_img_files(self.img_path)
+        self.im_files = self.get_img_files(img_path, fraction, prefix)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
@@ -96,7 +96,8 @@ class BaseDataset(Dataset):
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
-    def get_img_files(self, img_path):
+    @staticmethod
+    def get_img_files(img_path, fraction=1, prefix=""):
         """Read image files."""
         try:
             f = []  # image files
@@ -112,14 +113,14 @@ class BaseDataset(Dataset):
                         f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
                         # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
                 else:
-                    raise FileNotFoundError(f"{self.prefix}{p} does not exist")
+                    raise FileNotFoundError(f"{prefix}{p} does not exist")
             im_files = sorted(x.replace("/", os.sep) for x in f if x.split(".")[-1].lower() in IMG_FORMATS)
-            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
+            # img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
+            assert im_files, f"{prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
-            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
-        if self.fraction < 1:
-            im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
+            raise FileNotFoundError(f"{prefix}Error loading data from {img_path}\n{HELP_URL}") from e
+        if fraction < 1:
+            im_files = im_files[: round(len(im_files) * fraction)]  # retain a fraction of the dataset
         return im_files
 
     def update_labels(self, include_class: Optional[list]):

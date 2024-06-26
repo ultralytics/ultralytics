@@ -271,7 +271,7 @@ class LoadImagesAndVideos:
         _new_video(path): Create a new cv2.VideoCapture object for a given video path.
     """
 
-    def __init__(self, path, batch=1, vid_stride=1):
+    def __init__(self, path, batch=1, vid_stride=1, skip_invalid=False):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
@@ -308,6 +308,7 @@ class LoadImagesAndVideos:
         self.mode = "image"
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
+        self.skip_invalid = skip_invalid
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -362,10 +363,14 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    raise FileNotFoundError(f"Image Read Error {path}")
-                paths.append(path)
-                imgs.append(im0)
-                info.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                    if self.skip_invalid:
+                        LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                    else:
+                        raise FileNotFoundError(f"Image Read Error {path}")
+                else:
+                    paths.append(path)
+                    imgs.append(im0)
+                    info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
                 if self.count >= self.ni:  # end of image list
                     break

@@ -28,14 +28,14 @@ Now that we know what is happening behind the scenes when we train a model, let'
 
 ## Training on Large Datasets
 
-There are a few different aspects to think about when you are planning on using a large dataset to train a model. For example, you can adjust the batch size, control the GPU utilization, choose to use multi-scale training, etc. Let’s walk through each of these options in detail.
+There are a few different aspects to think about when you are planning on using a large dataset to train a model. For example, you can adjust the batch size, control the GPU utilization, choose to use multi-scale training, etc. Let's walk through each of these options in detail.
 
 ### Batch Size and GPU Utilization
 
 When training models on large datasets, efficiently utilizing your GPU is key. Batch size is an important factor. It is the number of data samples that a machine learning model processes in a single training iteration.
 Using the maximum batch size supported by your GPU, you can fully take advantage of its capabilities and reduce the time model training takes. However, you want to avoid running out of GPU memory. If you encounter memory errors, reduce the batch size incrementally until the model trains smoothly.
 
-With respect to YOLOv8, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU’s capacity. Also, setting `batch=-1` in your training script will automatically determine the batch size that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
+With respect to YOLOv8, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU's capacity. Also, setting `batch=-1` in your training script will automatically determine the batch size that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
 
 ### Subset Training
 
@@ -96,13 +96,13 @@ However, the ideal number of epochs can vary based on your dataset's size and pr
 
 Early stopping is a valuable technique for optimizing model training. By monitoring validation performance, you can halt training once the model stops improving. You can save computational resources and prevent overfitting.
 
-The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model’s performance doesn’t improve within these epochs, training is stopped to avoid wasting time and resources.
+The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance doesn't improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*06sTlOC3AYeZAjzUDwbaMw@2x.jpeg" alt="Early Stopping Overview">
 </p>
 
-For YOLOv8, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there’s no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.
+For YOLOv8, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there's no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.
 
 ## Choosing Between Cloud and Local Training
 
@@ -110,7 +110,7 @@ There are two options for training your model: cloud training and local training
 
 Cloud training offers scalability and powerful hardware and is ideal for handling large datasets and complex models. Platforms like Google Cloud, AWS, and Azure provide on-demand access to high-performance GPUs and TPUs, speeding up training times and enabling experiments with larger models. However, cloud training can be expensive, especially for long periods, and data transfer can add to costs and latency.
 
-Local training provides greater control and customization, letting you tailor your environment to specific needs and avoid ongoing cloud costs. It can be more economical for long-term projects, and since your data stays on-premises, it’s more secure. However, local hardware may have resource limitations and require maintenance, which can lead to longer training times for large models.
+Local training provides greater control and customization, letting you tailor your environment to specific needs and avoid ongoing cloud costs. It can be more economical for long-term projects, and since your data stays on-premises, it's more secure. However, local hardware may have resource limitations and require maintenance, which can lead to longer training times for large models.
 
 ## Selecting an Optimizer
 
@@ -120,7 +120,7 @@ You can also fine-tune optimizer parameters to improve model performance. Adjust
 
 ### Common Optimizers
 
-Different optimizers have various strengths and weaknesses. Let’s take a glimpse at a few common optimizers.
+Different optimizers have various strengths and weaknesses. Let's take a glimpse at a few common optimizers.
 
 - **SGD (Stochastic Gradient Descent)**:
 
@@ -146,7 +146,7 @@ For YOLOv8, the `optimizer` parameter lets you choose from various optimizers, i
 
     - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference.
 
-- **Q2:** Does ‘Auto’ Optimizer Switch Between during Training?
+- **Q2:** Does 'Auto' Optimizer Switch Between during Training?
 
     - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
 

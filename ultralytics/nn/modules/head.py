@@ -335,7 +335,7 @@ class WorldDetect(Detect):
 class HumanDetect(Detect):
     def __init__(self, nc=80, ch=()):
         super().__init__(nc, ch)
-        c4, c5 = self.reg_max, max((16, min(ch[0] // 8, 32)))
+        c4, c5 = self.reg_max * 2, max((16, min(ch[0] // 8, 32))) * 2
         # height
         self.cv4 = nn.ModuleList(
             nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.reg_max, 1)) for x in ch

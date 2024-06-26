@@ -928,6 +928,7 @@ def plot_images(
     fname="images.jpg",
     names=None,
     on_plot=None,
+    max_size=1920,  # max image size
     max_subplots=16,
     save=True,
     conf_thres=0.25,
@@ -946,7 +947,6 @@ def plot_images(
     if isinstance(batch_idx, torch.Tensor):
         batch_idx = batch_idx.cpu().numpy()
 
-    max_size = 1920  # max image size
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)

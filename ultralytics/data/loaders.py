@@ -362,7 +362,7 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    LOGGER.warning(f"WARNING ⚠️ Image Read Error, skipping {path}")
+                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
                     paths.append(path)
                     imgs.append(im0)

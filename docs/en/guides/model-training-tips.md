@@ -32,7 +32,7 @@ There are a few different aspects to think about when you are planning on using 
 
 ### Batch Size and GPU Utilization
 
-When training models on large datasets, efficiently utilizing your GPU is key. Batch size is an important factor. It is the number of data samples that a machine learning model processes in a single training iteration. 
+When training models on large datasets, efficiently utilizing your GPU is key. Batch size is an important factor. It is the number of data samples that a machine learning model processes in a single training iteration.
 Using the maximum batch size supported by your GPU, you can fully take advantage of its capabilities and reduce the time model training takes. However, you want to avoid running out of GPU memory. If you encounter memory errors, reduce the batch size incrementally until the model trains smoothly.
 
 With respect to YOLOv8, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU’s capacity. Also, setting `batch=-1` in your training script will automatically determine the batch size that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
@@ -45,7 +45,7 @@ When it comes to YOLOv8, you can easily implement subset training by using the `
 
 ### Multi-scale Training
 
-Multi-scale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust. 
+Multi-scale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
 
 For example, when you train YOLOv8, you can enable multi-scale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` will reduce the image size by half, while `scale=2.0` will double it. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
 
@@ -55,13 +55,14 @@ Caching is an important technique to improve the efficiency of training machine 
 
 Caching can be controlled when training YOLOv8 using the `cache` parameter:
 
-- *`cache=True`*: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
-- *`cache='disk'`*: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
-- *`cache=False`*: Disables caching, relying entirely on disk I/O, which is the slowest option.
+- _`cache=True`_: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
+- _`cache='disk'`_: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
+- _`cache=False`_: Disables caching, relying entirely on disk I/O, which is the slowest option.
 
 ### Mixed Precision Training
 
 Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types. The strengths of both FP16 and FP32 are leveraged by using FP16 for faster computation and FP32 to maintain precision where needed. Most of the neural network's operations are done in FP16 to benefit from faster computation and lower memory usage. However, a master copy of the model's weights is kept in FP32 to ensure accuracy during the weight update steps. You can handle larger models or larger batch sizes within the same hardware constraints.
+
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*htZ4PF2fZ0ttJ5HdsIaAbQ.png" alt="Mixed Precision Training Overview">
 </p>
@@ -69,6 +70,7 @@ Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-poin
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern deep learning frameworks, such as Tensorflow, offer built-in support for mixed precision.
 
 Mixed precision training is straightforward when working with YOLOv8. You can use the `amp` flag in your training configuration. Setting `amp=True` enables Automatic Mixed Precision (AMP) training. Mixed precision training is a simple yet effective way to optimize your model training process.
+
 ### Pre-trained Weights
 
 Using pre-trained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. Transfer learning adapts pre-trained models to new, related tasks. Fine-tuning a pre-trained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
@@ -79,20 +81,20 @@ The `pretrained` parameter makes transfer learning easy with YOLOv8. Setting `pr
 
 There are a couple of other techniques to consider when handling a large dataset:
 
-- **Learning Rate Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLOv8, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. 
+- **Learning Rate Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLOv8, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate.
 - **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines.
 
 ## The Number of Epochs To Train For
 
 When training a model, an epoch refers to one complete pass through the entire training dataset. During an epoch, the model processes each example in the training set once and updates its parameters based on the learning algorithm. Multiple epochs are usually needed to allow the model to learn and refine its parameters over time.
 
-A common question that comes up is how to determine the number of epochs to train the model for. A good starting point is 300 epochs. If the model overfits early, you can reduce the number of epochs. If overfitting does not occur after 300 epochs, you can extend the training to 600, 1200, or more epochs. 
+A common question that comes up is how to determine the number of epochs to train the model for. A good starting point is 300 epochs. If the model overfits early, you can reduce the number of epochs. If overfitting does not occur after 300 epochs, you can extend the training to 600, 1200, or more epochs.
 
 However, the ideal number of epochs can vary based on your dataset's size and project goals. Larger datasets might require more epochs for the model to learn effectively, while smaller datasets might need fewer epochs to avoid overfitting. With respect to YOLOv8, you can set the `epochs` parameter in your training script.
 
 ## Early Stopping
 
-Early stopping is a valuable technique for optimizing model training. By monitoring validation performance, you can halt training once the model stops improving. You can save computational resources and prevent overfitting. 
+Early stopping is a valuable technique for optimizing model training. By monitoring validation performance, you can halt training once the model stops improving. You can save computational resources and prevent overfitting.
 
 The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model’s performance doesn’t improve within these epochs, training is stopped to avoid wasting time and resources.
 
@@ -110,7 +112,7 @@ Cloud training offers scalability and powerful hardware and is ideal for handlin
 
 Local training provides greater control and customization, letting you tailor your environment to specific needs and avoid ongoing cloud costs. It can be more economical for long-term projects, and since your data stays on-premises, it’s more secure. However, local hardware may have resource limitations and require maintenance, which can lead to longer training times for large models.
 
-## Selecting an Optimizer 
+## Selecting an Optimizer
 
 An optimizer is an algorithm that adjusts the weights of your neural network to minimize the loss function, which measures how well the model is performing. In simpler terms, the optimizer helps the model learn by tweaking its parameters to reduce errors. Choosing the right optimizer directly affects how quickly and accurately the model learns.
 
@@ -120,32 +122,36 @@ You can also fine-tune optimizer parameters to improve model performance. Adjust
 
 Different optimizers have various strengths and weaknesses. Let’s take a glimpse at a few common optimizers.
 
-- **SGD (Stochastic Gradient Descent)**: 
-  - Updates model parameters using the gradient of the loss function with respect to the parameters.
-  - Simple and efficient but can be slow to converge and might get stuck in local minima.
+- **SGD (Stochastic Gradient Descent)**:
 
-- **Adam (Adaptive Moment Estimation)**: 
-  - Combines the benefits of both SGD with momentum and RMSProp.
-  - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
-  - Well-suited for noisy data and sparse gradients.
-  - Efficient and generally requires less tuning, making it a recommended optimizer for YOLOv8.
+    - Updates model parameters using the gradient of the loss function with respect to the parameters.
+    - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
-- **RMSProp (Root Mean Square Propagation)**: 
-  - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
-  - Helps in handling the vanishing gradient problem and is effective for recurrent neural networks.
+- **Adam (Adaptive Moment Estimation)**:
 
-For YOLOv8, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration. 
+    - Combines the benefits of both SGD with momentum and RMSProp.
+    - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
+    - Well-suited for noisy data and sparse gradients.
+    - Efficient and generally requires less tuning, making it a recommended optimizer for YOLOv8.
+
+- **RMSProp (Root Mean Square Propagation)**:
+    - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
+    - Helps in handling the vanishing gradient problem and is effective for recurrent neural networks.
+
+For YOLOv8, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 
 ## FAQs
 
 - **Q1:** Does the Size of Training Images Affect Predictions on High-Quality Images?
-  - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference. 
+
+    - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference.
 
 - **Q2:** Does ‘Auto’ Optimizer Switch Between during Training?
-  - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
+
+    - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
 
 - **Q3:** Can Yolov8 handle various image sizes?
-  - **A3:** Yes, YOLOv8 can handle images of various sizes. During training and prediction, the model automatically resizes the images to the specified `imgsz` parameter. 
+    - **A3:** Yes, YOLOv8 can handle images of various sizes. During training and prediction, the model automatically resizes the images to the specified `imgsz` parameter.
 
 ## Connecting with the Community
 

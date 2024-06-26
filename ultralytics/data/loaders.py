@@ -362,10 +362,11 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    raise FileNotFoundError(f"Image Read Error {path}")
-                paths.append(path)
-                imgs.append(im0)
-                info.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                else:
+                    paths.append(path)
+                    imgs.append(im0)
+                    info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
                 if self.count >= self.ni:  # end of image list
                     break

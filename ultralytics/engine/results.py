@@ -747,4 +747,8 @@ class OBB(BaseTensor):
         x2 = self.xyxyxyxy[..., 0].max(1)
         y1 = self.xyxyxyxy[..., 1].min(1)
         y2 = self.xyxyxyxy[..., 1].max(1)
-        return torch.stack([x1, y1, x2, y2], -1) if isinstance(x1, torch.Tensor) else np.stack([x1, y1, x2, y2], -1)
+        return (
+            torch.stack([x1.values, y1.values, x2.values, y2.values], -1)
+            if isinstance(x1, torch.Tensor)
+            else np.stack([x1, y1, x2, y2], -1)
+        )

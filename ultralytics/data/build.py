@@ -76,7 +76,7 @@ class _RepeatSampler:
 
 def seed_worker(worker_id):  # noqa
     """Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader."""
-    worker_seed = torch.initial_seed() % 2**32
+    worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
@@ -171,7 +171,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
+def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, skip_invalid=False):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
@@ -180,6 +180,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
         batch (int, optional): Batch size for dataloaders. Default is 1.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
         buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
+        skip_invalid (bool, optional): Determines whether to skip illegal data and provide valid data. Default is False.
 
     Returns:
         dataset (Dataset): A dataset object for the specified input source.
@@ -199,7 +200,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif from_img:
         dataset = LoadPilAndNumpy(source)
     else:
-        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
+        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, skip_invalid=skip_invalid)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

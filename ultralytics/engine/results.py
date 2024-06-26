@@ -743,9 +743,8 @@ class OBB(BaseTensor):
 
         Accepts both torch and numpy boxes.
         """
-        x1 = self.xyxyxyxy[..., 0].min(1).values
-        x2 = self.xyxyxyxy[..., 0].max(1).values
-        y1 = self.xyxyxyxy[..., 1].min(1).values
-        y2 = self.xyxyxyxy[..., 1].max(1).values
-        xyxy = [x1, y1, x2, y2]
-        return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)
+        x1 = self.xyxyxyxy[..., 0].min(1)
+        x2 = self.xyxyxyxy[..., 0].max(1)
+        y1 = self.xyxyxyxy[..., 1].min(1)
+        y2 = self.xyxyxyxy[..., 1].max(1)
+        return torch.stack([x1, y1, x2, y2], -1) if isinstance(x1, torch.Tensor) else np.stack([x1, y1, x2, y2], -1)

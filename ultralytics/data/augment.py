@@ -1249,6 +1249,7 @@ def classify_augmentations(
     force_color_jitter=False,
     erasing=0.0,
     interpolation=Image.BILINEAR,
+    resize=False,
 ):
     """
     Classification transforms with augmentation for training. Inspired by timm/data/transforms_factory.py.
@@ -1275,11 +1276,13 @@ def classify_augmentations(
     # Transforms to apply if Albumentations not installed
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    if not isinstance(size, int):
+    if not isinstance(size, int) and not resize:
         raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
-    primary_tfl = [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
+    primary_tfl = [
+        T.Resize(size) if resize else T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)
+    ]
     if hflip > 0.0:
         primary_tfl.append(T.RandomHorizontalFlip(p=hflip))
     if vflip > 0.0:

@@ -518,7 +518,7 @@ class HumanDataset(torch.utils.data.Dataset):
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
-                size=args.imgsz,
+                size=(args.imgsz, args.imgsz),
                 scale=scale,
                 hflip=args.fliplr,
                 vflip=args.flipud,
@@ -527,9 +527,11 @@ class HumanDataset(torch.utils.data.Dataset):
                 hsv_h=args.hsv_h,
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
+                resize=True,
             )
             if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            # Note: use (args.imgsz, args.imgsz + 1) to avoid cutting areas by centercrop
+            else classify_transforms(size=(args.imgsz, args.imgsz + 1), crop_fraction=args.crop_fraction)
         )
 
     def get_labels(self):

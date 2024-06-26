@@ -137,7 +137,7 @@ For predicting new images with YOLOv10:
 
         # Display the results
         results[0].show()
-        ``` 
+        ```
 
     === "CLI"
 
@@ -161,7 +161,7 @@ For training YOLOv10 on a custom dataset:
         # Train the model
         model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
-    
+
     === "CLI"
 
         ```bash
@@ -171,15 +171,15 @@ For training YOLOv10 on a custom dataset:
         # Build a YOLOv10n model from scratch and run inference on the 'bus.jpg' image
         yolo predict model=yolov10n.yaml source=path/to/bus.jpg
         ```
-        
+
+
 ## Supported Tasks and Modes
 
 The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model   | Filenames                                                              | Tasks                                        | Inference | Validation | Training | Export |
-|---------|------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| YOLOv10 |  `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅        | ✅       | ✅    |
-
+| Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
+| ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Exporting YOLOv10
 

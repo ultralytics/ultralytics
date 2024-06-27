@@ -474,6 +474,18 @@ class ClassificationModel(BaseModel):
         return v8ClassificationLoss()
 
 
+class HumanModel(ClassificationModel):
+    """YOLOv8 human model."""
+
+    def __init__(self, cfg="yolov8n-human.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 human model with given config and parameters."""
+        super().__init__(cfg, ch, nc, verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the HumanModel."""
+        pass
+
+
 class RTDETRDetectionModel(DetectionModel):
     """
     RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.

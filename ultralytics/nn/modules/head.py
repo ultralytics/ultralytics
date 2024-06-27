@@ -283,7 +283,7 @@ class Classify(nn.Module):
 class HumanClassify(nn.Module):
     """YOLOv8 human attribute classification head."""
 
-    def __init__(self, c1, cg=2, ce=6, k=1, s=1, p=None, g=1):
+    def __init__(self, c1, ce=6, cg=2, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride,
         padding, and groups.
         """
@@ -291,21 +291,30 @@ class HumanClassify(nn.Module):
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
+        # self.drop = nn.Dropout(p=0.0, inplace=True)
 
-        self.fc_g = nn.Linear(c_, cg)  # gender, to x(b,cg)
-        self.fc_e = nn.Linear(c_, ce)  # ethnicity to x(b,cg)
         self.reg_max = 16
-        self.fc_h = nn.Linear(c_, self.reg_max)  # height to x(b,reg_max)
-        self.fc_w = nn.Linear(c_, self.reg_max)  # weight to x(b,reg_max)
-        self.fc_a = nn.Linear(c_, self.reg_max)  # age to x(b,reg_max)
+        c4, c5 = max(self.reg_max, c1 // 4), max(32, c1 // 4)
+
+        self.fc_h = nn.Sequential(
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+        )  # height to x(b,reg_max)
+        self.fc_w = nn.Sequential(
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+        )  # weight to x(b,reg_max)
+        self.fc_a = nn.Sequential(
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+        )  # age to x(b,reg_max)
+        self.fc_g = nn.Sequential(Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, cg, 1))  # gender, to x(b,cg)
+        self.fc_e = nn.Sequential(Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, ce, 1))  # ethnicity to x(b,cg)
+
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        x = self.drop(self.pool(self.conv(x)).flatten(1))
+        x = self.pool(self.conv(x))
         height = self.fc_h(x)
         weight = self.fc_w(x)
         age = self.fc_a(x)
@@ -318,10 +327,19 @@ class HumanClassify(nn.Module):
         return self.decode_attributes(**attributes)
 
     def decode_attributes(self, weight, height, age, gender, ethnicity):
-        weight = self.dfl(weight) * 12.5  # 0-200kg
-        height = self.dfl(height) * 16  # 0-250cm
-        age = self.dfl(age) * 6.25  # 0-100
-        return torch.cat([weight, height, age, gender.softmax(1), ethnicity.softmax(1)], dim=1)
+        weight = self.dfl(weight.squeeze(-1)) * 12.5  # 0-200kg
+        height = self.dfl(height.squeeze(-1)) * 16  # 0-250cm
+        age = self.dfl(age.squeeze(-1)) * 6.25  # 0-100
+        return torch.cat(
+            [
+                weight.flatten(1),
+                height.flatten(1),
+                age.flatten(1),
+                gender.softmax(1).flatten(1),
+                ethnicity.softmax(1).flatten(1),
+            ],
+            dim=1,
+        )
 
 
 class WorldDetect(Detect):

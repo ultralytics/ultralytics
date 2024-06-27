@@ -923,8 +923,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
-            HumanClassify,
             Conv,
+            HumanClassify,
             ConvTranspose,
             GhostConv,
             Bottleneck,

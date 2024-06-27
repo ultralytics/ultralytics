@@ -420,14 +420,14 @@ class PoseModel(DetectionModel):
 
 
 class HumanModel(DetectionModel):
-    """YOLOv8 segmentation model."""
+    """YOLOv8 human model."""
 
     def __init__(self, cfg="yolov8n-human.yaml", ch=3, nc=None, verbose=True):
-        """Initialize YOLOv8 segmentation model with given config and parameters."""
+        """Initialize YOLOv8 human model with given config and parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
-        """Initialize the loss criterion for the SegmentationModel."""
+        """Initialize the loss criterion for the HumanModel."""
         return v8HumanLoss(self)
 
 

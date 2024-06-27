@@ -95,7 +95,7 @@ def test_predict_img(model_name):
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
-    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32, augment=True)) == len(batch)  # multiple sources in a batch
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -577,3 +577,13 @@ def test_yolo_world():
         close_mosaic=1,
         trainer=WorldTrainerFromScratch,
     )
+
+
+def test_yolov10():
+    """A simple test for yolov10 for now."""
+    model = YOLO("yolov10n.yaml")
+    # train/val/predict
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8.yaml", imgsz=32)
+    model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
+    model(SOURCE)

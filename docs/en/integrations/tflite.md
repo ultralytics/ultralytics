@@ -96,7 +96,7 @@ Before diving into the usage instructions, it's important to note that while all
           ```bash
           # Export a YOLOv8n PyTorch model to TFLite format
           yolo export model=yolov8n.pt format=tflite  # creates 'yolov8n_float32.tflite'
-          
+
           # Run inference with the exported model
           yolo predict model='yolov8n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
           ```

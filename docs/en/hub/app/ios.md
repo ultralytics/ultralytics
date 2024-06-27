@@ -6,7 +6,7 @@ keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple N
 
 # Ultralytics iOS App: Real-time Object Detection with YOLO Models
 
-<a href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://ultralytics.com/hub" target="_blank">
   <img width="100%" src="https://user-images.githubusercontent.com/26833433/281124469-6b3b0945-dbb1-44c8-80a9-ef6bc778b299.jpg" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
@@ -20,7 +20,7 @@ keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple N
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://www.instagram.com/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="Ultralytics Instagram"></a>
+  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
@@ -61,7 +61,7 @@ The Apple Neural Engine (ANE) is a dedicated hardware component integrated into 
 By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics iOS App achieves real-time object detection on your iOS device without compromising on accuracy or performance.
 
 | Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | ANE TOPs |
-|--------------|------------------------------------------------------|-------------------------------------------------------|-----------|----------|
+| ------------ | ---------------------------------------------------- | ----------------------------------------------------- | --------- | -------- |
 | 2017         | [iPhone X](https://en.wikipedia.org/wiki/IPhone_X)   | [A11 Bionic](https://en.wikipedia.org/wiki/Apple_A11) | 10 nm     | 0.6      |
 | 2018         | [iPhone XS](https://en.wikipedia.org/wiki/IPhone_XS) | [A12 Bionic](https://en.wikipedia.org/wiki/Apple_A12) | 7 nm      | 5        |
 | 2019         | [iPhone 11](https://en.wikipedia.org/wiki/IPhone_11) | [A13 Bionic](https://en.wikipedia.org/wiki/Apple_A13) | 7 nm      | 6        |

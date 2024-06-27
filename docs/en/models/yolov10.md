@@ -19,7 +19,7 @@ Real-time object detection aims to accurately predict object categories and posi
 The architecture of YOLOv10 builds upon the strengths of previous YOLO models while introducing several key innovations. The model architecture consists of the following components:
 
 1. **Backbone**: Responsible for feature extraction, the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
-2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
+2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multi-scale feature fusion.
 3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
 4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
 
@@ -45,11 +45,11 @@ YOLOv10 comes in various model scales to cater to different application needs:
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
 | Model     | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
-|-----------|------------|------------------|-----------|--------------|
-| YOLOv10-N | 640        | 38.5             | **6.7**   | **1.84**     | 
+| --------- | ---------- | ---------------- | --------- | ------------ |
+| YOLOv10-N | 640        | 38.5             | **6.7**   | **1.84**     |
 | YOLOv10-S | 640        | 46.3             | 21.6      | 2.49         |
 | YOLOv10-M | 640        | 51.1             | 59.1      | 4.74         |
-| YOLOv10-B | 640        | 52.5             | 92.0      | 5.74         |  
+| YOLOv10-B | 640        | 52.5             | 92.0      | 5.74         |
 | YOLOv10-L | 640        | 53.2             | 120.3     | 7.28         |
 | YOLOv10-X | 640        | **54.4**         | 160.4     | 10.70        |
 
@@ -91,7 +91,7 @@ Compared to other state-of-the-art detectors:
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
 | Model         | Params (M) | FLOPs (G) | APval (%) | Latency (ms) | Latency (Forward) (ms) |
-|---------------|------------|-----------|-----------|--------------|------------------------|
+| ------------- | ---------- | --------- | --------- | ------------ | ---------------------- |
 | YOLOv6-3.0-N  | 4.7        | 11.4      | 37.0      | 2.69         | **1.76**               |
 | Gold-YOLO-N   | 5.6        | 12.1      | **39.6**  | 2.92         | 1.82                   |
 | YOLOv8-N      | 3.2        | 8.7       | 37.3      | 6.16         | 1.77                   |
@@ -113,43 +113,91 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 | YOLOv8-L      | 43.7       | 165.2     | 52.9      | 12.39        | 8.06                   |
 | RT-DETR-R50   | 42.0       | 136.0     | 53.1      | 9.20         | 9.07                   |
 | **YOLOv10-L** | **24.4**   | **120.3** | **53.4**  | **7.28**     | **7.21**               |
-|               |            |           |           |              |
+|               |            |           |           |              |                        |
 | YOLOv8-X      | 68.2       | 257.8     | 53.9      | 16.86        | 12.83                  |
 | RT-DETR-R101  | 76.0       | 259.0     | 54.3      | 13.71        | 13.58                  |
 | **YOLOv10-X** | **29.5**   | **160.4** | **54.4**  | **10.70**    | **10.60**              |
 
 ## Usage Examples
 
-!!! tip "Coming Soon"
-
-    The Ultralytics team is actively working on officially integrating the YOLOv10 models into the `ultralytics` package. Once the integration is complete, the usage examples shown below will be fully functional. Please stay tuned by following our social media and [GitHub repository](https://github.com/ultralytics/ultralytics) for the latest updates on YOLOv10 integration. We appreciate your patience and excitement! 🚀
-
 For predicting new images with YOLOv10:
 
-```python
-from ultralytics import YOLO
+!!! Example
 
-# Load a pretrained YOLOv10n model
-model = YOLO("yolov10n.pt")
+    === "Python"
 
-# Perform object detection on an image
-results = model("image.jpg")
+        ```python
+        from ultralytics import YOLO
 
-# Display the results
-results[0].show()
-```
+        # Load a pre-trained YOLOv10n model
+        model = YOLO("yolov10n.pt")
+
+        # Perform object detection on an image
+        results = model("image.jpg")
+
+        # Display the results
+        results[0].show()
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv10n model and run inference on the 'bus.jpg' image
+        yolo detect predict model=yolov10n.pt source=path/to/bus.jpg
+        ```
 
 For training YOLOv10 on a custom dataset:
 
-```python
-from ultralytics import YOLO
+!!! Example
 
-# Load YOLOv10n model from scratch
-model = YOLO("yolov10n.yaml")
+    === "Python"
 
-# Train the model
-model.train(data="coco8.yaml", epochs=100, imgsz=640)
-```
+        ```python
+        from ultralytics import YOLO
+
+        # Load YOLOv10n model from scratch
+        model = YOLO("yolov10n.yaml")
+
+        # Train the model
+        model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Build a YOLOv10n model from scratch and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov10n.yaml data=coco8.yaml epochs=100 imgsz=640
+
+        # Build a YOLOv10n model from scratch and run inference on the 'bus.jpg' image
+        yolo predict model=yolov10n.yaml source=path/to/bus.jpg
+        ```
+
+## Supported Tasks and Modes
+
+The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+
+| Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
+| ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+
+## Exporting YOLOv10
+
+Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
+
+| Export Format                                     | Supported |
+| ------------------------------------------------- | --------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅        |
+| [ONNX](../integrations/onnx.md)                   | ✅        |
+| [OpenVINO](../integrations/openvino.md)           | ✅        |
+| [TensorRT](../integrations/tensorrt.md)           | ✅        |
+| [CoreML](../integrations/coreml.md)               | ❌        |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ❌        |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ❌        |
+| [TF Lite](../integrations/tflite.md)              | ❌        |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ❌        |
+| [TF.js](../integrations/tfjs.md)                  | ❌        |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌        |
+| [NCNN](../integrations/ncnn.md)                   | ❌        |
 
 ## Conclusion
 
@@ -175,3 +223,10 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
         ```
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
+
+[1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10n.pt
+[2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10s.pt
+[3]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10m.pt
+[4]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10b.pt
+[5]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10l.pt
+[6]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10x.pt

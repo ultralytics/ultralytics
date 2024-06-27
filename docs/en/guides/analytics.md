@@ -13,7 +13,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 ### Visual Samples
 
 |                                                     Line Graph                                                     |                                                     Bar Plot                                                     |                                                     Pie Chart                                                     |
-|:------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
 | ![Line Graph](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/eeabd90c-04fd-4e5b-aac9-c7777f892200) | ![Bar Plot](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/c1da2d6a-99ff-43a8-b5dc-ca93127917f8) | ![Pie Chart](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/9d8acce6-d9e4-4685-949d-cd4851483187) |
 
 ### Why Graphs are Important
@@ -72,7 +72,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
         out.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Multiple Lines"
 
         ```python
@@ -183,7 +183,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
         out.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Bar Plot"
 
         ```python
@@ -233,7 +233,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
         out.release()
         cv2.destroyAllWindows()
         ```
-    
+
     === "Area chart"
 
         ```python
@@ -292,7 +292,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 Here's a table with the `Analytics` arguments:
 
 | Name           | Type              | Default       | Description                                                                      |
-|----------------|-------------------|---------------|----------------------------------------------------------------------------------|
+| -------------- | ----------------- | ------------- | -------------------------------------------------------------------------------- |
 | `type`         | `str`             | `None`        | Type of data or object.                                                          |
 | `im0_shape`    | `tuple`           | `None`        | Shape of the initial image.                                                      |
 | `writer`       | `cv2.VideoWriter` | `None`        | Object for writing video files.                                                  |
@@ -312,7 +312,7 @@ Here's a table with the `Analytics` arguments:
 ### Arguments `model.track`
 
 | Name      | Type    | Default        | Description                                                 |
-|-----------|---------|----------------|-------------------------------------------------------------|
+| --------- | ------- | -------------- | ----------------------------------------------------------- |
 | `source`  | `im0`   | `None`         | source directory for images or videos                       |
 | `persist` | `bool`  | `False`        | persisting tracks between frames                            |
 | `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |

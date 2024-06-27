@@ -1211,9 +1211,9 @@ def classify_transforms(
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
-        scale_size = tuple(math.floor(x / crop_fraction) for x in size)
+        scale_size = tuple(math.floor(x * crop_fraction) for x in size)
     else:
-        scale_size = math.floor(size / crop_fraction)
+        scale_size = math.floor(size * crop_fraction)
         scale_size = (scale_size, scale_size)
 
     # Aspect ratio is preserved, crops center within image, no borders are added, image is lost

@@ -57,7 +57,6 @@ Without further ado, let's dive in!
 
 ## Generating Feature Vectors for Object Detection Dataset
 
-
 1. Start by creating a new `example.py` Python file for the steps below.
 
 2. Proceed to retrieve all label files for your dataset.

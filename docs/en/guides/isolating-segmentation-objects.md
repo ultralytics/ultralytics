@@ -14,7 +14,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-
 1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
 
     ***

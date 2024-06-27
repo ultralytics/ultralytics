@@ -15,7 +15,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "HumanClassify"
 
 
 class Detect(nn.Module):
@@ -278,6 +278,50 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x if self.training else x.softmax(1)
+
+
+class HumanClassify(nn.Module):
+    """YOLOv8 human attribute classification head."""
+
+    def __init__(self, c1, cg=2, ce=6, k=1, s=1, p=None, g=1):
+        """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride,
+        padding, and groups.
+        """
+        super().__init__()
+        c_ = 1280  # efficientnet_b0 size
+        self.conv = Conv(c1, c_, k, s, p, g)
+        self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
+        self.drop = nn.Dropout(p=0.0, inplace=True)
+
+        self.fc_g = nn.Linear(c_, cg)  # gender, to x(b,cg)
+        self.fc_e = nn.Linear(c_, ce)  # ethnicity to x(b,cg)
+        self.reg_max = 16
+        self.fc_h = nn.Linear(c_, self.reg_max)  # height to x(b,reg_max)
+        self.fc_w = nn.Linear(c_, self.reg_max)  # weight to x(b,reg_max)
+        self.fc_a = nn.Linear(c_, self.reg_max)  # age to x(b,reg_max)
+        self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
+
+    def forward(self, x):
+        """Performs a forward pass of the YOLO model on input image data."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        x = self.drop(self.pool(self.conv(x)).flatten(1))
+        height = self.fc_h(x)
+        weight = self.fc_w(x)
+        age = self.fc_a(x)
+        gender = self.fc_g(x)
+        ethnicity = self.fc_e(x)
+        attributes = dict(weight=weight, height=height, age=age, gender=gender, ethnicity=ethnicity)
+        if self.training:
+            return attributes
+
+        return self.decode_attributes(**attributes)
+
+    def decode_attributes(self, weight, height, age, gender, ethnicity):
+        weight = self.dfl(weight) * 12.5  # 0-200kg
+        height = self.dfl(height) * 16  # 0-250cm
+        age = self.dfl(age) * 6.25  # 0-100
+        return torch.cat([weight, height, age, gender.softmax(1), ethnicity.softmax(1)], dim=1)
 
 
 class WorldDetect(Detect):

@@ -31,6 +31,7 @@ from ultralytics.nn.modules import (
     CBFuse,
     CBLinear,
     Classify,
+    HumanClassify,
     Concat,
     Conv,
     Conv2,
@@ -910,6 +911,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
+            HumanClassify,
             Conv,
             ConvTranspose,
             GhostConv,
@@ -1052,6 +1054,8 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
+        if "human" in m:
+            return "human"
         if "detect" in m:
             return "detect"
         if m == "segment":
@@ -1078,6 +1082,8 @@ def guess_model_task(model):
         for m in model.modules():
             if isinstance(m, Segment):
                 return "segment"
+            elif isinstance(m, HumanClassify):
+                return "human"
             elif isinstance(m, Classify):
                 return "classify"
             elif isinstance(m, Pose):
@@ -1092,6 +1098,8 @@ def guess_model_task(model):
         model = Path(model)
         if "-seg" in model.stem or "segment" in model.parts:
             return "segment"
+        elif "-human" in model.stem or "human" in model.parts:
+            return "human"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"
         elif "-pose" in model.stem or "pose" in model.parts:

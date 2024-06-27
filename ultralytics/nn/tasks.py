@@ -66,6 +66,7 @@ from ultralytics.utils.loss import (
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
+    v8HumanLoss,
 )
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
@@ -483,7 +484,7 @@ class HumanModel(ClassificationModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the HumanModel."""
-        pass
+        return v8HumanLoss(self)
 
 
 class RTDETRDetectionModel(DetectionModel):

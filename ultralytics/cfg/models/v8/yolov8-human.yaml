@@ -2,7 +2,7 @@
 # YOLOv8-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
-nc: 1000 # number of classes
+nc: 6 # number of ethnicity
 scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024]

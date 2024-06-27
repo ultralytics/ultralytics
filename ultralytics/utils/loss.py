@@ -62,7 +62,9 @@ class FocalLoss(nn.Module):
 
 
 class DFLoss(nn.Module):
+    """Criterion class for computing DFL losses during training."""
     def __init__(self, reg_max=16) -> None:
+        """Initialize the DFL module."""
         super().__init__()
         self.reg_max = reg_max
 

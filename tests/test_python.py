@@ -236,13 +236,14 @@ def test_results(model):
     results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
+        print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
         r.tojson(normalize=True)
         r.plot(pil=True)
         r.plot(conf=True, boxes=True)
-        print(r, len(r), r.path)
+        print(r, len(r), r.path)  # print after methods
 
 
 def test_labels_and_crops():

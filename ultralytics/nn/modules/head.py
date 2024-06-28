@@ -39,9 +39,19 @@ class Detect(nn.Module):
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3, norm_type=norm_type), Conv(c2, c2, 3, norm_type=norm_type), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
+            nn.Sequential(
+                Conv(x, c2, 3, norm_type=norm_type),
+                Conv(c2, c2, 3, norm_type=norm_type),
+                nn.Conv2d(c2, 4 * self.reg_max, 1),
+            )
+            for x in ch
         )
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, self.nc, 1)
+            )
+            for x in ch
+        )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if self.end2end:
@@ -174,7 +184,12 @@ class Segment(Detect):
         self.proto = Proto(ch[0], self.npr, self.nm)  # protos
 
         c4 = max(ch[0] // 4, self.nm)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nm, 1)
+            )
+            for x in ch
+        )
 
     def forward(self, x):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -197,7 +212,12 @@ class OBB(Detect):
         self.ne = ne  # number of extra parameters
 
         c4 = max(ch[0] // 4, self.ne)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.ne, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.ne, 1)
+            )
+            for x in ch
+        )
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
@@ -228,7 +248,12 @@ class Pose(Detect):
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
 
         c4 = max(ch[0] // 4, self.nk)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nk, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nk, 1)
+            )
+            for x in ch
+        )
 
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
@@ -285,7 +310,12 @@ class WorldDetect(Detect):
         """Initialize YOLOv8 detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, embed, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, embed, 1)
+            )
+            for x in ch
+        )
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
     def forward(self, x, text):
@@ -393,9 +423,13 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
 
         if norm_type == "group":
-            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd/2), hd)) for x in ch)
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd / 2), hd)) for x in ch
+            )
         else:
-            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
+            )
             # NOTE: simplified version but it's not consistent with .pt weights.
             # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
@@ -425,7 +459,6 @@ class RTDETRDecoder(nn.Module):
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         self._reset_parameters()
-
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""

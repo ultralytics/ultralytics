@@ -181,6 +181,7 @@ def time_sync():
         torch.cuda.synchronize()
     return time.time()
 
+
 def fuse_conv_and_bn(conv, bn):
     """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
     # Check if the normalization layer is GroupNorm, if so return the original conv layer

@@ -212,7 +212,9 @@ class C2(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
         self.cv2 = Conv(2 * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
         # self.attention = ChannelAttention(2 * self.c)  # or SpatialAttention()
-        self.m = nn.Sequential(*(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n))
+        )
 
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 2 convolutions."""
@@ -231,7 +233,9 @@ class C2f(nn.Module):
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
         self.cv2 = Conv((2 + n) * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n))
+        self.m = nn.ModuleList(
+            Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n)
+        )
 
     def forward(self, x):
         """Forward pass through C2f layer."""
@@ -456,7 +460,9 @@ class C2fAttn(nn.Module):
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
         self.cv2 = Conv((3 + n) * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n))
+        self.m = nn.ModuleList(
+            Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n)
+        )
         self.attn = MaxSigmoidAttnBlock(self.c, self.c, gc=gc, ec=ec, nh=nh)
 
     def forward(self, x, guide):
@@ -912,7 +918,10 @@ class PSA(nn.Module):
         self.cv2 = Conv(2 * self.c, c1, 1, norm_type=norm_type)
 
         self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64, norm_type=norm_type)
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1, norm_type=norm_type), Conv(self.c * 2, self.c, 1, act=False, norm_type=norm_type))
+        self.ffn = nn.Sequential(
+            Conv(self.c, self.c * 2, 1, norm_type=norm_type),
+            Conv(self.c * 2, self.c, 1, act=False, norm_type=norm_type),
+        )
 
     def forward(self, x):
         """

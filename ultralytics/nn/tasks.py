@@ -968,7 +968,7 @@ def parse_model(d, ch, verbose=True, norm_type="none"):  # model_dict, input_cha
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
         elif m is nn.GroupNorm:
-            args = [int(ch[f]/2), ch[f]]
+            args = [int(ch[f] / 2), ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
@@ -987,7 +987,11 @@ def parse_model(d, ch, verbose=True, norm_type="none"):  # model_dict, input_cha
             c2 = ch[f]
 
         try:
-            m_ = nn.Sequential(*(m(*args, norm_type=norm_type) for _ in range(n))) if n > 1 else m(*args, norm_type=norm_type)
+            m_ = (
+                nn.Sequential(*(m(*args, norm_type=norm_type) for _ in range(n)))
+                if n > 1
+                else m(*args, norm_type=norm_type)
+            )
         except TypeError:
             m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)
         t = str(m)[8:-2].replace("__main__.", "")  # module type

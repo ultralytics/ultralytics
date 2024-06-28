@@ -166,7 +166,7 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1, c2, k=5):
+    def __init__(self, c1, c2, k=5, norm_type=None):
         """
         Initializes the SPPF layer with given input/output channels and kernel size.
 
@@ -174,8 +174,8 @@ class SPPF(nn.Module):
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 4, c2, 1, 1)
+        self.cv1 = Conv(c1, c_, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv(c_ * 4, c2, 1, 1, norm_type=norm_type)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
 
     def forward(self, x):
@@ -188,11 +188,11 @@ class SPPF(nn.Module):
 class C1(nn.Module):
     """CSP Bottleneck with 1 convolution."""
 
-    def __init__(self, c1, c2, n=1):
+    def __init__(self, c1, c2, n=1, norm_type=None):
         """Initializes the CSP Bottleneck with configurations for 1 convolution with arguments ch_in, ch_out, number."""
         super().__init__()
-        self.cv1 = Conv(c1, c2, 1, 1)
-        self.m = nn.Sequential(*(Conv(c2, c2, 3) for _ in range(n)))
+        self.cv1 = Conv(c1, c2, 1, 1, norm_type=norm_type)
+        self.m = nn.Sequential(*(Conv(c2, c2, 3, norm_type=norm_type) for _ in range(n)))
 
     def forward(self, x):
         """Applies cross-convolutions to input in the C3 module."""
@@ -203,16 +203,16 @@ class C1(nn.Module):
 class C2(nn.Module):
     """CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, norm_type=None):
         """Initializes the CSP Bottleneck with 2 convolutions module with arguments ch_in, ch_out, number, shortcut,
         groups, expansion.
         """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv(2 * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
         # self.attention = ChannelAttention(2 * self.c)  # or SpatialAttention()
-        self.m = nn.Sequential(*(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n)))
+        self.m = nn.Sequential(*(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n)))
 
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 2 convolutions."""
@@ -223,15 +223,15 @@ class C2(nn.Module):
 class C2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, norm_type=None):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n))
 
     def forward(self, x):
         """Forward pass through C2f layer."""
@@ -334,14 +334,14 @@ class GhostBottleneck(nn.Module):
 class Bottleneck(nn.Module):
     """Standard bottleneck."""
 
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5, norm_type=None):
         """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
         expansion.
         """
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, k[0], 1)
-        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.cv1 = Conv(c1, c_, k[0], 1, norm_type=norm_type)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g, norm_type=norm_type)
         self.add = shortcut and c1 == c2
 
     def forward(self, x):
@@ -413,15 +413,15 @@ class ResNetLayer(nn.Module):
 class MaxSigmoidAttnBlock(nn.Module):
     """Max Sigmoid attention block."""
 
-    def __init__(self, c1, c2, nh=1, ec=128, gc=512, scale=False):
+    def __init__(self, c1, c2, nh=1, ec=128, gc=512, scale=False, norm_type=None):
         """Initializes MaxSigmoidAttnBlock with specified arguments."""
         super().__init__()
         self.nh = nh
         self.hc = c2 // nh
-        self.ec = Conv(c1, ec, k=1, act=False) if c1 != ec else None
+        self.ec = Conv(c1, ec, k=1, act=False, norm_type=norm_type) if c1 != ec else None
         self.gl = nn.Linear(gc, ec)
         self.bias = nn.Parameter(torch.zeros(nh))
-        self.proj_conv = Conv(c1, c2, k=3, s=1, act=False)
+        self.proj_conv = Conv(c1, c2, k=3, s=1, act=False, norm_type=norm_type)
         self.scale = nn.Parameter(torch.ones(1, nh, 1, 1)) if scale else 1.0
 
     def forward(self, x, guide):
@@ -448,15 +448,15 @@ class MaxSigmoidAttnBlock(nn.Module):
 class C2fAttn(nn.Module):
     """C2f module with an additional attn module."""
 
-    def __init__(self, c1, c2, n=1, ec=128, nh=1, gc=512, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, ec=128, nh=1, gc=512, shortcut=False, g=1, e=0.5, norm_type=None):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv((3 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv((3 + n) * self.c, c2, 1, norm_type=norm_type)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0, norm_type=norm_type) for _ in range(n))
         self.attn = MaxSigmoidAttnBlock(self.c, self.c, gc=gc, ec=ec, nh=nh)
 
     def forward(self, x, guide):
@@ -711,10 +711,10 @@ class CBFuse(nn.Module):
 class RepVGGDW(torch.nn.Module):
     """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
 
-    def __init__(self, ed) -> None:
+    def __init__(self, ed, norm_type=None) -> None:
         super().__init__()
-        self.conv = Conv(ed, ed, 7, 1, 3, g=ed, act=False)
-        self.conv1 = Conv(ed, ed, 3, 1, 1, g=ed, act=False)
+        self.conv = Conv(ed, ed, 7, 1, 3, g=ed, act=False, norm_type=norm_type)
+        self.conv1 = Conv(ed, ed, 3, 1, 1, g=ed, act=False, norm_type=norm_type)
         self.dim = ed
         self.act = nn.SiLU()
 
@@ -749,6 +749,8 @@ class RepVGGDW(torch.nn.Module):
 
         This method fuses the convolutional layers and updates the weights and biases accordingly.
         """
+        if isinstance(self.conv.bn, nn.GroupNorm) or isinstance(self.conv1.bn, nn.GroupNorm):
+            return
         conv = fuse_conv_and_bn(self.conv.conv, self.conv.bn)
         conv1 = fuse_conv_and_bn(self.conv1.conv, self.conv1.bn)
 
@@ -781,16 +783,16 @@ class CIB(nn.Module):
         lk (bool, optional): Whether to use RepVGGDW for the third convolutional layer. Defaults to False.
     """
 
-    def __init__(self, c1, c2, shortcut=True, e=0.5, lk=False):
+    def __init__(self, c1, c2, shortcut=True, e=0.5, lk=False, norm_type=None):
         """Initializes the custom model with optional shortcut, scaling factor, and RepVGGDW layer."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = nn.Sequential(
-            Conv(c1, c1, 3, g=c1),
-            Conv(c1, 2 * c_, 1),
-            RepVGGDW(2 * c_) if lk else Conv(2 * c_, 2 * c_, 3, g=2 * c_),
-            Conv(2 * c_, c2, 1),
-            Conv(c2, c2, 3, g=c2),
+            Conv(c1, c1, 3, g=c1, norm_type=norm_type),
+            Conv(c1, 2 * c_, 1, norm_type=norm_type),
+            RepVGGDW(2 * c_, norm_type=norm_type) if lk else Conv(2 * c_, 2 * c_, 3, g=2 * c_, norm_type=norm_type),
+            Conv(2 * c_, c2, 1, norm_type=norm_type),
+            Conv(c2, c2, 3, g=c2, norm_type=norm_type),
         )
 
         self.add = shortcut and c1 == c2
@@ -822,10 +824,10 @@ class C2fCIB(C2f):
         e (float, optional): Expansion ratio for CIB modules. Defaults to 0.5.
     """
 
-    def __init__(self, c1, c2, n=1, shortcut=False, lk=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=False, lk=False, g=1, e=0.5, norm_type=None):
         """Initializes the module with specified parameters for channel, shortcut, local key, groups, and expansion."""
-        super().__init__(c1, c2, n, shortcut, g, e)
-        self.m = nn.ModuleList(CIB(self.c, self.c, shortcut, e=1.0, lk=lk) for _ in range(n))
+        super().__init__(c1, c2, n, shortcut, g, e, norm_type)
+        self.m = nn.ModuleList(CIB(self.c, self.c, shortcut, e=1.0, lk=lk, norm_type=norm_type) for _ in range(n))
 
 
 class Attention(nn.Module):
@@ -847,7 +849,7 @@ class Attention(nn.Module):
         pe (Conv): Convolutional layer for positional encoding.
     """
 
-    def __init__(self, dim, num_heads=8, attn_ratio=0.5):
+    def __init__(self, dim, num_heads=8, attn_ratio=0.5, norm_type=None):
         """Initializes multi-head attention module with query, key, and value convolutions and positional encoding."""
         super().__init__()
         self.num_heads = num_heads
@@ -856,9 +858,9 @@ class Attention(nn.Module):
         self.scale = self.key_dim**-0.5
         nh_kd = nh_kd = self.key_dim * num_heads
         h = dim + nh_kd * 2
-        self.qkv = Conv(dim, h, 1, act=False)
-        self.proj = Conv(dim, dim, 1, act=False)
-        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
+        self.qkv = Conv(dim, h, 1, act=False, norm_type=norm_type)
+        self.proj = Conv(dim, dim, 1, act=False, norm_type=norm_type)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False, norm_type=norm_type)
 
     def forward(self, x):
         """
@@ -901,16 +903,16 @@ class PSA(nn.Module):
         ffn (nn.Sequential): Feed-forward network module.
     """
 
-    def __init__(self, c1, c2, e=0.5):
+    def __init__(self, c1, c2, e=0.5, norm_type=None):
         """Initializes convolution layers, attention module, and feed-forward network with channel reduction."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c1, 1)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv(2 * self.c, c1, 1, norm_type=norm_type)
 
-        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64, norm_type=norm_type)
+        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1, norm_type=norm_type), Conv(self.c * 2, self.c, 1, act=False, norm_type=norm_type))
 
     def forward(self, x):
         """
@@ -929,7 +931,7 @@ class PSA(nn.Module):
 
 
 class SCDown(nn.Module):
-    def __init__(self, c1, c2, k, s):
+    def __init__(self, c1, c2, k, s, norm_type=None):
         """
         Spatial Channel Downsample (SCDown) module.
 
@@ -940,8 +942,8 @@ class SCDown(nn.Module):
             s (int): Stride for the convolutional layer.
         """
         super().__init__()
-        self.cv1 = Conv(c1, c2, 1, 1)
-        self.cv2 = Conv(c2, c2, k=k, s=s, g=c2, act=False)
+        self.cv1 = Conv(c1, c2, 1, 1, norm_type=norm_type)
+        self.cv2 = Conv(c2, c2, k=k, s=s, g=c2, act=False, norm_type=norm_type)
 
     def forward(self, x):
         """

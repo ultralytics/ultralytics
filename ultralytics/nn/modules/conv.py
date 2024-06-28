@@ -38,11 +38,16 @@ class Conv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
-        """Initialize Conv layer with given arguments including activation."""
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True, norm_type="none"):
+        """Initialize Conv layer with given arguments including activation and normalization type."""
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
-        self.bn = nn.BatchNorm2d(c2)
+        self.norm_type = norm_type
+        if norm_type == "group":
+            num_groups = int(c2 / 2)
+            self.bn = nn.GroupNorm(num_groups, c2)
+        else:
+            self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
@@ -57,9 +62,9 @@ class Conv(nn.Module):
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing."""
 
-    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True):
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True, norm_type="none"):
         """Initialize Conv layer with given arguments including activation."""
-        super().__init__(c1, c2, k, s, p, g=g, d=d, act=act)
+        super().__init__(c1, c2, k, s, p, g=g, d=d, act=act, norm_type=norm_type)
         self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
 
     def forward(self, x):
@@ -87,11 +92,11 @@ class LightConv(nn.Module):
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
 
-    def __init__(self, c1, c2, k=1, act=nn.ReLU()):
+    def __init__(self, c1, c2, k=1, act=nn.ReLU(), norm_type="none"):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__()
-        self.conv1 = Conv(c1, c2, 1, act=False)
-        self.conv2 = DWConv(c2, c2, k, act=act)
+        self.conv1 = Conv(c1, c2, 1, act=False, norm_type=norm_type)
+        self.conv2 = DWConv(c2, c2, k, act=act, norm_type=norm_type)
 
     def forward(self, x):
         """Apply 2 convolutions to input tensor."""
@@ -101,9 +106,9 @@ class LightConv(nn.Module):
 class DWConv(Conv):
     """Depth-wise convolution."""
 
-    def __init__(self, c1, c2, k=1, s=1, d=1, act=True):  # ch_in, ch_out, kernel, stride, dilation, activation
+    def __init__(self, c1, c2, k=1, s=1, d=1, act=True, norm_type="none"):  # ch_in, ch_out, kernel, stride, dilation, activation
         """Initialize Depth-wise convolution with given parameters."""
-        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act)
+        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act, norm_type=norm_type)
 
 
 class DWConvTranspose2d(nn.ConvTranspose2d):
@@ -119,11 +124,15 @@ class ConvTranspose(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True):
+    def __init__(self, c1, c2, k=2, s=2, p=0, bn=True, act=True, norm_type="none"):
         """Initialize ConvTranspose2d layer with batch normalization and activation function."""
         super().__init__()
         self.conv_transpose = nn.ConvTranspose2d(c1, c2, k, s, p, bias=not bn)
-        self.bn = nn.BatchNorm2d(c2) if bn else nn.Identity()
+        self.norm_type = norm_type
+        if norm_type == "group":
+            self.bn = nn.GroupNorm(int(c2 / 2), c2)
+        else:
+            self.bn = nn.BatchNorm2d(c2) if bn else nn.Identity()
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
@@ -138,10 +147,10 @@ class ConvTranspose(nn.Module):
 class Focus(nn.Module):
     """Focus wh information into c-space."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, norm_type="none"):
         """Initializes Focus object with user defined channel, convolution, padding, group and activation values."""
         super().__init__()
-        self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act)
+        self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act, norm_type=norm_type)
         # self.contract = Contract(gain=2)
 
     def forward(self, x):
@@ -157,14 +166,14 @@ class Focus(nn.Module):
 class GhostConv(nn.Module):
     """Ghost Convolution https://github.com/huawei-noah/ghostnet."""
 
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, norm_type="none"):
         """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and
         activation.
         """
         super().__init__()
         c_ = c2 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
-        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
+        self.cv1 = Conv(c1, c_, k, s, None, g, act=act, norm_type=norm_type)
+        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act, norm_type=norm_type)
 
     def forward(self, x):
         """Forward propagation through a Ghost Bottleneck layer with skip connection."""
@@ -182,7 +191,7 @@ class RepConv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, norm_type="none"):
         """Initializes Light Convolution layer with inputs, outputs & optional activation function."""
         super().__init__()
         assert k == 3 and p == 1
@@ -190,10 +199,13 @@ class RepConv(nn.Module):
         self.c1 = c1
         self.c2 = c2
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
-
-        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
-        self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
-        self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
+        if norm_type == "group":
+            num_groups = int(c1 / 2)
+            self.bn = nn.GroupNorm(num_groups, c1) if bn and c2 == c1 and s == 1 else None
+        else:
+            self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False, norm_type=norm_type)
+        self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False, norm_type=norm_type)
 
     def forward_fuse(self, x):
         """Forward process."""

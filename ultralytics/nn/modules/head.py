@@ -29,7 +29,7 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
 
-    def __init__(self, nc=80, ch=()):
+    def __init__(self, nc=80, ch=(), norm_type=None):
         """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
@@ -39,9 +39,9 @@ class Detect(nn.Module):
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
+            nn.Sequential(Conv(x, c2, 3, norm_type=norm_type), Conv(c2, c2, 3, norm_type=norm_type), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
         )
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if self.end2end:
@@ -166,15 +166,15 @@ class Detect(nn.Module):
 class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""
 
-    def __init__(self, nc=80, nm=32, npr=256, ch=()):
+    def __init__(self, nc=80, nm=32, npr=256, ch=(), norm_type=None):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
-        super().__init__(nc, ch)
+        super().__init__(nc, ch, norm_type=norm_type)
         self.nm = nm  # number of masks
         self.npr = npr  # number of protos
         self.proto = Proto(ch[0], self.npr, self.nm)  # protos
 
         c4 = max(ch[0] // 4, self.nm)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
     def forward(self, x):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -191,13 +191,13 @@ class Segment(Detect):
 class OBB(Detect):
     """YOLOv8 OBB detection head for detection with rotation models."""
 
-    def __init__(self, nc=80, ne=1, ch=()):
+    def __init__(self, nc=80, ne=1, ch=(), norm_type=None):
         """Initialize OBB with number of classes `nc` and layer channels `ch`."""
-        super().__init__(nc, ch)
+        super().__init__(nc, ch, norm_type=norm_type)
         self.ne = ne  # number of extra parameters
 
         c4 = max(ch[0] // 4, self.ne)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.ne, 1)) for x in ch)
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
@@ -221,14 +221,14 @@ class OBB(Detect):
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""
 
-    def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
+    def __init__(self, nc=80, kpt_shape=(17, 3), ch=(), norm_type=None):
         """Initialize YOLO network with default parameters and Convolutional Layers."""
-        super().__init__(nc, ch)
+        super().__init__(nc, ch, norm_type=norm_type)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
 
         c4 = max(ch[0] // 4, self.nk)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3, norm_type=norm_type), Conv(c4, c4, 3, norm_type=norm_type), nn.Conv2d(c4, self.nk, 1)) for x in ch)
 
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
@@ -261,13 +261,13 @@ class Pose(Detect):
 class Classify(nn.Module):
     """YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, norm_type=None):
         """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride,
         padding, and groups.
         """
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
-        self.conv = Conv(c1, c_, k, s, p, g)
+        self.conv = Conv(c1, c_, k, s, p, g, norm_type=norm_type)
         self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
@@ -281,11 +281,11 @@ class Classify(nn.Module):
 
 
 class WorldDetect(Detect):
-    def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
+    def __init__(self, nc=80, embed=512, with_bn=False, ch=(), norm_type=None):
         """Initialize YOLOv8 detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3, norm_type=norm_type), Conv(c3, c3, 3, norm_type=norm_type), nn.Conv2d(c3, embed, 1)) for x in ch)
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
     def forward(self, x, text):
@@ -356,6 +356,8 @@ class RTDETRDecoder(nn.Module):
         dropout=0.0,
         act=nn.ReLU(),
         eval_idx=-1,
+        norm_type="batch",  # normalization type
+        num_groups=None,  # number of groups for GroupNorm if used
         # Training args
         nd=100,  # num denoising
         label_noise_ratio=0.5,
@@ -390,10 +392,12 @@ class RTDETRDecoder(nn.Module):
         self.num_queries = nq
         self.num_decoder_layers = ndl
 
-        # Backbone feature projection
-        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
-        # NOTE: simplified version but it's not consistent with .pt weights.
-        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
+        if norm_type == "group":
+            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd/2), hd)) for x in ch)
+        else:
+            self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
+            # NOTE: simplified version but it's not consistent with .pt weights.
+            # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
@@ -421,6 +425,7 @@ class RTDETRDecoder(nn.Module):
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         self._reset_parameters()
+
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
@@ -583,15 +588,15 @@ class v10Detect(Detect):
 
     end2end = True
 
-    def __init__(self, nc=80, ch=()):
+    def __init__(self, nc=80, ch=(), norm_type=None):
         """Initializes the v10Detect object with the specified number of classes and input channels."""
-        super().__init__(nc, ch)
+        super().__init__(nc, ch, norm_type=norm_type)
         c3 = max(ch[0], min(self.nc, 100))  # channels
         # Light cls head
         self.cv3 = nn.ModuleList(
             nn.Sequential(
-                nn.Sequential(Conv(x, x, 3, g=x), Conv(x, c3, 1)),
-                nn.Sequential(Conv(c3, c3, 3, g=c3), Conv(c3, c3, 1)),
+                nn.Sequential(Conv(x, x, 3, g=x, norm_type=norm_type), Conv(x, c3, 1, norm_type=norm_type)),
+                nn.Sequential(Conv(c3, c3, 3, g=c3, norm_type=norm_type), Conv(c3, c3, 1, norm_type=norm_type)),
                 nn.Conv2d(c3, self.nc, 1),
             )
             for x in ch

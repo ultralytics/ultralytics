@@ -6,7 +6,6 @@ Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
 PyTorch                 | -                         | yolov8n.pt
 TorchScript             | `torchscript`             | yolov8n.torchscript
-AWS NeuronX             | `neuronx`                 | yolov8n.neuronx
 ONNX                    | `onnx`                    | yolov8n.onnx
 OpenVINO                | `openvino`                | yolov8n_openvino_model/
 TensorRT                | `engine`                  | yolov8n.engine
@@ -33,7 +32,6 @@ CLI:
 Inference:
     $ yolo predict model=yolov8n.pt                 # PyTorch
                          yolov8n.torchscript        # TorchScript
-                         yolov8.neuronx             # AWS NeuronX
                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                          yolov8n_openvino_model     # OpenVINO
                          yolov8n.engine             # TensorRT
@@ -103,7 +101,6 @@ def export_formats():
     x = [
         ["PyTorch", "-", ".pt", True, True],
         ["TorchScript", "torchscript", ".torchscript", True, True],
-        ["AWS NeuronX", "neuronx", ".neuronx", True, True],
         ["ONNX", "onnx", ".onnx", True, True],
         ["OpenVINO", "openvino", "_openvino_model", True, False],
         ["TensorRT", "engine", ".engine", False, True],
@@ -186,7 +183,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, neuronx, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -326,8 +323,6 @@ class Exporter:
             f[10], _ = self.export_paddle()
         if ncnn:  # NCNN
             f[11], _ = self.export_ncnn()
-        if neuronx:  # NeuronX
-            f[12], _ = self.export_neuronx()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -387,23 +382,7 @@ class Exporter:
         else:
             ts.save(str(f), _extra_files=extra_files)
         return f, None
-    @try_export
-    def export_neuronx(self, prefix=colorstr("AWS NeuronX:")):
-        import torch_neuronx
-        """YOLOv8 NeuronX model export."""
-        LOGGER.info(f"\n{prefix} starting export with torch {torch_neuronx.__version__}...")
-        f = self.file.with_suffix(".neuronx")
 
-        ts = torch_neuronx.trace(self.model, self.im, strict=False)
-        extra_files = {"config.txt": json.dumps(self.metadata)}  # torch._C.ExtraFilesMap()
-        if self.args.optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
-            LOGGER.info(f"{prefix} optimizing for mobile...")
-            from torch.utils.mobile_optimizer import optimize_for_mobile
-
-            optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
-        else:
-            ts.save(str(f), _extra_files=extra_files)
-        return f, None
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """YOLOv8 ONNX export."""

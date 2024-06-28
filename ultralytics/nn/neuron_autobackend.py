@@ -403,7 +403,7 @@ class NeuronAutoBackend(nn.Module):
 
         # Any other format (unsupported)
         else:
-            from ultralytics.engine.exporter import export_formats
+            from ultralytics.engine.neuron_exporter import export_formats
 
             raise TypeError(
                 f"model='{w}' is not a supported model format. "
@@ -654,7 +654,7 @@ class NeuronAutoBackend(nn.Module):
             >>> model = AutoBackend(weights="path/to/model.onnx")
             >>> model_type = model._model_type()  # returns "onnx"
         """
-        from ultralytics.engine.exporter import export_formats
+        from ultralytics.engine.neuron_exporter import export_formats
 
         sf = list(export_formats().Suffix)  # export suffixes
         if not is_url(p) and not isinstance(p, str):

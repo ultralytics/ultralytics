@@ -20,7 +20,7 @@ Evaluating how well a model performs helps us understand how effectively it work
 
 The confidence score represents the model's certainty that a detected object belongs to a particular class. It ranges from 0 to 1, with higher scores indicating greater confidence. The confidence score helps filter predictions; only detections with confidence scores above a specified threshold are considered valid.
 
-*Quick Tip:* When running inferences, if you aren't seeing any predictions and you've checked everything else, try lowering the confidence score. Sometimes, the threshold is too high, causing the model to ignore valid predictions. Lowering the score allows the model to consider more possibilities. This might not meet your project goals, but it's a good way to see what the model can do and decide how to fine-tune it.
+_Quick Tip:_ When running inferences, if you aren't seeing any predictions and you've checked everything else, try lowering the confidence score. Sometimes, the threshold is too high, causing the model to ignore valid predictions. Lowering the score allows the model to consider more possibilities. This might not meet your project goals, but it's a good way to see what the model can do and decide how to fine-tune it.
 
 ### Intersection over Union
 
@@ -32,7 +32,7 @@ Intersection over Union (IoU) is a metric in object detection that measures how 
 
 ### Mean Average Precision
 
-Mean Average Precision (mAP) is a way to measure how well an object detection model performs. It looks at the precision of detecting each object class, averages these scores, and gives an overall number that shows how accurately the model can identify and classify objects. 
+Mean Average Precision (mAP) is a way to measure how well an object detection model performs. It looks at the precision of detecting each object class, averages these scores, and gives an overall number that shows how accurately the model can identify and classify objects.
 
 Let’s focus on two specific mAP metrics:
 

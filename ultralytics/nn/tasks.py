@@ -337,7 +337,7 @@ class DetectionModel(BaseModel):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
-        if self.end2end:
+        if getattr(self, "end2end", False):
             LOGGER.warning(
                 "WARNING ⚠️ End2End model does not support 'augment=True' prediction. "
                 "Reverting to single-scale prediction."

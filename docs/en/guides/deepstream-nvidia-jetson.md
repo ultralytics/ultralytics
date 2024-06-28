@@ -36,21 +36,21 @@ Before you start to follow this guide:
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
-1. Install dependencies
+1.  Install dependencies
 
     ```bash
     pip install cmake
-    pip install onnxsim 
+    pip install onnxsim
     ```
 
-2. Clone the following repository
+2.  Clone the following repository
 
     ```bash
     git clone https://github.com/marcoslucianops/DeepStream-Yolo
     cd DeepStream-Yolo
     ```
 
-3. Download Ultralytics YOLOv8 detection model (.pt) of your choice from [YOLOv8 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
+3.  Download Ultralytics YOLOv8 detection model (.pt) of your choice from [YOLOv8 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
 
     ```bash
     wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
@@ -60,8 +60,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
         You can also use a [custom trained YOLOv8 model](https://docs.ultralytics.com/modes/train/).
 
-
-4. Convert model to ONNX
+4.  Convert model to ONNX
 
     ```bash
     python3 utils/export_yoloV8.py -w yolov8s.pt
@@ -110,7 +109,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
         --batch 4
         ```
 
-5. Set the CUDA version according to the JetPack version installed
+5.  Set the CUDA version according to the JetPack version installed
 
     For JetPack 4.6.4:
 
@@ -124,13 +123,13 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=11.4
     ```
 
-6. Compile the library
+6.  Compile the library
 
     ```bash
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
     ```
 
-7. Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLOv8s with 80 classes)
+7.  Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLOv8s with 80 classes)
 
     ```bash
     [property]
@@ -141,7 +140,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     ...
     ```
 
-8. Edit the `deepstream_app_config` file
+8.  Edit the `deepstream_app_config` file
 
     ```bash
     ...
@@ -150,7 +149,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yoloV8.txt
     ```
 
-9. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+9.  You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
 
     ```bash
     ...
@@ -169,41 +168,37 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-
 <div align=center><img width=1000 src="https://github.com/ultralytics/ultralytics/assets/20147381/61bd7710-d009-4ca6-9536-2575f3eaec4a" alt="YOLOv8 with deepstream"></div>
-
-
 
 !!! Tip
 
     If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
 
-
 ## INT8 Calibration
 
 If you want to use INT8 precision for inference, you need to follow the steps below
 
-1. Set `OPENCV` environment variable
+1.  Set `OPENCV` environment variable
 
     ```bash
     export OPENCV=1
     ```
 
-2. Compile the library
+2.  Compile the library
 
     ```bash
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
     ```
 
-3. For COCO dataset, download the [val2017](http://images.cocodataset.org/zips/val2017.zip), extract, and move to `DeepStream-Yolo` folder
+3.  For COCO dataset, download the [val2017](http://images.cocodataset.org/zips/val2017.zip), extract, and move to `DeepStream-Yolo` folder
 
-4. Make a new directory for calibration images
+4.  Make a new directory for calibration images
 
     ```bash
     mkdir calibration
     ```
 
-5. Run the following to select 1000 random images from COCO dataset to run calibration
+5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
     for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
@@ -215,13 +210,13 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
         NVIDIA recommends at least 500 images to get a good accuracy. On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
 
-6. Create the `calibration.txt` file with all selected images
+6.  Create the `calibration.txt` file with all selected images
 
     ```bash
     realpath calibration/*jpg > calibration.txt
     ```
 
-7. Set environment variables
+7.  Set environment variables
 
     ```bash
     export INT8_CALIB_IMG_PATH=calibration.txt
@@ -230,9 +225,9 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
     !!! Note
 
-        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. 
+        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory.
 
-8. Update the `config_infer_primary_yoloV8.txt` file
+8.  Update the `config_infer_primary_yoloV8.txt` file
 
     From
 
@@ -299,11 +294,11 @@ deepstream-app -c deepstream_app_config.txt
 
 The following table summarizes how YOLOv8s models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
-| Model Name | Precision | Inference Time (ms/im)  | FPS  |
-| ---------- | --------- |  -------------------    | ---  |
-| YOLOv8s    | FP32      |  15.63                  | 64   |
-|            | FP16      |  7.94                   | 126  |
-|            | INT8      |  5.53                   | 181  |
+| Model Name | Precision | Inference Time (ms/im) | FPS |
+| ---------- | --------- | ---------------------- | --- |
+| YOLOv8s    | FP32      | 15.63                  | 64  |
+|            | FP16      | 7.94                   | 126 |
+|            | INT8      | 5.53                   | 181 |
 
 ### Acknowledgements
 

@@ -70,13 +70,13 @@ class AIGym:
 
         if not len(results[0]):
             return self.im0
-        
+
         if len(results[0]) > len(self.count):
             new_human = len(results[0]) - len(self.count)
             self.count += [0] * new_human
             self.angle += [0] * new_human
             self.stage += ["-"] * new_human
-            
+
         self.keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=self.tf)
 

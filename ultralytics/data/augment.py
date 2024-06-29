@@ -1222,7 +1222,7 @@ def classify_transforms(
         tfl = [T.Resize(scale_size[0], interpolation=interpolation)]
     else:
         # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
+        tfl = [T.Resize(scale_size, interpolation=interpolation)]
     tfl.extend(
         [
             T.CenterCrop(size),

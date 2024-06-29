@@ -192,7 +192,7 @@ class BasePredictor:
                 "transforms",
                 classify_transforms(self.imgsz[0], crop_fraction=self.args.crop_fraction),
             )
-            if self.args.task == "classify"
+            if self.args.task == "classify" or "human"
             else None
         )
         self.dataset = load_inference_source(

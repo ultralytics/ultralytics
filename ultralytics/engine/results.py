@@ -132,7 +132,7 @@ class Results(SimpleClass):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "human"
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -324,7 +324,7 @@ class Results(SimpleClass):
                     ]
                 )
                 x = round(self.orig_shape[0] * 0.03)
-                annotator.text([x, x], text, txt_color=[255, 255, 255])
+                annotator.text([x, x], text, txt_color=(255, 255, 255))
 
         # Show results
         if show:

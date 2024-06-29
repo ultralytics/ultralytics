@@ -1,13 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.engine.results import Results
-from ultralytics.models.yolo.detect.predict import DetectionPredictor
+from ultralytics.engine.predictor import BasePredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 from PIL import Image
 import torch
 
 
-class HumanPredictor(DetectionPredictor):
+class HumanPredictor(BasePredictor):
     """
     A class extending the DetectionPredictor class for prediction based on a human model.
 
@@ -36,6 +36,7 @@ class HumanPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions to return Results objects."""
+        preds = preds[0] if isinstance(preds, (tuple, list)) else preds
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 

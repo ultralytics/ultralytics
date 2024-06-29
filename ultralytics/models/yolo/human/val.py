@@ -5,7 +5,9 @@ from ultralytics.engine.results import Human, Results
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import colorstr, LOGGER
 from ultralytics.utils.metrics import HumanMetrics
+from ultralytics.utils.plotting import plot_images
 from pathlib import Path
+import torch
 import numpy as np
 
 
@@ -118,3 +120,29 @@ class HumanValidator(BaseValidator):
         """Prints evaluation metrics for YOLO object detection model."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", *self.metrics.mean_results()))
+
+    def plot_val_samples(self, batch, ni):
+        """Plot validation image samples."""
+        plot_images(
+            images=batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
+            cls=batch["cls"].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            attributes=batch["attributes"],
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
+
+    def plot_predictions(self, batch, preds, ni):
+        """Plots predicted bounding boxes on input images and saves the result."""
+        pred_gender = preds[:, 3:5].argmax(1, keepdim=True)
+        pred_ethnicity = preds[:, 5:].argmax(1, keepdim=True)
+        plot_images(
+            batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
+            cls=torch.argmax(preds, dim=1),
+            attributes=torch.cat([preds[:, :2], pred_gender, preds[:, 2:3], pred_ethnicity], dim=1),
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )  # pred

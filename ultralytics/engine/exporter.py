@@ -686,7 +686,7 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
+                check_requirements("tensorrt", cmds="-U")
             import tensorrt as trt  # noqa
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
 
@@ -822,13 +822,13 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "keras",  # required by onnx2tf package
-                "tf_keras",  # required by onnx2tf package
+                "keras",  # required by 'onnx2tf' package
+                "tf_keras",  # required by 'onnx2tf' package
+                "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>1.17.5,<=1.22.3",
-                "sng4onnx>=1.0.1",
                 "onnxslim>=0.1.31",
-                "onnx_graphsurgeon>=0.3.26",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",

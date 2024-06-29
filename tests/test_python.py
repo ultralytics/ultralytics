@@ -95,7 +95,7 @@ def test_predict_img(model_name):
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
-    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32, augment=True)) == len(batch)  # multiple sources in a batch
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -236,13 +236,14 @@ def test_results(model):
     results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
+        print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
         r.tojson(normalize=True)
         r.plot(pil=True)
         r.plot(conf=True, boxes=True)
-        print(r, len(r), r.path)
+        print(r, len(r), r.path)  # print after methods
 
 
 def test_labels_and_crops():
@@ -585,4 +586,5 @@ def test_yolov10():
     # train/val/predict
     model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
     model.val(data="coco8.yaml", imgsz=32)
+    model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)

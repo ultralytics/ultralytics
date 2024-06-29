@@ -86,7 +86,7 @@ class HumanValidator(BaseValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 11) % (
+        return ("%22s" + "%11s" * 5) % (
             "Class",
             "acc(W)",  # weight
             "acc(H)",  # height

@@ -549,14 +549,15 @@ class HumanDataset(torch.utils.data.Dataset):
 
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-            lb = np.array(lb, dtype=np.float32)
+            lb = np.array(lb, dtype=np.float32).squeeze()
             nl = len(lb)
             if nl:
-                assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
+                assert nl == 5, f"labels require 5 columns, {nl} columns detected"
             else:
-                lb = np.zeros((0, 5), dtype=np.float32)
+                lb = np.zeros(5, dtype=np.float32)
             # (N, 5), weight(kg), height(cm), gender, age, ethnicity
-            labels.append({"im_file": self.im_files[i], "attributes": lb})
+            # NOTE: add cls to pass https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/trainer.py#L413
+            labels.append({"im_file": self.im_files[i], "attributes": lb, "cls": lb[-1]})
         return labels
 
     def __getitem__(self, index):

@@ -726,6 +726,7 @@ class v8HumanLoss:
     """Criterion class for computing training losses."""
 
     def __init__(self, model) -> None:
+        self.device = next(model.parameters()).device  # get model device
         self.reg_max = model.model[-1].reg_max
         self.dfl_loss = DFLoss(self.reg_max)
         self.hyp = model.args
@@ -733,7 +734,6 @@ class v8HumanLoss:
     def __call__(self, preds, batch):
         """Compute the human classification loss between predictions and true labels."""
         loss = torch.zeros(5, device=self.device)
-        loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
 
         gt_attributes = batch["attributes"]
         loss[0] = self.dfl_loss(preds["weight"], (gt_attributes[:, 0] / 12.5)) * self.hyp.dfl

@@ -186,7 +186,7 @@ class TaskAlignedAssigner(nn.Module):
         """
 
         # Assigned target labels, (b, 1)
-        batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]
+        batch_ind = torch.arange(end=self.bs, dtype=torch.int32, device=gt_labels.device)[..., None]
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
         target_labels = gt_labels.long().flatten()[target_gt_idx]  # (b, h*w)
 
@@ -199,7 +199,7 @@ class TaskAlignedAssigner(nn.Module):
         # 10x faster than F.one_hot()
         target_scores = torch.zeros(
             (target_labels.shape[0], target_labels.shape[1], self.num_classes),
-            dtype=torch.int64,
+            dtype=torch.int32,
             device=target_labels.device,
         )  # (b, h*w, 80)
         target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
@@ -226,7 +226,7 @@ class TaskAlignedAssigner(nn.Module):
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         # return (bbox_deltas.min(3)[0] > eps).to(gt_bboxes.dtype)
-        return bbox_deltas.amin(3).gt_(eps)
+        return bbox_deltas.amin(3).gt_(eps).bool()
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
@@ -243,7 +243,7 @@ class TaskAlignedAssigner(nn.Module):
             mask_pos (Tensor): shape(b, n_max_boxes, h*w)
         """
         # (b, n_max_boxes, h*w) -> (b, h*w)
-        fg_mask = mask_pos.sum(-2)
+        fg_mask = mask_pos.sum(-2, dtype=torch.int32)
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
             max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
@@ -252,7 +252,7 @@ class TaskAlignedAssigner(nn.Module):
             is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
-            fg_mask = mask_pos.sum(-2)
+            fg_mask = mask_pos.sum(-2, dtype=torch.int32)
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos

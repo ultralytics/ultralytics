@@ -83,6 +83,10 @@ def on_train_start(trainer):
     """Log TensorBoard graph."""
     if WRITER:
         _log_tensorboard_graph(trainer)
+        if trainer.device.type == "cuda":
+            import torch
+
+            torch.cuda.empty_cache()
 
 
 def on_train_epoch_end(trainer):

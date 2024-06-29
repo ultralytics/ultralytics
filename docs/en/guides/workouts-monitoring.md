@@ -55,16 +55,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             kpts_to_check=[6, 8, 10],
         )
 
-        frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            frame_count += 1
             results = model.track(im0, verbose=False)  # Tracking recommended
             # results = model.predict(im0)  # Prediction also supported
-            im0 = gym_object.start_counting(im0, results, frame_count)
+            im0 = gym_object.start_counting(im0, results)
 
         cv2.destroyAllWindows()
         ```
@@ -90,16 +88,14 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             kpts_to_check=[6, 8, 10],
         )
 
-        frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            frame_count += 1
             results = model.track(im0, verbose=False)  # Tracking recommended
             # results = model.predict(im0)  # Prediction also supported
-            im0 = gym_object.start_counting(im0, results, frame_count)
+            im0 = gym_object.start_counting(im0, results)
             video_writer.write(im0)
 
         cv2.destroyAllWindows()

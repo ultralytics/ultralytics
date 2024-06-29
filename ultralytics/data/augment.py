@@ -1364,11 +1364,14 @@ class ClassifyLetterBox:
         Resizes the image and pads it with a letterbox method.
 
         Args:
-            im (numpy.ndarray): The input image as a numpy array of shape HWC.
+            im (numpy.ndarray | PIL.Image): The input image as a numpy array of shape HWC.
 
         Returns:
-            (numpy.ndarray): The letterboxed and resized image as a numpy array.
+            (numpy.ndarray | PIL.Image): The letterboxed and resized image as a numpy array.
         """
+        is_pil = isinstance(im, Image.Image)
+        if is_pil:
+            im = np.array(im)
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
         h, w = round(imh * r), round(imw * r)  # resized image dimensions
@@ -1380,6 +1383,8 @@ class ClassifyLetterBox:
         # Create padded image
         im_out = np.full((hs, ws, 3), 114, dtype=im.dtype)
         im_out[top : top + h, left : left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        if is_pil:
+            im_out = Image.fromarray(im_out)
         return im_out
 
 

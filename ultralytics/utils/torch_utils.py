@@ -457,14 +457,17 @@ def init_seeds(seed=0, deterministic=False):
 
 
 class ModelEMA:
-    """Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
-    Keeps a moving average of everything in the model state_dict (parameters and buffers)
+    """
+    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
+    average of everything in the model state_dict (parameters and buffers)
+
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+
     To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """Create EMA."""
+        """Initialize EMA for 'model' with given arguments."""
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
@@ -507,13 +510,13 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/weights').rglob('*.pt'):
+        for f in Path('/Users/glennjocher/PycharmProjects/assistant/assistant/github/release_assets/tmp_assets').rglob('*.pt'):
             strip_optimizer(f)
         ```
     """
     x = torch.load(f, map_location=torch.device("cpu"))
     if not isinstance(x, dict) or "model" not in x:
-        LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
+        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model.")
         return
 
     updates = {

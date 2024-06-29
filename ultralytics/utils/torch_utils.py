@@ -517,6 +517,8 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
 
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
+    if hasattr(x["model"], "criterion"):
+        x["model"].criterion = None  # strip loss criterion
     args = {**DEFAULT_CFG_DICT, **x["train_args"]} if "train_args" in x else None  # combine args
     if x.get("ema"):
         x["model"] = x["ema"]  # replace model with ema

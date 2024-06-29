@@ -565,3 +565,6 @@ class HumanDataset(torch.utils.data.Dataset):
         label["img"] = self.torch_transforms(im)
         label["attributes"] = torch.from_numpy(label["attributes"])
         return label
+
+    def __len__(self):
+        return len(self.im_files)

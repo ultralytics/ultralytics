@@ -29,6 +29,12 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTr
         overrides["task"] = "human"
         super().__init__(cfg, overrides, _callbacks)
 
+    def preprocess_batch(self, batch):
+        """Preprocesses a batch of images and classes."""
+        batch["img"] = batch["img"].to(self.device)
+        batch["attributes"] = batch["attributes"].to(self.device)
+        return batch
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return HumanModel initialized with specified config and weights."""
         model = HumanModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == -1)

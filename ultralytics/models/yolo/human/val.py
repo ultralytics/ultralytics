@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.data.dataset import HumanDataset
+from ultralytics.data import HumanDataset, build_dataloader
 from ultralytics.engine.results import Human, Results
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import colorstr
+from ultralytics.utils import colorstr, LOGGER
 from ultralytics.utils.metrics import HumanMetrics
 from pathlib import Path
 import numpy as np
@@ -32,7 +32,7 @@ class HumanValidator(BaseValidator):
         return HumanDataset(
             img_path=img_path,
             augment=mode == "train",  # augmentation
-            hyp=self.args,
+            args=self.args,
             prefix=colorstr(f"{mode}: "),
         )
 
@@ -45,7 +45,7 @@ class HumanValidator(BaseValidator):
 
     def postprocess(self, preds):
         """Apply postprocess to prediction outputs."""
-        return preds[0] if isinstance(preds, tuple) else preds
+        return preds[0] if isinstance(preds, (tuple, list)) else preds
 
     def update_metrics(self, preds, batch):
         """
@@ -98,3 +98,23 @@ class HumanValidator(BaseValidator):
             "acc(A)",  # age
             "acc(E)",  # ethnicity
         )
+
+    def get_dataloader(self, dataset_path, batch_size):
+        """Builds and returns a data loader for classification tasks with given parameters."""
+        dataset = self.build_dataset(dataset_path)
+        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
+
+    def finalize_metrics(self, *args, **kwargs):
+        """Set final values for metrics speed and confusion matrix."""
+        self.metrics.speed = self.speed
+        self.metrics.confusion_matrix = self.confusion_matrix
+
+    def get_stats(self):
+        """Returns a dictionary of metrics obtained by processing targets and predictions."""
+        self.metrics.process()
+        return self.metrics.results_dict
+
+    def print_results(self):
+        """Prints evaluation metrics for YOLO object detection model."""
+        pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
+        LOGGER.info(pf % ("all", *self.metrics.mean_results()))

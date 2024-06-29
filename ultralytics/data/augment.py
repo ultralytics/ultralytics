@@ -17,6 +17,8 @@ from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
+import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -1186,6 +1188,27 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     )  # transforms
 
 
+class RandAugment(T.RandAugment):
+    def _augmentation_space(self, num_bins: int, image_size: Tuple[int, int]):
+        return {
+            # op_name: (magnitudes, signed)
+            "Identity": (torch.tensor(0.0), False),
+            "ShearX": (torch.linspace(0.0, 0.3, num_bins), True),
+            "ShearY": (torch.linspace(0.0, 0.3, num_bins), True),
+            "TranslateX": (torch.linspace(0.0, 150.0 / 331.0 * image_size[1], num_bins), True),
+            "TranslateY": (torch.linspace(0.0, 150.0 / 331.0 * image_size[0], num_bins), True),
+            "Rotate": (torch.linspace(0.0, 30.0, num_bins), True),
+            "Brightness": (torch.linspace(0.0, 0.9, num_bins), True),
+            "Color": (torch.linspace(0.0, 0.9, num_bins), True),
+            "Contrast": (torch.linspace(0.0, 0.9, num_bins), True),
+            "Sharpness": (torch.linspace(0.0, 0.9, num_bins), True),
+            "Posterize": (8 - (torch.arange(num_bins) / ((num_bins - 1) / 4)).round().int(), False),
+            # "Solarize": (torch.linspace(255.0, 0.0, num_bins), False),
+            "AutoContrast": (torch.tensor(0.0), False),
+            "Equalize": (torch.tensor(0.0), False),
+        }
+
+
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(
     size=224,
@@ -1207,8 +1230,6 @@ def classify_transforms(
     Returns:
         (T.Compose): torchvision transforms
     """
-    import torchvision.transforms as T  # scope for faster 'import ultralytics'
-
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)
@@ -1298,7 +1319,7 @@ def classify_augmentations(
 
         if auto_augment == "randaugment":
             if TORCHVISION_0_11:
-                secondary_tfl.append(T.RandAugment(interpolation=interpolation))
+                secondary_tfl.append(RandAugment(interpolation=interpolation))
             else:
                 LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
 

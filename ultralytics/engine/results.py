@@ -95,7 +95,17 @@ class Results(SimpleClass):
     """
 
     def __init__(
-        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+        self,
+        orig_img,
+        path,
+        names,
+        boxes=None,
+        masks=None,
+        probs=None,
+        keypoints=None,
+        obb=None,
+        human=None,
+        speed=None,
     ) -> None:
         """
         Initialize the Results class.
@@ -117,6 +127,7 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.human = Human(human) if human is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
@@ -134,7 +145,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None, obb=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None, human=None):
         """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
@@ -144,6 +155,8 @@ class Results(SimpleClass):
             self.probs = probs
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
+        if human is not None:
+            self.human = Human(human)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -255,7 +268,9 @@ class Results(SimpleClass):
             line_width,
             font_size,
             font,
-            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            pil
+            or (pred_probs is not None and show_probs)
+            or self.human is not None,  # Classify and Human tasks default to pil=True
             example=names,
         )
 
@@ -292,6 +307,24 @@ class Results(SimpleClass):
         if self.keypoints is not None:
             for k in reversed(self.keypoints.data):
                 annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
+
+        # Plot Human results
+        if self.human is not None:
+            for h in reversed(self.human):
+                weight, height, age = float(h.weight), float(h.height), int(h.age)
+                cls_gender, conf_gender = int(h.cls_gender), float(h.conf_gender)
+                cls_ethnicity, conf_ethnicity = int(h.cls_ethnicity), float(h.conf_ethnicity)
+                text = "\n".join(
+                    [
+                        f"{weight:.2f}kg",
+                        f"{height:.2f}cm",
+                        f"{age} years old",
+                        f"{h.gender[cls_gender]} {conf_gender:.2f}",
+                        f"{h.ethnicity[cls_ethnicity]} {conf_ethnicity:.2f}",
+                    ]
+                )
+                x = round(self.orig_shape[0] * 0.03)
+                annotator.text([x, x], text, txt_color=[255, 255, 255])
 
         # Show results
         if show:
@@ -342,10 +375,21 @@ class Results(SimpleClass):
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
+        human = self.human
         texts = []
         if probs is not None:
             # Classify
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+        elif human is not None:
+            h = human[j]
+            line = (
+                int(h.weight[0]),
+                int(h.height[0]),
+                int(h.cls_gender[0]),
+                int(h.age[0]),
+                int(h.cls_ethnicity[0]),
+            )
+            texts.append(("%g " * len(line)).rstrip() % line)
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
@@ -749,3 +793,67 @@ class OBB(BaseTensor):
         y2 = self.xyxyxyxy[..., 1].max(1).values
         xyxy = [x1, y1, x2, y2]
         return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)
+
+
+class Human(BaseTensor):
+    """
+    A class for storing and manipulating Human attributes (YOLO-Human).
+
+    Args:
+        attributes (torch.Tensor | numpy.ndarray): A tensor or numpy array with shape (N, 11) for human attributes
+            containing weight(0), height(1), age(2), gender(3-5), ethnicity(5-11).
+
+    Attributes:
+        weight (torch.Tensor | numpy.ndarray): The values of human weight.
+        height (torch.Tensor | numpy.ndarray): The values of human height.
+        age (torch.Tensor | numpy.ndarray): The values of human age.
+        cls_gender (torch.Tensor | numpy.ndarray): The index of predicted gender, female or male.
+        cls_ethnicity (torch.Tensor | numpy.ndarray): The index of predicted human ethnicity, should be one of
+            [asian, white, middle eastern, indian, latino, black] for now.
+        conf_gender (torch.Tensor | numpy.ndarray): The confidence score of the predicted gender.
+        conf_ethnicity (torch.Tensor | numpy.ndarray): The confidence score of the predicted human ethnicity.
+        data (torch.Tensor): The raw attributes tensor.
+
+    Methods:
+        cpu(): Move the object to CPU memory.
+        numpy(): Convert the object to a numpy array.
+        cuda(): Move the object to CUDA memory.
+        to(*args, **kwargs): Move the object to the specified device.
+    """
+
+    def __init__(self, attributes, orig_shape=None) -> None:
+        if attributes.ndim == 1:
+            attributes = attributes[None, :]
+        n = attributes.shape[-1]
+        assert n == 11, f"Expected 11 values but got {n}"  # weight(0), height(1), age(2), gender(3-5), ethnicity(5-11)
+        super().__init__(attributes, orig_shape=orig_shape)
+        self.gender = ["female", "male"]
+        self.ethnicity = ["asian", "white", "middle eastern", "indian", "latino", "black"]
+
+    @property
+    def weight(self):
+        return self.data[:, 0]
+
+    @property
+    def height(self):
+        return self.data[:, 1]
+
+    @property
+    def age(self):
+        return self.data[:, 2]
+
+    @property
+    def cls_gender(self):
+        return self.data[:, 3:5].argmax(1)
+
+    @property
+    def cls_ethnicity(self):
+        return self.data[:, 5:].argmax(1)
+
+    @property
+    def conf_gender(self):
+        return self.data[:, 3:5].max(1).values
+
+    @property
+    def conf_ethnicity(self):
+        return self.data[:, 5:].max(1).values

@@ -6,10 +6,11 @@ from ultralytics.data.dataset import HumanDataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
-from ultralytics.utils.plotting import plot_results
+from ultralytics.utils.plotting import plot_attributes, plot_results
+import numpy as np
 
 
-class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTrainer
+class HumanTrainer(yolo.classify.ClassificationTrainer):
     """
     A class extending the DetectionTrainer class for training based on a human model.
 
@@ -70,8 +71,8 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTr
         )
 
     def plot_training_labels(self):
-        # TODO
-        pass
+        attributes = np.concatenate([lb["attributes"] for lb in self.train_loader.dataset.labels], 0)
+        plot_attributes(attributes, save_dir=self.save_dir, on_plot=self.on_plot)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

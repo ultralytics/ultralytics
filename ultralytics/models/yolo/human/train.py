@@ -71,7 +71,7 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):
         )
 
     def plot_training_labels(self):
-        attributes = np.concatenate([lb["attributes"] for lb in self.train_loader.dataset.labels], 0)
+        attributes = np.stack([lb["attributes"] for lb in self.train_loader.dataset.labels], 0)
         plot_attributes(attributes, save_dir=self.save_dir, on_plot=self.on_plot)
 
     def label_loss_items(self, loss_items=None, prefix="train"):

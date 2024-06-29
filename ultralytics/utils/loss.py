@@ -733,6 +733,7 @@ class v8HumanLoss:
 
     def __call__(self, preds, batch):
         """Compute the human classification loss between predictions and true labels."""
+        preds = preds[1] if isinstance(preds, tuple) else preds
         loss = torch.zeros(5, device=self.device)
 
         gt_attributes = batch["attributes"]
@@ -741,8 +742,7 @@ class v8HumanLoss:
         loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long())
         loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25)
         loss[4] = F.cross_entropy(preds["ethnicity"], gt_attributes[:, 4].long())
-        loss_items = loss.detach()
-        return loss, loss_items
+        return loss.sum(), loss.detach()
 
 
 class E2EDetectLoss:

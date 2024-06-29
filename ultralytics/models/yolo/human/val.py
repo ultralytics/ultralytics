@@ -43,6 +43,10 @@ class HumanValidator(BaseValidator):
         batch["attributes"] = batch["attributes"].to(self.device).float()
         return batch
 
+    def postprocess(self, preds):
+        """Apply postprocess to prediction outputs."""
+        return preds[0] if isinstance(preds, tuple) else preds
+
     def update_metrics(self, preds, batch):
         """
         Process Human Attributes and compute the accuracy.

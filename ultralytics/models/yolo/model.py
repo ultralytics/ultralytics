@@ -58,6 +58,9 @@ class YOLO(Model):
             },
             "human": {
                 "model": HumanModel,
+                "trainer": yolo.human.HumanTrainer,
+                "validator": yolo.human.HumanValidator,
+                "predictor": yolo.human.HumanPredictor,
             },
         }
 

@@ -297,16 +297,20 @@ class HumanClassify(nn.Module):
         c4, c5 = max(self.reg_max, c1 // 4), max(32, c1 // 4)
 
         self.fc_h = nn.Sequential(
-            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1), nn.Flatten()
         )  # height to x(b,reg_max)
         self.fc_w = nn.Sequential(
-            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1), nn.Flatten()
         )  # weight to x(b,reg_max)
         self.fc_a = nn.Sequential(
-            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1)
+            Conv(c_, c4, 1), Conv(c4, c4, 1), nn.Conv2d(c4, self.reg_max, 1), nn.Flatten()
         )  # age to x(b,reg_max)
-        self.fc_g = nn.Sequential(Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, cg, 1))  # gender, to x(b,cg)
-        self.fc_e = nn.Sequential(Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, ce, 1))  # ethnicity to x(b,cg)
+        self.fc_g = nn.Sequential(
+            Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, cg, 1), nn.Flatten()
+        )  # gender, to x(b,cg)
+        self.fc_e = nn.Sequential(
+            Conv(c_, c5, 1), Conv(c5, c5, 1), nn.Conv2d(c5, ce, 1), nn.Flatten()
+        )  # ethnicity to x(b,cg)
 
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
@@ -324,19 +328,20 @@ class HumanClassify(nn.Module):
         if self.training:
             return attributes
 
-        return self.decode_attributes(**attributes)
+        y = self.decode_attributes(**attributes)
+        return y if torch.onnx.is_in_onnx_export() else (y, attributes)
 
     def decode_attributes(self, weight, height, age, gender, ethnicity):
-        weight = self.dfl(weight.squeeze(-1)) * 12.5  # 0-200kg
-        height = self.dfl(height.squeeze(-1)) * 16  # 0-250cm
-        age = self.dfl(age.squeeze(-1)) * 6.25  # 0-100
+        weight = self.dfl(weight.unsqueeze(-1)) * 12.5  # 0-200kg
+        height = self.dfl(height.unsqueeze(-1)) * 16  # 0-250cm
+        age = self.dfl(age.unsqueeze(-1)) * 6.25  # 0-100
         return torch.cat(
             [
                 weight.flatten(1),
                 height.flatten(1),
                 age.flatten(1),
-                gender.softmax(1).flatten(1),
-                ethnicity.softmax(1).flatten(1),
+                gender.softmax(1),
+                ethnicity.softmax(1),
             ],
             dim=1,
         )

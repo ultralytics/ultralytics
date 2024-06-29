@@ -7,7 +7,9 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.utils.plotting import plot_attributes, plot_results
+from ultralytics.utils.plotting import plot_images
 import numpy as np
+import torch
 
 
 class HumanTrainer(yolo.classify.ClassificationTrainer):
@@ -86,3 +88,14 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):
             return dict(zip(keys, loss_items))
         else:
             return keys
+
+    def plot_training_samples(self, batch, ni):
+        """Plots training samples with their annotations."""
+        plot_images(
+            images=batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
+            cls=batch["cls"].squeeze(-1),
+            attributes=batch["attributes"],
+            fname=self.save_dir / f"train_batch{ni}.jpg",
+            on_plot=self.on_plot,
+        )

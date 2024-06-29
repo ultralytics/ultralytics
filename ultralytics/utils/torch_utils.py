@@ -510,13 +510,16 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('/Users/glennjocher/PycharmProjects/assistant/assistant/github/release_assets/tmp_assets').rglob('*.pt'):
+        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
             strip_optimizer(f)
         ```
     """
-    x = torch.load(f, map_location=torch.device("cpu"))
-    if not isinstance(x, dict) or "model" not in x:
-        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model.")
+    try:
+        x = torch.load(f, map_location=torch.device("cpu"))
+        assert isinstance(x, dict), "checkpoint is not a Python dictionary"
+        assert "model" in x, "'model' missing from checkpoint"
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
         return
 
     updates = {

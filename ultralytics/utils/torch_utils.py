@@ -7,6 +7,7 @@ import random
 import time
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from typing import Union
 
@@ -515,6 +516,13 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
         return
 
+    updates = {
+        "date": datetime.now().isoformat(),
+        "version": __version__,
+        "license": "AGPL-3.0 License (https://ultralytics.com/license)",
+        "docs": "https://docs.ultralytics.com",
+    }
+
     # Update model
     if x.get("ema"):
         x["model"] = x["ema"]  # replace model with EMA
@@ -535,7 +543,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     # x['model'].args = x['train_args']
 
     # Save
-    torch.save(x, s or f, use_dill=False)
+    torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

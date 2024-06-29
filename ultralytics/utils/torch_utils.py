@@ -511,7 +511,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         ```
     """
     x = torch.load(f, map_location=torch.device("cpu"))
-    if "model" not in x:
+    if not isinstance(x, dict) or "model" not in x:
         LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
         return
 

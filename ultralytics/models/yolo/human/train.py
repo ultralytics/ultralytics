@@ -6,6 +6,7 @@ from ultralytics.data.dataset import HumanDataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import HumanModel
 from ultralytics.utils import DEFAULT_CFG, RANK, colorstr
+from ultralytics.utils.plotting import plot_results
 
 
 class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTrainer
@@ -58,8 +59,7 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTr
 
     def plot_metrics(self):
         """Plots metrics from a CSV file."""
-        # plot_results(file=self.csv, on_plot=self.on_plot, human=True)  # save results.png
-        pass
+        plot_results(file=self.csv, on_plot=self.on_plot, human=True)  # save results.png
 
     def build_dataset(self, img_path, mode="train", batch=None):
         return HumanDataset(
@@ -70,6 +70,7 @@ class HumanTrainer(yolo.classify.ClassificationTrainer):  # NOTE: perhaps BaseTr
         )
 
     def plot_training_labels(self):
+        # TODO
         pass
 
     def label_loss_items(self, loss_items=None, prefix="train"):

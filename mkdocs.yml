@@ -337,6 +337,7 @@ nav:
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
       - Tips for Model Training: guides/model-training-tips.md
+      - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

@@ -106,7 +106,7 @@ class TaskAlignedAssigner(nn.Module):
         overlaps = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_bboxes.dtype, device=pd_bboxes.device)
         bbox_scores = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_scores.dtype, device=pd_scores.device)
 
-        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.int32)  # 2, b, max_num_obj
+        ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
         ind[0] = torch.arange(end=self.bs).view(-1, 1).expand(-1, self.n_max_boxes)  # b, max_num_obj
         ind[1] = gt_labels.squeeze(-1)  # b, max_num_obj
         # Get the scores of each grid for each gt cls
@@ -158,7 +158,7 @@ class TaskAlignedAssigner(nn.Module):
         # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 
-        return count_tensor
+        return count_tensor.to(metrics.dtype)
 
     def get_targets(self, gt_labels, gt_bboxes, target_gt_idx, fg_mask):
         """

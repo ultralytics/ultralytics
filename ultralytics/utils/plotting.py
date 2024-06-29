@@ -1056,9 +1056,9 @@ def plot_images(
                     [
                         f"{weight:.2f}kg",
                         f"{height:.2f}cm",
-                        f"{age} years old",
-                        f"{gender}",
-                        f"{ethnicity}",
+                        f"{int(age)} years old",
+                        f"{int(gender)}",
+                        f"{int(ethnicity)}",
                     ]
                 )
                 annotator.text([x, y], text, txt_color=(255, 255, 255))

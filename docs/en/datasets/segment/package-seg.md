@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Package Segmentation using Ultralytics YOLOv8 Dataset, a large-scale benchmark for logistics, and learn how to train a YOLO model using it.
-keywords: Packet Segmentation Dataset, Ultralytics, Manufacturing, Logistics, YOLO model, object detection, object tracking
+description: Explore Roboflow's Package Segmentation Dataset. Optimize logistics and enhance vision models with curated images for package identification and sorting.
+keywords: Roboflow, Package Segmentation Dataset, computer vision, package identification, logistics, warehouse automation, segmentation models, training data
 ---
 
 # Roboflow Universe Package Segmentation Dataset
@@ -44,10 +44,10 @@ To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 e
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='package-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

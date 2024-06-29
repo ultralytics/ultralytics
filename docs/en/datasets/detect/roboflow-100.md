@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get to know Roboflow 100, a comprehensive object detection benchmark that brings together 100 datasets from different domains.
-keywords: Ultralytics, YOLOv8, YOLO models, Roboflow 100, object detection, benchmark, computer vision, datasets, deep learning models
+description: Explore the Roboflow 100 dataset featuring 100 diverse datasets designed to test object detection models across various domains, from healthcare to video games.
+keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, machine learning, computer vision, diverse datasets, model evaluation
 ---
 
 # Roboflow 100 Dataset
@@ -46,39 +46,40 @@ Dataset benchmarking evaluates machine learning model performance on specific da
     === "Python"
 
         ```python
-        from pathlib import Path
-        import shutil
         import os
+        import shutil
+        from pathlib import Path
+
         from ultralytics.utils.benchmarks import RF100Benchmark
-        
+
         # Initialize RF100Benchmark and set API key
         benchmark = RF100Benchmark()
         benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
-        
+
         # Parse dataset and define file paths
         names, cfg_yamls = benchmark.parse_dataset()
         val_log_file = Path("ultralytics-benchmarks") / "validation.txt"
         eval_log_file = Path("ultralytics-benchmarks") / "evaluation.txt"
-        
+
         # Run benchmarks on each dataset in RF100
         for ind, path in enumerate(cfg_yamls):
             path = Path(path)
             if path.exists():
                 # Fix YAML file and run training
                 benchmark.fix_yaml(str(path))
-                os.system(f'yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16')
-                
+                os.system(f"yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16")
+
                 # Run validation and evaluate
-                os.system(f'yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1')
+                os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1")
                 benchmark.evaluate(str(path), str(val_log_file), str(eval_log_file), ind)
-                
+
                 # Remove the 'runs' directory
                 runs_dir = Path.cwd() / "runs"
                 shutil.rmtree(runs_dir)
             else:
                 print("YAML file path does not exist")
                 continue
-        
+
         print("RF100 Benchmarking completed!")
         ```
 
@@ -100,7 +101,7 @@ You can access it directly from the Roboflow 100 GitHub repository. In addition,
 
 ## Sample Data and Annotations
 
-Roboflow 100 consists of datasets with diverse images and videos captured from various angles and domains. Here’s a look at examples of annotated images in the RF100 benchmark.
+Roboflow 100 consists of datasets with diverse images and videos captured from various angles and domains. Here's a look at examples of annotated images in the RF100 benchmark.
 
 <p align="center">
   <img width="640" src="https://blog.roboflow.com/content/images/2022/11/image-2.png" alt="Sample Data and Annotations">

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the diverse range of YOLO family, SAM, MobileSAM, FastSAM, YOLO-NAS, YOLO-World and RT-DETR models supported by Ultralytics. Get started with examples for both CLI and Python usage.
-keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, models, architectures, Python, CLI
+description: Discover a variety of models supported by Ultralytics, including YOLOv3 to YOLOv10, NAS, SAM, and RT-DETR for detection, segmentation, and more.
+keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, SAM, NAS, RT-DETR, object detection, image segmentation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
@@ -19,12 +19,13 @@ Here are some of the key models supported:
 5. **[YOLOv7](yolov7.md)**: Updated YOLO models released in 2022 by the authors of YOLOv4.
 6. **[YOLOv8](yolov8.md) NEW 🚀**: The latest version of the YOLO family, featuring enhanced capabilities such as instance segmentation, pose/keypoints estimation, and classification.
 7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
-8. **[Segment Anything Model (SAM)](sam.md)**: Meta's Segment Anything Model (SAM).
-9. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
-10. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
-11. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Models.
-12. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
-13. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
+8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
+9. **[Segment Anything Model (SAM)](sam.md)**: Meta's Segment Anything Model (SAM).
+10. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
+11. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
+12. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Models.
+13. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
+14. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
 
 <p align="center">
   <br>
@@ -53,16 +54,16 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

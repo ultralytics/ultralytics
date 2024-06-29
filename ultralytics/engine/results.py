@@ -94,7 +94,9 @@ class Results(SimpleClass):
         tojson(normalize=False): Converts detection results to JSON format.
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None) -> None:
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+    ) -> None:
         """
         Initialize the Results class.
 
@@ -115,7 +117,7 @@ class Results(SimpleClass):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
@@ -180,8 +182,8 @@ class Results(SimpleClass):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, and names."""
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        """Return a new Results object with the same image, path, names and speed."""
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,
@@ -400,8 +402,8 @@ class Results(SimpleClass):
             )
             return results
 
-        data = self.boxes or self.obb
         is_obb = self.obb is not None
+        data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
@@ -741,9 +743,10 @@ class OBB(BaseTensor):
 
         Accepts both torch and numpy boxes.
         """
-        x1 = self.xyxyxyxy[..., 0].min(1).values
-        x2 = self.xyxyxyxy[..., 0].max(1).values
-        y1 = self.xyxyxyxy[..., 1].min(1).values
-        y2 = self.xyxyxyxy[..., 1].max(1).values
-        xyxy = [x1, y1, x2, y2]
-        return np.stack(xyxy, axis=-1) if isinstance(self.data, np.ndarray) else torch.stack(xyxy, dim=-1)
+        x = self.xyxyxyxy[..., 0]
+        y = self.xyxyxyxy[..., 1]
+        return (
+            torch.stack([x.amin(1), y.amin(1), x.amax(1), y.amax(1)], -1)
+            if isinstance(x, torch.Tensor)
+            else np.stack([x.min(1), y.min(1), x.max(1), y.max(1)], -1)
+        )

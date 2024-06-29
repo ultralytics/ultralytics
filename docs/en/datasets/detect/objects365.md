@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the Objects365 dataset, a wide-scale, high-quality resource for object detection research. Learn to use it with the Ultralytics YOLO model.
-keywords: Objects365, object detection, Ultralytics, dataset, YOLO, bounding boxes, annotations, computer vision, deep learning, training models
+description: Explore the Objects365 Dataset with 2M images and 30M bounding boxes across 365 categories. Enhance your object detection models with diverse, high-quality data.
+keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLOv8, high-resolution images, dataset configuration
 ---
 
 # Objects365 Dataset
@@ -48,10 +48,10 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='Objects365.yaml', epochs=100, imgsz=640)
+        results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

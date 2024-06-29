@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how LVIS, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
-keywords: Ultralytics, LVIS dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
+description: Discover the LVIS dataset by Facebook AI Research, a benchmark for object detection and instance segmentation with a large, diverse vocabulary. Learn how to utilize it.
+keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Research, YOLO, computer vision, model training, LVIS examples
 ---
 
 # LVIS Dataset
@@ -66,10 +66,10 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='lvis.yaml', epochs=100, imgsz=640)
+        results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

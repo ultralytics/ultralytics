@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Crack Segmentation using Ultralytics YOLOv8 Dataset, a large-scale benchmark for road safety analysis, and learn how to train a YOLO model using it.
-keywords: Crack Segmentation Dataset, Ultralytics, road cracks monitoring, YOLO model, object detection, object tracking, road safety
+description: Explore the extensive Roboflow Crack Segmentation Dataset, perfect for transportation and public safety studies or self-driving car model development.
+keywords: Roboflow, Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset
 ---
 
 # Roboflow Universe Crack Segmentation Dataset
@@ -44,10 +44,10 @@ To train Ultralytics YOLOv8n model on the Crack Segmentation dataset for 100 epo
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='crack-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="crack-seg.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

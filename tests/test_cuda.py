@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
 from itertools import product
+from pathlib import Path
 
 import pytest
 import torch
 
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-
-from . import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
 
 def test_checks():
@@ -20,6 +19,7 @@ def test_checks():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
@@ -42,6 +42,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
         workspace=1,  # reduce workspace GB for less resource utilization during testing
+        simplify=True,  # use 'onnxslim'
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup

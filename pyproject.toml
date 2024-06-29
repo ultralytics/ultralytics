@@ -64,6 +64,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "numpy>=1.23.0,<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -75,17 +76,15 @@ dependencies = [
     "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
-    "thop>=0.1.1", # FLOPs computation
     "pandas>=1.1.4",
     "seaborn>=0.11.0", # plotting
+    "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
 [project.optional-dependencies]
 dev = [
     "ipython",
-    "check-manifest",
-    "pre-commit",
     "pytest",
     "pytest-cov",
     "coverage[toml]",
@@ -94,14 +93,15 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # for notebooks
     "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.44", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.0.48", # for meta descriptions and images, dates and authors
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
     "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
     "openvino>=2024.0.0", # OpenVINO export
-    "tensorflow<=2.13.1; python_version <= '3.11'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "tensorflowjs>=3.9.0; python_version <= '3.11'", # TF.js export, automatically installs tensorflow
+    "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
+    "keras",  # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "numpy==1.23.5; platform_machine == 'aarch64'", # fix error: `np.bool` was a deprecated alias for the builtin `bool` when using TensorRT models on NVIDIA Jetson
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
@@ -111,17 +111,13 @@ explorer = [
     "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics/ultralytics/pull/8181
     "streamlit", # visualizing with GUI
 ]
-# tensorflow>=2.4.1,<=2.13.1  # TF exports (-cpu, -aarch64, -macos)
-# tflite-support  # for TFLite model metadata
-# nvidia-pyindex  # TensorRT export
-# nvidia-tensorrt  # TensorRT export
 logging = [
     "comet", # https://docs.ultralytics.com/integrations/comet/
     "tensorboard>=2.13.0",
     "dvclive>=2.12.0",
 ]
 extra = [
-    "hub-sdk>=0.0.5", # Ultralytics HUB
+    "hub-sdk>=0.0.8", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP
@@ -139,7 +135,7 @@ ultralytics = "ultralytics.cfg:entrypoint"
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
-package-data = { "ultralytics" = ["**/*.yaml"], "ultralytics.assets" = ["*.jpg"] }
+package-data = { "ultralytics" = ["**/*.yaml", "../tests/*.py"], "ultralytics.assets" = ["*.jpg"] }
 
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
@@ -150,7 +146,6 @@ markers = [
     "slow: skip slow tests unless --slow is set",
 ]
 norecursedirs = [".git", "dist", "build"]
-
 
 [tool.coverage.run]
 source = ["ultralytics/"]

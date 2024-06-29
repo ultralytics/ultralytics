@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use Ultralytics YOLO for object tracking in video streams. Guides to use different trackers and customise tracker configurations.
-keywords: Ultralytics, YOLO, object tracking, video streams, BoT-SORT, ByteTrack, Python guide, CLI guide
+description: Discover efficient, flexible, and customizable multi-object tracking with Ultralytics YOLO. Learn to track real-time video streams with ease.
+keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, AI, machine learning
 ---
 
 # Multi-Object Tracking with Ultralytics YOLO
@@ -33,7 +33,7 @@ The output from Ultralytics trackers is consistent with standard object detectio
 ## Real-world Applications
 
 |           Transportation           |              Retail              |         Aquaculture          |
-|:----------------------------------:|:--------------------------------:|:----------------------------:|
+| :--------------------------------: | :------------------------------: | :--------------------------: |
 | ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
 |          Vehicle Tracking          |         People Tracking          |        Fish Tracking         |
 
@@ -57,7 +57,7 @@ The default tracker is BoT-SORT.
 ## Tracking
 
 !!! Warning "Tracker Threshold Information"
-    
+
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
@@ -70,14 +70,14 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         from ultralytics import YOLO
 
         # Load an official or custom model
-        model = YOLO('yolov8n.pt')  # Load an official Detect model
-        model = YOLO('yolov8n-seg.pt')  # Load an official Segment model
-        model = YOLO('yolov8n-pose.pt')  # Load an official Pose model
-        model = YOLO('path/to/best.pt')  # Load a custom trained model
+        model = YOLO("yolov8n.pt")  # Load an official Detect model
+        model = YOLO("yolov8n-seg.pt")  # Load an official Segment model
+        model = YOLO("yolov8n-pose.pt")  # Load an official Pose model
+        model = YOLO("path/to/best.pt")  # Load a custom trained model
 
         # Perform tracking with the model
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Tracking with ByteTrack tracker
+        results = model.track("https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
+        results = model.track("https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # with ByteTrack
         ```
 
     === "CLI"
@@ -98,7 +98,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 ## Configuration
 
 !!! Warning "Tracker Threshold Information"
-    
+
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 ### Tracking Arguments
@@ -113,7 +113,7 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
         from ultralytics import YOLO
 
         # Configure the tracking parameters and run the tracker
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -136,8 +136,8 @@ Ultralytics also allows you to use a modified tracker configuration file. To do 
         from ultralytics import YOLO
 
         # Load the model and run the tracker with a custom configuration file
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
@@ -159,10 +159,11 @@ Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking o
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # Load the YOLOv8 model
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Open the video file
     video_path = "path/to/video.mp4"
@@ -214,7 +215,7 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
     from ultralytics import YOLO
 
     # Load the YOLOv8 model
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Open the video file
     video_path = "path/to/video.mp4"
@@ -284,7 +285,9 @@ Finally, after all threads have completed their task, the windows displaying the
 
     ```python
     import threading
+
     import cv2
+
     from ultralytics import YOLO
 
 
@@ -318,7 +321,7 @@ Finally, after all threads have completed their task, the windows displaying the
             cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
 
             key = cv2.waitKey(1)
-            if key == ord('q'):
+            if key == ord("q"):
                 break
 
         # Release video sources
@@ -326,8 +329,8 @@ Finally, after all threads have completed their task, the windows displaying the
 
 
     # Load the models
-    model1 = YOLO('yolov8n.pt')
-    model2 = YOLO('yolov8n-seg.pt')
+    model1 = YOLO("yolov8n.pt")
+    model2 = YOLO("yolov8n-seg.pt")
 
     # Define the video files for the trackers
     video_file1 = "path/to/video1.mp4"  # Path to video file, 0 for webcam
@@ -362,7 +365,5 @@ To initiate your contribution, please refer to our [Contributing Guide](../help/
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 
 [fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
-
 [people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
-
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab

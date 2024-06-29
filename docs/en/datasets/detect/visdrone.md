@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the VisDrone Dataset, a large-scale benchmark for drone-based image analysis, and learn how to train a YOLO model using it.
-keywords: VisDrone Dataset, Ultralytics, drone-based image analysis, YOLO model, object detection, object tracking, crowd counting
+description: Explore the VisDrone Dataset, a large-scale benchmark for drone-based image and video analysis with over 2.6 million annotations for objects like pedestrians and vehicles.
+keywords: VisDrone, drone dataset, computer vision, object detection, object tracking, crowd counting, machine learning, deep learning
 ---
 
 # VisDrone Dataset
@@ -46,10 +46,10 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='VisDrone.yaml', epochs=100, imgsz=640)
+        results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

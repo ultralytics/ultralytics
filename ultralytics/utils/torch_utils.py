@@ -535,7 +535,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     # x['model'].args = x['train_args']
 
     # Save
-    torch.save(x, s or f)
+    torch.save(x, s or f, use_dill=False)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

@@ -729,18 +729,18 @@ class v8HumanLoss:
         self.device = next(model.parameters()).device  # get model device
         self.reg_max = model.model[-1].reg_max
         self.dfl_loss = DFLoss(self.reg_max)
-        self.hyp = model.args
+        # self.hyp = model.args
 
     def __call__(self, preds, batch):
         """Compute the human classification loss between predictions and true labels."""
         loss = torch.zeros(5, device=self.device)
 
         gt_attributes = batch["attributes"]
-        loss[0] = self.dfl_loss(preds["weight"], (gt_attributes[:, 0] / 12.5)) * self.hyp.dfl
-        loss[1] = self.dfl_loss(preds["height"], gt_attributes[:, 1] / 16) * self.hyp.dfl
-        loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long()) * self.hyp.cls
-        loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25) * self.hyp.dfl
-        loss[4] = F.cross_entropy(preds["ethnicity"], gt_attributes[:, 4].long()) * self.hyp.cls
+        loss[0] = self.dfl_loss(preds["weight"], (gt_attributes[:, 0] / 12.5))
+        loss[1] = self.dfl_loss(preds["height"], gt_attributes[:, 1] / 16)
+        loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long())
+        loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25)
+        loss[4] = F.cross_entropy(preds["ethnicity"], gt_attributes[:, 4].long())
         loss_items = loss.detach()
         return loss, loss_items
 

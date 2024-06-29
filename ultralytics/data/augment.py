@@ -355,7 +355,7 @@ class Mosaic(BaseMixTransform):
             "im_file": mosaic_labels[0]["im_file"],
             "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (imgsz, imgsz),
-            "cls": np.concatenate(cls, axis=0, dtype=np.int32),
+            "cls": np.concatenate(cls, 0).astype(np.int32),
             "instances": Instances.concatenate(instances, axis=0),
             "mosaic_border": self.border,
         }

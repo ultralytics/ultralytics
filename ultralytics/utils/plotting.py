@@ -867,6 +867,48 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot(fname)
 
 
+@TryExcept()
+@plt_settings()
+def plot_attributes(
+    attributes,
+    gender_names=["female", "male"],
+    ethnicity_names=["asian", "white", "middle eastern", "indian", "latino", "black"],
+    save_dir=Path(""),
+    on_plot=None,
+):
+    """Plot training human attributes including weight/height/gender/age/ethnicity statistics."""
+    weight = attributes[:, 0]
+    height = attributes[:, 1]
+    gender = attributes[:, 2]
+    age = attributes[:, 3]
+    ethnicity = attributes[:, 4]
+    n_gender = int(gender.max() + 1)
+    n_ethnicity = int(ethnicity.max() + 1)
+    ax = plt.subplots(1, 5, figsize=(20, 4), tight_layout=True)[1].ravel()
+
+    ax[0].hist(gender, bins=np.linspace(0, n_gender, n_gender + 1) - 0.5, rwidth=0.8)
+    ax[0].set_ylabel("gender")
+    ax[0].set_xticks(range(len(gender_names)))
+    ax[0].set_xticklabels(gender_names, rotation=90, fontsize=10)
+    ax[1].hist(ethnicity, bins=np.linspace(0, n_ethnicity, n_ethnicity + 1) - 0.5, rwidth=0.8)
+    ax[1].set_ylabel("ethnicity")
+    ax[1].set_xticks(range(len(ethnicity_names)))
+    ax[1].set_xticklabels(ethnicity_names, rotation=90, fontsize=10)
+
+    ax[2].hist(weight, bins=np.linspace(0, weight.max(), 10) - 0.5, rwidth=0.8)
+    ax[2].set_ylabel("weight")
+    ax[3].hist(height, bins=np.linspace(0, height.max(), 10) - 0.5, rwidth=0.8)
+    ax[3].set_ylabel("height")
+    ax[4].hist(age, bins=np.linspace(0, age.max(), 10) - 0.5, rwidth=0.8)
+    ax[4].set_ylabel("age")
+
+    fname = save_dir / "labels_attributes.jpg"
+    plt.savefig(fname, dpi=200)
+    plt.close()
+    if on_plot:
+        on_plot(fname)
+
+
 def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
@@ -920,6 +962,7 @@ def plot_images(
     images,
     batch_idx,
     cls,
+    attributes=np.zeros(0, dtype=np.float32),
     bboxes=np.zeros(0, dtype=np.float32),
     confs=None,
     masks=np.zeros(0, dtype=np.uint8),
@@ -1000,11 +1043,25 @@ def plot_images(
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
                         annotator.box_label(box, label, color=color, rotated=is_obb)
 
-            elif len(classes):
+            elif len(classes) and not len(attributes):
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
+
+            # Plot keypoints
+            if len(attributes):
+                weight, height, gender, age, ethnicity = attributes[idx].tolist()[0]
+                text = "\n".join(
+                    [
+                        f"{weight:.2f}kg",
+                        f"{height:.2f}cm",
+                        f"{age} years old",
+                        f"{gender}",
+                        f"{ethnicity}",
+                    ]
+                )
+                annotator.text([x, y], text, txt_color=(255, 255, 255))
 
             # Plot keypoints
             if len(kpts):

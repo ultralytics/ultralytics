@@ -965,6 +965,7 @@ def plot_images(
     batch_idx: Union[torch.Tensor, np.ndarray],
     cls: Union[torch.Tensor, np.ndarray],
     bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
+    attributes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
     confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
     masks: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.uint8),
     kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),

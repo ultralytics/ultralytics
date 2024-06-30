@@ -24,7 +24,7 @@ Choosing where to deploy your computer vision model depends on multiple factors.
 
 #### Cloud Deployment
 
-Cloud deployment is great for applications that need to scale up quickly and handle large amounts of data. Platforms like AWS, [Google Cloud](./yolov5/environments/google_cloud_quickstart_tutorial.md), and Azure make it easy to manage your models from training to deployment. They offer services like [AWS SageMaker](../integrations/amazon-sagemaker.md), Google AI Platform, and [Azure Machine Learning](./azureml-quickstart.md) to help you throughout the process.
+Cloud deployment is great for applications that need to scale up quickly and handle large amounts of data. Platforms like AWS, [Google Cloud](../yolov5/environments/google_cloud_quickstart_tutorial.md), and Azure make it easy to manage your models from training to deployment. They offer services like [AWS SageMaker](../integrations/amazon-sagemaker.md), Google AI Platform, and [Azure Machine Learning](./azureml-quickstart.md) to help you throughout the process.
 
 However, using the cloud can be expensive, especially with high data usage, and you might face latency issues if your users are far from the data centers. To manage costs and performance, it's important to optimize resource use and ensure compliance with data privacy rules​.
 

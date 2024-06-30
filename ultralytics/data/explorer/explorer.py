@@ -22,8 +22,7 @@ from .utils import get_sim_index_schema, get_table_schema, plot_query_result, pr
 
 class ExplorerDataset(YOLODataset):
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
-        """Initializes the ExplorerDataset with the provided data arguments, extending the YOLODataset class
-        functionality.
+        """Initializes the ExplorerDataset with the provided data arguments, extending the YOLODataset class.
         """
         super().__init__(*args, data=data, **kwargs)
 

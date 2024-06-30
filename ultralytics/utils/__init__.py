@@ -305,7 +305,6 @@ class ThreadingLocked:
         @ThreadingLocked()
         def my_function():
             # Your code here
-            pass
         ```
     """
 

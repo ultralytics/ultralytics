@@ -729,7 +729,6 @@ class v8HumanLoss:
         self.device = next(model.parameters()).device  # get model device
         self.reg_max = model.model[-1].reg_max
         self.dfl_loss = DFLoss(self.reg_max)
-        self.cls_loss = FocalLoss()
         # self.hyp = model.args
 
     def __call__(self, preds, batch):
@@ -740,14 +739,9 @@ class v8HumanLoss:
         gt_attributes = batch["attributes"]
         loss[0] = self.dfl_loss(preds["weight"], (gt_attributes[:, 0] / 12.5))
         loss[1] = self.dfl_loss(preds["height"], gt_attributes[:, 1] / 16)
-        # loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long())
-        g_one_hot = F.one_hot(gt_attributes[:, 2].long(), 2).float()
-
-        loss[2] = self.cls_loss(preds["gender"], g_one_hot)
+        loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long())
         loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25)
-        # loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25)
-        e_one_hot = F.one_hot(gt_attributes[:, 4].long(), 6).float()
-        loss[4] = self.cls_loss(preds["ethnicity"], e_one_hot)
+        loss[4] = F.cross_entropy(preds["gender"], gt_attributes[:, 4].long())
         return loss.sum(), loss.detach()
 
 

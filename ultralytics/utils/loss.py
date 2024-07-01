@@ -741,7 +741,7 @@ class v8HumanLoss:
         loss[1] = self.dfl_loss(preds["height"], gt_attributes[:, 1] / 16)
         loss[2] = F.cross_entropy(preds["gender"], gt_attributes[:, 2].long())
         loss[3] = self.dfl_loss(preds["age"], gt_attributes[:, 3] / 6.25)
-        loss[4] = F.cross_entropy(preds["gender"], gt_attributes[:, 4].long())
+        loss[4] = F.cross_entropy(preds["ethnicity"], gt_attributes[:, 4].long())
         return loss.sum(), loss.detach()
 
 

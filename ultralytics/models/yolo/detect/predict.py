@@ -38,7 +38,8 @@ class DetectionPredictor(BasePredictor):
                 classes=self.args.agnostic_nms_classes,
             )
 
-            non_agnostic_classes = list(set(self.args.classes) - set(self.args.agnostic_nms_classes))
+            all_classes = set(self.args.classes if self.args.classes is not None else self.model.names.keys())
+            non_agnostic_classes = list(all_classes - set(self.args.agnostic_nms_classes))
             non_agnostic_preds = ops.non_max_suppression(
                 preds,
                 self.args.conf,

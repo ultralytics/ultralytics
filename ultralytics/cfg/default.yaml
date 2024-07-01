@@ -60,6 +60,7 @@ stream_buffer: False # (bool) buffer all streaming frames (True) or return the m
 visualize: False # (bool) visualize model features
 augment: False # (bool) apply image augmentation to prediction sources
 agnostic_nms: False # (bool) class-agnostic NMS
+agnostic_nms_classes: # (int | list[int], optional) apply agnostic NMS on to these classes, i.e. classes=0, or classes=[0,2,3]
 classes: # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 retina_masks: False # (bool) use high-resolution segmentation masks
 embed: # (list[int], optional) return feature vectors/embeddings from given layers

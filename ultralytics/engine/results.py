@@ -35,7 +35,7 @@ class BaseTensor(SimpleClass):
         Examples:
             ```python
             import torch
-            from ultralytics import BaseTensor
+            from ultralytics.engine.results import BaseTensor
 
             data = torch.tensor([[1, 2, 3], [4, 5, 6]])
             orig_shape = (720, 1280)
@@ -183,8 +183,9 @@ class Results(SimpleClass):
         Examples:
             ```python
             results = model("path/to/image.jpg")
-            results_cuda = results[0].cuda()
-            results_cpu = results[0].cpu()
+            for result in results:
+                result_cuda = result.cuda()
+                result_cpu = result.cpu()
             ```
         """
         r = self.new()
@@ -826,8 +827,8 @@ class OBB(BaseTensor):
 
             model = YOLO('yolov8n.pt')
             results = model('path/to/image.jpg')
-            for r in results:
-                obb = r.obb
+            for result in results:
+                obb = result.obb
                 if obb is not None:
                     xyxy_boxes = obb.xyxy
                     # Do something with xyxy_boxes

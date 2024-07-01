@@ -37,11 +37,13 @@ For more details, refer to the [quickstart guide](https://docs.ultralytics.com/q
 ## 3. What are the system requirements for running Ultralytics models?
 
 Minimum requirements:
+
 - Python 3.7 or later
 - PyTorch 1.7 or later
 - CUDA-compatible GPU (for GPU acceleration)
 
 Recommended:
+
 - Python 3.8+
 - PyTorch 1.10+
 - NVIDIA GPU with CUDA 11.2+
@@ -62,11 +64,11 @@ To train a custom YOLOv8 model:
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('yolov8n.yaml')  # build a new model from scratch
-model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+model = YOLO("yolov8n.yaml")  # build a new model from scratch
+model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
 # Train the model
-results = model.train(data='path/to/your/data.yaml', epochs=100, imgsz=640)
+results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)
 ```
 
 For detailed instructions, refer to the [training guide](https://docs.ultralytics.com/modes/train/).
@@ -89,10 +91,10 @@ To perform inference with a trained model:
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('path/to/your/model.pt')
+model = YOLO("path/to/your/model.pt")
 
 # Perform inference
-results = model('path/to/image.jpg')
+results = model("path/to/image.jpg")
 
 # Process results
 for r in results:

@@ -185,26 +185,26 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
 def cfg2dict(cfg):
     """
     Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
-    
+
     Args:
-        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary. This may be a path 
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary. This may be a path
             to a configuration file, a dictionary, a string containing the configuration, or a SimpleNamespace object.
-    
+
     Returns:
         (dict): Configuration object in dictionary format.
-    
+
     Examples:
         ```python
         from ultralytics.utils.general import cfg2dict
         from types import SimpleNamespace
-    
+
         # Example usage with a file path
         config_dict = cfg2dict('config.yaml')
-    
+
         # Example usage with a SimpleNamespace
         config_sn = SimpleNamespace(param1='value1', param2='value2')
         config_dict = cfg2dict(config_sn)
-    
+
         # Example usage with a dictionary (returns the same dictionary)
         config_dict = cfg2dict({'param1': 'value1', 'param2': 'value2'})
         ```
@@ -223,31 +223,31 @@ def cfg2dict(cfg):
 def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
-    
+
     Args:
         cfg (str | Path | dict | SimpleNamespace, optional): Configuration data source. Defaults to `DEFAULT_CFG_DICT`.
-        overrides (dict | None, optional): Dictionary containing key-value pairs to override the base configuration. 
+        overrides (dict | None, optional): Dictionary containing key-value pairs to override the base configuration.
             Defaults to None.
-    
+
     Returns:
         (SimpleNamespace): Namespace containing the merged training arguments.
-    
+
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
         - Special handling ensures alignment and correctness of the configuration, such as converting numeric `project`
           and `name` to strings and validating the configuration keys and values.
-    
+
     Examples:
         ```python
         from ultralytics import get_cfg
-        
+
         # Load default configuration
         config = get_cfg()
-    
+
         # Load from a custom file with overrides
         config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
         ```
-    
+
         Configuration dictionary merged with overrides:
         ```python
         {
@@ -355,20 +355,20 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    Check for key alignment between custom and base configuration dictionaries, catering for deprecated keys and 
+    Check for key alignment between custom and base configuration dictionaries, catering for deprecated keys and
     providing informative error messages for mismatched keys.
-    
+
     Args:
         base (dict): The base configuration dictionary containing valid keys.
         custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception, optional): An optional error instance passed by the calling function. Default is None.
-    
+
     Returns:
         None
-    
+
     Raises:
         SystemExit: Terminates the program execution if mismatched keys are found.
-    
+
     Notes:
         - The function provides suggestions for mismatched keys based on their similarity to valid keys in the
           base configuration.
@@ -376,12 +376,12 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
           equivalents.
         - A detailed error message is printed for each mismatched key, helping users to quickly identify and correct
           their custom configurations.
-    
+
     Examples:
         ```python
         base_cfg = {'epochs': 50, 'lr0': 0.01, 'batch_size': 16}
         custom_cfg = {'epoch': 100, 'lr': 0.02, 'batch_size': 32}
-    
+
         try:
             check_dict_alignment(base_cfg, custom_cfg)
         except SystemExit:
@@ -405,27 +405,27 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first argument
-    ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
-    
+    Merges arguments around isolated '=' args in a list of strings. The function considers cases where the first
+    argument ends with '=' or the second starts with '=', as well as when the middle one is an equals sign.
+
     Args:
         args (List[str]): A list of strings where each element is an argument.
-    
+
     Returns:
         (List[str]): A list of strings where the arguments around isolated '=' are merged.
-    
+
     Examples:
         The function modifies the argument list as follows:
-    
+
         ```python
         args = ["arg1", "=", "value"]
         new_args = merge_equals_args(args)
         print(new_args)  # Output: ["arg1=value"]
-    
+
         args = ["arg1=", "value"]
         new_args = merge_equals_args(args)
         print(new_args)  # Output: ["arg1=value"]
-    
+
         args = ["arg1", "=value"]
         new_args = merge_equals_args(args)
         print(new_args)  # Output: ["arg1=value"]
@@ -449,16 +449,16 @@ def merge_equals_args(args: List[str]) -> List[str]:
 def handle_yolo_hub(args: List[str]) -> None:
     """
     Handle Ultralytics HUB command-line interface (CLI) commands.
-    
-    This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing 
+
+    This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing
     a script with arguments related to HUB authentication.
-    
+
     Args:
         args (List[str]): A list of command line arguments.
-    
+
     Returns:
         None
-    
+
     Example:
         ```bash
         python my_script.py hub login your_api_key
@@ -478,21 +478,21 @@ def handle_yolo_hub(args: List[str]) -> None:
 def handle_yolo_settings(args: List[str]) -> None:
     """
     Handle YOLO settings command-line interface (CLI) commands.
-    
-    This function processes YOLO settings CLI commands such as reset. It should be called when executing a script with 
+
+    This function processes YOLO settings CLI commands such as reset. It should be called when executing a script with
     arguments related to YOLO settings management.
-    
+
     Args:
         args (List[str]): A list of command line arguments for YOLO settings management.
-    
+
     Returns:
         None
-    
+
     Example:
         ```bash
         python my_script.py yolo settings reset
         ```
-    
+
     Notes:
         For more information on handling YOLO settings, visit:
         https://docs.ultralytics.com/quickstart/#ultralytics-settings
@@ -548,29 +548,29 @@ def smart_value(v):
 def entrypoint(debug=""):
     """
     Ultralytics entrypoint function for parsing and executing command-line arguments.
-    
+
     This function serves as the main entry point for the Ultralytics CLI, parsing  command-line arguments and
     executing the corresponding tasks such as training, validation, prediction, exporting models, and more.
-    
+
     Args:
         debug (str, optional): Space-separated string of command-line arguments for debugging purposes. Default is "".
-    
+
     Returns:
         (None): This function does not return any value.
-    
+
     Notes:
         - For a list of all available commands and their arguments, see the provided help messages and the Ultralytics
           documentation at https://docs.ultralytics.com.
         - If no arguments are passed, the function will display the usage help message.
-    
+
     Examples:
         ```python
         # Train a detection model for 10 epochs with an initial learning_rate of 0.01
         entrypoint("train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01")
-    
+
         # Predict a YouTube video using a pretrained segmentation model at image size 320
         entrypoint("predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
-    
+
         # Validate a pretrained detection model at batch-size 1 and image size 640
         entrypoint("val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640")
         ```

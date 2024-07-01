@@ -152,4 +152,4 @@ You can find examples and tutorials in several places:
 
 These resources provide code examples, use cases, and step-by-step guides for various tasks using Ultralytics models.
 
-Feel free to ask below if you have any more questions!
+If you have any more questions or need assistance, don't hesitate to consult the Ultralytics documentation or reach out to the community through [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the official [discussion forum](https://github.com/orgs/ultralytics/discussions).

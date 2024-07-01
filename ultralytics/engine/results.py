@@ -32,7 +32,7 @@ class BaseTensor(SimpleClass):
         Returns:
             (None)
 
-        Examples:
+        Example:
             ```python
             import torch
             from ultralytics.engine.results import BaseTensor
@@ -127,7 +127,7 @@ class Results(SimpleClass):
         Returns:
             None
 
-        Examples:
+        Example:
             ```python
             results = model("path/to/image.jpg")
             ```
@@ -180,7 +180,7 @@ class Results(SimpleClass):
         Returns:
             (Results): A new Results object with attributes modified by the applied function.
 
-        Examples:
+        Example:
             ```python
             results = model("path/to/image.jpg")
             for result in results:
@@ -258,7 +258,7 @@ class Results(SimpleClass):
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
 
-        Examples:
+        Example:
             ```python
             from PIL import Image
             from ultralytics import YOLO
@@ -370,7 +370,7 @@ class Results(SimpleClass):
         Returns:
             (str): Path to the saved text file.
 
-        Examples:
+        Example:
             ```python
             from ultralytics import YOLO
 
@@ -431,7 +431,7 @@ class Results(SimpleClass):
             This function does not support Classify or Oriented Bounding Box (OBB) tasks. It will warn and exit if
             called for such tasks.
 
-        Examples:
+        Example:
             ```python
             from ultralytics import YOLO
 
@@ -817,7 +817,7 @@ class OBB(BaseTensor):
         Returns:
             (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (num_boxes, 4).
 
-        Examples:
+        Example:
             ```python
             import torch
             from ultralytics import YOLO

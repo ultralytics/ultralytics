@@ -193,7 +193,7 @@ def cfg2dict(cfg):
     Returns:
         (dict): Configuration object in dictionary format.
 
-    Examples:
+    Example:
         ```python
         from ultralytics.cfg import cfg2dict
         from types import SimpleNamespace
@@ -237,7 +237,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         - Special handling ensures alignment and correctness of the configuration, such as converting numeric `project`
           and `name` to strings and validating the configuration keys and values.
 
-    Examples:
+    Example:
         ```python
         from ultralytics.cfg import get_cfg
 
@@ -370,7 +370,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         - A detailed error message is printed for each mismatched key, helping users to quickly identify and correct
           their custom configurations.
 
-    Examples:
+    Example:
         ```python
         base_cfg = {'epochs': 50, 'lr0': 0.01, 'batch_size': 16}
         custom_cfg = {'epoch': 100, 'lr': 0.02, 'batch_size': 32}
@@ -407,7 +407,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
     Returns:
         (List[str]): A list of strings where the arguments around isolated '=' are merged.
 
-    Examples:
+    Example:
         The function modifies the argument list as follows:
         ```python
         args = ["arg1", "=", "value"]
@@ -451,7 +451,7 @@ def handle_yolo_hub(args: List[str]) -> None:
     Returns:
         None
 
-    Examples:
+    Example:
         ```bash
         yolo hub login YOUR_API_KEY
         ```
@@ -480,7 +480,7 @@ def handle_yolo_settings(args: List[str]) -> None:
     Returns:
         None
 
-    Examples:
+    Example:
         ```bash
         yolo settings reset
         ```
@@ -555,7 +555,7 @@ def entrypoint(debug=""):
           documentation at https://docs.ultralytics.com.
         - If no arguments are passed, the function will display the usage help message.
 
-    Examples:
+    Example:
         ```python
         # Train a detection model for 10 epochs with an initial learning_rate of 0.01
         entrypoint("train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01")

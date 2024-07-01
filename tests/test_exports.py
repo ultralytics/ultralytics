@@ -21,13 +21,13 @@ from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 
 def test_export_torchscript():
-    """Test YOLO exports to TorchScript format."""
+    """Test YOLO model exporting to TorchScript format for compatibility and correctness."""
     file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 def test_export_onnx():
-    """Test YOLO exports to ONNX format."""
+    """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
@@ -35,7 +35,7 @@ def test_export_onnx():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
-    """Test YOLO exports to OpenVINO format."""
+    """Test YOLO exports to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
@@ -52,7 +52,7 @@ def test_export_openvino():
     ],
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to OpenVINO format."""
+    """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
@@ -76,7 +76,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
     "task, dynamic, int8, half, batch, simplify", product(TASKS, [True, False], [False], [False], [1, 2], [True, False])
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify):
-    """Test YOLO exports to ONNX format."""
+    """Test YOLO exports to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
         imgsz=32,
@@ -93,7 +93,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify):
 @pytest.mark.slow
 @pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [False], [False], [False], [1, 2]))
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to TorchScript format."""
+    """Tests YOLO model exports to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript",
         imgsz=32,
@@ -119,7 +119,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to CoreML format."""
+    """Test YOLO exports to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
         imgsz=32,
@@ -144,7 +144,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to TFLite format."""
+    """Test YOLO exports to TFLite format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite",
         imgsz=32,
@@ -162,7 +162,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
-    """Test YOLO exports to CoreML format."""
+    """Test YOLO exports to CoreML format, optimized for macOS only."""
     if MACOS:
         file = YOLO(MODEL).export(format="coreml", imgsz=32)
         YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
@@ -173,11 +173,7 @@ def test_export_coreml():
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
-    """
-    Test YOLO exports to TFLite format.
-
-    Note TF suffers from install conflicts on Windows and macOS.
-    """
+    """Test YOLO exports to TFLite format under specific OS and Python version conditions."""
     model = YOLO(MODEL)
     file = model.export(format="tflite", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
@@ -186,11 +182,7 @@ def test_export_tflite():
 @pytest.mark.skipif(True, reason="Test disabled")
 @pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
 def test_export_pb():
-    """
-    Test YOLO exports to *.pb format.
-
-    Note TF suffers from install conflicts on Windows and macOS.
-    """
+    """Test YOLO exports to TensorFlow's Protobuf (*.pb) format."""
     model = YOLO(MODEL)
     file = model.export(format="pb", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
@@ -198,11 +190,7 @@ def test_export_pb():
 
 @pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
 def test_export_paddle():
-    """
-    Test YOLO exports to Paddle format.
-
-    Note Paddle protobuf requirements conflicting with onnx protobuf requirements.
-    """
+    """Test YOLO exports to Paddle format, noting protobuf conflicts with ONNX."""
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
 

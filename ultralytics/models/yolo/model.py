@@ -2,13 +2,15 @@
 
 from pathlib import Path
 
+from huggingface_hub import PyTorchModelHubMixin
+
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
 
 
-class YOLO(Model):
+class YOLO(Model, PyTorchModelHubMixin, library_name="ultralytics", tags=["object-detection", "yolo"]):
     """YOLO (You Only Look Once) object detection model."""
 
     def __init__(self, model="yolov8n.pt", task=None, verbose=False):

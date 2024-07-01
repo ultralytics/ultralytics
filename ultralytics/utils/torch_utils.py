@@ -185,6 +185,9 @@ def time_sync():
 
 def fuse_conv_and_bn(conv, bn):
     """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
+    # Check if the normalization layer is GroupNorm, if so return the original conv layer
+    if isinstance(bn, nn.GroupNorm):
+        return conv
     fusedconv = (
         nn.Conv2d(
             conv.in_channels,
@@ -215,6 +218,8 @@ def fuse_conv_and_bn(conv, bn):
 
 def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
+    if isinstance(bn, nn.GroupNorm):
+        return deconv
     fuseddconv = (
         nn.ConvTranspose2d(
             deconv.in_channels,
@@ -371,6 +376,10 @@ def initialize_weights(model):
         elif t is nn.BatchNorm2d:
             m.eps = 1e-3
             m.momentum = 0.03
+        elif t is nn.GroupNorm:
+            m.eps = 1e-5
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
         elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
             m.inplace = True
 

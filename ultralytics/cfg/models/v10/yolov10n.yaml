@@ -40,3 +40,5 @@ head:
   - [-1, 3, C2fCIB, [1024, True, True]] # 22 (P5/32-large)
 
   - [[16, 19, 22], 1, v10Detect, [nc]] # Detect(P3, P4, P5)
+
+norm_type: "batch"

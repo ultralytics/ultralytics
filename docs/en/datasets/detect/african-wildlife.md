@@ -16,7 +16,7 @@ This dataset showcases four common animal classes typically found in South Afric
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLOv8
+  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=biIW5Z6GYl0" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/biIW5Z6GYl0" alt="YouTube Views"></a>
 </p>
 
 ## Dataset Structure

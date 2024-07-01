@@ -15,7 +15,7 @@ keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project mana
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB <a href="https://www.youtube.com/watch?v=lveF9iCMIzc" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/lveF9iCMIzc" alt="YouTube Views"></a>
 </p>
 
 ## Get Started

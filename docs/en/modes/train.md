@@ -20,7 +20,7 @@ Training a deep learning model involves feeding it data and adjusting its parame
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab. <a href="https://www.youtube.com/watch?v=LNwODJXcvt4" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/LNwODJXcvt4" alt="YouTube Views"></a>
 </p>
 
 ## Why Choose Ultralytics YOLO for Training?

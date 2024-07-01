@@ -22,7 +22,7 @@ This guide serves as a comprehensive aid for troubleshooting common issues encou
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Common Issues | Installation Errors, Model Training Issues
+  <strong>Watch:</strong> Ultralytics YOLOv8 Common Issues | Installation Errors, Model Training Issues <a href="https://www.youtube.com/watch?v=TG9exsBlkDE" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/TG9exsBlkDE" alt="YouTube Views"></a>
 </p>
 
 ## Common Issues

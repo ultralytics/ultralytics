@@ -16,7 +16,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
+  <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset <a href="https://www.youtube.com/watch?v=ZF7EAodHn1U" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/ZF7EAodHn1U" alt="YouTube Views"></a>
 </p>
 
 ![YOLOv9 performance comparison](https://github.com/ultralytics/ultralytics/assets/26833433/9f41ef7b-6008-43eb-8ba1-0a9b89600100)

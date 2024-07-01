@@ -19,7 +19,7 @@ YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Object Detection, Segmentation, OBB, Tracking, and Pose Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Object Detection, Segmentation, OBB, Tracking, and Pose Estimation. <a href="https://www.youtube.com/watch?v=NAs-cfq9BDw" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/NAs-cfq9BDw" alt="YouTube Views"></a>
 </p>
 
 ## [Detection](detect.md)

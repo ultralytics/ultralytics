@@ -46,7 +46,7 @@ Explore more capabilities of YOLOv8 and Paperspace Gradient in a discussion with
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Live Session 7: It's All About the Environment: Optimizing YOLOv8 Training With Gradient
+  <strong>Watch:</strong> Ultralytics Live Session 7: It's All About the Environment: Optimizing YOLOv8 Training With Gradient <a href="https://www.youtube.com/watch?v=3HbbQHitN7g" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/3HbbQHitN7g" alt="YouTube Views"></a>
 </p>
 
 ## Key Features of Paperspace Gradient

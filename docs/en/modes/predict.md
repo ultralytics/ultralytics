@@ -20,7 +20,7 @@ In the world of machine learning and computer vision, the process of making sens
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
+  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects. <a href="https://www.youtube.com/watch?v=QtsI0TnwDZs" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/QtsI0TnwDZs" alt="YouTube Views"></a>
 </p>
 
 ## Real-world Applications

@@ -27,7 +27,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
         allowfullscreen>
       </iframe>
       <br>
-      <strong>Watch:</strong> Object Detection using Ultralytics YOLOv8 Oriented Bounding Boxes (YOLOv8-OBB)
+      <strong>Watch:</strong> Object Detection using Ultralytics YOLOv8 Oriented Bounding Boxes (YOLOv8-OBB) <a href="https://www.youtube.com/watch?v=Z7Z9pHF8wJc" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/Z7Z9pHF8wJc" alt="YouTube Views"></a>
     </td>
     <td align="center">
       <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/uZ7SymQfqKI"

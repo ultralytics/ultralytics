@@ -18,7 +18,7 @@ This Gradio interface provides an easy and interactive way to perform object det
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8
+  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=pWYiene9lYw" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/pWYiene9lYw" alt="YouTube Views"></a>
 </p>
 
 ## Why Use Gradio for Object Detection?

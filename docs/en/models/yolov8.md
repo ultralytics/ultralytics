@@ -20,7 +20,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Model Overview
+  <strong>Watch:</strong> Ultralytics YOLOv8 Model Overview <a href="https://www.youtube.com/watch?v=Na0HvJ4hkk0" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/Na0HvJ4hkk0" alt="YouTube Views"></a>
 </p>
 
 ## Key Features

@@ -18,7 +18,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Speed Estimation using Ultralytics YOLOv8
+  <strong>Watch:</strong> Speed Estimation using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=rCggzXRRSRo" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/rCggzXRRSRo" alt="YouTube Views"></a>
 </p>
 
 !!! tip "Check Out Our Blog"

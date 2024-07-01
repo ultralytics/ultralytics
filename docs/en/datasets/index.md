@@ -16,7 +16,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Datasets Overview
+  <strong>Watch:</strong> Ultralytics Datasets Overview <a href="https://www.youtube.com/watch?v=YDXKa1EljmU" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/YDXKa1EljmU" alt="YouTube Views"></a>
 </p>
 
 ## NEW 🚀 Ultralytics Explorer

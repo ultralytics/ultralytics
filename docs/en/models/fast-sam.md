@@ -16,7 +16,7 @@ The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based soluti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Tracking using FastSAM with Ultralytics
+  <strong>Watch:</strong> Object Tracking using FastSAM with Ultralytics <a href="https://www.youtube.com/watch?v=F7db-EHhxss" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/F7db-EHhxss" alt="YouTube Views"></a>
 </p>
 
 ## Model Architecture

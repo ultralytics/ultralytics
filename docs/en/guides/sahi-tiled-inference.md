@@ -24,7 +24,7 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLOv8
+  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=tq3FU_QczxE" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/tq3FU_QczxE" alt="YouTube Views"></a>
 </p>
 
 ### Key Features of SAHI

@@ -16,7 +16,7 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ult
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> YOLO World training workflow on custom dataset
+  <strong>Watch:</strong> YOLO World training workflow on custom dataset <a href="https://www.youtube.com/watch?v=cfTKj96TjSE" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/cfTKj96TjSE" alt="YouTube Views"></a>
 </p>
 
 ![YOLO-World Model architecture overview](https://github.com/ultralytics/ultralytics/assets/26833433/31105058-78c1-43ef-9573-4f41b06df531)

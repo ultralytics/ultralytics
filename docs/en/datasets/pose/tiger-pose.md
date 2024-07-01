@@ -22,7 +22,7 @@ This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train YOLOv8 Pose Model on Tiger-Pose Dataset Using Ultralytics HUB
+  <strong>Watch:</strong> Train YOLOv8 Pose Model on Tiger-Pose Dataset Using Ultralytics HUB <a href="https://www.youtube.com/watch?v=Gc6K5eKrTNQ" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/Gc6K5eKrTNQ" alt="YouTube Views"></a>
 </p>
 
 ## Dataset YAML

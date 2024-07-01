@@ -1243,7 +1243,8 @@ def classify_transforms(
         tfl = [T.Resize(scale_size[0], interpolation=interpolation)]
     else:
         # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size, interpolation=interpolation)]
+        # tfl = [T.Resize(scale_size, interpolation=interpolation)]
+        tfl = [ClassifyLetterBox(size)]
     tfl.extend(
         [
             T.CenterCrop(size),
@@ -1302,7 +1303,8 @@ def classify_augmentations(
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
     primary_tfl = [
-        T.Resize(size) if resize else T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)
+        # T.Resize(size) if resize else T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)
+        ClassifyLetterBox(size) if resize else T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)
     ]
     if hflip > 0.0:
         primary_tfl.append(T.RandomHorizontalFlip(p=hflip))

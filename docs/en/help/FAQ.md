@@ -144,11 +144,11 @@ You can also contribute by reporting bugs, suggesting features, or improving doc
 
 You can find examples and tutorials in several places:
 
-- [Official documentation](https://docs.ultralytics.com/)
-- [GitHub repository](https://github.com/ultralytics/ultralytics)
-- [Ultralytics blog](https://www.ultralytics.com/blog)
-- [Community forums](https://community.ultralytics.com/)
-- [YouTube channel](https://www.youtube.com/@ultralytics)
+- 📚 [Official documentation](https://docs.ultralytics.com/)
+- 💻 [GitHub repository](https://github.com/ultralytics/ultralytics)
+- ✍️ [Ultralytics blog](https://www.ultralytics.com/blog)
+- 💬 [Community forums](https://community.ultralytics.com/)
+- 🎥 [YouTube channel](https://youtube.com/ultralytics?sub_confirmation=1)
 
 These resources provide code examples, use cases, and step-by-step guides for various tasks using Ultralytics models.
 

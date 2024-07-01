@@ -187,15 +187,15 @@ def cfg2dict(cfg):
     Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Args:
-        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary. This may be a path
-            to a configuration file, a dictionary, a string containing the configuration, or a SimpleNamespace object.
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted to a dictionary. This may be a
+            path to a configuration file, a dictionary, or a SimpleNamespace object.
 
     Returns:
         (dict): Configuration object in dictionary format.
 
     Examples:
         ```python
-        from ultralytics.utils.general import cfg2dict
+        from ultralytics.cfg import cfg2dict
         from types import SimpleNamespace
 
         # Example usage with a file path
@@ -239,7 +239,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
     Examples:
         ```python
-        from ultralytics import get_cfg
+        from ultralytics.cfg import get_cfg
 
         # Load default configuration
         config = get_cfg()
@@ -412,7 +412,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         The function modifies the argument list as follows:
-
         ```python
         args = ["arg1", "=", "value"]
         new_args = merge_equals_args(args)
@@ -455,9 +454,9 @@ def handle_yolo_hub(args: List[str]) -> None:
     Returns:
         None
 
-    Example:
+    Examples:
         ```bash
-        python my_script.py hub login your_api_key
+        yolo hub login YOUR_API_KEY
         ```
     """
     from ultralytics import hub
@@ -484,9 +483,9 @@ def handle_yolo_settings(args: List[str]) -> None:
     Returns:
         None
 
-    Example:
+    Examples:
         ```bash
-        python my_script.py yolo settings reset
+        yolo settings reset
         ```
 
     Notes:

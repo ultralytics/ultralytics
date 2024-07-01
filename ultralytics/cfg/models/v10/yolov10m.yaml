@@ -3,7 +3,7 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolov10n.yaml' will call yolov10.yaml with scale 'n'
   # [depth, width, max_channels]
   m: [0.67, 0.75, 768]
 
@@ -21,7 +21,7 @@ backbone:
   - [-1, 1, SPPF, [1024, 5]] # 9
   - [-1, 1, PSA, [1024]] # 10
 
-# YOLOv8.0n head
+# YOLOv10.0n head
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat, [1]] # cat backbone P4

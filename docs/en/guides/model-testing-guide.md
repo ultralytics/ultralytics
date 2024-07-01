@@ -37,7 +37,6 @@ Here are the key steps to take to test your computer vision model and understand
 - **Compare Predictions:** Check how well the model's predictions match the actual labels (ground truth).
 - **Calculate Performance Metrics:** [Compute metrics](./yolo-performance-metrics.md) like accuracy, precision, recall, and F1 score to understand the model’s strengths and weaknesses. Testing focuses on how these metrics reflect real-world performance.
 - **Visualize Results:** Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
-- **Visualize Results:** Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
 
 Next, the testing results can be analyzed:
 

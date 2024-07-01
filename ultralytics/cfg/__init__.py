@@ -359,9 +359,6 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception, optional): An optional error instance passed by the calling function. Default is None.
 
-    Returns:
-        (None)
-
     Raises:
         SystemExit: Terminates the program execution if mismatched keys are found.
 

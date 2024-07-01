@@ -427,9 +427,6 @@ class Results(SimpleClass):
             save_dir (str | pathlib.Path): Directory path where the cropped images should be saved.
             file_name (str | pathlib.Path): Filename for the saved cropped image.
 
-        Returns:
-            (None)
-
         Notes:
             This function does not support Classify or Oriented Bounding Box (OBB) tasks. It will warn and exit if
             called for such tasks.

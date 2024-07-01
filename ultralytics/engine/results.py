@@ -24,19 +24,19 @@ class BaseTensor(SimpleClass):
     def __init__(self, data, orig_shape) -> None:
         """
         Initialize BaseTensor with prediction data and the original shape of the image.
-        
+
         Args:
             data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
             orig_shape (tuple): Original shape of the image, typically in the format (height, width).
-        
+
         Returns:
             (None)
-        
+
         Examples:
             ```python
             import torch
             from ultralytics import BaseTensor
-            
+
             data = torch.tensor([[1, 2, 3], [4, 5, 6]])
             orig_shape = (720, 1280)
             base_tensor = BaseTensor(data, orig_shape)
@@ -112,7 +112,7 @@ class Results(SimpleClass):
     ) -> None:
         """
         Initialize the Results class for storing and manipulating inference results.
-        
+
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
@@ -123,10 +123,10 @@ class Results(SimpleClass):
             keypoints (torch.tensor, optional): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.tensor, optional): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (dict, optional): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
-        
+
         Returns:
             None
-        
+
         Examples:
             ```python
             results = model("path/to/image.jpg")
@@ -171,15 +171,15 @@ class Results(SimpleClass):
         """
         Applies a function to all non-empty attributes and returns a new Results object with modified attributes. This
         function is internally called by methods like .to(), .cuda(), .cpu(), etc.
-        
+
         Args:
             fn (str): The name of the function to apply.
             *args: Variable length argument list to pass to the function.
             **kwargs: Arbitrary keyword arguments to pass to the function.
-        
+
         Returns:
             (Results): A new Results object with attributes modified by the applied function.
-        
+
         Examples:
             ```python
             results = model("path/to/image.jpg")
@@ -235,7 +235,7 @@ class Results(SimpleClass):
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
-        
+
         Args:
             conf (bool): Whether to plot the detection confidence score.
             line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
@@ -253,15 +253,15 @@ class Results(SimpleClass):
             show (bool): Whether to display the annotated image directly.
             save (bool): Whether to save the annotated image to `filename`.
             filename (str): Filename to save image to if save is True.
-        
+
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
-        
+
         Example:
             ```python
             from PIL import Image
             from ultralytics import YOLO
-        
+
             model = YOLO('yolov8n.pt')
             results = model('bus.jpg')  # results list
             for r in results:
@@ -361,18 +361,18 @@ class Results(SimpleClass):
     def save_txt(self, txt_file, save_conf=False):
         """
         Save detection results to a text file.
-        
+
         Args:
             txt_file (str): Path to the output text file.
             save_conf (bool): Whether to include confidence scores in the output.
-        
+
         Returns:
             (str): Path to the saved text file.
-        
+
         Examples:
             ```python
             from ultralytics import YOLO
-        
+
             model = YOLO('yolov8n.pt')
             results = model("path/to/image.jpg")
             for result in results:
@@ -384,10 +384,10 @@ class Results(SimpleClass):
                 - For detections: `class confidence x_center y_center width height`
                 - For classifications: `confidence class_name`
                 - For masks and keypoints, the specific formats will vary accordingly.
-        
+
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
-        
+
             - Existing contents of the file will not be overwritten; new results will be appended.
         """
         is_obb = self.obb is not None
@@ -421,25 +421,25 @@ class Results(SimpleClass):
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
         """
         Save cropped detection images to `save_dir/cls/file_name.jpg`.
-        
+
         Args:
             save_dir (str | pathlib.Path): Directory path where the cropped images should be saved.
             file_name (str | pathlib.Path): Filename for the saved cropped image.
-        
+
         Returns:
             (None)
-        
+
         Notes:
             This function does not support Classify or Oriented Bounding Box (OBB) tasks. It will warn and exit if
             called for such tasks.
-        
+
         Example:
             ```python
             from ultralytics import YOLO
-        
+
             model = YOLO("yolov8n.pt")
             results = model("path/to/image.jpg")
-        
+
             # Save cropped images to the specified directory
             for result in results:
                 result.save_crop(save_dir="path/to/save/crops", file_name="crop")
@@ -540,13 +540,13 @@ class Boxes(BaseTensor):
     def __init__(self, boxes, orig_shape) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
-        
+
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6)
                 or (num_boxes, 7). Columns should contain [x1, y1, x2, y2, confidence, class, (optional) track_id].
                 The track ID  column is included if present.
             orig_shape (tuple): The original image shape as (height, width). Used for normalization.
-        
+
         Returns:
             (None)
         """
@@ -815,15 +815,15 @@ class OBB(BaseTensor):
     def xyxy(self):
         """
         Convert the oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format (x1, y1, x2, y2).
-        
+
         Returns:
             (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (num_boxes, 4).
-        
+
         Examples:
             ```python
             import torch
             from ultralytics import YOLO
-        
+
             model = YOLO('yolov8n.pt')
             results = model('path/to/image.jpg')
             for r in results:
@@ -832,7 +832,7 @@ class OBB(BaseTensor):
                     xyxy_boxes = obb.xyxy
                     # Do something with xyxy_boxes
             ```
-            
+
         Note:
             This method is useful to perform operations that require axis-aligned bounding boxes, such as IoU
             calculation with non-rotated boxes. The conversion approximates the OBB by the minimal enclosing rectangle.

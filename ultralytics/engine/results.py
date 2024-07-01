@@ -519,7 +519,7 @@ class Boxes(BaseTensor):
         orig_shape (tuple): The original image size as a tuple (height, width), used for normalization.
         is_track (bool): Indicates whether tracking IDs are included in the box data.
 
-    Properties:
+    Attributes:
         xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
@@ -605,7 +605,7 @@ class Masks(BaseTensor):
     """
     A class for storing and manipulating detection masks.
 
-    Properties:
+    Attributes:
         xy (list): A list of segments in pixel coordinates.
         xyn (list): A list of normalized segments.
 
@@ -645,7 +645,7 @@ class Keypoints(BaseTensor):
     """
     A class for storing and manipulating detection keypoints.
 
-    Properties:
+    Attributes
         xy (torch.Tensor): A collection of keypoints containing x, y coordinates for each detection.
         xyn (torch.Tensor): A normalized version of xy with coordinates in the range [0, 1].
         conf (torch.Tensor): Confidence values associated with keypoints if available, otherwise None.
@@ -694,7 +694,7 @@ class Probs(BaseTensor):
     """
     A class for storing and manipulating classification predictions.
 
-    Properties:
+    Attributes
         top1 (int): Index of the top 1 class.
         top5 (list[int]): Indices of the top 5 classes.
         top1conf (torch.Tensor): Confidence of the top 1 class.
@@ -746,7 +746,7 @@ class OBB(BaseTensor):
             If present, the third last column contains track IDs, and the fifth column from the left contains rotation.
         orig_shape (tuple): Original image size, in the format (height, width).
 
-    Properties:
+    Attributes
         xywhr (torch.Tensor | numpy.ndarray): The boxes in [x_center, y_center, width, height, rotation] format.
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.

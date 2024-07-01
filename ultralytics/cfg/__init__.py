@@ -250,11 +250,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
         Configuration dictionary merged with overrides:
         ```python
-        {
-            'epochs': 50,
-            'batch_size': 16,
-            ...
-        }
+        {'epochs': 50, 'batch_size': 16, ...}
         ```
     """
     cfg = cfg2dict(cfg)

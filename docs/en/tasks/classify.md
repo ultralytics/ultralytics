@@ -20,7 +20,7 @@ The output of an image classifier is a single class label and a confidence score
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB <a href="https://www.youtube.com/watch?v=5BO0Il_YYAg" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/5BO0Il_YYAg" alt="YouTube Views"></a>
 </p>
 
 !!! Tip "Tip"

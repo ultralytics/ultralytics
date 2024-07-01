@@ -18,7 +18,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Movable Regions
+  <strong>Watch:</strong> Ultralytics YOLOv8 Object Counting in Multiple & Movable Regions <a href="https://www.youtube.com/watch?v=okItf1iHlV8" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/okItf1iHlV8" alt="YouTube Views"></a>
 </p>
 
 ## Advantages of Object Counting in Regions?

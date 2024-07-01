@@ -34,7 +34,7 @@ Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Chec
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLOv8 models on Your Custom Dataset in Google Colab | Episode 3
+  <strong>Watch:</strong> How to Train Ultralytics YOLOv8 models on Your Custom Dataset in Google Colab | Episode 3 <a href="https://www.youtube.com/watch?v=LNwODJXcvt4" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/LNwODJXcvt4" alt="YouTube Views"></a>
 </p>
 
 ### Common Questions While Working with Google Colab

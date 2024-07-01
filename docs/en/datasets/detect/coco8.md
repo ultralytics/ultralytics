@@ -18,7 +18,7 @@ keywords: COCO8, Ultralytics, dataset, object detection, YOLOv8, training, valid
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics COCO Dataset Overview
+  <strong>Watch:</strong> Ultralytics COCO Dataset Overview <a href="https://www.youtube.com/watch?v=uDrn9QZJ2lk" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/uDrn9QZJ2lk" alt="YouTube Views"></a>
 </p>
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com) and [YOLOv8](https://github.com/ultralytics/ultralytics).

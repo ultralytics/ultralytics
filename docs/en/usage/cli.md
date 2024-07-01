@@ -16,7 +16,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: CLI
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: CLI <a href="https://www.youtube.com/watch?v=GsXGnb-A4Kc" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/GsXGnb-A4Kc" alt="YouTube Views"></a>
 </p>
 
 !!! Example

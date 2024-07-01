@@ -20,7 +20,7 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Utilities | Auto Annotation, Explorer API and Dataset Conversion
+  <strong>Watch:</strong> Ultralytics Utilities | Auto Annotation, Explorer API and Dataset Conversion <a href="https://www.youtube.com/watch?v=1bPY2LRG590" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/1bPY2LRG590" alt="YouTube Views"></a>
 </p>
 
 ## Data

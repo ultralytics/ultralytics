@@ -18,7 +18,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Blurring using Ultralytics YOLOv8
+  <strong>Watch:</strong> Object Blurring using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=ydGdibB5Mds" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/ydGdibB5Mds" alt="YouTube Views"></a>
 </p>
 
 ## Advantages of Object Blurring?

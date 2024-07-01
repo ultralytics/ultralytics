@@ -17,7 +17,7 @@ We've listened to the high demand and widespread interest and are thrilled to un
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> New Feature 🌟 Introducing Ultralytics HUB Cloud Training
+  <strong>Watch:</strong> New Feature 🌟 Introducing Ultralytics HUB Cloud Training <a href="https://www.youtube.com/watch?v=ie3vLUDNYZo" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/ie3vLUDNYZo" alt="YouTube Views"></a>
 </p>
 
 ## Train Model

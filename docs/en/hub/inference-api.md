@@ -17,7 +17,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to r
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics HUB Inference API Walkthrough
+  <strong>Watch:</strong> Ultralytics HUB Inference API Walkthrough <a href="https://www.youtube.com/watch?v=OpWpBI35A5Y" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/OpWpBI35A5Y" alt="YouTube Views"></a>
 </p>
 
 ## Python

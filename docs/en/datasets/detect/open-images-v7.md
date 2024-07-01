@@ -16,7 +16,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection using OpenImagesV7 Pretrained Model
+  <strong>Watch:</strong> Object Detection using OpenImagesV7 Pretrained Model <a href="https://www.youtube.com/watch?v=u3pLlgzUeV8" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/u3pLlgzUeV8" alt="YouTube Views"></a>
 </p>
 
 ## Open Images V7 Pretrained Models

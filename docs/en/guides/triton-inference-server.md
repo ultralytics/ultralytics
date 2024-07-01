@@ -16,7 +16,7 @@ The [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inferen
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Getting Started with NVIDIA Triton Inference Server.
+  <strong>Watch:</strong> Getting Started with NVIDIA Triton Inference Server. <a href="https://www.youtube.com/watch?v=NQDtfSi5QF4" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/NQDtfSi5QF4" alt="YouTube Views"></a>
 </p>
 
 ## What is Triton Inference Server?

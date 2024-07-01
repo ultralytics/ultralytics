@@ -19,7 +19,7 @@ The Explorer API is a Python API for exploring your datasets. It supports filter
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Explorer API Overview
+  <strong>Watch:</strong> Ultralytics Explorer API Overview <a href="https://www.youtube.com/watch?v=3VryynorQeo" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/3VryynorQeo" alt="YouTube Views"></a>
 </p>
 
 ## Installation

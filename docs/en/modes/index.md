@@ -20,7 +20,7 @@ Ultralytics YOLOv8 is not just another object detection model; it's a versatile 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Modes Tutorial: Train, Validate, Predict, Export & Benchmark.
+  <strong>Watch:</strong> Ultralytics Modes Tutorial: Train, Validate, Predict, Export & Benchmark. <a href="https://www.youtube.com/watch?v=j8uQc0qB91s" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/j8uQc0qB91s" alt="YouTube Views"></a>
 </p>
 
 ### Modes at a Glance

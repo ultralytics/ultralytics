@@ -17,7 +17,7 @@ Once uploaded, datasets can be immediately utilized for model training. This int
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Watch: Upload Datasets to Ultralytics HUB | Complete Walkthrough of Dataset Upload Feature
+  <strong>Watch:</strong> Watch: Upload Datasets to Ultralytics HUB | Complete Walkthrough of Dataset Upload Feature <a href="https://www.youtube.com/watch?v=R42s2zFtNIY" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/R42s2zFtNIY" alt="YouTube Views"></a>
 </p>
 
 ## Upload Dataset

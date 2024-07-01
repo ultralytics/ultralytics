@@ -20,7 +20,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Modes Tutorial: Benchmark
+  <strong>Watch:</strong> Ultralytics Modes Tutorial: Benchmark <a href="https://www.youtube.com/watch?v=j8uQc0qB91s" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/j8uQc0qB91s" alt="YouTube Views"></a>
 </p>
 
 ## Why Is Benchmarking Crucial?

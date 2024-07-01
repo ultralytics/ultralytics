@@ -59,7 +59,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB <a href="https://www.youtube.com/watch?v=lveF9iCMIzc" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/lveF9iCMIzc" alt="YouTube Views"></a>
 </p>
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!

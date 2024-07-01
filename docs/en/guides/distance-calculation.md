@@ -18,7 +18,7 @@ Measuring the gap between two objects is known as distance calculation within a 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Distance Calculation using Ultralytics YOLOv8
+  <strong>Watch:</strong> Distance Calculation using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=LE8am1QoVn4" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/LE8am1QoVn4" alt="YouTube Views"></a>
 </p>
 
 ## Visuals

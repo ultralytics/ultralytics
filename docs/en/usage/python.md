@@ -16,7 +16,7 @@ Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Python
+  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Python <a href="https://www.youtube.com/watch?v=GsXGnb-A4Kc" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/GsXGnb-A4Kc" alt="YouTube Views"></a>
 </p>
 
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code.

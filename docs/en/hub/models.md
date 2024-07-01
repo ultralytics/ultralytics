@@ -17,7 +17,7 @@ The process is user-friendly and efficient, involving a simple three-step creati
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics HUB Training and Validation Overview
+  <strong>Watch:</strong> Ultralytics HUB Training and Validation Overview <a href="https://www.youtube.com/watch?v=YVlkq5H2tAQ" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/YVlkq5H2tAQ" alt="YouTube Views"></a>
 </p>
 
 ## Train Model

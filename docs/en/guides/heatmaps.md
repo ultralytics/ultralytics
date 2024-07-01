@@ -18,7 +18,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Heatmaps using Ultralytics YOLOv8
+  <strong>Watch:</strong> Heatmaps using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=4ezde5-nZZw" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/4ezde5-nZZw" alt="YouTube Views"></a>
 </p>
 
 ## Why Choose Heatmaps for Data Analysis?

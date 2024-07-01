@@ -20,7 +20,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLOv8 Model for Inference with OpenVINO.
+  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLOv8 Model for Inference with OpenVINO. <a href="https://www.youtube.com/watch?v=kONm9nE5_Fk" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/kONm9nE5_Fk" alt="YouTube Views"></a>
 </p>
 
 ## Usage Examples

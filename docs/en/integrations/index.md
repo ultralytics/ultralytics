@@ -18,7 +18,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Deployment and Integrations
+  <strong>Watch:</strong> Ultralytics YOLOv8 Deployment and Integrations <a href="https://www.youtube.com/watch?v=ZzUSXQkLbNw" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/ZzUSXQkLbNw" alt="YouTube Views"></a>
 </p>
 
 ## Datasets Integrations

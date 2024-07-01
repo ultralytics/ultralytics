@@ -712,6 +712,7 @@ class RepVGGDW(torch.nn.Module):
     """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
 
     def __init__(self, ed) -> None:
+        """Initializes RepVGGDW with depthwise separable convolutional layers for efficient processing."""
         super().__init__()
         self.conv = Conv(ed, ed, 7, 1, 3, g=ed, act=False)
         self.conv1 = Conv(ed, ed, 3, 1, 1, g=ed, act=False)

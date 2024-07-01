@@ -26,24 +26,24 @@ Computer vision models learn from datasets by detecting patterns, making predict
 
 Here are two points to keep in mind before testing your model:
 
-- _Realistic Representation:_ The previously unseen testing data should be similar to the data that the model will have to handle when deployed. This helps get a realistic understanding of the model’s capabilities.
-- _Sufficient Size:_ The size of the testing dataset needs to be large enough to provide reliable insights into how well the model performs.
+- **Realistic Representation:** The previously unseen testing data should be similar to the data that the model will have to handle when deployed. This helps get a realistic understanding of the model’s capabilities.
+- **Sufficient Size:** The size of the testing dataset needs to be large enough to provide reliable insights into how well the model performs.
 
 ## Testing Your Computer Vision Model
 
 Here are the key steps to take to test your computer vision model and understand its performance.
 
-- _Run Predictions:_ Use the model to make predictions on the test dataset.
-- _Compare Predictions:_ Check how well the model's predictions match the actual labels (ground truth).
-- _Calculate Performance Metrics:_ [Compute metrics](./yolo-performance-metrics.md) like accuracy, precision, recall, and F1 score to understand the model’s strengths and weaknesses. Testing focuses on how these metrics reflect real-world performance.
-- _Visualize Results:_ Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
-- _Visualize Results:_ Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
+- **Run Predictions:** Use the model to make predictions on the test dataset.
+- **Compare Predictions:** Check how well the model's predictions match the actual labels (ground truth).
+- **Calculate Performance Metrics:** [Compute metrics](./yolo-performance-metrics.md) like accuracy, precision, recall, and F1 score to understand the model’s strengths and weaknesses. Testing focuses on how these metrics reflect real-world performance.
+- **Visualize Results:** Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
+- **Visualize Results:** Create visual aids like confusion matrices and ROC curves. These help you spot specific areas where the model might not be performing well in practical applications.
 
 Next, the testing results can be analyzed:
 
-- _Misclassified Images:_ Identify and review images that the model misclassified to understand where it is going wrong.
-- _Error Analysis:_ Perform a thorough error analysis to understand the types of errors (e.g., false positives vs. false negatives) and their potential causes.
-- _Bias and Fairness:_ Check for any biases in the model’s predictions. Ensure that the model performs equally well across different subsets of the data, especially if it includes sensitive attributes like race, gender, or age.
+- **Misclassified Images:** Identify and review images that the model misclassified to understand where it is going wrong.
+- **Error Analysis:** Perform a thorough error analysis to understand the types of errors (e.g., false positives vs. false negatives) and their potential causes.
+- **Bias and Fairness:** Check for any biases in the model’s predictions. Ensure that the model performs equally well across different subsets of the data, especially if it includes sensitive attributes like race, gender, or age.
 
 ## Testing Your YOLOv8 Model
 
@@ -55,8 +55,8 @@ If you want to test your trained YOLOv8 model on multiple images stored in a fol
 
 ### Difference Between Validation and Prediction Modes
 
-- _[Validation Mode](../modes/val.md):_ Used to evaluate the model's performance by comparing predictions against known labels (ground truth). It provides detailed metrics such as accuracy, precision, recall, and F1 score.
-- _[Prediction Mode](../modes/predict.md):_ Used to run the model on new, unseen data to generate predictions. It does not provide detailed performance metrics but allows you to see how the model performs on real-world images.
+- **[Validation Mode](../modes/val.md):** Used to evaluate the model's performance by comparing predictions against known labels (ground truth). It provides detailed metrics such as accuracy, precision, recall, and F1 score.
+- **[Prediction Mode](../modes/predict.md):** Used to run the model on new, unseen data to generate predictions. It does not provide detailed performance metrics but allows you to see how the model performs on real-world images.
 
 ## Running YOLOv8 Predictions Without Custom Training
 
@@ -72,8 +72,8 @@ Overfitting happens when your model learns the training data too well, including
 
 #### Signs of Overfitting
 
-- _High Training Accuracy, Low Validation Accuracy:_ If your model performs very well on training data but poorly on validation or test data, it's likely overfitting.
-- _Visual Inspection:_ Sometimes, you can see overfitting if your model is too sensitive to minor changes or irrelevant details in images.
+- **High Training Accuracy, Low Validation Accuracy:** If your model performs very well on training data but poorly on validation or test data, it's likely overfitting.
+- **Visual Inspection:** Sometimes, you can see overfitting if your model is too sensitive to minor changes or irrelevant details in images.
 
 ### Underfitting
 
@@ -81,8 +81,8 @@ Underfitting occurs when your model can’t capture the underlying patterns in t
 
 #### Signs of Underfitting
 
-- _Low Training Accuracy:_ If your model can't achieve high accuracy on the training set, it might be underfitting.
-- _Visual Misclassification:_ Consistent failure to recognize obvious features or objects suggests underfitting.
+- **Low Training Accuracy:** If your model can't achieve high accuracy on the training set, it might be underfitting.
+- **Visual Misclassification:** Consistent failure to recognize obvious features or objects suggests underfitting.
 
 ### Balancing Overfitting and Underfitting
 
@@ -99,20 +99,20 @@ While testing your model, something important to keep in mind is data leakage. D
 
 Data leakage can be tricky to spot and often comes from hidden biases in the training data. Here are some common ways it can happen in computer vision:
 
-- _Camera Bias:_ Different angles, lighting, shadows, and camera movements can introduce unwanted patterns.
-- _Overlay Bias:_ Logos, timestamps, or other overlays in images can mislead the model.
-- _Font and Object Bias:_ Specific fonts or objects that frequently appear in certain classes can skew the model’s learning.
-- _Spatial Bias:_ Imbalances in foreground-background, bounding box distributions, and object locations can affect training.
-- _Label and Domain Bias:_ Incorrect labels or shifts in data types can lead to leakage.
+- **Camera Bias:** Different angles, lighting, shadows, and camera movements can introduce unwanted patterns.
+- **Overlay Bias:** Logos, timestamps, or other overlays in images can mislead the model.
+- **Font and Object Bias:** Specific fonts or objects that frequently appear in certain classes can skew the model’s learning.
+- **Spatial Bias:** Imbalances in foreground-background, bounding box distributions, and object locations can affect training.
+- **Label and Domain Bias:** Incorrect labels or shifts in data types can lead to leakage.
 
 ### Detecting Data Leakage
 
 To find data leakage, you can:
 
-- _Check Performance:_ If the model's results are surprisingly good, it might be leaking.
-- _Look at Feature Importance:_ If one feature is much more important than others, it could indicate leakage.
-- _Visual Inspection:_ Double-check that the model’s decisions make sense intuitively.
-- _Verify Data Separation:_ Make sure data was divided correctly before any processing.
+- **Check Performance:** If the model's results are surprisingly good, it might be leaking.
+- **Look at Feature Importance:** If one feature is much more important than others, it could indicate leakage.
+- **Visual Inspection:** Double-check that the model’s decisions make sense intuitively.
+- **Verify Data Separation:** Make sure data was divided correctly before any processing.
 
 ### Avoiding Data Leakage
 

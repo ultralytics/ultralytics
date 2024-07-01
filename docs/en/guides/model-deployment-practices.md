@@ -76,12 +76,12 @@ You may face challenges while deploying your computer vision models, but underst
 
 Experiencing a drop in your model's accuracy after deployment can be frustrating. This issue can stem from various factors. Here are some steps to help you identify and resolve the problem:
 
-- _Check Data Consistency_: Check that the data your model is processing post-deployment is consistent with the data it was trained on. Differences in data distribution, quality, or format can significantly impact performance.
-- _Validate Preprocessing Steps_: Verify that all preprocessing steps applied during training are also applied consistently during deployment. This includes resizing images, normalizing pixel values, and other data transformations.
-- _Evaluate the Model's Environment_: Ensure that the hardware and software configurations used during deployment match those used during training. Differences in libraries, versions, and hardware capabilities can introduce discrepancies.
-- _Monitor Model Inference_: Log inputs and outputs at various stages of the inference pipeline to detect any anomalies. It can help identify issues like data corruption or improper handling of model outputs.
-- _Review Model Export and Conversion_: Re-export the model and make sure that the conversion process maintains the integrity of the model weights and architecture.
-- _Test with a Controlled Dataset_: Deploy the model in a test environment with a dataset you control and compare the results with the training phase. You can identify if the issue is with the deployment environment or the data.
+- **Check Data Consistency:** Check that the data your model is processing post-deployment is consistent with the data it was trained on. Differences in data distribution, quality, or format can significantly impact performance.
+- **Validate Preprocessing Steps:** Verify that all preprocessing steps applied during training are also applied consistently during deployment. This includes resizing images, normalizing pixel values, and other data transformations.
+- **Evaluate the Model's Environment:** Ensure that the hardware and software configurations used during deployment match those used during training. Differences in libraries, versions, and hardware capabilities can introduce discrepancies.
+- **Monitor Model Inference:** Log inputs and outputs at various stages of the inference pipeline to detect any anomalies. It can help identify issues like data corruption or improper handling of model outputs.
+- **Review Model Export and Conversion:** Re-export the model and make sure that the conversion process maintains the integrity of the model weights and architecture.
+- **Test with a Controlled Dataset:** Deploy the model in a test environment with a dataset you control and compare the results with the training phase. You can identify if the issue is with the deployment environment or the data.
 
 When deploying YOLOv8, several factors can affect model accuracy. Converting models to formats like [TensorRT](../integrations/tensorrt.md) involves optimizations such as weight quantization and layer fusion, which can cause minor precision losses. Using FP16 (half-precision) instead of FP32 (full-precision) can speed up inference but may introduce numerical precision errors. Also, hardware constraints, like those on the [Jetson Nano](./nvidia-jetson.md), with lower CUDA core counts and reduced memory bandwidth, can impact performance.
 
@@ -89,11 +89,11 @@ When deploying YOLOv8, several factors can affect model accuracy. Converting mod
 
 When deploying machine learning models, it's important that they run efficiently. If inferences are taking longer than expected, it can affect the user experience and the effectiveness of your application. Here are some steps to help you identify and resolve the problem:
 
-- _Implement Warm-Up Runs_: Initial runs often include setup overhead, which can skew latency measurements. Perform a few warm-up inferences before measuring latency. Excluding these initial runs provides a more accurate measurement of the model's performance.
-- _Optimize the Inference Engine_: Double-check that the inference engine is fully optimized for your specific GPU architecture. Use the latest drivers and software versions tailored to your hardware to ensure maximum performance and compatibility.
-- _Use Asynchronous Processing_: Asynchronous processing can help manage workloads more efficiently. Use asynchronous processing techniques to handle multiple inferences concurrently, which can help distribute the load and reduce wait times.
-- _Profile the Inference Pipeline_: Identifying bottlenecks in the inference pipeline can help pinpoint the source of delays. Use profiling tools to analyze each step of the inference process, identifying and addressing any stages that cause significant delays, such as inefficient layers or data transfer issues.
-- _Use Appropriate Precision_: Using higher precision than necessary can slow down inference times. Experiment with using lower precision, such as FP16 (half-precision), instead of FP32 (full-precision). While FP16 can reduce inference time, also keep in mind that it can impact model accuracy.
+- **Implement Warm-Up Runs**: Initial runs often include setup overhead, which can skew latency measurements. Perform a few warm-up inferences before measuring latency. Excluding these initial runs provides a more accurate measurement of the model's performance.
+- **Optimize the Inference Engine:** Double-check that the inference engine is fully optimized for your specific GPU architecture. Use the latest drivers and software versions tailored to your hardware to ensure maximum performance and compatibility.
+- **Use Asynchronous Processing:** Asynchronous processing can help manage workloads more efficiently. Use asynchronous processing techniques to handle multiple inferences concurrently, which can help distribute the load and reduce wait times.
+- **Profile the Inference Pipeline:** Identifying bottlenecks in the inference pipeline can help pinpoint the source of delays. Use profiling tools to analyze each step of the inference process, identifying and addressing any stages that cause significant delays, such as inefficient layers or data transfer issues.
+- **Use Appropriate Precision:** Using higher precision than necessary can slow down inference times. Experiment with using lower precision, such as FP16 (half-precision), instead of FP32 (full-precision). While FP16 can reduce inference time, also keep in mind that it can impact model accuracy.
 
 If you are facing this issue while deploying YOLOv8, consider that YOLOv8 offers [various model sizes](../models/yolov8.md), such as YOLOv8n (nano) for devices with lower memory capacity and YOLOv8x (extra-large) for more powerful GPUs. Choosing the right model variant for your hardware can help balance memory usage and processing time.
 

@@ -23,11 +23,24 @@ class BaseTensor(SimpleClass):
 
     def __init__(self, data, orig_shape) -> None:
         """
-        Initialize BaseTensor with data and original shape.
+        Initialize BaseTensor with prediction data and the original shape of the image.
 
         Args:
-            data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
-            orig_shape (tuple): Original shape of image.
+            data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
+            orig_shape (tuple): Original shape of the image, typically in the format (height, width).
+
+        Returns:
+            (None)
+
+        Example:
+            ```python
+            import torch
+            from ultralytics.engine.results import BaseTensor
+
+            data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            orig_shape = (720, 1280)
+            base_tensor = BaseTensor(data, orig_shape)
+            ```
         """
         assert isinstance(data, (torch.Tensor, np.ndarray))
         self.data = data
@@ -35,19 +48,19 @@ class BaseTensor(SimpleClass):
 
     @property
     def shape(self):
-        """Return the shape of the data tensor."""
+        """Returns the shape of the underlying data tensor for easier manipulation and device handling."""
         return self.data.shape
 
     def cpu(self):
-        """Return a copy of the tensor on CPU memory."""
+        """Return a copy of the tensor stored in CPU memory."""
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """Return a copy of the tensor as a numpy array."""
+        """Returns a copy of the tensor as a numpy array for efficient numerical operations."""
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
 
     def cuda(self):
-        """Return a copy of the tensor on GPU memory."""
+        """Moves the tensor to GPU memory, returning a new instance if necessary."""
         return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
@@ -55,11 +68,11 @@ class BaseTensor(SimpleClass):
         return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
 
     def __len__(self):  # override len(results)
-        """Return the length of the data tensor."""
+        """Return the length of the underlying data tensor."""
         return len(self.data)
 
     def __getitem__(self, idx):
-        """Return a BaseTensor with the specified index of the data tensor."""
+        """Return a new BaseTensor instance containing the specified indexed elements of the data tensor."""
         return self.__class__(self.data[idx], self.orig_shape)
 
 
@@ -98,7 +111,7 @@ class Results(SimpleClass):
         self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
     ) -> None:
         """
-        Initialize the Results class.
+        Initialize the Results class for storing and manipulating inference results.
 
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
@@ -109,6 +122,15 @@ class Results(SimpleClass):
             probs (torch.tensor, optional): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.tensor, optional): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.tensor, optional): A 2D tensor of oriented bounding box coordinates for each detection.
+            speed (dict, optional): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+
+        Returns:
+            None
+
+        Example:
+            ```python
+            results = model("path/to/image.jpg")
+            ```
         """
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -124,18 +146,18 @@ class Results(SimpleClass):
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
 
     def __getitem__(self, idx):
-        """Return a Results object for the specified index."""
+        """Return a Results object for a specific index of inference results."""
         return self._apply("__getitem__", idx)
 
     def __len__(self):
-        """Return the number of detections in the Results object."""
+        """Return the number of detections in the Results object from a non-empty attribute set (boxes, masks, etc.)."""
         for k in self._keys:
             v = getattr(self, k)
             if v is not None:
                 return len(v)
 
     def update(self, boxes=None, masks=None, probs=None, obb=None):
-        """Update the boxes, masks, and probs attributes of the Results object."""
+        """Updates detection results attributes including boxes, masks, probs, and obb with new data."""
         if boxes is not None:
             self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
         if masks is not None:
@@ -156,7 +178,15 @@ class Results(SimpleClass):
             **kwargs: Arbitrary keyword arguments to pass to the function.
 
         Returns:
-            Results: A new Results object with attributes modified by the applied function.
+            (Results): A new Results object with attributes modified by the applied function.
+
+        Example:
+            ```python
+            results = model("path/to/image.jpg")
+            for result in results:
+                result_cuda = result.cuda()
+                result_cpu = result.cpu()
+            ```
         """
         r = self.new()
         for k in self._keys:
@@ -166,23 +196,23 @@ class Results(SimpleClass):
         return r
 
     def cpu(self):
-        """Return a copy of the Results object with all tensors on CPU memory."""
+        """Returns a copy of the Results object with all its tensors moved to CPU memory."""
         return self._apply("cpu")
 
     def numpy(self):
-        """Return a copy of the Results object with all tensors as numpy arrays."""
+        """Returns a copy of the Results object with all tensors as numpy arrays."""
         return self._apply("numpy")
 
     def cuda(self):
-        """Return a copy of the Results object with all tensors on GPU memory."""
+        """Moves all tensors in the Results object to GPU memory."""
         return self._apply("cuda")
 
     def to(self, *args, **kwargs):
-        """Return a copy of the Results object with tensors on the specified device and dtype."""
+        """Moves all tensors in the Results object to the specified device and dtype."""
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Return a new Results object with the same image, path, names and speed."""
+        """Returns a new Results object with the same image, path, names, and speed attributes."""
         return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
@@ -220,7 +250,7 @@ class Results(SimpleClass):
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
             masks (bool): Whether to plot the masks.
-            probs (bool): Whether to plot classification probability
+            probs (bool): Whether to plot classification probability.
             show (bool): Whether to display the annotated image directly.
             save (bool): Whether to save the annotated image to `filename`.
             filename (str): Filename to save image to if save is True.
@@ -304,18 +334,18 @@ class Results(SimpleClass):
         return annotator.result()
 
     def show(self, *args, **kwargs):
-        """Show annotated results image."""
+        """Show the image with annotated inference results."""
         self.plot(show=True, *args, **kwargs)
 
     def save(self, filename=None, *args, **kwargs):
-        """Save annotated results image."""
+        """Save annotated inference results image to file."""
         if not filename:
             filename = f"results_{Path(self.path).name}"
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
     def verbose(self):
-        """Return log string for each task."""
+        """Returns a log string for each task in the results, detailing detection and classification outcomes."""
         log_string = ""
         probs = self.probs
         boxes = self.boxes
@@ -331,11 +361,35 @@ class Results(SimpleClass):
 
     def save_txt(self, txt_file, save_conf=False):
         """
-        Save predictions into txt file.
+        Save detection results to a text file.
 
         Args:
-            txt_file (str): txt file path.
-            save_conf (bool): save confidence score or not.
+            txt_file (str): Path to the output text file.
+            save_conf (bool): Whether to include confidence scores in the output.
+
+        Returns:
+            (str): Path to the saved text file.
+
+        Example:
+            ```python
+            from ultralytics import YOLO
+
+            model = YOLO('yolov8n.pt')
+            results = model("path/to/image.jpg")
+            for result in results:
+                result.save_txt("output.txt")
+            ```
+
+        Notes:
+            - The file will contain one line per detection or classification with the following structure:
+                - For detections: `class confidence x_center y_center width height`
+                - For classifications: `confidence class_name`
+                - For masks and keypoints, the specific formats will vary accordingly.
+
+            - The function will create the output directory if it does not exist.
+            - If save_conf is False, the confidence scores will be excluded from the output.
+
+            - Existing contents of the file will not be overwritten; new results will be appended.
         """
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
@@ -367,11 +421,27 @@ class Results(SimpleClass):
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
         """
-        Save cropped predictions to `save_dir/cls/file_name.jpg`.
+        Save cropped detection images to `save_dir/cls/file_name.jpg`.
 
         Args:
-            save_dir (str | pathlib.Path): Save path.
-            file_name (str | pathlib.Path): File name.
+            save_dir (str | pathlib.Path): Directory path where the cropped images should be saved.
+            file_name (str | pathlib.Path): Filename for the saved cropped image.
+
+        Notes:
+            This function does not support Classify or Oriented Bounding Box (OBB) tasks. It will warn and exit if
+            called for such tasks.
+
+        Example:
+            ```python
+            from ultralytics import YOLO
+
+            model = YOLO("yolov8n.pt")
+            results = model("path/to/image.jpg")
+
+            # Save cropped images to the specified directory
+            for result in results:
+                result.save_crop(save_dir="path/to/save/crops", file_name="crop")
+            ```
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
@@ -388,7 +458,7 @@ class Results(SimpleClass):
             )
 
     def summary(self, normalize=False, decimals=5):
-        """Convert the results to a summarized format."""
+        """Convert inference results to a summarized dictionary with optional normalization for box coordinates."""
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
@@ -432,7 +502,7 @@ class Results(SimpleClass):
         return results
 
     def tojson(self, normalize=False, decimals=5):
-        """Convert the results to JSON format."""
+        """Converts detection results to JSON format."""
         import json
 
         return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
@@ -449,7 +519,7 @@ class Boxes(BaseTensor):
         orig_shape (tuple): The original image size as a tuple (height, width), used for normalization.
         is_track (bool): Indicates whether tracking IDs are included in the box data.
 
-    Properties:
+    Attributes:
         xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
@@ -467,13 +537,16 @@ class Boxes(BaseTensor):
 
     def __init__(self, boxes, orig_shape) -> None:
         """
-        Initialize the Boxes class.
+        Initialize the Boxes class with detection box data and the original image shape.
 
         Args:
-            boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes, with
-                shape (num_boxes, 6) or (num_boxes, 7). The last two columns contain confidence and class values.
-                If present, the third last column contains track IDs.
-            orig_shape (tuple): Original image size, in the format (height, width).
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6)
+                or (num_boxes, 7). Columns should contain [x1, y1, x2, y2, confidence, class, (optional) track_id].
+                The track ID  column is included if present.
+            orig_shape (tuple): The original image shape as (height, width). Used for normalization.
+
+        Returns:
+            (None)
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]
@@ -485,34 +558,34 @@ class Boxes(BaseTensor):
 
     @property
     def xyxy(self):
-        """Return the boxes in xyxy format."""
+        """Returns bounding boxes in [x1, y1, x2, y2] format."""
         return self.data[:, :4]
 
     @property
     def conf(self):
-        """Return the confidence values of the boxes."""
+        """Returns the confidence scores for each detection box."""
         return self.data[:, -2]
 
     @property
     def cls(self):
-        """Return the class values of the boxes."""
+        """Class ID tensor representing category predictions for each bounding box."""
         return self.data[:, -1]
 
     @property
     def id(self):
-        """Return the track IDs of the boxes (if available)."""
+        """Return the tracking IDs for each box if available."""
         return self.data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
-        """Return the boxes in xywh format."""
+        """Returns boxes in [x, y, width, height] format."""
         return ops.xyxy2xywh(self.xyxy)
 
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        """Return the boxes in xyxy format normalized by original image size."""
+        """Normalize box coordinates to [x1, y1, x2, y2] relative to the original image size."""
         xyxy = self.xyxy.clone() if isinstance(self.xyxy, torch.Tensor) else np.copy(self.xyxy)
         xyxy[..., [0, 2]] /= self.orig_shape[1]
         xyxy[..., [1, 3]] /= self.orig_shape[0]
@@ -521,7 +594,7 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
-        """Return the boxes in xywh format normalized by original image size."""
+        """Returns normalized bounding boxes in [x, y, width, height] format."""
         xywh = ops.xyxy2xywh(self.xyxy)
         xywh[..., [0, 2]] /= self.orig_shape[1]
         xywh[..., [1, 3]] /= self.orig_shape[0]
@@ -544,7 +617,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        """Initialize the Masks class with the given masks tensor and original image shape."""
+        """Initializes the Masks class with a masks tensor and original image shape."""
         if masks.ndim == 2:
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
@@ -552,7 +625,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """Return normalized segments."""
+        """Return normalized xy-coordinates of the segmentation masks."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)
@@ -561,7 +634,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        """Return segments in pixel coordinates."""
+        """Returns the [x, y] normalized mask coordinates for each segment in the mask tensor."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)
@@ -572,7 +645,7 @@ class Keypoints(BaseTensor):
     """
     A class for storing and manipulating detection keypoints.
 
-    Attributes:
+    Attributes
         xy (torch.Tensor): A collection of keypoints containing x, y coordinates for each detection.
         xyn (torch.Tensor): A normalized version of xy with coordinates in the range [0, 1].
         conf (torch.Tensor): Confidence values associated with keypoints if available, otherwise None.
@@ -586,7 +659,7 @@ class Keypoints(BaseTensor):
 
     @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
-        """Initializes the Keypoints object with detection keypoints and original image size."""
+        """Initializes the Keypoints object with detection keypoints and original image dimensions."""
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         if keypoints.shape[2] == 3:  # x, y, conf
@@ -604,7 +677,7 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """Returns normalized x, y coordinates of keypoints."""
+        """Returns normalized coordinates (x, y) of keypoints relative to the original image size."""
         xy = self.xy.clone() if isinstance(self.xy, torch.Tensor) else np.copy(self.xy)
         xy[..., 0] /= self.orig_shape[1]
         xy[..., 1] /= self.orig_shape[0]
@@ -613,7 +686,7 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def conf(self):
-        """Returns confidence values of keypoints if available, else None."""
+        """Returns confidence values for each keypoint."""
         return self.data[..., 2] if self.has_visible else None
 
 
@@ -621,7 +694,7 @@ class Probs(BaseTensor):
     """
     A class for storing and manipulating classification predictions.
 
-    Attributes:
+    Attributes
         top1 (int): Index of the top 1 class.
         top5 (list[int]): Indices of the top 5 classes.
         top1conf (torch.Tensor): Confidence of the top 1 class.
@@ -635,31 +708,31 @@ class Probs(BaseTensor):
     """
 
     def __init__(self, probs, orig_shape=None) -> None:
-        """Initialize the Probs class with classification probabilities and optional original shape of the image."""
+        """Initialize Probs with classification probabilities and optional original image shape."""
         super().__init__(probs, orig_shape)
 
     @property
     @lru_cache(maxsize=1)
     def top1(self):
-        """Return the index of top 1."""
+        """Return the index of the class with the highest probability."""
         return int(self.data.argmax())
 
     @property
     @lru_cache(maxsize=1)
     def top5(self):
-        """Return the indices of top 5."""
+        """Return the indices of the top 5 class probabilities."""
         return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
 
     @property
     @lru_cache(maxsize=1)
     def top1conf(self):
-        """Return the confidence of top 1."""
+        """Retrieves the confidence score of the highest probability class."""
         return self.data[self.top1]
 
     @property
     @lru_cache(maxsize=1)
     def top5conf(self):
-        """Return the confidences of top 5."""
+        """Returns confidence scores for the top 5 classification predictions."""
         return self.data[self.top5]
 
 
@@ -673,7 +746,7 @@ class OBB(BaseTensor):
             If present, the third last column contains track IDs, and the fifth column from the left contains rotation.
         orig_shape (tuple): Original image size, in the format (height, width).
 
-    Attributes:
+    Attributes
         xywhr (torch.Tensor | numpy.ndarray): The boxes in [x_center, y_center, width, height, rotation] format.
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
@@ -691,7 +764,7 @@ class OBB(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
-        """Initialize the Boxes class."""
+        """Initialize an OBB instance with oriented bounding box data and original image shape."""
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
@@ -702,34 +775,34 @@ class OBB(BaseTensor):
 
     @property
     def xywhr(self):
-        """Return the rotated boxes in xywhr format."""
+        """Return boxes in [x_center, y_center, width, height, rotation] format."""
         return self.data[:, :5]
 
     @property
     def conf(self):
-        """Return the confidence values of the boxes."""
+        """Gets the confidence values of Oriented Bounding Boxes (OBBs)."""
         return self.data[:, -2]
 
     @property
     def cls(self):
-        """Return the class values of the boxes."""
+        """Returns the class values of the oriented bounding boxes."""
         return self.data[:, -1]
 
     @property
     def id(self):
-        """Return the track IDs of the boxes (if available)."""
+        """Return the tracking IDs of the oriented bounding boxes (if available)."""
         return self.data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxy(self):
-        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
+        """Convert OBB format to 8-point (xyxyxyxy) coordinate format of shape (N, 4, 2) for rotated bounding boxes."""
         return ops.xywhr2xyxyxyxy(self.xywhr)
 
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxyn(self):
-        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
+        """Converts rotated bounding boxes to normalized xyxyxyxy format of shape (N, 4, 2)."""
         xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
         xyxyxyxyn[..., 0] /= self.orig_shape[1]
         xyxyxyxyn[..., 1] /= self.orig_shape[0]
@@ -739,9 +812,28 @@ class OBB(BaseTensor):
     @lru_cache(maxsize=2)
     def xyxy(self):
         """
-        Return the horizontal boxes in xyxy format, (N, 4).
+        Convert the oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format (x1, y1, x2, y2).
 
-        Accepts both torch and numpy boxes.
+        Returns:
+            (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (num_boxes, 4).
+
+        Example:
+            ```python
+            import torch
+            from ultralytics import YOLO
+
+            model = YOLO('yolov8n.pt')
+            results = model('path/to/image.jpg')
+            for result in results:
+                obb = result.obb
+                if obb is not None:
+                    xyxy_boxes = obb.xyxy
+                    # Do something with xyxy_boxes
+            ```
+
+        Note:
+            This method is useful to perform operations that require axis-aligned bounding boxes, such as IoU
+            calculation with non-rotated boxes. The conversion approximates the OBB by the minimal enclosing rectangle.
         """
         x = self.xyxyxyxy[..., 0]
         y = self.xyxyxyxy[..., 1]

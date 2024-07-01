@@ -258,7 +258,7 @@ class Results(SimpleClass):
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
 
-        Example:
+        Examples:
             ```python
             from PIL import Image
             from ultralytics import YOLO
@@ -434,7 +434,7 @@ class Results(SimpleClass):
             This function does not support Classify or Oriented Bounding Box (OBB) tasks. It will warn and exit if
             called for such tasks.
 
-        Example:
+        Examples:
             ```python
             from ultralytics import YOLO
 

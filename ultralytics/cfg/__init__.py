@@ -360,7 +360,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         e (Exception, optional): An optional error instance passed by the calling function. Default is None.
 
     Returns:
-        None
+        (None)
 
     Raises:
         SystemExit: Terminates the program execution if mismatched keys are found.

@@ -1,0 +1,11 @@
+CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO
+FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/onnxruntime-objc" "${PODS_ROOT}/onnxruntime-c" "${PODS_ROOT}/onnxruntime-extensions-c" "${PODS_XCFRAMEWORKS_BUILD_DIR}/onnxruntime-c" "${PODS_XCFRAMEWORKS_BUILD_DIR}/onnxruntime-extensions-c"
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
+HEADER_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/onnxruntime-objc/onnxruntime_objc.framework/Headers" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/onnxruntime-c" "${PODS_ROOT}/Headers/Public/onnxruntime-extensions-c"
+OTHER_LDFLAGS = $(inherited) -ObjC -l"c++" -framework "onnxruntime" -framework "onnxruntime_extensions" -framework "onnxruntime_objc" -weak_framework "CoreML"
+PODS_BUILD_DIR = ${BUILD_DIR}
+PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
+PODS_PODFILE_DIR_PATH = ${SRCROOT}/.
+PODS_ROOT = ${SRCROOT}/Pods
+PODS_XCFRAMEWORKS_BUILD_DIR = $(PODS_CONFIGURATION_BUILD_DIR)/XCFrameworkIntermediates
+USE_RECURSIVE_SCRIPT_INPUTS_IN_SCRIPT_PHASES = YES

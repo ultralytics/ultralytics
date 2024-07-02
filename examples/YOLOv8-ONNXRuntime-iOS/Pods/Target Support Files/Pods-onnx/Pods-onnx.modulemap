@@ -1,0 +1,6 @@
+framework module Pods_onnx {
+  umbrella header "Pods-onnx-umbrella.h"
+
+  export *
+  module * { export * }
+}

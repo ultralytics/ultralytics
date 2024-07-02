@@ -305,7 +305,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Set paths
     data["path"] = path  # download scripts
-    for k in "train", "val", "test", "minival":
+    for k in [i for i in data.keys() if i not in ["nc", "yaml_file", "names", "path"]]:  # For all keys
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
                 x = (path / data[k]).resolve()

@@ -261,8 +261,13 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Load a YOLOv8n PyTorch model
         model = YOLO("yolov8n.pt")
 
+<<<<<<< HEAD:docs/en/integrations/openvino.md
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml")
+=======
+        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
+        results = model.benchmarks(data="coco128.yaml")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/integrations/openvino.md
         ```
     === "CLI"
 

@@ -383,9 +383,15 @@ class TinyViTBlock(nn.Module):
         """Applies attention-based transformation or padding to input 'x' before passing it through a local
         convolution.
         """
+<<<<<<< HEAD
         h, w = self.input_resolution
         b, hw, c = x.shape  # batch, height*width, channels
         assert hw == h * w, "input feature has wrong size"
+=======
+        H, W = self.input_resolution
+        B, L, C = x.shape
+        assert L == H * W, "input feature has wrong size"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         res_x = x
         if h == self.window_size and w == self.window_size:
             x = self.attn(x)
@@ -403,9 +409,15 @@ class TinyViTBlock(nn.Module):
 
             # Window partition
             x = (
+<<<<<<< HEAD
                 x.view(b, nH, self.window_size, nW, self.window_size, c)
                 .transpose(2, 3)
                 .reshape(b * nH * nW, self.window_size * self.window_size, c)
+=======
+                x.view(B, nH, self.window_size, nW, self.window_size, C)
+                .transpose(2, 3)
+                .reshape(B * nH * nW, self.window_size * self.window_size, C)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             )
             x = self.attn(x)
 
@@ -564,10 +576,17 @@ class TinyViT(nn.Module):
         img_size=224,
         in_chans=3,
         num_classes=1000,
+<<<<<<< HEAD
         embed_dims=(96, 192, 384, 768),
         depths=(2, 2, 6, 2),
         num_heads=(3, 6, 12, 24),
         window_sizes=(7, 7, 14, 7),
+=======
+        embed_dims=[96, 192, 384, 768],
+        depths=[2, 2, 6, 2],
+        num_heads=[3, 6, 12, 24],
+        window_sizes=[7, 7, 14, 7],
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         mlp_ratio=4.0,
         drop_rate=0.0,
         drop_path_rate=0.1,

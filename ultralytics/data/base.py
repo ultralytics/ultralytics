@@ -86,12 +86,22 @@ class BaseDataset(Dataset):
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
+<<<<<<< HEAD
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
+=======
+        # Cache images
+        if cache == "ram" and not self.check_cache_ram():
+            cache = False
+        self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
+        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
+        if cache:
+            self.cache_images(cache)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
@@ -115,11 +125,19 @@ class BaseDataset(Dataset):
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
             im_files = sorted(x.replace("/", os.sep) for x in f if x.split(".")[-1].lower() in IMG_FORMATS)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
+<<<<<<< HEAD
             assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
             im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
+=======
+            assert im_files, f"{self.prefix}No images found in {img_path}"
+        except Exception as e:
+            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
+        if self.fraction < 1:
+            im_files = im_files[: round(len(im_files) * self.fraction)]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -182,17 +200,29 @@ class BaseDataset(Dataset):
     def cache_images(self):
         """Cache images to memory or disk."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
+<<<<<<< HEAD
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
+=======
+        fcn = self.cache_images_to_disk if cache == "disk" else self.load_image
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, range(self.ni))
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
+<<<<<<< HEAD
                 if self.cache == "disk":
+=======
+                if cache == "disk":
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     b += self.npy_files[i].stat().st_size
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
+<<<<<<< HEAD
                 pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
+=======
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {cache})"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             pbar.close()
 
     def cache_images_to_disk(self, i):
@@ -211,6 +241,7 @@ class BaseDataset(Dataset):
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
+<<<<<<< HEAD
         success = mem_required < mem.available  # to cache or not to cache, that is the question
         if not success:
             self.cache = None
@@ -220,6 +251,17 @@ class BaseDataset(Dataset):
                 f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
             )
         return success
+=======
+        cache = mem_required < mem.available  # to cache or not to cache, that is the question
+        if not cache:
+            LOGGER.info(
+                f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
+                f'with {int(safety_margin * 100)}% safety margin but only '
+                f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
+                f"{'caching images ✅' if cache else 'not caching images ⚠️'}"
+            )
+        return cache
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""

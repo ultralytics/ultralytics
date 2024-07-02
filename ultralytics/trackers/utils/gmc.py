@@ -33,6 +33,7 @@ class GMC:
         applySparseOptFlow(self, raw_frame, detections=None): Applies the Sparse Optical Flow method to a raw frame.
     """
 
+<<<<<<< HEAD
     def __init__(self, method: str = "sparseOptFlow", downscale: int = 2) -> None:
         """
         Initialize a video tracker with specified parameters.
@@ -41,6 +42,10 @@ class GMC:
             method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
             downscale (int): Downscale factor for processing frames.
         """
+=======
+    def __init__(self, method="sparseOptFlow", downscale=2):
+        """Initialize a video tracker with specified parameters."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         super().__init__()
 
         self.method = method
@@ -67,7 +72,11 @@ class GMC:
                 maxCorners=1000, qualityLevel=0.01, minDistance=1, blockSize=3, useHarrisDetector=False, k=0.04
             )
 
+<<<<<<< HEAD
         elif self.method in {"none", "None", None}:
+=======
+        elif self.method in ["none", "None", None]:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.method = None
         else:
             raise ValueError(f"Error: Unknown GMC method:{method}")
@@ -77,6 +86,7 @@ class GMC:
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
+<<<<<<< HEAD
     def apply(self, raw_frame: np.array, detections: list = None) -> np.array:
         """
         Apply object detection on a raw frame using specified method.
@@ -100,6 +110,16 @@ class GMC:
             return self.applyEcc(raw_frame)
         elif self.method == "sparseOptFlow":
             return self.applySparseOptFlow(raw_frame)
+=======
+    def apply(self, raw_frame, detections=None):
+        """Apply object detection on a raw frame using specified method."""
+        if self.method in ["orb", "sift"]:
+            return self.applyFeatures(raw_frame, detections)
+        elif self.method == "ecc":
+            return self.applyEcc(raw_frame, detections)
+        elif self.method == "sparseOptFlow":
+            return self.applySparseOptFlow(raw_frame, detections)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         else:
             return np.eye(2, 3)
 
@@ -178,6 +198,10 @@ class GMC:
 
         # Find the keypoints
         mask = np.zeros_like(frame)
+<<<<<<< HEAD
+=======
+        # mask[int(0.05 * height): int(0.95 * height), int(0.05 * width): int(0.95 * width)] = 255
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         mask[int(0.02 * height) : int(0.98 * height), int(0.02 * width) : int(0.98 * width)] = 255
         if detections is not None:
             for det in detections:

@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.autograd import Function
 
 __all__ = (
     "Conv",
@@ -21,6 +22,24 @@ __all__ = (
     "CBAM",
     "Concat",
     "RepConv",
+<<<<<<< HEAD
+=======
+    "SqueezeExcite",
+    "DepthwiseSeparableConv",
+    "CombConv",
+    "LightConvB",
+    "LightChannelAttention",
+    "LightSpatialAttention",
+    "LightCBAM",
+    "QConv",
+    "LightDSConv",
+    "AsymmetricDWConv",
+    "AsymmetricDWConvLightConv",
+    "AsymmetricConv",
+    "adder",
+    "adder2d",
+    "adderConv",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 )
 
 
@@ -31,6 +50,45 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
+
+
+class SqueezeExcite(nn.Module):
+    """Squeeze-and-Excitation layer."""
+
+    def __init__(self, c1, reduction_ratio=0.25, act=True):
+        super(SqueezeExcite, self).__init__()
+        c2 = max(1, int(c1 * reduction_ratio))
+        # Using the Conv block with the format you provided
+        self.conv_reduce = Conv(c1, c2, k=1, act=act)
+        self.conv_expand = Conv(c2, c1, k=1, act=act)
+        self.gate_activation = nn.Sigmoid()
+
+    def forward(self, x):
+        # Spatially average the input tensor along the dimensions HxW
+        x_se = x.mean((2, 3), keepdim=True)
+        print(f"after mean {x_se.shape}")
+        x_se = self.conv_reduce(x_se)
+        print(f"conv reduce {x_se.shape}")
+        x_se = self.conv_expand(x_se)
+        print(f"conv expand {x_se.shape}")
+
+        return x * self.gate_activation(x_se)
+
+
+class DepthwiseSeparableConv(nn.Module):
+    """DepthwiseSeparable block."""
+
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True):
+        super(DepthwiseSeparableConv, self).__init__()
+
+        # Using the Conv block for depthwise and pointwise convolutions
+        self.conv_dw = Conv(c1, c1, k=k, s=s, p=p, g=c1, d=d, act=act)
+        self.conv_pw = Conv(c1, c2, k=1, act=act)
+
+    def forward(self, x):
+        x = self.conv_dw(x)
+        x = self.conv_pw(x)
+        return x
 
 
 class Conv(nn.Module):
@@ -52,6 +110,21 @@ class Conv(nn.Module):
     def forward_fuse(self, x):
         """Perform transposed convolution of 2D data."""
         return self.act(self.conv(x))
+
+
+class AsymmetricConv(nn.Module):
+    """Asymmetric Convolution."""
+
+    def __init__(self, c1, c2, s=1, act=True):
+        """Initialize Asymmetric Convolution with given parameters."""
+        super().__init__()
+        self.conv3x1 = Conv(c1, c2, (3, 1), s, act=False)
+        self.conv1x3 = Conv(c2, c2, (1, 3), s, act=act)
+
+    def forward(self, x):
+        x = self.conv3x1(x)
+        x = self.conv1x3(x)
+        return x
 
 
 class Conv2(Conv):
@@ -96,6 +169,67 @@ class LightConv(nn.Module):
     def forward(self, x):
         """Apply 2 convolutions to input tensor."""
         return self.conv2(self.conv1(x))
+
+
+import torch.nn as nn
+
+
+class LightConvB(nn.Module):
+    """Light convolution with Batch Normalization."""
+
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, act=True):
+        """Initialize Conv layers with Batch Normalization and given arguments including activation."""
+        super().__init__()
+        self.conv1 = DWConv(c1, c2, 1, act=False)
+        self.bn1 = nn.BatchNorm2d(c2)
+        self.conv2 = DWConv(c2, c2, k, act=None)
+        self.bn2 = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply 2 convolutions with Batch Normalization to input tensor."""
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        return self.act(x)
+
+
+class AsymmetricDWConv(nn.Module):
+    """Asymmetric Depth-wise Convolution."""
+
+    def __init__(self, c1, c2, act=True):
+        """Initialize asymmetric depth-wise convolution with given parameters."""
+        super().__init__()
+        # 3x1 followed by 1x3 convolutions
+        self.conv3x1 = DWConv(c1, c2, (3, 1), act=False)
+        self.conv1x3 = DWConv(c2, c2, (1, 3), act=act)
+
+    def forward(self, x):
+        x = self.conv3x1(x)
+        x = self.conv1x3(x)
+        return x
+
+
+class AsymmetricDWConvLightConv(nn.Module):
+    """Light convolution with Batch Normalization using asymmetric convolution."""
+
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, act=True):
+        """Initialize asymmetric conv layers with Batch Normalization and given arguments including activation."""
+        super().__init__()
+        self.asymmetric_conv = AsymmetricDWConv(c1, c2, act=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply asymmetric convolution with Batch Normalization to input tensor."""
+        x = self.asymmetric_conv(x)
+        x = self.bn(x)
+        return self.act(x)
 
 
 class DWConv(Conv):
@@ -296,7 +430,11 @@ class SpatialAttention(nn.Module):
     def __init__(self, kernel_size=7):
         """Initialize Spatial-attention module with kernel size argument."""
         super().__init__()
+<<<<<<< HEAD
         assert kernel_size in {3, 7}, "kernel size must be 3 or 7"
+=======
+        assert kernel_size in (3, 7), "kernel size must be 3 or 7"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         padding = 3 if kernel_size == 7 else 1
         self.cv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
         self.act = nn.Sigmoid()
@@ -331,3 +469,188 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+
+class CombConv(nn.Module):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, bias=False, act=True):
+        super().__init__()
+        # Menggunakan Conv sebagai layer pertama
+        self.layer1 = Conv(c1, c2, k, s, p, g, d, act)
+
+        # Menggunakan DWConv sebagai layer kedua
+        # Perhatikan bahwa dalam DWConv, parameter c2 dan k mungkin tidak digunakan sesuai dengan definisi DWConv yang diberikan
+        self.layer2 = DWConv(c2, c2, k, s, d, act)
+
+    def forward(self, x):
+        # Mengaplikasikan layer1, kemudian layer2
+        return self.layer2(self.layer1(x))
+
+
+class LightChannelAttention(nn.Module):
+    """Channel-attention module using LightConvB."""
+
+    def __init__(self, channels: int):
+        """Initializes the class with LightConvB layers."""
+        super().__init__()
+        self.cv1 = LightConvB(channels, channels, k=(1, 3), act=None)  # Cross Convolution with kernel (1,3)
+        self.cv2 = LightConvB(channels, channels, k=(3, 1), act=None)  # Cross Convolution with kernel (3,1)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Applies forward pass using LightConvB layers."""
+        x = self.cv1(self.pool(x))
+        x = self.cv2(x)
+        return x * self.act(x)
+
+
+class LightSpatialAttention(nn.Module):
+    """Spatial-attention module using LightConvB."""
+
+    def __init__(self):
+        """Initialize Spatial-attention module."""
+        super().__init__()
+        self.cv1 = LightConvB(2, 1, k=(1, 3), act=None)  # Cross Convolution with kernel (1,3)
+        self.cv2 = LightConvB(1, 1, k=(3, 1), act=None)  # Cross Convolution with kernel (3,1)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x):
+        """Apply channel and spatial attention on input for feature recalibration."""
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x_cat = torch.cat([avg_out, max_out], dim=1)
+        x_conv1 = self.cv1(x_cat)
+        x_conv2 = self.cv2(x_conv1)
+        return x * self.act(x_conv2)
+
+
+class LightCBAM(nn.Module):
+    """Convolutional Block Attention Module with Cross Convolution."""
+
+    def __init__(self, c1):
+        """Initialize CBAM with given input channel (c1) and kernel size."""
+        super().__init__()
+        self.channel_attention = LightChannelAttention(c1)
+        self.spatial_attention = LightSpatialAttention()
+
+    def forward(self, x):
+        """Applies the forward pass through CBAM module."""
+        return self.spatial_attention(self.channel_attention(x))
+
+
+# Ensure the DWConv class is also defined if used in LightConvB
+
+
+class QConv(nn.Module):
+    """Quantum Convolutional Layer."""
+
+    def __init__(self, n_qubits, backend, shots):
+        super(QuantumConv, self).__init__()
+        self.n_qubits = n_qubits
+        self.feature_map = ZZFeatureMap(n_qubits)
+        self.var_form = RealAmplitudes(n_qubits, reps=1)
+        self.qcircuit = TorchConnector(self.feature_map.compose(self.var_form))
+        self.backend = backend
+        self.shots = shots
+
+    def forward(self, x):
+        # Quantum convolution logic
+        return self.qcircuit(x, self.backend, self.shots)
+
+
+class LightDSConv(nn.Module):
+    """Light convolution with Batch Normalization."""
+
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, act=True):
+        """Initialize Conv layers with Batch Normalization and given arguments including activation."""
+        super().__init__()
+        self.conv1 = DWConv(c1, c2, 1, act=False)
+        self.bn1 = nn.BatchNorm2d(c2)
+        self.conv2 = DepthwiseSeparableConv(c2, c2, k, act=None)
+        self.bn2 = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        """Apply 2 convolutions with Batch Normalization to input tensor."""
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        return self.act(x)
+
+
+def adder2d_function(X, W, stride=1, padding=0):
+    n_filters, d_filter, h_filter, w_filter = W.size()
+    n_x, d_x, h_x, w_x = X.size()
+
+    h_out = (h_x - h_filter + 2 * padding) / stride + 1
+    w_out = (w_x - w_filter + 2 * padding) / stride + 1
+
+    h_out, w_out = int(h_out), int(w_out)
+    X_col = torch.nn.functional.unfold(
+        X.view(1, -1, h_x, w_x), h_filter, dilation=1, padding=padding, stride=stride
+    ).view(n_x, -1, h_out * w_out)
+    X_col = X_col.permute(1, 2, 0).contiguous().view(X_col.size(1), -1)
+    W_col = W.view(n_filters, -1)
+
+    out = adder.apply(W_col, X_col)
+
+    out = out.view(n_filters, h_out, w_out, n_x)
+    out = out.permute(3, 0, 1, 2).contiguous()
+
+    return out
+
+
+class adder(Function):
+    @staticmethod
+    def forward(ctx, W_col, X_col):
+        ctx.save_for_backward(W_col, X_col)
+        output = -(W_col.unsqueeze(2) - X_col.unsqueeze(0)).abs().sum(1)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        W_col, X_col = ctx.saved_tensors
+        grad_W_col = ((X_col.unsqueeze(0) - W_col.unsqueeze(2)) * grad_output.unsqueeze(1)).sum(2)
+        grad_W_col = grad_W_col / grad_W_col.norm(p=2).clamp(min=1e-12) * math.sqrt(W_col.size(1) * W_col.size(0)) / 5
+        grad_X_col = (-(X_col.unsqueeze(0) - W_col.unsqueeze(2)).clamp(-1, 1) * grad_output.unsqueeze(1)).sum(0)
+
+        return grad_W_col, grad_X_col
+
+
+class adder2d(nn.Module):
+    def __init__(self, input_channel, output_channel, kernel_size, stride=1, padding=0, bias=False):
+        super(adder2d, self).__init__()
+        self.stride = stride
+        self.padding = padding
+        self.input_channel = input_channel
+        self.output_channel = output_channel
+        self.kernel_size = kernel_size
+        self.adder = torch.nn.Parameter(
+            nn.init.normal_(torch.randn(output_channel, input_channel, kernel_size, kernel_size))
+        )
+        self.bias = bias
+        if bias:
+            self.b = torch.nn.Parameter(nn.init.uniform_(torch.zeros(output_channel)))
+
+    def forward(self, x):
+        output = adder2d_function(x, self.adder, self.stride, self.padding)
+        if self.bias:
+            output += self.b.unsqueeze(0).unsqueeze(2).unsqueeze(3)
+
+        return output
+
+
+class adderConv(nn.Module):
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        super().__init__()
+        # Menggunakan adder2d
+        self.conv = adder2d(c1, c2, kernel_size=k, stride=s, padding=autopad(k, p), bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        return self.act(self.bn(self.conv(x)))

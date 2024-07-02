@@ -70,7 +70,13 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
         (np.ndarray): Cost matrix computed based on IoU.
     """
 
+<<<<<<< HEAD
     if atracks and isinstance(atracks[0], np.ndarray) or btracks and isinstance(btracks[0], np.ndarray):
+=======
+    if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) or (
+        len(btracks) > 0 and isinstance(btracks[0], np.ndarray)
+    ):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         atlbrs = atracks
         btlbrs = btracks
     else:
@@ -79,6 +85,7 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
 
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if len(atlbrs) and len(btlbrs):
+<<<<<<< HEAD
         if len(atlbrs[0]) == 5 and len(btlbrs[0]) == 5:
             ious = batch_probiou(
                 np.ascontiguousarray(atlbrs, dtype=np.float32),
@@ -94,6 +101,15 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
 
 
 def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray:
+=======
+        ious = bbox_ioa(
+            np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True
+        )
+    return 1 - ious  # cost matrix
+
+
+def embedding_distance(tracks, detections, metric="cosine"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """
     Compute distance between tracks and detections based on embeddings.
 

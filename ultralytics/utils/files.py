@@ -107,7 +107,11 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
         # Method 1
         for n in range(2, 9999):
             p = f"{path}{sep}{n}{suffix}"  # increment path
+<<<<<<< HEAD
             if not os.path.exists(p):
+=======
+            if not os.path.exists(p):  #
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 break
         path = Path(p)
 
@@ -145,6 +149,7 @@ def get_latest_run(search_dir="."):
     """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
     last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ""
+<<<<<<< HEAD
 
 
 def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_names=False):
@@ -186,3 +191,5 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_name
         # Save model using model.save()
         print(f"Re-saving {model_name} model to {save_path}")
         model.save(save_path, use_dill=False)
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

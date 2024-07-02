@@ -34,6 +34,7 @@ class Colors:
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
         hexs = (
+<<<<<<< HEAD
             "042AFF",
             "0BDBEB",
             "F3F3F3",
@@ -54,6 +55,28 @@ class Colors:
             "FF1B6C",
             "FC6D2F",
             "A2FF0B",
+=======
+            "FF3838",
+            "FF9D97",
+            "FF701F",
+            "FFB21D",
+            "CFD231",
+            "48F90A",
+            "92CC17",
+            "3DDB86",
+            "1A9334",
+            "00D4BB",
+            "2C99A8",
+            "00C2FF",
+            "344593",
+            "6473FF",
+            "0018EC",
+            "8438FF",
+            "520085",
+            "CB38FF",
+            "FF95C8",
+            "FF37C7",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         )
         self.palette = [self.hex2rgb(f"#{c}") for c in hexs]
         self.n = len(self.palette)
@@ -113,6 +136,10 @@ class Annotator:
 
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
+<<<<<<< HEAD
+=======
+        assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
         self.pil = pil or non_ascii or input_is_pil
@@ -184,6 +211,7 @@ class Annotator:
             (104, 31, 17),
         }
 
+<<<<<<< HEAD
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
         """Assign text color based on background color."""
         if color in self.dark_colors:
@@ -286,6 +314,10 @@ class Annotator:
         """
 
         txt_color = self.get_txt_color(color, txt_color)
+=======
+    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
+        """Add one xyxy box to image with label."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if isinstance(box, torch.Tensor):
             box = box.tolist()
         if self.pil or not is_ascii(label):
@@ -301,7 +333,16 @@ class Annotator:
                 if p1[0] > self.im.size[1] - w:  # check if label extend beyond right side of image
                     p1 = self.im.size[1] - w, p1[1]
                 self.draw.rectangle(
+<<<<<<< HEAD
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
+=======
+                    (
+                        box[0],
+                        box[1] - h if outside else box[1],
+                        box[0] + w + 1,
+                        box[1] + 1 if outside else box[1] + h + 1,
+                    ),
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
@@ -324,7 +365,11 @@ class Annotator:
                 cv2.putText(
                     self.im,
                     label,
+<<<<<<< HEAD
                     (p1[0], p1[1] - 2 if outside else p1[1] + h - 1),
+=======
+                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     0,
                     self.sf,
                     txt_color,
@@ -828,10 +873,17 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
+<<<<<<< HEAD
     x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
     # Seaborn correlogram
     seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+=======
+    x = pd.DataFrame(boxes, columns=["x", "y", "width", "height"])
+
+    # Seaborn correlogram
+    sn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
     plt.close()
 
@@ -846,8 +898,13 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
+<<<<<<< HEAD
     seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
     seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
+=======
+    sn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
+    sn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Rectangles
     boxes[:, 0:2] = 0.5  # center
@@ -907,7 +964,11 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
+<<<<<<< HEAD
     xyxy = ops.clip_boxes(xyxy, im.shape)
+=======
+    ops.clip_boxes(xyxy, im.shape)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
@@ -919,6 +980,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
 
 @threaded
 def plot_images(
+<<<<<<< HEAD
     images: Union[torch.Tensor, np.ndarray],
     batch_idx: Union[torch.Tensor, np.ndarray],
     cls: Union[torch.Tensor, np.ndarray],
@@ -962,6 +1024,20 @@ def plot_images(
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """
+=======
+    images,
+    batch_idx,
+    cls,
+    bboxes=np.zeros(0, dtype=np.float32),
+    masks=np.zeros(0, dtype=np.uint8),
+    kpts=np.zeros((0, 51), dtype=np.float32),
+    paths=None,
+    fname="images.jpg",
+    names=None,
+    on_plot=None,
+):
+    """Plot image grid with labels."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
     if isinstance(cls, torch.Tensor):
@@ -985,7 +1061,12 @@ def plot_images(
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+<<<<<<< HEAD
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+=======
+        im = im.transpose(1, 2, 0)
+        mosaic[y : y + h, x : x + w, :] = im
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)
@@ -1005,7 +1086,10 @@ def plot_images(
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype("int")
+<<<<<<< HEAD
             labels = confs is None
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
             if len(bboxes):
                 boxes = bboxes[idx]
@@ -1024,10 +1108,16 @@ def plot_images(
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
+<<<<<<< HEAD
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
                         annotator.box_label(box, label, color=color, rotated=is_obb)
 
+=======
+                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                        label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
+                        annotator.box_label(box, label, color=color)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             elif len(classes):
                 for c in classes:
                     color = colors(c)
@@ -1220,7 +1310,15 @@ def plot_tune_results(csv_file="tune_results.csv"):
         plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
         if i % n != 0:
             plt.yticks([])
+<<<<<<< HEAD
     _save_one_file(csv_file.with_name("tune_scatter_plots.png"))
+=======
+
+    file = csv_file.with_name("tune_scatter_plots.png")  # filename
+    plt.savefig(file, dpi=200)
+    plt.close()
+    LOGGER.info(f"Saved {file}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Fitness vs iteration
     x = range(1, len(fitness) + 1)
@@ -1232,7 +1330,15 @@ def plot_tune_results(csv_file="tune_results.csv"):
     plt.ylabel("Fitness")
     plt.grid(True)
     plt.legend()
+<<<<<<< HEAD
     _save_one_file(csv_file.with_name("tune_fitness.png"))
+=======
+
+    file = csv_file.with_name("tune_fitness.png")  # filename
+    plt.savefig(file, dpi=200)
+    plt.close()
+    LOGGER.info(f"Saved {file}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def output_to_target(output, max_det=300):
@@ -1246,6 +1352,7 @@ def output_to_target(output, max_det=300):
     return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
+<<<<<<< HEAD
 def output_to_rotated_target(output, max_det=300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
@@ -1257,6 +1364,8 @@ def output_to_rotated_target(output, max_det=300):
     return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.
@@ -1268,7 +1377,11 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
         save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
     """
+<<<<<<< HEAD
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
+=======
+    for m in ["Detect", "Pose", "Segment"]:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if m in module_type:
             return
     if isinstance(x, torch.Tensor):
@@ -1276,6 +1389,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         if height > 1 and width > 1:
             f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
 
+<<<<<<< HEAD
             blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
             n = min(n, channels)  # number of plots
             _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
@@ -1289,3 +1403,18 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
             plt.savefig(f, dpi=300, bbox_inches="tight")
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+=======
+        blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
+        n = min(n, channels)  # number of plots
+        fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+        ax = ax.ravel()
+        plt.subplots_adjust(wspace=0.05, hspace=0.05)
+        for i in range(n):
+            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+            ax[i].axis("off")
+
+        LOGGER.info(f"Saving {f}... ({n}/{channels})")
+        plt.savefig(f, dpi=300, bbox_inches="tight")
+        plt.close()
+        np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

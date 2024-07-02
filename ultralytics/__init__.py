@@ -1,6 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+<<<<<<< HEAD
 __version__ = "8.2.48"
+=======
+__version__ = "8.0.200"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 import os
 
@@ -13,6 +17,7 @@ from ultralytics.utils import ASSETS, SETTINGS
 from ultralytics.utils.checks import check_yolo as checks
 from ultralytics.utils.downloads import download
 
+<<<<<<< HEAD
 settings = SETTINGS
 __all__ = (
     "__version__",
@@ -28,3 +33,6 @@ __all__ = (
     "settings",
     "Explorer",
 )
+=======
+__all__ = "__version__", "YOLO", "NAS", "SAM", "FastSAM", "RTDETR", "checks", "download", "settings"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

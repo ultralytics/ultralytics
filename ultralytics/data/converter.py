@@ -219,7 +219,10 @@ def convert_coco(
     use_segments=False,
     use_keypoints=False,
     cls91to80=True,
+<<<<<<< HEAD
     lvis=False,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 ):
     """
     Converts COCO dataset annotations to a YOLO annotation format  suitable for training YOLO models.
@@ -254,8 +257,12 @@ def convert_coco(
 
     # Import json
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
+<<<<<<< HEAD
         lname = "" if lvis else json_file.stem.replace("instances_", "")
         fn = Path(save_dir) / "labels" / lname  # folder name
+=======
+        fn = Path(save_dir) / "labels" / json_file.stem.replace("instances_", "")  # folder name
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         fn.mkdir(parents=True, exist_ok=True)
         if lvis:
             # NOTE: create folders for both train and val in advance,
@@ -276,16 +283,24 @@ def convert_coco(
         # Write labels file
         for img_id, anns in TQDM(imgToAnns.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
+<<<<<<< HEAD
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
             if lvis:
                 image_txt.append(str(Path("./images") / f))
+=======
+            h, w, f = img["height"], img["width"], img["file_name"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
             bboxes = []
             segments = []
             keypoints = []
             for ann in anns:
+<<<<<<< HEAD
                 if ann.get("iscrowd", False):
+=======
+                if ann["iscrowd"]:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     continue
                 # The COCO box format is [top left x, top left y, width, height]
                 box = np.array(ann["bbox"], dtype=np.float64)
@@ -299,6 +314,7 @@ def convert_coco(
                 box = [cls] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
+<<<<<<< HEAD
                     if use_segments and ann.get("segmentation") is not None:
                         if len(ann["segmentation"]) == 0:
                             segments.append([])
@@ -315,6 +331,25 @@ def convert_coco(
                         keypoints.append(
                             box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
                         )
+=======
+                if use_segments and ann.get("segmentation") is not None:
+                    if len(ann["segmentation"]) == 0:
+                        segments.append([])
+                        continue
+                    elif len(ann["segmentation"]) > 1:
+                        s = merge_multi_segment(ann["segmentation"])
+                        s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                    else:
+                        s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
+                        s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                    s = [cls] + s
+                    if s not in segments:
+                        segments.append(s)
+                if use_keypoints and ann.get("keypoints") is not None:
+                    keypoints.append(
+                        box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
+                    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
             # Write
             with open((fn / f).with_suffix(".txt"), "a") as file:
@@ -327,11 +362,15 @@ def convert_coco(
                         )  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
+<<<<<<< HEAD
         if lvis:
             with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
                 f.writelines(f"{line}\n" for line in image_txt)
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
+=======
+    LOGGER.info(f"COCO data converted successfully.\nResults saved to {save_dir.resolve()}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):
@@ -386,7 +425,11 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         "small-vehicle": 10,
         "helicopter": 11,
         "roundabout": 12,
+<<<<<<< HEAD
         "soccer-ball-field": 13,
+=======
+        "soccer ball-field": 13,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         "swimming-pool": 14,
         "container-crane": 15,
         "airport": 16,

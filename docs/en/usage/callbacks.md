@@ -40,6 +40,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
+
 # Create a YOLO model instance
 model = YOLO("yolov8n.pt")
 
@@ -47,7 +48,11 @@ model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
 # Iterate through the results and frames
+<<<<<<< HEAD:docs/en/usage/callbacks.md
 for result, frame in model.predict():  # or model.track()
+=======
+for result, frame in model.track / predict():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/usage/callbacks.md
     pass
 ```
 

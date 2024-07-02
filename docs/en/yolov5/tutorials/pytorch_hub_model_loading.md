@@ -76,8 +76,12 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 # 3  986.00  304.00  1028.0  420.0    0.286865     27     tie
 ```
 
+<<<<<<< HEAD:docs/en/yolov5/tutorials/pytorch_hub_model_loading.md
 <img src="https://user-images.githubusercontent.com/26833433/124915064-62a49e00-dff1-11eb-86b3-a85b97061afb.jpg" width="500" alt="YOLO inference results on zidane.jpg">
 <img src="https://user-images.githubusercontent.com/26833433/124915055-60424400-dff1-11eb-9055-24585b375a29.jpg" width="300" alt="YOLO inference results on bus.jpg">
+=======
+<img src="https://user-images.githubusercontent.com/26833433/124915064-62a49e00-dff1-11eb-86b3-a85b97061afb.jpg" width="500"> <img src="https://user-images.githubusercontent.com/26833433/124915055-60424400-dff1-11eb-9055-24585b375a29.jpg" width="300">
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/pytorch_hub_model_loading.md
 
 For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 
@@ -180,7 +184,10 @@ import torch
 
 
 def run(model, im):
+<<<<<<< HEAD:docs/en/yolov5/tutorials/pytorch_hub_model_loading.md
     """Performs inference on an image using a given model and saves the output; model must support `.save()` method."""
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/pytorch_hub_model_loading.md
     results = model(im)
     results.save()
 
@@ -199,8 +206,11 @@ threading.Thread(target=run, args=[model1, "https://ultralytics.com/images/bus.j
 To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](./train_custom_data.md) for model training.
 
 ```python
+<<<<<<< HEAD:docs/en/yolov5/tutorials/pytorch_hub_model_loading.md
 import torch
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/pytorch_hub_model_loading.md
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False)  # load pretrained
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrained=False)  # load scratch
 ```
@@ -331,8 +341,11 @@ results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 This example loads a custom 20-class [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml)-trained YOLOv5s model `'best.pt'` with PyTorch Hub.
 
 ```python
+<<<<<<< HEAD:docs/en/yolov5/tutorials/pytorch_hub_model_loading.md
 import torch
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/pytorch_hub_model_loading.md
 model = torch.hub.load("ultralytics/yolov5", "custom", path="path/to/best.pt")  # local model
 model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", source="local")  # local repo
 ```

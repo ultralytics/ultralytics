@@ -65,7 +65,11 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
+<<<<<<< HEAD
     - navigation.sections # navigation.expand or navigation.sections
+=======
+    - navigation.sections
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
@@ -410,6 +414,7 @@ nav:
           - Integrations: hub/integrations.md
       - App:
           - hub/app/index.md
+<<<<<<< HEAD
           - iOS: hub/app/ios.md
           - Android: hub/app/android.md
       - Python SDK:
@@ -440,6 +445,11 @@ nav:
       - REST API:
           - hub/api/index.md
 
+=======
+          - "iOS": hub/app/ios.md
+          - "Android": hub/app/android.md
+      - Inference API: hub/inference_api.md
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
   - Reference:
       - cfg:
           - __init__: reference/cfg/__init__.md

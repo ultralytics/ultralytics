@@ -191,7 +191,11 @@ class Mosaic(BaseMixTransform):
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
+<<<<<<< HEAD
         assert n in {4, 9}, "grid must be equal to 4 or 9."
+=======
+        assert n in (4, 9), "grid must be equal to 4 or 9."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
         self.imgsz = imgsz
@@ -209,6 +213,7 @@ class Mosaic(BaseMixTransform):
         """Apply mixup transformation to the input image and labels."""
         assert labels.get("rect_shape", None) is None, "rect and mosaic are mutually exclusive."
         assert len(labels.get("mix_labels", [])), "There are no other images for mosaic augment."
+<<<<<<< HEAD
         return (
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.
@@ -246,6 +251,9 @@ class Mosaic(BaseMixTransform):
 
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
+=======
+        return self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def _mosaic4(self, labels):
         """Create a 2x2 image mosaic."""
@@ -350,7 +358,10 @@ class Mosaic(BaseMixTransform):
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
+<<<<<<< HEAD
         # Final labels
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         final_labels = {
             "im_file": mosaic_labels[0]["im_file"],
             "ori_shape": mosaic_labels[0]["ori_shape"],
@@ -358,12 +369,19 @@ class Mosaic(BaseMixTransform):
             "cls": np.concatenate(cls, 0),
             "instances": Instances.concatenate(instances, axis=0),
             "mosaic_border": self.border,
+<<<<<<< HEAD
         }
         final_labels["instances"].clip(imgsz, imgsz)
         good = final_labels["instances"].remove_zero_area_boxes()
         final_labels["cls"] = final_labels["cls"][good]
         if "texts" in mosaic_labels[0]:
             final_labels["texts"] = mosaic_labels[0]["texts"]
+=======
+        }  # final_labels
+        final_labels["instances"].clip(imgsz, imgsz)
+        good = final_labels["instances"].remove_zero_area_boxes()
+        final_labels["cls"] = final_labels["cls"][good]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return final_labels
 
 
@@ -685,7 +703,11 @@ class RandomFlip:
                 Default is 'horizontal'.
             flip_idx (array-like, optional): Index mapping for flipping keypoints, if any.
         """
+<<<<<<< HEAD
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
+=======
+        assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         assert 0 <= p <= 1.0
 
         self.p = p
@@ -874,7 +896,10 @@ class Albumentations:
         self.p = p
         self.transform = None
         prefix = colorstr("albumentations: ")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         try:
             import albumentations as A
 
@@ -933,6 +958,7 @@ class Albumentations:
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
+<<<<<<< HEAD
             ]
 
             # Compose transforms
@@ -942,6 +968,11 @@ class Albumentations:
                 if self.contains_spatial
                 else A.Compose(T)
             )
+=======
+            ]  # transforms
+            self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -950,6 +981,7 @@ class Albumentations:
 
     def __call__(self, labels):
         """Generates object detections and returns a dictionary with detection results."""
+<<<<<<< HEAD
         if self.transform is None or random.random() > self.p:
             return labels
 
@@ -961,15 +993,29 @@ class Albumentations:
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
+=======
+        im = labels["img"]
+        cls = labels["cls"]
+        if len(cls):
+            labels["instances"].convert_bbox("xywh")
+            labels["instances"].normalize(*im.shape[:2][::-1])
+            bboxes = labels["instances"].bboxes
+            # TODO: add supports of segments and keypoints
+            if self.transform and random.random() < self.p:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
                 if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"])
                     bboxes = np.array(new["bboxes"], dtype=np.float32)
+<<<<<<< HEAD
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
+=======
+            labels["instances"].update(bboxes=bboxes)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return labels
 
 
@@ -995,11 +1041,17 @@ class Format:
         normalize=True,
         return_mask=False,
         return_keypoint=False,
+<<<<<<< HEAD
         return_obb=False,
         mask_ratio=4,
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
+=======
+        mask_ratio=4,
+        mask_overlap=True,
+        batch_idx=True,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
@@ -1031,11 +1083,17 @@ class Format:
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
                 )
             labels["masks"] = masks
+<<<<<<< HEAD
+=======
+        if self.normalize:
+            instances.normalize(w, h)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         labels["img"] = self._format_img(img)
         labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels["keypoints"] = torch.from_numpy(instances.keypoints)
+<<<<<<< HEAD
             if self.normalize:
                 labels["keypoints"][..., 0] /= w
                 labels["keypoints"][..., 1] /= h
@@ -1047,6 +1105,8 @@ class Format:
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w
             labels["bboxes"][:, [1, 3]] /= h
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         # Then we can use collate_fn
         if self.batch_idx:
             labels["batch_idx"] = torch.zeros(nl)
@@ -1187,6 +1247,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
+<<<<<<< HEAD
 def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
@@ -1327,6 +1388,65 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+=======
+def classify_transforms(size=224, rect=False, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
+    """Transforms to apply if albumentations not installed."""
+    if not isinstance(size, int):
+        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
+    transforms = [ClassifyLetterBox(size, auto=True) if rect else CenterCrop(size), ToTensor()]
+    if any(mean) or any(std):
+        transforms.append(T.Normalize(mean, std, inplace=True))
+    return T.Compose(transforms)
+
+
+def hsv2colorjitter(h, s, v):
+    """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
+    return v, v, s, h
+
+
+def classify_albumentations(
+    augment=True,
+    size=224,
+    scale=(0.08, 1.0),
+    hflip=0.5,
+    vflip=0.0,
+    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
+    hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
+    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
+    mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+    std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+    auto_aug=False,
+):
+    """YOLOv8 classification Albumentations (optional, only used if package is installed)."""
+    prefix = colorstr("albumentations: ")
+    try:
+        import albumentations as A
+        from albumentations.pytorch import ToTensorV2
+
+        check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+        if augment:  # Resize and crop
+            T = [A.RandomResizedCrop(height=size, width=size, scale=scale)]
+            if auto_aug:
+                # TODO: implement AugMix, AutoAug & RandAug in albumentations
+                LOGGER.info(f"{prefix}auto augmentations are currently not supported")
+            else:
+                if hflip > 0:
+                    T += [A.HorizontalFlip(p=hflip)]
+                if vflip > 0:
+                    T += [A.VerticalFlip(p=vflip)]
+                if any((hsv_h, hsv_s, hsv_v)):
+                    T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
+        else:  # Use fixed crop for eval set (reproducibility)
+            T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
+        T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
+        LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
+        return A.Compose(T)
+
+    except ImportError:  # package not installed, skip
+        pass
+    except Exception as e:
+        LOGGER.info(f"{prefix}{e}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 # NOTE: keep this class for backward compatibility

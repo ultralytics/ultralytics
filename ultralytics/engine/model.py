@@ -8,11 +8,22 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
+<<<<<<< HEAD
 from ultralytics.engine.results import Results
 from ultralytics.hub import HUB_WEB_ROOT, HUBTrainingSession
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (
     ARGV,
+=======
+from ultralytics.hub.utils import HUB_WEB_ROOT
+from ultralytics.nn.tasks import (
+    attempt_load_one_weight,
+    guess_model_task,
+    nn,
+    yaml_model_load,
+)
+from ultralytics.utils import (
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
@@ -22,6 +33,10 @@ from ultralytics.utils import (
     emojis,
     yaml_load,
 )
+<<<<<<< HEAD
+=======
+from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class Model(nn.Module):
@@ -90,12 +105,16 @@ class Model(nn.Module):
         NotImplementedError: If a specific model task or mode is not supported.
     """
 
+<<<<<<< HEAD
     def __init__(
         self,
         model: Union[str, Path] = "yolov8n.pt",
         task: str = None,
         verbose: bool = False,
     ) -> None:
+=======
+    def __init__(self, model: Union[str, Path] = "yolov8n.pt", task=None) -> None:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """
         Initializes a new instance of the YOLO model class.
 
@@ -132,9 +151,15 @@ class Model(nn.Module):
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
+<<<<<<< HEAD
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.8")
             self.session = HUBTrainingSession.create_session(model)
+=======
+            from ultralytics.hub.session import HUBTrainingSession
+
+            self.session = HUBTrainingSession(model)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             model = self.session.model_file
 
         # Check if Triton Server model
@@ -143,8 +168,16 @@ class Model(nn.Module):
             return
 
         # Load or create new YOLO model
+<<<<<<< HEAD
         if Path(model).suffix in {".yaml", ".yml"}:
             self._new(model, task=task, verbose=verbose)
+=======
+        suffix = Path(model).suffix
+        if not suffix and Path(model).stem in GITHUB_ASSETS_STEMS:
+            model, suffix = Path(model).with_suffix(".pt"), ".pt"  # add suffix, i.e. yolov8n -> yolov8n.pt
+        if suffix in (".yaml", ".yml"):
+            self._new(model, task)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         else:
             self._load(model, task=task)
 
@@ -179,7 +212,11 @@ class Model(nn.Module):
         from urllib.parse import urlsplit
 
         url = urlsplit(model)
+<<<<<<< HEAD
         return url.netloc and url.path and url.scheme in {"http", "grpc"}
+=======
+        return url.netloc and url.path and url.scheme in {"http", "grfc"}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     @staticmethod
     def is_hub_model(model: str) -> bool:
@@ -187,10 +224,17 @@ class Model(nn.Module):
         return any(
             (
                 model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
+<<<<<<< HEAD
                 [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODEL
                 len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODEL
             )
         )
+=======
+                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODELID
+                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),
+            )
+        )  # MODELID
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
         """
@@ -222,11 +266,16 @@ class Model(nn.Module):
             weights (str): model checkpoint to be loaded
             task (str | None): model task
         """
+<<<<<<< HEAD
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
             weights = checks.check_file(weights)  # automatically download and return local filename
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
 
         if Path(weights).suffix == ".pt":
+=======
+        suffix = Path(weights).suffix
+        if suffix == ".pt":
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args["task"]
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
@@ -238,7 +287,10 @@ class Model(nn.Module):
             self.ckpt_path = weights
         self.overrides["model"] = weights
         self.overrides["task"] = self.task
+<<<<<<< HEAD
         self.model_name = weights
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def _check_is_pytorch_model(self) -> None:
         """Raises TypeError is model is not a PyTorch model."""
@@ -275,6 +327,7 @@ class Model(nn.Module):
             p.requires_grad = True
         return self
 
+<<<<<<< HEAD
     def load(self, weights: Union[str, Path] = "yolov8n.pt") -> "Model":
         """
         Loads parameters from the specified weights file into the model.
@@ -291,6 +344,10 @@ class Model(nn.Module):
         Raises:
             AssertionError: If the model is not a PyTorch model.
         """
+=======
+    def load(self, weights="yolov8n.pt"):
+        """Transfers parameters with matching names and shapes from 'weights' to model."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, self.ckpt = attempt_load_one_weight(weights)
@@ -422,6 +479,7 @@ class Model(nn.Module):
             source = ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
 
+<<<<<<< HEAD
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
@@ -432,6 +490,18 @@ class Model(nn.Module):
 
         if not self.predictor:
             self.predictor = predictor or self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
+=======
+        is_cli = (sys.argv[0].endswith("yolo") or sys.argv[0].endswith("ultralytics")) and any(
+            x in sys.argv for x in ("predict", "track", "mode=predict", "mode=track")
+        )
+
+        custom = {"conf": 0.25, "save": is_cli}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, "mode": "predict"}  # highest priority args on the right
+        prompts = args.pop("prompts", None)  # for SAM-type models
+
+        if not self.predictor:
+            self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
@@ -477,7 +547,10 @@ class Model(nn.Module):
 
             register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+<<<<<<< HEAD
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 
@@ -499,6 +572,7 @@ class Model(nn.Module):
         list of all configurable options, users should refer to the 'configuration' section in the documentation.
 
         Args:
+<<<<<<< HEAD
             validator (BaseValidator, optional): An instance of a custom validator class for validating the model. If
                 None, the method uses a default validator. Defaults to None.
             **kwargs (any): Arbitrary keyword arguments representing the validation configuration. These arguments are
@@ -513,6 +587,14 @@ class Model(nn.Module):
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
+=======
+            validator (BaseValidator): Customized validator.
+            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
+        """
+        custom = {"rect": True}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
@@ -626,6 +708,7 @@ class Model(nn.Module):
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
             if any(kwargs):
                 LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
+<<<<<<< HEAD
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
@@ -637,6 +720,13 @@ class Model(nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
+=======
+            kwargs = self.session.train_args
+        checks.check_pip_update_available()
+
+        overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
+        custom = {"data": TASK2DATA[self.task]}  # method defaults
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path
@@ -704,6 +794,7 @@ class Model(nn.Module):
         return self
 
     @property
+<<<<<<< HEAD
     def names(self) -> list:
         """
         Retrieves the class names associated with the loaded model.
@@ -722,6 +813,11 @@ class Model(nn.Module):
             self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=False)
         return self.predictor.model.names
+=======
+    def names(self):
+        """Returns class names of the loaded model."""
+        return self.model.names if hasattr(self.model, "names") else None
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     @property
     def device(self) -> torch.device:
@@ -738,8 +834,13 @@ class Model(nn.Module):
 
     @property
     def transforms(self):
+<<<<<<< HEAD
         """
         Retrieves the transformations applied to the input data of the loaded model.
+=======
+        """Returns transform of the loaded model."""
+        return self.model.transforms if hasattr(self.model, "transforms") else None
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         This property returns the transformations if they are defined in the model.
 

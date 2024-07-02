@@ -39,7 +39,13 @@ class VarifocalLoss(nn.Module):
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
+<<<<<<< HEAD
     def __init__(self):
+=======
+    def __init__(
+        self,
+    ):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """Initializer for FocalLoss class with no parameters."""
         super().__init__()
 
@@ -111,6 +117,7 @@ class BboxLoss(nn.Module):
 
         return loss_iou, loss_dfl
 
+<<<<<<< HEAD
 
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses during training."""
@@ -134,6 +141,20 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
         return loss_iou, loss_dfl
+=======
+    @staticmethod
+    def _df_loss(pred_dist, target):
+        """Return sum of left and right DFL losses."""
+        # Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+        tl = target.long()  # target left
+        tr = tl + 1  # target right
+        wl = tr - target  # weight left
+        wr = 1 - wl  # weight right
+        return (
+            F.cross_entropy(pred_dist, tl.view(-1), reduction="none").view(tl.shape) * wl
+            + F.cross_entropy(pred_dist, tr.view(-1), reduction="none").view(tl.shape) * wr
+        ).mean(-1, keepdim=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class KeypointLoss(nn.Module):
@@ -294,9 +315,15 @@ class v8SegmentationLoss(v8DetectionLoss):
             raise TypeError(
                 "ERROR ❌ segment dataset incorrectly formatted or not a segment dataset.\n"
                 "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
+<<<<<<< HEAD
                 "i.e. 'yolo train model=yolov8n-seg.pt data=coco8.yaml'.\nVerify your dataset is a "
                 "correctly formatted 'segment' dataset using 'data=coco8-seg.yaml' "
                 "as an example.\nSee https://docs.ultralytics.com/datasets/segment/ for help."
+=======
+                "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
+                "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
+                "as an example.\nSee https://docs.ultralytics.com/tasks/segment/ for help."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             ) from e
 
         # Pboxes
@@ -601,7 +628,11 @@ class v8ClassificationLoss:
 
     def __call__(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
+<<<<<<< HEAD
         loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
+=======
+        loss = torch.nn.functional.cross_entropy(preds, batch["cls"], reduction="sum") / 64
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         loss_items = loss.detach()
         return loss, loss_items
 

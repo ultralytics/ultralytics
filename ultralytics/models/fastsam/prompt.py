@@ -34,7 +34,13 @@ class FastSAMPrompt:
         try:
             import clip
         except ImportError:
+<<<<<<< HEAD
             checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
+=======
+            from ultralytics.utils.checks import check_requirements
+
+            check_requirements("git+https://github.com/openai/CLIP.git")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             import clip
         self.clip = clip
 
@@ -277,9 +283,15 @@ class FastSAMPrompt:
             if np.sum(mask["segmentation"]) <= 100:
                 filter_id.append(_)
                 continue
+<<<<<<< HEAD
             bbox = self._get_bbox_from_mask(mask["segmentation"])  # bbox from mask
             cropped_boxes.append(self._segment_image(image, bbox))  # save cropped image
             cropped_images.append(bbox)  # save cropped image bbox
+=======
+            bbox = self._get_bbox_from_mask(mask["segmentation"])  # mask 的 bbox
+            cropped_boxes.append(self._segment_image(image, bbox))  # 保存裁剪的图片
+            cropped_images.append(bbox)  # 保存裁剪的图片的bbox
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         return cropped_boxes, cropped_images, not_crop, filter_id, annotations
 
@@ -287,6 +299,11 @@ class FastSAMPrompt:
         """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
             assert bbox[2] != 0 and bbox[3] != 0
+<<<<<<< HEAD
+=======
+            if os.path.isdir(self.source):
+                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             masks = self.results[0].masks.data
             target_height, target_width = self.results[0].orig_shape
             h = masks.shape[1]
@@ -347,7 +364,11 @@ class FastSAMPrompt:
             max_idx = scores.argsort()
             max_idx = max_idx[-1]
             max_idx += sum(np.array(filter_id) <= int(max_idx))
+<<<<<<< HEAD
             self.results[0].masks.data = torch.tensor(np.array([annotations[max_idx]["segmentation"]]))
+=======
+            self.results[0].masks.data = torch.tensor(np.array([ann["segmentation"] for ann in annotations]))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return self.results
 
     def everything_prompt(self):

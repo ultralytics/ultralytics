@@ -11,7 +11,10 @@ from ultralytics.utils.checks import check_yaml
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
 
+<<<<<<< HEAD
 # A mapping of tracker types to corresponding tracker classes
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 
 
@@ -31,10 +34,17 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
+<<<<<<< HEAD
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+=======
+    assert cfg.tracker_type in [
+        "bytetrack",
+        "botsort",
+    ], f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     trackers = []
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
@@ -86,4 +96,8 @@ def register_tracker(model: object, persist: bool) -> None:
         persist (bool): Whether to persist the trackers if they already exist.
     """
     model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
+<<<<<<< HEAD
     model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))
+=======
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

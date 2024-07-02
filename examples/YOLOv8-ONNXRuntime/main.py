@@ -30,7 +30,11 @@ class YOLOv8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
+<<<<<<< HEAD
         self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
+=======
+        self.classes = yaml_load(check_yaml("coco128.yaml"))["names"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))

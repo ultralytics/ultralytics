@@ -8,7 +8,11 @@ import numpy as np
 from ultralytics.utils import ASSETS, yaml_load
 from ultralytics.utils.checks import check_yaml
 
+<<<<<<< HEAD
 CLASSES = yaml_load(check_yaml("coco8.yaml"))["names"]
+=======
+CLASSES = yaml_load(check_yaml("coco128.yaml"))["names"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 

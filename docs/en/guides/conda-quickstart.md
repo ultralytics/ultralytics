@@ -75,7 +75,11 @@ from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")  # initialize model
 results = model("path/to/image.jpg")  # perform inference
+<<<<<<< HEAD:docs/en/guides/conda-quickstart.md
 results[0].show()  # display results for the first image
+=======
+results.show()  # display results
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/conda-quickstart.md
 ```
 
 ---

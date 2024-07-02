@@ -51,7 +51,11 @@ After zipping your dataset, you should [validate it](https://docs.ultralytics.co
 ```py
 from ultralytics.hub import check_dataset
 
+<<<<<<< HEAD:docs/en/hub/datasets.md
 check_dataset("path/to/dataset.zip", task="detect")
+=======
+check_dataset("path/to/coco8.zip")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/hub/datasets.md
 ```
 
 Once your dataset ZIP is ready, navigate to the [Datasets](https://hub.ultralytics.com/datasets) page by clicking on the **Datasets** button in the sidebar and click on the **Upload Dataset** button on the top right of the page.

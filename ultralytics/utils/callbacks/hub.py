@@ -18,6 +18,10 @@ def on_pretrain_routine_end(trainer):
     session = getattr(trainer, "hub_session", None)
     if session:
         # Start timer for upload rate limit
+<<<<<<< HEAD
+=======
+        LOGGER.info(f"{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model_id} 🚀")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         session.timers = {"metrics": time(), "ckpt": time()}  # start timer on session.rate_limit
 
 
@@ -26,21 +30,28 @@ def on_fit_epoch_end(trainer):
     session = getattr(trainer, "hub_session", None)
     if session:
         # Upload metrics after val end
+<<<<<<< HEAD
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix="train"),
             **trainer.metrics,
         }
+=======
+        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if trainer.epoch == 0:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 
             all_plots = {**all_plots, **model_info_for_loggers(trainer)}
 
         session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
+<<<<<<< HEAD
 
         # If any metrics fail to upload, add them to the queue to attempt uploading again.
         if session.metrics_upload_failed_queue:
             session.metrics_queue.update(session.metrics_upload_failed_queue)
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if time() - session.timers["metrics"] > session.rate_limits["metrics"]:
             session.upload_metrics()
             session.timers["metrics"] = time()  # reset timer
@@ -54,7 +65,11 @@ def on_model_save(trainer):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
         if time() - session.timers["ckpt"] > session.rate_limits["ckpt"]:
+<<<<<<< HEAD
             LOGGER.info(f"{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model.id}")
+=======
+            LOGGER.info(f"{PREFIX}Uploading checkpoint {HUB_WEB_ROOT}/models/{session.model_id}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             session.upload_model(trainer.epoch, trainer.last, is_best)
             session.timers["ckpt"] = time()  # reset timer
 
@@ -65,6 +80,7 @@ def on_train_end(trainer):
     if session:
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f"{PREFIX}Syncing final model...")
+<<<<<<< HEAD
         session.upload_model(
             trainer.epoch,
             trainer.best,
@@ -73,6 +89,11 @@ def on_train_end(trainer):
         )
         session.alive = False  # stop heartbeats
         LOGGER.info(f"{PREFIX}Done ✅\n" f"{PREFIX}View model at {session.model_url} 🚀")
+=======
+        session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get("metrics/mAP50-95(B)", 0), final=True)
+        session.alive = False  # stop heartbeats
+        LOGGER.info(f"{PREFIX}Done ✅\n" f"{PREFIX}View model at {HUB_WEB_ROOT}/models/{session.model_id} 🚀")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_train_start(trainer):
@@ -97,7 +118,10 @@ def on_export_start(exporter):
 
 callbacks = (
     {
+<<<<<<< HEAD
         "on_pretrain_routine_start": on_pretrain_routine_start,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,

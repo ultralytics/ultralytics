@@ -43,7 +43,11 @@ To train a model using these OBB formats:
         model = YOLO("yolov8n-obb.yaml")
 
         # Train the model on the DOTAv2 dataset
+<<<<<<< HEAD:docs/en/datasets/obb/index.md
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=640)
+=======
+        results = model.train(data="DOTAv2.yaml", epochs=100, imgsz=640)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/datasets/obb/index.md
         ```
 
     === "CLI"

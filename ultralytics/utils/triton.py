@@ -51,6 +51,12 @@ class TritonRemoteModel:
             config = self.triton_client.get_model_config(endpoint)
         else:
             import tritonclient.grpc as client  # noqa
+<<<<<<< HEAD
+=======
+
+            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
+            config = self.triton_client.get_model_config(endpoint, as_json=True)["config"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
             self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
             config = self.triton_client.get_model_config(endpoint, as_json=True)["config"]
@@ -62,6 +68,11 @@ class TritonRemoteModel:
         type_map = {"TYPE_FP32": np.float32, "TYPE_FP16": np.float16, "TYPE_UINT8": np.uint8}
         self.InferRequestedOutput = client.InferRequestedOutput
         self.InferInput = client.InferInput
+<<<<<<< HEAD
+=======
+
+        type_map = {"TYPE_FP32": np.float32, "TYPE_FP16": np.float16, "TYPE_UINT8": np.uint8}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.input_formats = [x["data_type"] for x in config["input"]]
         self.np_input_formats = [type_map[x] for x in self.input_formats]
         self.input_names = [x["name"] for x in config["input"]]

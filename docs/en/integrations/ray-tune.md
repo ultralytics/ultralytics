@@ -112,12 +112,16 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model
+<<<<<<< HEAD:docs/en/integrations/ray-tune.md
     result_grid = model.tune(
         data="coco8.yaml",
         space={"lr0": tune.uniform(1e-5, 1e-1)},
         epochs=50,
         use_ray=True,
     )
+=======
+    result_grid = model.tune(data="coco128.yaml", space={"lr0": tune.uniform(1e-5, 1e-1)}, epochs=50, use_ray=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/integrations/ray-tune.md
     ```
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
@@ -167,9 +171,13 @@ import matplotlib.pyplot as plt
 
 for result in result_grid:
     plt.plot(
+<<<<<<< HEAD:docs/en/integrations/ray-tune.md
         result.metrics_dataframe["training_iteration"],
         result.metrics_dataframe["mean_accuracy"],
         label=f"Trial {i}",
+=======
+        result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/integrations/ray-tune.md
     )
 
 plt.xlabel("Training Iterations")

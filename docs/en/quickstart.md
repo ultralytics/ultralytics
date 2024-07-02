@@ -236,8 +236,13 @@ For example, users can load a model, train it, evaluate its performance on a val
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO("yolov8n.pt")
 
+<<<<<<< HEAD:docs/en/quickstart.md
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
+=======
+    # Train the model using the 'coco128.yaml' dataset for 3 epochs
+    results = model.train(data="coco128.yaml", epochs=3)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/quickstart.md
 
     # Evaluate the model's performance on the validation set
     results = model.val()

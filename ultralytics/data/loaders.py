@@ -24,7 +24,11 @@ from ultralytics.utils.checks import check_requirements
 class SourceTypes:
     """Class to represent various types of input sources for predictions."""
 
+<<<<<<< HEAD
     stream: bool = False
+=======
+    webcam: bool = False
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     screenshot: bool = False
     from_img: bool = False
     tensor: bool = False
@@ -62,12 +66,20 @@ class LoadStreams:
          ```
     """
 
+<<<<<<< HEAD
     def __init__(self, sources="file.streams", vid_stride=1, buffer=False):
+=======
+    def __init__(self, sources="file.streams", imgsz=640, vid_stride=1, buffer=False):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = "stream"
+<<<<<<< HEAD
+=======
+        self.imgsz = imgsz
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.vid_stride = vid_stride  # video frame-rate stride
 
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
@@ -83,11 +95,19 @@ class LoadStreams:
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f"{i + 1}/{n}: {s}... "
+<<<<<<< HEAD
             if urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/LNwODJXcvt4'
                 s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (IS_COLAB or IS_KAGGLE):
+=======
+            if urlparse(s).hostname in ("www.youtube.com", "youtube.com", "youtu.be"):  # if source is YouTube video
+                # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/LNwODJXcvt4'
+                s = get_best_youtube_url(s)
+            s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+            if s == 0 and (is_colab() or is_kaggle()):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 raise NotImplementedError(
                     "'source=0' webcam not supported in Colab and Kaggle notebooks. "
                     "Try running 'source=0' in a local environment."
@@ -112,6 +132,12 @@ class LoadStreams:
             LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
         LOGGER.info("")  # newline
+<<<<<<< HEAD
+=======
+
+        # Check for common shapes
+        self.bs = self.__len__()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
@@ -176,7 +202,11 @@ class LoadStreams:
                 images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
                 x.clear()
 
+<<<<<<< HEAD
         return self.sources, images, [""] * self.bs
+=======
+        return self.sources, images, None, ""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -221,6 +251,10 @@ class LoadScreenshots:
             left, top, width, height = (int(x) for x in params)
         elif len(params) == 5:
             self.screen, left, top, width, height = (int(x) for x in params)
+<<<<<<< HEAD
+=======
+        self.imgsz = imgsz
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.mode = "stream"
         self.frame = 0
         self.sct = mss.mss()
@@ -291,6 +325,7 @@ class LoadImagesAndVideos:
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 
+<<<<<<< HEAD
         # Define files as images or videos
         images, videos = [], []
         for f in files:
@@ -299,6 +334,10 @@ class LoadImagesAndVideos:
                 images.append(f)
             elif suffix in VID_FORMATS:
                 videos.append(f)
+=======
+        images = [x for x in files if x.split(".")[-1].lower() in IMG_FORMATS]
+        videos = [x for x in files if x.split(".")[-1].lower() in VID_FORMATS]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         ni, nv = len(images), len(videos)
 
         self.files = images + videos
@@ -313,7 +352,14 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
+<<<<<<< HEAD
             raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
+=======
+            raise FileNotFoundError(
+                f"No images or videos found in {p}. "
+                f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+            )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def __iter__(self):
         """Returns an iterator object for VideoStream or ImageFolder."""
@@ -321,6 +367,7 @@ class LoadImagesAndVideos:
         return self
 
     def __next__(self):
+<<<<<<< HEAD
         """Returns the next batch of images or video frames along with their paths and metadata."""
         paths, imgs, info = [], [], []
         while len(imgs) < self.bs:
@@ -328,8 +375,26 @@ class LoadImagesAndVideos:
                 if imgs:
                     return paths, imgs, info  # return last partial batch
                 else:
+=======
+        """Return next image, path and metadata from dataset."""
+        if self.count == self.nf:
+            raise StopIteration
+        path = self.files[self.count]
+
+        if self.video_flag[self.count]:
+            # Read video
+            self.mode = "video"
+            for _ in range(self.vid_stride):
+                self.cap.grab()
+            success, im0 = self.cap.retrieve()
+            while not success:
+                self.count += 1
+                self.cap.release()
+                if self.count == self.nf:  # last video
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     raise StopIteration
 
+<<<<<<< HEAD
             path = self.files[self.count]
             if self.video_flag[self.count]:
                 self.mode = "video"
@@ -340,6 +405,19 @@ class LoadImagesAndVideos:
                     success = self.cap.grab()
                     if not success:
                         break  # end of video or failure
+=======
+            self.frame += 1
+            # im0 = self._cv2_rotate(im0)  # for use if cv2 autorotation is False
+            s = f"video {self.count + 1}/{self.nf} ({self.frame}/{self.frames}) {path}: "
+
+        else:
+            # Read image
+            self.count += 1
+            im0 = cv2.imread(path)  # BGR
+            if im0 is None:
+                raise FileNotFoundError(f"Image Not Found {path}")
+            s = f"image {self.count}/{self.nf} {path}: "
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
                 if success:
                     success, im0 = self.cap.retrieve()
@@ -411,7 +489,13 @@ class LoadPilAndNumpy:
             im0 = [im0]
         self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im) for im in im0]
+<<<<<<< HEAD
         self.mode = "image"
+=======
+        self.imgsz = imgsz
+        self.mode = "image"
+        # Generate fake paths
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.bs = len(self.im0)
 
     @staticmethod
@@ -434,7 +518,11 @@ class LoadPilAndNumpy:
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
         self.count += 1
+<<<<<<< HEAD
         return self.paths, self.im0, [""] * self.bs
+=======
+        return self.paths, self.im0, None, ""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def __iter__(self):
         """Enables iteration for class LoadPilAndNumpy."""
@@ -480,7 +568,11 @@ class LoadTensor:
             im = im.unsqueeze(0)
         if im.shape[2] % stride or im.shape[3] % stride:
             raise ValueError(s)
+<<<<<<< HEAD
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
+=======
+        if im.max() > 1.0:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.warning(
                 f"WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
                 f"Dividing input by 255."
@@ -499,7 +591,11 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
+<<<<<<< HEAD
         return self.paths, self.im0, [""] * self.bs
+=======
+        return self.paths, self.im0, None, ""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def __len__(self):
         """Returns the batch size."""
@@ -543,6 +639,7 @@ def get_best_youtube_url(url, method="pytube"):
     Returns:
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
+<<<<<<< HEAD
     if method == "pytube":
         check_requirements("pytube")
         from pytube import YouTube
@@ -554,12 +651,19 @@ def get_best_youtube_url(url, method="pytube"):
                 return stream.url
 
     elif method == "pafy":
+=======
+    if use_pafy:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         check_requirements(("pafy", "youtube_dl==2020.12.2"))
         import pafy  # noqa
 
         return pafy.new(url).getbestvideo(preftype="mp4").url
+<<<<<<< HEAD
 
     elif method == "yt-dlp":
+=======
+    else:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         check_requirements("yt-dlp")
         import yt_dlp
 
@@ -570,7 +674,10 @@ def get_best_youtube_url(url, method="pytube"):
             good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
             if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
                 return f.get("url")
+<<<<<<< HEAD
 
 
 # Define constants
 LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImagesAndVideos, LoadScreenshots)
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

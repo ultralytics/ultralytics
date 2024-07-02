@@ -361,8 +361,15 @@ class BYTETracker:
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+<<<<<<< HEAD
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
+=======
+        return np.asarray(
+            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
+            dtype=np.float32,
+        )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""

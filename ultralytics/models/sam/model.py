@@ -42,7 +42,11 @@ class SAM(Model):
         Raises:
             NotImplementedError: If the model file extension is not .pt or .pth.
         """
+<<<<<<< HEAD
         if model and Path(model).suffix not in {".pt", ".pth"}:
+=======
+        if model and Path(model).suffix not in (".pt", ".pth"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
         super().__init__(model=model, task="segment")
 

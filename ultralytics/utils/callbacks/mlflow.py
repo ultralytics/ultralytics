@@ -85,6 +85,7 @@ def on_pretrain_routine_end(trainer):
         mlflow.log_params(dict(trainer.args))
     except Exception as e:
         LOGGER.warning(f"{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n" f"{PREFIX}WARNING ⚠️ Not tracking this run")
+<<<<<<< HEAD
 
 
 def on_train_epoch_end(trainer):
@@ -97,16 +98,24 @@ def on_train_epoch_end(trainer):
             },
             step=trainer.epoch,
         )
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
+<<<<<<< HEAD
         mlflow.log_metrics(metrics=sanitize_dict(trainer.metrics), step=trainer.epoch)
+=======
+        sanitized_metrics = {k.replace("(", "").replace(")", ""): float(v) for k, v in trainer.metrics.items()}
+        mlflow.log_metrics(metrics=sanitized_metrics, step=trainer.epoch)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_train_end(trainer):
     """Log model artifacts at the end of the training."""
+<<<<<<< HEAD
     if not mlflow:
         return
     mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
@@ -123,12 +132,28 @@ def on_train_end(trainer):
     LOGGER.info(
         f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n{PREFIX}disable with 'yolo settings mlflow=False'"
     )
+=======
+    if mlflow:
+        mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
+        for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
+            if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
+                mlflow.log_artifact(str(f))
+
+        mlflow.end_run()
+        LOGGER.info(
+            f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
+            f"{PREFIX}disable with 'yolo settings mlflow=False'"
+        )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 callbacks = (
     {
         "on_pretrain_routine_end": on_pretrain_routine_end,
+<<<<<<< HEAD
         "on_train_epoch_end": on_train_epoch_end,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
     }

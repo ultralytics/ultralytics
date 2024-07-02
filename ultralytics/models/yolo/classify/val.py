@@ -56,8 +56,13 @@ class ClassificationValidator(BaseValidator):
     def update_metrics(self, preds, batch):
         """Updates running metrics with model predictions and batch targets."""
         n5 = min(len(self.names), 5)
+<<<<<<< HEAD
         self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
         self.targets.append(batch["cls"].type(torch.int32).cpu())
+=======
+        self.pred.append(preds.argsort(1, descending=True)[:, :n5])
+        self.targets.append(batch["cls"])
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def finalize_metrics(self, *args, **kwargs):
         """Finalizes metrics of the model such as confusion_matrix and speed."""

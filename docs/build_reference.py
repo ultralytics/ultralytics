@@ -11,6 +11,7 @@ import subprocess
 from collections import defaultdict
 from pathlib import Path
 
+<<<<<<< HEAD
 # Constants
 hub_sdk = False
 if hub_sdk:
@@ -22,6 +23,13 @@ else:
     PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
     REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
     GITHUB_REPO = "ultralytics/ultralytics"
+=======
+from ultralytics.utils import ROOT
+
+NEW_YAML_DIR = ROOT.parent
+CODE_DIR = ROOT
+REFERENCE_DIR = ROOT.parent / "docs/reference"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:
@@ -39,16 +47,24 @@ def extract_classes_and_functions(filepath: Path) -> tuple:
 def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
     """Creates a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix(".md")
+<<<<<<< HEAD
     exists = md_filepath.exists()
 
     # Read existing content and keep header content between first two ---
     header_content = ""
     if exists:
+=======
+
+    # Read existing content and keep header content between first two ---
+    header_content = ""
+    if md_filepath.exists():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         existing_content = md_filepath.read_text()
         header_parts = existing_content.split("---")
         for part in header_parts:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
+<<<<<<< HEAD
     if not any(header_content):
         header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
 
@@ -64,6 +80,19 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     )
     md_content = ["<br><br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br>\n" for class_name in classes]
     md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br>\n" for func_name in functions)
+=======
+
+    module_name = module_path.replace(".__init__", "")
+    module_path = module_path.replace(".", "/")
+    url = f"https://github.com/ultralytics/ultralytics/blob/main/{module_path}.py"
+    title_content = (
+        f"# Reference for `{module_path}.py`\n\n"
+        f"!!! note\n\n"
+        f"    Full source code for this file is available at [{url}]({url}). Help us fix any issues you see by submitting a [Pull Request](https://docs.ultralytics.com/help/contributing/) 🛠️. Thank you 🙏!\n\n"
+    )
+    md_content = [f"---\n## ::: {module_name}.{class_name}\n<br><br>\n" for class_name in classes]
+    md_content.extend(f"---\n## ::: {module_name}.{func_name}\n<br><br>\n" for func_name in functions)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     md_content = header_content + title_content + "\n".join(md_content)
     if not md_content.endswith("\n"):
         md_content += "\n"
@@ -128,7 +157,11 @@ def main():
     """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
 
+<<<<<<< HEAD
     for py_filepath in PACKAGE_DIR.rglob("*.py"):
+=======
+    for py_filepath in CODE_DIR.rglob("*.py"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         classes, functions = extract_classes_and_functions(py_filepath)
 
         if classes or functions:

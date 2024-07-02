@@ -84,8 +84,12 @@ download_from_url(
     "demo_data/small-vehicles1.jpeg",
 )
 download_from_url(
+<<<<<<< HEAD:docs/en/guides/sahi-tiled-inference.md
     "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png",
     "demo_data/terrain2.png",
+=======
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png", "demo_data/terrain2.png"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/sahi-tiled-inference.md
 )
 ```
 

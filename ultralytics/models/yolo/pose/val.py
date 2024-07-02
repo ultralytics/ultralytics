@@ -106,6 +106,18 @@ class PoseValidator(DetectionValidator):
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, pred in enumerate(preds):
+<<<<<<< HEAD
+=======
+            idx = batch["batch_idx"] == si
+            cls = batch["cls"][idx]
+            bbox = batch["bboxes"][idx]
+            kpts = batch["keypoints"][idx]
+            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            nk = kpts.shape[1]  # number of keypoints
+            shape = batch["ori_shape"][si]
+            correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.seen += 1
             npr = len(pred)
             stat = dict(
@@ -121,8 +133,14 @@ class PoseValidator(DetectionValidator):
             stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
+<<<<<<< HEAD
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
+=======
+                    self.stats.append(
+                        (correct_bboxes, correct_kpts, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1))
+                    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
@@ -130,6 +148,7 @@ class PoseValidator(DetectionValidator):
             # Predictions
             if self.args.single_cls:
                 pred[:, 5] = 0
+<<<<<<< HEAD
             predn, pred_kpts = self._prepare_pred(pred, pbatch)
             stat["conf"] = predn[:, 4]
             stat["pred_cls"] = predn[:, 5]
@@ -138,6 +157,31 @@ class PoseValidator(DetectionValidator):
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
+=======
+            predn = pred.clone()
+            ops.scale_boxes(
+                batch["img"][si].shape[1:], predn[:, :4], shape, ratio_pad=batch["ratio_pad"][si]
+            )  # native-space pred
+            pred_kpts = predn[:, 6:].view(npr, nk, -1)
+            ops.scale_coords(batch["img"][si].shape[1:], pred_kpts, shape, ratio_pad=batch["ratio_pad"][si])
+
+            # Evaluate
+            if nl:
+                height, width = batch["img"].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device
+                )  # target boxes
+                ops.scale_boxes(
+                    batch["img"][si].shape[1:], tbox, shape, ratio_pad=batch["ratio_pad"][si]
+                )  # native-space labels
+                tkpts = kpts.clone()
+                tkpts[..., 0] *= width
+                tkpts[..., 1] *= height
+                tkpts = ops.scale_coords(batch["img"][si].shape[1:], tkpts, shape, ratio_pad=batch["ratio_pad"][si])
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                correct_bboxes = self._process_batch(predn[:, :6], labelsn)
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts, tkpts)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 

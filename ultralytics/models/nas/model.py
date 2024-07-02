@@ -46,7 +46,11 @@ class NAS(Model):
 
     def __init__(self, model="yolo_nas_s.pt") -> None:
         """Initializes the NAS model with the provided or default 'yolo_nas_s.pt' model."""
+<<<<<<< HEAD
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
+=======
+        assert Path(model).suffix not in (".yaml", ".yml"), "YOLO-NAS models only support pre-trained models."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         super().__init__(model, task="detect")
 
     @smart_inference_mode()

@@ -7,7 +7,19 @@ from typing import List
 
 import numpy as np
 
+<<<<<<< HEAD
 from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+=======
+from .ops import (
+    ltwh2xywh,
+    ltwh2xyxy,
+    resample_segments,
+    xywh2ltwh,
+    xywh2xyxy,
+    xyxy2ltwh,
+    xyxy2xywh,
+)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def _ntuple(n):
@@ -72,11 +84,16 @@ class Bboxes:
 
     def areas(self):
         """Return box areas."""
+<<<<<<< HEAD
         return (
             (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])  # format xyxy
             if self.format == "xyxy"
             else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
         )
+=======
+        self.convert("xyxy")
+        return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # def denormalize(self, w, h):
     #    if not self.normalized:

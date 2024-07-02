@@ -40,7 +40,11 @@ def run_ray_tune(
         train_args = {}
 
     try:
+<<<<<<< HEAD
         subprocess.run("pip install ray[tune]".split(), check=True)  # do not add single quotes here
+=======
+        subprocess.run("pip install ray[tune]".split(), check=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         import ray
         from ray import tune
@@ -78,11 +82,18 @@ def run_ray_tune(
         "perspective": tune.uniform(0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
+<<<<<<< HEAD
         "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
     }
+=======
+        "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
+        "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
+        "copy_paste": tune.uniform(0.0, 1.0),
+    }  # segment copy-paste (probability)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Put the model in ray store
     task = model.task

@@ -130,6 +130,24 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
+<<<<<<< HEAD:docs/en/models/sam.md
+=======
+## Available Models and Supported Tasks
+
+| Model Type | Pre-trained Weights | Tasks Supported       |
+| ---------- | ------------------- | --------------------- |
+| SAM base   | `sam_b.pt`          | Instance Segmentation |
+| SAM large  | `sam_l.pt`          | Instance Segmentation |
+
+## Operating Modes
+
+| Mode       | Supported          |
+| ---------- | ------------------ |
+| Inference  | :heavy_check_mark: |
+| Validation | :x:                |
+| Training   | :x:                |
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/models/sam.md
 ## SAM comparison vs YOLOv8
 
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):

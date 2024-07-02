@@ -76,8 +76,15 @@ def segment2box(segment, width=640, height=640):
     """
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
+<<<<<<< HEAD
     x = x[inside]
     y = y[inside]
+=======
+    (
+        x,
+        y,
+    ) = x[inside], y[inside]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
         if any(x)
@@ -172,8 +179,11 @@ def non_max_suppression(
     max_time_img=0.05,
     max_nms=30000,
     max_wh=7680,
+<<<<<<< HEAD
     in_place=True,
     rotated=False,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -216,6 +226,7 @@ def non_max_suppression(
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device)
 
+<<<<<<< HEAD
     if prediction.shape[-1] == 6:  # end-to-end model (BNC, i.e. 1,300,6)
         output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
         if classes is not None:
@@ -223,6 +234,13 @@ def non_max_suppression(
         return output
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
+=======
+    device = prediction.device
+    mps = "mps" in device.type  # Apple MPS
+    if mps:  # MPS not fully supported yet, convert tensors to CPU before NMS
+        prediction = prediction.cpu()
+    bs = prediction.shape[0]  # batch size
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     nc = nc or (prediction.shape[1] - 4)  # number of classes
     nm = prediction.shape[1] - nc - 4  # number of masks
     mi = 4 + nc  # mask start index
@@ -467,7 +485,11 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
     """
     if clip:
+<<<<<<< HEAD
         x = clip_boxes(x, (h - eps, w - eps))
+=======
+        clip_boxes(x, (h - eps, w - eps))  # warning: inplace clip
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
@@ -536,6 +558,7 @@ def xyxyxyxy2xywhr(x):
     Returns:
         (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format of shape (n, 5).
     """
+<<<<<<< HEAD
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
     points = points.reshape(len(x), -1, 2)
@@ -546,6 +569,24 @@ def xyxyxyxy2xywhr(x):
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
         rboxes.append([cx, cy, w, h, angle / 180 * np.pi])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
+=======
+    is_numpy = isinstance(corners, np.ndarray)
+    atan2, sqrt = (np.arctan2, np.sqrt) if is_numpy else (torch.atan2, torch.sqrt)
+
+    x1, y1, x2, y2, x3, y3, x4, y4 = corners.T
+    cx = (x1 + x3) / 2
+    cy = (y1 + y3) / 2
+    dx21 = x2 - x1
+    dy21 = y2 - y1
+
+    w = sqrt(dx21**2 + dy21**2)
+    h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
+
+    rotation = atan2(-dy21, dx21)
+    rotation *= 180.0 / math.pi  # radians to degrees
+
+    return np.vstack((cx, cy, w, h, rotation)).T if is_numpy else torch.stack((cx, cy, w, h, rotation), dim=1)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def xywhr2xyxyxyxy(x):
@@ -565,6 +606,7 @@ def xywhr2xyxyxyxy(x):
         else (np.cos, np.sin, np.concatenate, np.stack)
     )
 
+<<<<<<< HEAD
     ctr = x[..., :2]
     w, h, angle = (x[..., i : i + 1] for i in range(2, 5))
     cos_value, sin_value = cos(angle), sin(angle)
@@ -577,6 +619,35 @@ def xywhr2xyxyxyxy(x):
     pt3 = ctr - vec1 - vec2
     pt4 = ctr - vec1 + vec2
     return stack([pt1, pt2, pt3, pt4], -2)
+=======
+    cx, cy, w, h, rotation = center.T
+    rotation *= math.pi / 180.0  # degrees to radians
+
+    dx = w / 2
+    dy = h / 2
+
+    cos_rot = cos(rotation)
+    sin_rot = sin(rotation)
+    dx_cos_rot = dx * cos_rot
+    dx_sin_rot = dx * sin_rot
+    dy_cos_rot = dy * cos_rot
+    dy_sin_rot = dy * sin_rot
+
+    x1 = cx - dx_cos_rot - dy_sin_rot
+    y1 = cy + dx_sin_rot - dy_cos_rot
+    x2 = cx + dx_cos_rot - dy_sin_rot
+    y2 = cy - dx_sin_rot - dy_cos_rot
+    x3 = cx + dx_cos_rot + dy_sin_rot
+    y3 = cy - dx_sin_rot + dy_cos_rot
+    x4 = cx - dx_cos_rot + dy_sin_rot
+    y4 = cy + dx_sin_rot + dy_cos_rot
+
+    return (
+        np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T
+        if is_numpy
+        else torch.stack((x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
+    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def ltwh2xyxy(x):
@@ -667,7 +738,11 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
         (torch.Tensor): The upsampled masks.
     """
     c, mh, mw = protos.shape  # CHW
+<<<<<<< HEAD
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
+=======
+    masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.0)
@@ -704,7 +779,11 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
+<<<<<<< HEAD
     return masks.gt_(0.0)
+=======
+    return masks.gt_(0.5)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -786,6 +865,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
     return coords
 
 
+<<<<<<< HEAD
 def regularize_rboxes(rboxes):
     """
     Regularize rotated boxes in range [0, pi/2].
@@ -804,6 +884,8 @@ def regularize_rboxes(rboxes):
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 def masks2segments(masks, strategy="largest"):
     """
     It takes a list of masks(n,h,w) and returns a list of segments(n,xy)

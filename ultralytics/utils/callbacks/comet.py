@@ -285,7 +285,16 @@ def _log_plots(experiment, trainer):
 def _log_model(experiment, trainer):
     """Log the best-trained model to Comet.ml."""
     model_name = _get_comet_model_name()
+<<<<<<< HEAD
     experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
+=======
+    experiment.log_model(
+        model_name,
+        file_or_folder=str(trainer.best),
+        file_name="best.pt",
+        overwrite=True,
+    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_pretrain_routine_start(trainer):
@@ -306,7 +315,15 @@ def on_train_epoch_end(trainer):
     curr_epoch = metadata["curr_epoch"]
     curr_step = metadata["curr_step"]
 
+<<<<<<< HEAD
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=curr_step, epoch=curr_epoch)
+=======
+    experiment.log_metrics(
+        trainer.label_loss_items(trainer.tloss, prefix="train"),
+        step=curr_step,
+        epoch=curr_epoch,
+    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     if curr_epoch == 1:
         _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)

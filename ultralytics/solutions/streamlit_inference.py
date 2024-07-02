@@ -3,6 +3,7 @@
 import cv2
 import streamlit as st
 import torch
+
 from ultralytics import YOLO
 
 # Hide main menu style

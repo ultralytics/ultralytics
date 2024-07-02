@@ -35,6 +35,7 @@ class SegmentationValidator(DetectionValidator):
         self.process = None
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.use_miou = True
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
@@ -53,9 +54,12 @@ class SegmentationValidator(DetectionValidator):
             self.process = ops.process_mask  # faster
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
+        # reset mIoU metrics
+        self.area = torch.zeros((2, self.nc), dtype=torch.float32, device=self.device)
+
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
+        desc = ("%22s" + "%11s" * 10) % (
             "Class",
             "Images",
             "Instances",
@@ -68,6 +72,7 @@ class SegmentationValidator(DetectionValidator):
             "mAP50",
             "mAP50-95)",
         )
+        return desc + ("%11s" % "mIoU") if self.use_miou else desc
 
     def postprocess(self, preds):
         """Post-processes YOLO predictions and returns output detections with proto."""
@@ -136,6 +141,7 @@ class SegmentationValidator(DetectionValidator):
                 stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
+
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
 
@@ -157,10 +163,10 @@ class SegmentationValidator(DetectionValidator):
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
-    def finalize_metrics(self, *args, **kwargs):
-        """Sets speed and confusion matrix for evaluation metrics."""
-        self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
+    def get_stats(self):
+        if self.use_miou:
+            self.metrics.iou = (self.area[0] / self.area[1]).tolist()
+        return super().get_stats()
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -183,6 +189,30 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
                 gt_masks = gt_masks.gt_(0.5)
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
+
+            if self.use_miou:
+                pred_cls = detections[:, 5]
+                h, w = gt_masks.shape[1:]
+                gt_masks_cls = torch.full((h, w), 255, dtype=gt_masks.dtype, device=gt_masks.device)
+                pred_masks_cls = torch.full((h, w), 255, dtype=gt_masks.dtype, device=gt_masks.device)
+                for i, c in enumerate(gt_cls):
+                    gt_masks_cls[gt_masks[i].bool()] = c
+
+                for i, c in enumerate(pred_cls):
+                    if c not in gt_cls:
+                        continue
+                    pred_masks_cls[pred_masks[i].bool()] = c
+
+                mask = gt_masks_cls != 255
+                pred_masks_cls, gt_masks_cls = pred_masks_cls[mask], gt_masks_cls[mask]
+
+                inter = pred_masks_cls[pred_masks_cls == gt_masks_cls]
+                inter_area = torch.histc(inter, bins=self.nc, min=0, max=self.nc - 1) if len(inter) else 0
+                pred_area = torch.histc(pred_masks_cls, bins=self.nc, min=0, max=self.nc - 1)
+                gt_area = torch.histc(gt_masks_cls, bins=self.nc, min=0, max=self.nc - 1)
+                union_area = pred_area + gt_area - inter_area
+                self.area[0] += inter_area
+                self.area[1] += union_area
         else:  # boxes
             iou = box_iou(gt_bboxes, detections[:, :4])
 

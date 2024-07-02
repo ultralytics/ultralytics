@@ -83,15 +83,15 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         model = YOLO("path/to/best.pt")  # Load a custom trained model
 
         # Perform tracking with the model
-<<<<<<< HEAD:docs/en/modes/track.md
+        HEAD:docs/en/modes/track.md
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # with ByteTrack
-=======
+        =======
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
         results = model.track(
             source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
         )  # Tracking with ByteTrack tracker
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/modes/track.md
+        2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/modes/track.md
         ```
 
     === "CLI"

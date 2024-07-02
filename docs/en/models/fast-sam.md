@@ -260,7 +260,7 @@ Yes, FastSAM is designed for real-time segmentation tasks. Its efficiency and re
 
 ### How do I use FastSAM for inference in Python?
 
-You can easily integrate FastSAM into your Python applications for inference. Here’s an example:
+You can easily integrate FastSAM into your Python applications for inference. Here's an example:
 
 ```python
 from ultralytics import FastSAM
@@ -290,7 +290,7 @@ FastSAM offers several key features:
 1. **Real-time solution**: Leveraging CNNs for immediate results.
 2. **Efficiency and performance**: Comparable to SAM but with reduced computational resources.
 3. **Prompt-guided segmentation**: Flexibility to segment objects based on various user interactions.
-4. **Based on YOLOv8-seg**: Utilizes YOLOv8’s capabilities for instance segmentation.
+4. **Based on YOLOv8-seg**: Utilizes YOLOv8's capabilities for instance segmentation.
 5. **Benchmark performance**: High scores on MS COCO with faster inference speeds.
 6. **Model compression feasibility**: Demonstrates significant reduction in computational effort while maintaining performance.
 

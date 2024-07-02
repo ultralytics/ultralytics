@@ -197,7 +197,7 @@ YOLOv8 is versatile, offering specialized variants for various tasks such as obj
 
 ### How do I run inference using a YOLOv8 model in Python?
 
-To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here’s a basic example:
+To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here's a basic example:
 
 ```python
 from ultralytics import YOLO

@@ -11,7 +11,6 @@ from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
-<<<<<<< HEAD
     C3,
     C3TR,
     ELAN1,
@@ -31,47 +30,15 @@ from ultralytics.nn.modules import (
     C3x,
     CBFuse,
     CBLinear,
-=======
-    C2HG,
-    C2TR,
-    C3,
-    C3CTR,
-    C3SA,
-    C3TR,
-    C3TR2,
-    SPP,
-    SPPF,
-    AsymmetricLightBottleneckC2f,
-    AsymmetricLightC2f,
-    BLightC2f,
-    Bottleneck,
-    BottleneckCSP,
-    C2f,
-    C2fDA,
-    C2fOAttention,
-    C2fTA,
-    C2fx,
-    C3Ghost,
-    C3x,
-    C3xAsymmetricLightBottleneck,
-    C3xHG,
-    C3xTA,
-    C3xTR,
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     Classify,
     Concat,
     Conv,
     Conv2,
-<<<<<<< HEAD
-=======
-    ConvSelfAttention,
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ConvTranspose,
     Detect,
     DWConv,
     DWConvTranspose2d,
     Focus,
-<<<<<<< HEAD
     GhostBottleneck,
     GhostConv,
     HGBlock,
@@ -98,43 +65,6 @@ from ultralytics.utils.loss import (
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
-=======
-    FusedMBConv,
-    GhostBottleneck,
-    GhostConv,
-    HarDBlock,
-    HGBlock,
-    HGStem,
-    LightBottleneck,
-    LightC2f,
-    LightC3x,
-    LightConv,
-    LightDSConvC2f,
-    MBC2f,
-    MBConv,
-    MSDAC3x,
-    Pose,
-    QConv,
-    RepC3,
-    RepConv,
-    RTDETRDecoder,
-    SABottleneck,
-    Segment,
-    adderC2f,
-)
-from ultralytics.utils import (
-    DEFAULT_CFG_DICT,
-    DEFAULT_CFG_KEYS,
-    LOGGER,
-    colorstr,
-    emojis,
-    yaml_load,
-)
-from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import (
-    v8ClassificationLoss,
-    v8DetectionLoss,
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     v8PoseLoss,
     v8SegmentationLoss,
 )
@@ -223,13 +153,8 @@ class BaseModel(nn.Module):
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
         LOGGER.warning(
-<<<<<<< HEAD
             f"WARNING ⚠️ {self.__class__.__name__} does not support 'augment=True' prediction. "
             f"Reverting to single-scale prediction."
-=======
-            f"WARNING ⚠️ {self.__class__.__name__} does not support augmented inference yet. "
-            f"Reverting to single-scale inference instead."
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         )
         return self._predict_once(x)
 
@@ -247,11 +172,7 @@ class BaseModel(nn.Module):
             None
         """
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-<<<<<<< HEAD
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
-=======
-        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # FLOPs
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         t = time_sync()
         for _ in range(10):
             m(x.copy() if c else x)
@@ -390,10 +311,7 @@ class DetectionModel(BaseModel):
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
-<<<<<<< HEAD
         self.end2end = getattr(self.model[-1], "end2end", False)
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -813,10 +731,7 @@ def temporary_modules(modules=None, attributes=None):
     if attributes is None:
         attributes = {}
     import sys
-<<<<<<< HEAD
     from importlib import import_module
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     try:
         # Set attributes in sys.modules under their old name
@@ -855,7 +770,6 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules(
-<<<<<<< HEAD
             modules={
                 "ultralytics.yolo.utils": "ultralytics.utils",
                 "ultralytics.yolo.v8": "ultralytics.models.yolo",
@@ -867,15 +781,6 @@ def torch_safe_load(weight):
             },
         ):
             ckpt = torch.load(file, map_location="cpu")
-=======
-            {
-                "ultralytics.yolo.utils": "ultralytics.utils",
-                "ultralytics.yolo.v8": "ultralytics.models.yolo",
-                "ultralytics.yolo.data": "ultralytics.data",
-            }
-        ):  # for legacy 8.0 Classify and Pose models
-            return torch.load(file, map_location="cpu"), file  # load
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -885,7 +790,6 @@ def torch_safe_load(weight):
                     f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
                     f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-<<<<<<< HEAD
                     f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolov8n.pt'"
                 )
             ) from e
@@ -894,21 +798,10 @@ def torch_safe_load(weight):
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
             f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolov8n.pt'"
-=======
-                    f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'"
-                )
-            ) from e
-        LOGGER.warning(
-            f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
-            f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
-            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-            f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'"
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch.load(file, map_location="cpu")
 
-<<<<<<< HEAD
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
         LOGGER.warning(
@@ -918,9 +811,6 @@ def torch_safe_load(weight):
         ckpt = {"model": ckpt.model}
 
     return ckpt, file  # load
-=======
-        return torch.load(file, map_location="cpu"), file  # load
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
@@ -946,11 +836,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     for m in ensemble.modules():
         if hasattr(m, "inplace"):
             m.inplace = inplace
-<<<<<<< HEAD
         elif isinstance(m, nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
-=======
-        elif t is nn.Upsample and not hasattr(m, "recompute_scale_factor"):
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model
@@ -961,11 +847,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     LOGGER.info(f"Ensemble created with {weights}\n")
     for k in "names", "nc", "yaml":
         setattr(ensemble, k, getattr(ensemble[0], k))
-<<<<<<< HEAD
     ensemble.stride = ensemble[int(torch.argmax(torch.tensor([m.stride.max() for m in ensemble])))].stride
-=======
-    ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     assert all(ensemble[0].nc == m.nc for m in ensemble), f"Models differ in class counts {[m.nc for m in ensemble]}"
     return ensemble
 
@@ -989,11 +871,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     for m in model.modules():
         if hasattr(m, "inplace"):
             m.inplace = inplace
-<<<<<<< HEAD
         elif isinstance(m, nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
-=======
-        elif t is nn.Upsample and not hasattr(m, "recompute_scale_factor"):
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model and ckpt
@@ -1032,11 +910,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
 
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-<<<<<<< HEAD
         if m in {
-=======
-        if m in (
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             Classify,
             Conv,
             ConvTranspose,
@@ -1051,15 +925,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C1,
             C2,
             C2f,
-<<<<<<< HEAD
             RepNCSPELAN4,
             ELAN1,
             ADown,
             AConv,
             SPPELAN,
             C2fAttn,
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             C3,
             C3TR,
             C3Ghost,
@@ -1067,47 +938,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             DWConvTranspose2d,
             C3x,
             RepC3,
-<<<<<<< HEAD
             PSA,
             SCDown,
             C2fCIB,
             DA,
             DSA,
         }:
-=======
-            MBConv,
-            FusedMBConv,
-            SABottleneck,
-            C3SA,
-            LightC3x,
-            C3xTR,
-            LightConv,
-            C2HG,
-            C3xHG,
-            C2fx,
-            C2TR,
-            C3CTR,
-            C2fDA,
-            C3,
-            C3TR2,
-            HarDBlock,
-            MBC2f,
-            C2fTA,
-            C3xTA,
-            LightC2f,
-            LightBottleneck,
-            BLightC2f,
-            MSDAC3x,
-            QConv,
-            LightDSConvC2f,
-            AsymmetricLightC2f,
-            AsymmetricLightBottleneckC2f,
-            C3xAsymmetricLightBottleneck,
-            adderC2f,
-            ConvSelfAttention,
-            C2fOAttention,
-        ):
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
@@ -1118,11 +954,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-<<<<<<< HEAD
             if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fCIB, DSA}:
-=======
-            if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x, RepC3, C2fOAttention):
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is AIFI:
@@ -1222,25 +1054,16 @@ def guess_model_task(model):
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
         m = cfg["head"][-1][-2].lower()  # output module name
-<<<<<<< HEAD
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
         if "detect" in m:
-=======
-        if m in ("classify", "classifier", "cls", "fc"):
-            return "classify"
-        if m == "detect":
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             return "detect"
         if m == "segment":
             return "segment"
         if m == "pose":
             return "pose"
-<<<<<<< HEAD
         if m == "obb":
             return "obb"
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -1257,25 +1080,16 @@ def guess_model_task(model):
                 return cfg2task(eval(x))
 
         for m in model.modules():
-<<<<<<< HEAD
             if isinstance(m, Segment):
-=======
-            if isinstance(m, Detect):
-                return "detect"
-            elif isinstance(m, Segment):
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
             elif isinstance(m, Pose):
                 return "pose"
-<<<<<<< HEAD
             elif isinstance(m, OBB):
                 return "obb"
             elif isinstance(m, (Detect, WorldDetect, v10Detect)):
                 return "detect"
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -1286,21 +1100,14 @@ def guess_model_task(model):
             return "classify"
         elif "-pose" in model.stem or "pose" in model.parts:
             return "pose"
-<<<<<<< HEAD
         elif "-obb" in model.stem or "obb" in model.parts:
             return "obb"
-=======
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         elif "detect" in model.parts:
             return "detect"
 
     # Unable to determine task from model
     LOGGER.warning(
         "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-<<<<<<< HEAD
         "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
-=======
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', or 'pose'."
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     )
     return "detect"  # assume detect

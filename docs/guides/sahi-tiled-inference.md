@@ -60,7 +60,6 @@ pip install -U ultralytics sahi
 Here's how to import the necessary modules and download a YOLOv8 model and some test images:
 
 ```python
-
 from sahi.utils.file import download_from_url
 from sahi.utils.yolov8 import download_yolov8s_model
 

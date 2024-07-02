@@ -3,7 +3,6 @@
 import cv2
 import streamlit as st
 import torch
-
 from ultralytics import YOLO
 
 # Hide main menu style
@@ -67,6 +66,7 @@ def inference():
             if stop_button:
                 videocapture.release()  # Release the capture
                 torch.cuda.empty_cache()  # Clear CUDA memory
+                st.stop()  # Stop streamlit app
 
         # Release the capture
         videocapture.release()

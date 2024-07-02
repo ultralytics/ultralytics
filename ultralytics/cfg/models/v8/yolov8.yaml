@@ -44,3 +44,5 @@ head:
   - [-1, 3, C2f, [1024]] # 21 (P5/32-large)
 
   - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)
+
+norm_type: "batch"

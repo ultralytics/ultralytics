@@ -356,6 +356,8 @@ class RTDETRDecoder(nn.Module):
         dropout=0.0,
         act=nn.ReLU(),
         eval_idx=-1,
+        norm_type="batch",  # normalization type
+        num_groups=None,  # number of groups for GroupNorm if used
         # Training args
         nd=100,  # num denoising
         label_noise_ratio=0.5,
@@ -390,10 +392,16 @@ class RTDETRDecoder(nn.Module):
         self.num_queries = nq
         self.num_decoder_layers = ndl
 
-        # Backbone feature projection
-        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
-        # NOTE: simplified version but it's not consistent with .pt weights.
-        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
+        if norm_type == "group":
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.GroupNorm(int(hd / 2), hd)) for x in ch
+            )
+        else:
+            self.input_proj = nn.ModuleList(
+                nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
+            )
+            # NOTE: simplified version but it's not consistent with .pt weights.
+            # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)

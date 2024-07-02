@@ -371,6 +371,10 @@ def initialize_weights(model):
         elif t is nn.BatchNorm2d:
             m.eps = 1e-3
             m.momentum = 0.03
+        elif t is nn.GroupNorm:
+            m.eps = 1e-5
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
         elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
             m.inplace = True
 

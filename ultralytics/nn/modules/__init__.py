@@ -23,7 +23,9 @@ from .block import (
     C3,
     C3TR,
     CIB,
+    DA,
     DFL,
+    DSA,
     ELAN1,
     PSA,
     SPP,
@@ -53,8 +55,6 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    DA,
-    DSA
 )
 from .conv import (
     CBAM,

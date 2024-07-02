@@ -4,6 +4,7 @@ import contextlib
 import shutil
 import subprocess
 import sys
+from inspect import signature
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
@@ -522,6 +523,37 @@ def parse_key_value_pair(pair):
     return k, smart_value(v)
 
 
+def guess_architecture(model_path):
+    """Guess the architecture from model path."""
+    stem = Path(model_path).stem.lower()
+    if "rtdetr" in stem:
+        from ultralytics import RTDETR
+
+        return RTDETR
+    elif "fastsam" in stem:
+        from ultralytics import FastSAM
+
+        return FastSAM
+    elif "sam" in stem:
+        from ultralytics import SAM
+
+        return SAM
+    else:
+        from ultralytics import YOLO
+
+        return YOLO
+
+
+def init_model(model_path, arch=None, **kwargs):
+    """Initialize model."""
+    arch = guess_architecture(model_path) if not arch else arch
+    # pass param from kwargs only if param exists in constructor signature
+    # TODO: adding kwargs to all architectures will make the param filtering unnecessary
+    valid_params = signature(arch.__init__).parameters
+    arguments = {k: v for k, v in kwargs.items() if k in valid_params}
+    return arch(model_path, **arguments)
+
+
 def smart_value(v):
     """Convert a string to its appropriate type (int, float, bool, None, etc.)."""
     v_lower = v.lower()
@@ -537,7 +569,7 @@ def smart_value(v):
         return v
 
 
-def entrypoint(debug=""):
+def entrypoint(debug="", arch=None):
     """
     Ultralytics entrypoint function for parsing and executing command-line arguments.
 
@@ -651,23 +683,7 @@ def entrypoint(debug=""):
         model = "yolov8n.pt"
         LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
-    stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
-        from ultralytics import RTDETR
-
-        model = RTDETR(model)  # no task argument
-    elif "fastsam" in stem:
-        from ultralytics import FastSAM
-
-        model = FastSAM(model)
-    elif "sam" in stem:
-        from ultralytics import SAM
-
-        model = SAM(model)
-    else:
-        from ultralytics import YOLO
-
-        model = YOLO(model, task=task)
+    model = init_model(model, arch=arch, task=task)
     if isinstance(overrides.get("pretrained"), str):
         model.load(overrides["pretrained"])
 

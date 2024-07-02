@@ -32,7 +32,7 @@ def test_checks():
     ],
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to TensorRT format."""
+    """Test YOLO model export to TensorRT format for various configurations and run inference."""
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -51,7 +51,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_train():
-    """Test model training on a minimal dataset."""
+    """Test model training on a minimal dataset using available CUDA devices."""
     device = 0 if CUDA_DEVICE_COUNT == 1 else [0, 1]
     YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
 
@@ -59,7 +59,7 @@ def test_train():
 @pytest.mark.slow
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_multiple_devices():
-    """Validate model prediction on multiple devices."""
+    """Validate model prediction consistency across CPU and CUDA devices."""
     model = YOLO("yolov8n.pt")
     model = model.cpu()
     assert str(model.device) == "cpu"
@@ -84,7 +84,7 @@ def test_predict_multiple_devices():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_autobatch():
-    """Check batch size for YOLO model using autobatch."""
+    """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size
 
     check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
@@ -103,7 +103,7 @@ def test_utils_benchmarks():
 
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_sam():
-    """Test SAM model prediction with various prompts."""
+    """Test SAM model predictions using different prompts, including bounding boxes and point annotations."""
     from ultralytics import SAM
     from ultralytics.models.sam import Predictor as SAMPredictor
 

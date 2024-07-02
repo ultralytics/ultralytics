@@ -230,6 +230,8 @@ class HUBTrainingSession:
         *args,
         **kwargs,
     ):
+        """Attempts to execute `request_func` with retries, timeout handling, optional threading, and progress."""
+
         def retry_request():
             """Attempts to call `request_func` with retries, timeout, and optional threading."""
             t0 = time.time()  # Record the start time for the timeout

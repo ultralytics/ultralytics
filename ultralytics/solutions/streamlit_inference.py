@@ -1,9 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import cv2
-import torch
-from ultralytics import YOLO
 import streamlit as st
+import torch
+
+from ultralytics import YOLO
 
 # Hide main menu style
 menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
@@ -23,8 +24,7 @@ sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center;
 
 def inference():
     # Set html page configuration
-    st.set_page_config(page_title='Ultralytics Streamlit App', layout='wide',
-                       initial_sidebar_state='auto')
+    st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
 
     # Append the custom HTML
     st.markdown(menu_style_cfg, unsafe_allow_html=True)
@@ -33,7 +33,7 @@ def inference():
 
     # Add elements to vertical setting menu
     st.sidebar.title("USER Configuration")
-    yolov8_model = st.sidebar.radio("Model", ('yolov8n', 'yolov8s', 'yolov8m', 'yolov8l'))
+    yolov8_model = st.sidebar.radio("Model", ("yolov8n", "yolov8s", "yolov8m", "yolov8l"))
     conf_thres = st.sidebar.text_input("Confidence Threshold", "0.25")
     nms_thres = st.sidebar.text_input("NMS Threshold", "0.45")
 
@@ -42,13 +42,13 @@ def inference():
     ann_frame = col2.empty()
 
     if st.sidebar.button("Start"):
-        model = YOLO(yolov8_model + ".pt")     # Load the yolov8 model
-        videocapture = cv2.VideoCapture(0)       # Capture the webcam
+        model = YOLO(yolov8_model + ".pt")  # Load the yolov8 model
+        videocapture = cv2.VideoCapture(0)  # Capture the webcam
 
         if not videocapture.isOpened():
             st.error("Could not open webcam.")
 
-        stop_button = st.button("Stop")     # Button to stop the inference
+        stop_button = st.button("Stop")  # Button to stop the inference
         # execute code until webcam closed
         while videocapture.isOpened():
             success, frame = videocapture.read()
@@ -58,15 +58,15 @@ def inference():
 
             # Store model predictions
             results = model(frame, conf=float(conf_thres), iou=float(nms_thres))
-            annotated_frame = results[0].plot()     # Add annotations on frame
+            annotated_frame = results[0].plot()  # Add annotations on frame
 
             # display frame
             org_frame.image(frame, channels="BGR")
             ann_frame.image(annotated_frame, channels="BGR")
 
             if stop_button:
-                videocapture.release()       # Release the capture
-                torch.cuda.empty_cache()    # Clear CUDA memory
+                videocapture.release()  # Release the capture
+                torch.cuda.empty_cache()  # Clear CUDA memory
 
         # Release the capture
         videocapture.release()

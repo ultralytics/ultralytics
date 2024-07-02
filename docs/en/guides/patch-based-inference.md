@@ -66,8 +66,7 @@ For using `patched_yolo_infer` library with Ultralytics, here is a basic example
 1. Start with importing the required libraries
 
     ```python
-    import cv2
-    from patched_yolo_infer import MakeCropsDetectThem, CombineDetections, visualize_results
+
     ```
 
 2. Loading the image:

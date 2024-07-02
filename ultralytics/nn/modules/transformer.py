@@ -22,6 +22,13 @@ __all__ = (
     "DeformableTransformerDecoderLayer",
     "MSDeformAttn",
     "MLP",
+<<<<<<< HEAD
+=======
+    "DATransformerBlock",
+    "DualTransformerBlock",
+    "MSDATransformerLayer",
+    "TransformerBlock",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 )
 
 
@@ -101,10 +108,17 @@ class AIFI(TransformerEncoderLayer):
     @staticmethod
     def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
         """Builds 2D sine-cosine position embedding."""
+<<<<<<< HEAD
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         grid_w = torch.arange(w, dtype=torch.float32)
         grid_h = torch.arange(h, dtype=torch.float32)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
+=======
+        grid_w = torch.arange(int(w), dtype=torch.float32)
+        grid_h = torch.arange(int(h), dtype=torch.float32)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
+        assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
         omega = 1.0 / (temperature**omega)
@@ -154,6 +168,36 @@ class TransformerBlock(nn.Module):
         b, _, w, h = x.shape
         p = x.flatten(2).permute(2, 0, 1)
         return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, w, h)
+
+
+class DATransformerBlock(nn.Module):
+    """Vision Transformer with MSDeformAttn integration."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, d_model=256, n_levels=4, n_heads=8, n_points=4):
+        super().__init__()
+        self.conv = None
+        if c1 != c2:
+            self.conv = Conv(c1, c2)
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+        self.tr = nn.Sequential(*(TransformerLayer(c2, num_heads) for _ in range(num_layers)))
+        self.c2 = c2
+        self.ms_deform_attn = MSDeformAttn(d_model=d_model, n_levels=n_levels, n_heads=n_heads, n_points=n_points)
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        if self.conv is not None:
+            x = self.conv(x)
+
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)  # Position embedding
+        p_embedded = self.linear(p)
+
+        # Apply MSDeformAttn here
+        attn_output = self.ms_deform_attn(p_embedded, refer_bbox, p_embedded, value_shapes, value_mask)
+
+        # Pass the attention output through the transformer layers
+        tr_output = self.tr(attn_output).permute(1, 2, 0).reshape(b, self.c2, w, h)
+
+        return tr_output
 
 
 class MLPBlock(nn.Module):
@@ -424,3 +468,115 @@ class DeformableTransformerDecoder(nn.Module):
             refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
+
+
+class CrossDATransformerBlock(nn.Module):
+    """Vision Transformer dengan Deformable Cross Attention."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4):
+        """Initialize a Transformer module dengan Deformable Cross Attention."""
+        super().__init__()
+        self.conv = None
+        if c1 != c2:
+            self.conv = Conv(c1, c2)
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+
+        # Menggunakan DeformableTransformerDecoderLayer
+        decoder_layer = DeformableTransformerDecoderLayer(
+            d_model=c2, n_heads=num_heads, n_levels=n_levels, n_points=n_points
+        )
+        self.tr = nn.Sequential(*(decoder_layer for _ in range(num_layers)))
+        self.c2 = c2
+
+    def forward(self, x, refer_bbox, feats, shapes, padding_mask=None):
+        """Forward pass dengan Deformable Cross Attention."""
+        if self.conv is not None:
+            x = self.conv(x)
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)
+        pos = self.linear(p)
+        return self.tr(p + pos, refer_bbox, feats, shapes, padding_mask).permute(1, 2, 0).reshape(b, self.c2, w, h)
+
+
+# Implementasi EfficientAttention yang disederhanakan
+class SimplifiedEfficientAttention(nn.Module):
+    def __init__(self, in_channels, key_channels, value_channels):
+        super().__init__()
+        self.keys = nn.Conv2d(in_channels, key_channels, 1)
+        self.queries = nn.Conv2d(in_channels, key_channels, 1)
+        self.values = nn.Conv2d(in_channels, value_channels, 1)
+        self.reprojection = nn.Conv2d(value_channels, in_channels, 1)
+
+    def forward(self, x):
+        keys = self.keys(x)
+        queries = self.queries(x)
+        values = self.values(x)
+
+        context = F.softmax(keys @ values.transpose(1, 2), dim=-1)
+        attended_values = context @ queries
+        return self.reprojection(attended_values)
+
+
+# Implementasi ChannelAttention yang disederhanakan
+class SimplifiedChannelAttention(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+        self.attention = nn.Linear(in_channels, in_channels)
+
+    def forward(self, x):
+        return self.attention(x)
+
+
+# Implementasi DualTransformerBlock
+class DualTransformerBlock(nn.Module):
+    def __init__(self, in_dim, key_dim, value_dim, head_count, num_layers):
+        super().__init__()
+        self.efficient_attn = SimplifiedEfficientAttention(in_dim, key_dim, value_dim)
+        self.channel_attn = SimplifiedChannelAttention(in_dim)
+        self.transformer_layers = nn.Sequential(
+            *(SimplifiedTransformerLayer(in_dim, head_count) for _ in range(num_layers))
+        )
+        self.norm = nn.LayerNorm(in_dim)
+
+    def forward(self, x, H, W):
+        x = self.norm(x)
+        x = x.view(-1, in_dim, H, W)  # Ubah ke format (batch, channel, height, width)
+        x = self.efficient_attn(x)
+        x = x.view(-1, in_dim, H * W)  # Kembali ke format (batch, channel, height*width)
+        x = self.channel_attn(x)
+        x = self.transformer_layers(x)
+        return x
+
+
+class MSDATransformerLayer(nn.Module):
+    def __init__(self, c, num_heads, n_levels=4, n_points=4):
+        super().__init__()
+        self.q = nn.Linear(c, c, bias=False)
+        self.k = nn.Linear(c, c, bias=False)
+        self.v = nn.Linear(c, c, bias=False)
+        self.deform_attn = MSDeformAttn(d_model=c, n_levels=n_levels, n_heads=num_heads, n_points=n_points)
+        self.fc1 = nn.Linear(c, c, bias=False)
+        self.fc2 = nn.Linear(c, c, bias=False)
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        x = self.deform_attn(self.q(x), refer_bbox, self.v(x), value_shapes, value_mask) + x
+        return self.fc2(self.fc1(x)) + x
+
+
+class MSDATransformerBlock(nn.Module):
+    """Vision Transformer with MSDeformAttn."""
+
+    def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4):
+        super().__init__()
+        self.conv = Conv(c1, c2) if c1 != c2 else nn.Identity()
+        self.linear = nn.Linear(c2, c2)  # learnable position embedding
+        self.tr = nn.Sequential(*(MSDATransformerLayer(c2, num_heads, n_levels, n_points) for _ in range(num_layers)))
+        self.c2 = c2
+
+    def forward(self, x, refer_bbox, value_shapes, value_mask=None):
+        if isinstance(self.conv, nn.Module):
+            x = self.conv(x)
+        b, _, w, h = x.shape
+        p = x.flatten(2).permute(2, 0, 1)
+        x = self.tr(p + self.linear(p), refer_bbox, value_shapes, value_mask)
+        return x.permute(1, 2, 0).reshape(b, self.c2, w, h)

@@ -16,11 +16,15 @@ __all__ = (
     "ClassificationDataset",
     "SemanticDataset",
     "YOLODataset",
+<<<<<<< HEAD
     "YOLOMultiModalDataset",
     "YOLOConcatDataset",
     "GroundingDataset",
     "build_yolo_dataset",
     "build_grounding",
+=======
+    "build_yolo_dataset",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "build_dataloader",
     "load_inference_source",
 )

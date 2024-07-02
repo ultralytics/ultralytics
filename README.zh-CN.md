@@ -129,11 +129,19 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 | 模型                                                                                 | 尺寸<br><sup>(像素) | mAP<sup>val<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | ------------------- | -------------------- | ----------------------------- | ---------------------------------- | ---------------- | ----------------- |
+<<<<<<< HEAD
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                 | 37.3                 | 80.4                          | 0.99                               | 3.2              | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt) | 640                 | 44.9                 | 128.4                         | 1.20                               | 11.2             | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt) | 640                 | 50.2                 | 234.7                         | 1.83                               | 25.9             | 78.9              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt) | 640                 | 52.9                 | 375.2                         | 2.39                               | 43.7             | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt) | 640                 | 53.9                 | 479.1                         | 3.53                               | 68.2             | 257.8             |
+=======
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                 | 37.3                 | 80.4                          | 0.99                               | 3.2              | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                 | 44.9                 | 128.4                         | 1.20                               | 11.2             | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                 | 50.2                 | 234.7                         | 1.83                               | 25.9             | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                 | 52.9                 | 375.2                         | 2.39                               | 43.7             | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                 | 53.9                 | 479.1                         | 3.53                               | 68.2             | 257.8             |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 - **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现
@@ -146,11 +154,19 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 | 模型                                                                                      | 尺寸<br><sup>(像素) | mAP<sup>验证<br>50-95 | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>A100 TensorRT<br>(毫秒) | 参数<br><sup>(M) | 浮点运算<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | ------------------- | --------------------- | ------------------------------- | ------------------------------------ | ---------------- | -------------------- |
+<<<<<<< HEAD
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                 | 18.4                  | 142.4                           | 1.21                                 | 3.5              | 10.5                 |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                 | 27.7                  | 183.1                           | 1.40                                 | 11.4             | 29.7                 |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                 | 33.6                  | 408.5                           | 2.26                                 | 26.2             | 80.6                 |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                 | 34.9                  | 596.9                           | 2.43                                 | 44.1             | 167.4                |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                 | 36.3                  | 860.6                           | 3.56                                 | 68.7             | 260.6                |
+=======
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-oiv7.pt) | 640                 | 18.4                  | 142.4                           | 1.21                                 | 3.5              | 10.5                 |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-oiv7.pt) | 640                 | 27.7                  | 183.1                           | 1.40                                 | 11.4             | 29.7                 |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-oiv7.pt) | 640                 | 33.6                  | 408.5                           | 2.26                                 | 26.2             | 80.6                 |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-oiv7.pt) | 640                 | 34.9                  | 596.9                           | 2.43                                 | 44.1             | 167.4                |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-oiv7.pt) | 640                 | 36.3                  | 860.6                           | 3.56                                 | 68.7             | 260.6                |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 - **mAP<sup>验证</sup>** 值适用于在[Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)数据集上的单模型单尺度。 <br>通过 `yolo val detect data=open-images-v7.yaml device=0` 以复现。
 - **速度** 在使用[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例对Open Image V7验证图像进行平均测算。 <br>通过 `yolo val detect data=open-images-v7.yaml batch=1 device=0|cpu` 以复现。
@@ -163,11 +179,19 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 | 模型                                                                                         | 尺寸<br><sup>(像素) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | ------------------- | -------------------- | --------------------- | ----------------------------- | ---------------------------------- | ---------------- | ----------------- |
+<<<<<<< HEAD
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-seg.pt) | 640                 | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4              | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-seg.pt) | 640                 | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8             | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt) | 640                 | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3             | 110.2             |
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-seg.pt) | 640                 | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0             | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt) | 640                 | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8             | 344.1             |
+=======
+| [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                 | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4              | 12.6              |
+| [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                 | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8             | 42.6              |
+| [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                 | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3             | 110.2             |
+| [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                 | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0             | 220.5             |
+| [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                 | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8             | 344.1             |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 - **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val segment data=coco-seg.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val segment data=coco-seg.yaml batch=1 device=0|cpu` 复现
@@ -180,12 +204,21 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 | 模型                                                                                                 | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | ------------------- | --------------------- | ------------------ | ----------------------------- | ---------------------------------- | ---------------- | ----------------- |
+<<<<<<< HEAD
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-pose.pt)       | 640                 | 50.4                  | 80.1               | 131.8                         | 1.18                               | 3.3              | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-pose.pt)       | 640                 | 60.0                  | 86.2               | 233.2                         | 1.42                               | 11.6             | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-pose.pt)       | 640                 | 65.0                  | 88.8               | 456.3                         | 2.00                               | 26.4             | 81.0              |
 | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-pose.pt)       | 640                 | 67.6                  | 90.0               | 784.5                         | 2.59                               | 44.4             | 168.6             |
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose.pt)       | 640                 | 69.2                  | 90.2               | 1607.1                        | 3.73                               | 69.4             | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt) | 1280                | 71.6                  | 91.2               | 4088.7                        | 10.04                              | 99.1             | 1066.4            |
+=======
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                 | 50.4                  | 80.1               | 131.8                         | 1.18                               | 3.3              | 9.2               |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                 | 60.0                  | 86.2               | 233.2                         | 1.42                               | 11.6             | 30.2              |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                 | 65.0                  | 88.8               | 456.3                         | 2.00                               | 26.4             | 81.0              |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                 | 67.6                  | 90.0               | 784.5                         | 2.59                               | 44.4             | 168.6             |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                 | 69.2                  | 90.2               | 1607.1                        | 3.73                               | 69.4             | 263.2             |
+| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                | 71.6                  | 91.2               | 4088.7                        | 10.04                              | 99.1             | 1066.4            |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 - **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu` 复现
@@ -215,11 +248,19 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 | 模型                                                                                         | 尺寸<br><sup>(像素) | acc<br><sup>top1 | acc<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | -------------------------------------------------------------------------------------------- | ------------------- | ---------------- | ---------------- | ----------------------------- | ---------------------------------- | ---------------- | ------------------------ |
+<<<<<<< HEAD
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224                 | 69.0             | 88.3             | 12.9                          | 0.31                               | 2.7              | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224                 | 73.8             | 91.7             | 23.4                          | 0.35                               | 6.4              | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt) | 224                 | 76.8             | 93.5             | 85.4                          | 0.62                               | 17.0             | 42.7                     |
 | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt) | 224                 | 78.3             | 94.2             | 163.0                         | 0.87                               | 37.5             | 99.7                     |
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt) | 224                 | 79.0             | 94.6             | 232.0                         | 1.01                               | 57.4             | 154.8                    |
+=======
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                 | 66.6             | 87.0             | 12.9                          | 0.31                               | 2.7              | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                 | 72.3             | 91.1             | 23.4                          | 0.35                               | 6.4              | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                 | 76.4             | 93.2             | 85.4                          | 0.62                               | 17.0             | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                 | 78.0             | 94.1             | 163.0                         | 0.87                               | 37.5             | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                 | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4             | 154.8                    |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 - **acc** 值是模型在 [ImageNet](https://www.image-net.org/) 数据集验证集上的准确率。 <br>通过 `yolo val classify data=path/to/ImageNet device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 ImageNet val 图像进行平均计算的。 <br>通过 `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu` 复现
@@ -250,9 +291,15 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" alt="NeuralMagic logo"></a>
 </div>
 
+<<<<<<< HEAD
 |                                                 Roboflow                                                  |                                  ClearML ⭐ NEW                                  |                                                     Comet ⭐ NEW                                                     |                                        Neural Magic ⭐ NEW                                        |
 | :-------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: |
 | 使用 [Roboflow](https://roboflow.com/?ref=ultralytics) 将您的自定义数据集直接标记并导出至 YOLOv8 进行训练 | 使用 [ClearML](https://clear.ml/)（开源！）自动跟踪、可视化，甚至远程训练 YOLOv8 | 免费且永久，[Comet](https://bit.ly/yolov8-readme-comet) 让您保存 YOLOv8 模型、恢复训练，并以交互式方式查看和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) 使 YOLOv8 推理速度提高多达 6 倍 |
+=======
+|                                                 Roboflow                                                  |                                            ClearML ⭐ NEW                                            |                                                     Comet ⭐ NEW                                                     |                                        Neural Magic ⭐ NEW                                        |
+| :-------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: |
+| 使用 [Roboflow](https://roboflow.com/?ref=ultralytics) 将您的自定义数据集直接标记并导出至 YOLOv8 进行训练 | 使用 [ClearML](https://cutt.ly/yolov5-readme-clearml)（开源！）自动跟踪、可视化，甚至远程训练 YOLOv8 | 免费且永久，[Comet](https://bit.ly/yolov8-readme-comet) 让您保存 YOLOv8 模型、恢复训练，并以交互式方式查看和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) 使 YOLOv8 推理速度提高多达 6 倍 |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 ## <div align="center">Ultralytics HUB</div>
 

@@ -9,6 +9,13 @@ try:
     import wandb as wb
 
     assert hasattr(wb, "__version__")  # verify package is not directory
+<<<<<<< HEAD
+=======
+
+    import numpy as np
+    import pandas as pd
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     _processed_plots = {}
 
 except (ImportError, AssertionError):
@@ -34,9 +41,13 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
+<<<<<<< HEAD
     import pandas  # scope for faster 'import ultralytics'
 
     df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+=======
+    df = pd.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
     return wb.plot_table(
@@ -100,7 +111,11 @@ def _plot_curve(
 
 def _log_plots(plots, step):
     """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
+<<<<<<< HEAD
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
+=======
+    for name, params in plots.items():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:
             wb.run.log({name.stem: wb.Image(str(name))}, step=step)

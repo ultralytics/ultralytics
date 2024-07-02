@@ -31,7 +31,10 @@ class ClassificationPredictor(BasePredictor):
         """Initializes ClassificationPredictor setting the task to 'classify'."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"
+<<<<<<< HEAD
         self._legacy_transform_name = "ultralytics.yolo.data.augment.ToTensor"
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""

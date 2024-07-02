@@ -23,7 +23,11 @@ __all__ = (
 )
 
 
+<<<<<<< HEAD
 def login(api_key: str = None, save=True) -> bool:
+=======
+def login(api_key=""):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """
     Log in to the Ultralytics HUB API using the provided API key.
 
@@ -85,7 +89,11 @@ def logout():
 
 def reset_model(model_id=""):
     """Reset a trained model to an untrained state."""
+<<<<<<< HEAD
     r = requests.post(f"{HUB_API_ROOT}/model-reset", json={"modelId": model_id}, headers={"x-api-key": Auth().api_key})
+=======
+    r = requests.post(f"{HUB_API_ROOT}/model-reset", json={"apiKey": Auth().api_key, "modelId": model_id})
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if r.status_code == 200:
         LOGGER.info(f"{PREFIX}Model reset successfully")
         return
@@ -113,15 +121,23 @@ def get_export(model_id="", format="torchscript"):
     """Get an exported model dictionary with download URL."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
+<<<<<<< HEAD
         f"{HUB_API_ROOT}/get-export",
         json={"apiKey": Auth().api_key, "modelId": model_id, "format": format},
         headers={"x-api-key": Auth().api_key},
+=======
+        f"{HUB_API_ROOT}/get-export", json={"apiKey": Auth().api_key, "modelId": model_id, "format": format}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     )
     assert r.status_code == 200, f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 
 
+<<<<<<< HEAD
 def check_dataset(path: str, task: str) -> None:
+=======
+def check_dataset(path="", task="detect"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """
     Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
     to the HUB. Usage examples are given below.

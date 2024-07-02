@@ -77,6 +77,7 @@ def torch_save(*args, use_dill=True, **kwargs):
         import pickle
 
     if "pickle_module" not in kwargs:
+<<<<<<< HEAD
         kwargs["pickle_module"] = pickle
 
     for i in range(4):  # 3 retries
@@ -86,3 +87,7 @@ def torch_save(*args, use_dill=True, **kwargs):
             if i == 3:
                 raise e
             time.sleep((2**i) / 2)  # exponential standoff: 0.5s, 1.0s, 2.0s
+=======
+        kwargs["pickle_module"] = pickle  # noqa
+    return _torch_save(*args, **kwargs)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

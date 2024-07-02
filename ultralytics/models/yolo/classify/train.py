@@ -8,7 +8,11 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import (
+    is_parallel,
+    strip_optimizer,
+    torch_distributed_zero_first,
+)
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -69,12 +73,20 @@ class ClassificationTrainer(BaseTrainer):
             self.model, ckpt = attempt_load_one_weight(model, device="cpu")
             for p in self.model.parameters():
                 p.requires_grad = True  # for training
+<<<<<<< HEAD
         elif model.split(".")[-1] in {"yaml", "yml"}:
+=======
+        elif model.split(".")[-1] in ("yaml", "yml"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[model](weights="IMAGENET1K_V1" if self.args.pretrained else None)
         else:
+<<<<<<< HEAD
             raise FileNotFoundError(f"ERROR: model={model} not found locally or online. Please check model name.")
+=======
+            FileNotFoundError(f"ERROR: model={model} not found locally or online. Please check model name.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
 
         return ckpt
@@ -116,7 +128,11 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
+<<<<<<< HEAD
         return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, _callbacks=self.callbacks)
+=======
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

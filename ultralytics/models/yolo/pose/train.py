@@ -51,9 +51,13 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Returns an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
+<<<<<<< HEAD
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
+=======
+        return yolo.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def plot_training_samples(self, batch, ni):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""

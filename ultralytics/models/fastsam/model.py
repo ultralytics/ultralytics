@@ -25,7 +25,11 @@ class FastSAM(Model):
         """Call the __init__ method of the parent class (YOLO) with the updated default model."""
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"
+<<<<<<< HEAD
         assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM models only support pre-trained models."
+=======
+        assert Path(model).suffix not in (".yaml", ".yml"), "FastSAM models only support pre-trained models."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         super().__init__(model=model, task="segment")
 
     @property

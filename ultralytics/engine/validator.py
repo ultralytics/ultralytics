@@ -33,7 +33,11 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import (
+    de_parallel,
+    select_device,
+    smart_inference_mode,
+)
 
 
 class BaseValidator:
@@ -122,7 +126,11 @@ class BaseValidator:
         else:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
+<<<<<<< HEAD
                 weights=model or self.args.model,
+=======
+                model or self.args.model,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 device=select_device(self.args.device, self.args.batch),
                 dnn=self.args.dnn,
                 data=self.args.data,
@@ -139,14 +147,22 @@ class BaseValidator:
                 self.args.batch = 1  # export.py models default to batch-size 1
                 LOGGER.info(f"Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models")
 
+<<<<<<< HEAD
             if str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
+=======
+            if isinstance(self.args.data, str) and self.args.data.split(".")[-1] in ("yaml", "yml"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
+<<<<<<< HEAD
             if self.device.type in {"cpu", "mps"}:
+=======
+            if self.device.type in ("cpu", "mps"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             if not pt:
                 self.args.rect = False
@@ -157,12 +173,16 @@ class BaseValidator:
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
+<<<<<<< HEAD
         dt = (
             Profile(device=self.device),
             Profile(device=self.device),
             Profile(device=self.device),
             Profile(device=self.device),
         )
+=======
+        dt = Profile(), Profile(), Profile(), Profile()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val

@@ -50,7 +50,10 @@ TensorFlow.js:
     $ npm start
 """
 
+<<<<<<< HEAD
 import gc
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 import json
 import os
 import shutil
@@ -70,6 +73,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+<<<<<<< HEAD
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -79,6 +83,15 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     PYTHON_VERSION,
+=======
+from ultralytics.nn.tasks import DetectionModel, SegmentationModel
+from ultralytics.utils import (
+    ARM64,
+    DEFAULT_CFG,
+    LINUX,
+    LOGGER,
+    MACOS,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ROOT,
     WINDOWS,
     __version__,
@@ -87,16 +100,32 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
+<<<<<<< HEAD
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
+=======
+from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.utils.downloads import attempt_download_asset, get_github_assets
+from ultralytics.utils.files import file_size, spaces_in_path
+from ultralytics.utils.ops import Profile
+from ultralytics.utils.torch_utils import (
+    get_latest_opset,
+    select_device,
+    smart_inference_mode,
+)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def export_formats():
     """YOLOv8 export formats."""
+<<<<<<< HEAD
     import pandas  # scope for faster 'import ultralytics'
+=======
+    import pandas
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     x = [
         ["PyTorch", "-", ".pt", True, True],
@@ -111,7 +140,11 @@ def export_formats():
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False],
         ["TensorFlow.js", "tfjs", "_web_model", True, False],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
+<<<<<<< HEAD
         ["NCNN", "ncnn", "_ncnn_model", True, True],
+=======
+        ["ncnn", "ncnn", "_ncnn_model", True, True],
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ]
     return pandas.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
 
@@ -163,7 +196,11 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
+<<<<<<< HEAD
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
+=======
+        if self.args.format.lower() in ("coreml", "mlmodel"):  # fix attempt for protobuf<3.20.x errors
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"  # must run before TensorBoard callback
 
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -175,9 +212,15 @@ class Exporter:
         self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
+<<<<<<< HEAD
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
+=======
+        if fmt in ("tensorrt", "trt"):  # 'engine' aliases
+            fmt = "engine"
+        if fmt in ("mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"):  # 'coreml' aliases
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             fmt = "coreml"
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
         flags = [x == fmt for x in fmts]
@@ -196,12 +239,18 @@ class Exporter:
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
+<<<<<<< HEAD
         if self.args.half and self.args.int8:
             LOGGER.warning("WARNING ⚠️ half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
         if self.args.half and onnx and self.device.type == "cpu":
             LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
+=======
+        if self.args.half and onnx and self.device.type == "cpu":
+            LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
+            self.args.half = False
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and (engine or xml):
@@ -209,6 +258,7 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+<<<<<<< HEAD
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -228,6 +278,11 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
+=======
+        if edgetpu and not LINUX:
+            raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/")
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
@@ -255,7 +310,11 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
+<<<<<<< HEAD
         if self.args.half and onnx and self.device.type != "cpu":
+=======
+        if self.args.half and (engine or onnx) and self.device.type != "cpu":
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings
@@ -278,10 +337,16 @@ class Exporter:
         self.metadata = {
             "description": description,
             "author": "Ultralytics",
+<<<<<<< HEAD
             "date": datetime.now().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
+=======
+            "license": "AGPL-3.0 https://ultralytics.com/license",
+            "date": datetime.now().isoformat(),
+            "version": __version__,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             "stride": int(max(model.stride)),
             "task": model.task,
             "batch": self.args.batch,
@@ -388,7 +453,11 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
+<<<<<<< HEAD
             requirements += ["onnxslim>=0.1.31", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+=======
+            requirements += ["onnxsim>=0.4.33", "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -427,6 +496,7 @@ class Exporter:
             try:
                 import onnxslim
 
+<<<<<<< HEAD
                 LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
                 model_onnx = onnxslim.slim(model_onnx)
 
@@ -436,6 +506,14 @@ class Exporter:
                 # assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
+=======
+                LOGGER.info(f"{prefix} simplifying with onnxsim {onnxsim.__version__}...")
+                # subprocess.run(f'onnxsim "{f}" "{f}"', shell=True)
+                model_onnx, check = onnxsim.simplify(model_onnx)
+                assert check, "Simplified ONNX model could not be validated"
+            except Exception as e:
+                LOGGER.info(f"{prefix} simplifier failure: {e}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Metadata
         for k, v in self.metadata.items():
@@ -448,6 +526,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLOv8 OpenVINO export."""
+<<<<<<< HEAD
         check_requirements(f'openvino{"<=2024.0.0" if ARM64 else ">=2024.0.0"}')  # fix OpenVINO issue on ARM64
         import openvino as ov
 
@@ -458,6 +537,18 @@ class Exporter:
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )
+=======
+        check_requirements("openvino-dev>=2023.0")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        import openvino.runtime as ov  # noqa
+        from openvino.tools import mo  # noqa
+
+        LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
+        f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
+        fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
+        f_onnx = self.file.with_suffix(".onnx")
+        f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
+        fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         def serialize(ov_model, file):
             """Set RT info, serialize and save metadata YAML."""
@@ -470,6 +561,7 @@ class Exporter:
             if self.model.task != "classify":
                 ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
 
+<<<<<<< HEAD
             ov.runtime.save_model(ov_model, file, compress_to_fp16=self.args.half)
             yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
@@ -477,10 +569,23 @@ class Exporter:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             check_requirements("nncf>=2.8.0")
+=======
+            ov.serialize(ov_model, file)  # save
+            yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
+
+        ov_model = mo.convert_model(
+            f_onnx, model_name=self.pretty_name, framework="onnx", compress_to_fp16=self.args.half
+        )  # export
+
+        if self.args.int8:
+            assert self.args.data, "INT8 export requires a data argument for calibration, i.e. 'data=coco8.yaml'"
+            check_requirements("nncf>=2.5.0")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             import nncf
 
             def transform_fn(data_item) -> np.ndarray:
                 """Quantization transform function."""
+<<<<<<< HEAD
                 data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
                 assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
@@ -507,6 +612,19 @@ class Exporter:
                 calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
                 preset=nncf.QuantizationPreset.MIXED,
                 ignored_scope=ignored_scope,
+=======
+                im = data_item["img"].numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+                return np.expand_dims(im, 0) if im.ndim == 3 else im
+
+            # Generate calibration data for integer quantization
+            LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+            data = check_det_dataset(self.args.data)
+            dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
+            quantization_dataset = nncf.Dataset(dataset, transform_fn)
+            ignored_scope = nncf.IgnoredScope(types=["Multiply", "Subtract", "Sigmoid"])  # ignore operation
+            quantized_ov_model = nncf.quantize(
+                ov_model, quantization_dataset, preset=nncf.QuantizationPreset.MIXED, ignored_scope=ignored_scope
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             )
             serialize(quantized_ov_model, fq_ov)
             return fq, None
@@ -532,10 +650,15 @@ class Exporter:
         return f, None
 
     @try_export
+<<<<<<< HEAD
     def export_ncnn(self, prefix=colorstr("NCNN:")):
+=======
+    def export_ncnn(self, prefix=colorstr("ncnn:")):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
+<<<<<<< HEAD
         check_requirements("ncnn")
         import ncnn  # noqa
 
@@ -546,11 +669,27 @@ class Exporter:
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
         pnnx = name if name.is_file() else (ROOT / name)
         if not pnnx.is_file():
+=======
+        check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires ncnn
+        import ncnn  # noqa
+
+        LOGGER.info(f"\n{prefix} starting export with ncnn {ncnn.__version__}...")
+        f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
+        f_ts = self.file.with_suffix(".torchscript")
+
+        pnnx_filename = "pnnx.exe" if WINDOWS else "pnnx"
+        if Path(pnnx_filename).is_file():
+            pnnx = pnnx_filename
+        elif (ROOT / pnnx_filename).is_file():
+            pnnx = ROOT / pnnx_filename
+        else:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.warning(
                 f"{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from "
                 "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
+<<<<<<< HEAD
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
                 release, assets = get_github_assets(repo="pnnx/pnnx")
@@ -566,6 +705,22 @@ class Exporter:
                 (unzip_dir / name).rename(pnnx)  # move binary to ROOT
                 pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
                 shutil.rmtree(unzip_dir)  # delete unzip dir
+=======
+            _, assets = get_github_assets(repo="pnnx/pnnx", retry=True)
+            system = "macos" if MACOS else "ubuntu" if LINUX else "windows"  # operating system
+            asset = (
+                [x for x in assets if system in x][0]
+                if assets
+                else f"https://github.com/pnnx/pnnx/releases/download/20230816/pnnx-20230816-{system}.zip"
+            )  # fallback
+            asset = attempt_download_asset(asset, repo="pnnx/pnnx", release="latest")
+            unzip_dir = Path(asset).with_suffix("")
+            pnnx = ROOT / pnnx_filename  # new location
+            (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
+            shutil.rmtree(unzip_dir)  # delete unzip dir
+            Path(asset).unlink()  # delete zip
+            pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
@@ -609,8 +764,11 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
+<<<<<<< HEAD
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
@@ -651,7 +809,11 @@ class Exporter:
         if self.args.nms and self.model.task == "detect":
             if mlmodel:
                 # coremltools<=6.2 NMS export requires Python<3.11
+<<<<<<< HEAD
                 check_version(PYTHON_VERSION, "<3.11", name="Python ", hard=True)
+=======
+                check_version(platform.python_version(), "<3.11", name="Python ", hard=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 weights_dir = None
             else:
                 ct_model.save(str(f))  # save otherwise weights_dir does not exist
@@ -679,20 +841,35 @@ class Exporter:
     def export_engine(self, prefix=colorstr("TensorRT:")):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
+<<<<<<< HEAD
         # self.args.simplify = True
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         try:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
+<<<<<<< HEAD
                 check_requirements("tensorrt", cmds="-U")
+=======
+                check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             import tensorrt as trt  # noqa
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
 
+<<<<<<< HEAD
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
         is_trt10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
+=======
+        check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+        self.args.simplify = True
+        f_onnx, _ = self.export_onnx()
+
+        LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
@@ -702,11 +879,17 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
+<<<<<<< HEAD
         workspace = int(self.args.workspace * (1 << 30))
         if is_trt10:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
         else:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
+=======
+        config.max_workspace_size = self.args.workspace * 1 << 30
+        # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace << 30)  # fix TRT 8.4 deprecation notice
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
         half = builder.platform_has_fast_fp16 and self.args.half
@@ -735,6 +918,7 @@ class Exporter:
                 profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
             config.add_optimization_profile(profile)
 
+<<<<<<< HEAD
         LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {f}")
         if int8:
             config.set_flag(trt.BuilderFlag.INT8)
@@ -790,6 +974,12 @@ class Exporter:
             )
 
         elif half:
+=======
+        LOGGER.info(
+            f"{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}"
+        )
+        if builder.platform_has_fast_fp16 and self.args.half:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             config.set_flag(trt.BuilderFlag.FP16)
 
         # Free CUDA memory
@@ -798,8 +988,12 @@ class Exporter:
         torch.cuda.empty_cache()
 
         # Write file
+<<<<<<< HEAD
         build = builder.build_serialized_network if is_trt10 else builder.build_engine
         with build(network, config) as engine, open(f, "wb") as t:
+=======
+        with builder.build_engine(network, config) as engine, open(f, "wb") as t:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             # Metadata
             meta = json.dumps(self.metadata)
             t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
@@ -822,6 +1016,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
+<<<<<<< HEAD
                 "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
@@ -848,6 +1043,24 @@ class Exporter:
 
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
+=======
+                "onnx",
+                "onnx2tf>=1.15.4,<=1.17.5",
+                "sng4onnx>=1.0.1",
+                "onnxsim>=0.4.33",
+                "onnx_graphsurgeon>=0.3.26",
+                "tflite_support",
+                "onnxruntime-gpu" if cuda else "onnxruntime",
+            ),
+            cmds="--extra-index-url https://pypi.ngc.nvidia.com",
+        )  # onnx_graphsurgeon only on NVIDIA
+
+        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
+        f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
+        if f.is_dir():
+            import shutil
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             shutil.rmtree(f)  # delete output folder
 
         # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
@@ -860,16 +1073,34 @@ class Exporter:
         f_onnx, _ = self.export_onnx()
 
         # Export to TF
+<<<<<<< HEAD
         np_data = None
         if self.args.int8:
             tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
             verbosity = "info"
             if self.args.data:
+=======
+        tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
+        if self.args.int8:
+            verbosity = "--verbosity info"
+            if self.args.data:
+                # Generate calibration data for integer quantization
+                LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+                data = check_det_dataset(self.args.data)
+                dataset = YOLODataset(data["val"], data=data, imgsz=self.imgsz[0], augment=False)
+                images = []
+                for i, batch in enumerate(dataset):
+                    if i >= 100:  # maximum number of calibration images
+                        break
+                    im = batch["img"].permute(1, 2, 0)[None]  # list to nparray, CHW to BHWC
+                    images.append(im)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 f.mkdir()
                 images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
                 images = torch.cat(images, 0).float()
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
+<<<<<<< HEAD
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
         else:
@@ -885,6 +1116,19 @@ class Exporter:
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
         )
+=======
+                np.save(str(tmp_file), images.numpy())  # BHWC
+                int8 = f'-oiqt -qt per-tensor -cind images "{tmp_file}" "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+            else:
+                int8 = "-oiqt -qt per-tensor"
+        else:
+            verbosity = "--non_verbose"
+            int8 = ""
+
+        cmd = f'onnx2tf -i "{f_onnx}" -o "{f}" -nuo {verbosity} {int8}'.strip()
+        LOGGER.info(f"{prefix} running '{cmd}'")
+        subprocess.run(cmd, shell=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         # Remove/rename TFLite models
@@ -967,9 +1211,12 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLOv8 TensorFlow.js export."""
         check_requirements("tensorflowjs")
+<<<<<<< HEAD
         if ARM64:
             # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
             check_requirements("numpy==1.23.5")
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 
@@ -1025,7 +1272,11 @@ class Exporter:
             from tensorflow_lite_support.metadata.python import metadata  # noqa
 
         # Create model info
+<<<<<<< HEAD
         model_meta = schema.ModelMetadataT()
+=======
+        model_meta = _metadata_fb.ModelMetadataT()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         model_meta.name = self.metadata["description"]
         model_meta.version = self.metadata["version"]
         model_meta.author = self.metadata["author"]
@@ -1041,6 +1292,7 @@ class Exporter:
         label_file.type = schema.AssociatedFileType.TENSOR_AXIS_LABELS
 
         # Create input info
+<<<<<<< HEAD
         input_meta = schema.TensorMetadataT()
         input_meta.name = "image"
         input_meta.description = "Input image to be detected."
@@ -1051,11 +1303,27 @@ class Exporter:
 
         # Create output info
         output1 = schema.TensorMetadataT()
+=======
+        input_meta = _metadata_fb.TensorMetadataT()
+        input_meta.name = "image"
+        input_meta.description = "Input image to be detected."
+        input_meta.content = _metadata_fb.ContentT()
+        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
+        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
+        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
+
+        # Create output info
+        output1 = _metadata_fb.TensorMetadataT()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         output1.name = "output"
         output1.description = "Coordinates of detected objects, class labels, and confidence score"
         output1.associatedFiles = [label_file]
         if self.model.task == "segment":
+<<<<<<< HEAD
             output2 = schema.TensorMetadataT()
+=======
+            output2 = _metadata_fb.TensorMetadataT()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             output2.name = "output"
             output2.description = "Mask protos"
             output2.associatedFiles = [label_file]
@@ -1189,7 +1457,11 @@ class Exporter:
         # Save the model
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
+<<<<<<< HEAD
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
+=======
+        model.input_description["iouThreshold"] = f"(optional) IOU threshold override (default: {nms.iouThreshold})"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         model.input_description["confidenceThreshold"] = (
             f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         )

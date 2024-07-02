@@ -9,10 +9,16 @@ import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
+<<<<<<< HEAD
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
+=======
+from ultralytics.data.loaders import (
+    LOADERS,
+    LoadImages,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     LoadPilAndNumpy,
     LoadScreenshots,
     LoadStreams,
@@ -20,7 +26,11 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
+<<<<<<< HEAD
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
+=======
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 
@@ -81,7 +91,11 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
+<<<<<<< HEAD
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
+=======
+def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """Build YOLO Dataset."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
@@ -96,11 +110,17 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         stride=int(stride),
         pad=0.0 if mode == "train" else 0.5,
         prefix=colorstr(f"{mode}: "),
+<<<<<<< HEAD
         task=cfg.task,
+=======
+        use_segments=cfg.task == "segment",
+        use_keypoints=cfg.task == "pose",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         classes=cfg.classes,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
     )
+<<<<<<< HEAD
 
 
 def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
@@ -122,6 +142,8 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
         classes=cfg.classes,
         fraction=cfg.fraction if mode == "train" else 1.0,
     )
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
@@ -150,7 +172,11 @@ def check_source(source):
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
+<<<<<<< HEAD
         is_file = Path(source).suffix[1:] in (IMG_FORMATS | VID_FORMATS)
+=======
+        is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         is_url = source.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source.lower() == "screen"

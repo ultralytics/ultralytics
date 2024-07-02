@@ -33,6 +33,7 @@ try:
 except ImportError:
     thop = None
 
+<<<<<<< HEAD
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
@@ -40,6 +41,10 @@ TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
+=======
+TORCH_1_9 = check_version(torch.__version__, "1.9.0")
+TORCH_2_0 = check_version(torch.__version__, "2.0.0")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 @contextmanager
@@ -113,12 +118,20 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device):
         return device
 
+<<<<<<< HEAD
     s = f"Ultralytics YOLOv{__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+=======
+    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
+<<<<<<< HEAD
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+=======
+    mps = device in ("mps", "mps:0")  # Apple Metal Performance Shaders (MPS)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
@@ -126,7 +139,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             device = "0"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+<<<<<<< HEAD
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+=======
+        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(",", ""))):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -147,6 +164,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
+<<<<<<< HEAD
         if n > 1:  # multi-GPU
             if batch < 1:
                 raise ValueError(
@@ -158,6 +176,13 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                     f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
                     f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
                 )
+=======
+        if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
+            raise ValueError(
+                f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
+            )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -321,6 +346,7 @@ def get_flops(model, imgsz=640):
     try:
         model = de_parallel(model)
         p = next(model.parameters())
+<<<<<<< HEAD
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         try:
@@ -333,11 +359,19 @@ def get_flops(model, imgsz=640):
             # Use actual image size for input tensor (i.e. required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
             return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+=======
+        stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
+        im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+        flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2 if thop else 0  # stride GFLOPs
+        imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
+        return flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     except Exception:
         return 0.0
 
 
 def get_flops_with_torch_profiler(model, imgsz=640):
+<<<<<<< HEAD
     """Compute model FLOPs (thop package alternative, but 2-10x slower unfortunately)."""
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
@@ -352,6 +386,18 @@ def get_flops_with_torch_profiler(model, imgsz=640):
         with torch.profiler.profile(with_flops=True) as prof:
             model(im)
         flops = sum(x.flops for x in prof.key_averages()) / 1e9
+=======
+    """Compute model FLOPs (thop alternative)."""
+    if TORCH_2_0:
+        model = de_parallel(model)
+        p = next(model.parameters())
+        stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
+        im = torch.zeros((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+        with torch.profiler.profile(with_flops=True) as prof:
+            model(im)
+        flops = sum(x.flops for x in prof.key_averages()) / 1e9
+        imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
     except Exception:
         # Use actual image size for input tensor (i.e. required for RTDETR models)
@@ -406,6 +452,7 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
+<<<<<<< HEAD
     """Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity."""
     if TORCH_1_13:
         # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
@@ -413,6 +460,10 @@ def get_latest_opset():
     # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
     version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
     return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
+=======
+    """Return second-most (for maturity) recently supported ONNX opset by this version of torch."""
+    return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def intersect_dicts(da, db, exclude=()):
@@ -514,6 +565,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
             strip_optimizer(f)
         ```
     """
+<<<<<<< HEAD
     try:
         x = torch.load(f, map_location=torch.device("cpu"))
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
@@ -550,6 +602,27 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
 
     # Save
     torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
+=======
+    x = torch.load(f, map_location=torch.device("cpu"))
+    if "model" not in x:
+        LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
+        return
+
+    if hasattr(x["model"], "args"):
+        x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
+    args = {**DEFAULT_CFG_DICT, **x["train_args"]} if "train_args" in x else None  # combine args
+    if x.get("ema"):
+        x["model"] = x["ema"]  # replace model with ema
+    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
+        x[k] = None
+    x["epoch"] = -1
+    x["model"].half()  # to FP16
+    for p in x["model"].parameters():
+        p.requires_grad = False
+    x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
+    # x['model'].args = x['train_args']
+    torch.save(x, s or f)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 
@@ -664,9 +737,14 @@ class EarlyStopping:
         self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
         stop = delta >= self.patience  # stop training if patience exceeded
         if stop:
+<<<<<<< HEAD
             prefix = colorstr("EarlyStopping: ")
             LOGGER.info(
                 f"{prefix}Training stopped early as no improvement observed in last {self.patience} epochs. "
+=======
+            LOGGER.info(
+                f"Stopping training early as no improvement observed in last {self.patience} epochs. "
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 f"Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n"
                 f"To update EarlyStopping(patience={self.patience}) pass a new patience value, "
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."

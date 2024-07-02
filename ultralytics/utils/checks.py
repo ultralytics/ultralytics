@@ -22,6 +22,7 @@ import torch
 from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
+<<<<<<< HEAD
     IS_COLAB,
     IS_JUPYTER,
     IS_KAGGLE,
@@ -34,6 +35,13 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     Retry,
+=======
+    LINUX,
+    LOGGER,
+    ONLINE,
+    ROOT,
+    USER_CONFIG_DIR,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     SimpleNamespace,
     ThreadingLocked,
     TryExcept,
@@ -41,7 +49,16 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     emojis,
+<<<<<<< HEAD
     is_github_action_running,
+=======
+    is_colab,
+    is_docker,
+    is_jupyter,
+    is_kaggle,
+    is_online,
+    is_pip_package,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     url2file,
 )
 
@@ -172,12 +189,16 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 
 def check_version(
+<<<<<<< HEAD
     current: str = "0.0.0",
     required: str = "0.0.0",
     name: str = "version",
     hard: bool = False,
     verbose: bool = False,
     msg: str = "",
+=======
+    current: str = "0.0.0", required: str = "0.0.0", name: str = "version", hard: bool = False, verbose: bool = False
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 ) -> bool:
     """
     Check current version against the required version or range.
@@ -217,7 +238,11 @@ def check_version(
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
             if hard:
+<<<<<<< HEAD
                 raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed")) from e
+=======
+                raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed"))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             else:
                 return False
 
@@ -229,13 +254,22 @@ def check_version(
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
+<<<<<<< HEAD
         op, version = re.match(r"([^0-9]*)([\d.]+)", r).groups()  # split '>=22.04' -> ('>=', '22.04')
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
+=======
+        op, v = re.match(r"([^0-9]*)([\d.]+)", r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        v = parse_version(v)  # '1.2.3' -> (1, 2, 3)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if op == "==" and c != v:
             result = False
         elif op == "!=" and c == v:
             result = False
+<<<<<<< HEAD
         elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
+=======
+        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -244,7 +278,11 @@ def check_version(
         elif op == "<" and not (c < v):
             result = False
     if not result:
+<<<<<<< HEAD
         warning = f"WARNING ⚠️ {name}{op}{version} is required, but {name}=={current} is currently installed {msg}"
+=======
+        warning_message = f"WARNING ⚠️ {name}{op}{required} is required, but {name}=={current} is currently installed"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if hard:
             raise ModuleNotFoundError(emojis(warning))  # assert version requirements met
         if verbose:
@@ -316,12 +354,20 @@ def check_font(font="Arial.ttf"):
 
     # Download to USER_CONFIG_DIR if missing
     url = f"https://ultralytics.com/assets/{name}"
+<<<<<<< HEAD
     if downloads.is_url(url, check=True):
+=======
+    if downloads.is_url(url):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         downloads.safe_download(url=url, file=file)
         return file
 
 
+<<<<<<< HEAD
 def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
+=======
+def check_python(minimum: str = "3.8.0") -> bool:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """
     Check current python version against the required minimum version.
 
@@ -332,7 +378,11 @@ def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
+<<<<<<< HEAD
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
+=======
+    return check_version(platform.python_version(), minimum, name="Python ", hard=True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 @TryExcept()
@@ -382,11 +432,14 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
+<<<<<<< HEAD
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands):
         """Attempt pip install command with retries on failure."""
         return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
@@ -394,8 +447,13 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
+<<<<<<< HEAD
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 LOGGER.info(attempt_install(s, cmds))
+=======
+                assert is_online(), "AutoUpdate skipped (offline)"
+                LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -423,6 +481,7 @@ def check_torchvision():
     """
 
     # Compatibility table
+<<<<<<< HEAD
     compatibility_table = {
         "2.3": ["0.18"],
         "2.2": ["0.17"],
@@ -434,6 +493,14 @@ def check_torchvision():
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+=======
+    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+
+    # Extract only the major and minor versions
+    v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+    v_torchvision = ".".join(torchvision.__version__.split("+")[0].split(".")[:2])
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
@@ -476,6 +543,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
+<<<<<<< HEAD
 def check_model_file_from_stem(model="yolov8n"):
     """Return a model filename from a valid model stem."""
     if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
@@ -484,16 +552,22 @@ def check_model_file_from_stem(model="yolov8n"):
         return model
 
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 def check_file(file, suffix="", download=True, hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
+<<<<<<< HEAD
     if (
         not file
         or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
+=======
+    if not file or ("://" not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return file
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
@@ -504,7 +578,11 @@ def check_file(file, suffix="", download=True, hard=True):
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search
+<<<<<<< HEAD
         files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file
+=======
+        files = glob.glob(str(ROOT / "cfg" / "**" / file), recursive=True)  # find file
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:
@@ -538,8 +616,12 @@ def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
+<<<<<<< HEAD
             assert not IS_COLAB and not IS_KAGGLE
             assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
+=======
+            assert "DISPLAY" in os.environ and not is_docker() and not is_colab() and not is_kaggle()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -557,10 +639,17 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
+<<<<<<< HEAD
     if IS_JUPYTER:
         if check_requirements("wandb", install=False):
             os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
         if IS_COLAB:
+=======
+    if is_jupyter():
+        if check_requirements("wandb", install=False):
+            os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
+        if is_colab():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
@@ -593,8 +682,13 @@ def collect_system_info():
     LOGGER.info(
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
+<<<<<<< HEAD
         f"{'Python':<20}{PYTHON_VERSION}\n"
         f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
+=======
+        f"{'Python':<20}{sys.version.split()[0]}\n"
+        f"{'Install':<20}{'git' if is_git_dir() else 'pip' if is_pip_package() else 'other'}\n"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         f"{'RAM':<20}{ram_info:.2f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
         f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n"
@@ -608,6 +702,7 @@ def collect_system_info():
             current = "(not installed)"
             is_met = "❌ "
         LOGGER.info(f"{r.name:<20}{is_met}{current}{r.specifier}")
+<<<<<<< HEAD
 
     if is_github_action_running():
         LOGGER.info(
@@ -618,6 +713,8 @@ def collect_system_info():
             f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
             f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n"
         )
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def check_amp(model):
@@ -642,7 +739,11 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
     device = next(model.parameters()).device  # get model device
+<<<<<<< HEAD
     if device.type in {"cpu", "mps"}:
+=======
+    if device.type in ("cpu", "mps"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):

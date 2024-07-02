@@ -10,11 +10,15 @@ from pathlib import Path
 import requests
 
 from ultralytics.utils import (
+<<<<<<< HEAD
     ARGV,
     ENVIRONMENT,
     IS_COLAB,
     IS_GIT_DIR,
     IS_PIP_PACKAGE,
+=======
+    ENVIRONMENT,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     LOGGER,
     ONLINE,
     RANK,
@@ -25,6 +29,7 @@ from ultralytics.utils import (
     __version__,
     colorstr,
     get_git_origin_url,
+<<<<<<< HEAD
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 
@@ -33,6 +38,18 @@ HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.co
 
 PREFIX = colorstr("Ultralytics HUB: ")
 HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
+=======
+    is_colab,
+    is_git_dir,
+    is_pip_package,
+)
+from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
+
+PREFIX = colorstr("Ultralytics HUB: ")
+HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
+HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
+HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def request_with_credentials(url: str) -> any:
@@ -48,7 +65,11 @@ def request_with_credentials(url: str) -> any:
     Raises:
         OSError: If the function is not run in a Google Colab environment.
     """
+<<<<<<< HEAD
     if not IS_COLAB:
+=======
+    if not is_colab():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         raise OSError("request_with_credentials() must run in a Colab environment")
     from google.colab import output  # noqa
     from IPython import display  # noqa
@@ -188,8 +209,13 @@ class Events:
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
+<<<<<<< HEAD
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+=======
+            "cli": Path(sys.argv[0]).name == "yolo",
+            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             "version": __version__,
             "env": ENVIRONMENT,
@@ -198,10 +224,17 @@ class Events:
         }
         self.enabled = (
             SETTINGS["sync"]
+<<<<<<< HEAD
             and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+=======
+            and RANK in (-1, 0)
+            and not TESTS_RUNNING
+            and ONLINE
+            and (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         )
 
     def __call__(self, cfg):

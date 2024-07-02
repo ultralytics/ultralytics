@@ -30,6 +30,7 @@ from ultralytics.utils import (
 )
 
 # Define valid tasks and modes
+<<<<<<< HEAD
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
 TASKS = {"detect", "segment", "classify", "pose", "obb"}
 TASK2DATA = {
@@ -39,18 +40,27 @@ TASK2DATA = {
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
 }
+=======
+MODES = "train", "val", "predict", "export", "track", "benchmark"
+TASKS = "detect", "segment", "classify", "pose"
+TASK2DATA = {"detect": "coco8.yaml", "segment": "coco8-seg.yaml", "classify": "imagenet10", "pose": "coco8-pose.yaml"}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 TASK2MODEL = {
     "detect": "yolov8n.pt",
     "segment": "yolov8n-seg.pt",
     "classify": "yolov8n-cls.pt",
     "pose": "yolov8n-pose.pt",
+<<<<<<< HEAD
     "obb": "yolov8n-obb.pt",
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
+<<<<<<< HEAD
     "obb": "metrics/mAP50-95(B)",
 }
 MODELS = {TASK2MODEL[task] for task in TASKS}
@@ -58,6 +68,12 @@ MODELS = {TASK2MODEL[task] for task in TASKS}
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
+=======
+}
+
+CLI_HELP_MSG = f"""
+    Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         yolo TASK MODE ARGS
 
@@ -95,6 +111,7 @@ CLI_HELP_MSG = f"""
     """
 
 # Define keys for arg type checks
+<<<<<<< HEAD
 CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
     "warmup_epochs",
     "box",
@@ -108,6 +125,12 @@ CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
 }
 CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "dropout",
+=======
+CFG_FLOAT_KEYS = "warmup_epochs", "box", "cls", "dfl", "degrees", "shear"
+CFG_FRACTION_KEYS = (
+    "dropout",
+    "iou",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "lr0",
     "lrf",
     "momentum",
@@ -123,17 +146,28 @@ CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "perspective",
     "flipud",
     "fliplr",
+<<<<<<< HEAD
     "bgr",
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "mosaic",
     "mixup",
     "copy_paste",
     "conf",
     "iou",
     "fraction",
+<<<<<<< HEAD
 }
 CFG_INT_KEYS = {  # integer-only arguments
     "epochs",
     "patience",
+=======
+)  # fraction floats 0.0 - 1.0
+CFG_INT_KEYS = (
+    "epochs",
+    "patience",
+    "batch",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "workers",
     "seed",
     "close_mosaic",
@@ -141,10 +175,18 @@ CFG_INT_KEYS = {  # integer-only arguments
     "max_det",
     "vid_stride",
     "line_width",
+<<<<<<< HEAD
     "nbs",
     "save_period",
 }
 CFG_BOOL_KEYS = {  # boolean-only arguments
+=======
+    "workspace",
+    "nbs",
+    "save_period",
+)
+CFG_BOOL_KEYS = (
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "save",
     "exist_ok",
     "verbose",
@@ -163,14 +205,21 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "save_txt",
     "save_conf",
     "save_crop",
+<<<<<<< HEAD
     "save_frames",
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "show_labels",
     "show_conf",
     "visualize",
     "augment",
     "agnostic_nms",
     "retina_masks",
+<<<<<<< HEAD
     "show_boxes",
+=======
+    "boxes",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     "keras",
     "optimize",
     "int8",
@@ -178,8 +227,12 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "simplify",
     "nms",
     "profile",
+<<<<<<< HEAD
     "multi_scale",
 }
+=======
+)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def cfg2dict(cfg):
@@ -272,7 +325,34 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
+<<<<<<< HEAD
     check_cfg(cfg)
+=======
+    for k, v in cfg.items():
+        if v is not None:  # None values may be from optional args
+            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                )
+            elif k in CFG_FRACTION_KEYS:
+                if not isinstance(v, (int, float)):
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                    )
+                if not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
+            elif k in CFG_INT_KEYS and not isinstance(v, int):
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
+                )
+            elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
+                )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Return instance
     return IterableSimpleNamespace(**cfg)
@@ -313,10 +393,13 @@ def check_cfg(cfg, hard=True):
                     )
                 cfg[k] = bool(v)
 
+<<<<<<< HEAD
 
 def get_save_dir(args, name=None):
     """Returns the directory path for saving outputs, derived from arguments or default settings."""
 
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -324,7 +407,11 @@ def get_save_dir(args, name=None):
 
         project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
         name = name or args.name or f"{args.mode}"
+<<<<<<< HEAD
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
+=======
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in (-1, 0) else True)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     return Path(save_dir)
 
@@ -333,9 +420,12 @@ def _handle_deprecation(custom):
     """Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings."""
 
     for key in custom.copy().keys():
+<<<<<<< HEAD
         if key == "boxes":
             deprecation_warn(key, "show_boxes")
             custom["show_boxes"] = custom.pop("boxes")
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if key == "hide_labels":
             deprecation_warn(key, "show_labels")
             custom["show_labels"] = custom.pop("hide_labels") == "False"
@@ -567,7 +657,11 @@ def entrypoint(debug=""):
         entrypoint("val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640")
         ```
     """
+<<<<<<< HEAD
     args = (debug.split(" ") if debug else ARGV)[1:]
+=======
+    args = (debug.split(" ") if debug else sys.argv)[1:]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
@@ -581,7 +675,10 @@ def entrypoint(debug=""):
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
+<<<<<<< HEAD
         "explorer": lambda: handle_explorer(),
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
@@ -593,10 +690,17 @@ def entrypoint(debug=""):
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign
         if a.startswith("--"):
+<<<<<<< HEAD
             LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
             a = a[2:]
         if a.endswith(","):
             LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+=======
+            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+            a = a[2:]
+        if a.endswith(","):
+            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             a = a[:-1]
         if "=" in a:
             try:
@@ -633,7 +737,11 @@ def entrypoint(debug=""):
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
+<<<<<<< HEAD
         LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+=======
+        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     elif mode not in MODES:
         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
@@ -649,6 +757,7 @@ def entrypoint(debug=""):
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
         model = "yolov8n.pt"
+<<<<<<< HEAD
         LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
@@ -661,6 +770,19 @@ def entrypoint(debug=""):
 
         model = FastSAM(model)
     elif "sam" in stem:
+=======
+        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
+    overrides["model"] = model
+    if "rtdetr" in model.lower():  # guess architecture
+        from ultralytics import RTDETR
+
+        model = RTDETR(model)  # no task argument
+    elif "fastsam" in model.lower():
+        from ultralytics import FastSAM
+
+        model = FastSAM(model)
+    elif "sam" in model.lower():
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         from ultralytics import SAM
 
         model = SAM(model)
@@ -681,6 +803,7 @@ def entrypoint(debug=""):
         task = model.task
 
     # Mode
+<<<<<<< HEAD
     if mode in {"predict", "track"} and "source" not in overrides:
         overrides["source"] = DEFAULT_CFG.source or ASSETS
         LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
@@ -692,6 +815,19 @@ def entrypoint(debug=""):
         if "format" not in overrides:
             overrides["format"] = DEFAULT_CFG.format or "torchscript"
             LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
+=======
+    if mode in ("predict", "track") and "source" not in overrides:
+        overrides["source"] = DEFAULT_CFG.source or ASSETS
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
+    elif mode in ("train", "val"):
+        if "data" not in overrides and "resume" not in overrides:
+            overrides["data"] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
+    elif mode == "export":
+        if "format" not in overrides:
+            overrides["format"] = DEFAULT_CFG.format or "torchscript"
+            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Run command in python
     getattr(model, mode)(**overrides)  # default args from model
@@ -702,7 +838,11 @@ def entrypoint(debug=""):
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg():
+<<<<<<< HEAD
     """Copy and create a new default configuration file with '_copy' appended to its name, providing usage example."""
+=======
+    """Copy and create a new default configuration file with '_copy' appended to its name."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(

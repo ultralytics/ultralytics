@@ -113,6 +113,7 @@ class RTDETRValidator(DetectionValidator):
 
         return outputs
 
+<<<<<<< HEAD
     def _prepare_batch(self, si, batch):
         """Prepares a batch for training or inference by applying transformations."""
         idx = batch["batch_idx"] == si
@@ -133,3 +134,49 @@ class RTDETRValidator(DetectionValidator):
         predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
         predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
         return predn.float()
+=======
+    def update_metrics(self, preds, batch):
+        """Metrics."""
+        for si, pred in enumerate(preds):
+            idx = batch["batch_idx"] == si
+            cls = batch["cls"][idx]
+            bbox = batch["bboxes"][idx]
+            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            shape = batch["ori_shape"][si]
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+            self.seen += 1
+
+            if npr == 0:
+                if nl:
+                    self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1)))
+                    if self.args.plots:
+                        self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
+                continue
+
+            # Predictions
+            if self.args.single_cls:
+                pred[:, 5] = 0
+            predn = pred.clone()
+            predn[..., [0, 2]] *= shape[1] / self.args.imgsz  # native-space pred
+            predn[..., [1, 3]] *= shape[0] / self.args.imgsz  # native-space pred
+
+            # Evaluate
+            if nl:
+                tbox = ops.xywh2xyxy(bbox)  # target boxes
+                tbox[..., [0, 2]] *= shape[1]  # native-space pred
+                tbox[..., [1, 3]] *= shape[0]  # native-space pred
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                # NOTE: To get correct metrics, the inputs of `_process_batch` should always be float32 type.
+                correct_bboxes = self._process_batch(predn.float(), labelsn)
+                # TODO: maybe remove these `self.` arguments as they already are member variable
+                if self.args.plots:
+                    self.confusion_matrix.process_batch(predn, labelsn)
+            self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)
+
+            # Save
+            if self.args.save_json:
+                self.pred_to_json(predn, batch["im_file"][si])
+            if self.args.save_txt:
+                file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
+                self.save_one_txt(predn, self.args.save_conf, shape, file)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

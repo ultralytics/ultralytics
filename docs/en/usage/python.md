@@ -32,8 +32,13 @@ For example, users can load a model, train it, evaluate its performance on a val
     # Load a pretrained YOLO model (recommended for training)
     model = YOLO("yolov8n.pt")
 
+    <<< HEAD:docs/en/usage/python.md
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
+    ===
+    # Train the model using the 'coco128.yaml' dataset for 3 epochs
+    results = model.train(data="coco128.yaml", epochs=3)
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/usage/python.md
 
     # Evaluate the model's performance on the validation set
     results = model.val()
@@ -66,7 +71,11 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         from ultralytics import YOLO
 
         model = YOLO("yolov8n.yaml")
+        HEAD:docs/en/usage/python.md
         results = model.train(data="coco8.yaml", epochs=5)
+        =======
+        results = model.train(data="coco128.yaml", epochs=5)
+        2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/usage/python.md
         ```
 
     === "Resume"
@@ -307,7 +316,15 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 !!! Tip "Detection Trainer Example"
 
         ```python
+        HEAD:docs/en/usage/python.md
         from ultralytics.models.yolo import DetectionPredictor, DetectionTrainer, DetectionValidator
+        =======
+        from ultralytics.models.yolo import (
+            DetectionPredictor,
+            DetectionTrainer,
+            DetectionValidator,
+        )
+        2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/usage/python.md
 
         # trainer
         trainer = DetectionTrainer(overrides={})

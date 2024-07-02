@@ -76,6 +76,11 @@ def benchmark(
     """
     import pandas as pd  # scope for faster 'import ultralytics'
 
+<<<<<<< HEAD
+=======
+    import pandas as pd
+
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
@@ -88,6 +93,7 @@ def benchmark(
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
         try:
+<<<<<<< HEAD
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
@@ -109,6 +115,13 @@ def benchmark(
             if i in {12}:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by NCNN yet"
+=======
+            assert i != 9 or LINUX, "Edge TPU export only supported on Linux"
+            if i == 10:
+                assert MACOS or LINUX, "TF.js export only supported on macOS and Linux"
+            elif i == 11:
+                assert sys.version_info < (3, 11), "PaddlePaddle export only supported on Python<=3.10"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -126,7 +139,11 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
+<<<<<<< HEAD
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
+=======
+            assert i not in (9, 10), "inference not supported"  # Edge TPU and TF.js are unsupported
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
@@ -137,17 +154,29 @@ def benchmark(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
+<<<<<<< HEAD
             fps = round((1000 / speed), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
+=======
+            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"
             LOGGER.warning(f"ERROR ❌️ Benchmark failure for {name}: {e}")
+<<<<<<< HEAD
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
+=======
+            y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
+
+    # Print results
+    check_yolo(device=device)  # print system info
+    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)"])
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     name = Path(model.ckpt_path).name
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
@@ -347,7 +376,11 @@ class ProfileModels:
         output = []
         for file in files:
             engine_file = file.with_suffix(".engine")
+<<<<<<< HEAD
             if file.suffix in {".pt", ".yaml", ".yml"}:
+=======
+            if file.suffix in (".pt", ".yaml", ".yml"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
@@ -495,10 +528,14 @@ class ProfileModels:
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
         """Generates a formatted string for a table row that includes model performance and metric details."""
         layers, params, gradients, flops = model_info
+<<<<<<< HEAD
         return (
             f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± "
             f"{t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |"
         )
+=======
+        return f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     @staticmethod
     def generate_results_dict(model_name, t_onnx, t_engine, model_info):
@@ -516,6 +553,7 @@ class ProfileModels:
     def print_table(table_rows):
         """Formats and prints a comparison table for different models with given statistics and performance data."""
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
+<<<<<<< HEAD
         header = (
             f"| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | "
             f"Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
@@ -524,6 +562,10 @@ class ProfileModels:
             "|-------------|---------------------|--------------------|------------------------------|"
             "-----------------------------------|------------------|-----------------|"
         )
+=======
+        header = f"| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
+        separator = "|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         print(f"\n\n{header}")
         print(separator)

@@ -45,8 +45,47 @@ Before we can accept your pull request, you must sign a [Contributor License Agr
 
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 
+<<<<<<< HEAD
 ```
 I have read the CLA Document and I sign the CLA
+=======
+### PR recommendations
+
+To allow your work to be integrated as seamlessly as possible, we advise you to:
+
+- ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update
+  your code by clicking the 'Update branch' button or by running `git pull` and `git merge main` locally.
+
+<p align="center"><img width="751" alt="Screenshot 2022-08-29 at 22 47 15" src="https://user-images.githubusercontent.com/26833433/187295893-50ed9f44-b2c9-4138-a614-de69bd1753d7.png"></p>
+
+- ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
+
+<p align="center"><img width="751" alt="Screenshot 2022-08-29 at 22 47 03" src="https://user-images.githubusercontent.com/26833433/187296922-545c5498-f64a-4d8c-8300-5fa764360da6.png"></p>
+
+- ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase
+  but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_ — Bruce Lee
+
+### Docstrings
+
+Not all functions or classes require docstrings but when they do, we
+follow [google-style docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
+Here is an example:
+
+```python
+"""
+What the function does. Performs NMS on given detection predictions.
+
+Args:
+    arg1: The description of the 1st argument
+    arg2: The description of the 2nd argument
+
+Returns:
+    What the function returns. Empty if nothing is returned.
+
+Raises:
+    Exception Class: When and why this exception can be raised by the function.
+"""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 ```
 
 ### Google-Style Docstrings

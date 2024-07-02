@@ -44,7 +44,11 @@ class DetectionTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Construct and return dataloader."""
+<<<<<<< HEAD
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
+=======
+        assert mode in ["train", "val"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
@@ -57,6 +61,7 @@ class DetectionTrainer(BaseTrainer):
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
+<<<<<<< HEAD
         if self.args.multi_scale:
             imgs = batch["img"]
             sz = (
@@ -71,6 +76,8 @@ class DetectionTrainer(BaseTrainer):
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return batch
 
     def set_model_attributes(self):
@@ -93,9 +100,13 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+<<<<<<< HEAD
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
+=======
+        return yolo.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

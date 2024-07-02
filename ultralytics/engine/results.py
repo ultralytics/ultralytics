@@ -138,6 +138,7 @@ class Results(SimpleClass):
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
+<<<<<<< HEAD
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
@@ -147,6 +148,16 @@ class Results(SimpleClass):
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results."""
+=======
+        self.speed = {"preprocess": None, "inference": None, "postprocess": None}  # milliseconds per image
+        self.names = names
+        self.path = path
+        self.save_dir = None
+        self._keys = "boxes", "masks", "probs", "keypoints"
+
+    def __getitem__(self, idx):
+        """Return a Results object for the specified index."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return self._apply("__getitem__", idx)
 
     def __len__(self):
@@ -196,6 +207,7 @@ class Results(SimpleClass):
         return r
 
     def cpu(self):
+<<<<<<< HEAD
         """Returns a copy of the Results object with all its tensors moved to CPU memory."""
         return self._apply("cpu")
 
@@ -209,6 +221,21 @@ class Results(SimpleClass):
 
     def to(self, *args, **kwargs):
         """Moves all tensors in the Results object to the specified device and dtype."""
+=======
+        """Return a copy of the Results object with all tensors on CPU memory."""
+        return self._apply("cpu")
+
+    def numpy(self):
+        """Return a copy of the Results object with all tensors as numpy arrays."""
+        return self._apply("numpy")
+
+    def cuda(self):
+        """Return a copy of the Results object with all tensors on GPU memory."""
+        return self._apply("cuda")
+
+    def to(self, *args, **kwargs):
+        """Return a copy of the Results object with tensors on the specified device and dtype."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return self._apply("to", *args, **kwargs)
 
     def new(self):
@@ -309,8 +336,12 @@ class Results(SimpleClass):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
+<<<<<<< HEAD
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+=======
+                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -345,7 +376,11 @@ class Results(SimpleClass):
         return filename
 
     def verbose(self):
+<<<<<<< HEAD
         """Returns a log string for each task in the results, detailing detection and classification outcomes."""
+=======
+        """Return log string for each task."""
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         log_string = ""
         probs = self.probs
         boxes = self.boxes
@@ -445,17 +480,34 @@ class Results(SimpleClass):
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+<<<<<<< HEAD
             return
         if self.obb is not None:
             LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
+<<<<<<< HEAD
                 file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
                 BGR=True,
             )
+=======
+                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name).stem}.jpg",
+                BGR=True,
+            )
+
+    def tojson(self, normalize=False):
+        """Convert the object to JSON format."""
+        if self.probs is not None:
+            LOGGER.warning("Warning: Classify task do not support `tojson` yet.")
+            return
+
+        import json
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     def summary(self, normalize=False, decimals=5):
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates."""
@@ -476,6 +528,7 @@ class Results(SimpleClass):
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
+<<<<<<< HEAD
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
@@ -497,6 +550,21 @@ class Results(SimpleClass):
                     "y": (y / h).numpy().round(decimals).tolist(),
                     "visible": visible.numpy().round(decimals).tolist(),
                 }
+=======
+            box = {"x1": row[0] / w, "y1": row[1] / h, "x2": row[2] / w, "y2": row[3] / h}
+            conf = row[-2]
+            class_id = int(row[-1])
+            name = self.names[class_id]
+            result = {"name": name, "class": class_id, "confidence": conf, "box": box}
+            if self.boxes.is_track:
+                result["track_id"] = int(row[-3])  # track ID
+            if self.masks:
+                x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
+                result["segments"] = {"x": (x / w).tolist(), "y": (y / h).tolist()}
+            if self.keypoints is not None:
+                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                result["keypoints"] = {"x": (x / w).tolist(), "y": (y / h).tolist(), "visible": visible.tolist()}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             results.append(result)
 
         return results
@@ -551,7 +619,11 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
+<<<<<<< HEAD
         assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+=======
+        assert n in (6, 7), f"expected `n` in [6, 7], but got {n}"  # xyxy, track_id, conf, cls
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape

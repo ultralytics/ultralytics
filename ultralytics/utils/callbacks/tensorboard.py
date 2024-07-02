@@ -41,6 +41,7 @@ def _log_tensorboard_graph(trainer):
     p = next(trainer.model.parameters())  # for device, type
     im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
 
+<<<<<<< HEAD
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
         warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
@@ -66,6 +67,17 @@ def _log_tensorboard_graph(trainer):
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         except Exception as e:
             LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
+=======
+        imgsz = trainer.args.imgsz
+        imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+        p = next(trainer.model.parameters())  # for device, type
+        im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
+            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ TensorBoard graph visualization failure {e}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_pretrain_routine_start(trainer):
@@ -74,9 +86,16 @@ def on_pretrain_routine_start(trainer):
         try:
             global WRITER
             WRITER = SummaryWriter(str(trainer.save_dir))
+<<<<<<< HEAD
             LOGGER.info(f"{PREFIX}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
         except Exception as e:
             LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}")
+=======
+            prefix = colorstr("TensorBoard: ")
+            LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
+        except Exception as e:
+            LOGGER.warning(f"WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_train_start(trainer):
@@ -85,10 +104,16 @@ def on_train_start(trainer):
         _log_tensorboard_graph(trainer)
 
 
+<<<<<<< HEAD
 def on_train_epoch_end(trainer):
     """Logs scalar statistics at the end of a training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
+=======
+def on_batch_end(trainer):
+    """Logs scalar statistics at the end of a training batch."""
+    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_fit_epoch_end(trainer):
@@ -101,7 +126,11 @@ callbacks = (
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_start": on_train_start,
         "on_fit_epoch_end": on_fit_epoch_end,
+<<<<<<< HEAD
         "on_train_epoch_end": on_train_epoch_end,
+=======
+        "on_batch_end": on_batch_end,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     }
     if SummaryWriter
     else {}

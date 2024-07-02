@@ -62,6 +62,7 @@ repos:
   - repo: https://github.com/hadialqattan/pycln
     rev: v2.4.0
     hooks:
+<<<<<<< HEAD
       - id: pycln
         args: [--all]
 #
@@ -70,6 +71,9 @@ repos:
 #    hooks:
 #      - id: docformatter
 
+=======
+      - id: docformatter
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0
 #    hooks:

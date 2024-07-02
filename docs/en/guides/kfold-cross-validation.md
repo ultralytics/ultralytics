@@ -28,6 +28,7 @@ Without further ado, let's dive in!
     - This dataset contains a total of 8479 images.
     - It includes 6 class labels, each with its total instance counts listed below.
 
+<<<<<<< HEAD:docs/en/guides/kfold-cross-validation.md
 | Class Label | Instance Count |
 | :---------- | :------------: |
 | Apple       |      7049      |
@@ -36,6 +37,19 @@ Without further ado, let's dive in!
 | Orange      |     15549      |
 | Banana      |      3536      |
 | Watermelon  |      1976      |
+=======
+        - This dataset contains a total of 8479 images.
+        - It includes 6 class labels, each with its total instance counts listed below.
+
+            | Class Label | Instance Count |
+            | :---------- | :------------: |
+            | Apple       |      7049      |
+            | Grapes      |      7202      |
+            | Pineapple   |      1613      |
+            | Orange      |     15549      |
+            | Banana      |      3536      |
+            | Watermelon  |      1976      |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
 
 - Necessary Python packages include:
 
@@ -57,13 +71,24 @@ Without further ado, let's dive in!
 
 ## Generating Feature Vectors for Object Detection Dataset
 
+<<<<<<< HEAD:docs/en/guides/kfold-cross-validation.md
 1. Start by creating a new `example.py` Python file for the steps below.
+=======
+1. Start by creating a new Python file and import the required libraries.
+
+    ```python
+
+    ```
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
 
 2. Proceed to retrieve all label files for your dataset.
 
     ```python
+    <<< HEAD:docs/en/guides/kfold-cross-validation.md
     from pathlib import Path
 
+    ===
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
     dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
     labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
     ```
@@ -80,8 +105,11 @@ Without further ado, let's dive in!
 4. Initialize an empty `pandas` DataFrame.
 
     ```python
+    <<< HEAD:docs/en/guides/kfold-cross-validation.md
     import pandas as pd
 
+    ===
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
     indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
@@ -172,8 +200,11 @@ The rows index the label files, each corresponding to an image in your dataset, 
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
+    <<< HEAD:docs/en/guides/kfold-cross-validation.md
     import datetime
 
+    ===
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
     # Initialize an empty list to store image file paths
@@ -202,6 +233,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
         ds_yamls.append(dataset_yaml)
 
         with open(dataset_yaml, "w") as ds_y:
+    <<< HEAD:docs/en/guides/kfold-cross-validation.md
             yaml.safe_dump(
                 {
                     "path": split_dir.as_posix(),
@@ -211,6 +243,9 @@ The rows index the label files, each corresponding to an image in your dataset, 
                 },
                 ds_y,
             )
+    ===
+            yaml.safe_dump({"path": split_dir.as_posix(), "train": "train", "val": "val", "names": classes}, ds_y)
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
     ```
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
@@ -245,8 +280,11 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 1. First, load the YOLO model.
 
     ```python
+    <<< HEAD:docs/en/guides/kfold-cross-validation.md
     from ultralytics import YOLO
 
+    ===
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/kfold-cross-validation.md
     weights_path = "path/to/weights.pt"
     model = YOLO(weights_path, task="detect")
     ```

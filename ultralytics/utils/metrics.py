@@ -117,12 +117,19 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
         cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
         ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
         if CIoU or DIoU:  # Distance or Complete IoU https://arxiv.org/abs/1911.08287v1
+<<<<<<< HEAD
             c2 = cw.pow(2) + ch.pow(2) + eps  # convex diagonal squared
             rho2 = (
                 (b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)
             ) / 4  # center dist**2
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
                 v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
+=======
+            c2 = cw**2 + ch**2 + eps  # convex diagonal squared
+            rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2 + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2) / 4  # center dist ** 2
+            if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
+                v = (4 / math.pi**2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 with torch.no_grad():
                     alpha = v / (v - iou + (1 + eps))
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
@@ -408,7 +415,11 @@ class ConfusionMatrix:
         ticklabels = (list(names) + ["background"]) if labels else "auto"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
+<<<<<<< HEAD
             seaborn.heatmap(
+=======
+            sn.heatmap(
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 array,
                 ax=ax,
                 annot=nc < 30,
@@ -957,7 +968,11 @@ class SegmentMetrics(SimpleClass):
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
         results_box = ap_per_class(
+<<<<<<< HEAD
             tp,
+=======
+            tp_b,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             conf,
             pred_cls,
             target_cls,
@@ -1099,7 +1114,11 @@ class PoseMetrics(SegmentMetrics):
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
         results_box = ap_per_class(
+<<<<<<< HEAD
             tp,
+=======
+            tp_b,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             conf,
             pred_cls,
             target_cls,
@@ -1208,6 +1227,7 @@ class ClassifyMetrics(SimpleClass):
     def keys(self):
         """Returns a list of keys for the results_dict property."""
         return ["metrics/accuracy_top1", "metrics/accuracy_top5"]
+<<<<<<< HEAD
 
     @property
     def curves(self):
@@ -1277,6 +1297,8 @@ class OBBMetrics(SimpleClass):
     def results_dict(self):
         """Returns dictionary of computed performance metrics and statistics."""
         return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     @property
     def curves(self):

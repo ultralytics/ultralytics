@@ -4,6 +4,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
+from torchvision.ops import SqueezeExcitation
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -20,10 +22,6 @@ __all__ = (
     "C2",
     "C3",
     "C2f",
-    "C2fAttn",
-    "ImagePoolingAttn",
-    "ContrastiveHead",
-    "BNContrastiveHead",
     "C3x",
     "C3TR",
     "C3Ghost",
@@ -46,6 +44,8 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "DA"
+    "DSA"
 )
 
 
@@ -246,6 +246,39 @@ class C2f(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
+class ConvAttention(nn.Module):
+    def __init__(self, input_channel):
+        super().__init__()
+        self.fx = nn.Conv2d(input_channel, 1, 1)
+        self.gx = nn.Conv2d(input_channel, 1, 1)
+        self.hx = nn.Conv2d(input_channel, 1, 1)
+
+    def forward(self, x):
+        fx = self.fx(x)
+        gx = self.gx(x)
+        hx = self.hx(x)
+
+        fxgx = torch.matmul(fx, gx)
+
+        fxgx = F.softmax(fxgx, dim=1)
+        o = torch.matmul(hx, fxgx) * x
+        return o
+
+
+class C2fOAttention(C2f):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.attention = ConvAttention(c2)
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        out_c2f = self.cv2(torch.cat(y, 1))
+        out_attention = self.attention(out_c2f)
+
+        return out_attention
+
+
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
 
@@ -271,6 +304,26 @@ class C3x(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
         self.m = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+
+class LightC3x(C3x):
+    # (self, c1, c2, k=3, s=1, expand_ratio=1.0, p=None, g=1, d=1, act=True, se_ratio=0.25)
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3TR instance and set default parameters."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.Sequential(*(MBConv(self.c_, self.c_) for i in range(n)))
+
+
+class C3SA(C3):
+    """C3 module with cross-convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3TR instance and set default parameters."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.c_ = int(c2 * e)
+        self.m = nn.Sequential(
+            *(SABottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n))
+        )
 
 
 class RepC3(nn.Module):
@@ -300,6 +353,27 @@ class C3TR(C3):
         self.m = TransformerBlock(c_, c_, 4, n)
 
 
+class C3TR2(C3):
+    """C3 module with DualTransformerBlock."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3TR2 module with DualTransformerBlock."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)
+        self.m = DualTransformerBlock(c_, c_, 4, n)
+
+
+class C3xTR(C3):
+    """C3 module with cross-convolutions and transformer blocks."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initialize C3xTR module with cross-convolutions and transformer blocks."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.c_ = int(c2 * e)
+        # Menggantikan Bottleneck dengan TransformerBlock
+        self.m = nn.Sequential(*(TransformerBlock(self.c_, self.c_, 4, 1) for _ in range(n)))
+
+
 class C3Ghost(C3):
     """C3 module with GhostBottleneck()."""
 
@@ -320,8 +394,13 @@ class GhostBottleneck(nn.Module):
         self.conv = nn.Sequential(
             GhostConv(c1, c_, 1, 1),  # pw
             DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity(),  # dw
+<<<<<<< HEAD
             GhostConv(c_, c2, 1, 1, act=False),  # pw-linear
         )
+=======
+            GhostConv(c_, c2, 1, 1, act=False),
+        )  # pw-linear
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.shortcut = (
             nn.Sequential(DWConv(c1, c1, k, s, act=False), Conv(c1, c2, 1, 1, act=False)) if s == 2 else nn.Identity()
         )
@@ -955,3 +1034,81 @@ class SCDown(nn.Module):
             (torch.Tensor): Output tensor after applying the SCDown module.
         """
         return self.cv2(self.cv1(x))
+    
+
+class DA(nn.Module):
+    def __init__(self, dim, num_heads=8, n_levels=4, n_points=4):
+        super(DA, self).__init__()
+        self.dim = dim
+        self.num_heads = num_heads
+        self.n_levels = n_levels
+        self.n_points = n_points
+        self.sampling_offsets = nn.Linear(dim, num_heads * n_levels * n_points * 2)
+        self.attention_weights = nn.Linear(dim, num_heads * n_levels * n_points)
+        self.value_proj = nn.Linear(dim, dim)
+        self.output_proj = nn.Linear(dim, dim)
+
+    def forward(self, x, spatial_shapes):
+        B, C, H, W = x.shape
+        N = H * W
+        x = x.view(B, C, N).permute(0, 2, 1)
+
+        value = self.value_proj(x)
+        sampling_offsets = self.sampling_offsets(x).view(B, N, self.num_heads, self.n_levels, self.n_points, 2)
+        attention_weights = self.attention_weights(x).view(B, N, self.num_heads, self.n_levels * self.n_points)
+        attention_weights = attention_weights.softmax(dim=-1)
+
+        # Placeholder for deformable attention computation
+        output = value  # This should be replaced with actual deformable attention mechanism
+
+        output = output.view(B, H, W, C).permute(0, 3, 1, 2)
+        return self.output_proj(output)
+    
+
+class DSA(nn.Module):
+    """
+    Deformable Spatial Attention module.
+
+    Args:
+        c1 (int): Number of input channels.
+        c2 (int): Number of output channels.
+        e (float): Expansion factor for the intermediate channels. Default is 0.5.
+
+    Attributes:
+        c (int): Number of intermediate channels.
+        cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        attn (DA): Deformable attention module for spatial attention.
+        ffn (nn.Sequential): Feed-forward network module.
+    """
+
+    def __init__(self, c1, c2, e=0.5):
+        """Initializes convolution layers, deformable attention module, and feed-forward network with channel reduction."""
+        super().__init__()
+        assert c1 == c2
+        self.c = int(c1 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv(2 * self.c, c1, 1)
+
+        self.attn = DA(self.c, num_heads=8, n_levels=4, n_points=4)
+        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+
+    def forward(self, x):
+        """
+        Forward pass of the DSA module.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor.
+        """
+        a, b = self.cv1(x).split((self.c, self.c), dim=1)
+        b = b + self.attn(b, spatial_shapes=[(x.shape[2], x.shape[3])])
+        b = b + self.ffn(b)
+        return self.cv2(torch.cat((a, b), 1))
+
+# Contoh penggunaan
+# dsa_module = DSA(c1=64, c2=64)
+# output = dsa_module(input_tensor)
+

@@ -100,6 +100,16 @@ class SegmentationValidator(DetectionValidator):
     def update_metrics(self, preds, batch):
         """Metrics."""
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
+<<<<<<< HEAD
+=======
+            idx = batch["batch_idx"] == si
+            cls = batch["cls"][idx]
+            bbox = batch["bboxes"][idx]
+            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            shape = batch["ori_shape"][si]
+            correct_masks = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             self.seen += 1
             npr = len(pred)
             stat = dict(
@@ -115,13 +125,20 @@ class SegmentationValidator(DetectionValidator):
             stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
+<<<<<<< HEAD
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
+=======
+                    self.stats.append(
+                        (correct_bboxes, correct_masks, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1))
+                    )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
             # Masks
+<<<<<<< HEAD
             gt_masks = pbatch.pop("masks")
             # Predictions
             if self.args.single_cls:
@@ -135,6 +152,34 @@ class SegmentationValidator(DetectionValidator):
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 stat["tp_m"] = self._process_batch(
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
+=======
+            midx = [si] if self.args.overlap_mask else idx
+            gt_masks = batch["masks"][midx]
+            pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=batch["img"][si].shape[1:])
+
+            # Predictions
+            if self.args.single_cls:
+                pred[:, 5] = 0
+            predn = pred.clone()
+            ops.scale_boxes(
+                batch["img"][si].shape[1:], predn[:, :4], shape, ratio_pad=batch["ratio_pad"][si]
+            )  # native-space pred
+
+            # Evaluate
+            if nl:
+                height, width = batch["img"].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device
+                )  # target boxes
+                ops.scale_boxes(
+                    batch["img"][si].shape[1:], tbox, shape, ratio_pad=batch["ratio_pad"][si]
+                )  # native-space labels
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                correct_bboxes = self._process_batch(predn, labelsn)
+                # TODO: maybe remove these `self.` arguments as they already are member variable
+                correct_masks = self._process_batch(
+                    predn, labelsn, pred_masks, gt_masks, overlap=self.args.overlap_mask, masks=True
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 )
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, bbox, cls)
@@ -149,9 +194,13 @@ class SegmentationValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 pred_masks = ops.scale_image(
+<<<<<<< HEAD
                     pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                     pbatch["ori_shape"],
                     ratio_pad=batch["ratio_pad"][si],
+=======
+                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape, ratio_pad=batch["ratio_pad"][si]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 )
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
@@ -195,7 +244,11 @@ class SegmentationValidator(DetectionValidator):
             batch["batch_idx"],
             batch["cls"].squeeze(-1),
             batch["bboxes"],
+<<<<<<< HEAD
             masks=batch["masks"],
+=======
+            batch["masks"],
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,

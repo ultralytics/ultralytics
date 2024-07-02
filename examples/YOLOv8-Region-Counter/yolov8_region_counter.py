@@ -130,9 +130,12 @@ def run(
     # Setup Model
     model = YOLO(f"{weights}")
     model.to("cuda") if device == "0" else model.to("cpu")
+<<<<<<< HEAD
 
     # Extract classes names
     names = model.model.names
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Video setup
     videocapture = cv2.VideoCapture(source)
@@ -172,10 +175,17 @@ def run(
                 points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                 cv2.polylines(frame, [points], isClosed=False, color=colors(cls, True), thickness=track_thickness)
 
+<<<<<<< HEAD
                 # Check if detection inside region
                 for region in counting_regions:
                     if region["polygon"].contains(Point((bbox_center[0], bbox_center[1]))):
                         region["counts"] += 1
+=======
+            # Check if detection inside region
+            for region in counting_regions:
+                if region["polygon"].contains(Point((x, y))):
+                    region["counts"] += 1
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         # Draw regions (Polygons/Rectangles)
         for region in counting_regions:
@@ -233,7 +243,10 @@ def parse_opt():
     parser.add_argument("--view-img", action="store_true", help="show results")
     parser.add_argument("--save-img", action="store_true", help="save results")
     parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
+<<<<<<< HEAD
     parser.add_argument("--classes", nargs="+", type=int, help="filter by class: --classes 0, or --classes 0 2 3")
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     parser.add_argument("--line-thickness", type=int, default=2, help="bounding box thickness")
     parser.add_argument("--track-thickness", type=int, default=2, help="Tracking line thickness")
     parser.add_argument("--region-thickness", type=int, default=4, help="Region thickness")

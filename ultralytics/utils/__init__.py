@@ -36,15 +36,23 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+<<<<<<< HEAD
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
+=======
+NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
+<<<<<<< HEAD
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+=======
+ARM64 = platform.machine() in ("arm64", "aarch64")  # ARM64 booleans
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 HELP_MSG = """
     Usage examples for running YOLOv8:
 
@@ -102,15 +110,23 @@ HELP_MSG = """
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+<<<<<<< HEAD
 # Settings and Environment Variables
+=======
+# Settings
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
 np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training
+<<<<<<< HEAD
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+=======
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress verbose TF compiler warnings in Colab
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class TQDM(tqdm_original):
@@ -123,11 +139,16 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
+<<<<<<< HEAD
         """
         Initialize custom Ultralytics tqdm class with different default arguments.
 
         Note these can still be overridden when calling TQDM.
         """
+=======
+        """Initialize custom Ultralytics tqdm class with different default arguments."""
+        # Set new default values (these can still be overridden when calling TQDM)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
@@ -218,7 +239,11 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
+<<<<<<< HEAD
             if backend.lower() != original_backend.lower():
+=======
+            if backend != original_backend:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
@@ -235,9 +260,33 @@ def plt_settings(rcparams=None, backend="Agg"):
     return decorator
 
 
+<<<<<<< HEAD
 def set_logging(name="LOGGING_NAME", verbose=True):
     """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
     environments.
+=======
+def set_logging(name=LOGGING_NAME, verbose=True):
+    """Sets up logging for the given name."""
+    rank = int(os.getenv("RANK", -1))  # rank in world for Multi-GPU trainings
+    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {name: {"format": "%(message)s"}},
+            "handlers": {name: {"class": "logging.StreamHandler", "formatter": name, "level": level}},
+            "loggers": {name: {"level": level, "handlers": [name], "propagate": False}},
+        }
+    )
+
+
+def emojis(string=""):
+    """Return platform-dependent emoji-safe version of string."""
+    return string.encode().decode("ascii", "ignore") if WINDOWS else string
+
+
+class EmojiFilter(logging.Filter):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
@@ -368,7 +417,11 @@ def yaml_load(file="data.yaml", append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
+<<<<<<< HEAD
     assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
+=======
+    assert Path(file).suffix in (".yaml", ".yml"), f"Attempting to load non-YAML file {file} with yaml_load()"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
@@ -475,6 +528,7 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
+<<<<<<< HEAD
     with contextlib.suppress(Exception):
         with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
@@ -500,6 +554,14 @@ def is_jetson() -> bool:
         (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
     """
     return "NVIDIA" in PROC_DEVICE_MODEL  # i.e. "NVIDIA Jetson Nano" or "NVIDIA Orin NX"
+=======
+    file = Path("/proc/self/cgroup")
+    if file.exists():
+        with open(file) as f:
+            return "docker" in f.read()
+    else:
+        return False
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def is_online() -> bool:
@@ -513,8 +575,19 @@ def is_online() -> bool:
         assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
+<<<<<<< HEAD
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
             socket.create_connection(address=(dns, 80), timeout=2.0).close()
+=======
+    for host in "1.1.1.1", "8.8.8.8", "223.5.5.5":  # Cloudflare, Google, AliDNS:
+        try:
+            test_connection = socket.create_connection(address=(host, 53), timeout=2)
+        except (socket.timeout, socket.gaierror, OSError):
+            continue
+        else:
+            # If the connection was successful, close it to avoid a ResourceWarning
+            test_connection.close()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             return True
     return False
 
@@ -558,7 +631,11 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
+<<<<<<< HEAD
     return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(ARGV[0]).stem)
+=======
+    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(sys.argv[0]).stem)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def is_github_action_running() -> bool:
@@ -568,7 +645,22 @@ def is_github_action_running() -> bool:
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
+<<<<<<< HEAD
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
+=======
+    return "GITHUB_ACTIONS" in os.environ and "RUNNER_OS" in os.environ and "RUNNER_TOOL_CACHE" in os.environ
+
+
+def is_git_dir():
+    """
+    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    repository, returns None.
+
+    Returns:
+        (bool): True if current file is part of a git repository.
+    """
+    return get_git_dir() is not None
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def get_git_dir():
@@ -681,6 +773,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     return path
 
 
+<<<<<<< HEAD
 # Define constants (required below)
 PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
@@ -693,6 +786,8 @@ IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
@@ -764,7 +859,11 @@ def remove_colorstr(input_string):
         >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
         >>> 'hello world'
     """
+<<<<<<< HEAD
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
+=======
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\\-_]|\[[0-9]*[ -/]*[@-~])")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     return ansi_escape.sub("", input_string)
 
 
@@ -894,6 +993,7 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, tb = hint["exc_info"]
+<<<<<<< HEAD
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
@@ -901,18 +1001,36 @@ def set_sentry():
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+=======
+            if exc_type in (KeyboardInterrupt, FileNotFoundError) or "out of memory" in str(exc_value):
+                return None  # do not send event
+
+        event["tags"] = {
+            "sys_argv": sys.argv[0],
+            "sys_argv_name": Path(sys.argv[0]).name,
+            "install": "git" if is_git_dir() else "pip" if is_pip_package() else "other",
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             "os": ENVIRONMENT,
         }
         return event
 
     if (
         SETTINGS["sync"]
+<<<<<<< HEAD
         and RANK in {-1, 0}
         and Path(ARGV[0]).name == "yolo"
         and not TESTS_RUNNING
         and ONLINE
         and IS_PIP_PACKAGE
         and not IS_GIT_DIR
+=======
+        and RANK in (-1, 0)
+        and Path(sys.argv[0]).name == "yolo"
+        and not TESTS_RUNNING
+        and ONLINE
+        and is_pip_package()
+        and not is_git_dir()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     ):
         # If sentry_sdk package is not installed then return and do not use Sentry
         try:
@@ -930,6 +1048,13 @@ def set_sentry():
             ignore_errors=[KeyboardInterrupt, FileNotFoundError],
         )
         sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
+<<<<<<< HEAD
+=======
+
+        # Disable all sentry logging
+        for logger in "sentry_sdk", "sentry_sdk.errors":
+            logging.getLogger(logger).setLevel(logging.CRITICAL)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class SettingsManager(dict):
@@ -964,7 +1089,10 @@ class SettingsManager(dict):
             "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
             "sync": True,
             "api_key": "",
+<<<<<<< HEAD
             "openai_api_key": "",
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             "clearml": True,  # integrations
             "comet": True,
             "dvc": True,
@@ -986,6 +1114,7 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self["settings_version"], self.version)
+<<<<<<< HEAD
             help_msg = (
                 f"\nView settings with 'yolo settings' or at '{self.file}'"
                 "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
@@ -995,6 +1124,14 @@ class SettingsManager(dict):
                 LOGGER.warning(
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
                     f"with your settings or a recent ultralytics package update. {help_msg}"
+=======
+            if not (correct_keys and correct_types and correct_version):
+                LOGGER.warning(
+                    "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                    "with your settings or a recent ultralytics package update. "
+                    f"\nView settings with 'yolo settings' or at '{self.file}'"
+                    "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 )
                 self.reset()
 
@@ -1027,8 +1164,16 @@ class SettingsManager(dict):
 
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
+<<<<<<< HEAD
     LOGGER.warning(
         f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
+=======
+    if not version:
+        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+        f"Please use '{new_arg}' instead."
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     )
 
 
@@ -1053,6 +1198,7 @@ WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
 ENVIRONMENT = (
     "Colab"
+<<<<<<< HEAD
     if IS_COLAB
     else "Kaggle"
     if IS_KAGGLE
@@ -1063,6 +1209,18 @@ ENVIRONMENT = (
     else platform.system()
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()
+=======
+    if is_colab()
+    else "Kaggle"
+    if is_kaggle()
+    else "Jupyter"
+    if is_jupyter()
+    else "Docker"
+    if is_docker()
+    else platform.system()
+)
+TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 set_sentry()
 
 # Apply monkey patches

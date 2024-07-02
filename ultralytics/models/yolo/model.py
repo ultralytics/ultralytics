@@ -3,9 +3,19 @@
 from pathlib import Path
 
 from ultralytics.engine.model import Model
+<<<<<<< HEAD
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
+=======
+from ultralytics.models import yolo  # noqa
+from ultralytics.nn.tasks import (
+    ClassificationModel,
+    DetectionModel,
+    PoseModel,
+    SegmentationModel,
+)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class YOLO(Model):
@@ -50,6 +60,7 @@ class YOLO(Model):
                 "validator": yolo.pose.PoseValidator,
                 "predictor": yolo.pose.PosePredictor,
             },
+<<<<<<< HEAD
             "obb": {
                 "model": OBBModel,
                 "trainer": yolo.obb.OBBTrainer,
@@ -105,3 +116,6 @@ class YOLOWorld(Model):
         # self.predictor = None  # reset predictor otherwise old names remain
         if self.predictor:
             self.predictor.model.names = classes
+=======
+        }
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

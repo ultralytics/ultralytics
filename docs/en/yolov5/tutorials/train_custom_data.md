@@ -73,11 +73,23 @@ Export in `YOLOv5 Pytorch` format, then copy the snippet into your training scri
 
 <p align="center"><img width="450" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/6152a273a92e4f5cb72594df_roboflow-snippet.png" alt="Roboflow dataset download snippet"></p>
 
+<<<<<<< HEAD:docs/en/yolov5/tutorials/train_custom_data.md
 ## Option 2: Create a Manual Dataset
+=======
+Now continue with `2. Select a Model`.
+
+</details>
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/train_custom_data.md
 
 ### 2.1 Create `dataset.yaml`
 
+<<<<<<< HEAD:docs/en/yolov5/tutorials/train_custom_data.md
 [COCO128](https://www.kaggle.com/ultralytics/coco128) is an example small tutorial dataset composed of the first 128 images in [COCO](https://cocodataset.org/) train2017. These same 128 images are used for both training and validation to verify our training pipeline is capable of overfitting. [data/coco128.yaml](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml), shown below, is the dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or `*.txt` files with image paths) and 2) a class `names` dictionary:
+=======
+### 1.1 Create dataset.yaml
+
+[COCO128](https://www.kaggle.com/ultralytics/coco128) is an example small tutorial dataset composed of the first 128 images in [COCO](http://cocodataset.org/#home) train2017. These same 128 images are used for both training and validation to verify our training pipeline is capable of overfitting. [data/coco128.yaml](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml), shown below, is the dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or \*.txt files with image paths) and 2) a class `names` dictionary:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/train_custom_data.md
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
@@ -201,10 +213,17 @@ plot_results("path/to/results.csv")  # plot 'results.csv' as 'results.png'
 
 Once your model is trained you can use your best checkpoint `best.pt` to:
 
+<<<<<<< HEAD:docs/en/yolov5/tutorials/train_custom_data.md
 - Run [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch_hub_model_loading.md) inference on new images and videos
 - [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) accuracy on train, val and test splits
 - [Export](./model_export.md) to TensorFlow, Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
 - [Evolve](./hyperparameter_evolution.md) hyperparameters to improve performance
+=======
+- Run [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](https://docs.ultralytics.com/yolov5/tutorials/pytorch_hub_model_loading) inference on new images and videos
+- [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) accuracy on train, val and test splits
+- [Export](https://docs.ultralytics.com/yolov5/tutorials/model_export) to TensorFlow, Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
+- [Evolve](https://docs.ultralytics.com/yolov5/tutorials/hyperparameter_evolution) hyperparameters to improve performance
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/yolov5/tutorials/train_custom_data.md
 - [Improve](https://docs.roboflow.com/adding-data/upload-api?ref=ultralytics) your model by sampling real-world images and adding them to your dataset
 
 ## Supported Environments

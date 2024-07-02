@@ -14,8 +14,18 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
+<<<<<<< HEAD
 from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
+=======
+from ultralytics.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.utils.checks import (
+    check_requirements,
+    check_suffix,
+    check_version,
+    check_yaml,
+)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -86,7 +96,10 @@ class AutoBackend(nn.Module):
         dnn=False,
         data=None,
         fp16=False,
+<<<<<<< HEAD
         batch=1,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         fuse=True,
         verbose=True,
     ):
@@ -106,6 +119,7 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
+<<<<<<< HEAD
         (
             pt,
             jit,
@@ -122,6 +136,11 @@ class AutoBackend(nn.Module):
             ncnn,
             triton,
         ) = self._model_type(w)
+=======
+        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, triton = (
+            self._model_type(w)
+        )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -129,7 +148,11 @@ class AutoBackend(nn.Module):
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
+<<<<<<< HEAD
         if cuda and not any([nn_module, pt, jit, engine, onnx]):  # GPU dataloader formats
+=======
+        if cuda and not any([nn_module, pt, jit, engine]):  # GPU dataloader formats
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             device = torch.device("cpu")
             cuda = False
 
@@ -140,8 +163,12 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             model = weights.to(device)
+<<<<<<< HEAD
             if fuse:
                 model = model.fuse(verbose=verbose)
+=======
+            model = model.fuse(verbose=verbose) if fuse else model
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
@@ -163,15 +190,20 @@ class AutoBackend(nn.Module):
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+<<<<<<< HEAD
 
         # TorchScript
         elif jit:
+=======
+        elif jit:  # TorchScript
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()
             if extra_files["config.txt"]:  # load metadata dict
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
+<<<<<<< HEAD
 
         # ONNX OpenCV DNN
         elif dnn:
@@ -186,11 +218,21 @@ class AutoBackend(nn.Module):
             if IS_RASPBERRYPI or IS_JETSON:
                 # Fix 'numpy.linalg._umath_linalg' has no attribute '_ilp64' for TF SavedModel on RPi and Jetson
                 check_requirements("numpy==1.23.5")
+=======
+        elif dnn:  # ONNX OpenCV DNN
+            LOGGER.info(f"Loading {w} for ONNX OpenCV DNN inference...")
+            check_requirements("opencv-python>=4.5.4")
+            net = cv2.dnn.readNetFromONNX(w)
+        elif onnx:  # ONNX Runtime
+            LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
+            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             import onnxruntime
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
+<<<<<<< HEAD
             metadata = session.get_modelmeta().custom_metadata_map
 
         # OpenVINO
@@ -200,11 +242,21 @@ class AutoBackend(nn.Module):
             import openvino as ov
 
             core = ov.Core()
+=======
+            metadata = session.get_modelmeta().custom_metadata_map  # metadata
+        elif xml:  # OpenVINO
+            LOGGER.info(f"Loading {w} for OpenVINO inference...")
+            check_requirements("openvino>=2023.0")  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+            from openvino.runtime import Core, Layout, get_batch  # noqa
+
+            core = Core()
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir
             ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
             if ov_model.get_parameters()[0].get_layout().empty:
+<<<<<<< HEAD
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
@@ -220,12 +272,25 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif engine:
+=======
+                ov_model.get_parameters()[0].set_layout(Layout("NCHW"))
+            batch_dim = get_batch(ov_model)
+            if batch_dim.is_static:
+                batch_size = batch_dim.get_length()
+            ov_compiled_model = core.compile_model(ov_model, device_name="AUTO")  # AUTO selects best available device
+            metadata = w.parent / "metadata.yaml"
+        elif engine:  # TensorRT
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for TensorRT inference...")
             try:
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             except ImportError:
                 if LINUX:
+<<<<<<< HEAD
                     check_requirements("tensorrt", cmds="-U")
+=======
+                    check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 import tensorrt as trt  # noqa
             check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
             if device.type == "cpu":
@@ -234,11 +299,16 @@ class AutoBackend(nn.Module):
             logger = trt.Logger(trt.Logger.INFO)
             # Read file
             with open(w, "rb") as f, trt.Runtime(logger) as runtime:
+<<<<<<< HEAD
                 try:
                     meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
+=======
+                meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
+                metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context
@@ -285,26 +355,38 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
             batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
+<<<<<<< HEAD
 
         # CoreML
         elif coreml:
+=======
+        elif coreml:  # CoreML
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 
             model = ct.models.MLModel(w)
             metadata = dict(model.user_defined_metadata)
+<<<<<<< HEAD
 
         # TF SavedModel
         elif saved_model:
+=======
+        elif saved_model:  # TF SavedModel
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
             import tensorflow as tf
 
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
             metadata = Path(w) / "metadata.yaml"
+<<<<<<< HEAD
 
         # TF GraphDef
         elif pb:  # https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
+=======
+        elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for TensorFlow GraphDef inference...")
             import tensorflow as tf
 
@@ -320,10 +402,13 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+<<<<<<< HEAD
             with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
 
         # TFLite or TFLite Edge TPU
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
@@ -348,6 +433,7 @@ class AutoBackend(nn.Module):
                 with zipfile.ZipFile(w, "r") as model:
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
+<<<<<<< HEAD
 
         # TF.js
         elif tfjs:
@@ -355,6 +441,11 @@ class AutoBackend(nn.Module):
 
         # PaddlePaddle
         elif paddle:
+=======
+        elif tfjs:  # TF.js
+            raise NotImplementedError("YOLOv8 TF.js inference is not currently supported.")
+        elif paddle:  # PaddlePaddle
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
             check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle")
             import paddle.inference as pdi  # noqa
@@ -369,11 +460,17 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
+<<<<<<< HEAD
 
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
             check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires NCNN
+=======
+        elif ncnn:  # ncnn
+            LOGGER.info(f"Loading {w} for ncnn inference...")
+            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires ncnn
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             import ncnn as pyncnn
 
             net = pyncnn.Net()
@@ -384,9 +481,13 @@ class AutoBackend(nn.Module):
             net.load_param(str(w))
             net.load_model(str(w.with_suffix(".bin")))
             metadata = w.parent / "metadata.yaml"
+<<<<<<< HEAD
 
         # NVIDIA Triton Inference Server
         elif triton:
+=======
+        elif triton:  # NVIDIA Triton Inference Server
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             check_requirements("tritonclient[all]")
             from ultralytics.utils.triton import TritonRemoteModel
 
@@ -398,7 +499,12 @@ class AutoBackend(nn.Module):
 
             raise TypeError(
                 f"model='{w}' is not a supported model format. "
+<<<<<<< HEAD
                 f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
+=======
+                "See https://docs.ultralytics.com/modes/predict for help."
+                f"\n\n{export_formats()}"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             )
 
         # Load external metadata YAML
@@ -406,9 +512,15 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata and isinstance(metadata, dict):
             for k, v in metadata.items():
+<<<<<<< HEAD
                 if k in {"stride", "batch"}:
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
+=======
+                if k in ("stride", "batch"):
+                    metadata[k] = int(v)
+                elif k in ("imgsz", "names", "kpt_shape") and isinstance(v, str):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -421,7 +533,11 @@ class AutoBackend(nn.Module):
 
         # Check names
         if "names" not in locals():  # names missing
+<<<<<<< HEAD
             names = default_class_names(data)
+=======
+            names = self._apply_default_class_names(data)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         names = check_class_names(names)
 
         # Disable gradients
@@ -472,6 +588,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif self.xml:
             im = im.cpu().numpy()  # FP32
+<<<<<<< HEAD
 
             if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
                 n = im.shape[0]  # number of images in batch
@@ -509,6 +626,17 @@ class AutoBackend(nn.Module):
                         i = self.model.get_binding_index(name)
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
+=======
+            y = list(self.ov_compiled_model(im).values())
+        elif self.engine:  # TensorRT
+            if self.dynamic and im.shape != self.bindings["images"].shape:
+                i = self.model.get_binding_index("images")
+                self.context.set_binding_shape(i, im.shape)  # reshape if dynamic
+                self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                for name in self.output_names:
+                    i = self.model.get_binding_index(name)
+                    self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             s = self.bindings["images"].shape
             assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
             self.binding_addrs["images"] = int(im.data_ptr())
@@ -571,8 +699,13 @@ class AutoBackend(nn.Module):
                     self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
+<<<<<<< HEAD
                 is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
                 if is_int:
+=======
+                integer = details["dtype"] in (np.int8, np.int16)  # is TFLite quantized int8 or int16 model
+                if integer:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     scale, zero_point = details["quantization"]
                     im = (im / scale + zero_point).astype(details["dtype"])  # de-scale
                 self.interpreter.set_tensor(details["index"], im)
@@ -580,7 +713,11 @@ class AutoBackend(nn.Module):
                 y = []
                 for output in self.output_details:
                     x = self.interpreter.get_tensor(output["index"])
+<<<<<<< HEAD
                     if is_int:
+=======
+                    if integer:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                         scale, zero_point = output["quantization"]
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
@@ -631,6 +768,16 @@ class AutoBackend(nn.Module):
                 self.forward(im)  # warmup
 
     @staticmethod
+<<<<<<< HEAD
+=======
+    def _apply_default_class_names(data):
+        """Applies default class names to an input YAML file or returns numerical class names."""
+        with contextlib.suppress(Exception):
+            return yaml_load(check_yaml(data))["names"]
+        return {i: f"class{i}" for i in range(999)}  # return default if above errors
+
+    @staticmethod
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     def _model_type(p="path/to/model.pt"):
         """
         This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
@@ -658,6 +805,10 @@ class AutoBackend(nn.Module):
             from urllib.parse import urlsplit
 
             url = urlsplit(p)
+<<<<<<< HEAD
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
+=======
+            triton = url.netloc and url.path and url.scheme in {"http", "grfc"}
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
         return types + [triton]

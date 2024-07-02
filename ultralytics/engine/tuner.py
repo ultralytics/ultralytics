@@ -26,7 +26,15 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
+from ultralytics.utils import (
+    DEFAULT_CFG,
+    LOGGER,
+    callbacks,
+    colorstr,
+    remove_colorstr,
+    yaml_print,
+    yaml_save,
+)
 from ultralytics.utils.plotting import plot_tune_results
 
 
@@ -76,7 +84,11 @@ class Tuner:
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
+<<<<<<< HEAD
             "lr0": (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+=======
+            "lr0": (1e-5, 1e-1),
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             "lrf": (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
             "momentum": (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             "weight_decay": (0.0, 0.001),  # optimizer weight decay 5e-4
@@ -95,12 +107,19 @@ class Tuner:
             "perspective": (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
+<<<<<<< HEAD
             "bgr": (0.0, 1.0),  # image channel bgr (probability)
             "mosaic": (0.0, 1.0),  # image mixup (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
+=======
+            "mosaic": (0.0, 1.0),  # image mixup (probability)
+            "mixup": (0.0, 1.0),  # image mixup (probability)
+            "copy_paste": (0.0, 1.0),
+        }  # segment copy-paste (probability)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.tune_dir = get_save_dir(self.args, name="tune")
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -191,11 +210,19 @@ class Tuner:
             weights_dir = save_dir / "weights"
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
+<<<<<<< HEAD
                 cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
                 return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch.load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"
+=======
+                weights_dir = save_dir / "weights"
+                cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
+                assert subprocess.run(cmd, check=True).returncode == 0, "training failed"
+                ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
+                metrics = torch.load(ckpt_file)["train_metrics"]
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
             except Exception as e:
                 LOGGER.warning(f"WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}")

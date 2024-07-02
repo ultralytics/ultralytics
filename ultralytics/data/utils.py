@@ -27,19 +27,30 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
+<<<<<<< HEAD
     is_dir_writeable,
     yaml_load,
     yaml_save,
+=======
+    yaml_load,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
 
+<<<<<<< HEAD
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+=======
+HELP_URL = "See https://docs.ultralytics.com/datasets/detect for dataset formatting guidance."
+IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # image suffixes
+VID_FORMATS = "asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"  # video suffixes
+PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def img2label_paths(img_paths):
@@ -80,8 +91,13 @@ def verify_image(args):
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
+<<<<<<< HEAD
         assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
+=======
+        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        if im.format.lower() in ("jpg", "jpeg"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
@@ -106,8 +122,13 @@ def verify_image_label(args):
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
+<<<<<<< HEAD
         assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
+=======
+        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
+        if im.format.lower() in ("jpg", "jpeg"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
@@ -270,10 +291,17 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ""
+<<<<<<< HEAD
     if zipfile.is_zipfile(file) or is_tarfile(file):
         new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
         file = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = file.parent, False
+=======
+    if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
+        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False)
+        data = find_dataset_yaml(DATASETS_DIR / new_dir)
+        extract_dir, autodownload = data.parent, False
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
     # Read YAML
     data = yaml_load(file, append_filename=True)  # dictionary
@@ -281,12 +309,22 @@ def check_det_dataset(dataset, autodownload=True):
     # Checks
     for k in "train", "val":
         if k not in data:
+<<<<<<< HEAD
             if k != "val" or "validation" not in data:
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
                 )
             LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+=======
+            if k == "val" and "validation" in data:
+                LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+                data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+            else:
+                raise SyntaxError(
+                    emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
+                )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
@@ -300,12 +338,20 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Resolve paths
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
+<<<<<<< HEAD
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
 
     # Set paths
     data["path"] = path  # download scripts
     for k in "train", "val", "test", "minival":
+=======
+
+    if not path.is_absolute():
+        path = (DATASETS_DIR / path).resolve()
+    data["path"] = path  # download scripts
+    for k in "train", "val", "test":
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
                 x = (path / data[k]).resolve()
@@ -316,7 +362,11 @@ def check_det_dataset(dataset, autodownload=True):
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
     # Parse YAML
+<<<<<<< HEAD
     val, s = (data.get(x) for x in ("val", "download"))
+=======
+    train, val, test, s = (data.get(x) for x in ("train", "val", "test", "download"))
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
@@ -337,7 +387,11 @@ def check_det_dataset(dataset, autodownload=True):
             else:  # python script
                 exec(s, {"yaml": data})
             dt = f"({round(time.time() - t, 1)}s)"
+<<<<<<< HEAD
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
+=======
+            s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f"failure {dt} ❌"
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             LOGGER.info(f"Dataset download {s}\n")
     check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 
@@ -449,7 +503,11 @@ class HUBDatasetStats:
         ```
     """
 
+<<<<<<< HEAD
     def __init__(self, path="coco8.yaml", task="detect", autodownload=False):
+=======
+    def __init__(self, path="coco128.yaml", task="detect", autodownload=False):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """Initialize class."""
         path = Path(path).resolve()
         LOGGER.info(f"Starting HUB dataset checks for {path}....")
@@ -462,17 +520,28 @@ class HUBDatasetStats:
         else:  # detect, segment, pose
             _, data_dir, yaml_path = self._unzip(Path(path))
             try:
+<<<<<<< HEAD
                 # Load YAML with checks
                 data = yaml_load(yaml_path)
                 data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
                 yaml_save(yaml_path, data)
                 data = check_det_dataset(yaml_path, autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
+=======
+                # data = yaml_load(check_yaml(yaml_path))  # data dict
+                data = check_det_dataset(yaml_path, autodownload)  # data dict
+                if zipped:
+                    data["path"] = data_dir
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e
 
         self.hub_dir = Path(f'{data["path"]}-hub')
         self.im_dir = self.hub_dir / "images"
+<<<<<<< HEAD
+=======
+        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
 
@@ -498,6 +567,7 @@ class HUBDatasetStats:
             """Update labels to integer class and 4 decimal place floats."""
             if self.task == "detect":
                 coordinates = labels["bboxes"]
+<<<<<<< HEAD
             elif self.task in {"segment", "obb"}:  # Segment and OBB use segments. OBB segments are normalized xyxyxyxy
                 coordinates = [x.flatten() for x in labels["segments"]]
             elif self.task == "pose":
@@ -505,6 +575,15 @@ class HUBDatasetStats:
                 coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, nk * nd)), 1)
             else:
                 raise ValueError(f"Undefined dataset task={self.task}.")
+=======
+            elif self.task == "segment":
+                coordinates = [x.flatten() for x in labels["segments"]]
+            elif self.task == "pose":
+                n = labels["keypoints"].shape[0]
+                coordinates = np.concatenate((labels["bboxes"], labels["keypoints"].reshape(n, -1)), 1)
+            else:
+                raise ValueError("Undefined dataset task.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             zipped = zip(labels["cls"], coordinates)
             return [[int(c[0]), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
@@ -537,7 +616,16 @@ class HUBDatasetStats:
             else:
                 from ultralytics.data import YOLODataset
 
+<<<<<<< HEAD
                 dataset = YOLODataset(img_path=self.data[split], data=self.data, task=self.task)
+=======
+                dataset = YOLODataset(
+                    img_path=self.data[split],
+                    data=self.data,
+                    use_segments=self.task == "segment",
+                    use_keypoints=self.task == "pose",
+                )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 x = np.array(
                     [
                         np.bincount(label["cls"].astype(int).flatten(), minlength=self.data["nc"])
@@ -556,7 +644,10 @@ class HUBDatasetStats:
 
         # Save, print and return
         if save:
+<<<<<<< HEAD
             self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
             with open(stats_path, "w") as f:
@@ -569,7 +660,10 @@ class HUBDatasetStats:
         """Compress images for Ultralytics HUB."""
         from ultralytics.data import YOLODataset  # ClassificationDataset
 
+<<<<<<< HEAD
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         for split in "train", "val", "test":
             if self.data.get(split) is None:
                 continue
@@ -652,6 +746,7 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
         if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
             with open(path.parent / txt[i], "a") as f:
                 f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
+<<<<<<< HEAD
 
 
 def load_dataset_cache_file(path):
@@ -675,3 +770,5 @@ def save_dataset_cache_file(prefix, path, x, version):
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9

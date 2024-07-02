@@ -72,7 +72,17 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
 ## Supported Tasks and Modes
 
+<<<<<<< HEAD:docs/en/models/yolov6.md
 The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+=======
+| Model Type | Pre-trained Weights | Tasks Supported  |
+| ---------- | ------------------- | ---------------- |
+| YOLOv6-N   | `yolov6-n.pt`       | Object Detection |
+| YOLOv6-S   | `yolov6-s.pt`       | Object Detection |
+| YOLOv6-M   | `yolov6-m.pt`       | Object Detection |
+| YOLOv6-L   | `yolov6-l.pt`       | Object Detection |
+| YOLOv6-L6  | `yolov6-l6.pt`      | Object Detection |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/models/yolov6.md
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
 | ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -82,7 +92,15 @@ The YOLOv6 series offers a range of models, each optimized for high-performance 
 | YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
+<<<<<<< HEAD:docs/en/models/yolov6.md
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
+=======
+| Mode       | Supported          |
+| ---------- | ------------------ |
+| Inference  | :heavy_check_mark: |
+| Validation | :heavy_check_mark: |
+| Training   | :heavy_check_mark: |
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/models/yolov6.md
 
 ## Citations and Acknowledgements
 

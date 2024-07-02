@@ -91,10 +91,15 @@ def on_train_epoch_end(trainer):
         if trainer.epoch == 1:
             _log_debug_samples(sorted(trainer.save_dir.glob("train_batch*.jpg")), "Mosaic")
         # Report the current training progress
+<<<<<<< HEAD
         for k, v in trainer.label_loss_items(trainer.tloss, prefix="train").items():
             task.get_logger().report_scalar("train", k, v, iteration=trainer.epoch)
         for k, v in trainer.lr.items():
             task.get_logger().report_scalar("lr", k, v, iteration=trainer.epoch)
+=======
+        for k, v in trainer.validator.metrics.results_dict.items():
+            task.get_logger().report_scalar("train", k, v, iteration=trainer.epoch)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 def on_fit_epoch_end(trainer):
@@ -104,8 +109,11 @@ def on_fit_epoch_end(trainer):
         task.get_logger().report_scalar(
             title="Epoch Time", series="Epoch Time", value=trainer.epoch_time, iteration=trainer.epoch
         )
+<<<<<<< HEAD
         for k, v in trainer.metrics.items():
             task.get_logger().report_scalar("val", k, v, iteration=trainer.epoch)
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         if trainer.epoch == 0:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 

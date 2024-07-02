@@ -8,6 +8,57 @@ from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
+<<<<<<< HEAD
+=======
+
+
+def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
+    """
+    Select the positive anchor center in gt.
+
+    Args:
+        xy_centers (Tensor): shape(h*w, 2)
+        gt_bboxes (Tensor): shape(b, n_boxes, 4)
+
+    Returns:
+        (Tensor): shape(b, n_boxes, h*w)
+    """
+    n_anchors = xy_centers.shape[0]
+    bs, n_boxes, _ = gt_bboxes.shape
+    lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
+    bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
+    # return (bbox_deltas.min(3)[0] > eps).to(gt_bboxes.dtype)
+    return bbox_deltas.amin(3).gt_(eps)
+
+
+def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
+    """
+    If an anchor box is assigned to multiple gts, the one with the highest IoI will be selected.
+
+    Args:
+        mask_pos (Tensor): shape(b, n_max_boxes, h*w)
+        overlaps (Tensor): shape(b, n_max_boxes, h*w)
+
+    Returns:
+        target_gt_idx (Tensor): shape(b, h*w)
+        fg_mask (Tensor): shape(b, h*w)
+        mask_pos (Tensor): shape(b, n_max_boxes, h*w)
+    """
+    # (b, n_max_boxes, h*w) -> (b, h*w)
+    fg_mask = mask_pos.sum(-2)
+    if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
+        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
+        max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+
+        is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+        is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+
+        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+        fg_mask = mask_pos.sum(-2)
+    # Find each grid serve which gt(index)
+    target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
+    return target_gt_idx, fg_mask, mask_pos
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class TaskAlignedAssigner(nn.Module):

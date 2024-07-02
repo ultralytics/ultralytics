@@ -26,7 +26,11 @@ class KalmanFilterXYAH:
         self._update_mat = np.eye(ndim, 2 * ndim)
 
         # Motion and observation uncertainty are chosen relative to the current state estimate. These weights control
+<<<<<<< HEAD
         # the amount of uncertainty in the model.
+=======
+        # the amount of uncertainty in the model. This is a bit hacky.
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         self._std_weight_position = 1.0 / 20
         self._std_weight_velocity = 1.0 / 160
 
@@ -173,6 +177,7 @@ class KalmanFilterXYAH:
         new_covariance = covariance - np.linalg.multi_dot((kalman_gain, projected_cov, kalman_gain.T))
         return new_mean, new_covariance
 
+<<<<<<< HEAD
     def gating_distance(
         self,
         mean: np.ndarray,
@@ -181,6 +186,9 @@ class KalmanFilterXYAH:
         only_position: bool = False,
         metric: str = "maha",
     ) -> np.ndarray:
+=======
+    def gating_distance(self, mean, covariance, measurements, only_position=False, metric="maha"):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         """
         Compute gating distance between state distribution and measurements. A suitable distance threshold can be
         obtained from `chi2inv95`. If `only_position` is False, the chi-square distribution has 4 degrees of freedom,
@@ -213,7 +221,11 @@ class KalmanFilterXYAH:
             z = scipy.linalg.solve_triangular(cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True)
             return np.sum(z * z, axis=0)  # square maha
         else:
+<<<<<<< HEAD
             raise ValueError("Invalid distance metric")
+=======
+            raise ValueError("invalid distance metric")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 class KalmanFilterXYWH(KalmanFilterXYAH):

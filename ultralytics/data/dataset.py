@@ -21,8 +21,12 @@ from .augment import (
     Format,
     Instances,
     LetterBox,
+<<<<<<< HEAD
     RandomLoadText,
     classify_augmentations,
+=======
+    classify_albumentations,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     classify_transforms,
     v8_transforms,
 )
@@ -32,8 +36,11 @@ from .utils import (
     LOGGER,
     get_hash,
     img2label_paths,
+<<<<<<< HEAD
     load_dataset_cache_file,
     save_dataset_cache_file,
+=======
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     verify_image,
     verify_image_label,
 )
@@ -78,7 +85,11 @@ class YOLODataset(BaseDataset):
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
         total = len(self.im_files)
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+<<<<<<< HEAD
         if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
+=======
+        if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             raise ValueError(
                 "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
                 "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
@@ -104,6 +115,7 @@ class YOLODataset(BaseDataset):
                 nc += nc_f
                 if im_file:
                     x["labels"].append(
+<<<<<<< HEAD
                         {
                             "im_file": im_file,
                             "shape": shape,
@@ -114,6 +126,18 @@ class YOLODataset(BaseDataset):
                             "normalized": True,
                             "bbox_format": "xywh",
                         }
+=======
+                        dict(
+                            im_file=im_file,
+                            shape=shape,
+                            cls=lb[:, 0:1],  # n, 1
+                            bboxes=lb[:, 1:],  # n, 4
+                            segments=segments,
+                            keypoints=keypoint,
+                            normalized=True,
+                            bbox_format="xywh",
+                        )
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                     )
                 if msg:
                     msgs.append(msg)
@@ -127,7 +151,11 @@ class YOLODataset(BaseDataset):
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
+<<<<<<< HEAD
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+=======
+        save_dataset_cache_file(self.prefix, path, x)
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         return x
 
     def get_labels(self):
@@ -143,7 +171,11 @@ class YOLODataset(BaseDataset):
 
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
+<<<<<<< HEAD
         if exists and LOCAL_RANK in {-1, 0}:
+=======
+        if exists and LOCAL_RANK in (-1, 0):
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
             TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache["msgs"]:
@@ -185,11 +217,17 @@ class YOLODataset(BaseDataset):
                 normalize=True,
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
+<<<<<<< HEAD
                 return_obb=self.use_obb,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
+=======
+                batch_idx=True,
+                mask_ratio=hyp.mask_ratio,
+                mask_overlap=hyp.overlap_mask,
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
             )
         )
         return transforms
@@ -202,6 +240,7 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
+<<<<<<< HEAD
         """
         Custom your label format here.
 
@@ -223,6 +262,16 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
+=======
+        """Custom your label format here."""
+        # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
+        # We can make it also support classification and semantic segmentation by add or remove some dict keys there.
+        bboxes = label.pop("bboxes")
+        segments = label.pop("segments")
+        keypoints = label.pop("keypoints", None)
+        bbox_format = label.pop("bbox_format")
+        normalized = label.pop("normalized")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
         label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 
@@ -236,7 +285,11 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
+<<<<<<< HEAD
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+=======
+            if k in ["masks", "keypoints", "bboxes", "cls"]:
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch["batch_idx"] = list(new_batch["batch_idx"])
@@ -258,6 +311,7 @@ class YOLOMultiModalDataset(YOLODataset):
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
 
+<<<<<<< HEAD
     def __init__(self, *args, data=None, task="detect", **kwargs):
         """Initializes a dataset object for object detection tasks with optional specifications."""
         super().__init__(*args, data=data, task=task, **kwargs)
@@ -361,6 +415,127 @@ class YOLOConcatDataset(ConcatDataset):
     def collate_fn(batch):
         """Collates data samples into batches."""
         return YOLODataset.collate_fn(batch)
+=======
+    def __init__(self, root, args, augment=False, cache=False, prefix=""):
+        """
+        Initialize YOLO object with root, image size, augmentations, and cache settings.
+
+        Args:
+            root (str): Dataset path.
+            args (Namespace): Argument parser containing dataset related settings.
+            augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
+            cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
+        """
+        super().__init__(root=root)
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[: round(len(self.samples) * args.fraction)]
+        self.prefix = colorstr(f"{prefix}: ") if prefix else ""
+        self.cache_ram = cache is True or cache == "ram"
+        self.cache_disk = cache == "disk"
+        self.samples = self.verify_images()  # filter out bad images
+        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
+        self.album_transforms = (
+            classify_albumentations(
+                augment=augment,
+                size=args.imgsz,
+                scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
+                hflip=args.fliplr,
+                vflip=args.flipud,
+                hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
+                hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
+                hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
+                mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+                std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+                auto_aug=False,
+            )
+            if augment
+            else None
+        )
+
+    def __getitem__(self, i):
+        """Returns subset of data and targets corresponding to given indices."""
+        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        if self.cache_ram and im is None:
+            im = self.samples[i][3] = cv2.imread(f)
+        elif self.cache_disk:
+            if not fn.exists():  # load npy
+                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+            im = np.load(fn)
+        else:  # read image
+            im = cv2.imread(f)  # BGR
+        if self.album_transforms:
+            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
+        else:
+            sample = self.torch_transforms(im)
+        return {"img": sample, "cls": j}
+
+    def __len__(self) -> int:
+        """Return the total number of samples in the dataset."""
+        return len(self.samples)
+
+    def verify_images(self):
+        """Verify all images in dataset."""
+        desc = f"{self.prefix}Scanning {self.root}..."
+        path = Path(self.root).with_suffix(".cache")  # *.cache file path
+
+        with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):
+            cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
+            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
+            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
+            nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
+            if LOCAL_RANK in (-1, 0):
+                d = f"{desc} {nf} images, {nc} corrupt"
+                TQDM(None, desc=d, total=n, initial=n)
+                if cache["msgs"]:
+                    LOGGER.info("\n".join(cache["msgs"]))  # display warnings
+            return samples
+
+        # Run scan if *.cache retrieval failed
+        nf, nc, msgs, samples, x = 0, 0, [], [], {}
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
+            pbar = TQDM(results, desc=desc, total=len(self.samples))
+            for sample, nf_f, nc_f, msg in pbar:
+                if nf_f:
+                    samples.append(sample)
+                if msg:
+                    msgs.append(msg)
+                nf += nf_f
+                nc += nc_f
+                pbar.desc = f"{desc} {nf} images, {nc} corrupt"
+            pbar.close()
+        if msgs:
+            LOGGER.info("\n".join(msgs))
+        x["hash"] = get_hash([x[0] for x in self.samples])
+        x["results"] = nf, nc, len(samples), samples
+        x["msgs"] = msgs  # warnings
+        save_dataset_cache_file(self.prefix, path, x)
+        return samples
+
+
+def load_dataset_cache_file(path):
+    """Load an Ultralytics *.cache dictionary from path."""
+    import gc
+
+    gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
+    cache = np.load(str(path), allow_pickle=True).item()  # load dict
+    gc.enable()
+    return cache
+
+
+def save_dataset_cache_file(prefix, path, x):
+    """Save an Ultralytics dataset *.cache dictionary x to path."""
+    x["version"] = DATASET_CACHE_VERSION  # add cache version
+    if is_dir_writeable(path.parent):
+        if path.exists():
+            path.unlink()  # remove *.cache file if exists
+        np.save(str(path), x)  # save cache for next time
+        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+        LOGGER.info(f"{prefix}New cache created: {path}")
+    else:
+        LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
 
 
 # TODO: support semantic segmentation

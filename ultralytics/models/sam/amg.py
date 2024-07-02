@@ -40,6 +40,11 @@ def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, thresh
         - One mask is always contained inside the other.
         - Save memory by preventing unnecessary cast to torch.int64
     """
+<<<<<<< HEAD
+=======
+    # One mask is always contained inside the other.
+    # Save memory by preventing unnecessary cast to torch.int64
+>>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9
     intersections = (masks > (mask_threshold + threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     unions = (masks > (mask_threshold - threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     return intersections / unions

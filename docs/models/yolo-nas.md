@@ -24,7 +24,7 @@ Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational
 Experience the power of next-generation object detection with the pre-trained YOLO-NAS models provided by Ultralytics. These models are designed to deliver top-notch performance in terms of both speed and accuracy. Choose from a variety of options tailored to your specific needs:
 
 | Model            | mAP   | Latency (ms) |
-|------------------|-------|--------------|
+| ---------------- | ----- | ------------ |
 | YOLO-NAS S       | 47.5  | 3.21         |
 | YOLO-NAS M       | 51.55 | 5.85         |
 | YOLO-NAS L       | 52.22 | 7.87         |
@@ -56,16 +56,16 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         from ultralytics import NAS
 
         # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # Display model information (optional)
         model.info()
 
         # Validate the model on the COCO8 example dataset
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -85,7 +85,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 The YOLO-NAS models are primarily designed for object detection tasks. You can download the pre-trained weights for each variant of the model as follows:
 
 | Model Type | Pre-trained Weights                                                                           | Tasks Supported  |
-|------------|-----------------------------------------------------------------------------------------------|------------------|
+| ---------- | --------------------------------------------------------------------------------------------- | ---------------- |
 | YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | Object Detection |
 | YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | Object Detection |
 | YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | Object Detection |
@@ -95,7 +95,7 @@ The YOLO-NAS models are primarily designed for object detection tasks. You can d
 The YOLO-NAS models support both inference and validation modes, allowing you to predict and validate results with ease. Training mode, however, is currently not supported.
 
 | Mode       | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :x:                |
@@ -124,4 +124,4 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 
-*Keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architecture search, Ultralytics Python API, YOLO model, SuperGradients, pre-trained models, quantization-friendly basic block, advanced training schemes, post-training quantization, AutoNAC optimization, COCO, Objects365, Roboflow 100*
+_Keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architecture search, Ultralytics Python API, YOLO model, SuperGradients, pre-trained models, quantization-friendly basic block, advanced training schemes, post-training quantization, AutoNAC optimization, COCO, Objects365, Roboflow 100_

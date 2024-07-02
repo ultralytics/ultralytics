@@ -50,6 +50,7 @@ When running the `detect.py` script on the sample image from the 'coco8.yaml' da
 
 ```python
 import torch
+
 from ultralytics import YOLO
 
 # Load the model

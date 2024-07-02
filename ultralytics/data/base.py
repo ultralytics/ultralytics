@@ -47,20 +47,22 @@ class BaseDataset(Dataset):
         transforms (callable): Image transformation function.
     """
 
-    def __init__(self,
-                 img_path,
-                 imgsz=640,
-                 cache=False,
-                 augment=True,
-                 hyp=DEFAULT_CFG,
-                 prefix='',
-                 rect=False,
-                 batch_size=16,
-                 stride=32,
-                 pad=0.5,
-                 single_cls=False,
-                 classes=None,
-                 fraction=1.0):
+    def __init__(
+        self,
+        img_path,
+        imgsz=640,
+        cache=False,
+        augment=True,
+        hyp=DEFAULT_CFG,
+        prefix="",
+        rect=False,
+        batch_size=16,
+        stride=32,
+        pad=0.5,
+        single_cls=False,
+        classes=None,
+        fraction=1.0,
+    ):
         """Initialize BaseDataset with given configuration and options."""
         super().__init__()
         self.img_path = img_path
@@ -86,10 +88,10 @@ class BaseDataset(Dataset):
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images
-        if cache == 'ram' and not self.check_cache_ram():
+        if cache == "ram" and not self.check_cache_ram():
             cache = False
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
-        self.npy_files = [Path(f).with_suffix('.npy') for f in self.im_files]
+        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         if cache:
             self.cache_images(cache)
 
@@ -103,23 +105,23 @@ class BaseDataset(Dataset):
             for p in img_path if isinstance(img_path, list) else [img_path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / '**' / '*.*'), recursive=True)
+                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p) as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
-                        f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
+                        f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
                         # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
                 else:
-                    raise FileNotFoundError(f'{self.prefix}{p} does not exist')
-            im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
+                    raise FileNotFoundError(f"{self.prefix}{p} does not exist")
+            im_files = sorted(x.replace("/", os.sep) for x in f if x.split(".")[-1].lower() in IMG_FORMATS)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert im_files, f'{self.prefix}No images found in {img_path}'
+            assert im_files, f"{self.prefix}No images found in {img_path}"
         except Exception as e:
-            raise FileNotFoundError(f'{self.prefix}Error loading data from {img_path}\n{HELP_URL}') from e
+            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
-            im_files = im_files[:round(len(im_files) * self.fraction)]
+            im_files = im_files[: round(len(im_files) * self.fraction)]
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -127,19 +129,19 @@ class BaseDataset(Dataset):
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
-                cls = self.labels[i]['cls']
-                bboxes = self.labels[i]['bboxes']
-                segments = self.labels[i]['segments']
-                keypoints = self.labels[i]['keypoints']
+                cls = self.labels[i]["cls"]
+                bboxes = self.labels[i]["bboxes"]
+                segments = self.labels[i]["segments"]
+                keypoints = self.labels[i]["keypoints"]
                 j = (cls == include_class_array).any(1)
-                self.labels[i]['cls'] = cls[j]
-                self.labels[i]['bboxes'] = bboxes[j]
+                self.labels[i]["cls"] = cls[j]
+                self.labels[i]["bboxes"] = bboxes[j]
                 if segments:
-                    self.labels[i]['segments'] = [segments[si] for si, idx in enumerate(j) if idx]
+                    self.labels[i]["segments"] = [segments[si] for si, idx in enumerate(j) if idx]
                 if keypoints is not None:
-                    self.labels[i]['keypoints'] = keypoints[j]
+                    self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
-                self.labels[i]['cls'][:, 0] = 0
+                self.labels[i]["cls"][:, 0] = 0
 
     def load_image(self, i, rect_mode=True):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
@@ -149,13 +151,13 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                 except Exception as e:
-                    LOGGER.warning(f'{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}')
+                    LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
                 im = cv2.imread(f)  # BGR
             if im is None:
-                raise FileNotFoundError(f'Image Not Found {f}')
+                raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
@@ -181,17 +183,17 @@ class BaseDataset(Dataset):
     def cache_images(self, cache):
         """Cache images to memory or disk."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        fcn = self.cache_images_to_disk if cache == 'disk' else self.load_image
+        fcn = self.cache_images_to_disk if cache == "disk" else self.load_image
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, range(self.ni))
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
-                if cache == 'disk':
+                if cache == "disk":
                     b += self.npy_files[i].stat().st_size
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
-                pbar.desc = f'{self.prefix}Caching images ({b / gb:.1f}GB {cache})'
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {cache})"
             pbar.close()
 
     def cache_images_to_disk(self, i):
@@ -207,15 +209,17 @@ class BaseDataset(Dataset):
         for _ in range(n):
             im = cv2.imread(random.choice(self.im_files))  # sample image
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
-            b += im.nbytes * ratio ** 2
+            b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
         cache = mem_required < mem.available  # to cache or not to cache, that is the question
         if not cache:
-            LOGGER.info(f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
-                        f'with {int(safety_margin * 100)}% safety margin but only '
-                        f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
-                        f"{'caching images ✅' if cache else 'not caching images ⚠️'}")
+            LOGGER.info(
+                f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
+                f'with {int(safety_margin * 100)}% safety margin but only '
+                f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
+                f"{'caching images ✅' if cache else 'not caching images ⚠️'}"
+            )
         return cache
 
     def set_rectangle(self):
@@ -223,7 +227,7 @@ class BaseDataset(Dataset):
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
-        s = np.array([x.pop('shape') for x in self.labels])  # hw
+        s = np.array([x.pop("shape") for x in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
         irect = ar.argsort()
         self.im_files = [self.im_files[i] for i in irect]
@@ -250,12 +254,14 @@ class BaseDataset(Dataset):
     def get_image_and_label(self, index):
         """Get and return label information from the dataset."""
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
-        label.pop('shape', None)  # shape is for rect, remove it
-        label['img'], label['ori_shape'], label['resized_shape'] = self.load_image(index)
-        label['ratio_pad'] = (label['resized_shape'][0] / label['ori_shape'][0],
-                              label['resized_shape'][1] / label['ori_shape'][1])  # for evaluation
+        label.pop("shape", None)  # shape is for rect, remove it
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        label["ratio_pad"] = (
+            label["resized_shape"][0] / label["ori_shape"][0],
+            label["resized_shape"][1] / label["ori_shape"][1],
+        )  # for evaluation
         if self.rect:
-            label['rect_shape'] = self.batch_shapes[self.batch[index]]
+            label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
 
     def __len__(self):

@@ -42,13 +42,13 @@ This guide offers you the flexibility to start with either [YOLOv5](https://gith
 To assist you in making an informed hardware decision, we've summarized the key hardware specifics of Raspberry Pi 3, 4, and 5 in the table below:
 
 | Feature                    | Raspberry Pi 3                                                                           | Raspberry Pi 4                                                                           | Raspberry Pi 5                                                       |
-|----------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| -------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | **CPU**                    | 1.2GHz Quad-Core ARM Cortex-A53                                                          | 1.5GHz Quad-core 64-bit ARM Cortex-A72                                                   | 2.4GHz Quad-core 64-bit Arm Cortex-A76                               |
-| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | *Details not yet available*                                          |
+| **RAM**                    | 1GB LPDDR2                                                                               | 2GB, 4GB or 8GB LPDDR4                                                                   | _Details not yet available_                                          |
 | **USB Ports**              | 4 x USB 2.0                                                                              | 2 x USB 2.0, 2 x USB 3.0                                                                 | 2 x USB 3.0, 2 x USB 2.0                                             |
-| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®        |
-| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | *Details not yet available*                                          |
-| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | *Details not yet available*                                          |
+| **Network**                | Ethernet & Wi-Fi 802.11n                                                                 | Gigabit Ethernet & Wi-Fi 802.11ac                                                        | Gigabit Ethernet with PoE+ support, Dual-band 802.11ac Wi-Fi®       |
+| **Performance**            | Slower, may require lighter YOLO models                                                  | Faster, can run complex YOLO models                                                      | _Details not yet available_                                          |
+| **Power Requirement**      | 2.5A power supply                                                                        | 3.0A USB-C power supply                                                                  | _Details not yet available_                                          |
 | **Official Documentation** | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md) | [Link](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711/README.md) | [Link](https://www.raspberrypi.com/news/introducing-raspberry-pi-5/) |
 
 Please make sure to follow the instructions specific to your Raspberry Pi model to ensure a smooth setup process.
@@ -101,7 +101,7 @@ To enable TCP streams via SSH or the CLI, minor modifications are needed in `det
 2. Find and modify the `is_url` line to accept TCP streams:
 
     ```python
-    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://', 'tcp://'))
+    is_url = source.lower().startswith(("rtsp://", "rtmp://", "http://", "https://", "tcp://"))
     ```
 
 3. Comment out the `view_img` line:
@@ -176,8 +176,8 @@ To perform inference with YOLOv8, you can use the following Python code snippet:
 ```python
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')
-results = model('tcp://127.0.0.1:8888', stream=True)
+model = YOLO("yolov8n.pt")
+results = model("tcp://127.0.0.1:8888", stream=True)
 
 while True:
     for result in results:

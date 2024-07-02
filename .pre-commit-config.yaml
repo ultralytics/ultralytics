@@ -6,7 +6,7 @@
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit suggestions"
   autoupdate_schedule: monthly
   # submodules: true
 
@@ -68,7 +68,6 @@ repos:
     rev: v1.7.5
     hooks:
       - id: docformatter
-
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0
 #    hooks:

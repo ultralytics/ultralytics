@@ -5,21 +5,79 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
-
 from torchvision.ops import SqueezeExcitation
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, CombConv, LightConvB, QConv, LightDSConv, AsymmetricConv, AsymmetricDWConvLightConv, AsymmetricDWConv, adderConv, adder, adder2d, DepthwiseSeparableConv, SqueezeExcite
-from .transformer import TransformerBlock, MSDATransformerBlock
+from .conv import (
+    AsymmetricConv,
+    AsymmetricDWConv,
+    AsymmetricDWConvLightConv,
+    CombConv,
+    Conv,
+    DWConv,
+    GhostConv,
+    LightConv,
+    LightConvB,
+    LightDSConv,
+    QConv,
+    RepConv,
+    adderConv,
+)
+from .transformer import MSDATransformerBlock, TransformerBlock
 
+__all__ = (
+    "DFL",
+    "HGBlock",
+    "HGStem",
+    "SPP",
+    "SPPF",
+    "C1",
+    "C2",
+    "C3",
+    "C2f",
+    "C3x",
+    "C3TR",
+    "C3Ghost",
+    "GhostBottleneck",
+    "Bottleneck",
+    "BottleneckCSP",
+    "Proto",
+    "RepC3",
+    "FusedMBConv",
+    "MBConv",
+    "SABottleneck",
+    "sa_layer",
+    "C3SA",
+    "LightC3x",
+    "C3xTR",
+    "C2HG",
+    "C3xHG",
+    "C2fx",
+    "C2TR",
+    "C3CTR",
+    "C2DfConv",
+    "DATransformerBlock",
+    "C2fDA",
+    "C3TR2",
+    "HarDBlock",
+    "MBC2f",
+    "C2fTA",
+    "C3xTA",
+    "LightC2f",
+    "LightBottleneck",
+    "BLightC2f",
+    "MSDAC3x",
+    "QC2f",
+    "LightDSConv",
+    "LightDSConvC2f",
+    "AsymmetricLightC2f",
+    "AsymmetricLightBottleneckC2f",
+    "C3xAsymmetricLightBottleneck",
+    "adderBottleneck",
+    "adderC2f",
+    "ConvSelfAttention",
+    "C2fOAttention",
+)
 
-__all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
-           'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3'
-           ,'FusedMBConv','MBConv', 'SABottleneck', 'sa_layer', 'C3SA', 'LightC3x', 'C3xTR', 'C2HG', 
-           'C3xHG', 'C2fx', 'C2TR', 'C3CTR', 'C2DfConv', 'DATransformerBlock', 
-           'C2fDA', 'C3TR2', 'HarDBlock', 'MBC2f', 'C2fTA', 'C3xTA', 
-           'LightC2f','LightBottleneck', 'BLightC2f', 'MSDAC3x', 'QC2f', 
-           'LightDSConv', 'LightDSConvC2f', 'AsymmetricLightC2f','AsymmetricLightBottleneckC2f', 
-           'C3xAsymmetricLightBottleneck', 'adderBottleneck', 'adderC2f', 'ConvSelfAttention', 'C2fOAttention')
 
 class ConvSelfAttention(nn.Module):
     def __init__(self, in_channels, out_channels, heads=8):
@@ -55,8 +113,10 @@ class ConvSelfAttention(nn.Module):
 
         return out
 
+
 class sa_layer(nn.Module):
-    """Constructs a Channel Spatial Group module.
+    """
+    Constructs a Channel Spatial Group module.
 
     Args:
         k_size: Adaptive selection of kernel size
@@ -123,6 +183,7 @@ class Conv1x1(Conv):
     def __init__(self, c1, c2, s=1):
         super(Conv1x1, self).__init__(c1, c2, k=1, s=s, act=True)
 
+
 class SABottleneck(nn.Module):
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
         super(SABottleneck, self).__init__()
@@ -137,7 +198,7 @@ class SABottleneck(nn.Module):
         self.cv3 = Conv(c_, c2 * self.expansion, 1, 1)
         self.bn3 = nn.BatchNorm2d(c2 * self.expansion)
         self.sa = sa_layer(c2 * self.expansion)
-        
+
         self.relu = nn.ReLU(inplace=True)
         self.add = shortcut and c1 == c2 * self.expansion
         self.stride = 1  # atau sesuaikan dengan kebutuhan
@@ -170,16 +231,16 @@ class FusedMBConv(nn.Module):
 
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True, se_ratio=0.25):
         super(FusedMBConv, self).__init__()
-        self.has_skip = (c1 == c2 and s == 1)
+        self.has_skip = c1 == c2 and s == 1
         self.c2 = c2
         # Expansion Convolution
         self.conv_exp = Conv(c1, c2, k=k, s=s, p=p, g=g, d=d, act=act)
 
         self.triplet_attention = TripletAttention()
-        
+
         # Squeeze-and-Excitation
-        self.se = SqueezeExcitation(c2, int(c2*se_ratio))
-        
+        self.se = SqueezeExcitation(c2, int(c2 * se_ratio))
+
         # Point-wise Linear Projection
         self.conv_pwl = Conv(c2, c2, k=1, act=False)
 
@@ -196,6 +257,7 @@ class FusedMBConv(nn.Module):
             x = x + shortcut
         return x
 
+
 class MBConv(nn.Module):
     """MBConv, equivalent to InvertedResidual."""
 
@@ -204,23 +266,25 @@ class MBConv(nn.Module):
         self.c2 = c2
         hidden_dim = int(round(c1 * expand_ratio))
         self.use_res_connect = s == 1 and c1 == c2
-        
+
         layers = []
         if expand_ratio != 1:
             # Point-wise Expansion
             layers.append(Conv(c1, hidden_dim, k=1, act=act))
-        
-        layers.extend([
-            # Depth-wise Convolution
-            Conv(hidden_dim, hidden_dim, k=k, s=s, p=p, g=hidden_dim, d=d, act=act),
-            # Squeeze-and-Excitation
-            SqueezeExcitation(hidden_dim, int(c2*se_ratio)),
-            # add Triplet Attention
-            TripletAttention(),
-            # Point-wise Linear Projection
-            Conv(hidden_dim, c2, k=1, act=False)
-        ])
-        
+
+        layers.extend(
+            [
+                # Depth-wise Convolution
+                Conv(hidden_dim, hidden_dim, k=k, s=s, p=p, g=hidden_dim, d=d, act=act),
+                # Squeeze-and-Excitation
+                SqueezeExcitation(hidden_dim, int(c2 * se_ratio)),
+                # add Triplet Attention
+                TripletAttention(),
+                # Point-wise Linear Projection
+                Conv(hidden_dim, c2, k=1, act=False),
+            ]
+        )
+
         self.block = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -229,6 +293,7 @@ class MBConv(nn.Module):
         if self.use_res_connect:
             return x + self.block(x)
         return self.block(x)
+
 
 class DFL(nn.Module):
     """
@@ -427,36 +492,39 @@ class C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
+
 class ConvAttention(nn.Module):
     def __init__(self, input_channel):
         super().__init__()
         self.fx = nn.Conv2d(input_channel, 1, 1)
         self.gx = nn.Conv2d(input_channel, 1, 1)
         self.hx = nn.Conv2d(input_channel, 1, 1)
-    
+
     def forward(self, x):
         fx = self.fx(x)
         gx = self.gx(x)
         hx = self.hx(x)
 
-        fxgx = torch.matmul(fx,gx)
+        fxgx = torch.matmul(fx, gx)
 
         fxgx = F.softmax(fxgx, dim=1)
         o = torch.matmul(hx, fxgx) * x
         return o
 
+
 class C2fOAttention(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.attention = ConvAttention(c2)
-    
-    def forward(self,x):
+
+    def forward(self, x):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
-        out_c2f= self.cv2(torch.cat(y, 1))
+        out_c2f = self.cv2(torch.cat(y, 1))
         out_attention = self.attention(out_c2f)
 
         return out_attention
+
 
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
@@ -477,19 +545,21 @@ class C3(nn.Module):
 
 class C3x(C3):
     """C3 module with cross-convolutions."""
-    
+
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initialize C3TR instance and set default parameters."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
         self.m = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
 
+
 class LightC3x(C3x):
-    #(self, c1, c2, k=3, s=1, expand_ratio=1.0, p=None, g=1, d=1, act=True, se_ratio=0.25)
+    # (self, c1, c2, k=3, s=1, expand_ratio=1.0, p=None, g=1, d=1, act=True, se_ratio=0.25)
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initialize C3TR instance and set default parameters."""
         super().__init__(c1, c2, n, shortcut, g, e)
-        self.m = nn.Sequential(*(MBConv(self.c_, self.c_)for i in range(n)))
+        self.m = nn.Sequential(*(MBConv(self.c_, self.c_) for i in range(n)))
+
 
 class C3SA(C3):
     """C3 module with cross-convolutions."""
@@ -498,7 +568,10 @@ class C3SA(C3):
         """Initialize C3TR instance and set default parameters."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
-        self.m = nn.Sequential(*(SABottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(SABottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n))
+        )
+
 
 class RepC3(nn.Module):
     """Rep C3."""
@@ -568,9 +641,11 @@ class GhostBottleneck(nn.Module):
         self.conv = nn.Sequential(
             GhostConv(c1, c_, 1, 1),  # pw
             DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity(),  # dw
-            GhostConv(c_, c2, 1, 1, act=False))  # pw-linear
-        self.shortcut = nn.Sequential(DWConv(c1, c1, k, s, act=False), Conv(c1, c2, 1, 1,
-                                                                            act=False)) if s == 2 else nn.Identity()
+            GhostConv(c_, c2, 1, 1, act=False),
+        )  # pw-linear
+        self.shortcut = (
+            nn.Sequential(DWConv(c1, c1, k, s, act=False), Conv(c1, c2, 1, 1, act=False)) if s == 2 else nn.Identity()
+        )
 
     def forward(self, x):
         """Applies skip connection and concatenation to input tensor."""
@@ -616,6 +691,7 @@ class BottleneckCSP(nn.Module):
         y2 = self.cv2(x)
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
 
+
 class C2SA(nn.Module):
     """Faster Implementation of SABottleneck with 2 convolutions."""
 
@@ -640,7 +716,7 @@ class C2SA(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
 
 class C2HG(nn.Module):
     def __init__(self, c1, c2, n=1, g=1, e=0.5, cm=128, k=3, n_hg=6, lightconv=False, shortcut_hg=False, act=nn.ReLU()):
@@ -652,12 +728,15 @@ class C2HG(nn.Module):
         c_out_c2f = c2
 
         # Inisialisasi HGBlock dengan jumlah saluran yang sesuai
-        self.hgblock = HGBlock(c_out_c2f, cm, c_out_c2f, k=k, n=n_hg, lightconv=lightconv, shortcut=shortcut_hg, act=act)
+        self.hgblock = HGBlock(
+            c_out_c2f, cm, c_out_c2f, k=k, n=n_hg, lightconv=lightconv, shortcut=shortcut_hg, act=act
+        )
 
     def forward(self, x):
         x = self.c2f(x)
         x = self.hgblock(x)
         return x
+
 
 # Contoh inisialisasi model
 model = C2HG(c1=64, c2=256, n=2, g=1, e=0.5, cm=128, k=3, n_hg=6, lightconv=False, shortcut_hg=False, act=nn.ReLU())
@@ -673,12 +752,15 @@ class C3xHG(nn.Module):
         c_out_c3x = c2
 
         # Inisialisasi HGBlock dengan jumlah saluran yang sesuai
-        self.hgblock = HGBlock(c_out_c3x, cm, c_out_c3x, k=k, n=n_hg, lightconv=lightconv, shortcut=shortcut_hg, act=act)
+        self.hgblock = HGBlock(
+            c_out_c3x, cm, c_out_c3x, k=k, n=n_hg, lightconv=lightconv, shortcut=shortcut_hg, act=act
+        )
 
     def forward(self, x):
         x = self.c3x(x)
         x = self.hgblock(x)
         return x
+
 
 # Contoh inisialisasi model
 model = C3xHG(c1=64, c2=256, n=2, g=1, e=0.5, cm=128, k=3, n_hg=6, lightconv=False, shortcut_hg=False, act=nn.ReLU())
@@ -688,7 +770,9 @@ class C2fx(nn.Module):
     """Faster Implementation of CSP Bottleneck with cross-convolutions (inspired by C3x)."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups, expansion."""
+        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
+        expansion.
+        """
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -707,7 +791,8 @@ class C2fx(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
+
 class C2TR(nn.Module):
     """Modified version of C2f using TransformerBlock instead of Bottleneck."""
 
@@ -725,7 +810,7 @@ class C2TR(nn.Module):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
 
 class C3CTR(C3):
     """C3 module with modified TransformerBlock that uses Deformable Cross Attention."""
@@ -790,7 +875,7 @@ class C2fDA(nn.Module):
         # Continue with the rest of the C2f operations
         y.append(attn_output)
         return self.cv2(torch.cat(y, 1))
-    
+
 
 class HarDBlock(nn.Module):
     def get_link(self, layer, c1, gr, grmul):
@@ -799,7 +884,7 @@ class HarDBlock(nn.Module):
         c2 = gr
         link = []
         for i in range(10):
-            dv = 2 ** i
+            dv = 2**i
             if layer % dv == 0:
                 k = layer - dv
                 link.append(k)
@@ -828,7 +913,7 @@ class HarDBlock(nn.Module):
             if dwconv:
                 layers_.append(CombConv(inch, c2))  # Asumsi DWConv memiliki parameter yang sesuai
             else:
-                layers_.append(Conv(inch, c2))    # Asumsi Conv memiliki parameter yang sesuai
+                layers_.append(Conv(inch, c2))  # Asumsi Conv memiliki parameter yang sesuai
 
             if (i % 2 == 0) or (i == n_layers - 1):
                 self.out_channels += c2
@@ -856,7 +941,7 @@ class HarDBlock(nn.Module):
                 out_.append(layers_[i])
         out = torch.cat(out_, 1)
         return out
-    
+
 
 class MBC2f(nn.Module):
     def __init__(self, c1, c2, n=1, g=1, e=0.5):
@@ -864,19 +949,40 @@ class MBC2f(nn.Module):
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        
+
         # Mengganti Bottleneck dengan MBConv tanpa shortcut
         self.m = nn.ModuleList(MBConv(self.c, self.c, g=g, k=((1, 3), (3, 1))) for _ in range(n))
 
-
     # ... (forward dan forward_split tetap sama)
+
 
 ##Triplet Attention
 class BasicConv(nn.Module):
-    def __init__(self, in_planes, out_planes, kernel_size, stride=1, padding=0, dilation=1, groups=1, relu=True, bn=True, bias=False):
+    def __init__(
+        self,
+        in_planes,
+        out_planes,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        relu=True,
+        bn=True,
+        bias=False,
+    ):
         super(BasicConv, self).__init__()
         self.out_channels = out_planes
-        self.conv = nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups, bias=bias)
+        self.conv = nn.Conv2d(
+            in_planes,
+            out_planes,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            bias=bias,
+        )
         self.bn = nn.BatchNorm2d(out_planes, eps=1e-5, momentum=0.01, affine=True) if bn else None
         self.relu = nn.ReLU() if relu else None
 
@@ -888,9 +994,11 @@ class BasicConv(nn.Module):
             x = self.relu(x)
         return x
 
+
 class ChannelPool(nn.Module):
     def forward(self, x):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
+
 
 class SpatialGate(nn.Module):
     def __init__(self, kernel_size=(3, 3)):
@@ -903,6 +1011,7 @@ class SpatialGate(nn.Module):
         x_out = self.spatial(x_compress)
         scale = torch.sigmoid(x_out)
         return x * scale
+
 
 class TripletAttention(nn.Module):
     def __init__(self, no_spatial=False):
@@ -942,7 +1051,7 @@ class C2fTA(nn.Module):
 
     def forward(self, x):
         y = list(self.cv1(x).chunk(2, 1))
-        
+
         # Menerapkan Triplet Attention pada output dari setiap Bottleneck
         for m in self.m:
             bottleneck_output = m(y[-1])
@@ -961,8 +1070,6 @@ class C2fTA(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
-
-
 # C3x with Triplet Attention
 class C3xTA(C3):
     """C3 module with cross-convolutions and Triplet attention."""
@@ -979,10 +1086,11 @@ class C3xTA(C3):
     def forward(self, x):
         # Menerapkan bottleneck dengan cross-convolutions
         y = self.m(x)
-        
+
         # Menerapkan Triplet Attention
         y = self.triplet_attention(y)
         return y
+
 
 class LightBottleneck(nn.Module):
     """Standard bottleneck."""
@@ -1000,6 +1108,7 @@ class LightBottleneck(nn.Module):
     def forward(self, x):
         """'forward()' applies the YOLO FPN to input data."""
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
 
 class LightC2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
@@ -1025,7 +1134,8 @@ class LightC2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
+
 class BLightC2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
@@ -1053,7 +1163,8 @@ class BLightC2f(nn.Module):
 
 
 class QC2f(nn.Module):
-    """ Modified C2f with Quantum Convolution """
+    """Modified C2f with Quantum Convolution."""
+
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, n_qubits=4, backend=None, shots=1024):
         super().__init__()
         self.c = int(c2 * e)
@@ -1067,7 +1178,7 @@ class QC2f(nn.Module):
         y.append(self.qconv(y[-1]))  # Apply quantum convolution here
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
+
 
 class MSDAC3x(C3):
     """Modified C3 module with MSDATransformerBlock."""
@@ -1075,7 +1186,9 @@ class MSDAC3x(C3):
     def __init__(self, c1, c2, num_heads, num_layers, n_levels=4, n_points=4, n=1, shortcut=True, g=1, e=0.5):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
-        self.m = nn.Sequential(*(MSDATransformerBlock(self.c_, self.c_, num_heads, num_layers, n_levels, n_points) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(MSDATransformerBlock(self.c_, self.c_, num_heads, num_layers, n_levels, n_points) for _ in range(n))
+        )
 
     def forward(self, x, refer_bbox, value_shapes, value_mask=None):
         x1 = self.cv1(x)
@@ -1107,7 +1220,6 @@ class LightDSConvC2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
 
 
 class AsymmetricLightC2f(nn.Module):
@@ -1119,7 +1231,7 @@ class AsymmetricLightC2f(nn.Module):
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = AsymmetricConv(c1, 2 * self.c)  # Use Asymmetric Convolution
         self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        
+
         # Use AsymmetricBottleneck
         self.m = nn.ModuleList(AsymmetricBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
 
@@ -1134,7 +1246,6 @@ class AsymmetricLightC2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-
 
 
 class AsymmetricBottleneck(nn.Module):
@@ -1155,7 +1266,6 @@ class AsymmetricBottleneck(nn.Module):
         """Forward pass applies asymmetric convolutions to the input data."""
         y = self.cv2(self.cv1(x))
         return x + y if self.add else y
-    
 
 
 class AsymmetricLightBottleneck(nn.Module):
@@ -1165,7 +1275,7 @@ class AsymmetricLightBottleneck(nn.Module):
         """Initializes a bottleneck module with asymmetric depth-wise convolution."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
-        
+
         # Replace standard convolutions with asymmetric depth-wise convolutions
         self.cv1 = AsymmetricDWConv(c1, c_, act=False)
         self.cv2 = AsymmetricDWConv(c_, c2, act=True)
@@ -1200,17 +1310,18 @@ class AsymmetricLightBottleneckC2f(nn.Module):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-    
 
 
 class C3xAsymmetricLightBottleneck(C3):
     """C3 module with cross-convolutions."""
-    
+
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initialize C3TR instance and set default parameters."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
-        self.m = nn.Sequential(*(AsymmetricLightBottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(AsymmetricLightBottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n))
+        )
 
 
 class adderBottleneck(nn.Module):
@@ -1223,7 +1334,7 @@ class adderBottleneck(nn.Module):
 
     def forward(self, x):
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
-    
+
 
 class adderC2f(nn.Module):
     # Implementasi C2f dengan adderConv
@@ -1238,5 +1349,3 @@ class adderC2f(nn.Module):
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-
-

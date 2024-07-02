@@ -308,7 +308,7 @@ The above result is running on **Jetson Xavier NX** with **INT8** and **YOLOv5s 
 The following table summarizes how different models perform on **Jetson Xavier NX**.
 
 | Model Name | Precision | Inference Size | Inference Time (ms) | FPS |
-|------------|-----------|----------------|---------------------|-----|
+| ---------- | --------- | -------------- | ------------------- | --- |
 | YOLOv5s    | FP32      | 320x320        | 16.66               | 60  |
 |            | FP32      | 640x640        | 33.33               | 30  |
 |            | INT8      | 640x640        | 16.66               | 60  |

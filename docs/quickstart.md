@@ -217,22 +217,22 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Train the model using the 'coco128.yaml' dataset for 3 epochs
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()
 
     # Perform object detection on an image using the model
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Export the model to ONNX format
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Python Guide](usage/python.md){.md-button .md-button--primary}
@@ -256,7 +256,7 @@ To gain insight into the current configuration of your settings, you can view th
         print(settings)
 
         # Return a specific setting
-        value = settings['runs_dir']
+        value = settings["runs_dir"]
         ```
 
     === "CLI"
@@ -277,10 +277,10 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         from ultralytics import settings
 
         # Update a setting
-        settings.update({'runs_dir': '/path/to/runs'})
+        settings.update({"runs_dir": "/path/to/runs"})
 
         # Update multiple settings
-        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+        settings.update({"runs_dir": "/path/to/runs", "tensorboard": False})
 
         # Reset settings to default values
         settings.reset()
@@ -304,7 +304,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
-|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |

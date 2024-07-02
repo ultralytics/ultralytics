@@ -23,17 +23,19 @@ class SegmentationPredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initializes the SegmentationPredictor with the provided configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = 'segment'
+        self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
         """Applies non-max suppression and processes detections for each image in an input batch."""
-        p = ops.non_max_suppression(preds[0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    agnostic=self.args.agnostic_nms,
-                                    max_det=self.args.max_det,
-                                    nc=len(self.model.names),
-                                    classes=self.args.classes)
+        p = ops.non_max_suppression(
+            preds[0],
+            self.args.conf,
+            self.args.iou,
+            agnostic=self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            nc=len(self.model.names),
+            classes=self.args.classes,
+        )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

@@ -49,16 +49,16 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
         from ultralytics import YOLO
 
         # Build a YOLOv6n model from scratch
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -76,7 +76,7 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 ### Supported Tasks
 
 | Model Type | Pre-trained Weights | Tasks Supported  |
-|------------|---------------------|------------------|
+| ---------- | ------------------- | ---------------- |
 | YOLOv6-N   | `yolov6-n.pt`       | Object Detection |
 | YOLOv6-S   | `yolov6-s.pt`       | Object Detection |
 | YOLOv6-M   | `yolov6-m.pt`       | Object Detection |
@@ -86,7 +86,7 @@ You can use YOLOv6 for object detection tasks using the Ultralytics pip package.
 ## Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |

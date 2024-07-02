@@ -56,10 +56,10 @@ Here's how you can use these formats to train your model:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -100,7 +100,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/')
+        convert_coco(labels_dir="path/to/coco/annotations/")
         ```
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.

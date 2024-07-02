@@ -56,7 +56,7 @@ theme:
     - navigation.instant.progress
     - navigation.indexes
     - navigation.sections
-    - content.tabs.link  # all code tabs change simultaneously
+    - content.tabs.link # all code tabs change simultaneously
 
 # Customization
 copyright: <a href="https://ultralytics.com" target="_blank">© 2023 Ultralytics Inc.</a> All rights reserved.
@@ -268,8 +268,8 @@ nav:
       - Integrations: hub/integrations.md
       - Ultralytics HUB App:
           - hub/app/index.md
-          - 'iOS': hub/app/ios.md
-          - 'Android': hub/app/android.md
+          - "iOS": hub/app/ios.md
+          - "Android": hub/app/android.md
       - Inference API: hub/inference_api.md
   - Reference:
       - cfg:

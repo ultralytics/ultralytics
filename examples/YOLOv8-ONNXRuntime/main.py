@@ -28,7 +28,7 @@ class YOLOv8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml('coco128.yaml'))['names']
+        self.classes = yaml_load(check_yaml("coco128.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -57,7 +57,7 @@ class YOLOv8:
         cv2.rectangle(img, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color, 2)
 
         # Create the label text with class name and score
-        label = f'{self.classes[class_id]}: {score:.2f}'
+        label = f"{self.classes[class_id]}: {score:.2f}"
 
         # Calculate the dimensions of the label text
         (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -67,8 +67,9 @@ class YOLOv8:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        cv2.rectangle(img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color,
-                      cv2.FILLED)
+        cv2.rectangle(
+            img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color, cv2.FILLED
+        )
 
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -182,7 +183,7 @@ class YOLOv8:
             output_img: The output image with drawn detections.
         """
         # Create an inference session using the ONNX model and specify execution providers
-        session = ort.InferenceSession(self.onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        session = ort.InferenceSession(self.onnx_model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
 
         # Get the model inputs
         model_inputs = session.get_inputs()
@@ -202,17 +203,17 @@ class YOLOv8:
         return self.postprocess(self.img, outputs)  # output image
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='yolov8n.onnx', help='Input your ONNX model.')
-    parser.add_argument('--img', type=str, default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
-    parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
+    parser.add_argument("--model", type=str, default="yolov8n.onnx", help="Input your ONNX model.")
+    parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image.")
+    parser.add_argument("--conf-thres", type=float, default=0.5, help="Confidence threshold")
+    parser.add_argument("--iou-thres", type=float, default=0.5, help="NMS IoU threshold")
     args = parser.parse_args()
 
     # Check the requirements and select the appropriate backend (CPU or GPU)
-    check_requirements('onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime')
+    check_requirements("onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime")
 
     # Create an instance of the YOLOv8 class with the specified arguments
     detection = YOLOv8(args.model, args.img, args.conf_thres, args.iou_thres)
@@ -221,8 +222,8 @@ if __name__ == '__main__':
     output_image = detection.main()
 
     # Display the output image in a window
-    cv2.namedWindow('Output', cv2.WINDOW_NORMAL)
-    cv2.imshow('Output', output_image)
+    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
+    cv2.imshow("Output", output_image)
 
     # Wait for a key press to exit
     cv2.waitKey(0)

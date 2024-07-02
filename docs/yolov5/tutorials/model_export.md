@@ -27,7 +27,7 @@ YOLOv5 inference is officially supported in 11 formats:
 💡 ProTip: Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613). 💡 ProTip: Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
 
 | Format                                                                     | `export.py --include` | Model                     |
-|:---------------------------------------------------------------------------|:----------------------|:--------------------------|
+| :------------------------------------------------------------------------- | :-------------------- | :------------------------ |
 | [PyTorch](https://pytorch.org/)                                            | -                     | `yolov5s.pt`              |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`         | `yolov5s.torchscript`     |
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |
@@ -134,9 +134,11 @@ Visualize:       https://netron.app/
 ```
 
 The 3 exported models will be saved alongside the original PyTorch model:
+
 <p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
+
 <p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png"></p>
 
 ## Exported Model Usage Examples
@@ -175,7 +177,7 @@ python val.py --weights yolov5s.pt                 # PyTorch
 
 Use PyTorch Hub with exported YOLOv5 models:
 
-``` python
+```python
 import torch
 
 # Model

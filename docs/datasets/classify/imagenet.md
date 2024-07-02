@@ -39,10 +39,10 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='imagenet', epochs=100, imgsz=224)
+        results = model.train(data="imagenet", epochs=100, imgsz=224)
         ```
 
     === "CLI"

@@ -8,12 +8,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
-
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
-__all__ = ('TransformerEncoderLayer', 'TransformerLayer', 'TransformerBlock', 'MLPBlock', 'LayerNorm2d', 'AIFI',
-           'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'DATransformerBlock', 'DualTransformerBlock', 'MSDATransformerLayer', 'TransformerBlock')
+__all__ = (
+    "TransformerEncoderLayer",
+    "TransformerLayer",
+    "TransformerBlock",
+    "MLPBlock",
+    "LayerNorm2d",
+    "AIFI",
+    "DeformableTransformerDecoder",
+    "DeformableTransformerDecoderLayer",
+    "MSDeformAttn",
+    "MLP",
+    "DATransformerBlock",
+    "DualTransformerBlock",
+    "MSDATransformerLayer",
+    "TransformerBlock",
+)
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -23,9 +36,11 @@ class TransformerEncoderLayer(nn.Module):
         """Initialize the TransformerEncoderLayer with specified parameters."""
         super().__init__()
         from ...utils.torch_utils import TORCH_1_9
+
         if not TORCH_1_9:
             raise ModuleNotFoundError(
-                'TransformerEncoderLayer() requires torch>=1.9 to use nn.MultiheadAttention(batch_first=True).')
+                "TransformerEncoderLayer() requires torch>=1.9 to use nn.MultiheadAttention(batch_first=True)."
+            )
         self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout, batch_first=True)
         # Implementation of Feedforward model
         self.fc1 = nn.Linear(c1, cm)
@@ -92,12 +107,11 @@ class AIFI(TransformerEncoderLayer):
         """Builds 2D sine-cosine position embedding."""
         grid_w = torch.arange(int(w), dtype=torch.float32)
         grid_h = torch.arange(int(h), dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing='ij')
-        assert embed_dim % 4 == 0, \
-            'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
+        assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
-        omega = 1. / (temperature ** omega)
+        omega = 1.0 / (temperature**omega)
 
         out_w = grid_w.flatten()[..., None] @ omega[None]
         out_h = grid_h.flatten()[..., None] @ omega[None]
@@ -144,7 +158,8 @@ class TransformerBlock(nn.Module):
         b, _, w, h = x.shape
         p = x.flatten(2).permute(2, 0, 1)
         return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, w, h)
-    
+
+
 class DATransformerBlock(nn.Module):
     """Vision Transformer with MSDeformAttn integration."""
 
@@ -168,12 +183,11 @@ class DATransformerBlock(nn.Module):
 
         # Apply MSDeformAttn here
         attn_output = self.ms_deform_attn(p_embedded, refer_bbox, p_embedded, value_shapes, value_mask)
-        
+
         # Pass the attention output through the transformer layers
         tr_output = self.tr(attn_output).permute(1, 2, 0).reshape(b, self.c2, w, h)
-        
-        return tr_output
 
+        return tr_output
 
 
 class MLPBlock(nn.Module):
@@ -244,10 +258,10 @@ class MSDeformAttn(nn.Module):
         """Initialize MSDeformAttn with the given parameters."""
         super().__init__()
         if d_model % n_heads != 0:
-            raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
+            raise ValueError(f"d_model must be divisible by n_heads, but got {d_model} and {n_heads}")
         _d_per_head = d_model // n_heads
         # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
-        assert _d_per_head * n_heads == d_model, '`d_model` must be divisible by `n_heads`'
+        assert _d_per_head * n_heads == d_model, "`d_model` must be divisible by `n_heads`"
 
         self.im2col_step = 64
 
@@ -265,21 +279,24 @@ class MSDeformAttn(nn.Module):
 
     def _reset_parameters(self):
         """Reset module parameters."""
-        constant_(self.sampling_offsets.weight.data, 0.)
+        constant_(self.sampling_offsets.weight.data, 0.0)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
         grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
-        grid_init = (grid_init / grid_init.abs().max(-1, keepdim=True)[0]).view(self.n_heads, 1, 1, 2).repeat(
-            1, self.n_levels, self.n_points, 1)
+        grid_init = (
+            (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
+            .view(self.n_heads, 1, 1, 2)
+            .repeat(1, self.n_levels, self.n_points, 1)
+        )
         for i in range(self.n_points):
             grid_init[:, :, i, :] *= i + 1
         with torch.no_grad():
             self.sampling_offsets.bias = nn.Parameter(grid_init.view(-1))
-        constant_(self.attention_weights.weight.data, 0.)
-        constant_(self.attention_weights.bias.data, 0.)
+        constant_(self.attention_weights.weight.data, 0.0)
+        constant_(self.attention_weights.bias.data, 0.0)
         xavier_uniform_(self.value_proj.weight.data)
-        constant_(self.value_proj.bias.data, 0.)
+        constant_(self.value_proj.bias.data, 0.0)
         xavier_uniform_(self.output_proj.weight.data)
-        constant_(self.output_proj.bias.data, 0.)
+        constant_(self.output_proj.bias.data, 0.0)
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
         """
@@ -319,7 +336,7 @@ class MSDeformAttn(nn.Module):
             add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
-            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {num_points}.')
+            raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
         output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         return self.output_proj(output)
 
@@ -332,7 +349,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
     """
 
-    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0., act=nn.ReLU(), n_levels=4, n_points=4):
+    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU(), n_levels=4, n_points=4):
         """Initialize the DeformableTransformerDecoderLayer with the given parameters."""
         super().__init__()
 
@@ -370,14 +387,16 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
-        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1),
-                             attn_mask=attn_mask)[0].transpose(0, 1)
+        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[
+            0
+        ].transpose(0, 1)
         embed = embed + self.dropout1(tgt)
         embed = self.norm1(embed)
 
         # Cross attention
-        tgt = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes,
-                              padding_mask)
+        tgt = self.cross_attn(
+            self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes, padding_mask
+        )
         embed = embed + self.dropout2(tgt)
         embed = self.norm2(embed)
 
@@ -401,16 +420,17 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
 
     def forward(
-            self,
-            embed,  # decoder embeddings
-            refer_bbox,  # anchor
-            feats,  # image features
-            shapes,  # feature shapes
-            bbox_head,
-            score_head,
-            pos_mlp,
-            attn_mask=None,
-            padding_mask=None):
+        self,
+        embed,  # decoder embeddings
+        refer_bbox,  # anchor
+        feats,  # image features
+        shapes,  # feature shapes
+        bbox_head,
+        score_head,
+        pos_mlp,
+        attn_mask=None,
+        padding_mask=None,
+    ):
         """Perform the forward pass through the entire decoder."""
         output = embed
         dec_bboxes = []
@@ -438,7 +458,7 @@ class DeformableTransformerDecoder(nn.Module):
             refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
-    
+
 
 class CrossDATransformerBlock(nn.Module):
     """Vision Transformer dengan Deformable Cross Attention."""
@@ -452,7 +472,9 @@ class CrossDATransformerBlock(nn.Module):
         self.linear = nn.Linear(c2, c2)  # learnable position embedding
 
         # Menggunakan DeformableTransformerDecoderLayer
-        decoder_layer = DeformableTransformerDecoderLayer(d_model=c2, n_heads=num_heads, n_levels=n_levels, n_points=n_points)
+        decoder_layer = DeformableTransformerDecoderLayer(
+            d_model=c2, n_heads=num_heads, n_levels=n_levels, n_points=n_points
+        )
         self.tr = nn.Sequential(*(decoder_layer for _ in range(num_layers)))
         self.c2 = c2
 
@@ -464,7 +486,7 @@ class CrossDATransformerBlock(nn.Module):
         p = x.flatten(2).permute(2, 0, 1)
         pos = self.linear(p)
         return self.tr(p + pos, refer_bbox, feats, shapes, padding_mask).permute(1, 2, 0).reshape(b, self.c2, w, h)
-    
+
 
 # Implementasi EfficientAttention yang disederhanakan
 class SimplifiedEfficientAttention(nn.Module):
@@ -484,6 +506,7 @@ class SimplifiedEfficientAttention(nn.Module):
         attended_values = context @ queries
         return self.reprojection(attended_values)
 
+
 # Implementasi ChannelAttention yang disederhanakan
 class SimplifiedChannelAttention(nn.Module):
     def __init__(self, in_channels):
@@ -493,20 +516,23 @@ class SimplifiedChannelAttention(nn.Module):
     def forward(self, x):
         return self.attention(x)
 
+
 # Implementasi DualTransformerBlock
 class DualTransformerBlock(nn.Module):
     def __init__(self, in_dim, key_dim, value_dim, head_count, num_layers):
         super().__init__()
         self.efficient_attn = SimplifiedEfficientAttention(in_dim, key_dim, value_dim)
         self.channel_attn = SimplifiedChannelAttention(in_dim)
-        self.transformer_layers = nn.Sequential(*(SimplifiedTransformerLayer(in_dim, head_count) for _ in range(num_layers)))
+        self.transformer_layers = nn.Sequential(
+            *(SimplifiedTransformerLayer(in_dim, head_count) for _ in range(num_layers))
+        )
         self.norm = nn.LayerNorm(in_dim)
 
     def forward(self, x, H, W):
         x = self.norm(x)
         x = x.view(-1, in_dim, H, W)  # Ubah ke format (batch, channel, height, width)
         x = self.efficient_attn(x)
-        x = x.view(-1, in_dim, H*W)  # Kembali ke format (batch, channel, height*width)
+        x = x.view(-1, in_dim, H * W)  # Kembali ke format (batch, channel, height*width)
         x = self.channel_attn(x)
         x = self.transformer_layers(x)
         return x
@@ -544,5 +570,3 @@ class MSDATransformerBlock(nn.Module):
         p = x.flatten(2).permute(2, 0, 1)
         x = self.tr(p + self.linear(p), refer_bbox, value_shapes, value_mask)
         return x.permute(1, 2, 0).reshape(b, self.c2, w, h)
-
-

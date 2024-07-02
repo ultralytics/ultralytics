@@ -52,7 +52,7 @@ def imshow(winname: str, mat: np.ndarray):
         winname (str): Name of the window.
         mat (np.ndarray): Image to be shown.
     """
-    _imshow(winname.encode('unicode_escape').decode(), mat)
+    _imshow(winname.encode("unicode_escape").decode(), mat)
 
 
 # PyTorch functions ----------------------------------------------------------------------------------------------------
@@ -72,6 +72,6 @@ def torch_save(*args, **kwargs):
     except ImportError:
         import pickle
 
-    if 'pickle_module' not in kwargs:
-        kwargs['pickle_module'] = pickle  # noqa
+    if "pickle_module" not in kwargs:
+        kwargs["pickle_module"] = pickle  # noqa
     return _torch_save(*args, **kwargs)

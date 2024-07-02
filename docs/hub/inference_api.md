@@ -27,7 +27,7 @@ To access the YOLO Inference API with the specified model and API key using Pyth
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
@@ -68,7 +68,7 @@ Here's an example of passing the `size`, `confidence`, and `iou` arguments via t
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
@@ -89,7 +89,7 @@ In this example, the `data` dictionary contains the query arguments `size`, `con
 This will send the query parameters along with the file in the POST request. See the table below for a full list of available inference arguments.
 
 | Inference Argument | Default | Type    | Notes                                          |
-|--------------------|---------|---------|------------------------------------------------|
+| ------------------ | ------- | ------- | ---------------------------------------------- |
 | `size`             | `640`   | `int`   | valid range is `32` - `1280` pixels            |
 | `confidence`       | `0.25`  | `float` | valid range is `0.01` - `1.0`                  |
 | `iou`              | `0.45`  | `float` | valid range is `0.0` - `0.95`                  |
@@ -113,10 +113,10 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -137,7 +137,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -207,10 +207,10 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -231,7 +231,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
@@ -344,10 +344,10 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -368,7 +368,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}

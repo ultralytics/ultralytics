@@ -118,6 +118,13 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 | RT-DETR-R101       | 76.0       | 259.0     | 54.3      | 13.71        | 13.58                  |
 | **[YOLOv10-X][6]** | **29.5**   | **160.4** | **54.4**  | **10.70**    | **10.60**              |
 
+[1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10n.pt
+[2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10s.pt
+[3]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10m.pt
+[4]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10b.pt
+[5]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10l.pt
+[6]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10x.pt
+
 ## Usage Examples
 
 For predicting new images with YOLOv10:
@@ -223,10 +230,3 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
         ```
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
-
-[1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10n.pt
-[2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10s.pt
-[3]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10m.pt
-[4]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10b.pt
-[5]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10l.pt
-[6]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10x.pt

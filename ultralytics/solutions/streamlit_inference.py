@@ -74,6 +74,9 @@ def inference():
     # Clear CUDA memory
     torch.cuda.empty_cache()
 
+    # Destroy window
+    cv2.destroyAllWindows()
+
 
 # Main function call
 if __name__ == "__main__":

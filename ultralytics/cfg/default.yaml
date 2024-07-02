@@ -124,3 +124,9 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+# Learning rate fine-tuning settings-------------------------------------------------------------------------------------
+lr_group: False # (bool) set group learning rate
+scaling_ratio: 10.0 # (float) set scaling_layer learning rate is  lr0 / scaling_ratio
+scaling_layer: None # (int | list, optional) scaling first n layers, or scaling list of layer indices during training
+

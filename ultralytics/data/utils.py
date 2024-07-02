@@ -96,7 +96,7 @@ def verify_image(args):
 
 def verify_image_label(args):
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    im_file, lb_file, prefix, keypoint, obb, num_cls, nkpt, ndim = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -132,7 +132,10 @@ def verify_image_label(args):
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]
-                assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
+                if obb:
+                    assert points.max() <= 1.3, f"non-normalized or out of bounds coordinates {points[points > 1.3]}"
+                else:
+                    assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
                 assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
 
                 # All labels

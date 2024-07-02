@@ -91,6 +91,7 @@ class YOLODataset(BaseDataset):
                     self.label_files,
                     repeat(self.prefix),
                     repeat(self.use_keypoints),
+                    repeat(self.use_obb),
                     repeat(len(self.data["names"])),
                     repeat(nkpt),
                     repeat(ndim),

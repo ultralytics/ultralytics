@@ -62,14 +62,14 @@ The Triton Model Repository is a storage location where Triton can access and lo
     from pathlib import Path
 
     # Define paths
-<<<<<<< HEAD:docs/en/guides/triton-inference-server.md
+    <<< HEAD:docs/en/guides/triton-inference-server.md
     model_name = "yolo"
     triton_repo_path = Path("tmp") / "triton_repo"
     triton_model_path = triton_repo_path / model_name
-=======
+    ===
     triton_repo_path = Path("tmp") / "triton_repo"
     triton_model_path = triton_repo_path / "yolo"
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/triton-inference-server.md
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/triton-inference-server.md
 
     # Create directories
     (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
@@ -84,11 +84,11 @@ The Triton Model Repository is a storage location where Triton can access and lo
     Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
 
     # Create config file
-<<<<<<< HEAD:docs/en/guides/triton-inference-server.md
+    <<< HEAD:docs/en/guides/triton-inference-server.md
     (triton_model_path / "config.pbtxt").touch()
-=======
+    ===
     (triton_model_path / "config.pdtxt").touch()
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/triton-inference-server.md
+    >>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/guides/triton-inference-server.md
     ```
 
 ## Running Triton Inference Server

@@ -75,11 +75,11 @@ The `train` and `val` fields specify the paths to the directories containing the
         model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-<<<<<<< HEAD:docs/en/datasets/pose/index.md
+        HEAD:docs/en/datasets/pose/index.md
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
-=======
+        =======
         results = model.train(data="coco128-pose.yaml", epochs=100, imgsz=640)
->>>>>>> 2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/datasets/pose/index.md
+        2d87fb01604a79af96d1d3778626415fb4b54ac9:docs/datasets/pose/index.md
         ```
     === "CLI"
 

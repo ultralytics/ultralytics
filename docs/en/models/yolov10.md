@@ -230,3 +230,65 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
         ```
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
+
+
+## FAQ
+
+### What is YOLOv10 and how does it differ from previous versions?
+
+YOLOv10 is the latest version of the YOLO (You Only Look Once) series for real-time object detection, optimized for both accuracy and efficiency. Unlike previous versions, YOLOv10 eliminates the need for non-maximum suppression (NMS) by utilizing consistent dual assignments, significantly reducing inference latency. It also introduces a holistic model design approach and various architectural enhancements, making it superior in performance and computational efficiency. 
+
+Learn more about YOLOv10's architecture in the [Architecture section](#architecture).
+
+### How can I use YOLOv10 for real-time object detection in Python?
+
+To use YOLOv10 for real-time object detection in Python, you can follow this example script:
+
+```python
+from ultralytics import YOLO
+
+# Load a pre-trained YOLOv10n model
+model = YOLO("yolov10n.pt")
+
+# Perform object detection on an image
+results = model("image.jpg")
+
+# Display the results
+results[0].show()
+```
+
+This example demonstrates loading a pre-trained YOLOv10 model and performing object detection on an image. You can also run detection via CLI with:
+
+```bash
+# Load a COCO-pretrained YOLOv10n model and run inference on the 'bus.jpg' image
+yolo detect predict model=yolov10n.pt source=path/to/bus.jpg
+```
+
+Explore more usage examples in the [Usage Examples](#usage-examples) section.
+
+### What are the key features that make YOLOv10 stand out?
+
+YOLOv10 offers several innovative features:
+- **NMS-Free Training**: Utilizes consistent dual assignments to eliminate NMS, reducing inference latency.
+- **Holistic Model Design**: Comprehensive optimization of model components for both efficiency and accuracy, including lightweight classification heads and large-kernel convolutions.
+- **Enhanced Model Capabilities**: Incorporates partial self-attention modules and other advanced techniques to boost performance without significant computational cost.
+
+Dive into more details on these features in the [Key Features](#key-features) section.
+
+### Which model variants are available in YOLOv10 and how do they differ?
+
+YOLOv10 offers several variants tailored for different application needs:
+- **YOLOv10-N**: Nano version for extremely resource-constrained environments.
+- **YOLOv10-S**: Small version balancing speed and accuracy.
+- **YOLOv10-M**: Medium version for general-purpose use.
+- **YOLOv10-B**: Balanced version with increased width for higher accuracy.
+- **YOLOv10-L**: Large version for higher accuracy at the cost of increased computational resources.
+- **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
+
+Each variant offers a trade-off between computational efficiency and detection accuracy, suitable for various real-time applications. See the complete [Model Variants](#model-variants) for more information.
+
+### How does YOLOv10's performance compare to other object detection models?
+
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency metrics. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with a similar Average Precision (AP) on the COCO dataset. Additionally, YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C while maintaining equivalent performance.
+
+For detailed benchmark results, check out the [Performance](#performance) section.

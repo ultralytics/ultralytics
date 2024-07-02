@@ -10,7 +10,9 @@ YOLOv7 is a state-of-the-art real-time object detector that surpasses all known 
 
 ![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/ultralytics/assets/26833433/f7605c4e-8607-428b-aca4-0c2adfceb1a2)
 
-**Comparison of state-of-the-art object detectors.** From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L. If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696.pdf)).
+## Comparison of SOTA object detectors
+
+From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L. If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696.pdf)).
 
 | Model                 | Params<br><sup>(M) | FLOPs<br><sup>(G) | Size<br><sup>(pixels) | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
 | --------------------- | ------------------ | ----------------- | --------------------- | ------- | -------------------------- | ----------------- | ----------------- | ---------------- | ---------------- | ---------------- |
@@ -110,3 +112,26 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
         ```
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+
+## FAQ
+
+### What makes YOLOv7 the most accurate real-time object detector?
+
+YOLOv7 stands out due to its superior accuracy and speed. With an accuracy of 56.8% AP and the ability to process up to 161 FPS on a GPU V100, it surpasses all known real-time object detectors. Additionally, YOLOv7 introduces features like model re-parameterization, dynamic label assignment, and efficient parameter usage, enhancing both speed and accuracy. Check out the detailed comparison in the [source paper](https://arxiv.org/pdf/2207.02696.pdf).
+
+### How does model re-parameterization work in YOLOv7?
+
+Model re-parameterization in YOLOv7 involves optimizing the gradient propagation path across various network layers. This strategy effectively recalibrates the training process, improving detection accuracy without increasing the inference cost. For more details, refer to the [Model Re-parameterization section](#key-features) in the documentation.
+
+### Why should I choose YOLOv7 over YOLOv5 or other object detectors?
+
+YOLOv7 outperforms YOLOv5 and other detectors like YOLOR, YOLOX, and PPYOLOE in both speed and accuracy. For instance, YOLOv7 achieves 127 FPS faster and 10.7% higher accuracy compared to YOLOv5-N. Furthermore, YOLOv7 effectively reduces parameters and computation while delivering higher AP scores, making it an optimal choice for real-time applications. Learn more in our [comparison table](#comparison-of-sota-object-detectors).
+
+### What datasets is YOLOv7 trained on, and how do they impact its performance?
+
+YOLOv7 is trained exclusively on the MS COCO dataset without using additional datasets or pre-trained weights. This robust dataset provides a wide variety of images and annotations that contribute to YOLOv7's high accuracy and generalization capabilities. Explore more about dataset formats and usage in our [datasets section](https://docs.ultralytics.com/datasets/detect/coco/).
+
+### Are there any practical YOLOv7 usage examples available?
+
+Currently, Ultralytics does not directly support YOLOv7 models. However, you can find detailed installation and usage instructions on the YOLOv7 GitHub repository. These steps involve cloning the repository, installing dependencies, and setting up your environment to train and use the model. Follow the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7) for the latest updates. For other examples, see our [usage examples](#usage-examples) section.

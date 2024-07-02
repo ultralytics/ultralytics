@@ -97,12 +97,11 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
-
 ## FAQ
 
 ### What is YOLOv3, and how does it improve object detection?
 
-YOLOv3 is the third iteration of the *You Only Look Once (YOLO)* object detection algorithm. It enhances object detection accuracy by utilizing three different sizes of detection kernels: 13x13, 26x26, and 52x52. This allows the model to detect objects at multiple scales, improving accuracy for objects of varying sizes. YOLOv3 also supports multi-label predictions for bounding boxes and includes a superior feature extractor network.
+YOLOv3 is the third iteration of the _You Only Look Once (YOLO)_ object detection algorithm. It enhances object detection accuracy by utilizing three different sizes of detection kernels: 13x13, 26x26, and 52x52. This allows the model to detect objects at multiple scales, improving accuracy for objects of varying sizes. YOLOv3 also supports multi-label predictions for bounding boxes and includes a superior feature extractor network.
 
 ### Why should I use Ultralytics' implementation of YOLOv3?
 
@@ -121,6 +120,7 @@ Yes, the YOLOv3 series, including YOLOv3, YOLOv3-Ultralytics, and YOLOv3u, are d
 You can train a YOLOv3 model using Ultralytics by leveraging the Python code or CLI commands:
 
 **Using Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -138,6 +138,7 @@ results = model("path/to/bus.jpg")
 ```
 
 **Using CLI:**
+
 ```bash
 # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
 yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640

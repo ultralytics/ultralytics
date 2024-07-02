@@ -239,7 +239,6 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
 ## FAQ
 
 ### What is FastSAM and how does it work?
@@ -253,6 +252,7 @@ FastSAM addresses the limitations of SAM, which is a heavy Transformer model req
 ### Can I use FastSAM for real-time segmentation and what are its practical applications?
 
 Yes, FastSAM is designed for real-time segmentation tasks. Its efficiency and reduced computational demands make it suitable for various practical applications, including:
+
 - Industrial automation where quick segmentation results are necessary.
 - Real-time tracking in video streams ([tracking mode](../modes/track.md)).
 - Real-time object detection and segmentation in autonomous systems.
@@ -286,6 +286,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 ### What are the key features of FastSAM?
 
 FastSAM offers several key features:
+
 1. **Real-time solution**: Leveraging CNNs for immediate results.
 2. **Efficiency and performance**: Comparable to SAM but with reduced computational resources.
 3. **Prompt-guided segmentation**: Flexibility to segment objects based on various user interactions.

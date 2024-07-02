@@ -336,17 +336,16 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
-
 ## FAQ
 
 ### What is the YOLO-World Model and how does it improve open-vocabulary object detection?
 
 The YOLO-World Model is an advanced, real-time object detection model based on Ultralytics YOLOv8, designed specifically for open-vocabulary detection tasks. It leverages vision-language modeling and pre-training on large datasets to detect a broad range of objects based on descriptive texts, significantly reducing computational demands while maintaining high performance. This makes it suitable for real-time applications across various industries needing immediate results.
-  
+
 ### How do I train a custom YOLO-World Model using the Ultralytics API?
 
 Training a custom YOLO-World Model is straightforward with Ultralytics' API. You can use pretrained weights and configuration files to start training on your dataset. Here is an example of training with Python:
-  
+
 ```python
 from ultralytics import YOLOWorld
 
@@ -359,11 +358,13 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the YOLOv8s-worldv2 model on an image
 results = model("path/to/image.jpg")
 ```
+
 Refer to the [Training](../modes/train.md) page for more details.
 
 ### What are the main advantages of using YOLO-World for object detection?
 
 YOLO-World offers several advantages:
+
 - **Real-time detection**: Utilizes CNNs for high-speed inference.
 - **Lower computational demand**: Efficiently processes images with minimal resources.
 - **Open-vocabulary detection**: Detects objects without predefined categories, based on descriptive texts.
@@ -372,7 +373,7 @@ YOLO-World offers several advantages:
 ### Can I customize the classes YOLO-World detects without retraining the model?
 
 Yes, YOLO-World allows you to dynamically specify detection classes through custom prompts without retraining the model. Here's an example of how to set custom classes:
-  
+
 ```python
 from ultralytics import YOLOWorld
 
@@ -386,6 +387,7 @@ model.set_classes(["person", "bus"])
 results = model.predict("path/to/image.jpg")
 results[0].show()
 ```
+
 You can learn more about this feature on the [Predict Usage](#predict-usage) section.
 
 ### What datasets are supported for training YOLO-World from scratch?

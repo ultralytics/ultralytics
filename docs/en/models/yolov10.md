@@ -231,12 +231,11 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
 
-
 ## FAQ
 
 ### What is YOLOv10 and how does it differ from previous versions?
 
-YOLOv10 is the latest version of the YOLO (You Only Look Once) series for real-time object detection, optimized for both accuracy and efficiency. Unlike previous versions, YOLOv10 eliminates the need for non-maximum suppression (NMS) by utilizing consistent dual assignments, significantly reducing inference latency. It also introduces a holistic model design approach and various architectural enhancements, making it superior in performance and computational efficiency. 
+YOLOv10 is the latest version of the YOLO (You Only Look Once) series for real-time object detection, optimized for both accuracy and efficiency. Unlike previous versions, YOLOv10 eliminates the need for non-maximum suppression (NMS) by utilizing consistent dual assignments, significantly reducing inference latency. It also introduces a holistic model design approach and various architectural enhancements, making it superior in performance and computational efficiency.
 
 Learn more about YOLOv10's architecture in the [Architecture section](#architecture).
 
@@ -269,6 +268,7 @@ Explore more usage examples in the [Usage Examples](#usage-examples) section.
 ### What are the key features that make YOLOv10 stand out?
 
 YOLOv10 offers several innovative features:
+
 - **NMS-Free Training**: Utilizes consistent dual assignments to eliminate NMS, reducing inference latency.
 - **Holistic Model Design**: Comprehensive optimization of model components for both efficiency and accuracy, including lightweight classification heads and large-kernel convolutions.
 - **Enhanced Model Capabilities**: Incorporates partial self-attention modules and other advanced techniques to boost performance without significant computational cost.
@@ -278,6 +278,7 @@ Dive into more details on these features in the [Key Features](#key-features) se
 ### Which model variants are available in YOLOv10 and how do they differ?
 
 YOLOv10 offers several variants tailored for different application needs:
+
 - **YOLOv10-N**: Nano version for extremely resource-constrained environments.
 - **YOLOv10-S**: Small version balancing speed and accuracy.
 - **YOLOv10-M**: Medium version for general-purpose use.

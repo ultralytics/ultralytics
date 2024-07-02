@@ -105,7 +105,6 @@ We would like to acknowledge the authors for their significant contributions in 
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
 ## FAQ
 
 ### What is Meituan YOLOv6 and how does it differ from other YOLO models?
@@ -115,6 +114,7 @@ Meituan YOLOv6 is a highly advanced object detection model that balances speed a
 ### How do I use the YOLOv6 model in a Python script?
 
 Using the YOLOv6 model in a Python script is straightforward. Here is a sample code snippet to get you started:
+
 ```python
 from ultralytics import YOLO
 
@@ -130,11 +130,13 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the YOLOv6n model on the 'bus.jpg' image
 results = model("path/to/bus.jpg")
 ```
+
 For more detailed examples and documentation, visit the [Train](../modes/train.md) and [Predict](../modes/predict.md) pages.
 
 ### What are the performance metrics for different scales of YOLOv6 models?
 
 YOLOv6 offers pretrained models in various scales with the following performance metrics on the COCO val2017 dataset:
+
 - **YOLOv6-N**: 37.5% AP at 1187 FPS using an NVIDIA Tesla T4 GPU
 - **YOLOv6-S**: 45.0% AP at 484 FPS
 - **YOLOv6-M**: 50.0% AP at 226 FPS
@@ -146,6 +148,7 @@ These metrics make YOLOv6 a versatile choice for both high-accuracy and high-spe
 ### What are the unique features of YOLOv6 that improve its performance?
 
 YOLOv6 introduces several key features that enhance its performance:
+
 - **Bidirectional Concatenation (BiC) Module**: Improves localization signals and offers performance gains with minimal speed degradation.
 - **Anchor-Aided Training (AAT) Strategy**: Combines the benefits of anchor-based and anchor-free methods for better efficiency without sacrificing inference speed.
 - **Enhanced Backbone and Neck Design**: Adds additional stages to the backbone and neck, achieving state-of-the-art results on high-resolution inputs.

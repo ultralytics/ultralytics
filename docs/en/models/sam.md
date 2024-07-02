@@ -224,7 +224,6 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
-
 ## FAQ
 
 ### What is the Segment Anything Model (SAM)?
@@ -249,6 +248,7 @@ To auto-annotate a segmentation dataset, you can use the `auto_annotate` functio
 
 ```python
 from ultralytics.data.annotator import auto_annotate
+
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
 ```
 

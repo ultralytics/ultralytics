@@ -113,7 +113,6 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
 ## FAQ
 
 ### What makes YOLOv7 the most accurate real-time object detector?

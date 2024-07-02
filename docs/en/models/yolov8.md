@@ -185,7 +185,6 @@ If you use the YOLOv8 model or any other software from this repository in your w
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
 
-
 ## FAQ
 
 ### What differentiates YOLOv8 from previous YOLO versions?
@@ -199,12 +198,14 @@ YOLOv8 is versatile, offering specialized variants for various tasks such as obj
 ### How do I run inference using a YOLOv8 model in Python?
 
 To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here’s a basic example:
+
 ```python
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
 results = model("path/to/image.jpg")
 ```
+
 For detailed examples, see the [Usage Examples](#usage-examples) section.
 
 ### What are the performance benchmarks for YOLOv8 models?

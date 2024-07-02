@@ -100,7 +100,6 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-
 ## FAQ
 
 ### What is Baidu's RT-DETR and how does it work?
@@ -126,6 +125,7 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the RT-DETR-l model on the 'bus.jpg' image
 results = model("path/to/bus.jpg")
 ```
+
 You can find more details on specific modes like [Predict](../modes/predict.md), [Train](../modes/train.md), and [Export](../modes/export.md).
 
 ### What are the key features of RT-DETR that make it unique?

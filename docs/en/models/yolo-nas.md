@@ -117,12 +117,12 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 
-
 ## FAQ
 
 ### What is YOLO-NAS and how does it differ from previous YOLO models?
 
 YOLO-NAS, developed by Deci AI, is an advanced object detection model built using Neural Architecture Search (NAS). It offers significant improvements over previous YOLO models, including:
+
 - **Quantization-Friendly Basic Block:** This helps reduce the precision drop when the model is converted to INT8 quantization.
 - **Enhanced Training and Quantization:** YOLO-NAS utilizes sophisticated training schemes and post-training quantization techniques.
 - **Pre-trained on Large Datasets:** Utilizes the COCO, Objects365, and Roboflow 100 datasets, making it highly robust for downstream tasks.
@@ -139,7 +139,7 @@ from ultralytics import NAS
 # Load a pre-trained YOLO-NAS-s model
 model = NAS("yolo_nas_s.pt")
 
-# Display model information 
+# Display model information
 model.info()
 
 # Validate the model on the COCO8 dataset
@@ -154,6 +154,7 @@ For additional examples, see the [Usage Examples](#usage-examples) section of th
 ### Why should I use YOLO-NAS for object detection tasks?
 
 YOLO-NAS offers several advantages that make it a compelling choice for object detection:
+
 - **High Performance:** Achieves a balance between accuracy and latency, crucial for real-time applications.
 - **Pre-Trained on Diverse Datasets:** Provides robust models for various use cases with extensive pre-training on datasets like COCO and Objects365.
 - **Quantization Efficiency:** For applications requiring low latency, the INT8 quantized versions show minimal precision drop, making them suitable for resource-constrained environments.
@@ -163,6 +164,7 @@ For a detailed comparison of model variants, see [Pre-trained Models](#pre-train
 ### What are the supported tasks and modes for YOLO-NAS models?
 
 YOLO-NAS models support several tasks and modes, including:
+
 - **Object Detection:** Suitable for identifying and localizing objects in images.
 - **Inference and Validation:** Models can be used for both inference and validation to assess performance.
 - **Export:** YOLO-NAS models can be exported to various formats for deployment.

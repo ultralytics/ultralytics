@@ -158,7 +158,7 @@ Learn more about the importance of validation in our [Model Validation guide](..
 
 ### How can I customize the validation arguments for YOLOv8?
 
-YOLOv8 allows customization of the validation process through various arguments. Here’s an example in Python:
+YOLOv8 allows customization of the validation process through various arguments. Here's an example in Python:
 
 ```python
 from ultralytics import YOLO

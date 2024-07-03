@@ -376,7 +376,7 @@ Multi-object tracking is a process where multiple objects are tracked across vid
 
 ### How do I integrate and run an Ultralytics YOLO tracker on a custom video stream?
 
-To integrate and run a tracker using Ultralytics YOLO, you can use either Python or the command line interface. Here’s a quick example in Python:
+To integrate and run a tracker using Ultralytics YOLO, you can use either Python or the command line interface. Here's a quick example in Python:
 
 ```python
 from ultralytics import YOLO
@@ -409,7 +409,7 @@ These features make it suitable for various applications, from security surveill
 
 ### How can I customize the tracking algorithm configuration in Ultralytics YOLO?
 
-You can customize the tracking algorithm in Ultralytics YOLO by modifying the tracker configuration file. Here’s how:
+You can customize the tracking algorithm in Ultralytics YOLO by modifying the tracker configuration file. Here's how:
 
 1. Copy an existing tracker configuration file from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) to your local directory.
 2. Rename and edit the file to fit your specific requirements, adjusting parameters such as `track_high_thresh`.

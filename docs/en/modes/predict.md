@@ -803,7 +803,7 @@ This script will run predictions on each frame of the video, visualize the resul
 
 ## FAQ
 
-### What is Ultralytics YOLOv8’s Predict Mode?
+### What is Ultralytics YOLOv8's Predict Mode?
 
 Ultralytics YOLOv8's predict mode is designed for high-performance, real-time inference on a variety of data sources. It is capable of processing images, videos, and live streams, making it versatile and suitable for numerous applications such as manufacturing, sports, and safety. The predict mode also supports batch processing and streaming, thus optimizing the inference time.
 

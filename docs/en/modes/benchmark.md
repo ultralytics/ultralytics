@@ -109,7 +109,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I benchmark my YOLOv8 model's performance on different export formats?
 
-To benchmark your YOLOv8 model's performance across different export formats, you can use the `benchmark` function available in Ultralytics YOLOv8. Here’s a quick example:
+To benchmark your YOLOv8 model's performance across different export formats, you can use the `benchmark` function available in Ultralytics YOLOv8. Here's a quick example:
 
 #### Python
 

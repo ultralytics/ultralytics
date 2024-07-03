@@ -122,7 +122,6 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-
 ## FAQ
 
 ### How do I validate my YOLOv8 model using the CLI?

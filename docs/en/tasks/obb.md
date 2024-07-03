@@ -202,7 +202,6 @@ Available YOLOv8-obb export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
 ## FAQ
 
 ### What are Oriented Bounding Boxes (OBB) in YOLOv8 models?
@@ -212,6 +211,7 @@ Oriented Bounding Boxes (OBB) add an extra angle to standard bounding boxes to b
 ### How can I train a YOLOv8 OBB model using custom data?
 
 Training a YOLOv8 OBB model with custom data involves specifying the dataset, model, epochs, and image size. You can utilize the following Python snippet:
+
 ```python
 from ultralytics import YOLO
 
@@ -221,6 +221,7 @@ model = YOLO("yolov8n-obb.pt")
 # Train the model with custom data
 results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
 ```
+
 For more detailed configurations, refer to the [Configuration](../usage/cfg.md) page.
 
 ### What datasets are compatible with YOLOv8 OBB models?
@@ -230,6 +231,7 @@ YOLOv8 OBB models are commonly trained on oriented object detection datasets lik
 ### How can I validate the performance of my trained YOLOv8 OBB model?
 
 You can validate the performance of your YOLOv8 OBB model using the following Python example:
+
 ```python
 from ultralytics import YOLO
 
@@ -239,11 +241,13 @@ model = YOLO("yolov8n-obb.pt")
 # Validate the model
 metrics = model.val(data="dota8.yaml")
 ```
+
 For more details on validation, refer to the [Val](../modes/val.md) page.
 
 ### Can I export YOLOv8 OBB models to other formats like ONNX or TensorRT?
 
 Yes, YOLOv8 OBB models can be exported to various formats such as ONNX, TensorRT, and more. Use the following Python code to export a model to ONNX:
+
 ```python
 from ultralytics import YOLO
 
@@ -253,4 +257,5 @@ model = YOLO("yolov8n-obb.pt")
 # Export the model to ONNX
 model.export(format="onnx")
 ```
+
 For the full list of supported export formats and more information, visit the [Export](../modes/export.md) page.

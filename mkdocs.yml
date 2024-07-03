@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
-      link: https://www.youtube.com/ultralytics
+      link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python

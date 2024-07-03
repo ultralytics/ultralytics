@@ -112,3 +112,72 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
         ```
 
 Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
+
+## FAQ
+
+### What is YOLOv5u and how does it differ from YOLOv5?
+
+YOLOv5u is an advanced version of the YOLOv5 object detection model developed by Ultralytics. It introduces an anchor-free, objectness-free split head, a feature adopted from the YOLOv8 models. This architectural change enhances the model's accuracy-speed tradeoff, making it more efficient and flexible for various object detection tasks. Learn more about these features in the [YOLOv5 Overview](#overview).
+
+### Why should I use the anchor-free split head in YOLOv5u?
+
+The anchor-free split head in YOLOv5u offers several advantages:
+
+- **Flexibility:** It alleviates the need for predefined anchor boxes, making the model more adaptable to diverse object scales and shapes.
+- **Simplicity:** Reducing dependencies on anchor boxes simplifies the model architecture, potentially decreasing the computational load.
+- **Performance:** Empirical results show enhanced performance in terms of accuracy and speed, making it suitable for real-time applications.
+
+For detailed information, see the [Anchor-free Split Ultralytics Head section](#key-features).
+
+### How can I deploy the YOLOv5u model for real-time object detection?
+
+Deploying YOLOv5u for real-time object detection involves several steps:
+
+1. **Load the Model:**
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov5u.pt")
+    ```
+
+2. **Run Inference:**
+    ```python
+    results = model("path/to/image.jpg")
+    ```
+
+For a comprehensive guide, refer to the [Usage Examples](#usage-examples) section.
+
+### What are the pre-trained model variants available for YOLOv5u?
+
+YOLOv5u offers a variety of pre-trained models to cater to different needs:
+
+- **YOLOv5nu**
+- **YOLOv5su**
+- **YOLOv5mu**
+- **YOLOv5lu**
+- **YOLOv5xu**
+- **YOLOv5n6u**
+- **YOLOv5s6u**
+- **YOLOv5m6u**
+- **YOLOv5l6u**
+- **YOLOv5x6u**
+
+These models support tasks like detection and offer various modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). For detailed metrics, see the [Performance Metrics](#performance-metrics) section.
+
+### How do YOLOv5u models perform on different hardware setups?
+
+YOLOv5u models have been evaluated on both CPU and GPU hardware, demonstrating competitive performance metrics across various setups. For example:
+
+- **YOLOv5nu.pt:**
+
+    - **Speed (CPU ONNX):** 73.6 ms
+    - **Speed (A100 TensorRT):** 1.06 ms
+    - **mAP (50-95):** 34.3
+
+- **YOLOv5lu.pt:**
+    - **Speed (CPU ONNX):** 408.4 ms
+    - **Speed (A100 TensorRT):** 2.50 ms
+    - **mAP (50-95):** 52.2
+
+For more detailed performance metrics, visit the [Performance Metrics](#performance-metrics) section.

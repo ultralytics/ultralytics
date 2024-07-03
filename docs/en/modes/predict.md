@@ -821,8 +821,6 @@ for result in results:
     print(result.boxes)  # Process each result
 ```
 
-For more on this, refer to the [predict mode documentation](../modes/predict.md).
-
 ### What are the supported input sources for YOLOv8 inference?
 
 YOLOv8 supports a broad range of input sources including static images, video files, live streams, URLs, screenshots, and even data from various formats like PIL, OpenCV, numpy arrays, and torch tensors. Each source type can be processed efficiently, with options to use streaming mode for better memory management. For an extensive list and examples, visit the [prediction sources documentation](#inference-sources).

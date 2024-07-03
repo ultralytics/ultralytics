@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
-      link: https://www.youtube.com/ultralytics
+      link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
@@ -339,6 +339,8 @@ nav:
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
       - Tips for Model Training: guides/model-training-tips.md
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
+      - A Guide on Model Testing: guides/model-testing.md
+      - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

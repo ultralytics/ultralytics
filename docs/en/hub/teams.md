@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, Teams, collaboration, team management, AI projects, r
 
 # Ultralytics HUB Teams
 
-We're excited to introduce you to the new Teams feature within [Ultralytics HUB](https://bit.ly/ultralytics_hub) for our [Pro](./pro.md) users!
+We're excited to introduce you to the new Teams feature within [Ultralytics HUB](https://ultralytics.com/hub) for our [Pro](./pro.md) users!
 
 Here, you'll learn how to manage team members, share resources seamlessly, and collaborate efficiently on various projects.
 

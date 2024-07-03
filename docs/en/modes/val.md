@@ -121,3 +121,70 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         ```bash
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
+
+
+## FAQ
+
+### How do I validate my YOLOv8 model using the CLI?
+
+To validate your YOLOv8 model using the command-line interface (CLI), you can use the `yolo val` command. This tool simplifies the validation process by remembering the training settings. Here's a basic example:
+
+```bash
+yolo val model=yolov8n.pt
+```
+
+This command validates a pre-trained "yolov8n.pt" model. If you have a custom model, replace "yolov8n.pt" with the path to your model. For more details, refer to the [ClI usage documentation](../usage/cli.md).
+
+### What are the key features of the Val mode in YOLOv8?
+
+YOLOv8's Val mode offers numerous features to ensure accurate and comprehensive model evaluation:
+
+- **Automated Settings:** Models remember their training configurations.
+- **Multi-Metric Support:** Evaluate using metrics like mAP50, mAP75, and mAP50-95.
+- **CLI and Python API:** Choose between command-line or Python-based validation.
+- **Data Compatibility:** Works with both original and custom datasets.
+
+Explore the comprehensive features in the [Val Mode guide](../modes/val.md).
+
+### Why should I validate my YOLOv8 model?
+
+Model validation is critical to assess the quality and reliability of your YOLOv8 models. Validation provides:
+
+- **Precision:** Get metrics such as mAP50-95 for a detailed performance evaluation.
+- **Convenience:** Use built-in features that recall training settings.
+- **Flexibility:** Validate across multiple datasets and image sizes.
+- **Hyperparameter Tuning:** Utilize metrics to fine-tune your model for better accuracy.
+
+Learn more about the importance of validation in our [Model Validation guide](../modes/val.md).
+
+### How can I customize the validation arguments for YOLOv8?
+
+YOLOv8 allows customization of the validation process through various arguments. Here’s an example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Customize validation settings
+validation_results = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
+```
+
+Similarly, for CLI:
+
+```bash
+yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+```
+
+Explore the full list of validation arguments and their descriptions in the [Validation Arguments section](#arguments-for-yolo-model-validation).
+
+### Can I use my custom dataset for model validation in YOLOv8?
+
+Yes, YOLOv8 supports validation using custom datasets. You can specify the path to your dataset configuration file with the `data` argument. Here's an example:
+
+```python
+validation_results = model.val(data="path/to/your_custom_dataset.yaml")
+```
+
+Ensure your dataset configuration file includes paths to validation data, class names, and the number of classes. For further details, see the [datasets section](../datasets/index.md).

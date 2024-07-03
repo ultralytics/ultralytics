@@ -195,3 +195,62 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+
+## FAQ
+
+### What is pose estimation in YOLOv8 and how does it work?
+Pose estimation in YOLOv8 involves identifying the coordinates of specific keypoints on objects within an image. These keypoints can represent parts like joints or landmarks. YOLOv8 outputs a set of `[x, y]` coordinates for each keypoint, along with confidence scores. This makes it useful for applications needing precise identification of object parts, such as human pose estimation for sports analytics or animation.
+
+### How do I train a YOLOv8-pose model on a custom dataset?
+To train a YOLOv8-pose model on a custom dataset, you can either use the CLI or Python API. First, ensure your dataset is in the YOLO pose format. Then, use the following Python code to train your model:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolov8n-pose.yaml")  # build a new model from YAML
+model = YOLO("yolov8n-pose.pt")  # load a pretrained model
+results = model.train(data="custom-pose-dataset.yaml", epochs=100, imgsz=640)
+```
+In CLI:
+```bash
+yolo pose train data=custom-pose-dataset.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+```
+See more details on the [training page](../modes/train.md).
+
+### Can I validate my trained YOLOv8-pose model on the COCO dataset?
+Yes, you can validate your trained YOLOv8-pose model on the COCO dataset! Use the following code snippet to perform validation:
+```python
+from ultralytics import YOLO
+
+model = YOLO("path/to/best.pt")  # load your trained model
+metrics = model.val(data="coco-pose.yaml")  # validate on COCO-pose dataset
+print(metrics.box.map)  # map50-95
+```
+In CLI:
+```bash
+yolo pose val model=path/to/best.pt data=coco-pose.yaml
+```
+For full instructions, visit the [validation section](#val).
+
+### How can I export my YOLOv8-pose model to ONNX format?
+Export your YOLOv8-pose model to ONNX format using either the Python API or CLI commands:
+```python
+from ultralytics import YOLO
+
+model = YOLO("path/to/best.pt")  # load your trained model
+model.export(format="onnx")
+```
+In CLI:
+```bash
+yolo export model=path/to/best.pt format=onnx
+```
+To learn more, check the [Export](../modes/export.md) page.
+
+### What are some use cases for YOLOv8 pose estimation?
+YOLOv8 pose estimation is versatile and can be applied in various domains:
+- **Sports Analytics**: Tracking athlete movements for performance improvement and injury prevention.
+- **Animation**: Capturing human poses for animating characters in movies and video games.
+- **Healthcare**: Analyzing patient movements for physical therapy and rehabilitation.
+- **Surveillance**: Monitoring body positions for unusual activity detection.
+Explore more applications on the [Ultralytics Hub](https://www.ultralytics.com/hub).

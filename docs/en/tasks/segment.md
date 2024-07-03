@@ -185,3 +185,59 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+
+## FAQ
+
+### What is instance segmentation and how does it differ from object detection?
+
+Instance segmentation not only identifies objects in an image but also provides a pixel-wise mask to delineate the precise shape of each object. Unlike object detection, which only provides bounding boxes around objects, instance segmentation gives a more detailed representation of each identified object, making it crucial for applications where the shape of the objects is as important as their location.
+
+### How do I train a YOLOv8 model for instance segmentation?
+
+To train a YOLOv8 instance segmentation model, you need to load a pretrained model, configure your dataset, and set the training parameters. Here's an example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-seg.pt")  # load a pretrained model
+
+# Train the model
+results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
+```
+For more details on the available arguments and configurations, see the [Configuration](../usage/cfg.md) page.
+
+### What datasets are compatible with YOLOv8 for segmentation tasks?
+
+YOLOv8 supports various dataset formats, including COCO and custom datasets for segmentation. You can find more information about preparing your dataset in the [Dataset Guide](../datasets/segment/index.md). For converting datasets from other formats like COCO, you can use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) conversion tool.
+
+### Can I validate my instance segmentation model using YOLOv8?
+
+Yes, you can validate your trained YOLOv8 instance segmentation model on datasets such as COCO128-seg. Here’s an example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-seg.pt")  # load an official model
+
+# Validate the model
+metrics = model.val()
+```
+For more information on validation, visit the [Validation](../modes/val.md) page.
+
+### How can I export a YOLOv8 segmentation model to other formats?
+
+To export a trained YOLOv8 segmentation model to formats like ONNX or CoreML, use the `export` function:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-seg.pt")  # load an official model
+
+# Export the model
+model.export(format="onnx")
+```
+For a full list of exportable formats and their usage, see the [Export](../modes/export.md) page.

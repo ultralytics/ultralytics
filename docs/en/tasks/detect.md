@@ -180,3 +180,94 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+
+## FAQ
+
+### How do I train a custom YOLOv8 object detection model?
+To train a custom YOLOv8 object detection model, you can utilize either Python or CLI. 
+
+**Python:**
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.yaml")  # build a new model from YAML
+model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
+
+# Train the model
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+```
+
+**CLI:**
+```bash
+# Build a new model from YAML and start training from scratch
+yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=100 imgsz=640
+
+# Start training from a pretrained *.pt model
+yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+
+# Build a new model from YAML, transfer pretrained weights to it and start training
+yolo detect train data=coco8.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+```
+For a detailed list of arguments, refer to the [Configuration](../usage/cfg.md) page.
+
+### What formats can I export my YOLOv8 model to?
+YOLOv8 models can be exported to various formats, such as ONNX, CoreML, TensorRT, and more. 
+
+**Python:**
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")  # load an official model
+model = YOLO("path/to/best.pt")  # load a custom trained model
+
+# Export the model
+model.export(format="onnx")
+```
+
+**CLI:**
+```bash
+yolo export model=yolov8n.pt format=onnx  # export official model
+yolo export model=path/to/best.pt format=onnx  # export custom trained model
+```
+For detailed export options, visit the [Export](../modes/export.md) page.
+
+### How can I validate my YOLOv8 model?
+You can validate your YOLOv8 model using both Python and CLI. The model retains its training data and arguments as attributes.
+
+**Python:**
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")  # load an official model
+model = YOLO("path/to/best.pt")  # load a custom model
+
+# Validate the model
+metrics = model.val()  # no arguments needed, dataset and settings remembered
+metrics.box.map  # map50-95
+metrics.box.map50  # map50
+metrics.box.map75  # map75
+metrics.box.maps  # a list contains map50-95 of each category
+```
+
+**CLI:**
+```bash
+yolo detect val model=yolov8n.pt  # validate official model
+yolo detect val model=path/to/best.pt  # validate custom model
+```
+Visit the [Val](../modes/val.md) page for full validation details.
+
+### Why should I use YOLOv8 for object detection?
+YOLOv8, developed by Ultralytics, is designed for efficient real-time object detection. It offers:
+- Pretrained models on COCO and ImageNet datasets
+- High accuracy and fast inference speeds
+- Flexible export options to various formats like ONNX and TensorRT
+
+Learn more about the advantages of YOLOv8 on the [YOLOv8](https://www.ultralytics.com/yolo) page.
+
+### Where can I find pretrained YOLOv8 models?
+Pretrained YOLOv8 models are available and shown in the [Ultralytics Assets](https://github.com/ultralytics/assets/releases) repository in the release Assets section. These models are trained on the COCO dataset for detection, segmentation, and pose estimation tasks.

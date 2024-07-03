@@ -104,3 +104,56 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+
+## FAQ
+
+### How do I benchmark my YOLOv8 model's performance on different export formats?
+
+To benchmark your YOLOv8 model's performance across different export formats, you can use the `benchmark` function available in Ultralytics YOLOv8. Here’s a quick example:
+
+#### Python
+```python
+from ultralytics.utils.benchmarks import benchmark
+
+# Benchmark on GPU
+benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+```
+
+#### CLI
+```bash
+yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+```
+This function will measure key metrics like mAP50-95 and inference time across formats including ONNX, TensorRT, and others. Check the [Export](../modes/export.md) documentation for detailed arguments and usage.
+
+### What are the key metrics used in YOLOv8 benchmarking, and why are they important?
+
+Key metrics in YOLOv8 benchmarking include mAP50-95, accuracy_top5, and inference time:
+- **mAP50-95**: Measures mean Average Precision across different IoU thresholds for object detection, segmentation, and pose estimation.
+- **accuracy_top5**: For image classification, indicates the model's ability to correctly predict one of its top-5 categories.
+- **Inference Time**: Measures the time taken for each image inference in milliseconds.
+
+These metrics are crucial as they help evaluate the trade-offs between model speed and accuracy, enabling informed decisions on which export format best suits your use case.
+
+### Why should I use TensorRT for exporting YOLOv8 models, and what benefits does it offer?
+
+Exporting YOLOv8 models to TensorRT provides maximal GPU efficiency, significantly increasing inference speeds. TensorRT optimizes and compiles the model to leverage NVIDIA GPUs' full potential, which can offer up to 5x speedup. This is especially beneficial for real-time applications and large-scale deployment. For detailed export instructions, see the [TensorRT documentation](../integrations/tensorrt.md).
+
+### How can I enable FP16 inference in YOLOv8 benchmarking and what are its advantages?
+
+To enable FP16 (half-precision) inference in YOLOv8 benchmarking, set the `half` argument to `True`. For example:
+```python
+benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=True, device=0)
+```
+Using FP16 reduces memory usage and can increase inference speed, particularly on compatible hardware like NVIDIA GPUs. This is useful for optimizing performance on edge devices. Learn more about benchmark arguments in the [Arguments](#arguments) section.
+
+### What export formats are supported by YOLOv8, and how do they differ?
+
+YOLOv8 supports multiple export formats including ONNX, TensorRT, OpenVINO, CoreML, and TensorFlow SavedModel. Each format has unique advantages:
+- **ONNX**: Optimal for cross-platform inference, particularly on CPUs.
+- **TensorRT**: Best for NVIDIA GPU performance.
+- **OpenVINO**: Ideal for Intel hardware acceleration.
+- **CoreML**: Tailored for iOS/macOS devices.
+- **TensorFlow SavedModel**: Flexible for various TensorFlow-based deployments.
+
+Understanding these differences helps select the best format for your deployment environment. For a full list and export guidelines, refer to [Export Formats](../modes/export.md).

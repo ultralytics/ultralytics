@@ -177,3 +177,35 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
         ```
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+## FAQ
+
+### What is YOLOv9 and why should I use it for real-time object detection?
+
+YOLOv9 is the latest iteration of the YOLO (You Only Look Once) object detection family, featuring groundbreaking techniques like Programmable Gradient Information (PGI) and Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates significant improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the [MS COCO](../datasets/detect/coco.md) dataset. The integration of PGI and GELAN ensures retention of crucial data throughout the detection process, making YOLOv9 an exceptional choice for real-time object detection.
+
+### How do Programmable Gradient Information (PGI) and GELAN improve YOLOv9's performance?
+
+Programmable Gradient Information (PGI) helps counteract information loss in deep neural networks by ensuring the preservation of essential data across network layers. This leads to more reliable gradient generation and better model convergence. The Generalized Efficient Layer Aggregation Network (GELAN) enhances parameter utilization and computational efficiency by allowing flexible integration of various computational blocks. These innovations collectively improve the accuracy and efficiency of YOLOv9. For more details, see the [Innovations section](#programmable-gradient-information-pgi).
+
+### What makes YOLOv9 more efficient than previous YOLO versions?
+
+YOLOv9 incorporates several innovations like PGI and GELAN that effectively address the information bottleneck and improve layer aggregation, respectively. This results in high parameter efficiency and reduced computational load. Models such as YOLOv9s and YOLOv9e demonstrate significant gains in performance compared to previous versions. For a detailed performance comparison, refer to the [Performance section on MS COCO](#performance-on-ms-coco-dataset).
+
+### Can I train YOLOv9 on my custom dataset using Ultralytics?
+
+Yes, you can easily train YOLOv9 on your custom dataset using Ultralytics. The Ultralytics YOLO framework supports various modes including [Train](../modes/train.md), [Predict](../modes/predict.md), and [Val](../modes/val.md). For example, you can start training a YOLOv9c model with the following Python code snippet:
+
+```python
+from ultralytics import YOLO
+
+# Load the YOLOv9c model configuration
+model = YOLO("yolov9c.yaml")
+
+# Train the model on your custom dataset
+results = model.train(data="custom_dataset.yaml", epochs=100, imgsz=640)
+```
+
+### How does YOLOv9 compare to other state-of-the-art real-time object detectors?
+
+YOLOv9 shows superior performance across different model sizes on the [COCO dataset](../datasets/detect/coco.md). It achieves higher mean Average Precision (mAP) with fewer parameters and computational resources compared to competitors. For instance, the YOLOv9c model operates with 42% fewer parameters and 21% less computational demand than YOLOv7 AF, while matching its accuracy. Detailed performance metrics can be found in the [Performance Comparison table](#performance-on-ms-coco-dataset).

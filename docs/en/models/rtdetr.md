@@ -100,4 +100,64 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-_Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API_
+## FAQ
+
+### What is Baidu's RT-DETR and how does it work?
+
+Baidu's RT-DETR (Real-Time Detection Transformer) is an end-to-end vision transformer-based object detector designed for real-time performance without compromising accuracy. Unlike traditional object detectors, it employs a convolutional backbone with an efficient hybrid encoder that handles multiscale feature processing by decoupling intra-scale interaction and cross-scale fusion. The model also utilizes IoU-aware query selection for initializing object queries, which improves detection accuracy. For flexible applications, the inference speed can be adjusted using different decoder layers without retraining. For more details, you can check out the [original paper](https://arxiv.org/abs/2304.08069).
+
+### How can I use a pre-trained RT-DETR model with Ultralytics?
+
+Using a pre-trained RT-DETR model with the Ultralytics Python API is straightforward. Here's an example:
+
+```python
+from ultralytics import RTDETR
+
+# Load a COCO-pretrained RT-DETR-l model
+model = RTDETR("rtdetr-l.pt")
+
+# Display model information (optional)
+model.info()
+
+# Train the model on the COCO8 example dataset for 100 epochs
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+
+# Run inference with the RT-DETR-l model on the 'bus.jpg' image
+results = model("path/to/bus.jpg")
+```
+
+You can find more details on specific modes like [Predict](../modes/predict.md), [Train](../modes/train.md), and [Export](../modes/export.md).
+
+### What are the key features of RT-DETR that make it unique?
+
+The RT-DETR model has several key features that set it apart:
+
+1. **Efficient Hybrid Encoder**: This design processes multiscale features by decoupling intra-scale interaction and cross-scale fusion, reducing computational costs.
+2. **IoU-aware Query Selection**: Enhances object query initialization, focusing on the most relevant objects for higher detection accuracy.
+3. **Adaptable Inference Speed**: The model supports flexible adjustments of inference speed by using different decoder layers without retraining, making it highly adaptable for various real-time object detection scenarios.
+
+### What performance can I expect from RT-DETR on different scales?
+
+The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models in different scales, offering notable performance metrics:
+
+- **RT-DETR-L**: Achieves 53.0% AP on COCO val2017 and runs at 114 FPS on a T4 GPU.
+- **RT-DETR-X**: Achieves 54.8% AP on COCO val2017 and runs at 74 FPS on a T4 GPU.
+
+This makes the RT-DETR models highly efficient for real-time applications requiring both speed and accuracy.
+
+### How can I acknowledge Baidu's contribution if I use RT-DETR in my research?
+
+If you use Baidu's RT-DETR in your research or development work, you should cite the original paper. Here is the BibTeX entry for your reference:
+
+```bibtex
+@misc{lv2023detrs,
+      title={DETRs Beat YOLOs on Real-time Object Detection},
+      author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
+      year={2023},
+      eprint={2304.08069},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
+
+Additionally, acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community.

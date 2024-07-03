@@ -184,3 +184,34 @@ If you use the YOLOv8 model or any other software from this repository in your w
         ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
+
+## FAQ
+
+### What differentiates YOLOv8 from previous YOLO versions?
+
+YOLOv8 builds upon the advancements of its predecessors by incorporating state-of-the-art backbone and neck architectures for improved feature extraction and object detection performance. It utilizes an anchor-free split head for better accuracy and efficiency. With a focus on maintaining the optimal accuracy-speed tradeoff, YOLOv8 is suitable for real-time object detection across diverse applications. Explore more in [YOLOv8 Key Features](#key-features).
+
+### How can I use YOLOv8 for different tasks like segmentation and pose estimation?
+
+YOLOv8 is versatile, offering specialized variants for various tasks such as object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. These models come pre-trained and are optimized for high performance and accuracy. For more details, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes).
+
+### How do I run inference using a YOLOv8 model in Python?
+
+To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here's a basic example:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+results = model("path/to/image.jpg")
+```
+
+For detailed examples, see the [Usage Examples](#usage-examples) section.
+
+### What are the performance benchmarks for YOLOv8 models?
+
+YOLOv8 models are benchmarked on datasets such as COCO and Open Images V7, showing significant improvements in mAP and speed across various hardware setups. Detailed performance metrics include parameters, FLOPs, and inference speeds on different devices. For comprehensive benchmark details, visit [Performance Metrics](#performance-metrics).
+
+### How do I export a YOLOv8 model for deployment?
+
+You can export YOLOv8 models to various formats like ONNX, TensorRT, and CoreML for seamless deployment across different platforms. The export process ensures maximum compatibility and performance optimization. Learn more about exporting models in the [Export](../modes/export.md) section.

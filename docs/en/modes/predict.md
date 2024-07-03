@@ -836,8 +836,6 @@ YOLOv8 offers multiple advantages for real-time inference:
 - **Ease of Use:** Intuitive Python and CLI interfaces.
 - **Customization:** Multiple settings and parameters for fine-tuning the model.
 
-Explore more on the benefits of using YOLOv8 for inference on our [real-time inference guide](../modes/predict.md).
-
 ### How do I visualize the results of YOLOv8 model predictions?
 
 YOLOv8 provides a `plot()` method in `Results` objects to visualize predictions by overlaying detected objects on the original image. This method returns an annotated image as a NumPy array and supports displaying or saving the image. For instance:

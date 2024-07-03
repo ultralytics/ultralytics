@@ -143,8 +143,6 @@ YOLOv8's Val mode offers numerous features to ensure accurate and comprehensive 
 - **CLI and Python API:** Choose between command-line or Python-based validation.
 - **Data Compatibility:** Works with both original and custom datasets.
 
-Explore the comprehensive features in the [Val Mode guide](../modes/val.md).
-
 ### Why should I validate my YOLOv8 model?
 
 Model validation is critical to assess the quality and reliability of your YOLOv8 models. Validation provides:
@@ -153,8 +151,6 @@ Model validation is critical to assess the quality and reliability of your YOLOv
 - **Convenience:** Use built-in features that recall training settings.
 - **Flexibility:** Validate across multiple datasets and image sizes.
 - **Hyperparameter Tuning:** Utilize metrics to fine-tune your model for better accuracy.
-
-Learn more about the importance of validation in our [Model Validation guide](../modes/val.md).
 
 ### How can I customize the validation arguments for YOLOv8?
 

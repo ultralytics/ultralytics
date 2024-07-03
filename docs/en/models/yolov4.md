@@ -68,3 +68,44 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
         ```
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+## FAQ
+
+### What are the key features of the YOLOv4 model?
+
+YOLOv4, which stands for "You Only Look Once version 4," is designed with several innovative features that optimize its performance. Key features include:
+
+- **Weighted-Residual-Connections (WRC)**
+- **Cross-Stage-Partial-connections (CSP)**
+- **Cross mini-Batch Normalization (CmBN)**
+- **Self-adversarial training (SAT)**
+- **Mish-activation**
+- **Mosaic data augmentation**
+- **DropBlock regularization**
+- **CIoU loss**
+    These features collectively enhance YOLOv4's speed and accuracy, making it ideal for real-time object detection tasks. For more details on its architecture, you can visit the [YOLOv4 section](https://docs.ultralytics.com/models/yolov4).
+
+### How does YOLOv4 compare to its predecessor, YOLOv3?
+
+YOLOv4 introduces several improvements over YOLOv3, including advanced features such as Weighted-Residual-Connections (WRC), Cross-Stage-Partial-connections (CSP), and Cross mini-Batch Normalization (CmBN). These enhancements contribute to better speed and accuracy in object detection:
+
+- **Higher Accuracy:** YOLOv4 achieves state-of-the-art results in object detection benchmarks.
+- **Improved Speed:** Despite its complex architecture, YOLOv4 maintains real-time performance.
+- **Better Backbone and Neck:** YOLOv4 utilizes CSPDarknet53 as the backbone and PANet as the neck, which are more advanced than YOLOv3's components.
+    For more information, compare the features in the [YOLOv3](yolov3.md) and YOLOv4 documentation.
+
+### Can YOLOv4 be used for training on a conventional GPU?
+
+Yes, YOLOv4 is designed to be efficient on conventional GPU hardware, making it accessible for various users. The model can be trained using a single GPU, which broadens its usability for researchers and developers without access to high-end hardware. The architecture balances efficiency and computational requirements, allowing real-time object detection even on affordable hardware. For specific training guidelines, refer to the instructions provided in the [YOLOv4 GitHub repository](https://github.com/AlexeyAB/darknet).
+
+### What is the "bag of freebies" in YOLOv4?
+
+The "bag of freebies" in YOLOv4 refers to techniques that enhance model accuracy during training without increasing inference costs. These include:
+
+- **Photometric Distortions:** Adjusting brightness, contrast, hue, saturation, and noise.
+- **Geometric Distortions:** Applying random scaling, cropping, flipping, and rotating.
+    These techniques improve the model's robustness and ability to generalize across different image types. Learn more about these methods in the [YOLOv4 features and performance](#features-and-performance) section.
+
+### Is YOLOv4 supported by Ultralytics?
+
+As of the latest update, Ultralytics does not currently support YOLOv4 models. Users interested in utilizing YOLOv4 should refer to the original [YOLOv4 GitHub repository](https://github.com/AlexeyAB/darknet) for installation and usage instructions. Ultralytics intends to update their documentation and support once integration with YOLOv4 is implemented. For alternative models supported by Ultralytics, you can explore [Ultralytics YOLO models](https://docs.ultralytics.com/models/).

@@ -238,3 +238,60 @@ We would like to acknowledge the FastSAM authors for their significant contribut
       ```
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+## FAQ
+
+### What is FastSAM and how does it work?
+
+FastSAM, or Fast Segment Anything Model, is a real-time CNN-based solution designed to segment any object within an image. It decouples the segmentation task into two stages: all-instance segmentation and prompt-guided selection. The first stage uses [YOLOv8-seg](../tasks/segment.md) to produce segmentation masks for all instances in the image. The second stage outputs the region-of-interest based on user prompts. This approach significantly reduces computational demands while maintaining competitive performance, making it ideal for various vision tasks.
+
+### How does FastSAM compare to the Segment Anything Model (SAM)?
+
+FastSAM addresses the limitations of SAM, which is a heavy Transformer model requiring substantial computational resources. FastSAM offers similar performance with significantly reduced computational demands by leveraging CNNs for real-time segmentation. It achieves competitive results on benchmarks like MS COCO with faster inference speeds using a single NVIDIA RTX 3090. This makes FastSAM a more efficient and practical solution for real-time industrial applications.
+
+### Can I use FastSAM for real-time segmentation and what are its practical applications?
+
+Yes, FastSAM is designed for real-time segmentation tasks. Its efficiency and reduced computational demands make it suitable for various practical applications, including:
+
+- Industrial automation where quick segmentation results are necessary.
+- Real-time tracking in video streams ([tracking mode](../modes/track.md)).
+- Real-time object detection and segmentation in autonomous systems.
+- Security and surveillance systems requiring prompt object segmentation.
+
+### How do I use FastSAM for inference in Python?
+
+You can easily integrate FastSAM into your Python applications for inference. Here's an example:
+
+```python
+from ultralytics import FastSAM
+from ultralytics.models.fastsam import FastSAMPrompt
+
+# Define an inference source
+source = "path/to/image.jpg"
+
+# Create a FastSAM model
+model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
+
+# Run inference on an image
+results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+
+# Process the prompts
+prompt_process = FastSAMPrompt(source, results, device="cpu")
+annotations = prompt_process.everything_prompt()
+prompt_process.plot(annotations=annotations, output="./")
+```
+
+This snippet demonstrates the simplicity of loading a pre-trained model and running predictions. For more details, refer to the [predict mode](../modes/predict.md).
+
+### What are the key features of FastSAM?
+
+FastSAM offers several key features:
+
+1. **Real-time solution**: Leveraging CNNs for immediate results.
+2. **Efficiency and performance**: Comparable to SAM but with reduced computational resources.
+3. **Prompt-guided segmentation**: Flexibility to segment objects based on various user interactions.
+4. **Based on YOLOv8-seg**: Utilizes YOLOv8's capabilities for instance segmentation.
+5. **Benchmark performance**: High scores on MS COCO with faster inference speeds.
+6. **Model compression feasibility**: Demonstrates significant reduction in computational effort while maintaining performance.
+
+These features make FastSAM a powerful tool for a wide array of vision tasks. For a comprehensive list of features, visit the [FastSAM overview](#overview).

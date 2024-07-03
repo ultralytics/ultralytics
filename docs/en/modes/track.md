@@ -404,7 +404,7 @@ Ultralytics YOLO offers several advantages for object tracking:
 - **Flexible Algorithms**: Supports multiple trackers like BoT-SORT and ByteTrack.
 - **Ease of Use**: Simple APIs and CLI for quick integration.
 - **Customizability**: Easily integrates with custom YOLO models tailored to specific domains.
-  
+
 These features make it suitable for various applications, from security surveillance to real-time sports analytics.
 
 ### How can I customize the tracking algorithm configuration in Ultralytics YOLO?

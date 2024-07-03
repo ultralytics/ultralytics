@@ -337,7 +337,6 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
-
 ## FAQ
 
 ### How do I start training a YOLOv8 model on my custom dataset?
@@ -345,6 +344,7 @@ After setting up your logger, you can then proceed with your model training. All
 To train a YOLOv8 model on your custom dataset, use the following example commands. Ensure you have a dataset configuration file like `coco8.yaml` for your dataset.
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -356,10 +356,12 @@ results = model.train(data="your_custom_dataset.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI:**
+
 ```bash
 # Start training from a pretrained *.pt model
 yolo detect train data=your_custom_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
 ```
+
 For more examples and details, check the [Training section](#usage-examples).
 
 ### What hardware is supported for training YOLOv8 models?
@@ -367,37 +369,43 @@ For more examples and details, check the [Training section](#usage-examples).
 YOLOv8 supports a wide range of hardware including single-GPU, multi-GPU, CPU, and Apple's Metal Performance Shaders (MPS) for M1 and M2 chips. You can specify the device using the `device` argument in both Python and CLI commands.
 
 - **Single GPU:**
-  ```python
-  results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=0)
-  ```
-  ```bash
-  yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0
-  ```
+
+    ```python
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=0)
+    ```
+
+    ```bash
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0
+    ```
 
 - **Multi-GPU:**
-  ```python
-  results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
-  ```
-  ```bash
-  yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-  ```
+
+    ```python
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
+    ```
+
+    ```bash
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
 
 - **CPU:**
-  ```python
-  results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device='cpu')
-  ```
-  ```bash
-  yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=cpu
-  ```
+
+    ```python
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="cpu")
+    ```
+
+    ```bash
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=cpu
+    ```
 
 - **MPS (Apple M1/M2):**
-  ```python
-  results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device='mps')
-  ```
-  ```bash
-  yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
-  ```
-For more details, check [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training).
+    ```python
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
+    ```
+    ```bash
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+    ```
+    For more details, check [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training).
 
 ### What are the recommended settings and hyperparameters for training YOLOv8 models?
 
@@ -409,17 +417,11 @@ Key settings and hyperparameters include `batch size`, `learning rate`, `image s
 - **Epochs:** Total number of training iterations over the dataset.
 
 Example configuration:
+
 ```python
-results = model.train(
-  data='coco8.yaml',
-  epochs=100,
-  imgsz=640,
-  batch=16,
-  lr0=0.01,
-  momentum=0.937,
-  weight_decay=0.0005
-)
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640, batch=16, lr0=0.01, momentum=0.937, weight_decay=0.0005)
 ```
+
 For a comprehensive list of training arguments and their descriptions, refer to the [Train Settings](#train-settings) table.
 
 ### How can I visualize training metrics in real-time?
@@ -427,30 +429,35 @@ For a comprehensive list of training arguments and their descriptions, refer to 
 YOLOv8 integrates with popular logging tools like Comet, ClearML, and TensorBoard for real-time tracking and visualization of training metrics.
 
 - **Comet:**
-  ```python
-  # pip install comet_ml
-  import comet_ml
-  comet_ml.init()
-  ```
+
+    ```python
+    # pip install comet_ml
+    import comet_ml
+
+    comet_ml.init()
+    ```
 
 - **ClearML:**
-  ```python
-  # pip install clearml
-  import clearml
-  clearml.browser_login()
-  ```
+
+    ```python
+    # pip install clearml
+    import clearml
+
+    clearml.browser_login()
+    ```
 
 - **TensorBoard:**
-  ```bash
-  tensorboard --logdir ultralytics/runs
-  ```
-For detailed setup instructions, visit the [Logging section](#logging).
+    ```bash
+    tensorboard --logdir ultralytics/runs
+    ```
+    For detailed setup instructions, visit the [Logging section](#logging).
 
 ### How can I safely resume an interrupted training session?
 
 To resume training from a checkpoint, set the `resume` argument to `True` and provide the path to the last saved model weights file.
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -462,8 +469,10 @@ results = model.train(resume=True)
 ```
 
 **CLI:**
+
 ```bash
 # Resume an interrupted training
 yolo train resume model=path/to/last.pt
 ```
+
 For more details, see the [Resuming Interrupted Trainings section](#resuming-interrupted-trainings).

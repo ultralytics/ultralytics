@@ -801,7 +801,6 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
-
 ## FAQ
 
 ### What is Ultralytics YOLOv8’s Predict Mode?
@@ -845,10 +844,11 @@ YOLOv8 provides a `plot()` method in `Results` objects to visualize predictions 
 
 ```python
 from PIL import Image
+
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
-results = model(["bus.jpg", "zidane.jpg"]) 
+results = model(["bus.jpg", "zidane.jpg"])
 
 for i, r in enumerate(results):
     im_bgr = r.plot()  # BGR-order numpy array
@@ -856,4 +856,5 @@ for i, r in enumerate(results):
     r.show()  # Show results to screen
     r.save(filename=f"results{i}.jpg")  # Save results
 ```
+
 Refer to the [plotting results documentation](#plotting-results) for more details.

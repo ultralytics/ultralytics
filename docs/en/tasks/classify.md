@@ -180,7 +180,6 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
 ## FAQ
 
 ### How can I train a YOLOv8 image classification model on my own dataset?
@@ -190,8 +189,10 @@ To train a YOLOv8 model for image classification on your dataset, you need to fo
 1. **Prepare Your Dataset:** Ensure your dataset follows the YOLO classification format. Refer to the [Dataset Guide](../datasets/classify/index.md) for detailed structure.
 
 2. **Load the Model:**
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-cls.pt")  # Load a pretrained model
     ```
 
@@ -199,7 +200,7 @@ To train a YOLOv8 model for image classification on your dataset, you need to fo
     ```python
     model.train(data="path/to/your/data", epochs=100, imgsz=64)
     ```
-   This command trains the model for 100 epochs with an image size of 64 pixels. For more training options, visit the [Configuration](../usage/cfg.md) page.
+    This command trains the model for 100 epochs with an image size of 64 pixels. For more training options, visit the [Configuration](../usage/cfg.md) page.
 
 ### What are the benefits of using YOLOv8 for image classification?
 
@@ -215,8 +216,10 @@ YOLOv8 offers several advantages for image classification tasks:
 Exporting a YOLOv8 model to ONNX format is straightforward. Here's how:
 
 1. **Load the Model:**
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-cls.pt")  # Load your trained model
     ```
 
@@ -224,7 +227,7 @@ Exporting a YOLOv8 model to ONNX format is straightforward. Here's how:
     ```python
     model.export(format="onnx")
     ```
-   This command converts the model to ONNX format. For detailed export options, visit the [Export](../modes/export.md) page.
+    This command converts the model to ONNX format. For detailed export options, visit the [Export](../modes/export.md) page.
 
 ### What is the difference between YOLOv8 classification and detection models?
 
@@ -240,8 +243,10 @@ Classification is ideal when you need to know what class an image belongs to wit
 To validate a trained YOLOv8 classification model, use the `val` method:
 
 1. **Load the Model:**
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("path/to/best.pt")  # Load your trained model
     ```
 
@@ -251,4 +256,4 @@ To validate a trained YOLOv8 classification model, use the `val` method:
     print("Top-1 Accuracy:", metrics.top1)
     print("Top-5 Accuracy:", metrics.top5)
     ```
-   This outputs the top-1 and top-5 accuracy metrics. For more validation tips, visit the [Validation](../modes/val.md) page.
+    This outputs the top-1 and top-5 accuracy metrics. For more validation tips, visit the [Validation](../modes/val.md) page.

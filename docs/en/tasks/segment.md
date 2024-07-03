@@ -186,7 +186,6 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
 ## FAQ
 
 ### What is instance segmentation and how does it differ from object detection?
@@ -206,6 +205,7 @@ model = YOLO("yolov8n-seg.pt")  # load a pretrained model
 # Train the model
 results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
 ```
+
 For more details on the available arguments and configurations, see the [Configuration](../usage/cfg.md) page.
 
 ### What datasets are compatible with YOLOv8 for segmentation tasks?
@@ -225,6 +225,7 @@ model = YOLO("yolov8n-seg.pt")  # load an official model
 # Validate the model
 metrics = model.val()
 ```
+
 For more information on validation, visit the [Validation](../modes/val.md) page.
 
 ### How can I export a YOLOv8 segmentation model to other formats?
@@ -240,4 +241,5 @@ model = YOLO("yolov8n-seg.pt")  # load an official model
 # Export the model
 model.export(format="onnx")
 ```
+
 For a full list of exportable formats and their usage, see the [Export](../modes/export.md) page.

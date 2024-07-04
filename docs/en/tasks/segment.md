@@ -186,8 +186,6 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I train a YOLOv8 segmentation model on a custom dataset?
@@ -200,10 +198,10 @@ To train a YOLOv8 segmentation model on a custom dataset, you first need to prep
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained YOLOv8 segment model
     model = YOLO("yolov8n-seg.pt")
-    
+
     # Train the model
     results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
     ```
@@ -234,10 +232,10 @@ Loading and validating a pretrained YOLOv8 segmentation model is straightforward
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained model
     model = YOLO("yolov8n-seg.pt")
-    
+
     # Validate the model
     metrics = model.val()
     print("Mean Average Precision for boxes:", metrics.box.map)
@@ -262,10 +260,10 @@ Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done u
 
     ```python
     from ultralytics import YOLO
-    
+
     # Load a pretrained model
     model = YOLO("yolov8n-seg.pt")
-    
+
     # Export the model to ONNX format
     model.export(format="onnx")
     ```

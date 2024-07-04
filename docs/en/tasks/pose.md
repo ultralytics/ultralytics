@@ -196,8 +196,6 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is Pose Estimation with Ultralytics YOLOv8 and how does it work?
@@ -206,7 +204,8 @@ Pose estimation with Ultralytics YOLOv8 involves identifying specific points, kn
 
 ### How can I train a YOLOv8-pose model on a custom dataset?
 
-Training a YOLOv8-pose model on a custom dataset involves loading a model, either a new model defined by a YAML file or a pre-trained model. You can then start the training process using your specified dataset and parameters. 
+Training a YOLOv8-pose model on a custom dataset involves loading a model, either a new model defined by a YAML file or a pre-trained model. You can then start the training process using your specified dataset and parameters.
+
 ```python
 from ultralytics import YOLO
 
@@ -217,11 +216,13 @@ model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for trai
 # Train the model
 results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
 ```
+
 For comprehensive details on training, refer to the [Train Section](#train).
 
 ### How do I validate a trained YOLOv8-pose model?
 
 Validation of a YOLOv8-pose model involves assessing its accuracy using the same dataset parameters retained during training. Here’s an example:
+
 ```python
 from ultralytics import YOLO
 
@@ -232,11 +233,13 @@ model = YOLO("path/to/best.pt")  # load a custom model
 # Validate the model
 metrics = model.val()  # no arguments needed, dataset and settings remembered
 ```
+
 For more information, visit the [Val Section](#val).
 
 ### Can I export a YOLOv8-pose model to other formats, and how?
 
 Yes, you can export a YOLOv8-pose model to various formats like ONNX, CoreML, TensorRT, and more. This can be done using either Python or the Command Line Interface (CLI).
+
 ```python
 from ultralytics import YOLO
 
@@ -247,6 +250,7 @@ model = YOLO("path/to/best.pt")  # load a custom trained model
 # Export the model
 model.export(format="onnx")
 ```
+
 Refer to the [Export Section](#export) for more details.
 
 ### What are the available Ultralytics YOLOv8-pose models and their performance metrics?

@@ -202,8 +202,6 @@ Available YOLOv8-obb export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What are Oriented Bounding Boxes (OBB) and how do they differ from regular bounding boxes?

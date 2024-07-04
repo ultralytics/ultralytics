@@ -100,7 +100,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_export_start` | Triggered when the export process starts |
 | `on_export_end`   | Triggered when the export process ends   |
 
-
 ## FAQ
 
 ### What are callbacks in the Ultralytics framework, and how can they be used?
@@ -116,11 +115,13 @@ To return additional information with prediction results in Ultralytics YOLOv8, 
 ```python
 from ultralytics import YOLO
 
+
 def on_predict_batch_end(predictor):
     """Handle prediction batch end by combining results with corresponding frames; modifies predictor results."""
     _, image, _, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -150,6 +151,7 @@ For more details, refer to the complete list of [Trainer Callbacks](#trainer-cal
 ### What types of operations support callbacks in the Ultralytics framework?
 
 The Ultralytics framework supports callbacks for the following operations:
+
 - **Training:** e.g., `on_train_start`, `on_train_epoch_end`
 - **Validation:** e.g., `on_val_start`, `on_val_end`
 - **Prediction:** e.g., `on_predict_start`, `on_predict_batch_end`

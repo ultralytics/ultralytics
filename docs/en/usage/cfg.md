@@ -278,7 +278,6 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
 
-
 ## FAQ
 
 ### What are the key hyperparameters for training Ultralytics YOLO models?
@@ -309,7 +308,7 @@ Learn more about different tasks in the [Tasks Guide](../tasks/index.md).
 
 Augmentation settings introduce variability into the training data, helping the model generalize better to unseen data. Parameters such as `hsv_h`, `translate`, `scale`, and `mosaic` can significantly affect the model's robustness and performance by simulating different real-world scenarios.
 
-For a detailed list of augmentation options, visit the [Augmentation Settings](#augmentation-settings) section. 
+For a detailed list of augmentation options, visit the [Augmentation Settings](#augmentation-settings) section.
 
 ### How do I use the Ultralytics YOLO Python API for custom predictions?
 

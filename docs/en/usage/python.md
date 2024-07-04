@@ -331,7 +331,6 @@ You can easily customize Trainers to support custom tasks or explore R&D ideas. 
 
 [Customization tutorials](engine.md){ .md-button }
 
-
 ## FAQ
 
 ### How do I integrate YOLOv8 into my Python project?
@@ -359,16 +358,18 @@ results = model("https://ultralytics.com/images/bus.jpg")
 # Export the model to ONNX format
 success = model.export(format="onnx")
 ```
+
 For more details on training, validating, and predicting, refer to the [Train](../modes/train.md), [Val](../modes/val.md), and [Predict](../modes/predict.md) sections of the documentation.
 
 ### What are the benefits of using Ultralytics YOLOv8 for object detection?
 
 Ultralytics YOLOv8 offers state-of-the-art performance for real-time object detection, segmentation, and classification. Key benefits include:
+
 - **Ease of Use**: The intuitive Python API allows seamless integration into projects.
 - **Pretrained Models**: Quickly start with pretrained models to reduce training time.
 - **Flexibility**: Supports various formats for export, including ONNX and TensorRT, for deployment on different platforms.
 - **Comprehensive Documentation**: Detailed guides and examples for training, validation, and prediction.
-Check out the [Ultralytics YOLOv8](https://www.ultralytics.com/yolo) page for more information about features and capabilities.
+    Check out the [Ultralytics YOLOv8](https://www.ultralytics.com/yolo) page for more information about features and capabilities.
 
 ### How do I use a pretrained YOLOv8 model to make predictions?
 
@@ -396,11 +397,13 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 success = model.export(format="onnx", dynamic=True)
 ```
+
 You can also export to TensorRT for accelerated inference on CUDA devices:
 
 ```python
 model.export(format="onnx", device=0)
 ```
+
 For more details, visit the [Export](../modes/export.md) page.
 
 ### How do I validate my YOLOv8 model's performance?

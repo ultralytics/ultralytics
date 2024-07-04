@@ -569,7 +569,6 @@ make_divisible(7, 2)
 # >>> 8
 ```
 
-
 ## FAQ
 
 ### How do I auto-annotate data using Ultralytics for YOLO object detection?
@@ -587,6 +586,7 @@ auto_annotate(
     output_dir="path/to/save_labels",
 )
 ```
+
 For more details, see the reference section for [`annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
 
 ### What is the YOLO Data Explorer and how can it help me?
@@ -607,6 +607,7 @@ convert_coco(
     cls91to80=True,
 )
 ```
+
 For more information about the `convert_coco` function, visit the [reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
 ### How can I compress images using Ultralytics utilities?
@@ -615,11 +616,13 @@ Ultralytics provides a utility to compress images while maintaining aspect ratio
 
 ```python
 from pathlib import Path
+
 from ultralytics.data.utils import compress_one_image
 
 for f in Path("path/to/dataset").rglob("*.jpg"):
     compress_one_image(f)
 ```
+
 For more utilities, check [Ultralytics utilities](../reference/data/utils.md).
 
 ### How do I convert segmentation labels to bounding boxes using Ultralytics?
@@ -628,14 +631,18 @@ If you have segmentation labels and you need them in bounding box format (`x y w
 
 ```python
 import numpy as np
+
 from ultralytics.utils.ops import segments2boxes
 
-segments = np.array([
-    [805, 392, 797, 400, ..., 808, 714, 808, 392],
-    [115, 398, 113, 400, ..., 150, 400, 149, 298],
-    [267, 412, 265, 413, ..., 300, 413, 299, 412],
-])
+segments = np.array(
+    [
+        [805, 392, 797, 400, ..., 808, 714, 808, 392],
+        [115, 398, 113, 400, ..., 150, 400, 149, 298],
+        [267, 412, 265, 413, ..., 300, 413, 299, 412],
+    ]
+)
 segments2boxes([s.reshape(-1, 2) for s in segments])
 # >>> array([[ 741.66, 631.12, 133.31, 479.25], ...])
 ```
+
 For more information, visit the [reference page](../reference/utils/ops.md#ultralytics.utils.ops.segments2boxes).

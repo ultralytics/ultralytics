@@ -116,3 +116,79 @@ In this guide, we learned how to export Ultralytics YOLOv8 models to the TensorF
 For further details on usage, visit the [TensorFlow.js official documentation](https://www.tensorflow.org/js/guide).
 
 For more information on integrating Ultralytics YOLOv8 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It's packed with great resources to help you make the most of YOLOv8 in your projects.
+
+## FAQ
+
+### How do I export Ultralytics YOLOv8 models to TensorFlow.js format?
+
+Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightforward. You can follow these steps:
+
+!!! Example "Usage"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load the YOLOv8 model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to TF.js format
+        model.export(format="tfjs")  # creates '/yolov8n_web_model'
+
+        # Load the exported TF.js model
+        tfjs_model = YOLO("./yolov8n_web_model")
+
+        # Run inference
+        results = tfjs_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Export a YOLOv8n PyTorch model to TF.js format
+        yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'
+
+        # Run inference with the exported model
+        yolo predict model='./yolov8n_web_model' source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+
+### Why should I export my YOLOv8 models to TensorFlow.js?
+
+Exporting YOLOv8 models to TensorFlow.js offers several advantages, including:
+
+1. **Local Execution:** Models can run directly in the browser or Node.js, reducing latency and enhancing user experience.
+2. **Cross-Platform Support:** TF.js supports multiple environments, allowing flexibility in deployment.
+3. **Offline Capabilities:** Enables applications to function without an internet connection, ensuring reliability and privacy.
+4. **GPU Acceleration:** Leverages WebGL for GPU acceleration, optimizing performance on devices with limited resources.
+
+For a comprehensive overview, see our [Integrations with TensorFlow.js](../integrations/tf-graphdef.md).
+
+### How does TensorFlow.js benefit browser-based machine learning applications?
+
+TensorFlow.js is specifically designed for efficient execution of ML models in browsers and Node.js environments. Here’s how it benefits browser-based applications:
+
+- **Reduces Latency:** Runs machine learning models locally, providing immediate results without relying on server-side computations.
+- **Improves Privacy:** Keeps sensitive data on the user's device, minimizing security risks.
+- **Enables Offline Use:** Models can operate without an internet connection, ensuring consistent functionality.
+- **Supports Multiple Backends:** Offers flexibility with backends like CPU, WebGL, WebAssembly (WASM), and WebGPU for varying computational needs.
+
+Interested in learning more about TF.js? Check out the [official TensorFlow.js guide](https://www.tensorflow.org/js/guide).
+
+### What are the key features of TensorFlow.js for deploying YOLOv8 models?
+
+Key features of TensorFlow.js include:
+
+- **Cross-Platform Support:** TF.js can be used in both web browsers and Node.js, providing extensive deployment flexibility.
+- **Multiple Backends:** Supports CPU, WebGL for GPU acceleration, WebAssembly (WASM), and WebGPU for advanced operations.
+- **Offline Capabilities:** Models can run directly in the browser without internet connectivity, making it ideal for developing responsive web applications.
+
+For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deployment-options-with-tensorflow-js).
+
+### Can I deploy a YOLOv8 model on server-side Node.js applications using TensorFlow.js?
+
+Yes, TensorFlow.js allows the deployment of YOLOv8 models on Node.js environments. This enables server-side machine learning applications that benefit from the processing power of a server and access to server-side data. Typical use cases include real-time data processing and machine learning pipelines on backend servers.
+
+To get started with Node.js deployment, refer to the [Run TensorFlow.js in Node.js](https://www.tensorflow.org/js/guide/nodejs) guide from TensorFlow.

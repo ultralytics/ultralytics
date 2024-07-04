@@ -151,3 +151,91 @@ This guide aims to help you use TensorBoard with YOLOv8 for visualization and an
 For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow's official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard).
 
 Want to learn more about the various integrations of Ultralytics? Check out the [Ultralytics integrations guide page](../integrations/index.md) to see what other exciting capabilities are waiting to be discovered!
+
+## FAQ
+
+### How do I integrate YOLOv8 with TensorBoard for real-time visualization?
+
+Integrating YOLOv8 with TensorBoard allows for real-time visual insights during model training. First, install the necessary package:
+
+!!! Example "Installation"
+
+    === "CLI"
+
+        ```bash
+        # Install the required package for YOLOv8 and Tensorboard
+        pip install ultralytics
+        ```
+
+Next, configure TensorBoard to log your training runs, then start TensorBoard:
+
+!!! Example "Configure TensorBoard for Google Colab"
+
+    === "Python"
+
+        ```ipython
+        %load_ext tensorboard
+        %tensorboard --logdir path/to/runs
+        ```
+
+Finally, during training, YOLOv8 automatically logs metrics like loss and accuracy to TensorBoard. You can monitor these metrics by visiting [http://localhost:6006/](http://localhost:6006/).
+
+For a comprehensive guide, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+
+### What benefits does using TensorBoard with YOLOv8 offer?
+
+Using TensorBoard with YOLOv8 provides several visualization tools essential for efficient model training:
+
+- **Real-Time Metrics Tracking:** Track key metrics such as loss, accuracy, precision, and recall live.
+- **Model Graph Visualization:** Understand and debug the model architecture by visualizing computational graphs.
+- **Embedding Visualization:** Project embeddings to lower-dimensional spaces for better insight.
+
+These tools enable you to make informed adjustments to enhance your YOLOv8 model's performance. For more details on TensorBoard features, check out the TensorFlow [TensorBoard guide](https://www.tensorflow.org/tensorboard/get_started).
+
+### How can I monitor training metrics using TensorBoard when training a YOLOv8 model?
+
+To monitor training metrics while training a YOLOv8 model with TensorBoard, follow these steps:
+
+1. **Install TensorBoard and YOLOv8:** Run `pip install ultralytics` which includes TensorBoard.
+2. **Configure TensorBoard Logging:** During the training process, YOLOv8 logs metrics to a specified log directory.
+3. **Start TensorBoard:** Launch TensorBoard using the command `tensorboard --logdir path/to/your/tensorboard/logs`.
+
+The TensorBoard dashboard, accessible via [http://localhost:6006/](http://localhost:6006/), provides real-time insights into various training metrics. For a deeper dive into training configurations, visit our [YOLOv8 Configuration guide](../usage/cfg.md).
+
+### What kind of metrics can I visualize with TensorBoard when training YOLOv8 models?
+
+When training YOLOv8 models, TensorBoard allows you to visualize an array of important metrics including:
+
+- **Loss (Training and Validation):** Indicates how well the model is performing during training and validation.
+- **Accuracy/Precision/Recall:** Key performance metrics to evaluate detection accuracy.
+- **Learning Rate:** Track learning rate changes to understand its impact on training dynamics.
+- **mAP (mean Average Precision):** For a comprehensive evaluation of object detection accuracy at various IoU thresholds.
+
+These visualizations are essential for tracking model performance and making necessary optimizations. For more information on these metrics, refer to our [Performance Metrics guide](../guides/yolo-performance-metrics.md).
+
+### Can I use TensorBoard in a Google Colab environment for training YOLOv8?
+
+Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 models. Here’s a quick setup:
+
+!!! Example "Configure TensorBoard for Google Colab"
+
+    === "Python"
+
+        ```ipython
+        %load_ext tensorboard
+        %tensorboard --logdir path/to/runs
+        ```
+
+Then, run the YOLOv8 training script:
+
+```python
+from ultralytics import YOLO
+
+# Load a pre-trained model
+model = YOLO('yolov8n.pt')
+
+# Train the model
+results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+```
+
+TensorBoard will visualize the training progress within Colab, providing real-time insights into metrics like loss and accuracy. For additional details on configuring YOLOv8 training, see our detailed [YOLOv8 Installation guide](../quickstart.md).

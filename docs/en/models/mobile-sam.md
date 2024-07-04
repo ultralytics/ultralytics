@@ -118,12 +118,20 @@ If you find MobileSAM useful in your research or development work, please consid
         }
         ```
 
+
+
 ## FAQ
 
-### How do I use MobileSAM for image segmentation on a mobile application?
+### What is MobileSAM and how does it differ from the original SAM?
 
-MobileSAM is specifically designed for lightweight and fast image segmentation on mobile applications. To get started, you can download the model weights [here](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt) and use the following Python code snippet for inference:
+**MobileSAM** is a lightweight and fast image segmentation model specifically designed for mobile applications. It retains the same pipeline as the original SAM but replaces the large ViT-H encoder with a smaller, more efficient Tiny-ViT encoder. The main differences include:
+- **Encoder Size:** Original SAM uses a 611M parameter ViT-H encoder, while MobileSAM uses a 5M parameter Tiny-ViT encoder.
+- **Speed:** Original SAM operates at 452ms per image, while MobileSAM processes images in just 8ms for the encoder and 12ms for the whole pipeline.
+For more details, visit our [SAM page](sam.md).
 
+### How can I test the performance of MobileSAM on my device?
+
+You can easily test MobileSAM using the provided Python examples. Here’s how to predict a segment based on a point prompt:
 ```python
 from ultralytics import SAM
 
@@ -133,36 +141,33 @@ model = SAM("mobile_sam.pt")
 # Predict a segment based on a point prompt
 model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 ```
+Similarly, for a box prompt:
+```python
+from ultralytics import SAM
 
-For more detailed usage and various prompts, refer to the [SAM page](sam.md).
+# Load the model
+model = SAM("mobile_sam.pt")
 
-### What are the performance benefits of using MobileSAM over the original SAM?
+# Predict a segment based on a box prompt
+model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+```
+For extensive guidance, see the [SAM documentation](sam.md).
 
-MobileSAM offers significant improvements in both size and speed over the original SAM. Here is a detailed comparison:
+### What tasks does MobileSAM support and what are its operating modes?
 
-- **Image Encoder**: MobileSAM uses a smaller Tiny-ViT (5M parameters) instead of the original heavyweight ViT-H (611M parameters), resulting in an 8ms encoding time versus 452ms with SAM.
-- **Overall Pipeline**: MobileSAM's entire pipeline, including image encoding and mask decoding, operates at 12ms per image compared to SAM's 456ms, making it approximately 7 times faster.
-    In summary, MobileSAM is about 5 times smaller and 7 times faster than the original SAM, making it ideal for mobile applications.
+MobileSAM supports **Instance Segmentation** tasks. The available operating modes and their support are:
+- **Inference:** ✅
+- **Validation:** ❌
+- **Training:** ❌
+- **Export:** ❌
+You can find a detailed list of supported tasks and modes [here](../modes/predict.md).
 
-### Why should developers adopt MobileSAM for mobile applications?
+### Can I transition from the original SAM to MobileSAM without modifying my pipeline?
 
-Developers should consider using MobileSAM for mobile applications due to its lightweight and fast performance, making it highly efficient for real-time image segmentation tasks.
+Yes, transitioning from the original SAM to MobileSAM is straightforward. MobileSAM maintains the same pre-processing, post-processing, and interface protocols as the original SAM, facilitating a seamless switch. The primary change lies in the image encoder, which is more lightweight and faster. Learn more on how to adapt from SAM to MobileSAM [here](#adapting-from-sam-to-mobilesam).
 
-- **Efficiency**: MobileSAM's Tiny-ViT encoder allows for rapid processing, achieving segmentation results in just 12ms.
-- **Size**: The model size is significantly reduced, making it easier to deploy and run on mobile devices.
-    These advancements facilitate real-time applications, such as augmented reality, mobile games, and other interactive experiences.
+### Where can I download the MobileSAM pre-trained weights and paper?
 
-Learn more about the MobileSAM's performance on its [project page](https://github.com/ChaoningZhang/MobileSAM).
+You can download the pre-trained weights for MobileSAM [here](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt). The MobileSAM paper is publicly available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf). For further insights and project details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
-### How easy is it to transition from the original SAM to MobileSAM?
-
-Transitioning from the original SAM to MobileSAM is straightforward as MobileSAM retains the same pipeline, including pre-processing, post-processing, and interfaces. Only the image encoder has been changed to the more efficient Tiny-ViT. Users currently using SAM can switch to MobileSAM with minimal code modifications, benefiting from improved performance without the need for significant reconfiguration.
-
-### What tasks are supported by the MobileSAM model?
-
-The MobileSAM model supports instance segmentation tasks. Currently, it is optimized for [Inference](../modes/predict.md) mode. Additional tasks like validation, training, and export are not supported at this time, as indicated in the mode compatibility table:
-| Model Type | Tasks Supported | Inference | Validation | Training | Export |
-| ---------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| MobileSAM | [Instance Segmentation](../tasks/segment.md) | ✅ | ❌ | ❌ | ❌ |
-
-For more information about supported tasks and operational modes, check the [tasks page](../tasks/segment.md) and the mode details like [Inference](../modes/predict.md), [Validation](../modes/val.md), and [Export](../modes/export.md).
+By internally linking relevant sections and incorporating important keywords, these FAQs aim to enhance both the user experience and Ultralytics' SEO, driving more organic traffic to the site.

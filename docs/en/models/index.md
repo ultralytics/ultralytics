@@ -96,54 +96,71 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 
 For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
+
+
 ## FAQ
 
-### What types of tasks can Ultralytics YOLO models handle?
+### What models are supported by Ultralytics for object detection and image segmentation?
 
-Ultralytics YOLO models support a range of tasks including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [multi-object tracking](../modes/track.md). These models are designed to achieve high performance in different computer vision applications, making them versatile tools for various project needs.
+Ultralytics supports a variety of models for [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), and more. Notable models include:
 
-### How do I train a YOLOv8 model for object detection?
+- **[YOLOv3](yolov3.md)** to **[YOLOv10](yolov10.md)**: covering a range of advancements in the YOLO series.
+- **[Segment Anything Model (SAM)](sam.md)** and its variants (**[MobileSAM](mobile-sam.md)**, **[FastSAM](fast-sam.md)**).
+- **[YOLO-NAS](yolo-nas.md)**
+- **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**
 
-To train a YOLOv8 model for object detection, you can either use the Python API or the Command Line Interface (CLI). Below is an example using Python:
+These models cater to various machine learning tasks like [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [multi-object tracking](../modes/track.md).
 
+### How do I train a YOLO model using Ultralytics?
+
+Training a YOLO model with Ultralytics is straightforward. You can use either Python or the command line interface (CLI). Here's an example for YOLOv8:
+
+**Python Example:**
 ```python
 from ultralytics import YOLO
 
 # Load a COCO-pretrained YOLOv8n model
 model = YOLO("yolov8n.pt")
 
-# Display model information (optional)
-model.info()
-
-# Train the model on the COCO8 example dataset for 100 epochs
+# Train the model on the COCO8 dataset for 100 epochs
 results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
-For more detailed instructions, visit the [Train](../modes/train.md) documentation page.
+**CLI Example:**
+```bash
+# Train the model using CLI
+yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+```
+For more details, see the [Train](../modes/train.md) documentation.
 
-### Can I contribute my own model to Ultralytics?
+### Why should I use Ultralytics YOLO models for real-time object detection?
 
-Yes, you can contribute your own model to Ultralytics. To do so, follow these steps:
+Ultralytics YOLO models, including the latest [YOLOv8](yolov8.md), offer state-of-the-art performance with real-time speed and high accuracy. Unique features include:
+
+- **Efficiency**: Achieves a balance between speed and accuracy.
+- **Versatility**: Supports multiple tasks like object detection, segmentation, and pose estimation.
+- **Ease of Use**: Simple APIs for [training](../modes/train.md), [prediction](../modes/predict.md), and [export](../modes/export.md).
+
+For practical applications, you can explore real-time object detection [here](../blog/object-detection-with-a-pre-trained-ultralytics-yolov8-model).
+
+### Can I contribute my model to the Ultralytics ecosystem?
+
+Yes! Ultralytics welcomes contributions. Follow these steps to contribute:
 
 1. **Fork the Repository**: Fork the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
-2. **Clone Your Fork**: Clone your fork to your local machine and create a new branch.
-3. **Implement Your Model**: Add your model while following the coding standards in the [Contributing Guide](../help/contributing.md).
-4. **Test Thoroughly**: Ensure your model passes all tests.
-5. **Create a Pull Request**: Submit your work for review.
+2. **Clone and Branch**: Clone your fork and create a new branch.
+3. **Implement Your Model**: Follow coding standards as outlined in the [Contributing Guide](../help/contributing.md).
+4. **Test Thoroughly**: Validate your model’s performance.
+5. **Pull Request**: Submit your pull request for review.
 
-Visit the [Contributing Guide](../help/contributing.md) for detailed steps.
+For more detailed steps, visit the [Contributing Guide](../help/contributing.md). 
 
-### Which YOLO versions are supported by Ultralytics?
+### What are the main advantages of using Ultralytics YOLOv8?
 
-Ultralytics supports a wide range of YOLO versions from [YOLOv3](yolov3.md) to the latest [YOLOv10](yolov10.md). Each version has unique features and improvements. For instance, YOLOv8 supports tasks such as instance segmentation and pose estimation, while YOLOv10 offers NMS-free training and efficiency-accuracy driven architecture.
+Ultralytics YOLOv8 offers several advantages:
 
-### How can I run inference with a YOLOv8 model using the Command Line Interface (CLI)?
+- **Enhanced Capabilities**: Supports instance segmentation, classification, and pose/keypoints estimation.
+- **User-Friendly**: Easy to train and deploy with minimal code.
+- **Community Support**: Active community and extensive documentation.
 
-To run inference with a YOLOv8 model using the CLI, use the following command:
-
-```bash
-# Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
-yolo predict model=yolov8n.pt source=path/to/bus.jpg
-```
-
-For more information on using CLI commands, visit the [Predict](../modes/predict.md) documentation page.
+For a deeper dive into its features, check out the [YOLOv8](yolov8.md) documentation.

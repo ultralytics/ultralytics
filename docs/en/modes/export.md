@@ -111,47 +111,78 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
+
+
 ## FAQ
 
-### What formats can I export my YOLOv8 model to using Ultralytics?
+### How do I export my Ultralytics YOLOv8 model to ONNX format?
 
-Ultralytics YOLOv8 supports exporting models to a variety of formats including ONNX, TensorRT, CoreML, TorchScript, OpenVINO, TensorFlow SavedModel, TFLite, TF.js, PaddlePaddle, NCNN, and more. This versatility ensures your model can be deployed across multiple platforms and devices efficiently. For more details on export arguments and configurations, refer to the [Arguments section](#arguments) and [Export Formats](#export-formats).
+To export your Ultralytics YOLOv8 model to the ONNX format, you can use both the Python API and the Command Line Interface (CLI). Here are the steps:
 
-### How can I speed up the inference time for my YOLOv8 model?
-
-To achieve faster inference times with YOLOv8 models, you can export them to optimized formats such as TensorRT for up to 5x GPU speedup or ONNX/OpenVINO for up to 3x CPU speedup. Use specific export arguments like `format='engine'` for TensorRT or `format='onnx'` for ONNX. Refer to the [TensorRT integration guide](../integrations/tensorrt.md) and [ONNX integration guide](../integrations/onnx.md) for step-by-step instructions.
-
-### How do I export a YOLOv8 model to ONNX format using the Python API?
-
-Exporting a YOLOv8 model to ONNX format using the Python API is straightforward. First, load your model, then use the `export` method with the `format='onnx'` argument:
-
+**Using Python:**
 ```python
 from ultralytics import YOLO
 
-# Load a model
-model = YOLO("yolov8n.pt")  # load an official model
-model = YOLO("path/to/best.pt")  # load a custom trained model
+# Load your model
+model = YOLO("path/to/best.pt")  # replace with your model path
 
-# Export the model
+# Export the model to ONNX
 model.export(format="onnx")
 ```
 
-This method ensures your model is optimized and ready for deployment across various platforms. For more Python examples, check the [Usage Examples section](#usage-examples).
+**Using CLI:**
+```bash
+yolo export model=path/to/best.pt format=onnx  # replace with your model path
+```
 
-### What are the benefits of using Ultralytics YOLOv8's export feature?
+For detailed instructions, refer to the [Export section](#usage-examples) of the documentation.
 
-Ultralytics YOLOv8's export feature provides multiple benefits including:
+### What are the benefits of exporting a YOLOv8 model to TensorRT?
 
-- **Versatility**: Export to various formats like TensorRT, ONNX, CoreML, and more.
-- **Performance**: Significant speedups in inference, up to 5x on GPU with TensorRT and 3x on CPU with ONNX/OpenVINO.
-- **Compatibility**: Deployment across diverse hardware and software environments.
-- **Ease of Use**: Simple CLI and Python API for quick model exporting.
-    For comprehensive details, refer to the "Why Choose YOLOv8's Export Mode?" section on the [Model Export page](#introduction).
+Exporting your YOLOv8 model to TensorRT can provide significant performance upgrades, particularly when using NVIDIA GPUs. The benefits include:
+- **Up to 5x GPU Speedup:** TensorRT optimizes GPU utilization for faster inference times.
+- **Reduced Latency:** Enhanced model execution efficiency.
+- **Smaller Model Size:** TensorRT compresses the model, making it more compact without compromising accuracy.
 
-### How do I specify export settings like image size and quantization when exporting a YOLOv8 model?
+Learn more in the [TensorRT integration guide](../integrations/tensorrt.md).
 
-When exporting a YOLOv8 model, you can customize various settings using export arguments. For example:
+### Can I use dynamic input sizes when exporting to ONNX or TensorRT?
 
-- **Image Size**: Set the `imgsz` argument to define the desired input size, e.g., `imgsz=640` or `imgsz=(384, 384)`.
-- **Quantization**: Use `half=True` for FP16 quantization or `int8=True` for INT8 quantization.
-    These settings help optimize model performance and size. For a full list of export arguments and their descriptions, refer to the [Arguments section](#arguments) in the documentation.
+Yes, you can enable dynamic input sizes for your exported models by setting the `dynamic` argument to `True`. This allows the exported model to handle varying image dimensions efficiently.
+
+**Example using Python:**
+```python
+model.export(format="onnx", dynamic=True)
+```
+
+**Example using CLI:**
+```bash
+yolo export model=path/to/best.pt format=onnx dynamic=True
+```
+
+Refer to the [Arguments section](#arguments) for more details on export configurations.
+
+### Why should I choose Ultralytics YOLOv8’s export mode for my model deployment?
+
+Ultralytics YOLOv8’s export mode offers several compelling advantages:
+- **Versatility:** Export to various formats including ONNX, TensorRT, CoreML, and others.
+- **Performance:** Achieve significant speed improvements (up to 5x with TensorRT and 3x with ONNX/OpenVINO).
+- **Compatibility:** Deploy models across multiple hardware and software environments.
+- **Ease of Use:** Streamlined CLI and Python API make the export process straightforward.
+
+Explore the benefits in the [Export Mode Overview](#why-choose-yolov8s-export-mode).
+
+### What arguments can be customized during model export in YOLOv8?
+
+The export process in YOLOv8 allows the customization of several arguments, including:
+- **format:** Target format (e.g., 'onnx', 'tensorrt')
+- **imgsz:** Desired image size for model input
+- **half:** Enable FP16 quantization for smaller model size
+- **int8:** Activate INT8 quantization for edge devices
+- **dynamic:** Enable dynamic input sizes for ONNX and TensorRT
+- **opset:** Specify ONNX opset version
+- **workspace:** Maximum workspace size in GiB for TensorRT
+
+For the complete list of arguments and their descriptions, refer to the [Export Arguments section](#arguments).
+
+By addressing these common queries, we enhance the user experience and ensure that users can effectively leverage the full capabilities of Ultralytics YOLOv8’s export functionality.

@@ -72,31 +72,32 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
+
+
 ## FAQ
 
-### What are the different modes available in Ultralytics YOLOv8 and their purposes?
+### What is the purpose of the different modes in Ultralytics YOLOv8?
 
-Ultralytics YOLOv8 supports several modes that cater to different aspects of machine learning model lifecycle:
+Ultralytics YOLOv8 offers various modes to streamline the entire model lifecycle, including **Train**, **Val**, **Predict**, **Export**, **Track**, and **Benchmark**. Each mode serves a unique purpose:
+- **[Train](train.md)**: Fine-tuning your model on custom or preloaded datasets.
+- **[Val](val.md)**: Validating model performance post-training.
+- **[Predict](predict.md)**: Performing inference on new data.
+- **[Export](export.md)**: Making models deployment-ready in different formats.
+- **[Track](track.md)**: Extending the object detection model into real-time tracking.
+- **[Benchmark](benchmark.md)**: Evaluating the speed and accuracy of the model in various environments.
 
-- **Train**: Fine-tune your model on custom or preloaded datasets. [Learn more](../modes/train.md)
-- **Val**: Validate model performance after training using a validation set. [Explore Val mode](../modes/val.md)
-- **Predict**: Use a trained model to make predictions on new images or videos. [Discover Predict mode](../modes/predict.md)
-- **Export**: Convert your model for deployment in various formats. [Read about Export mode](../modes/export.md)
-- **Track**: Extend object detection models to real-time tracking applications. [Understand Track mode](../modes/track.md)
-- **Benchmark**: Analyze the speed and accuracy of your model in different deployment environments. [Learn about Benchmark mode](../modes/benchmark.md)
+### How do I use the Train mode in Ultralytics YOLOv8 to fine-tune my model?
 
-### How can I train my custom YOLOv8 model using Train Mode?
+The **[Train](train.md)** mode in Ultralytics YOLOv8 is designed for training your model using a specific dataset and hyperparameters. This involves optimizing the model's parameters to accurately predict object classes and locations in images. You start the training via the command line or a Python script, specifying the dataset path, configuration, and hyperparameters. For a hands-on example, visit our [Train Examples](train.md).
 
-Training a custom YOLOv8 model involves using your dataset and specifying hyperparameters. The YOLOv8 Train Mode optimizes the model to accurately predict object classes and locations. Practical examples and detailed steps can be found in our [Train Mode documentation](../modes/train.md).
+### Why is validation necessary after training a YOLOv8 model?
 
-### Why should I use the Export Mode in YOLOv8?
+Validation, facilitated by the **[Val](val.md)** mode, is crucial for measuring how well your model generalizes to new, unseen data. This mode evaluates the model on a validation set to provide metrics like accuracy and loss, which helps in tuning the hyperparameters for better performance. Regular validation ensures that your model is not overfitting and maintains high accuracy across different datasets. For detailed steps, check our [Val Examples](val.md).
 
-Export Mode in YOLOv8 allows you to convert trained models into formats suitable for deployment across different environments, such as mobile devices or other software applications. This capability is crucial for integrating AI models into real-world applications. Find detailed instructions in the [Export Mode documentation](../modes/export.md).
+### What formats can I export my YOLOv8 model to using Export mode?
 
-### What is the purpose of Benchmark Mode in YOLOv8?
+In the **[Export](export.md)** mode, Ultralytics YOLOv8 allows you to convert your trained model into various deployment-ready formats such as ONNX, TensorRT, CoreML, and more. This makes it easier to integrate the model into different applications and hardware. The Export mode ensures that the deployment process is seamless and efficient. For more information on exporting, view our [Export Examples](export.md).
 
-Benchmark Mode is designed to evaluate the performance of YOLOv8 models by analyzing speed, accuracy, and resource utilization across various export formats like ONNX, TensorRT, and OpenVINO. This helps users choose the optimal format for their specific use case. Learn more about benchmarking in the [Benchmark Mode documentation](../modes/benchmark.md).
+### How does the Track mode in YOLOv8 aid in real-time object tracking?
 
-### Can YOLOv8 models be used for real-time object tracking?
-
-Yes, YOLOv8 models can be extended for real-time object tracking using the Track Mode. This is ideal for applications like surveillance systems and autonomous vehicles. The model loads from a checkpoint file and can perform tracking on live video streams. Detailed usage examples are available in the [Track Mode documentation](../modes/track.md).
+The **[Track](track.md)** mode extends the capabilities of YOLOv8 by providing real-time object tracking. This mode loads the model from a checkpoint file and uses it to track objects in a live video stream. It is particularly useful for applications like surveillance systems, self-driving cars, and more. For implementation details and examples, see our [Track Examples](track.md).

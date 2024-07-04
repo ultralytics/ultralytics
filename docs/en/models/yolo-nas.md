@@ -117,62 +117,47 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 
+
+
 ## FAQ
 
-### What is YOLO-NAS and how does it differ from previous YOLO models?
+### What is YOLO-NAS and how does it improve upon previous YOLO models?
 
-YOLO-NAS, developed by Deci AI, is an advanced object detection model built using Neural Architecture Search (NAS). It offers significant improvements over previous YOLO models, including:
-
-- **Quantization-Friendly Basic Block:** This helps reduce the precision drop when the model is converted to INT8 quantization.
-- **Enhanced Training and Quantization:** YOLO-NAS utilizes sophisticated training schemes and post-training quantization techniques.
-- **Pre-trained on Large Datasets:** Utilizes the COCO, Objects365, and Roboflow 100 datasets, making it highly robust for downstream tasks.
-
-For more details, refer to the [Overview of YOLO-NAS](#overview).
+YOLO-NAS, developed by Deci AI, is a state-of-the-art object detection model that leverages Neural Architecture Search (NAS) technology to optimize its architecture for better performance. Key improvements include support for quantization, making it faster and more efficient, and significant enhancements in the accuracy-latency trade-off. YOLO-NAS introduces a new quantization-friendly basic block and advanced training schemes, resulting in minimal precision drop when converted to the INT8 quantized version.
 
 ### How can I use YOLO-NAS models in my Python application?
 
-Ultralytics makes it easy to integrate YOLO-NAS models into your Python applications via the `ultralytics` package. Here's a basic example:
-
+You can easily integrate YOLO-NAS models into your Python applications using the `ultralytics` package. Here’s an example of how to perform inference and validation:
 ```python
 from ultralytics import NAS
 
-# Load a pre-trained YOLO-NAS-s model
+# Load a COCO-pretrained YOLO-NAS-s model
 model = NAS("yolo_nas_s.pt")
 
-# Display model information
+# Display model information (optional)
 model.info()
 
-# Validate the model on the COCO8 dataset
+# Validate the model on the COCO8 example dataset
 results = model.val(data="coco8.yaml")
 
 # Run inference with the YOLO-NAS-s model on an image
-results = model("path/to/image.jpg")
+results = model("path/to/bus.jpg")
 ```
+For more detailed instructions, visit the [Usage Examples](#usage-examples) section of our documentation.
 
-For additional examples, see the [Usage Examples](#usage-examples) section of the documentation.
+### What are the advantages of using INT8 quantized YOLO-NAS models?
 
-### Why should I use YOLO-NAS for object detection tasks?
+INT8 quantized YOLO-NAS models offer reduced latency and improved inference speed while maintaining high accuracy with minimal precision drop. This makes them particularly suitable for deployment in resource-constrained environments. For instance, the YOLO-NAS S INT-8 model provides 2.36 ms latency compared to 3.21 ms for the non-quantized version, with only a slight drop in mAP.
 
-YOLO-NAS offers several advantages that make it a compelling choice for object detection:
+### How do I choose the right YOLO-NAS model variant for my project?
 
-- **High Performance:** Achieves a balance between accuracy and latency, crucial for real-time applications.
-- **Pre-Trained on Diverse Datasets:** Provides robust models for various use cases with extensive pre-training on datasets like COCO and Objects365.
-- **Quantization Efficiency:** For applications requiring low latency, the INT8 quantized versions show minimal precision drop, making them suitable for resource-constrained environments.
+Ultralytics offers three variants of YOLO-NAS models: Small (s), Medium (m), and Large (l). 
+- **YOLO-NAS-s**: Optimized for environments with limited computational resources.
+- **YOLO-NAS-m**: Balanced for general-purpose object detection tasks.
+- **YOLO-NAS-l**: Best for high accuracy requirements where computational resources are less constrained.
 
-For a detailed comparison of model variants, see [Pre-trained Models](#pre-trained-models).
+Evaluate the model performance metrics, such as Mean Average Precision (mAP) and latency, from the [Pretrained Models](#pretrained-models) section to choose the best model for your specific needs.
 
-### What are the supported tasks and modes for YOLO-NAS models?
+### Can I train YOLO-NAS models using the Ultralytics package?
 
-YOLO-NAS models support several tasks and modes, including:
-
-- **Object Detection:** Suitable for identifying and localizing objects in images.
-- **Inference and Validation:** Models can be used for both inference and validation to assess performance.
-- **Export:** YOLO-NAS models can be exported to various formats for deployment.
-
-However, the YOLO-NAS implementation using the `ultralytics` package does not currently support training. For more information, visit the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
-
-### How does quantization impact the performance of YOLO-NAS models?
-
-Quantization can significantly reduce the model size and improve inference speed with minimal impact on accuracy. YOLO-NAS introduces a quantization-friendly basic block, resulting in minimal precision loss when converted to INT8. This makes YOLO-NAS highly efficient for deployment in scenarios with resource constraints.
-
-To understand the performance metrics of INT8 quantized models, refer to the [Pre-trained Models](#pre-trained-models) section.
+As of now, the `ultralytics` package supports using YOLO-NAS models for inference and validation only. Training of YOLO-NAS models is not supported. For other functionalities like prediction and export, you can refer to the detailed guides in the [Predict](../modes/predict.md) and [Export](../modes/export.md) modes.

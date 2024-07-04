@@ -224,27 +224,43 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
+
+
 ## FAQ
 
-### What is the Segment Anything Model (SAM)?
+### What is the Segment Anything Model (SAM) and how does it work?
 
-The Segment Anything Model (SAM) is a cutting-edge image segmentation model designed for promptable segmentation, allowing it to generate segmentation masks based on spatial or text-based prompts. SAM is capable of zero-shot transfer, meaning it can adapt to new image distributions and tasks without prior knowledge. It's trained on the extensive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which comprises over 1 billion masks on 11 million images. For more details, check the [Introduction to SAM](#introduction-to-sam-the-segment-anything-model).
+The Segment Anything Model (SAM) is an advanced image segmentation model that offers promptable segmentation capabilities, allowing it to generate segmentation masks based on various prompts like spatial or text clues. SAM's architecture consists of a powerful image encoder, a prompt encoder, and a lightweight mask decoder. It was trained on the extensive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which includes over 1 billion masks across 11 million images. This enables SAM to perform zero-shot transfer, adapting to new image distributions and tasks with high accuracy. For more details, refer to the [SAM section](#sam).
 
-### How does SAM achieve zero-shot performance in image segmentation?
+### How do I use SAM for real-time image segmentation?
 
-SAM achieves zero-shot performance by leveraging its advanced architecture, which includes a robust image encoder, a prompt encoder, and a lightweight mask decoder. This configuration enables SAM to respond effectively to any given prompt and adapt to new tasks without additional training. Its training on the highly diverse SA-1B dataset further enhances its adaptability. Learn more about its architecture in the [Key Features of the Segment Anything Model](#key-features-of-the-segment-anything-model-sam).
+Using SAM for real-time image segmentation is straightforward with Ultralytics' library. Here's a Python example:
 
-### Can I use SAM for tasks other than segmentation?
+```python
+from ultralytics import SAM
 
-Yes, SAM can be employed for various downstream tasks beyond its primary segmentation role. These tasks include edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. Through prompt engineering, SAM can adapt swiftly to new tasks and data distributions, offering flexible applications. For practical use cases and examples, refer to the [How to Use SAM](#how-to-use-sam-versatility-and-power-in-image-segmentation) section.
+# Load a model
+model = SAM("sam_b.pt")
 
-### How does SAM compare to Ultralytics YOLOv8 models?
+# Display model information (optional)
+model.info()
 
-While SAM excels in automatic, real-time segmentation with promptable capabilities, Ultralytics YOLOv8 models are smaller, faster, and more efficient for object detection and instance segmentation tasks. For instance, the YOLOv8n-seg model is significantly smaller and faster than the SAM-b model, making it ideal for applications requiring high-speed processing with lower computational resources. See a detailed comparison in the [SAM comparison vs YOLOv8](#sam-comparison-vs-yolov8) section.
+# Run inference using bounding box prompts
+model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
-### How can I auto-annotate a segmentation dataset using SAM?
+# Run inference using point prompts
+model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+```
 
-To auto-annotate a segmentation dataset, you can use the `auto_annotate` function provided by the Ultralytics framework. This function allows you to automatically generate high-quality segmentation masks using a pre-trained detection model paired with the SAM segmentation model:
+This code demonstrates easy integration of SAM into your workflows for various downstream tasks. For more examples, visit our [SAM prediction example](#sam-prediction-example) section.
+
+### Why should I use SAM over other segmentation models like Ultralytics YOLOv8?
+
+SAM offers unique advantages, particularly its ability to perform zero-shot segmentation, making it highly adaptable to new tasks without additional training. It also leverages the vast [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), providing high-quality and diverse segmentation masks. In contrast, Ultralytics YOLOv8 models are optimized for speed and efficiency, making them more suitable for real-time applications with limited computational resources. For a detailed comparison, please see our [SAM comparison vs YOLOv8](#sam-comparison-vs-yolov8).
+
+### How can I generate a segmentation dataset using auto-annotation with a pre-trained SAM model?
+
+Auto-annotation in SAM can significantly streamline the dataset creation process. Here’s how you can auto-annotate your dataset:
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -252,4 +268,8 @@ from ultralytics.data.annotator import auto_annotate
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
 ```
 
-This approach accelerates the annotation process by bypassing manual labeling, making it especially useful for large datasets. For step-by-step instructions, visit [Generate Your Segmentation Dataset Using a Detection Model](#generate-your-segmentation-dataset-using-a-detection-model).
+This function takes in the path to your images and optional arguments for specifying detection (`det_model`) and SAM segmentation models (`sam_model`). This feature helps you quickly generate high-quality segmentation datasets without the need for manual annotation. For more details, see our guide on [Generate Your Segmentation Dataset Using a Detection Model](#generate-your-segmentation-dataset-using-a-detection-model).
+
+### What datasets were used to train the Segment Anything Model (SAM)?
+
+SAM was trained on the massive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which includes more than 1 billion segmentation masks from 11 million high-resolution and diverse images. The dataset ensures high quality and extensive variety in segmentation tasks, contributing to SAM’s superior zero-shot performance. To delve deeper into the dataset and its capabilities, refer to the [Key Features of the Segment Anything Model (SAM)](#key-features-of-the-segment-anything-model-sam) section.

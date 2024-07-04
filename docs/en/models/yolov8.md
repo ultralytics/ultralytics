@@ -185,33 +185,44 @@ If you use the YOLOv8 model or any other software from this repository in your w
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
 
+
+
 ## FAQ
 
-### What differentiates YOLOv8 from previous YOLO versions?
+### What is YOLOv8 and how does it improve on previous versions?
 
-YOLOv8 builds upon the advancements of its predecessors by incorporating state-of-the-art backbone and neck architectures for improved feature extraction and object detection performance. It utilizes an anchor-free split head for better accuracy and efficiency. With a focus on maintaining the optimal accuracy-speed tradeoff, YOLOv8 is suitable for real-time object detection across diverse applications. Explore more in [YOLOv8 Key Features](#key-features).
+Ultralytics YOLOv8 is the latest iteration in the YOLO series of real-time object detection models, delivering enhanced performance in terms of accuracy and speed. Building on the successes of its predecessors, YOLOv8 features advanced backbone and neck architectures, an anchor-free split Ultralytics head, and optimized accuracy-speed tradeoff. These innovations make YOLOv8 ideal for various computer vision tasks, from simple detection to complex tasks like instance segmentation and pose estimation. Explore its comprehensive feature set [here](https://docs.ultralytics.com/models/yolov8).
 
-### How can I use YOLOv8 for different tasks like segmentation and pose estimation?
+### How can I use YOLOv8 for real-time object detection tasks?
 
-YOLOv8 is versatile, offering specialized variants for various tasks such as object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. These models come pre-trained and are optimized for high performance and accuracy. For more details, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes).
-
-### How do I run inference using a YOLOv8 model in Python?
-
-To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here's a basic example:
+To leverage YOLOv8 for real-time object detection, you can use both Python and CLI approaches. Below is an example using Python:
 
 ```python
 from ultralytics import YOLO
 
+# Load a COCO-pretrained YOLOv8n model
 model = YOLO("yolov8n.pt")
-results = model("path/to/image.jpg")
+
+# Run inference with the YOLOv8n model on the 'bus.jpg' image
+results = model("path/to/bus.jpg")
 ```
 
-For detailed examples, see the [Usage Examples](#usage-examples) section.
+For CLI:
 
-### What are the performance benchmarks for YOLOv8 models?
+```bash
+# Run inference on 'bus.jpg' image
+yolo predict model=yolov8n.pt source=path/to/bus.jpg
+```
+For more details, visit our [Predict](../modes/predict.md) documentation.
 
-YOLOv8 models are benchmarked on datasets such as COCO and Open Images V7, showing significant improvements in mAP and speed across various hardware setups. Detailed performance metrics include parameters, FLOPs, and inference speeds on different devices. For comprehensive benchmark details, visit [Performance Metrics](#performance-metrics).
+### What tasks are supported by YOLOv8 models, and how can I choose the right one?
 
-### How do I export a YOLOv8 model for deployment?
+YOLOv8 models support a wide range of tasks including object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. The variety of pre-trained models, such as `yolov8n.pt`, `yolov8s.pt` and others are optimized for specific tasks. For detailed information on each model variant and their applications, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section of our documentation.
 
-You can export YOLOv8 models to various formats like ONNX, TensorRT, and CoreML for seamless deployment across different platforms. The export process ensures maximum compatibility and performance optimization. Learn more about exporting models in the [Export](../modes/export.md) section.
+### How do YOLOv8 models perform on different datasets?
+
+YOLOv8 models have been evaluated on various datasets including COCO, Open Images V7, and ImageNet. For instance, the YOLOv8n model achieves an mAP of 37.3 on COCO with a speed of 80.4 ms on a CPU. Performance metrics vary by task and dataset; for detailed performance benchmarks, see our [Performance Metrics](#performance-metrics) section and specific dataset documentation like [COCO](../datasets/detect/coco.md) and [ImageNet](../datasets/classify/imagenet.md).
+
+### Can I export YOLOv8 models to different formats for deployment?
+
+Yes, YOLOv8 models can be exported to various formats such as ONNX, TensorRT, CoreML, and more, facilitating deployment across multiple platforms, including edge devices and cloud environments. For a step-by-step guide on exporting models, visit our [Export](../modes/export.md) documentation. This ensures that you can effectively integrate YOLOv8 models into different production systems.

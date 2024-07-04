@@ -801,56 +801,83 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
+
+
 ## FAQ
 
-### What is Ultralytics YOLOv8's Predict Mode?
+### How do I perform high-speed real-time inference with Ultralytics YOLOv8?
 
-Ultralytics YOLOv8's predict mode is designed for high-performance, real-time inference on a variety of data sources. It is capable of processing images, videos, and live streams, making it versatile and suitable for numerous applications such as manufacturing, sports, and safety. The predict mode also supports batch processing and streaming, thus optimizing the inference time.
-
-### How can I use the streaming mode in YOLOv8 predict?
-
-You can enable streaming mode in YOLOv8 by setting `stream=True` in the model's call method. This feature generates a memory-efficient generator of `Results` objects, which is beneficial for processing long videos or large datasets without causing memory issues. For example:
+To perform high-speed real-time inference with Ultralytics YOLOv8, you can utilize the predict mode for a variety of input sources like images, videos, and live streams. Use the `stream=True` argument to enable memory-efficient streaming. This allows the model to process long videos without overloading the memory by generating a `Results` object generator. Here is an example:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
-results = model(["im1.jpg", "im2.jpg"], stream=True)  # generator of Results objects
+model = YOLO("yolov8n.pt")  # Load a pretrained YOLOv8 model
+results = model("path/to/video.mp4", stream=True)  # Use stream=True for efficient memory usage
 
 for result in results:
-    print(result.boxes)  # Process each result
+    result.show()  # Display each frame's results
 ```
 
-### What are the supported input sources for YOLOv8 inference?
+For more details, refer to the [predict mode](#Introduction).
 
-YOLOv8 supports a broad range of input sources including static images, video files, live streams, URLs, screenshots, and even data from various formats like PIL, OpenCV, numpy arrays, and torch tensors. Each source type can be processed efficiently, with options to use streaming mode for better memory management. For an extensive list and examples, visit the [prediction sources documentation](#inference-sources).
+### What input sources does Ultralytics YOLOv8 support for inference?
 
-### Why should I use YOLOv8 for real-time inference?
-
-YOLOv8 offers multiple advantages for real-time inference:
-
-- **Versatility:** Works with images, videos, and live streams.
-- **High Performance:** Designed for real-time processing without compromising accuracy.
-- **Ease of Use:** Intuitive Python and CLI interfaces.
-- **Customization:** Multiple settings and parameters for fine-tuning the model.
-
-### How do I visualize the results of YOLOv8 model predictions?
-
-YOLOv8 provides a `plot()` method in `Results` objects to visualize predictions by overlaying detected objects on the original image. This method returns an annotated image as a NumPy array and supports displaying or saving the image. For instance:
+Ultralytics YOLOv8 can run inference on a wide range of input sources including images, videos, URLs, screenshots, and various data formats like PIL Images, OpenCV arrays, numpy arrays, PyTorch tensors, and more. You can also process CSV files containing paths to these sources and live video streams. Here is an example of using a URL as the input source:
 
 ```python
-from PIL import Image
+from ultralytics import YOLO
 
+model = YOLO("yolov8n.pt")  # Load a pretrained YOLOv8 model
+url = "https://ultralytics.com/images/bus.jpg"
+results = model(url)
+
+for result in results:
+    result.show()  # Display the results
+```
+
+See the full list of supported input sources in the [Inference Sources](#Inference-Sources) section.
+
+### Why should I use Ultralytics YOLOv8 for model inference?
+
+Ultralytics YOLOv8 offers versatile and high-performance predict mode tailored for real-time inference across various data sources. Key benefits include:
+- **Versatility**: Works with images, videos, and live streams.
+- **High Performance**: Designed for fast processing without sacrificing accuracy.
+- **Ease of Use**: Intuitive Python and CLI interfaces.
+- **Customization**: Highly customizable with various settings and parameters.
+
+For more detailed features, refer to the [Key Features of Predict Mode](#Key-Features-of-Predict-Mode) section.
+
+### How can I improve my YOLOv8 model inference performance?
+
+To enhance the performance of your YOLOv8 model inference, you can:
+- Use the `half=True` argument for half-precision (FP16) inference if running on compatible GPUs.
+- Adjust `imgsz` for optimal image size.
+- Use `vid_stride` to skip frames in videos.
+- Optimize memory usage with `stream=True`.
+
+```python
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
-results = model(["bus.jpg", "zidane.jpg"])
-
-for i, r in enumerate(results):
-    im_bgr = r.plot()  # BGR-order numpy array
-    im_rgb = Image.fromarray(im_bgr[..., ::-1])  # RGB-order PIL image
-    r.show()  # Show results to screen
-    r.save(filename=f"results{i}.jpg")  # Save results
+model.predict("bus.jpg", half=True, imgsz=320, conf=0.5)
 ```
 
-Refer to the [plotting results documentation](#plotting-results) for more details.
+For further optimization tips, visit the [Inference Arguments](#Inference-Arguments) section.
+
+### How do I visualize and save YOLOv8 inference results?
+
+You can visualize and save YOLOv8 inference results using the built-in `plot()`, `show()`, and `save()` methods of the `Results` object. This allows you to display, save annotated images, or save results as text files.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+results = model("bus.jpg")
+
+for result in results:
+    result.show()  # Display results
+    result.save(filename="result.jpg")  # Save to disk
+```
+
+Read more about working with results in the [Working with Results](#Working-with-Results) section.

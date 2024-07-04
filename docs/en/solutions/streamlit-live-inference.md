@@ -18,7 +18,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 ## Advantages of Live Inference
 
 - **Seamless Real-Time Object Detection**: Streamlit combined with YOLOv8 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for applications requiring instant feedback.
-- **User-Friendly Deployment**: Streamlit’s interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
+- **User-Friendly Deployment**: Streamlit's interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
 - **Efficient Resource Utilization**: YOLOv8 optimized algorithm ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced computer vision accessible to a wider audience.
 
 ## Streamlit Application Code

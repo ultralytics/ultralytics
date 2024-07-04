@@ -19,7 +19,7 @@ Real-time object detection aims to accurately predict object categories and posi
 The architecture of YOLOv10 builds upon the strengths of previous YOLO models while introducing several key innovations. The model architecture consists of the following components:
 
 1. **Backbone**: Responsible for feature extraction, the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
-2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multi-scale feature fusion.
+2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
 3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
 4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
 
@@ -231,31 +231,54 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
 
+
+
 ## FAQ
 
-### What is YOLOv10 and how does it differ from previous YOLO versions?
+### What is the major innovation of YOLOv10 in real-time object detection?
 
-YOLOv10 is the latest development in real-time object detection, designed to overcome the limitations of previous YOLO models by eliminating non-maximum suppression (NMS) and optimizing model architecture. Built on [Ultralytics](https://ultralytics.com) [Python package](https://pypi.org/project/ultralytics/), it achieves state-of-the-art performance with reduced computational cost. The key innovations in YOLOv10 include consistent dual assignments for NMS-free training and a holistic efficiency-accuracy driven model design strategy.
+YOLOv10 introduces a novel approach by eliminating Non-Maximum Suppression (NMS) and optimizing various model components. This innovation results in significantly reduced inference latency and improved efficiency. By incorporating consistent dual assignments during NMS-free training and focusing on a holistic efficiency-accuracy driven design strategy, YOLOv10 achieves state-of-the-art performance with lower computational costs compared to previous YOLO versions.
 
-### How does YOLOv10 achieve NMS-free training?
+### How does YOLOv10 handle the elimination of Non-Maximum Suppression (NMS)?
 
-YOLOv10 employs consistent dual assignments during training, integrating one-to-many and one-to-one strategies. This approach ensures rich supervision and efficient end-to-end deployment without the need for NMS. The consistent matching metric enhances prediction quality during inference, thereby reducing latency and improving efficiency. Learn more about [Consistent Dual Assignments for NMS-Free Training](#consistent-dual-assignments-for-nms-free-training).
+YOLOv10 employs consistent dual assignments that use both one-to-many and one-to-one strategies during training. This ensures rich supervision and efficient end-to-end deployment, eliminating the need for Non-Maximum Suppression (NMS). The consistent matching metric aligns the supervision between these strategies, enhancing the quality and accuracy of predictions during inference without the extra computational overhead of NMS.
 
-### What are the architecture components of YOLOv10?
+### What are the different model scales available in YOLOv10 and their applications?
 
-The architecture of YOLOv10 includes:
+YOLOv10 offers various model scales tailored to different applications and computational needs:
 
-- **Backbone**: Uses an enhanced version of CSPNet for feature extraction, improving gradient flow and reducing computational redundancy.
-- **Neck**: Aggregates multiscale features using PAN layers for effective fusion.
-- **One-to-Many Head**: Provides multiple predictions per object during training, improving learning accuracy.
-- **One-to-One Head**: Generates a single best prediction per object during inference, eliminating the need for NMS and reducing latency. For more details, visit the [Architecture section](#architecture).
+- **YOLOv10-N**: Nano version for extremely resource-constrained environments.
+- **YOLOv10-S**: Small version balancing speed and accuracy.
+- **YOLOv10-M**: Medium version for general-purpose use.
+- **YOLOv10-B**: Balanced version with increased width for higher accuracy.
+- **YOLOv10-L**: Large version for higher accuracy at the cost of increased computational resources.
+- **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
 
-### How does YOLOv10 perform compared to previous YOLO versions and other state-of-the-art models?
+Each model scale optimizes the trade-off between latency, accuracy, and computational resources, making them suitable for various real-world applications.
 
-YOLOv10 outperforms previous YOLO versions like YOLOv8 and YOLOv9, as well as other state-of-the-art models such as RT-DETR. For instance, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar Average Precision (AP) on the COCO dataset. The model variants—YOLOv10-N, S, M, B, L, X—cater to different computational needs and application scenarios, offering superior accuracy-latency trade-offs. Detailed performance comparisons can be found in the [Performance](#performance) section.
+### How does YOLOv10 compare in performance with other state-of-the-art object detectors?
 
-### How can I export YOLOv10 models to different formats?
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For instance, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar Average Precision (AP), and YOLOv10-B shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Extensive benchmarks, such as those on the COCO dataset, highlight YOLOv10's superior accuracy-latency trade-offs across multiple model scales.
 
-YOLOv10 models support several export formats, including TorchScript, ONNX, OpenVINO, and TensorRT. However, not all formats provided by Ultralytics are supported due to the new operations introduced. Refer to the [Exporting YOLOv10](../modes/export.md) section to see which formats are currently supported and how to convert models using Ultralytics tools.
+### How can I train my custom dataset using YOLOv10?
 
-For further assistance or specific questions about YOLOv10, visit our [Ultralytics Support](https://www.ultralytics.com/support) page.
+You can train YOLOv10 on a custom dataset using either Python or CLI. Here's an example using Python:
+
+```python
+from ultralytics import YOLO
+
+# Load YOLOv10n model from scratch
+model = YOLO("yolov10n.yaml")
+
+# Train the model on the custom dataset
+model.train(data="coco8.yaml", epochs=100, imgsz=640)
+```
+
+Alternatively, you can use the CLI:
+
+```bash
+# Build and train a YOLOv10n model on the custom COCO8 dataset for 100 epochs
+yolo train model=yolov10n.yaml data=coco8.yaml epochs=100 imgsz=640
+```
+
+For step-by-step guidance, refer to the [training section](../modes/train.md) in the Ultralytics documentation.

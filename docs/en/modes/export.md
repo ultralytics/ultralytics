@@ -111,83 +111,66 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
+
+
 ## FAQ
 
-### How do I export my Ultralytics YOLOv8 model to ONNX format?
+### How do I export my YOLOv8 model to ONNX format using Ultralytics?
 
-To export your Ultralytics YOLOv8 model to the ONNX format, you can use both the Python API and the Command Line Interface (CLI). Here are the steps:
+To export your YOLOv8 model to ONNX format, you can use either Python or the command line interface (CLI). Below are the steps for each method:
 
-**Using Python:**
-
+**Python:**
 ```python
 from ultralytics import YOLO
 
-# Load your model
-model = YOLO("path/to/best.pt")  # replace with your model path
+# Load a custom trained model
+model = YOLO("path/to/best.pt")
 
-# Export the model to ONNX
+# Export the model to ONNX format
 model.export(format="onnx")
 ```
 
-**Using CLI:**
-
+**CLI:**
 ```bash
-yolo export model=path/to/best.pt format=onnx  # replace with your model path
+yolo export model=path/to/best.pt format=onnx
 ```
+Exporting to [ONNX](../integrations/onnx.md) can provide up to a 3x CPU speedup, making it ideal for deployment in resource-constrained environments.
 
-For detailed instructions, refer to the [Export section](#usage-examples) of the documentation.
+### What are the benefits of using TensorRT for YOLOv8 model exports?
 
-### What are the benefits of exporting a YOLOv8 model to TensorRT?
+Using TensorRT to export your YOLOv8 model offers several benefits:
+- **Performance:** Gain up to 5x GPU speedup, significantly enhancing inference speed.
+- **Efficiency:** Optimizes model execution for NVIDIA hardware, reducing latency.
+- **Compatibility:** Integrates well with various deployment environments, especially those utilizing NVIDIA GPUs.
 
-Exporting your YOLOv8 model to TensorRT can provide significant performance upgrades, particularly when using NVIDIA GPUs. The benefits include:
+For step-by-step instructions, follow our [TensorRT export guide](../integrations/tensorrt.md).
 
-- **Up to 5x GPU Speedup:** TensorRT optimizes GPU utilization for faster inference times.
-- **Reduced Latency:** Enhanced model execution efficiency.
-- **Smaller Model Size:** TensorRT compresses the model, making it more compact without compromising accuracy.
+### Can I export my YOLOv8 model with FP16 precision and what are the advantages?
 
-Learn more in the [TensorRT integration guide](../integrations/tensorrt.md).
+Yes, you can export your YOLOv8 model with FP16 (half-precision) using the `half` argument. FP16 quantization reduces the model size and can speed up inference on supported hardware. This is especially useful for deployment on devices with limited computational power.
 
-### Can I use dynamic input sizes when exporting to ONNX or TensorRT?
-
-Yes, you can enable dynamic input sizes for your exported models by setting the `dynamic` argument to `True`. This allows the exported model to handle varying image dimensions efficiently.
-
-**Example using Python:**
-
+Example:
 ```python
-model.export(format="onnx", dynamic=True)
+model.export(format="onnx", half=True)
 ```
+Using FP16 precision is detailed under the [ONNX integration](../integrations/onnx.md) section.
 
-**Example using CLI:**
+### How do I specify the input image size when exporting a YOLOv8 model?
 
-```bash
-yolo export model=path/to/best.pt format=onnx dynamic=True
+You can set the desired input image size using the `imgsz` argument during the export process. This can be an integer for square images (e.g., 640) or a tuple for specific dimensions (e.g., (320, 640)).
+
+Example:
+```python
+model.export(format="onnx", imgsz=(320, 640))
 ```
+Setting image size appropriately ensures optimal performance and compatibility, as explained in the [Arguments](#arguments) section.
 
-Refer to the [Arguments section](#arguments) for more details on export configurations.
+### Why should I use dynamic input sizes when exporting to ONNX or TensorRT formats?
 
-### Why should I choose Ultralytics YOLOv8’s export mode for my model deployment?
+Using dynamic input sizes allows the exported model to handle varying image dimensions, improving flexibility and usability in different deployment scenarios.
 
-Ultralytics YOLOv8’s export mode offers several compelling advantages:
-
-- **Versatility:** Export to various formats including ONNX, TensorRT, CoreML, and others.
-- **Performance:** Achieve significant speed improvements (up to 5x with TensorRT and 3x with ONNX/OpenVINO).
-- **Compatibility:** Deploy models across multiple hardware and software environments.
-- **Ease of Use:** Streamlined CLI and Python API make the export process straightforward.
-
-Explore the benefits in the [Export Mode Overview](#why-choose-yolov8s-export-mode).
-
-### What arguments can be customized during model export in YOLOv8?
-
-The export process in YOLOv8 allows the customization of several arguments, including:
-
-- **format:** Target format (e.g., 'onnx', 'tensorrt')
-- **imgsz:** Desired image size for model input
-- **half:** Enable FP16 quantization for smaller model size
-- **int8:** Activate INT8 quantization for edge devices
-- **dynamic:** Enable dynamic input sizes for ONNX and TensorRT
-- **opset:** Specify ONNX opset version
-- **workspace:** Maximum workspace size in GiB for TensorRT
-
-For the complete list of arguments and their descriptions, refer to the [Export Arguments section](#arguments).
-
-By addressing these common queries, we enhance the user experience and ensure that users can effectively leverage the full capabilities of Ultralytics YOLOv8’s export functionality.
+Example:
+```python
+model.export(format="engine", dynamic=True)
+```
+This feature is particularly beneficial for applications where input sizes are not constant, as described in the [Export Formats](#export-formats) section.

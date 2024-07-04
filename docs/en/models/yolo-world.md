@@ -336,49 +336,69 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
+
+
 ## FAQ
 
-### What is the YOLO-World Model and how does it differ from traditional object detection models?
+### How do I use the YOLO-World Model for real-time object detection?
 
-The YOLO-World Model is an advanced, real-time object detection model developed by Ultralytics, based on the [YOLOv8 framework](yolov8.md). Unlike traditional models which often rely on large Transformer networks and predefined object categories, YOLO-World leverages vision-language modeling for open-vocabulary detection. This allows it to detect a wide array of objects described via text prompts with minimal computational requirements, making it highly efficient for real-time applications.
-
-### How does YOLO-World achieve real-time performance with reduced computational demands?
-
-YOLO-World integrates the computational efficiency of convolutional neural networks (CNNs) with innovative techniques such as vision-language modeling and the "prompt-then-detect" strategy. By employing these methods and pre-trained on large datasets, YOLO-World significantly reduces the computational overhead while maintaining high performance. For real-time applications, YOLO-World models are optimized to deliver swift and accurate detection results, outperforming other models like MDETR and GLIP series on a single NVIDIA V100 GPU.
-
-### Can YOLO-World models be used for custom object detection tasks?
-
-Yes, YOLO-World models support custom object detection tasks. Users can define specific classes for detection through custom prompts without needing to retrain the model. For instance, you can set prompts like "person" and "bus" to detect these objects in images. This functionality is achieved via the [set_classes](#set-classes) method, allowing for flexible and efficient customization to fit various application needs.
-
-### How can I train YOLO-World models on my own dataset?
-
-To train YOLO-World models on custom datasets, you can use Ultralytics' Python API or CLI commands. For example, using the Python API, load a pre-trained YOLOv8s-worldv2 model and initiate training with your dataset:
+To use the YOLO-World Model for real-time object detection, you can integrate it into your Python application using the Ultralytics library. Here's a basic example:
 
 ```python
 from ultralytics import YOLOWorld
 
-# Load a pretrained YOLOv8s-worldv2 model
-model = YOLOWorld("yolov8s-worldv2.pt")
+# Load a pretrained YOLOv8s-world model
+model = YOLOWorld("yolov8s-world.pt")
 
-# Train the model on your custom dataset
-results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
+# Perform real-time object detection on an image
+results = model.predict("path/to/image.jpg")
+
+# Display results
+results[0].show()
+```
+For detailed instructions and additional usage scenarios, refer to the [Predict Usage](#predict-usage) section in the documentation.
+
+### What are the advantages of using YOLO-World Model over traditional models?
+
+The YOLO-World Model offers several advantages:
+1. **Real-time Efficiency:** It utilizes CNNs for fast computations, making it suitable for real-time applications.
+2. **Lower Computational Cost:** By reducing resource requirements, it provides similar accuracy to traditional models like SAM without the heavy computational cost.
+3. **Open-Vocabulary Detection:** Capabilities enable handling a wide range of objects using descriptive prompts.
+4. **Prompt-then-Detect Strategy:** This enhances efficiency by using offline vocabulary for prompt-based detection.
+5. **Benchmark Performance:** Outperforms existing models like MDETR and GLIP in both speed and efficiency.
+
+Learn more about these features in the [Key Features](#key-features) section.
+
+### Why is the YOLOv8-Worldv2 model recommended for custom training?
+
+The YOLOv8-Worldv2 model is recommended for custom training because it supports deterministic training, ensuring consistent results across runs. Additionally, it simplifies model export to formats like ONNX and TensorRT for deployment. This makes it ideal for training custom datasets and deploying versatile object detection models.
+
+For training examples, see the [Train Usage](#train-usage) section.
+
+### Can I use custom prompts for object detection with YOLO-World?
+
+Yes, YOLO-World allows for dynamic specification of classes via custom prompts, enabling the model to detect objects specific to your application without retraining. Here's an example:
+
+```python
+from ultralytics import YOLO
+
+# Initialize a YOLO-World model
+model = YOLO("yolov8s-world.pt")
+
+# Define custom classes
+model.set_classes(["person", "bus"])
+
+# Execute prediction for specified categories on an image
+results = model.predict("path/to/image.jpg")
+
+# Show results
+results[0].show()
 ```
 
-For CLI, the command would be:
+You can save and reload models with custom classes for consistent and efficient object detection. More details can be found in the [Set prompts](#set-prompts) section.
 
-```bash
-yolo train model=yolov8s-worldv2.yaml data="your_dataset.yaml" epochs=100 imgsz=640
-```
+### What datasets are recommended for training the YOLO-World Model from scratch?
 
-Refer to the [train section](../modes/train.md) for detailed instructions and customization options.
+For training the YOLO-World Model from scratch, it's recommended to use datasets like Objects365 for object detection and GQA or Flickr30k for grounding tasks. These datasets provide diverse and extensive annotations ideal for training robust models.
 
-### What are the advantages of using Ultralytics YOLO-World for zero-shot object detection?
-
-Ultralytics YOLO-World excels at zero-shot object detection, which means it can identify objects it hasn't been explicitly trained on using descriptive text prompts. Its main advantages include:
-
-- **Real-time performance**: Delivers fast detection results suitable for applications that require immediacy.
-- **Efficiency**: Reduces computational costs compared to traditional Transformer-based models.
-- **Customizability**: Offers the ability to define detection classes dynamically without retraining.
-- **Versatile Applications**: Suitable for numerous vision-based applications from dynamic environments to specialized tasks.
-
-For a detailed overview of these benefits and more, visit the [YOLO-World overview](https://github.com/AILab-CVC/YOLO-World).
+Check out the [Reproduce official results from scratch(Experimental)](#reproduce-official-results-from-scratchexperimental) section for more information on preparing these datasets.

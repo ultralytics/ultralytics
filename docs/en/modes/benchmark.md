@@ -105,15 +105,13 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### What is model benchmarking in Ultralytics YOLOv8?
+### How do I benchmark Ultralytics YOLOv8 across different export formats?
 
-Model benchmarking in [Ultralytics YOLO](https://docs.ultralytics.com/) refers to the process of assessing the performance of your trained YOLOv8 model across different export formats and hardware setups. This evaluation involves measuring key metrics such as mAP50-95, accuracy_top5, and inference time to determine the optimal balance between speed and accuracy for your specific use case. Benchmarking helps in making informed decisions regarding resource allocation and performance optimization.
-
-### How do I benchmark a YOLOv8 model using Python in Ultralytics?
-
-To benchmark a YOLOv8 model using Python in Ultralytics, you can use the following code snippet:
+Benchmarking Ultralytics YOLOv8 involves evaluating the model's performance in terms of speed and accuracy across various export formats. You can use the `benchmark` function in Python:
 
 ```python
 from ultralytics.utils.benchmarks import benchmark
@@ -122,35 +120,53 @@ from ultralytics.utils.benchmarks import benchmark
 benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
 ```
 
-This code benchmarks the model on a GPU, specifying the model path, dataset, image size, half-precision mode, and the device. For more details, refer to the [usage examples](#usage-examples) section.
+Or via CLI:
+```bash
+yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+```
 
-### What export formats are supported for benchmarking YOLOv8 models?
+This will help you understand the trade-offs between formats like ONNX, TensorRT, and OpenVINO.
 
-Ultralytics YOLOv8 supports a variety of export formats for benchmarking, including:
+### What are the key metrics to consider when benchmarking a YOLO model?
 
-- [ONNX](../integrations/onnx.md) for optimal CPU performance
-- [TensorRT](../integrations/tensorrt.md) for maximal GPU efficiency
-- [OpenVINO](../integrations/openvino.md) for Intel hardware optimization
-- [CoreML](../integrations/coreml.md), [TensorFlow SavedModel](../integrations/tf-savedmodel.md), and more for diverse deployment needs.
+When benchmarking a YOLO model, key metrics include:
+- **mAP50-95:** Measures average precision at IoU thresholds from 0.50 to 0.95, particularly useful for object detection, segmentation, and pose estimation.
+- **accuracy_top5:** Used for image classification to assess the top-5 classification accuracy.
+- **Inference Time:** The time taken for each image inference, typically measured in milliseconds.
 
-Check out the full list of export formats and their details in the [export formats](#export-formats) section.
+These metrics provide a comprehensive view of the model's performance in various real-world scenarios.
 
-### Why is benchmarking crucial for YOLOv8 models?
+### Why should I benchmark my YOLOv8 model using Ultralytics?
 
-Benchmarking is crucial for YOLOv8 models because it provides insights into the trade-offs between speed and accuracy across different export formats and hardware setups. This information allows you to:
+Benchmarking your YOLOv8 model with Ultralytics has several advantages:
+- **Informed Decisions:** Helps you balance trade-offs between model speed and accuracy.
+- **Resource Allocation:** Evaluates how different export formats perform on various hardware.
+- **Optimization:** Identifies the best export format for your specific use case.
+- **Cost Efficiency:** Ensures you are utilizing hardware resources effectively based on benchmark results.
 
-- Make informed decisions about which export format and hardware combination offers the best performance for your use case.
-- Optimize resource allocation by understanding how different setups affect performance.
-- Achieve cost efficiency by using hardware resources more effectively based on benchmark results.
+For a detailed guide, see the [Export](../modes/export.md) page.
 
-Learn more about the importance of benchmarking in the [why is benchmarking crucial](#why-is-benchmarking-crucial) section.
+### What export formats are supported for model benchmarking in Ultralytics YOLOv8?
 
-### What are the key metrics used in the benchmark mode of YOLOv8?
+Ultralytics YOLOv8 supports multiple export formats for benchmarking, including:
+- **ONNX:** Optimized for CPU performance.
+- **TensorRT:** Maximizes GPU efficiency.
+- **OpenVINO:** Optimized for Intel hardware.
+- **CoreML, TensorFlow SavedModel, TF Lite, and more:** Catering to diverse deployment needs.
 
-The key metrics used in the benchmark mode of YOLOv8 include:
+For a complete list and more details, visit the [Supported Export Formats](#supported-export-formats) section.
 
-- **mAP50-95:** Measures the mean Average Precision for object detection, segmentation, and pose estimation tasks.
-- **accuracy_top5:** Indicates the top-5 accuracy for image classification tasks.
-- **Inference Time:** Records the time taken for each image in milliseconds.
+### Can I perform model benchmarking on different devices using Ultralytics YOLOv8?
 
-These metrics help in evaluating the performance of models across different scenarios. For detailed explanations, visit the [key metrics in benchmark mode](#key-metrics-in-benchmark-mode) section.
+Yes, you can benchmark models on various devices using YOLOv8. Specify the device in the benchmarking command:
+- **CPU**: Use `"cpu"`
+- **GPU**: Use `"cuda:0"` or specify multi-GPU setups like `"cuda:0,1"`
+
+Example:
+```python
+benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device="cpu")
+```
+
+This flexibility allows you to assess the performance under different hardware configurations, optimizing for the best deployment scenario.
+
+For further details, check the [Usage Examples](#usage-examples) section.

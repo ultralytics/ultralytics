@@ -69,24 +69,40 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
+
+
 ## FAQ
 
-### What are the standout features of YOLOv4 for real-time object detection?
+### What is YOLOv4 and how does it differ from YOLOv3?
 
-YOLOv4 employs numerous advanced features that enhance both speed and accuracy. These include Weighted-Residual-Connections (WRC), Cross-Stage-Partial-connections (CSP), Cross mini-Batch Normalization (CmBN), Self-adversarial-training (SAT), Mish-activation, Mosaic data augmentation, DropBlock regularization, and CIoU loss. These features work synergistically to deliver state-of-the-art performance in real-time object detection scenarios. To learn more about YOLOv4's architecture, visit the [Architecture section](#architecture).
+YOLOv4 stands for "You Only Look Once" version 4, a state-of-the-art real-time object detection model developed by Alexey Bochkovskiy. Compared to YOLOv3, YOLOv4 incorporates several innovative features such as Weighted-Residual-Connections (WRC), Cross-Stage-Partial connections (CSP), Self-adversarial training (SAT), and more, which enhance both speed and accuracy. The architecture includes the CSPDarknet53 as its backbone, PANet as the neck, and uses YOLOv3 as the detection head. For further details on YOLOv4 features and improvements, explore [YOLOv4 architecture](#architecture).
 
-### How does YOLOv4's "bag of freebies" enhance model performance without additional cost?
+### How can I use YOLOv4 for real-time object detection?
 
-"Bag of freebies" refers to techniques applied during training that improve a model's accuracy without increasing inference time. YOLOv4 uses data augmentation methods including photometric distortions (brightness, contrast, hue adjustments) and geometric distortions (scaling, cropping, flipping). These augmentations increase image variability, thereby enhancing the model's robustness and generalization capabilities. Explore more about these techniques in the [Bag of Freebies section](#bag-of-freebies).
+To use YOLOv4 for real-time object detection, follow these steps:
+1. Clone the YOLOv4 GitHub repository from [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet).
+2. Install the necessary dependencies and set up your environment following the instructions in the README file.
+3. Prepare your dataset and configure the model parameters.
+4. Train the model and use the trained weights to perform object detection.
 
-### Why is YOLOv4 an optimal choice for applications requiring both speed and accuracy?
+For more detailed installation and training instructions, refer to the [Usage Examples](#usage-examples) section.
 
-YOLOv4 is designed to strike the perfect balance between speed and accuracy, making it suitable for real-time applications. Its architecture features CSPDarknet53 as the backbone, PANet as the neck, and YOLOv3 as the detection head, allowing it to run efficiently on a single GPU. This makes YOLOv4 highly versatile and cost-effective for applications across various industries. For detailed performance insights, check the [Features and Performance section](#features-and-performance).
+### Why should I choose YOLOv4 for my object detection tasks?
 
-### Can I use YOLOv4 with Ultralytics' platform for model training and deployment?
+YOLOv4 is designed to balance speed and accuracy, making it highly suitable for real-time applications. Its architecture includes features like CSPDarknet53 for the backbone, PANet for the neck, and YOLOv3 for the detection head, ensuring optimal performance. It also employs "bag of freebies" techniques like Mosaic data augmentation and DropBlock regularization, which improve model accuracy without increasing inference cost. This makes YOLOv4 an excellent choice for applications in autonomous driving, surveillance, and more.
 
-As of the time of writing, Ultralytics does not support YOLOv4 models directly. Users interested in YOLOv4 should refer to the YOLOv4 GitHub repository for installation and usage guidance. Ultralytics is focused on the latest YOLO versions, such as YOLOv8, which you can explore via [Ultralytics HUB](https://www.ultralytics.com/hub).
+### What are the key innovative features of YOLOv4?
 
-### How does YOLOv4 differ from previous versions like YOLOv3?
+YOLOv4 integrates several advanced features to enhance performance, including:
+- Weighted-Residual-Connections (WRC) for better gradient flow.
+- Cross-Stage-Partial connections (CSP) for improved learning efficiency.
+- Mish activation functions for smoother activation regions.
+- Self-adversarial training (SAT) to improve robustness against adversarial attacks.
+- Advanced data augmentation techniques like Mosaic.
+- DropBlock regularization to reduce overfitting.
 
-YOLOv4 introduces several enhancements over YOLOv3, including innovative techniques like WRC, CSP, CmBN, SAT, and more advanced data augmentation methods. These updates significantly improve the model's accuracy and processing speed, making YOLOv4 more adaptable for real-time object detection tasks. For a comparison with YOLOv3, visit the [YOLOv3 documentation](yolov3.md).
+These features collectively contribute to YOLOv4's state-of-the-art results in object detection. For an in-depth look, refer to the [Architecture](#architecture) section.
+
+### Can I train YOLOv4 using a conventional GPU?
+
+Yes, YOLOv4 is designed to be trained and used on a conventional GPU, making it accessible for widespread use without requiring high-end hardware. It efficiently utilizes GPU resources, enabling real-time object detection capabilities even on standard GPU setups. This feature makes YOLOv4 a cost-effective solution for various applications, from security systems to robotics. For training instructions, visit the [Usage Examples](#usage-examples) section.

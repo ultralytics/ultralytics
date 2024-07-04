@@ -801,83 +801,98 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
+
+
 ## FAQ
 
-### How do I perform high-speed real-time inference with Ultralytics YOLOv8?
+### How do I use the streaming mode in Ultralytics YOLOv8 for real-time video processing?
 
-To perform high-speed real-time inference with Ultralytics YOLOv8, you can utilize the predict mode for a variety of input sources like images, videos, and live streams. Use the `stream=True` argument to enable memory-efficient streaming. This allows the model to process long videos without overloading the memory by generating a `Results` object generator. Here is an example:
-
-```python
-from ultralytics import YOLO
-
-model = YOLO("yolov8n.pt")  # Load a pretrained YOLOv8 model
-results = model("path/to/video.mp4", stream=True)  # Use stream=True for efficient memory usage
-
-for result in results:
-    result.show()  # Display each frame's results
-```
-
-For more details, refer to the [predict mode](#Introduction).
-
-### What input sources does Ultralytics YOLOv8 support for inference?
-
-Ultralytics YOLOv8 can run inference on a wide range of input sources including images, videos, URLs, screenshots, and various data formats like PIL Images, OpenCV arrays, numpy arrays, PyTorch tensors, and more. You can also process CSV files containing paths to these sources and live video streams. Here is an example of using a URL as the input source:
+To use streaming mode in Ultralytics YOLOv8 for real-time video processing, you need to set the `stream=True` argument in the prediction call. This feature generates a memory-efficient generator of `Results` objects, ideal for handling live video streams or long videos. Here's an example:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")  # Load a pretrained YOLOv8 model
-url = "https://ultralytics.com/images/bus.jpg"
-results = model(url)
-
-for result in results:
-    result.show()  # Display the results
-```
-
-See the full list of supported input sources in the [Inference Sources](#Inference-Sources) section.
-
-### Why should I use Ultralytics YOLOv8 for model inference?
-
-Ultralytics YOLOv8 offers versatile and high-performance predict mode tailored for real-time inference across various data sources. Key benefits include:
-
-- **Versatility**: Works with images, videos, and live streams.
-- **High Performance**: Designed for fast processing without sacrificing accuracy.
-- **Ease of Use**: Intuitive Python and CLI interfaces.
-- **Customization**: Highly customizable with various settings and parameters.
-
-For more detailed features, refer to the [Key Features of Predict Mode](#Key-Features-of-Predict-Mode) section.
-
-### How can I improve my YOLOv8 model inference performance?
-
-To enhance the performance of your YOLOv8 model inference, you can:
-
-- Use the `half=True` argument for half-precision (FP16) inference if running on compatible GPUs.
-- Adjust `imgsz` for optimal image size.
-- Use `vid_stride` to skip frames in videos.
-- Optimize memory usage with `stream=True`.
-
-```python
-from ultralytics import YOLO
-
+# Load a model
 model = YOLO("yolov8n.pt")
-model.predict("bus.jpg", half=True, imgsz=320, conf=0.5)
+
+# Run inference on a video file with streaming mode enabled
+results = model("path/to/video.mp4", stream=True)
+
+# Process results generator
+for result in results:
+    result.show()  # display to screen
 ```
 
-For further optimization tips, visit the [Inference Arguments](#Inference-Arguments) section.
+For more details, visit the [Streaming Source for-loop](#streaming-source-for-loop) section.
 
-### How do I visualize and save YOLOv8 inference results?
+### What data sources are compatible with Ultralytics YOLOv8 for inference?
 
-You can visualize and save YOLOv8 inference results using the built-in `plot()`, `show()`, and `save()` methods of the `Results` object. This allows you to display, save annotated images, or save results as text files.
+Ultralytics YOLOv8 supports various data sources for inference, including static images, video files, directories, and real-time streams. Compatible formats include:
+
+- **Image files (e.g., JPEG, PNG)**
+- **URLs to images or videos**
+- **Screenshots**
+- **PIL images**
+- **OpenCV images**
+- **NumPy arrays**
+- **PyTorch tensors**
+- **CSV files containing paths**
+- **Video files (e.g., MP4, AVI)**
+- **Directories with images or videos**
+- **Glob patterns to match files**
+- **YouTube URLs**
+- **Streaming URLs (RTSP, RTMP, TCP, IP)**
+
+For a complete list and detailed examples, refer to the [Inference Sources](#inference-sources) section.
+
+### Why should I use Ultralytics YOLOv8 for real-time inference?
+
+Ultralytics YOLOv8 is designed for high-performance, real-time inference with several key advantages:
+
+- **Versatility:** Supports making inferences on images, videos, and live streams.
+- **Performance:** Optimized for real-time, high-speed processing without compromising accuracy.
+- **Ease of Use:** Provides intuitive Python and CLI interfaces for quick deployment and testing.
+- **Customizability:** Offers various settings to tune the model’s inference behavior to your needs.
+
+Explore more about its key features in the [Why Use Ultralytics YOLO for Inference?](#why-use-ultralytics-yolo-for-inference) section.
+
+### How can I perform batch processing with Ultralytics YOLOv8?
+
+Ultralytics YOLOv8 allows for batch processing to speed up inference time by processing multiple images or video frames in a single batch. Below is an example of running batched inference on a list of images:
 
 ```python
 from ultralytics import YOLO
 
+# Load a model
 model = YOLO("yolov8n.pt")
+
+# Run batched inference on a list of images
+results = model(["im1.jpg", "im2.jpg"])  # return a list of Results objects
+
+# Process results
+for result in results:
+    result.show()  # display to screen
+```
+
+### What visualization options are available in Ultralytics YOLOv8?
+
+Ultralytics YOLOv8 offers multiple visualization options through the `plot` method in the `Results` objects. It can overlay detected objects like bounding boxes, masks, keypoints, and probabilities onto the original image. You can also display or save these annotated images. Here is a basic example:
+
+```python
+from PIL import Image
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Run inference on an image
 results = model("bus.jpg")
 
+# Visualize the results
 for result in results:
-    result.show()  # Display results
-    result.save(filename="result.jpg")  # Save to disk
+    annotated_image = result.plot()
+    image = Image.fromarray(annotated_image[..., ::-1])  # Convert BGR to RGB
+    image.show()  # Display the image
 ```
 
-Read more about working with results in the [Working with Results](#Working-with-Results) section.
+Learn more in the [Plotting Results](#plotting-results) section.

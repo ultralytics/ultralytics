@@ -113,31 +113,30 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
+
+
 ## FAQ
 
-### What is YOLOv7 and how does it compare to other real-time object detectors?
+### What is YOLOv7 and why is it superior to other real-time object detectors?
 
-YOLOv7 is a state-of-the-art real-time object detection model known for its superior speed and accuracy. It boasts the highest accuracy among all object detectors running at 30 FPS or higher on GPU V100, achieving 56.8% AP. YOLOv7 outperforms other models such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in both speed and accuracy. For instance, YOLOv7-tiny-SiLU is 127 fps faster and 10.7% more accurate than YOLOv5-N (r6.1). For a detailed comparison, refer to the [Comparison of SOTA object detectors](#comparison-of-sota-object-detectors) section.
+YOLOv7 is a state-of-the-art real-time object detector created by Ultralytics. It surpasses other detectors like YOLOv5, YOLOX, and Scaled-YOLOv4 in both speed and accuracy. YOLOv7 achieves an unprecedented 56.8% Average Precision (AP) on the MS COCO dataset and supports frame rates from 5 FPS to 160 FPS. Unique features include model re-parameterization, dynamic label assignment, and efficient parameter usage, reducing parameters by 40% and computation by 50%. Learn more about its [key features](#key-features).
 
-### What are the key features of YOLOv7?
+### How does YOLOv7 compare to other YOLO models in terms of speed and accuracy?
 
-YOLOv7 introduces several groundbreaking features:
+YOLOv7 outperforms all previous YOLO models in speed and accuracy. For instance, YOLOv7-tiny-SiLU is 127 FPS faster and 10.7% more accurate than YOLOv5-N (r6.1). The YOLOv7-X model is 31 FPS faster and reduces parameter use by 22%, while improving AP by 2.2% compared to YOLOv5-X (r6.1). For an in-depth performance comparison, refer to the [YOLO comparison table](#comparison-of-sota-object-detectors).
 
-1. **Model Re-parameterization:** A planned re-parameterized model strategy to optimize gradient propagation paths.
-2. **Dynamic Label Assignment:** A new label assignment method, coarse-to-fine lead guided label assignment, addressing dynamic targets for multiple output layers.
-3. **Extended and Compound Scaling:** Efficiently utilizes parameters and computation for real-time detection.
-4. **Efficiency:** Reduces parameters by 40% and computation by 50% compared to other state-of-the-art detectors while improving speed and accuracy.
+### How can I start using YOLOv7 for my projects?
 
-For more details, see the [Key Features](#key-features) section.
+To start using YOLOv7, visit the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7) and follow the installation instructions. This includes cloning the repository, installing dependencies, and setting up your environment. Once set up, you can train and use the model by following the provided usage instructions. Although Ultralytics does not currently support YOLOv7 models directly, you can refer to their [usage examples](#usage-examples) for detailed steps.
 
-### How can I use YOLOv7 if Ultralytics does not currently support it?
+### What dataset is YOLOv7 trained on and why is it significant?
 
-To use YOLOv7, you need to visit the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7) and follow the installation instructions provided in the README file. This typically involves cloning the repository, installing dependencies, and configuring the environment. After installation, you can train and use the model as per the usage instructions provided. For further guidance, refer to the [Usage Examples](#usage-examples) section.
+YOLOv7 is trained from scratch on the MS COCO dataset, a large-scale object detection, segmentation, and captioning dataset. This ensures high accuracy and robustness without relying on pre-trained weights or other datasets. The commitment to a single dataset and the optimization techniques applied during training contribute significantly to YOLOv7's exceptional performance metrics.
 
-### Why should I choose YOLOv7 over other YOLO variants like YOLOv5 or Scaled-YOLOv4?
+### What are the key optimization methods introduced in YOLOv7?
 
-YOLOv7 offers significant improvements in both speed and accuracy compared to other YOLO variants. For example, YOLOv7-X improves accuracy (AP) by 2.2% while being 31 fps faster and reducing parameters by 22% compared to YOLOv5-X (r6.1). Similarly, YOLOv7-tiny-SiLU is 127 fps faster and 10.7% more accurate than YOLOv5-N (r6.1). For an in-depth comparison, refer to the [Comparison of SOTA object detectors](#comparison-of-sota-object-detectors) section and the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7).
-
-### What makes YOLOv7 efficient in real-time object detection?
-
-YOLOv7's efficiency stems from its unique features such as model re-parameterization, dynamic label assignment, and extended and compound scaling. These features enable YOLOv7 to achieve high accuracy with reduced computation and parameter usage. As a result, YOLOv7 offers faster inference speeds and higher detection accuracy, making it ideal for various real-time applications. More details can be found in the [Overview](#overview) section.
+YOLOv7 introduces several advanced optimization methods to enhance model performance:
+1. **Model Re-parameterization**: A strategy for optimizing layers across different networks to improve gradient propagation.
+2. **Dynamic Label Assignment**: Coarse-to-fine lead guided label assignment to better train models with multiple output layers.
+3. **Extended and Compound Scaling**: Techniques to effectively use parameters and computation, ensuring efficient scaling.
+These methods collectively contribute to better accuracy and reduced computational costs. For detailed features, see [Key Features](#key-features).

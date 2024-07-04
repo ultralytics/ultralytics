@@ -37,6 +37,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 !!! Example "Update Ultralytics MLflow Settings"
 
     === "Python"
+
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
         ```python
         from ultralytics import settings
@@ -49,6 +50,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
         ```
 
     === "CLI"
+
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Update a setting

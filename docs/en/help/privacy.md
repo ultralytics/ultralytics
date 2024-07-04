@@ -165,10 +165,10 @@ To opt out of data collection, you can simply set `sync=False` in your YOLO sett
 
         ```python
         from ultralytics import settings
-    
+
         # Disable analytics and crash reporting
         settings.update({"sync": False})
-    
+
         # Reset settings to default values
         settings.reset()
         ```
@@ -178,7 +178,7 @@ To opt out of data collection, you can simply set `sync=False` in your YOLO sett
         ```bash
         # Disable analytics and crash reporting
         yolo settings sync=False
-    
+
         # Reset settings to default values
         yolo settings reset
         ```
@@ -199,10 +199,10 @@ Yes, you can easily view your current settings to understand the configuration o
 
         ```python
         from ultralytics import settings
-    
+
         # View all settings
         print(settings)
-    
+
         # Return analytics and crash reporting setting
         value = settings["sync"]
         ```

@@ -95,3 +95,47 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 6. **Code Review & Merging**: After review, if your model meets our criteria, it will be merged into the main repository.
 
 For detailed steps, consult our [Contributing Guide](../help/contributing.md).
+
+## FAQ
+
+### What are the key advantages of using Ultralytics YOLOv8 for object detection?
+
+Ultralytics YOLOv8 offers enhanced capabilities such as real-time object detection, instance segmentation, pose estimation, and classification. Its optimized architecture ensures high-speed performance without sacrificing accuracy, making it ideal for a variety of applications. YOLOv8 also includes built-in compatibility with popular datasets and models, as detailed on the [YOLOv8 documentation page](../models/yolov8.md).
+
+### How can I train a YOLOv8 model on custom data?
+
+Training a YOLOv8 model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n model
+        model = YOLO("yolov8n.pt")
+
+        # Train the model on custom dataset
+        results = model.train(data="custom_data.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolov8n.pt data='custom_data.yaml' epochs=100 imgsz=640
+        ```
+
+For more detailed instructions, visit the [Train](../modes/train.md) documentation page.
+
+### Which YOLO versions are supported by Ultralytics?
+
+Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLOv10, along with models like NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
+
+### Why should I use Ultralytics HUB for machine learning projects?
+
+Ultralytics HUB provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers cloud training capabilities, comprehensive dataset management, and user-friendly interfaces. Learn more about it on the [Ultralytics HUB](../hub/index.md) documentation page.
+
+### What types of tasks can YOLOv8 perform, and how does it compare to other YOLO versions?
+
+YOLOv8 is a versatile model capable of performing tasks including object detection, instance segmentation, classification, and pose estimation. Compared to earlier versions like YOLOv3 and YOLOv4, YOLOv8 offers significant improvements in speed and accuracy due to its optimized architecture. For a deeper comparison, refer to the [YOLOv8 documentation](../models/yolov8.md) and the [Task pages](../tasks/index.md) for more details on specific tasks.

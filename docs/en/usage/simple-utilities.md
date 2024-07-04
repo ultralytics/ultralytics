@@ -569,15 +569,16 @@ make_divisible(7, 2)
 # >>> 8
 ```
 
-
-
 ## FAQ
 
 ### How do I use Ultralytics YOLO Data Explorer to understand my dataset?
+
 Ultralytics YOLO Data Explorer, introduced in the 8.1.0 anniversary update, is a powerful tool that allows you to better understand your dataset using text queries to find specific object instances. To learn more about this feature, visit the [YOLO Explorer](../datasets/explorer/index.md) page.
 
 ### What is the process for auto-annotating datasets with Ultralytics YOLO and SAM?
+
 Auto-annotation with Ultralytics YOLO involves using a trained object detection model in combination with SAM for segment-based annotations. Here’s an example of how to use the `auto_annotate` function:
+
 ```python
 from ultralytics.data.annotator import auto_annotate
 
@@ -589,10 +590,13 @@ auto_annotate(
     output_dir="path/to/save_labels",
 )
 ```
+
 For more details, see the [reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) and consider combining with the [`segments2boxes` function](#convert-segments-to-bounding-boxes).
 
 ### How can I convert COCO JSON annotations into YOLO format?
+
 Ultralytics provides a `convert_coco` function that converts COCO JSON annotations into the YOLO format. Here’s a sample code snippet:
+
 ```python
 from ultralytics.data.converter import convert_coco
 
@@ -603,21 +607,28 @@ convert_coco(
     cls91to80=True,
 )
 ```
+
 For additional information, visit the [converter reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
 ### Why should I use Ultralytics' `compress_one_image` function for image compression?
+
 Ultralytics’ `compress_one_image` function is ideal to reduce image size while maintaining its aspect ratio and quality. This can be particularly beneficial for optimizing datasets. Here’s how to use it:
+
 ```python
 from pathlib import Path
+
 from ultralytics.data.utils import compress_one_image
 
 for f in Path("path/to/dataset").rglob("*.jpg"):
     compress_one_image(f)
 ```
+
 Learn more from the [utilities documentation](../reference/data/utils.md).
 
 ### What are the advantages of the `autosplit` function for dataset splitting?
+
 The `autosplit` function in Ultralytics allows you to automatically split your dataset into train/val/test sets using specified fractions. This feature ensures a balanced dataset split for better training performance. Example usage:
+
 ```python
 from ultralytics.data.utils import autosplit
 
@@ -627,6 +638,7 @@ autosplit(
     annotated_only=False,  # split only images with annotation file when True
 )
 ```
+
 For more details, check the [`autosplit` function](../reference/data/utils.md#ultralytics.data.utils.autosplit).
 
 By addressing these common questions, users will find it easier to navigate and utilize Ultralytics' comprehensive set of tools and utilities, enhancing their AI and machine learning workflows.

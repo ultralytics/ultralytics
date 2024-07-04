@@ -100,8 +100,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_export_start` | Triggered when the export process starts |
 | `on_export_end`   | Triggered when the export process ends   |
 
-
-
 ## FAQ
 
 ### What are Ultralytics callbacks and how do they enhance the model training process?
@@ -115,10 +113,12 @@ You can customize prediction results in Ultralytics YOLOv8 by defining and addin
 ```python
 from ultralytics import YOLO
 
+
 def on_predict_batch_end(predictor):
     _, image, _, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -126,6 +126,7 @@ model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass
 ```
+
 This code snippet shows how you can modify the predictor results to include both the prediction outputs and the original input frames.
 
 ### Why should I use Ultralytics YOLO for my machine learning projects?
@@ -134,7 +135,8 @@ Ultralytics YOLO (You Only Look Once) is a state-of-the-art real-time object det
 
 ### What are the key differences between Trainer, Validator, and Predictor objects in Ultralytics?
 
-In Ultralytics, Trainer, Validator, and Predictor objects are tailored for different stages of the machine learning workflow. 
+In Ultralytics, Trainer, Validator, and Predictor objects are tailored for different stages of the machine learning workflow.
+
 - **Trainer**: Used during the training phase, it handles the loading of datasets, model training, and logging of metrics.
 - **Validator**: Utilized during the validation phase, it evaluates the model’s performance using a validation dataset and calculates metrics such as accuracy and loss.
 - **Predictor**: Employed in the prediction phase, it takes new input data, runs the model inference, and processes the prediction results.

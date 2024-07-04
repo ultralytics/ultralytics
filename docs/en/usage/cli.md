@@ -231,8 +231,6 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
         yolo cfg=default_copy.yaml imgsz=320
         ```
 
-
-
 ## FAQ
 
 ### What is the YOLOv8 Command Line Interface (CLI) and how do I use it?
@@ -242,35 +240,45 @@ The YOLOv8 CLI allows users to execute detection tasks without requiring a Pytho
 ### How do I train a YOLOv8 model using the CLI?
 
 To train a YOLOv8 model, you can use the `yolo train` command with the appropriate arguments. For example, you can train a detection model on the COCO8 dataset for 100 epochs at image size 640 using:
+
 ```bash
 yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
 ```
+
 For more training options and arguments, visit the [Configuration](cfg.md) page.
 
 ### How can I use the YOLOv8 CLI to validate a model?
 
 You can validate a YOLOv8 model using the `yolo val` command. For example, to validate an official YOLOv8n model, you can use:
+
 ```bash
 yolo detect val model=yolov8n.pt
 ```
+
 To validate a custom model, update the model path:
+
 ```bash
 yolo detect val model=path/to/best.pt
 ```
+
 For additional validation details, refer to the [Validation](#val) section.
 
 ### What formats can YOLOv8 models be exported to using the CLI?
 
 YOLOv8 models can be exported to various formats including ONNX, TorchScript, CoreML, and TensorRT using the `yolo export` command with the `format` argument. For example, to export a YOLOv8n model to ONNX format:
+
 ```bash
 yolo export model=yolov8n.pt format=onnx
 ```
+
 A complete list of supported formats and their corresponding arguments can be found on the [Export](../modes/export.md) page.
 
 ### How do I run predictions on a YouTube video using the YOLOv8 CLI?
 
 To run predictions using a pretrained segmentation model on a YouTube video, you can use the `yolo predict` command. For example:
+
 ```bash
 yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 ```
+
 For more prediction options and sources, see the [Prediction](#predict) section.

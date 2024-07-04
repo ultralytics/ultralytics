@@ -94,8 +94,6 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 There are other components that can be customized similarly like `Validators` and `Predictors`. See Reference section for more information on these.
 
-
-
 ## FAQ
 
 ### How do I customize the YOLOv8 `DetectionTrainer` for specific tasks?
@@ -104,6 +102,7 @@ To customize the YOLOv8 `DetectionTrainer` for specific tasks, you can subclass 
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
+
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
@@ -132,15 +131,18 @@ To integrate custom loss functions in the YOLOv8 Trainer, you can subclass the `
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DetectionModel
 
+
 class MyCustomModel(DetectionModel):
     def init_criterion(self):
         """Initializes the loss function and adds a callback for uploading the model to Google Drive every 10 epochs."""
         ...
 
+
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
         """Returns a customized detection model instance configured with specified config and weights."""
         return MyCustomModel(...)
+
 
 trainer = CustomTrainer(overrides={...})
 trainer.train()
@@ -158,8 +160,10 @@ In `BaseTrainer`, the key functions to override for custom models include:
 These functions allow you to define specific configurations and data processing steps tailored to your custom models.
 
 Example:
+
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
+
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):

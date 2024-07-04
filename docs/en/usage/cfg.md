@@ -278,8 +278,6 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
 
-
-
 ## FAQ
 
 ### What are the key hyperparameters for training Ultralytics YOLOv8 models?
@@ -302,7 +300,7 @@ To improve the accuracy of your YOLOv8 model predictions:
 1. **Adjust the confidence threshold**: Lower the `conf` argument to include more detections.
 2. **Tune the IoU threshold**: Modify the `iou` argument to manage overlapping bounding boxes.
 3. **Input Image Size (`imgsz`)**: Increase the image size to enhance model resolution and detection accuracy.
-4. **Augmentation**: Use augmentation techniques like Mosaic or MixUp during training. 
+4. **Augmentation**: Use augmentation techniques like Mosaic or MixUp during training.
 
 Refer to the [prediction guide](../modes/predict.md) for more details.
 
@@ -322,11 +320,14 @@ To export a trained Ultralytics YOLO model:
 
 1. Use the CLI command: `yolo export format=[desired_format] device=[target_device]`.
 2. Or, in Python:
-   ```python
-   from ultralytics import YOLO
-   model = YOLO("best.pt")
-   model.export(format="onnx")
-   ```
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("best.pt")
+    model.export(format="onnx")
+    ```
+
 3. Available formats include ONNX, TorchScript, TensorFlow, among others.
 
 For detailed instructions, visit the [export guide](../modes/export.md).

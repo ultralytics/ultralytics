@@ -103,27 +103,33 @@ Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look 
 ### How can I get started with YOLO installation and setup?
 
 Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using pip and get up and running in minutes. Here’s a basic installation command:
+
 ```bash
 pip install ultralytics
 ```
+
 For a comprehensive step-by-step guide, visit our [quickstart guide](quickstart.md). This resource will help you with installation instructions, initial setup, and running your first model.
 
 ### How can I train a custom YOLO model on my dataset?
 
 Training a custom YOLO model on your dataset involves a few detailed steps:
+
 1. Prepare your annotated dataset.
 2. Configure the training parameters in a YAML file.
 3. Use the `yolo train` command to start training.
 
 Here's an example command:
+
 ```bash
 yolo train model=yolov8n.pt data=coco128.yaml epochs=100 imgsz=640
 ```
+
 For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide, which includes examples and tips for optimizing your training process.
 
 ### What are the licensing options available for Ultralytics YOLO?
 
 Ultralytics offers two licensing options for YOLO:
+
 - **AGPL-3.0 License**: This open-source license is ideal for educational and non-commercial use, promoting open collaboration.
 - **Enterprise License**: This is designed for commercial applications, allowing seamless integration of Ultralytics software into commercial products without the restrictions of the AGPL-3.0 license.
 
@@ -132,7 +138,9 @@ For more details, visit our [Licensing](https://ultralytics.com/license) page.
 ### How can Ultralytics YOLO be used for real-time object tracking?
 
 Ultralytics YOLO supports efficient and customizable multi-object tracking. To utilize tracking capabilities, you can use the `yolo track` command as shown below:
+
 ```bash
 yolo track model=yolov8n.pt source=video.mp4
 ```
+
 For a detailed guide on setting up and running object tracking, check our [tracking mode](modes/track.md) documentation, which explains the configuration and practical applications in real-time scenarios.

@@ -186,6 +186,7 @@ To start using VisionEye Object Mapping with Ultralytics YOLOv8, first, you'll n
 
 ```python
 import cv2
+
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
@@ -200,7 +201,7 @@ while True:
     for result in results:
         # Perform custom logic with result
         pass
-    
+
     cv2.imshow("visioneye", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
@@ -223,8 +224,9 @@ VisionEye’s object tracking with Ultralytics YOLOv8 allows users to follow the
 Here's a brief code snippet demonstrating tracking with VisionEye:
 
 ```python
-from ultralytics import YOLO
 import cv2
+
+from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -238,7 +240,7 @@ while True:
     for result in results:
         # Annotate and visualize tracking
         pass
-    
+
     cv2.imshow("visioneye-tracking", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
@@ -257,7 +259,9 @@ Here's a simplified example:
 
 ```python
 import math
+
 import cv2
+
 from ultralytics import YOLO
 
 model = YOLO("yolov8s.pt")
@@ -273,7 +277,10 @@ while True:
     results = model.track(frame, persist=True)
     for result in results:
         # Calculate distance logic
-        distances = [(math.sqrt((box[0] - center_point[0])**2 + (box[1] - center_point[1])**2)) / pixel_per_meter for box in results]
+        distances = [
+            (math.sqrt((box[0] - center_point[0]) ** 2 + (box[1] - center_point[1]) ** 2)) / pixel_per_meter
+            for box in results
+        ]
 
     cv2.imshow("visioneye-distance", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):

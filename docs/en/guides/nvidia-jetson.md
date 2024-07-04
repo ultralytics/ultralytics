@@ -372,7 +372,7 @@ Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For fur
 
 ### How do I deploy Ultralytics YOLOv8 on NVIDIA Jetson devices?
 
-Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Start with Docker](#start-with-docker) and [Start without Docker](#start-without-docker). 
+Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Start with Docker](#start-with-docker) and [Start without Docker](#start-without-docker).
 
 ### What performance benchmarks can I expect from YOLOv8 models on NVIDIA Jetson devices?
 
@@ -389,8 +389,9 @@ To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existin
 ### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLOv8?
 
 To maximize performance on NVIDIA Jetson with YOLOv8, follow these best practices:
+
 1. Enable MAX Power Mode to utilize all CPU and GPU cores.
 2. Enable Jetson Clocks to run all cores at their maximum frequency.
-3. Install the Jetson Stats application for monitoring system metrics. 
+3. Install the Jetson Stats application for monitoring system metrics.
 
 For commands and additional details, refer to the [Best Practices when using NVIDIA Jetson](#best-practices-when-using-nvidia-jetson) section.

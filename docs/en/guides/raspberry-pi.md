@@ -386,22 +386,20 @@ For more information about Kashmir World Foundation's activities, you can visit 
 To set up Ultralytics YOLOv8 on a Raspberry Pi without Docker, follow these steps:
 
 1. Update the package list and install `pip`:
-   ```bash
-   sudo apt update
-   sudo apt install python3-pip -y
-   pip install -U pip
-   ```
-   
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
 2. Install the Ultralytics package with optional dependencies:
-   ```bash
-   pip install ultralytics[export]
-   ```
-   
+    ```bash
+    pip install ultralytics[export]
+    ```
 3. Reboot the device to apply changes:
-   ```bash
-   sudo reboot
-   ```
-   
+    ```bash
+    sudo reboot
+    ```
+
 For detailed instructions, refer to the [Start without Docker](#start-without-docker) section.
 
 ### Why should I use Ultralytics YOLOv8's NCNN format on Raspberry Pi for AI tasks?
@@ -415,7 +413,7 @@ You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -431,9 +429,9 @@ You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI
         # Run inference
         results = ncnn_model("https://ultralytics.com/images/bus.jpg")
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         # Export a YOLOv8n PyTorch model to NCNN format
         yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
@@ -459,9 +457,11 @@ These enhancements contribute to better performance benchmarks for YOLOv8 models
 There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
 
 1. **Using `picamera2`**:
+
     ```python
     import cv2
     from picamera2 import Picamera2
+
     from ultralytics import YOLO
 
     picam2 = Picamera2()
@@ -470,7 +470,7 @@ There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
     picam2.preview_configuration.align()
     picam2.configure("preview")
     picam2.start()
-    
+
     model = YOLO("yolov8n.pt")
 
     while True:
@@ -486,12 +486,14 @@ There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
     ```
 
 2. **Using a TCP Stream**:
+
     ```bash
     rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
     ```
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n.pt")
     results = model("tcp://127.0.0.1:8888")
     ```

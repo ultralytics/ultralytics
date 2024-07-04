@@ -197,7 +197,7 @@ Ultralytics YOLOv8 offers multiple advantages for real-time object detection:
 - **High Accuracy**: Advanced algorithm ensures high mAP and IoU scores, balancing precision and recall.
 - **Flexibility**: Supports various tasks including object detection, segmentation, and classification.
 - **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with platforms like Ultralytics HUB ([HUB Quickstart](../hub/quickstart)).
-   
+
 This makes YOLOv8 ideal for diverse applications from autonomous vehicles to smart city solutions.
 
 ### How can validation metrics from YOLOv8 help improve model performance?

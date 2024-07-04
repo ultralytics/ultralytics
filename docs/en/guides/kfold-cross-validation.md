@@ -290,12 +290,13 @@ K-Fold Cross Validation is a technique where the dataset is divided into 'k' sub
 ### How do I implement K-Fold Cross Validation using Ultralytics YOLO?
 
 To implement K-Fold Cross Validation with Ultralytics YOLO, you need to follow these steps:
+
 1. Verify annotations are in the [YOLO detection format](../datasets/detect/index.md).
 2. Use Python libraries like `sklearn`, `pandas`, and `pyyaml`.
 3. Create feature vectors from your dataset.
 4. Split your dataset using `KFold` from `sklearn.model_selection`.
 5. Train the YOLO model on each split.
-   
+
 For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split) section in our documentation.
 
 ### Why should I use Ultralytics YOLO for object detection?

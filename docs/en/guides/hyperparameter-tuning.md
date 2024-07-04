@@ -213,9 +213,9 @@ For deeper insights, you can explore the `Tuner` class source code and accompany
 To optimize the learning rate for Ultralytics YOLO, start by setting an initial learning rate using the `lr0` parameter. Common values range from `0.001` to `0.01`. During the hyperparameter tuning process, this value will be mutated to find the optimal setting. You can utilize the `model.tune()` method to automate this process. For example:
 
 !!! Example
-    
+
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -225,7 +225,8 @@ To optimize the learning rate for Ultralytics YOLO, start by setting an initial 
         # Tune hyperparameters on COCO8 for 30 epochs
         model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
-     
+
+
 For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.md#augmentation-settings).
 
 ### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLOv8?

@@ -130,6 +130,7 @@ Ultralytics YOLOv8 greatly enhances parking management systems by providing **re
 ### What are the benefits of using Ultralytics YOLOv8 for smart parking?
 
 Using Ultralytics YOLOv8 for smart parking yields numerous benefits:
+
 - **Efficiency**: Optimizes the use of parking spaces and decreases congestion.
 - **Safety and Security**: Enhances surveillance and ensures the safety of vehicles and pedestrians.
 - **Environmental Impact**: Helps in reducing emissions by minimizing vehicle idle times. More details on the advantages can be seen [here](#advantages-of-parking-management-system).
@@ -137,6 +138,7 @@ Using Ultralytics YOLOv8 for smart parking yields numerous benefits:
 ### How can I define parking spaces using Ultralytics YOLOv8?
 
 Defining parking spaces is straightforward with Ultralytics YOLOv8:
+
 1. Capture a frame from a video or camera stream.
 2. Use the provided code to launch a GUI for selecting an image and drawing polygons to define parking spaces.
 3. Save the labeled data in JSON format for further processing. For comprehensive instructions, check the [selection of points](#selection-of-points) section.
@@ -148,6 +150,7 @@ Yes, Ultralytics YOLOv8 allows customization for specific parking management nee
 ### What are some real-world applications of Ultralytics YOLOv8 in parking lot management?
 
 Ultralytics YOLOv8 is utilized in various real-world applications for parking lot management, including:
+
 - **Parking Space Detection**: Accurately identifying available and occupied spaces.
 - **Surveillance**: Enhancing security through real-time monitoring.
 - **Traffic Flow Management**: Reducing idle times and congestion with efficient traffic handling. Images showcasing these applications can be found in [real-world applications](#real-world-applications).

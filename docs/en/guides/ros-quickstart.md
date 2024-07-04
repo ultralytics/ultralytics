@@ -533,17 +533,20 @@ Next, create a ROS node and subscribe to an [image topic](../tasks/detect.md) to
 import ros_numpy
 import rospy
 from sensor_msgs.msg import Image
+
 from ultralytics import YOLO
 
 detection_model = YOLO("yolov8m.pt")
 rospy.init_node("ultralytics")
 det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
 
+
 def callback(data):
     array = ros_numpy.numpify(data)
     det_result = detection_model(array)
     det_annotated = det_result[0].plot(show=False)
     det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+
 
 rospy.Subscriber("/camera/color/image_raw", Image, callback)
 rospy.spin()
@@ -577,15 +580,17 @@ Here's an example using Open3D for visualization:
 
 ```python
 import sys
-import time
+
 import open3d as o3d
 import ros_numpy
 import rospy
 from sensor_msgs.msg import PointCloud2
+
 from ultralytics import YOLO
 
 rospy.init_node("ultralytics")
 segmentation_model = YOLO("yolov8m-seg.pt")
+
 
 def pointcloud2_to_array(pointcloud2):
     pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
@@ -594,6 +599,7 @@ def pointcloud2_to_array(pointcloud2):
     xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
     xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
     return xyz, rgb
+
 
 ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
 xyz, rgb = pointcloud2_to_array(ros_cloud)
@@ -607,10 +613,10 @@ classes = result[0].boxes.cls.cpu().numpy().astype(int)
 for index, class_id in enumerate(classes):
     mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
     mask_expanded = np.stack([mask, mask, mask], axis=2)
-    
+
     obj_rgb = rgb * mask_expanded
     obj_xyz = xyz * mask_expanded
-    
+
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((-1, 3)))
     pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((-1, 3)) / 255)

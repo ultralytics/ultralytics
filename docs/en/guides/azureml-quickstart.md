@@ -160,6 +160,7 @@ Running YOLOv8 on AzureML for model training involves several steps:
 1. **Create a Compute Instance**: From your AzureML workspace, navigate to Compute > Compute instances > New, and select the required instance.
 
 2. **Setup Environment**: Start your compute instance, open a terminal, and create a conda environment:
+
     ```bash
     conda create --name yolov8env -y
     conda activate yolov8env
@@ -199,13 +200,16 @@ For additional guidance, review our [YOLO Common Issues](https://docs.ultralytic
 Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface seamlessly:
 
 - **CLI**: Ideal for quick tasks and running standard scripts directly from the terminal.
+
     ```bash
     yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
     ```
 
 - **Python Interface**: Useful for more complex tasks requiring custom coding and integration within notebooks.
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n.pt")
     model.train(data="coco8.yaml", epochs=3)
     ```

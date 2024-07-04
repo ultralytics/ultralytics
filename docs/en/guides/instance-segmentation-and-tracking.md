@@ -148,6 +148,7 @@ To perform instance segmentation using Ultralytics YOLOv8, initialize the YOLO m
 
         ```python
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
@@ -201,7 +202,9 @@ To implement object tracking, use the `model.track` method and ensure that each 
 
         ```python
         from collections import defaultdict
+
         import cv2
+
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 

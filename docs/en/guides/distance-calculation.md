@@ -111,6 +111,7 @@ To calculate distances between objects using [Ultralytics YOLOv8](https://github
 ### What are the advantages of using distance calculation with Ultralytics YOLOv8?
 
 Using distance calculation with Ultralytics YOLOv8 offers several advantages:
+
 - **Localization Precision:** Provides accurate spatial positioning for objects.
 - **Size Estimation:** Helps estimate physical sizes, contributing to better contextual understanding.
 - **Scene Understanding:** Enhances 3D scene comprehension, aiding improved decision-making in applications like autonomous driving and surveillance.
@@ -132,6 +133,6 @@ The key arguments for initializing the `DistanceCalculation` class in Ultralytic
 - `view_img`: Flag to indicate if the video stream should be displayed.
 - `line_thickness`: Thickness of the lines drawn on the image.
 - `line_color`: Color of the lines drawn on the image (BGR format).
-- `centroid_color`: Color of the centroids (BGR format). 
+- `centroid_color`: Color of the centroids (BGR format).
 
 For an exhaustive list and default values, see the [arguments of DistanceCalculation](#arguments-distancecalculation).

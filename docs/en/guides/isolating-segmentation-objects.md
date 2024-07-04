@@ -315,17 +315,19 @@ for r in res:
 To isolate objects using Ultralytics YOLOv8, follow these steps:
 
 1. **Load the model and run inference:**
+
     ```python
     from ultralytics import YOLO
 
     model = YOLO("yolov8n-seg.pt")
-    results = model.predict(source='path/to/your/image.jpg')
+    results = model.predict(source="path/to/your/image.jpg")
     ```
 
 2. **Generate a binary mask and draw contours:**
+
     ```python
-    import numpy as np
     import cv2
+    import numpy as np
 
     img = np.copy(results[0].orig_img)
     b_mask = np.zeros(img.shape[:2], np.uint8)
@@ -342,9 +344,11 @@ To isolate objects using Ultralytics YOLOv8, follow these steps:
 Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task](../tasks/segment.md) for more information.
 
 ### What options are available for saving the isolated objects after segmentation?
+
 Ultralytics YOLOv8 offers two main options for saving isolated objects:
 
 1. **With a Black Background:**
+
     ```python
     mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
     isolated = cv2.bitwise_and(mask3ch, img)
@@ -362,6 +366,7 @@ For further details, visit the [Predict Mode](../modes/predict.md) section.
 To crop isolated objects to their bounding boxes:
 
 1. **Retrieve bounding box coordinates:**
+
     ```python
     x1, y1, x2, y2 = results[0].boxes.xyxy[0].cpu().numpy().astype(np.int32)
     ```
@@ -386,8 +391,9 @@ Explore the benefits of using YOLO in the [Segment Task documentation](../tasks/
 ### Can I save isolated objects including the background using Ultralytics YOLOv8?
 
 Yes, this is a built-in feature in Ultralytics YOLOv8. Use the `save_crop` argument in the `predict()` method. For example:
+
 ```python
-results = model.predict(source='path/to/your/image.jpg', save_crop=True)
+results = model.predict(source="path/to/your/image.jpg", save_crop=True)
 ```
 
 Read more about the `save_crop` argument in the [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) section.

@@ -119,6 +119,7 @@ Estimating object speed with Ultralytics YOLOv8 involves combining object detect
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")

@@ -154,11 +154,13 @@ To test your Ultralytics YOLOv8 model on multiple images, you can use the [predi
 ### What should I do if my computer vision model shows signs of overfitting or underfitting?
 
 To address **overfitting**:
+
 - Regularization techniques like dropout.
 - Increase the size of the training dataset.
 - Simplify the model architecture.
 
 To address **underfitting**:
+
 - Use a more complex model.
 - Provide more relevant features.
 - Increase training iterations or epochs.
@@ -168,12 +170,14 @@ Review misclassified images, perform thorough error analysis, and regularly trac
 ### How can I detect and avoid data leakage in computer vision?
 
 To detect data leakage:
+
 - Verify that the testing performance is not unusually high.
 - Check feature importance for unexpected insights.
 - Intuitively review model decisions.
 - Ensure correct data division before processing.
 
 To avoid data leakage:
+
 - Use diverse datasets with various environments.
 - Carefully review data for hidden biases.
 - Ensure no overlapping information between training and testing sets.
@@ -183,6 +187,7 @@ For detailed strategies on preventing data leakage, refer to our section on [Dat
 ### What steps should I take after testing my computer vision model?
 
 Post-testing, if the model performance meets the project goals, proceed with deployment. If the results are unsatisfactory, consider:
+
 - Error analysis.
 - Gathering more diverse and high-quality data.
 - Hyperparameter tuning.

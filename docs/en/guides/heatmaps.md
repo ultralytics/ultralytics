@@ -343,6 +343,7 @@ Yes, Ultralytics YOLOv8 supports object tracking and heatmap generation concurre
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
@@ -355,13 +356,14 @@ while cap.isOpened():
         break
     tracks = model.track(im0, persist=True, show=False)
     im0 = heatmap_obj.generate_heatmap(im0, tracks)
-    cv2.imshow('Heatmap', im0)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    cv2.imshow("Heatmap", im0)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
 cv2.destroyAllWindows()
 ```
+
 For further guidance, check the [Tracking Mode](../modes/track.md) page.
 
 ### What makes Ultralytics YOLOv8 heatmaps different from other data visualization tools like those from OpenCV or Matplotlib?
@@ -370,10 +372,11 @@ Ultralytics YOLOv8 heatmaps are specifically designed for integration with its o
 
 ### How can I visualize only specific object classes in heatmaps using Ultralytics YOLOv8?
 
-You can visualize specific object classes by specifying the desired classes in the `track()` method of the YOLO model. For instance, if you only want to visualize cars and persons (assuming their class indices are 0 and 2), you can set the `classes` parameter accordingly. 
+You can visualize specific object classes by specifying the desired classes in the `track()` method of the YOLO model. For instance, if you only want to visualize cars and persons (assuming their class indices are 0 and 2), you can set the `classes` parameter accordingly.
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
@@ -387,13 +390,14 @@ while cap.isOpened():
         break
     tracks = model.track(im0, persist=True, show=False, classes=classes_for_heatmap)
     im0 = heatmap_obj.generate_heatmap(im0, tracks)
-    cv2.imshow('Heatmap', im0)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    cv2.imshow("Heatmap", im0)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
 cv2.destroyAllWindows()
 ```
+
 For more customization options, see the [Heatmaps using Ultralytics YOLOv8 Example](#example-heatmaps-using-ultralytics-yolov8-example).
 
 ### Why should businesses choose Ultralytics YOLOv8 for heatmap generation in data analysis?

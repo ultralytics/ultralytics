@@ -340,6 +340,7 @@ Example:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8s.pt")
@@ -377,6 +378,7 @@ Use the following example to generate a bar plot:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8s.pt")
@@ -389,7 +391,10 @@ while cap.isOpened():
     success, frame = cap.read()
     if success:
         results = model.track(frame, persist=True)
-        clswise_count = {model.names[int(cls)]: boxes.size(0) for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)}
+        clswise_count = {
+            model.names[int(cls)]: boxes.size(0)
+            for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)
+        }
         analytics.update_bar(clswise_count)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
@@ -414,6 +419,7 @@ Here’s a quick example:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8s.pt")
@@ -426,7 +432,10 @@ while cap.isOpened():
     success, frame = cap.read()
     if success:
         results = model.track(frame, persist=True)
-        clswise_count = {model.names[int(cls)]: boxes.size(0) for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)}
+        clswise_count = {
+            model.names[int(cls)]: boxes.size(0)
+            for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)
+        }
         analytics.update_pie(clswise_count)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
@@ -446,6 +455,7 @@ Example for tracking and updating a line graph:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8s.pt")

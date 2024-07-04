@@ -334,14 +334,14 @@ Yes, YOLOv8 models can be deployed on mobile devices using TensorFlow Lite (TF L
 !!! Example
 
     === "Python"
-    
+
         ```python
         # Export command for TFLite format
-        model.export(format='tflite')
+        model.export(format="tflite")
         ```
 
     === "CLI"
-    
+
         ```bash
         # CLI command for TFLite export
         yolo export --format tflite
@@ -352,6 +352,7 @@ For more details on deploying models to mobile, refer to our [TF Lite integratio
 ### What factors should I consider when choosing a deployment format for my YOLOv8 model?
 
 When choosing a deployment format for YOLOv8, consider the following factors:
+
 - **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
 - **Compatibility**: ONNX offers broad compatibility across different platforms.
 - **Ease of Integration**: Formats like CoreML or TF Lite are tailored for specific ecosystems like iOS and Android, respectively.

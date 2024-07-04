@@ -119,15 +119,19 @@ For more advanced scenarios and to further optimize your multi-threaded inferenc
 To prevent race conditions when using Ultralytics YOLO models in a multi-threaded Python environment, instantiate a separate YOLO model within each thread. This ensures that each thread has its own isolated model instance, avoiding concurrent modification of the model state.
 
 Example:
+
 ```python
 from threading import Thread
+
 from ultralytics import YOLO
+
 
 def thread_safe_predict(image_path):
     """Predict on an image in a thread-safe manner."""
     local_model = YOLO("yolov8n.pt")
     results = local_model.predict(image_path)
     # Process results
+
 
 Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
 Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
@@ -138,20 +142,25 @@ For more information on ensuring thread safety, visit the [Thread-Safe Inference
 ### What are the best practices for running multi-threaded YOLO model inference in Python?
 
 To run multi-threaded YOLO model inference safely in Python, follow these best practices:
+
 1. Instantiate YOLO models within each thread rather than sharing a single model instance across threads.
 2. Use Python’s `multiprocessing` module for parallel processing to avoid issues related to Global Interpreter Lock (GIL).
 3. Release the GIL by using operations performed by YOLO's underlying C libraries.
 
 Example for thread-safe model instantiation:
+
 ```python
 from threading import Thread
+
 from ultralytics import YOLO
+
 
 def thread_safe_predict(image_path):
     """Runs inference in a thread-safe manner with a new YOLO model instance."""
     model = YOLO("yolov8n.pt")
     results = model.predict(image_path)
     # Process results
+
 
 # Initiate multiple threads
 Thread(target=thread_safe_predict, args=("image1.jpg",)).start()

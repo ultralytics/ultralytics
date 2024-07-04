@@ -320,17 +320,20 @@ Yes, the guide for deploying Ultralytics YOLOv8 with the DeepStream SDK and Tens
 
 ### How can I convert a YOLOv8 model to ONNX for DeepStream?
 
-To convert a YOLOv8 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository. 
+To convert a YOLOv8 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
 
 Here's an example command:
+
 ```bash
 python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
 ```
+
 For more details on model conversion, check out our [model export section](#convert-model-to-onnx).
 
 ### What are the performance benchmarks for YOLOv8 on NVIDIA Jetson Orin NX?
 
 The performance of YOLOv8 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
+
 - **FP32 Precision**: 15.63 ms/im, 64 FPS
 - **FP16 Precision**: 7.94 ms/im, 126 FPS
 - **INT8 Precision**: 5.53 ms/im, 181 FPS

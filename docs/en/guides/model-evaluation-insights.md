@@ -155,19 +155,20 @@ To handle variable image sizes during evaluation, use the `rect=true` parameter 
 ### What practical steps can I take to improve mean average precision for my YOLOv8 model?
 
 Improving mean average precision (mAP) for a YOLOv8 model involves several steps:
+
 1. **Tuning Hyperparameters**: Experiment with different learning rates, batch sizes, and image augmentations.
 2. **Data Augmentation**: Use techniques like Mosaic and MixUp to create diverse training samples.
 3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
-Refer to our detailed guide on [model fine-tuning](#tips-for-fine-tuning-your-model) for specific strategies.
+   Refer to our detailed guide on [model fine-tuning](#tips-for-fine-tuning-your-model) for specific strategies.
 
 ### How do I access YOLOv8 model evaluation metrics in Python?
 
 You can access YOLOv8 model evaluation metrics using Python with the following steps:
 
 !!! Example "Usage"
-    
+
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -183,5 +184,6 @@ You can access YOLOv8 model evaluation metrics using Python with the following s
         print("Mean average precision at IoU=0.50:", results.box.map50)
         print("Mean recall:", results.box.mr)
         ```
-        
+
+
 Analyzing these metrics helps fine-tune and optimize your YOLOv8 model. For a deeper dive, check out our guide on [YOLOv8 metrics](../modes/val.md).

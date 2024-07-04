@@ -96,6 +96,7 @@ Object counting in specified regions with [Ultralytics YOLOv8](https://github.co
 Follow these steps to run object counting in Ultralytics YOLOv8:
 
 1. Clone the Ultralytics repository and navigate to the directory:
+
     ```bash
     git clone https://github.com/ultralytics/ultralytics
     cd ultralytics/examples/YOLOv8-Region-Counter
@@ -105,12 +106,13 @@ Follow these steps to run object counting in Ultralytics YOLOv8:
     ```bash
     python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
     ```
-    
+
 For more options, visit the [Run Region Counting](#steps-to-run) section.
 
 ### Why should I use Ultralytics YOLOv8 for object counting in regions?
 
 Using Ultralytics YOLOv8 for object counting in regions offers several advantages:
+
 - **Precision and Accuracy:** Minimizes errors often seen in manual counting.
 - **Efficiency Improvement:** Provides real-time results and streamlines processes.
 - **Versatility and Application:** Applies to various domains, enhancing its utility.
@@ -124,6 +126,7 @@ Yes, with Ultralytics YOLOv8, regions can be interactively moved during video pl
 ### What are some real-world applications of object counting in regions?
 
 Object counting with Ultralytics YOLOv8 can be applied to numerous real-world scenarios:
+
 - **Retail:** Counting people for foot traffic analysis.
 - **Market Streets:** Crowd density management.
 

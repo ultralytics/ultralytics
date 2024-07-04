@@ -156,6 +156,7 @@ Here's a minimal example:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")

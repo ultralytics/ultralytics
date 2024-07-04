@@ -230,9 +230,11 @@ Congratulations! You're now set up to use Ultralytics with Docker and ready to t
 ### How do I set up Ultralytics with Docker?
 
 To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the NVIDIA Docker runtime to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
+
 ```bash
 sudo docker pull ultralytics/ultralytics:latest
 ```
+
 For detailed steps, refer to our [Docker Quickstart Guide](../quickstart.md).
 
 ### What are the benefits of using Ultralytics Docker images for machine learning projects?
@@ -242,32 +244,40 @@ Using Ultralytics Docker images ensures a consistent environment across differen
 ### How can I run Ultralytics YOLO in a Docker container with GPU support?
 
 First, ensure that the NVIDIA Docker runtime is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
+
 ```bash
 sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
 ```
+
 This command sets up a Docker container with GPU access. For additional details, see the [Docker Quickstart Guide](../quickstart.md).
 
 ### How do I visualize YOLO prediction results in a Docker container with a display server?
 
 To visualize YOLO prediction results with a GUI in a Docker container, you need to allow Docker to access your display server. For systems running X11, the command is:
+
 ```bash
 xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 -v ~/.Xauthority:/root/.Xauthority \
 -it --ipc=host ultralytics/ultralytics:latest
 ```
+
 For systems running Wayland, use:
+
 ```bash
 xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
 -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
 --net=host -it --ipc=host ultralytics/ultralytics:latest
 ```
-More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section. 
+
+More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
 
 ### Can I mount local directories into the Ultralytics Docker container?
 
 Yes, you can mount local directories into the Ultralytics Docker container using the `-v` flag:
+
 ```bash
 sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
 ```
+
 Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the relevant section on [mounting local directories](../usage/python.md).

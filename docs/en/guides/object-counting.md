@@ -270,17 +270,21 @@ Here's a simple example for counting in a region:
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
+
 def count_objects_in_region(video_path, output_video_path, model_path):
-    """ Count objects in a specific region within a video """
+    """Count objects in a specific region within a video."""
     model = YOLO(model_path)
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), "Error reading video file"
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    counter = solutions.ObjectCounter(view_img=True, reg_pts=region_points, classes_names=model.names, draw_tracks=True, line_thickness=2)
+    counter = solutions.ObjectCounter(
+        view_img=True, reg_pts=region_points, classes_names=model.names, draw_tracks=True, line_thickness=2
+    )
 
     while cap.isOpened():
         success, im0 = cap.read()
@@ -294,6 +298,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     cap.release()
     video_writer.release()
     cv2.destroyAllWindows()
+
 
 count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolov8n.pt")
 ```
@@ -316,17 +321,21 @@ To count specific classes of objects using Ultralytics YOLOv8, you need to speci
 
 ```python
 import cv2
+
 from ultralytics import YOLO, solutions
 
+
 def count_specific_classes(video_path, output_video_path, model_path, classes_to_count):
-    """ Count specific classes of objects in a video """
+    """Count specific classes of objects in a video."""
     model = YOLO(model_path)
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), "Error reading video file"
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     line_points = [(20, 400), (1080, 400)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    counter = solutions.ObjectCounter(view_img=True, reg_pts=line_points, classes_names=model.names, draw_tracks=True, line_thickness=2)
+    counter = solutions.ObjectCounter(
+        view_img=True, reg_pts=line_points, classes_names=model.names, draw_tracks=True, line_thickness=2
+    )
 
     while cap.isOpened():
         success, im0 = cap.read()
@@ -340,6 +349,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     cap.release()
     video_writer.release()
     cv2.destroyAllWindows()
+
 
 count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolov8n.pt", [0, 2])
 ```

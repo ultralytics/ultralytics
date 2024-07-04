@@ -225,7 +225,10 @@ yolov8_model_path = "models/yolov8s.pt"
 download_yolov8s_model(yolov8_model_path)
 
 # Download test images
-download_from_url("https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg", "demo_data/small-vehicles1.jpeg")
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg",
+    "demo_data/small-vehicles1.jpeg",
+)
 ```
 
 For more detailed instructions, refer to our [Sliced Inference guide](#sliced-inference-with-yolov8).
@@ -233,6 +236,7 @@ For more detailed instructions, refer to our [Sliced Inference guide](#sliced-in
 ### Why should I use SAHI with YOLOv8 for object detection on large images?
 
 Using SAHI with Ultralytics YOLOv8 for object detection on large images offers several benefits:
+
 - **Reduced Computational Burden**: Smaller slices are faster to process and consume less memory, making it feasible to run high-quality detections on hardware with limited resources.
 - **Maintained Detection Accuracy**: SAHI uses intelligent algorithms to merge overlapping boxes, preserving the detection quality.
 - **Enhanced Scalability**: By scaling object detection tasks across different image sizes and resolutions, SAHI becomes ideal for various applications, such as satellite imagery analysis and medical diagnostics.
@@ -246,6 +250,7 @@ Yes, you can visualize prediction results when using YOLOv8 with SAHI. Here’s 
 ```python
 result.export_visuals(export_dir="demo_data/")
 from IPython.display import Image
+
 Image("demo_data/prediction_visual.png")
 ```
 
@@ -254,6 +259,7 @@ This command will save the visualized predictions to the specified directory and
 ### What features does SAHI offer for improving YOLOv8 object detection?
 
 SAHI (Slicing Aided Hyper Inference) offers several features that complement Ultralytics YOLOv8 for object detection:
+
 - **Seamless Integration**: SAHI easily integrates with YOLO models, requiring minimal code adjustments.
 - **Resource Efficiency**: It partitions large images into smaller slices, which optimizes memory usage and speed.
 - **High Accuracy**: By effectively merging overlapping detection boxes during the stitching process, SAHI maintains high detection accuracy.
@@ -263,11 +269,13 @@ For a deeper understanding, read about SAHI’s [key features](#key-features-of-
 ### How do I handle large-scale inference projects using YOLOv8 and SAHI?
 
 To handle large-scale inference projects using YOLOv8 and SAHI, follow these best practices:
+
 1. **Install Required Libraries**: Ensure that you have the latest versions of ultralytics and sahi.
 2. **Configure Sliced Inference**: Determine the optimal slice dimensions and overlap ratios for your specific project.
 3. **Run Batch Predictions**: Use SAHI’s capabilities to perform batch predictions on a directory of images, which improves efficiency.
 
 Example for batch prediction:
+
 ```python
 from sahi.predict import predict
 

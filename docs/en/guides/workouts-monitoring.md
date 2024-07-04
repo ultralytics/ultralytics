@@ -185,18 +185,20 @@ while cap.isOpened():
     im0 = gym_object.start_counting(im0, results)
 
 cv2.destroyAllWindows()
-```  
+```
+
 For further customization and settings, you can refer to the [AIGym](#arguments-aigym) section in the documentation.
 
 ### What are the benefits of using Ultralytics YOLOv8 for workout monitoring?
 
 Using Ultralytics YOLOv8 for workout monitoring provides several key benefits:
+
 - **Optimized Performance:** By tailoring workouts based on monitoring data, you can achieve better results.
 - **Goal Achievement:** Easily track and adjust fitness goals for measurable progress.
 - **Personalization:** Get customized workout plans based on your individual data for optimal effectiveness.
 - **Health Awareness:** Early detection of patterns that indicate potential health issues or over-training.
 - **Informed Decisions:** Make data-driven decisions to adjust routines and set realistic goals.
-  
+
 You can watch a [YouTube video demonstration](https://www.youtube.com/embed/LGGxqLZtvuw) to see these benefits in action.
 
 ### How accurate is Ultralytics YOLOv8 in detecting and tracking exercises?
@@ -252,5 +254,6 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 video_writer.release()
-```  
+```
+
 This setup writes the monitored video to an output file. For more details, refer to the [Workouts Monitoring with Save Output](#workouts-monitoring-with-save-output) section.

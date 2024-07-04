@@ -10,7 +10,7 @@ keywords: Model Deployment, Machine Learning Model Deployment, ML Model Deployme
 
 Model deployment is the [step in a computer vision project](./steps-of-a-cv-project.md) that brings a model from the development phase into a real-world application. There are various [model deployment options](./model-deployment-options.md): cloud deployment offers scalability and ease of access, edge deployment reduces latency by bringing the model closer to the data source, and local deployment ensures privacy and control. Choosing the right strategy depends on your application's needs, balancing speed, security, and scalability.
 
-It’s also important to follow best practices when deploying a model because deployment can significantly impact the effectiveness and reliability of the model's performance. In this guide, we’ll focus on how to make sure that your model deployment is smooth, efficient, and secure.
+It's also important to follow best practices when deploying a model because deployment can significantly impact the effectiveness and reliability of the model's performance. In this guide, we'll focus on how to make sure that your model deployment is smooth, efficient, and secure.
 
 ## Model Deployment Options
 
@@ -113,7 +113,7 @@ It's essential to control who can access your model and its data to prevent unau
 
 ### Model Obfuscation
 
-Protecting your model from being reverse-engineered or misused can done through model obfuscation. It involves encrypting model parameters, such as weights and biases in neural networks, to make it difficult for unauthorized individuals to understand or alter the model. You can also obfuscate the model’s architecture by renaming layers and parameters or adding dummy layers, making it harder for attackers to reverse-engineer it. You can also serve the model in a secure environment, like a secure enclave or using a trusted execution environment (TEE), can provide an extra layer of protection during inference.
+Protecting your model from being reverse-engineered or misused can done through model obfuscation. It involves encrypting model parameters, such as weights and biases in neural networks, to make it difficult for unauthorized individuals to understand or alter the model. You can also obfuscate the model's architecture by renaming layers and parameters or adding dummy layers, making it harder for attackers to reverse-engineer it. You can also serve the model in a secure environment, like a secure enclave or using a trusted execution environment (TEE), can provide an extra layer of protection during inference.
 
 ## Share Ideas With Your Peers
 

@@ -216,8 +216,8 @@ To train a YOLOv8 model, follow these steps:
 
     - CLI command:
       `bash
-     yolo train model=yolov8n.pt data=path/to/dataset.yaml epochs=100 imgsz=640
-     `
+yolo train model=yolov8n.pt data=path/to/dataset.yaml epochs=100 imgsz=640
+`
       For more details on training modes, check the [Training Documentation](../modes/train.md).
 
 ### What tasks can YOLOv8 be used for?
@@ -249,8 +249,8 @@ To run inference with YOLOv8:
 
     - CLI command:
       `bash
-     yolo predict model=yolov8n.pt source=path/to/image.jpg
-     `
+yolo predict model=yolov8n.pt source=path/to/image.jpg
+`
       For more details on predict mode, see the [Inference Documentation](../modes/predict.md).
 
 ### Why should I choose YOLOv8 for real-time object detection?

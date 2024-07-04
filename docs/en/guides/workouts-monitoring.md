@@ -222,7 +222,7 @@ For more details on setting arguments, refer to the [Arguments `AIGym`](#argumen
 
 ### How can I save the workout monitoring output using Ultralytics YOLOv8?
 
-To save the workout monitoring output, you can modify the code to include a video writer that saves the processed frames. Here’s an example:
+To save the workout monitoring output, you can modify the code to include a video writer that saves the processed frames. Here's an example:
 
 ```python
 import cv2

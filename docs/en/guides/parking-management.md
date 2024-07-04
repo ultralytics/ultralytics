@@ -145,7 +145,7 @@ Defining parking spaces is straightforward with Ultralytics YOLOv8:
 
 ### Can I customize the YOLOv8 model for specific parking management needs?
 
-Yes, Ultralytics YOLOv8 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class’s [optional arguments](#optional-arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
+Yes, Ultralytics YOLOv8 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [optional arguments](#optional-arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
 
 ### What are some real-world applications of Ultralytics YOLOv8 in parking lot management?
 

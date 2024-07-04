@@ -245,7 +245,7 @@ Learn more about the [benefits of sliced inference](#benefits-of-sliced-inferenc
 
 ### Can I visualize prediction results when using YOLOv8 with SAHI?
 
-Yes, you can visualize prediction results when using YOLOv8 with SAHI. Here’s how you can export and visualize the results:
+Yes, you can visualize prediction results when using YOLOv8 with SAHI. Here's how you can export and visualize the results:
 
 ```python
 result.export_visuals(export_dir="demo_data/")
@@ -264,7 +264,7 @@ SAHI (Slicing Aided Hyper Inference) offers several features that complement Ult
 - **Resource Efficiency**: It partitions large images into smaller slices, which optimizes memory usage and speed.
 - **High Accuracy**: By effectively merging overlapping detection boxes during the stitching process, SAHI maintains high detection accuracy.
 
-For a deeper understanding, read about SAHI’s [key features](#key-features-of-sahi).
+For a deeper understanding, read about SAHI's [key features](#key-features-of-sahi).
 
 ### How do I handle large-scale inference projects using YOLOv8 and SAHI?
 
@@ -272,7 +272,7 @@ To handle large-scale inference projects using YOLOv8 and SAHI, follow these bes
 
 1. **Install Required Libraries**: Ensure that you have the latest versions of ultralytics and sahi.
 2. **Configure Sliced Inference**: Determine the optimal slice dimensions and overlap ratios for your specific project.
-3. **Run Batch Predictions**: Use SAHI’s capabilities to perform batch predictions on a directory of images, which improves efficiency.
+3. **Run Batch Predictions**: Use SAHI's capabilities to perform batch predictions on a directory of images, which improves efficiency.
 
 Example for batch prediction:
 

@@ -415,7 +415,7 @@ Ultralytics YOLOv8 is an excellent choice for creating pie charts because:
 3. **Customizable**: Various customization options for colors, labels, and more.
 4. **Real-time Updates**: Handle and visualize data in real-time, which is ideal for video analytics projects.
 
-Here’s a quick example:
+Here's a quick example:
 
 ```python
 import cv2

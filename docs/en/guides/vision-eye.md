@@ -212,9 +212,9 @@ cv2.destroyAllWindows()
 
 For detailed steps and additional functionalities like object tracking and distance calculation, refer to the [Ultralytics YOLO section](#what-is-visioeye-object-mapping).
 
-### What are the key features of VisionEye’s object tracking capability using Ultralytics YOLOv8?
+### What are the key features of VisionEye's object tracking capability using Ultralytics YOLOv8?
 
-VisionEye’s object tracking with Ultralytics YOLOv8 allows users to follow the movement of objects within a video frame. Key features include:
+VisionEye's object tracking with Ultralytics YOLOv8 allows users to follow the movement of objects within a video frame. Key features include:
 
 1. **Real-Time Object Tracking**: Keeps up with objects as they move.
 2. **Object Identification**: Utilizes YOLOv8's powerful detection algorithms.

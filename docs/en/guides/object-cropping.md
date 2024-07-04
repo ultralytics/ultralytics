@@ -128,7 +128,7 @@ By using Ultralytics YOLOv8 to crop only relevant objects from your images or vi
 
 ### Can I use Ultralytics YOLOv8 for real-time video analysis and object cropping?
 
-Yes, Ultralytics YOLOv8 can process real-time video feeds to detect and crop objects dynamically. The model’s high-speed inference capabilities make it ideal for real-time applications such as surveillance, sports analysis, and automated inspection systems. Check out the [tracking and prediction modes](../modes/predict.md) to understand how to implement real-time processing.
+Yes, Ultralytics YOLOv8 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as surveillance, sports analysis, and automated inspection systems. Check out the [tracking and prediction modes](../modes/predict.md) to understand how to implement real-time processing.
 
 ### What are the hardware requirements for efficiently running YOLOv8 for object cropping?
 

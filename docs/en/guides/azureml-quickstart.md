@@ -224,4 +224,4 @@ Ultralytics YOLOv8 offers several unique advantages over competing object detect
 - **Accuracy**: High accuracy in detection tasks with features like anchor-free design and enhanced augmentation strategies.
 - **Ease of Use**: Intuitive API and CLI for quick setup, making it accessible both to beginners and experts.
 
-To explore more about YOLOv8’s features, visit the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page for detailed insights.
+To explore more about YOLOv8's features, visit the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page for detailed insights.

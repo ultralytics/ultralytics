@@ -63,6 +63,7 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -102,6 +103,7 @@ Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need t
         metrics.box.map75  # map75
         metrics.box.maps  # a list contains map50-95 of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -127,6 +129,7 @@ Use a trained YOLOv8n model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -154,6 +157,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash

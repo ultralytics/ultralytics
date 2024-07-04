@@ -83,6 +83,7 @@ Train YOLOv8n-obb on the `dota8.yaml` dataset for 100 epochs at image size 640. 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -123,6 +124,7 @@ retains its training `data` and arguments as model attributes.
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list contains map50-95(B) of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -148,6 +150,7 @@ Use a trained YOLOv8n-obb model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -175,6 +178,7 @@ Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash

@@ -581,7 +581,7 @@ The Ultralytics package offers several utilities designed to support and enhance
 - **Image Compression**: Reduces image file sizes without compromising quality.
 - **Auto-split Dataset**: Splits datasets into train/val/test groups using random sampling.
 
-[Check the full utilities list](#Simple-Utilities) for more details.
+[Check the full utilities list](#simple-utilities) for more details.
 
 ### How can I automate dataset annotations using Ultralytics?
 

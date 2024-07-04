@@ -261,7 +261,7 @@ class Attention(torch.nn.Module):
         """
         super().__init__()
 
-        assert isinstance(resolution, tuple) and len(resolution) == 2
+        assert isinstance(resolution, tuple) and len(resolution) == 2, f"Provided tuple should contains height and width, but got size of {len(size)}"
         self.num_heads = num_heads
         self.scale = key_dim**-0.5
         self.key_dim = key_dim

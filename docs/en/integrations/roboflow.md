@@ -250,7 +250,7 @@ Labeling data for YOLOv8 models using Roboflow is straightforward with Roboflow 
 
 ### What services does Roboflow offer for collecting YOLOv8 training data?
 
-Roboflow provides two key services for collecting YOLOv8 training data: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://roboflow.com/collect?ref=ultralytics). Universe offers access to over 250,000 vision datasets, while Collect helps you gather images using a webcam and automated prompts. Learn more about these services [here](#gather-data-for-training-a-custom-yolov8-model).
+Roboflow provides two key services for collecting YOLOv8 training data: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://roboflow.com/collect?ref=ultralytics). Universe offers access to over 250,000 vision datasets, while Collect helps you gather images using a webcam and automated prompts.
 
 ### How can I manage and analyze my YOLOv8 dataset using Roboflow?
 

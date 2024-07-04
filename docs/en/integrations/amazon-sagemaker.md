@@ -118,7 +118,7 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLOv8.
 import json
 
 
-def output_fn(prediction_output, content_type):
+def output_fn(prediction_output):
     """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
     print("Executing output_fn from inference.py ...")
     infer = {}
@@ -176,7 +176,7 @@ Are you interested in learning more about different YOLOv8 integrations? Visit t
 
 To deploy the Ultralytics YOLOv8 model on Amazon SageMaker Endpoints, follow these steps:
 
-1. **Setup Your AWS Environment**: Ensure you have an AWS Account, IAM roles with necessary permissions, and the AWS CLI configured. Install AWS CDK if not already done (refer to the [AWS CDK instructions](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)).
+1. **Set Up Your AWS Environment**: Ensure you have an AWS Account, IAM roles with necessary permissions, and the AWS CLI configured. Install AWS CDK if not already done (refer to the [AWS CDK instructions](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)).
 2. **Clone the YOLOv8 SageMaker Repository**:
     ```bash
     git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
@@ -228,7 +228,9 @@ Yes, you can customize the inference logic for YOLOv8 on Amazon SageMaker:
 1. **Modify `inference.py`**: Locate and customize the `output_fn` function in the `inference.py` file to tailor output formats.
 
     ```python
-    def output_fn(prediction_output, content_type):
+    import json 
+   
+    def output_fn(prediction_output):
         """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
         infer = {}
         for result in prediction_output:

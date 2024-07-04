@@ -323,7 +323,7 @@ Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
 3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
-For detailed performance comparisons, visit our [benchmarks section](#benchmarks).
+For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
 
 ### How can I run inference using a YOLOv8 model exported to OpenVINO?
 
@@ -387,4 +387,4 @@ Yes, you can benchmark YOLOv8 models in various formats including PyTorch, Torch
     yolo benchmark model=yolov8n.pt data=coco8.yaml
     ```
 
-For detailed benchmark results, refer to our [benchmarks section](#benchmarks) and [export formats](../modes/export.md) documentation.
+For detailed benchmark results, refer to our [benchmarks section](#openvino-yolov8-benchmarks) and [export formats](../modes/export.md) documentation.

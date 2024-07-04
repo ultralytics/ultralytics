@@ -121,9 +121,9 @@ For more information on integrating Ultralytics YOLOv8 with other platforms and 
 
 ## FAQ
 
-### How do I export a Ultralytics YOLOv8 model to TensorFlow SavedModel format?
+### How do I export an Ultralytics YOLO model to TensorFlow SavedModel format?
 
-Exporting a Ultralytics YOLOv8 model to the TensorFlow SavedModel format is straightforward. You can use either Python or CLI to achieve this:
+Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is straightforward. You can use either Python or CLI to achieve this:
 
 !!! Example "Exporting YOLOv8 to TF SavedModel"
 

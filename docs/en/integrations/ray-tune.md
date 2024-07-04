@@ -255,7 +255,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
     ```
 
-This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B. For further details, explore the [Integration with Weights & Biases](#integration-with-weights-biases) section.
+This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B. For further details, explore the [Integration with Weights & Biases](#integration-with-weights--biases) section.
 
 ### Why should I use Ray Tune for hyperparameter optimization with YOLOv8?
 
@@ -263,7 +263,7 @@ Ray Tune offers numerous advantages for hyperparameter optimization:
 
 - **Advanced Search Strategies:** Utilizes algorithms like Bayesian Optimization and HyperOpt for efficient parameter search.
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
-- **Early Stopping:** Employs strategies like ASHA to terminate underperforming trials early, saving computational resources.
+- **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
 Ray Tune seamlessly integrates with Ultralytics YOLOv8, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](../guides/hyperparameter-tuning.md) guide.
 
@@ -271,18 +271,13 @@ Ray Tune seamlessly integrates with Ultralytics YOLOv8, providing an easy-to-use
 
 To define a custom search space for your YOLOv8 hyperparameter tuning with Ray Tune:
 
-1. **Import necessary libraries:**
+```python
+from ultralytics import YOLO
+from ray import tune
 
-    ```python
-
-    ```
-
-2. **Define a custom search space and run tuning:**
-
-    ```python
-    model = YOLO("yolov8n.pt")
-    search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
-    result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
-    ```
+model = YOLO("yolov8n.pt")
+search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
+result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
+```
 
 This customizes the range of hyperparameters like initial learning rate and momentum to be explored during the tuning process. For advanced configurations, refer to the [Custom Search Space Example](#custom-search-space-example) section.

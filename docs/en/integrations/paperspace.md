@@ -112,6 +112,4 @@ Yes, you can deploy YOLOv8 models on edge devices using Paperspace Gradient. The
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLOv8 training?
 
-Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments. For more on tracking and comparing experiments, visit this [guide](../modes/train.md#internal-section-here).
-
-Take advantage of these features to optimize your YOLOv8 model training and achieve high performance efficiently.
+Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments.

@@ -182,7 +182,7 @@ Once you export your YOLOv8 model to CoreML format, you have multiple deployment
 
 2. **Cloud-Based Deployment**: Host CoreML models on servers and access them via API requests. This approach supports easier updates and can handle more complex models.
 
-For detailed guidance on deploying CoreML models, refer to [CoreML Deployment Options](../modes/export.md#coreml-deployment-options).
+For detailed guidance on deploying CoreML models, refer to [CoreML Deployment Options](#coreml-deployment-options).
 
 ### How does CoreML ensure optimized performance for YOLOv8 models?
 

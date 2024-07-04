@@ -63,35 +63,33 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 
     === "Python"
 
-       ```python
-       import wandb
-       from wandb.integration.ultralytics import add_wandb_callback
-
-       from ultralytics import YOLO
-
-       # Step 1: Initialize a Weights & Biases run
-       wandb.init(project="ultralytics", job_type="training")
-
-       # Step 2: Define the YOLOv8 Model and Dataset
-       model_name = "yolov8n"
-       dataset_name = "coco8.yaml"
-       model = YOLO(f"{model_name}.pt")
-
-       # Step 3: Add W&B Callback for Ultralytics
-       add_wandb_callback(model, enable_model_checkpointing=True)
-
-       # Step 4: Train and Fine-Tune the Model
-       model.train(project="ultralytics", data=dataset_name, epochs=5, imgsz=640)
-
-       # Step 5: Validate the Model
-       model.val()
-
-       # Step 6: Perform Inference and Log Results
-       model(["path/to/image1", "path/to/image2"])
-
-       # Step 7: Finalize the W&B Run
-       wandb.finish()
-       ```
+        ```python
+        import wandb
+        from wandb.integration.ultralytics import add_wandb_callback
+      
+        from ultralytics import YOLO
+      
+        # Initialize a Weights & Biases run
+        wandb.init(project="ultralytics", job_type="training")
+      
+        # Load a YOLO model
+        model = YOLO(f"yolov8n.pt")
+      
+        # Add W&B Callback for Ultralytics
+        add_wandb_callback(model, enable_model_checkpointing=True)
+      
+        # Train and Fine-Tune the Model
+        model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
+      
+        # Validate the Model
+        model.val()
+      
+        # Perform Inference and Log Results
+        model(["path/to/image1", "path/to/image2"])
+      
+        # Finalize the W&B Run
+        wandb.finish()
+        ```
 
 ### Understanding the Code
 
@@ -202,16 +200,14 @@ from ultralytics import YOLO
 # Initialize a Weights & Biases run
 wandb.init(project="ultralytics", job_type="training")
 
-# Define the YOLOv8 Model and Dataset
-model_name = "yolov8n"
-dataset_name = "coco8.yaml"
-model = YOLO(f"{model_name}.pt")
+# Load a YOLO model
+model = YOLO(f"yolov8n.pt")
 
 # Add W&B Callback for Ultralytics
 add_wandb_callback(model, enable_model_checkpointing=True)
 
 # Train and Fine-Tune the Model
-model.train(project="ultralytics", data=dataset_name, epochs=5, imgsz=640)
+model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
 
 # Validate the Model
 model.val()

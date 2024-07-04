@@ -185,7 +185,7 @@ Key features of TensorFlow.js include:
 - **Multiple Backends:** Supports CPU, WebGL for GPU acceleration, WebAssembly (WASM), and WebGPU for advanced operations.
 - **Offline Capabilities:** Models can run directly in the browser without internet connectivity, making it ideal for developing responsive web applications.
 
-For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deployment-options-with-tensorflow-js).
+For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deploying-exported-yolov8-tensorflowjs-models).
 
 ### Can I deploy a YOLOv8 model on server-side Node.js applications using TensorFlow.js?
 

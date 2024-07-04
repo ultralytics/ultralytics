@@ -197,7 +197,7 @@ To enable this feature, use the `dynamic=True` flag during export:
     yolo export model=yolov8n.pt format=onnx dynamic=True
     ```
 
-For additional context, refer to the [dynamic input size configuration](#export-arguments).
+For additional context, refer to the [dynamic input size configuration](#arguments).
 
 ### What are the key export arguments to consider for optimizing model performance?
 

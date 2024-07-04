@@ -121,7 +121,7 @@ YOLOv7 is a cutting-edge real-time object detection model that achieves unparall
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 
-YOLOv7 introduces several innovations, including model re-parameterization and dynamic label assignment, which enhance the training process and improve inference accuracy. Compared to YOLOv5, YOLOv7 significantly boosts speed and accuracy. For instance, YOLOv7-X improves accuracy by 2.2% and reduces parameters by 22% compared to YOLOv5-X. Detailed comparisons can be found in the performance table [YOLOv7 comparison with SOTA object detectors](#comparison-of-SOTA-object-detectors).
+YOLOv7 introduces several innovations, including model re-parameterization and dynamic label assignment, which enhance the training process and improve inference accuracy. Compared to YOLOv5, YOLOv7 significantly boosts speed and accuracy. For instance, YOLOv7-X improves accuracy by 2.2% and reduces parameters by 22% compared to YOLOv5-X. Detailed comparisons can be found in the performance table [YOLOv7 comparison with SOTA object detectors](#comparison-of-sota-object-detectors).
 
 ### Can I use YOLOv7 with Ultralytics tools and platforms?
 

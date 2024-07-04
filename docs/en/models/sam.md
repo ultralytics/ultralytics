@@ -224,8 +224,6 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
-
-
 ## FAQ
 
 ### What is the Segment Anything Model (SAM)?
@@ -257,6 +255,7 @@ For more extensive usage, refer to the [SAM prediction example](#sam-prediction-
 ### What are the key features of the Segment Anything Model (SAM)?
 
 The key features of SAM include:
+
 - **Promptable Segmentation Task:** SAM can generate valid segmentation masks from various prompts like spatial or text clues.
 - **Advanced Architecture:** It utilizes a powerful image encoder, a prompt encoder, and a lightweight mask decoder for real-time mask computation.
 - **The SA-1B Dataset:** Trained on the SA-1B dataset, which includes over 1 billion masks across 11 million images, offering a versatile training data source.
@@ -265,6 +264,7 @@ The key features of SAM include:
 ### How does SAM compare to YOLOv8 for instance segmentation?
 
 SAM and YOLOv8 serve different purposes in the realm of image segmentation. SAM excels in automatic segmentation with prompts but is relatively larger and slower compared to YOLOv8. Here's a brief comparison:
+
 - **SAM-b:** 358 MB, 94.7 million parameters, 51096 ms/im (CPU)
 - **YOLOv8n-seg:** 6.7 MB, 3.4 million parameters, 59 ms/im (CPU)
 

@@ -118,8 +118,6 @@ If you find MobileSAM useful in your research or development work, please consid
         }
         ```
 
-
-
 ## FAQ
 
 ### What is MobileSAM, and how does it differ from the original SAM?
@@ -159,10 +157,11 @@ For extensive usage information, refer to the [SAM page](sam.md).
 ### Why should I use MobileSAM over other segmentation models?
 
 MobileSAM offers several advantages:
+
 - **Lightweight and Fast**: Roughly 5 times smaller and 7 times faster than the original SAM, making it ideal for mobile and embedded applications.
 - **High Performance**: Despite its smaller size, it retains comparable performance to the original SAM.
 - **Easy Transition**: MobileSAM uses the same pipeline as the original SAM, allowing users to switch with minimal changes to their existing setup.
-  
+
 To gain a deeper understanding of MobileSAM's capabilities, explore the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
 ### What tasks and modes are supported by MobileSAM?

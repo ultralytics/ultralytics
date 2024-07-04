@@ -122,8 +122,6 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-
-
 ## FAQ
 
 ### How do I validate a model using Ultralytics YOLOv8?
@@ -142,6 +140,7 @@ print(metrics.box.map)  # mAP50-95
 ```
 
 For the CLI:
+
 ```
 yolo val model=yolov8n.pt  # or model=path/to/best.pt for custom models
 ```
@@ -180,8 +179,10 @@ Yes, you can customize the validation settings by specifying various arguments. 
 - `iou`: Intersection Over Union threshold for Non-Maximum Suppression.
 
 Example in Python:
+
 ```python
 from ultralytics import YOLO
+
 model = YOLO("yolov8n.pt")
 validation_results = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
 ```
@@ -190,7 +191,7 @@ More details on each argument can be found in the [Arguments for YOLO Model Vali
 
 ### What datasets are compatible with Ultralytics YOLOv8 for validation?
 
-Ultralytics YOLOv8 is compatible with a range of datasets, including COCO, VOC, and custom datasets defined in YAML format. The dataset configuration file typically includes paths to validation data, class names, and the number of classes. 
+Ultralytics YOLOv8 is compatible with a range of datasets, including COCO, VOC, and custom datasets defined in YAML format. The dataset configuration file typically includes paths to validation data, class names, and the number of classes.
 
 For instance, you can use the COCO dataset configuration by setting the `data` argument to `coco.yaml`.
 

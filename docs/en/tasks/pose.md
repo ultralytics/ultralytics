@@ -196,8 +196,6 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is pose estimation with Ultralytics YOLOv8?
@@ -207,10 +205,12 @@ Pose estimation with Ultralytics YOLOv8 involves identifying the locations of sp
 ### How can I train a YOLOv8-pose model on my custom dataset?
 
 To train a YOLOv8-pose model on your custom dataset, you need to follow these steps:
+
 1. Prepare your dataset in the YOLO format. If your dataset is in a different format (like COCO), convert it using the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool.
 2. Load a model and train it using the `yolo pose train` command or the Python API:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -219,6 +219,7 @@ results = model.train(data="path/to/your-dataset.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI:**
+
 ```bash
 yolo pose train data=path/to/your-dataset.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 ```
@@ -230,15 +231,17 @@ For more details on training, check the [Dataset Guide](../datasets/pose/index.m
 Validating a trained YOLOv8-pose model can be performed using the `yolo pose val` command or the Python API:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
 model = YOLO("path/to/best.pt")
 metrics = model.val()
-print(metrics.box.map) # map50-95
+print(metrics.box.map)  # map50-95
 ```
 
 **CLI:**
+
 ```bash
 yolo pose val model=path/to/best.pt
 ```
@@ -250,6 +253,7 @@ Validation ensures your model's accuracy and helps identify areas for improvemen
 You can use a YOLOv8-pose model to make predictions with the following commands:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -258,6 +262,7 @@ results = model("https://ultralytics.com/images/bus.jpg")
 ```
 
 **CLI:**
+
 ```bash
 yolo pose predict model=yolov8n-pose.pt source="https://ultralytics.com/images/bus.jpg"
 ```
@@ -269,6 +274,7 @@ Prediction enables you to apply your trained model to new images and visualize t
 To export a YOLOv8-pose model to formats such as ONNX or TensorRT, use the `yolo export` command or the Python API:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -277,6 +283,7 @@ model.export(format="onnx")
 ```
 
 **CLI:**
+
 ```bash
 yolo export model=yolov8n-pose.pt format=onnx
 ```

@@ -178,8 +178,6 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What are the core innovations of YOLOv9 that improve efficiency and accuracy?
@@ -220,6 +218,7 @@ Here is a simple reversible function formula used in YOLOv9:
 ```python
 X = v_zeta(r_psi(X))
 ```
+
 For more technical details, check the [Reversible Functions](#reversible-functions) section.
 
 ### Can I use YOLOv9 for instance segmentation tasks?

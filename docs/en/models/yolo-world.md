@@ -336,8 +336,6 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
-
-
 ## FAQ
 
 ### How do I use the YOLO-World Model for real-time object detection?
@@ -356,11 +354,13 @@ results = model.predict("path/to/image.jpg")
 # Display results
 results[0].show()
 ```
+
 For detailed instructions and additional usage scenarios, refer to the [Predict Usage](#predict-usage) section in the documentation.
 
 ### What are the advantages of using YOLO-World Model over traditional models?
 
 The YOLO-World Model offers several advantages:
+
 1. **Real-time Efficiency:** It utilizes CNNs for fast computations, making it suitable for real-time applications.
 2. **Lower Computational Cost:** By reducing resource requirements, it provides similar accuracy to traditional models like SAM without the heavy computational cost.
 3. **Open-Vocabulary Detection:** Capabilities enable handling a wide range of objects using descriptive prompts.

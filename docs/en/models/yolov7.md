@@ -113,8 +113,6 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is YOLOv7 and why is it superior to other real-time object detectors?
@@ -136,7 +134,8 @@ YOLOv7 is trained from scratch on the MS COCO dataset, a large-scale object dete
 ### What are the key optimization methods introduced in YOLOv7?
 
 YOLOv7 introduces several advanced optimization methods to enhance model performance:
+
 1. **Model Re-parameterization**: A strategy for optimizing layers across different networks to improve gradient propagation.
 2. **Dynamic Label Assignment**: Coarse-to-fine lead guided label assignment to better train models with multiple output layers.
 3. **Extended and Compound Scaling**: Techniques to effectively use parameters and computation, ensuring efficient scaling.
-These methods collectively contribute to better accuracy and reduced computational costs. For detailed features, see [Key Features](#key-features).
+   These methods collectively contribute to better accuracy and reduced computational costs. For detailed features, see [Key Features](#key-features).

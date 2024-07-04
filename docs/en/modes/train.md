@@ -337,8 +337,6 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
-
-
 ## FAQ
 
 ### How do I start training a custom object detection model using Ultralytics YOLOv8?
@@ -348,21 +346,24 @@ To start training a custom object detection model with Ultralytics YOLOv8, follo
 1. **Prepare Your Dataset**: Ensure your dataset is in YOLO format, and create a `.yaml` file specifying the dataset paths.
 2. **Choose Your Model**: Select a model configuration file (e.g., `yolov8n.yaml`) or a pre-trained model (e.g., `yolov8n.pt`).
 3. **Training Command**:
+
     - **Python API**:
-      ```python
-      from ultralytics import YOLO
 
-      # Load a model
-      model = YOLO("yolov8n.pt") 
+        ```python
+        from ultralytics import YOLO
 
-      # Train the model
-      results = model.train(data="custom_dataset.yaml", epochs=100, imgsz=640)
-      ```
+        # Load a model
+        model = YOLO("yolov8n.pt")
+
+        # Train the model
+        results = model.train(data="custom_dataset.yaml", epochs=100, imgsz=640)
+        ```
+
     - **CLI**:
-      ```bash
-      yolo detect train data=custom_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
-      ```
-   
+        ```bash
+        yolo detect train data=custom_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
 For more detailed configuration options, refer to the [Train Settings](#train-settings) section in the documentation.
 
 ### What are the key hyperparameters for optimizing YOLOv8 model training?
@@ -384,19 +385,21 @@ For extensive information on hyperparameters, check the [Train Settings](#train-
 Yes, Ultralytics YOLOv8 supports multi-GPU training. Here’s how you can do it:
 
 - **Python API**:
-  ```python
-  from ultralytics import YOLO
 
-  # Load a model
-  model = YOLO("yolov8n.pt")
+    ```python
+    from ultralytics import YOLO
 
-  # Train the model with multiple GPUs (e.g., GPU 0 and 1)
-  results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
-  ```
+    # Load a model
+    model = YOLO("yolov8n.pt")
+
+    # Train the model with multiple GPUs (e.g., GPU 0 and 1)
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
+    ```
+
 - **CLI**:
-  ```bash
-  yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-  ```
+    ```bash
+    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+    ```
 
 Refer to the [Multi-GPU Training](#multi-gpu-training) section for more details.
 
@@ -405,19 +408,21 @@ Refer to the [Multi-GPU Training](#multi-gpu-training) section for more details.
 To resume an interrupted training session in Ultralytics YOLOv8, set the `resume` argument to `True` and provide the path to the last checkpoint file. Example commands:
 
 - **Python API**:
-  ```python
-  from ultralytics import YOLO
 
-  # Load the partially trained model
-  model = YOLO("path/to/last.pt")
+    ```python
+    from ultralytics import YOLO
 
-  # Resume training
-  results = model.train(resume=True)
-  ```
+    # Load the partially trained model
+    model = YOLO("path/to/last.pt")
+
+    # Resume training
+    results = model.train(resume=True)
+    ```
+
 - **CLI**:
-  ```bash
-  yolo train resume model=path/to/last.pt
-  ```
+    ```bash
+    yolo train resume model=path/to/last.pt
+    ```
 
 More information can be found in the [Resuming Interrupted Trainings](#resuming-interrupted-trainings) section.
 

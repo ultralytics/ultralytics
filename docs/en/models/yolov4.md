@@ -69,8 +69,6 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is YOLOv4 and how does it differ from YOLOv3?
@@ -80,6 +78,7 @@ YOLOv4 stands for "You Only Look Once" version 4, a state-of-the-art real-time o
 ### How can I use YOLOv4 for real-time object detection?
 
 To use YOLOv4 for real-time object detection, follow these steps:
+
 1. Clone the YOLOv4 GitHub repository from [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet).
 2. Install the necessary dependencies and set up your environment following the instructions in the README file.
 3. Prepare your dataset and configure the model parameters.
@@ -94,6 +93,7 @@ YOLOv4 is designed to balance speed and accuracy, making it highly suitable for 
 ### What are the key innovative features of YOLOv4?
 
 YOLOv4 integrates several advanced features to enhance performance, including:
+
 - Weighted-Residual-Connections (WRC) for better gradient flow.
 - Cross-Stage-Partial connections (CSP) for improved learning efficiency.
 - Mish activation functions for smoother activation regions.

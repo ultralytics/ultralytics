@@ -96,8 +96,6 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 
 For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
-
-
 ## FAQ
 
 ### What models are supported by Ultralytics?

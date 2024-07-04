@@ -122,8 +122,6 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-
-
 ## FAQ
 
 ### How do I validate a YOLOv8 model using the Ultralytics Python API?
@@ -144,6 +142,7 @@ print(metrics.box.map50)  # mAP50
 print(metrics.box.map75)  # mAP75
 print(metrics.box.maps)  # A list containing mAP50-95 of each category
 ```
+
 Using the `model.val()` method, the model retains its training `data` and arguments as its attributes, making the process straightforward. Learn more in the [Python API documentation](#usage-examples).
 
 ### What are the key benefits of validating models with Ultralytics YOLOv8?
@@ -165,11 +164,13 @@ Yes, you can validate a YOLOv8 model using the CLI. Here is an example:
 yolo detect val model=yolov8n.pt  # Validate an official model
 yolo detect val model=path/to/best.pt  # Validate a custom model
 ```
+
 Using the CLI, the `yolo detect val` command simplifies the validation process. For further details, visit the [CLI Example](#usage-examples).
 
 ### What arguments can I customize during YOLO model validation?
 
 When validating YOLO models, you can fine-tune several arguments such as:
+
 - `data`: Path to the dataset configuration file (e.g., `coco8.yaml`)
 - `imgsz`: Size of input images (default is 640)
 - `batch`: Number of images per batch (use -1 for AutoBatch)
@@ -194,6 +195,7 @@ validation_results = model.val(save_json=True)
 ```
 
 Or using the CLI:
+
 ```bash
 yolo val model=yolov8n.pt save_json=True
 ```

@@ -181,8 +181,6 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is object detection and how does YOLOv8 perform it?

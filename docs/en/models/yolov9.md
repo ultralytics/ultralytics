@@ -178,8 +178,6 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is YOLOv9 and how does it improve object detection?
@@ -201,6 +199,7 @@ YOLOv9 demonstrates significant improvements in both accuracy and efficiency com
 ### Can I train my own models using YOLOv9, and how?
 
 Yes, you can train your own models using YOLOv9 with ease. You can use Ultralytics YOLO's simple Python API or CLI commands for model training and inference. Below is a Python example to get you started:
+
 ```python
 from ultralytics import YOLO
 
@@ -213,4 +212,5 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the YOLOv9c model on an image
 results = model("path/to/bus.jpg")
 ```
+
 For more details on how to train and use YOLOv9 models, visit the [Usage Examples](#usage-examples) section.

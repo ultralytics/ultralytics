@@ -224,8 +224,6 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
-
-
 ## FAQ
 
 ### What is the Segment Anything Model (SAM) and how does it work?

@@ -185,8 +185,6 @@ If you use the YOLOv8 model or any other software from this repository in your w
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
 
-
-
 ## FAQ
 
 ### What is YOLOv8 and how does it improve on previous versions?
@@ -213,6 +211,7 @@ For CLI:
 # Run inference on 'bus.jpg' image
 yolo predict model=yolov8n.pt source=path/to/bus.jpg
 ```
+
 For more details, visit our [Predict](../modes/predict.md) documentation.
 
 ### What tasks are supported by YOLOv8 models, and how can I choose the right one?

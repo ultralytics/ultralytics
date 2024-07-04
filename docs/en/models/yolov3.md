@@ -97,8 +97,6 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
-
-
 ## FAQ
 
 ### What is the main difference between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
@@ -107,26 +105,29 @@ YOLOv3 is the third version of the You Only Look Once (YOLO) object detection al
 
 ### How do I use YOLOv3 for training and inference?
 
-To use YOLOv3 for training and inference, you can utilize the Python API or the command-line interface (CLI). 
+To use YOLOv3 for training and inference, you can utilize the Python API or the command-line interface (CLI).
+
 - **Python**:
+
     ```python
     from ultralytics import YOLO
-  
+
     # Load the COCO-pretrained YOLOv3 model
     model = YOLO("yolov3n.pt")
-    
+
     # Train for 100 epochs on COCO8 dataset
     results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
-    
+
     # Inference on 'bus.jpg'
     results = model("path/to/bus.jpg")
     ```
+
 - **CLI**:
-    ```bash
+    `bash
     yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
     yolo predict model=yolov3n.pt source=path/to/bus.jpg
-    ```
-For detailed instructions, refer to the [Train](../modes/train.md) and [Predict](../modes/predict.md) documentation.
+    `
+    For detailed instructions, refer to the [Train](../modes/train.md) and [Predict](../modes/predict.md) documentation.
 
 ### Why should I use YOLOv3u over YOLOv3 or YOLOv3-Ultralytics?
 
@@ -139,20 +140,24 @@ All three models—YOLOv3, YOLOv3-Ultralytics, and YOLOv3u—are tailored for ob
 ### How do I get started with YOLOv3 models in Ultralytics?
 
 To get started with YOLOv3 models in Ultralytics, follow these steps:
+
 1. **Install Ultralytics**:
     ```bash
     pip install ultralytics
     ```
 2. **Load and train the model**:
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov3n.pt")
     model.train(data="coco8.yaml", epochs=100, imgsz=640)
     ```
+
 3. **Run inference**:
-    ```python
+   `python
     results = model("path/to/bus.jpg")
-    ```
-You can find full documentation and quickstart guides in the [Quickstart](https://docs.ultralytics.com/quickstart/) section.
+    `
+   You can find full documentation and quickstart guides in the [Quickstart](https://docs.ultralytics.com/quickstart/) section.
 
 For additional information on model configuration and training tips, please visit the [Ultralytics Docs](https://docs.ultralytics.com/).

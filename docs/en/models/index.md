@@ -96,8 +96,6 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 
 For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
-
-
 ## FAQ
 
 ### What models are supported by Ultralytics for object detection and image segmentation?
@@ -116,6 +114,7 @@ These models cater to various machine learning tasks like [classification](../ta
 Training a YOLO model with Ultralytics is straightforward. You can use either Python or the command line interface (CLI). Here's an example for YOLOv8:
 
 **Python Example:**
+
 ```python
 from ultralytics import YOLO
 
@@ -127,10 +126,12 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI Example:**
+
 ```bash
 # Train the model using CLI
 yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 ```
+
 For more details, see the [Train](../modes/train.md) documentation.
 
 ### Why should I use Ultralytics YOLO models for real-time object detection?
@@ -153,7 +154,7 @@ Yes! Ultralytics welcomes contributions. Follow these steps to contribute:
 4. **Test Thoroughly**: Validate your model’s performance.
 5. **Pull Request**: Submit your pull request for review.
 
-For more detailed steps, visit the [Contributing Guide](../help/contributing.md). 
+For more detailed steps, visit the [Contributing Guide](../help/contributing.md).
 
 ### What are the main advantages of using Ultralytics YOLOv8?
 

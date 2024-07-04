@@ -239,8 +239,6 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is FastSAM and how does it differ from SAM?
@@ -280,6 +278,7 @@ For more details, you can refer to the [Predict Usage](#predict-usage) section o
 ### What are the key features of FastSAM that make it efficient and competitive?
 
 FastSAM is designed with several key features that make it both efficient and competitive:
+
 1. **Real-Time Solution:** Utilizes CNNs for fast execution, providing real-time results.
 2. **Computational Efficiency:** Significantly reduces computational resources without compromising performance.
 3. **Prompt-Guided Segmentation:** Supports various user interaction prompts such as text, points, and bounding boxes to segment objects.
@@ -295,6 +294,7 @@ FastSAM excels in benchmark performance, achieving high efficiency and speed. Sp
 ### What practical applications can benefit from using FastSAM?
 
 FastSAM is designed for a variety of real-time vision tasks, making it suitable for:
+
 - **Industrial Automation:** Where quick segmentation is crucial for real-time decision making.
 - **Medical Imaging:** For tasks that require real-time image segmentation.
 - **Smart Security Systems:** To identify and segment objects efficiently in security footage.

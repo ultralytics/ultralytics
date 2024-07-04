@@ -111,8 +111,6 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
-
-
 ## FAQ
 
 ### How do I export my Ultralytics YOLOv8 model to ONNX format?
@@ -120,6 +118,7 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 To export your Ultralytics YOLOv8 model to the ONNX format, you can use both the Python API and the Command Line Interface (CLI). Here are the steps:
 
 **Using Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -131,6 +130,7 @@ model.export(format="onnx")
 ```
 
 **Using CLI:**
+
 ```bash
 yolo export model=path/to/best.pt format=onnx  # replace with your model path
 ```
@@ -140,6 +140,7 @@ For detailed instructions, refer to the [Export section](#usage-examples) of the
 ### What are the benefits of exporting a YOLOv8 model to TensorRT?
 
 Exporting your YOLOv8 model to TensorRT can provide significant performance upgrades, particularly when using NVIDIA GPUs. The benefits include:
+
 - **Up to 5x GPU Speedup:** TensorRT optimizes GPU utilization for faster inference times.
 - **Reduced Latency:** Enhanced model execution efficiency.
 - **Smaller Model Size:** TensorRT compresses the model, making it more compact without compromising accuracy.
@@ -151,11 +152,13 @@ Learn more in the [TensorRT integration guide](../integrations/tensorrt.md).
 Yes, you can enable dynamic input sizes for your exported models by setting the `dynamic` argument to `True`. This allows the exported model to handle varying image dimensions efficiently.
 
 **Example using Python:**
+
 ```python
 model.export(format="onnx", dynamic=True)
 ```
 
 **Example using CLI:**
+
 ```bash
 yolo export model=path/to/best.pt format=onnx dynamic=True
 ```
@@ -165,6 +168,7 @@ Refer to the [Arguments section](#arguments) for more details on export configur
 ### Why should I choose Ultralytics YOLOv8’s export mode for my model deployment?
 
 Ultralytics YOLOv8’s export mode offers several compelling advantages:
+
 - **Versatility:** Export to various formats including ONNX, TensorRT, CoreML, and others.
 - **Performance:** Achieve significant speed improvements (up to 5x with TensorRT and 3x with ONNX/OpenVINO).
 - **Compatibility:** Deploy models across multiple hardware and software environments.
@@ -175,6 +179,7 @@ Explore the benefits in the [Export Mode Overview](#why-choose-yolov8s-export-mo
 ### What arguments can be customized during model export in YOLOv8?
 
 The export process in YOLOv8 allows the customization of several arguments, including:
+
 - **format:** Target format (e.g., 'onnx', 'tensorrt')
 - **imgsz:** Desired image size for model input
 - **half:** Enable FP16 quantization for smaller model size

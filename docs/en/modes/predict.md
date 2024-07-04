@@ -801,8 +801,6 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
-
-
 ## FAQ
 
 ### How do I perform high-speed real-time inference with Ultralytics YOLOv8?
@@ -841,6 +839,7 @@ See the full list of supported input sources in the [Inference Sources](#Inferen
 ### Why should I use Ultralytics YOLOv8 for model inference?
 
 Ultralytics YOLOv8 offers versatile and high-performance predict mode tailored for real-time inference across various data sources. Key benefits include:
+
 - **Versatility**: Works with images, videos, and live streams.
 - **High Performance**: Designed for fast processing without sacrificing accuracy.
 - **Ease of Use**: Intuitive Python and CLI interfaces.
@@ -851,6 +850,7 @@ For more detailed features, refer to the [Key Features of Predict Mode](#Key-Fea
 ### How can I improve my YOLOv8 model inference performance?
 
 To enhance the performance of your YOLOv8 model inference, you can:
+
 - Use the `half=True` argument for half-precision (FP16) inference if running on compatible GPUs.
 - Adjust `imgsz` for optimal image size.
 - Use `vid_stride` to skip frames in videos.

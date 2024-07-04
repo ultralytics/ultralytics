@@ -368,8 +368,6 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 [people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
 
-
-
 ## FAQ
 
 ### How do I use Ultralytics YOLO for multi-object tracking in real-time video streams?

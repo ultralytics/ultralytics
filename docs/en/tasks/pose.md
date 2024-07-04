@@ -196,13 +196,12 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I train a YOLOv8 model for pose estimation with Ultralytics?
 
 To train a YOLOv8 model for pose estimation using Ultralytics, you can utilize the provided examples in both Python and CLI formats. For Python:
+
 ```python
 from ultralytics import YOLO
 
@@ -212,10 +211,13 @@ model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for trai
 # Train the model
 results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
 ```
+
 For CLI:
+
 ```bash
 yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 ```
+
 Refer to the [Train](#train) section for more details.
 
 ### What datasets are compatible with YOLOv8 pose estimation?
@@ -225,6 +227,7 @@ YOLOv8 supports various dataset formats for pose estimation, such as COCO-Pose, 
 ### How do I validate my YOLOv8 pose estimation model?
 
 You can validate your trained YOLOv8 pose estimation model using both Python and CLI methods. For Python:
+
 ```python
 from ultralytics import YOLO
 
@@ -234,15 +237,19 @@ model = YOLO("yolov8n-pose.pt")  # load a pretrained model
 # Validate the model
 metrics = model.val()  # dataset and settings remembered
 ```
+
 For CLI:
+
 ```bash
 yolo pose val model=yolov8n-pose.pt  # val official model
 ```
+
 The model retains its training `data` and arguments as attributes, making validation straightforward. For more details, see the [Val](#val) section.
 
 ### How can I export a YOLOv8 pose estimation model to different formats?
 
 YOLOv8 models can be exported to various formats such as ONNX, CoreML, and TensorRT. To export a model using Python:
+
 ```python
 from ultralytics import YOLO
 
@@ -252,10 +259,13 @@ model = YOLO("yolov8n-pose.pt")
 # Export the model
 model.export(format="onnx")
 ```
+
 For CLI:
+
 ```bash
 yolo export model=yolov8n-pose.pt format=onnx  # export official model
 ```
+
 Refer to the [Export](#export) section for more details.
 
 ### What are some applications of pose estimation using Ultralytics YOLOv8?

@@ -118,20 +118,20 @@ If you find MobileSAM useful in your research or development work, please consid
         }
         ```
 
-
-
 ## FAQ
 
 ### What is MobileSAM and how does it differ from the original SAM?
 
 **MobileSAM** is a lightweight and fast image segmentation model specifically designed for mobile applications. It retains the same pipeline as the original SAM but replaces the large ViT-H encoder with a smaller, more efficient Tiny-ViT encoder. The main differences include:
+
 - **Encoder Size:** Original SAM uses a 611M parameter ViT-H encoder, while MobileSAM uses a 5M parameter Tiny-ViT encoder.
 - **Speed:** Original SAM operates at 452ms per image, while MobileSAM processes images in just 8ms for the encoder and 12ms for the whole pipeline.
-For more details, visit our [SAM page](sam.md).
+    For more details, visit our [SAM page](sam.md).
 
 ### How can I test the performance of MobileSAM on my device?
 
 You can easily test MobileSAM using the provided Python examples. Here’s how to predict a segment based on a point prompt:
+
 ```python
 from ultralytics import SAM
 
@@ -141,7 +141,9 @@ model = SAM("mobile_sam.pt")
 # Predict a segment based on a point prompt
 model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 ```
+
 Similarly, for a box prompt:
+
 ```python
 from ultralytics import SAM
 
@@ -151,16 +153,18 @@ model = SAM("mobile_sam.pt")
 # Predict a segment based on a box prompt
 model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 ```
+
 For extensive guidance, see the [SAM documentation](sam.md).
 
 ### What tasks does MobileSAM support and what are its operating modes?
 
 MobileSAM supports **Instance Segmentation** tasks. The available operating modes and their support are:
+
 - **Inference:** ✅
 - **Validation:** ❌
 - **Training:** ❌
 - **Export:** ❌
-You can find a detailed list of supported tasks and modes [here](../modes/predict.md).
+    You can find a detailed list of supported tasks and modes [here](../modes/predict.md).
 
 ### Can I transition from the original SAM to MobileSAM without modifying my pipeline?
 

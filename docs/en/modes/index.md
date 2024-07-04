@@ -72,13 +72,12 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
-
-
 ## FAQ
 
 ### What is the purpose of the different modes in Ultralytics YOLOv8?
 
 Ultralytics YOLOv8 offers various modes to streamline the entire model lifecycle, including **Train**, **Val**, **Predict**, **Export**, **Track**, and **Benchmark**. Each mode serves a unique purpose:
+
 - **[Train](train.md)**: Fine-tuning your model on custom or preloaded datasets.
 - **[Val](val.md)**: Validating model performance post-training.
 - **[Predict](predict.md)**: Performing inference on new data.

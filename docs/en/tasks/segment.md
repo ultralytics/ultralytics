@@ -186,8 +186,6 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is instance segmentation in YOLOv8?
@@ -199,6 +197,7 @@ Instance segmentation goes beyond object detection by not only identifying and c
 You can train a YOLOv8 instance segmentation model using the COCO128-seg dataset by following these steps in Python or CLI:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -210,6 +209,7 @@ results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI:**
+
 ```bash
 yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
 ```
@@ -219,6 +219,7 @@ For a complete list of available training arguments, see the [Configuration](../
 ### Why should I use YOLOv8 for instance segmentation?
 
 YOLOv8 offers several advantages for instance segmentation, including:
+
 1. **Speed and Accuracy:** YOLOv8 models are designed for real-time performance while maintaining high accuracy, suitable for applications requiring swift inference.
 2. **Pre-trained Models:** Access to pretrained models on the COCO dataset allows you to fine-tune models for specific tasks without starting from scratch.
 3. **Versatile Export Options:** YOLOv8 supports exporting models to formats like ONNX, CoreML, and TensorRT, making it adaptable to various deployment environments ([Export](../modes/export.md)).
@@ -228,6 +229,7 @@ YOLOv8 offers several advantages for instance segmentation, including:
 You can validate the accuracy of your YOLOv8 segmentation model using the COCO128-seg dataset without the need for additional arguments, as the model retains its training settings:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -240,6 +242,7 @@ print(metrics.seg.map)  # mAP50-95 for segmentation
 ```
 
 **CLI:**
+
 ```bash
 yolo segment val model=yolov8n-seg.pt
 ```
@@ -251,6 +254,7 @@ For more details on validation, see the [Val](../modes/val.md) page.
 YOLOv8 segmentation models can be exported to various formats, including PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF.js, PaddlePaddle, and NCNN. Exporting facilitates compatibility with different platforms and optimizes the models for specific use cases. You can export a model using:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -262,6 +266,7 @@ model.export(format="onnx")
 ```
 
 **CLI:**
+
 ```bash
 yolo export model=yolov8n-seg.pt format=onnx
 ```

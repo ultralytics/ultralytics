@@ -180,8 +180,6 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is YOLOv8 and how does it enhance image classification tasks?

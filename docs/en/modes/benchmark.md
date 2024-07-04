@@ -105,10 +105,6 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
-
-
 ## FAQ
 
 ### What is model benchmarking in Ultralytics YOLOv8?
@@ -125,11 +121,13 @@ from ultralytics.utils.benchmarks import benchmark
 # Benchmark on GPU
 benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
 ```
+
 This code benchmarks the model on a GPU, specifying the model path, dataset, image size, half-precision mode, and the device. For more details, refer to the [usage examples](#usage-examples) section.
 
 ### What export formats are supported for benchmarking YOLOv8 models?
 
 Ultralytics YOLOv8 supports a variety of export formats for benchmarking, including:
+
 - [ONNX](../integrations/onnx.md) for optimal CPU performance
 - [TensorRT](../integrations/tensorrt.md) for maximal GPU efficiency
 - [OpenVINO](../integrations/openvino.md) for Intel hardware optimization
@@ -140,6 +138,7 @@ Check out the full list of export formats and their details in the [export forma
 ### Why is benchmarking crucial for YOLOv8 models?
 
 Benchmarking is crucial for YOLOv8 models because it provides insights into the trade-offs between speed and accuracy across different export formats and hardware setups. This information allows you to:
+
 - Make informed decisions about which export format and hardware combination offers the best performance for your use case.
 - Optimize resource allocation by understanding how different setups affect performance.
 - Achieve cost efficiency by using hardware resources more effectively based on benchmark results.
@@ -149,6 +148,7 @@ Learn more about the importance of benchmarking in the [why is benchmarking cruc
 ### What are the key metrics used in the benchmark mode of YOLOv8?
 
 The key metrics used in the benchmark mode of YOLOv8 include:
+
 - **mAP50-95:** Measures the mean Average Precision for object detection, segmentation, and pose estimation tasks.
 - **accuracy_top5:** Indicates the top-5 accuracy for image classification tasks.
 - **Inference Time:** Records the time taken for each image in milliseconds.

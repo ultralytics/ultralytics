@@ -337,10 +337,6 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
-
-
-
-
 ## FAQ
 
 ### How do I train an object detection model using Ultralytics YOLOv8?
@@ -348,6 +344,7 @@ After setting up your logger, you can then proceed with your model training. All
 Training an object detection model with Ultralytics YOLOv8 can be done using both the Python API and CLI. Below are examples:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -359,10 +356,12 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI:**
+
 ```bash
 # Train using a pre-trained model
 yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
 ```
+
 For complete details on training parameters, visit the [Train Settings](#train-settings) section.
 
 ### What types of datasets can I use for training with Ultralytics YOLOv8?
@@ -376,6 +375,7 @@ For more information on supported datasets, see the [Datasets](https://docs.ultr
 Yes, YOLOv8 supports training on multiple GPUs for more efficient training. To enable multi-GPU training, specify the GPU device IDs you want to use. Examples are available below:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -387,10 +387,12 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
 ```
 
 **CLI:**
+
 ```bash
 # Train using multiple GPUs (0 and 1)
 yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
 ```
+
 For additional details, see [Multi-GPU Training](#multi-gpu-training).
 
 ### How can I resume interrupted training in YOLOv8?
@@ -398,6 +400,7 @@ For additional details, see [Multi-GPU Training](#multi-gpu-training).
 To resume training from a saved checkpoint, simply set the `resume` argument to `True` and provide the path to the partially trained model's `.pt` file. This restores the model weights, optimizer state, learning rate scheduler, and epoch number.
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -409,10 +412,12 @@ results = model.train(resume=True)
 ```
 
 **CLI:**
+
 ```bash
 # Resume training
 yolo train resume model=path/to/last.pt
 ```
+
 For more insights on this feature, refer to the [Resume Training](#resuming-interrupted-trainings) section.
 
 ### What hardware is supported for training YOLOv8 models?
@@ -420,6 +425,7 @@ For more insights on this feature, refer to the [Resume Training](#resuming-inte
 Ultralytics YOLOv8 supports training on diverse hardware, including NVIDIA GPUs, CPUs, and Apple's M1 and M2 chips. When using Apple M1/M2 chips, specify `device="mps"`.
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -431,8 +437,10 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
 ```
 
 **CLI:**
+
 ```bash
 # Train on Apple M1/M2 GPU
 yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
 ```
+
 For further details, see the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training) section.

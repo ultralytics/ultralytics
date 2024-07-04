@@ -117,8 +117,6 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 
-
-
 ## FAQ
 
 ### What is YOLO-NAS and how does it improve upon previous YOLO models?
@@ -128,6 +126,7 @@ YOLO-NAS, developed by Deci AI, is a state-of-the-art object detection model tha
 ### How can I use YOLO-NAS models in my Python application?
 
 You can easily integrate YOLO-NAS models into your Python applications using the `ultralytics` package. Here’s an example of how to perform inference and validation:
+
 ```python
 from ultralytics import NAS
 
@@ -143,6 +142,7 @@ results = model.val(data="coco8.yaml")
 # Run inference with the YOLO-NAS-s model on an image
 results = model("path/to/bus.jpg")
 ```
+
 For more detailed instructions, visit the [Usage Examples](#usage-examples) section of our documentation.
 
 ### What are the advantages of using INT8 quantized YOLO-NAS models?
@@ -151,7 +151,8 @@ INT8 quantized YOLO-NAS models offer reduced latency and improved inference spee
 
 ### How do I choose the right YOLO-NAS model variant for my project?
 
-Ultralytics offers three variants of YOLO-NAS models: Small (s), Medium (m), and Large (l). 
+Ultralytics offers three variants of YOLO-NAS models: Small (s), Medium (m), and Large (l).
+
 - **YOLO-NAS-s**: Optimized for environments with limited computational resources.
 - **YOLO-NAS-m**: Balanced for general-purpose object detection tasks.
 - **YOLO-NAS-l**: Best for high accuracy requirements where computational resources are less constrained.

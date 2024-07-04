@@ -231,8 +231,6 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
 
-
-
 ## FAQ
 
 ### What is YOLOv10 and how does it differ from previous YOLO versions?
@@ -246,6 +244,7 @@ YOLOv10 employs consistent dual assignments during training, integrating one-to-
 ### What are the architecture components of YOLOv10?
 
 The architecture of YOLOv10 includes:
+
 - **Backbone**: Uses an enhanced version of CSPNet for feature extraction, improving gradient flow and reducing computational redundancy.
 - **Neck**: Aggregates multiscale features using PAN layers for effective fusion.
 - **One-to-Many Head**: Provides multiple predictions per object during training, improving learning accuracy.

@@ -100,13 +100,11 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-
-
 ## FAQ
 
 ### What is Baidu's RT-DETR and how does it improve real-time object detection?
 
-Baidu's RT-DETR, or Real-Time Detection Transformer, is a state-of-the-art object detector designed for real-time applications. It uses a Vision Transformer-based architecture that eschews the traditional Non-Max Suppression (NMS) framework for a more efficient and accurate detection process. Key features include an efficient hybrid encoder for processing multiscale features and IoU-aware query selection for better object query initialization. The model's adaptable inference speed allows for flexible application in various real-time detection scenarios without the need for retraining. 
+Baidu's RT-DETR, or Real-Time Detection Transformer, is a state-of-the-art object detector designed for real-time applications. It uses a Vision Transformer-based architecture that eschews the traditional Non-Max Suppression (NMS) framework for a more efficient and accurate detection process. Key features include an efficient hybrid encoder for processing multiscale features and IoU-aware query selection for better object query initialization. The model's adaptable inference speed allows for flexible application in various real-time detection scenarios without the need for retraining.
 
 Learn more about RT-DETR's architecture [here](https://arxiv.org/pdf/2304.08069.pdf).
 
@@ -115,12 +113,15 @@ Learn more about RT-DETR's architecture [here](https://arxiv.org/pdf/2304.08069.
 To get started with RT-DETR using the Ultralytics Python API, you can follow these simple steps:
 
 1. **Load a pre-trained model**:
+
     ```python
     from ultralytics import RTDETR
+
     model = RTDETR("rtdetr-l.pt")
     ```
 
 2. **Train the model**:
+
     ```python
     results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
     ```
@@ -131,6 +132,7 @@ To get started with RT-DETR using the Ultralytics Python API, you can follow the
     ```
 
 For CLI usage, commands are:
+
 ```bash
 yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
@@ -141,6 +143,7 @@ Find additional modes and detailed instructions in the [Train](../modes/train.md
 ### What are the benefits of using Ultralytics RT-DETR models for object detection?
 
 Ultralytics RT-DETR models offer several advantages:
+
 - **High Accuracy**: Achieves over 53% AP on COCO val2017.
 - **Real-Time Performance**: Capable of running at up to 114 FPS on T4 GPU.
 - **Adaptable Inference Speed**: Flexible speed adjustment through decoder layers without retraining.
@@ -157,6 +160,7 @@ Explore the [official documentation](https://arxiv.org/abs/2304.08069) for furth
 ### What pre-trained RT-DETR models are available, and what are their performance metrics?
 
 Ultralytics offers pre-trained PaddlePaddle RT-DETR models in different scales:
+
 - **RT-DETR-L**: Achieves 53.0% AP on COCO val2017 with 114 FPS on T4 GPU.
 - **RT-DETR-X**: Achieves 54.8% AP on COCO val2017 with 74 FPS on T4 GPU.
 

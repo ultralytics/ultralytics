@@ -56,8 +56,6 @@ Oriented object detection goes a step further than regular object detection with
 
 YOLOv8 supports multiple tasks, including detection, segmentation, classification, oriented object detection and keypoints detection. Each of these tasks has different objectives and use cases. By understanding the differences between these tasks, you can choose the appropriate task for your computer vision application.
 
-
-
 ## FAQ
 
 ### What tasks does Ultralytics YOLOv8 support and how can I apply them?

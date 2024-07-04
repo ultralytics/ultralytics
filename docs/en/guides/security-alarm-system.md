@@ -181,7 +181,7 @@ That's it! When you execute the code, you'll receive a single notification on yo
 
 ### How does Ultralytics YOLOv8 improve the accuracy of a security alarm system?
 
-Ultralytics YOLOv8 enhances security alarm systems by delivering high-accuracy, real-time object detection. Its advanced algorithms significantly reduce false positives, ensuring that the system only responds to genuine threats. This increased reliability can be seamlessly integrated with existing security infrastructure, upgrading the overall surveillance quality. Discover more about the integration capabilities [here](#integration-capabilities).
+Ultralytics YOLOv8 enhances security alarm systems by delivering high-accuracy, real-time object detection. Its advanced algorithms significantly reduce false positives, ensuring that the system only responds to genuine threats. This increased reliability can be seamlessly integrated with existing security infrastructure, upgrading the overall surveillance quality.
 
 ### Can I integrate Ultralytics YOLOv8 with my existing security infrastructure?
 

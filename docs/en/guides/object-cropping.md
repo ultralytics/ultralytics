@@ -116,7 +116,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### What is object cropping in Ultralytics YOLOv8 and how does it work?
 
-Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced precision by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#example-object-cropping-using-yolov8-example).
+Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced precision by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8-).
 
 ### Why should I use Ultralytics YOLOv8 for object cropping over other solutions?
 
@@ -124,7 +124,7 @@ Ultralytics YOLOv8 stands out due to its precision, speed, and ease of use. It a
 
 ### How can I reduce the data volume of my dataset using object cropping?
 
-By using Ultralytics YOLOv8 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. This process involves training the model to detect specific objects and then using the results to crop and save these portions only. For more information on exploiting Ultralytics YOLOv8's capabilities, visit our [quickstart guide](../quickstart/).
+By using Ultralytics YOLOv8 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. This process involves training the model to detect specific objects and then using the results to crop and save these portions only. For more information on exploiting Ultralytics YOLOv8's capabilities, visit our [quickstart guide](../quickstart.md).
 
 ### Can I use Ultralytics YOLOv8 for real-time video analysis and object cropping?
 
@@ -132,4 +132,4 @@ Yes, Ultralytics YOLOv8 can process real-time video feeds to detect and crop obj
 
 ### What are the hardware requirements for efficiently running YOLOv8 for object cropping?
 
-Ultralytics YOLOv8 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using CoreML for iOS or TFLite for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options/).
+Ultralytics YOLOv8 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using CoreML for iOS or TFLite for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).

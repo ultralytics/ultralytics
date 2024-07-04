@@ -264,4 +264,4 @@ For an in-depth guide on setting up and running Triton Server with YOLOv8, refer
 - **Ease of Use**: YOLOv8 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.
 - **Advanced Features**: YOLOv8 includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
 
-For more details, compare the deployment options in the [model deployment guide](../modes/deploy.md).
+For more details, compare the deployment options in the [model deployment guide](../modes/export.md).

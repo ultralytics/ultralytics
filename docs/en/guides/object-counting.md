@@ -303,7 +303,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
 count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolov8n.pt")
 ```
 
-Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8) section.
+Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8-) section.
 
 ### What are the advantages of using Ultralytics YOLOv8 for object counting?
 
@@ -354,7 +354,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
 count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolov8n.pt", [0, 2])
 ```
 
-In this example, `classes_to_count=[0, 2]`, which means it counts objects of class `0` and `2` (e.g., person and car). For more details, refer to the [Class-wise Object Counting](#specific-classes) section.
+In this example, `classes_to_count=[0, 2]`, which means it counts objects of class `0` and `2` (e.g., person and car).
 
 ### Why should I use YOLOv8 over other object detection models for real-time applications?
 

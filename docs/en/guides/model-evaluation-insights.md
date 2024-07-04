@@ -103,7 +103,7 @@ If you want to get a deeper understanding of your YOLOv8 model's performance, yo
 
 The results object also includes speed metrics like preprocess time, inference time, loss, and postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLOv8 model for better performance, making it more effective for your specific use case.
 
-## How Does Fine Tuning Work?
+## How Does Fine-Tuning Work?
 
 Fine-tuning involves taking a pre-trained model and adjusting its parameters to improve performance on a specific task or dataset. The process, also known as model retraining, allows the model to better understand and predict outcomes for the specific data it will encounter in real-world applications. You can retrain your model based on your model evaluation to achieve optimal results.
 

@@ -136,8 +136,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-Explore a [detailed example](#example-code-here) in our documentation for further insights.
-
 ### What are the benefits of using Ultralytics YOLOv8 for object blurring?
 
 Ultralytics YOLOv8 offers several advantages for object blurring:

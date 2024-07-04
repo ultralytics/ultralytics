@@ -121,6 +121,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```
 
     === "Polygon Counting"
+
         ```python
         import cv2
 

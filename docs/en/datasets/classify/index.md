@@ -91,6 +91,7 @@ This structured approach ensures that the model can effectively learn from well-
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash

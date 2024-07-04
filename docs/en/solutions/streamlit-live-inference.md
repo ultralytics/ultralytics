@@ -30,6 +30,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 !!! Example "Streamlit Application"
 
     === "Python"
+
         ```Python
         from ultralytics import solutions
 
@@ -39,6 +40,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         ```
 
     === "CLI"
+
         ```bash
         yolo live-inference
         ```

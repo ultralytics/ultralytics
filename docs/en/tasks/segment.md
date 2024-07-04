@@ -63,6 +63,7 @@ Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. F
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -107,6 +108,7 @@ retains its training `data` and arguments as model attributes.
         metrics.seg.map75  # map75(M)
         metrics.seg.maps  # a list contains map50-95(M) of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -132,6 +134,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -159,6 +162,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash

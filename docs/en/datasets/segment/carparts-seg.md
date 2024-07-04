@@ -84,6 +84,7 @@ If you integrate the Carparts Segmentation dataset into your research or develop
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
            @misc{ car-seg-un1pm_dataset,
                 title = { car-seg Dataset },

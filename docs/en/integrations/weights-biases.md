@@ -62,6 +62,7 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 !!! Example "Usage: Training YOLOv8 with Weights & Biases"
 
     === "Python"
+
        ```python
        import wandb
        from wandb.integration.ultralytics import add_wandb_callback

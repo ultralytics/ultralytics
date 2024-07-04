@@ -79,6 +79,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash

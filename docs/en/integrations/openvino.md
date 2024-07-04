@@ -46,6 +46,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -264,6 +265,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml")
         ```
+
     === "CLI"
 
         ```bash

@@ -801,8 +801,6 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
-
-
 ## FAQ
 
 ### How do I use the streaming mode in Ultralytics YOLOv8 for real-time video processing?
@@ -852,7 +850,7 @@ Ultralytics YOLOv8 is designed for high-performance, real-time inference with se
 - **Versatility:** Supports making inferences on images, videos, and live streams.
 - **Performance:** Optimized for real-time, high-speed processing without compromising accuracy.
 - **Ease of Use:** Provides intuitive Python and CLI interfaces for quick deployment and testing.
-- **Customizability:** Offers various settings to tune the model’s inference behavior to your needs.
+- **Customizability:** Offers various settings to tune the model's inference behavior to your needs.
 
 Explore more about its key features in the [Why Use Ultralytics YOLO for Inference?](#why-use-ultralytics-yolo-for-inference) section.
 
@@ -880,6 +878,7 @@ Ultralytics YOLOv8 offers multiple visualization options through the `plot` meth
 
 ```python
 from PIL import Image
+
 from ultralytics import YOLO
 
 # Load a model

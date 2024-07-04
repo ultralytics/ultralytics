@@ -105,13 +105,12 @@ We would like to acknowledge the authors for their significant contributions in 
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is Meituan YOLOv6 and how does it enhance object detection?
 
 Meituan YOLOv6 is a state-of-the-art object detection model designed for real-time applications, balancing speed and accuracy. It incorporates several innovative features:
+
 - **Bidirectional Concatenation (BiC) Module:** Enhances localization signals and performance with minimal speed degradation.
 - **Anchor-Aided Training (AAT) Strategy:** Combines anchor-based and anchor-free paradigms to improve inference efficiency.
 - **Enhanced Backbone and Neck Design:** Additional stages in the backbone and neck boost performance on the COCO dataset.
@@ -148,6 +147,7 @@ The Anchor-Aided Training (AAT) strategy in YOLOv6 uniquely combines the benefit
 ### What performance metrics does YOLOv6 achieve across different pre-trained models?
 
 YOLOv6 offers various pre-trained models, each optimized for different performance scales:
+
 - **YOLOv6-N:** 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA Tesla T4 GPU.
 - **YOLOv6-S:** 45.0% AP at 484 FPS.
 - **YOLOv6-M:** 50.0% AP at 226 FPS.

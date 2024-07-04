@@ -113,8 +113,6 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
 
 Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
 
-
-
 ## FAQ
 
 ### What is YOLOv5u and how is it different from YOLOv5?
@@ -152,4 +150,5 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the YOLOv5n model on the 'bus.jpg' image
 results = model("path/to/bus.jpg")
 ```
+
 This example demonstrates the simplicity and flexibility of using YOLOv5u for various tasks in a Python environment. For more details, visit the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md) pages.

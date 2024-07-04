@@ -97,18 +97,20 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
-
-
 ## FAQ
 
 ### What are the main differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
+
 The primary differences lie in their detection head structures and additional functionalities:
+
 - **YOLOv3:** Introduced by Joseph Redmon, known for multiscale predictions with three sizes of detection kernels (13x13, 26x26, 52x52).
 - **[YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3):** Ultralytics' version of YOLOv3 with the same architecture but enhanced with additional pre-trained models and easier customization options.
 - **YOLOv3u:** An update to YOLOv3-Ultralytics, incorporating the anchor-free, objectness-free split head from YOLOv8, improving robustness and accuracy by eliminating pre-defined anchor boxes.
 
 ### How can I use YOLOv3 for object detection tasks?
+
 You can follow these steps for training and inference using Ultralytics YOLO in Python:
+
 ```python
 from ultralytics import YOLO
 
@@ -124,22 +126,28 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 # Run inference with the YOLOv3n model on an image
 results = model("path/to/bus.jpg")
 ```
+
 Refer to the [Training](../modes/train.md) and [Predict](../modes/predict.md) documentation for more details.
 
 ### What is the advantage of using YOLOv3-Ultralytics over the original YOLOv3?
+
 [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) reproduces the original YOLOv3 architecture but adds significant improvements, including:
+
 - Support for more pre-trained models
 - Additional customization options
 - Enhanced training methods
-These features make YOLOv3-Ultralytics more versatile and user-friendly for various applications.
+    These features make YOLOv3-Ultralytics more versatile and user-friendly for various applications.
 
 ### What makes YOLOv3u more accurate and robust for object detection?
+
 YOLOv3u integrates advancements from YOLOv8, specifically the anchor-free, objectness-free split head. This configuration removes the reliance on pre-defined anchor boxes and objectness scores, which enhances the model's ability to detect objects of various sizes and shapes with higher accuracy and robustness. Learn more about these innovations in the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8).
 
 ### Which operational modes are supported by YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
+
 All three models support a comprehensive set of modes including:
+
 - [Inference](../modes/predict.md)
 - [Validation](../modes/val.md)
 - [Training](../modes/train.md)
 - [Export](../modes/export.md)
-These modes ensure versatility in various stages of model deployment and development, providing users with the necessary toolkit for effective object detection tasks.
+    These modes ensure versatility in various stages of model deployment and development, providing users with the necessary toolkit for effective object detection tasks.

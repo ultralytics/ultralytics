@@ -56,13 +56,12 @@ Oriented object detection goes a step further than regular object detection with
 
 YOLOv8 supports multiple tasks, including detection, segmentation, classification, oriented object detection and keypoints detection. Each of these tasks has different objectives and use cases. By understanding the differences between these tasks, you can choose the appropriate task for your computer vision application.
 
-
-
 ## FAQ
 
 ### What are the main tasks supported by Ultralytics YOLOv8?
 
 Ultralytics YOLOv8 supports multiple computer vision tasks including:
+
 - **[Detection](detect.md)**: Identifying and locating objects within images or videos.
 - **[Segmentation](segment.md)**: Classifying each pixel in an image to distinguish different object areas.
 - **[Classification](classify.md)**: Categorizing entire images into predefined classes.
@@ -74,6 +73,7 @@ Learn more about these tasks through practical examples provided in the document
 ### How do I use Ultralytics YOLOv8 for object detection?
 
 Using Ultralytics YOLOv8 for object detection involves several steps:
+
 1. **Load a pre-trained model** or fine-tune a model with your custom dataset.
 2. **Run predictions** using the model to detect objects in images or videos.
 3. **Visualize results** with bounding boxes drawn around detected objects.

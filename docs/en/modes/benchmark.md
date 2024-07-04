@@ -105,8 +105,6 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I benchmark Ultralytics YOLOv8 across different export formats?
@@ -121,6 +119,7 @@ benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0
 ```
 
 Or via CLI:
+
 ```bash
 yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
 ```
@@ -130,6 +129,7 @@ This will help you understand the trade-offs between formats like ONNX, TensorRT
 ### What are the key metrics to consider when benchmarking a YOLO model?
 
 When benchmarking a YOLO model, key metrics include:
+
 - **mAP50-95:** Measures average precision at IoU thresholds from 0.50 to 0.95, particularly useful for object detection, segmentation, and pose estimation.
 - **accuracy_top5:** Used for image classification to assess the top-5 classification accuracy.
 - **Inference Time:** The time taken for each image inference, typically measured in milliseconds.
@@ -139,6 +139,7 @@ These metrics provide a comprehensive view of the model's performance in various
 ### Why should I benchmark my YOLOv8 model using Ultralytics?
 
 Benchmarking your YOLOv8 model with Ultralytics has several advantages:
+
 - **Informed Decisions:** Helps you balance trade-offs between model speed and accuracy.
 - **Resource Allocation:** Evaluates how different export formats perform on various hardware.
 - **Optimization:** Identifies the best export format for your specific use case.
@@ -149,6 +150,7 @@ For a detailed guide, see the [Export](../modes/export.md) page.
 ### What export formats are supported for model benchmarking in Ultralytics YOLOv8?
 
 Ultralytics YOLOv8 supports multiple export formats for benchmarking, including:
+
 - **ONNX:** Optimized for CPU performance.
 - **TensorRT:** Maximizes GPU efficiency.
 - **OpenVINO:** Optimized for Intel hardware.
@@ -159,10 +161,12 @@ For a complete list and more details, visit the [Supported Export Formats](#supp
 ### Can I perform model benchmarking on different devices using Ultralytics YOLOv8?
 
 Yes, you can benchmark models on various devices using YOLOv8. Specify the device in the benchmarking command:
+
 - **CPU**: Use `"cpu"`
 - **GPU**: Use `"cuda:0"` or specify multi-GPU setups like `"cuda:0,1"`
 
 Example:
+
 ```python
 benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device="cpu")
 ```

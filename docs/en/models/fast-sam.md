@@ -239,8 +239,6 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is the Fast Segment Anything Model (FastSAM) and how does it work?
@@ -278,11 +276,13 @@ annotations = prompt_process.text_prompt(text="a photo of a dog")
 annotations = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
 prompt_process.plot(annotations=annotations, output="./")
 ```
+
 This code snippet demonstrates loading a pre-trained model and performing object segmentation based on user prompts.
 
 ### What are the main advantages of using FastSAM?
 
 FastSAM offers several key advantages:
+
 - **Real-time performance:** Leveraging CNNs for quick processing suitable for industrial applications.
 - **Efficiency:** Significant reduction in computational and resource demands while maintaining performance.
 - **Flexibility:** Prompt-guided segmentation allows for flexible object identification based on user interactions.

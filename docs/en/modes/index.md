@@ -72,8 +72,6 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
-
-
 ## FAQ
 
 ### What are the different modes available in Ultralytics YOLOv8?

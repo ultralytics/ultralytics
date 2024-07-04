@@ -111,8 +111,6 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
-
-
 ## FAQ
 
 ### How do I export my YOLOv8 model to ONNX format using Ultralytics?
@@ -120,6 +118,7 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 To export your YOLOv8 model to ONNX format, you can use either Python or the command line interface (CLI). Below are the steps for each method:
 
 **Python:**
+
 ```python
 from ultralytics import YOLO
 
@@ -131,14 +130,17 @@ model.export(format="onnx")
 ```
 
 **CLI:**
+
 ```bash
 yolo export model=path/to/best.pt format=onnx
 ```
+
 Exporting to [ONNX](../integrations/onnx.md) can provide up to a 3x CPU speedup, making it ideal for deployment in resource-constrained environments.
 
 ### What are the benefits of using TensorRT for YOLOv8 model exports?
 
 Using TensorRT to export your YOLOv8 model offers several benefits:
+
 - **Performance:** Gain up to 5x GPU speedup, significantly enhancing inference speed.
 - **Efficiency:** Optimizes model execution for NVIDIA hardware, reducing latency.
 - **Compatibility:** Integrates well with various deployment environments, especially those utilizing NVIDIA GPUs.
@@ -150,9 +152,11 @@ For step-by-step instructions, follow our [TensorRT export guide](../integration
 Yes, you can export your YOLOv8 model with FP16 (half-precision) using the `half` argument. FP16 quantization reduces the model size and can speed up inference on supported hardware. This is especially useful for deployment on devices with limited computational power.
 
 Example:
+
 ```python
 model.export(format="onnx", half=True)
 ```
+
 Using FP16 precision is detailed under the [ONNX integration](../integrations/onnx.md) section.
 
 ### How do I specify the input image size when exporting a YOLOv8 model?
@@ -160,9 +164,11 @@ Using FP16 precision is detailed under the [ONNX integration](../integrations/on
 You can set the desired input image size using the `imgsz` argument during the export process. This can be an integer for square images (e.g., 640) or a tuple for specific dimensions (e.g., (320, 640)).
 
 Example:
+
 ```python
 model.export(format="onnx", imgsz=(320, 640))
 ```
+
 Setting image size appropriately ensures optimal performance and compatibility, as explained in the [Arguments](#arguments) section.
 
 ### Why should I use dynamic input sizes when exporting to ONNX or TensorRT formats?
@@ -170,7 +176,9 @@ Setting image size appropriately ensures optimal performance and compatibility, 
 Using dynamic input sizes allows the exported model to handle varying image dimensions, improving flexibility and usability in different deployment scenarios.
 
 Example:
+
 ```python
 model.export(format="engine", dynamic=True)
 ```
+
 This feature is particularly beneficial for applications where input sizes are not constant, as described in the [Export Formats](#export-formats) section.

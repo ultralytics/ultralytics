@@ -100,8 +100,6 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-
-
 ## FAQ
 
 ### What is Baidu's RT-DETR and how does it enhance real-time object detection?
@@ -110,7 +108,7 @@ Baidu's RT-DETR (Real-Time Detection Transformer) is a Vision Transformer-based 
 
 ### How can I use pre-trained RT-DETR models for object detection with Ultralytics?
 
-You can leverage the Ultralytics Python API to utilize pre-trained PaddlePaddle RT-DETR models. Here’s a Python example for training and inference:
+You can leverage the Ultralytics Python API to utilize pre-trained PaddlePaddle RT-DETR models. Here's a Python example for training and inference:
 
 ```python
 from ultralytics import RTDETR
@@ -133,6 +131,7 @@ For a command-line interface (CLI) example, visit our [Usage Examples](#usage-ex
 ### What are the key features of Baidu's RT-DETR that differentiate it from other object detectors?
 
 Baidu's RT-DETR stands out due to several unique features:
+
 - **Efficient Hybrid Encoder:** It processes multiscale features through intra-scale interaction and cross-scale fusion, reducing computational costs.
 - **IoU-aware Query Selection:** Enhances detection accuracy by focusing on the most relevant objects in the scene.
 - **Adaptable Inference Speed:** Allows flexible adjustments of inference speed using different decoder layers without the need for retraining.
@@ -142,6 +141,7 @@ These features make RT-DETR highly efficient for real-time object detection task
 ### What performance metrics do the pre-trained RT-DETR models achieve on the COCO val2017 dataset?
 
 The pre-trained PaddlePaddle RT-DETR models achieve the following performance metrics:
+
 - **RT-DETR-L:** 53.0% AP (Average Precision), 114 FPS (Frames Per Second) on T4 GPU
 - **RT-DETR-X:** 54.8% AP, 74 FPS on T4 GPU
 

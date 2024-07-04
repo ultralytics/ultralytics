@@ -60,7 +60,6 @@ In the sunburst graphic below, the innermost circle is the entire project, movin
     <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Image">
 </a>
 
-
 ## FAQ
 
 ### What is Continuous Integration (CI) in Ultralytics?

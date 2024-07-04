@@ -78,12 +78,12 @@ In this example, the MRE demonstrates the issue with a minimal amount of code, u
 
 By following these guidelines, you'll help the maintainers and [contributors](https://github.com/ultralytics/ultralytics/graphs/contributors) of Ultralytics YOLO repositories to understand and resolve your issue more efficiently.
 
-
 ## FAQ
 
 ### How do I create an effective Minimum Reproducible Example (MRE) for bug reports in Ultralytics YOLO repositories?
 
 To create an effective Minimum Reproducible Example (MRE) for bug reports in Ultralytics YOLO repositories, follow these steps:
+
 1. **Isolate the Problem**: Remove any code or dependencies that are not directly related to the issue.
 2. **Use Public Models and Datasets**: Utilize public resources like `yolov8n.pt` and `coco8.yaml` for easier reproducibility.
 3. **Include All Necessary Dependencies**: Specify required packages and their versions. You can list dependencies using `yolo checks` if you have `ultralytics` installed or `pip list`.
@@ -100,6 +100,7 @@ Using publicly available models and datasets in your MRE ensures that maintainer
 ### What information should I include in my bug report for Ultralytics YOLO?
 
 A comprehensive bug report for Ultralytics YOLO should include:
+
 - **Clear Description**: Explain the issue, expected behavior, and actual behavior.
 - **Error Messages**: Include any relevant error messages or logs.
 - **Dependencies**: List required dependencies and their versions.
@@ -111,11 +112,13 @@ For a complete checklist, refer to the [Write a Clear Description of the Issue](
 ### How can I format my code properly when submitting a bug report on GitHub?
 
 To format your code properly when submitting a bug report on GitHub:
+
 - Use triple backticks (\```) to create code blocks.
 - Specify the programming language for syntax highlighting, e.g., \```python.
 - Ensure your code is indented correctly for readability.
 
 Example:
+
 ````bash
 ```python
 # Your Python code goes here
@@ -127,6 +130,7 @@ For more tips on code formatting, see [Format Your Code Properly](#5-format-your
 ### What are some common errors to check before submitting my MRE for a bug report?
 
 Before submitting your MRE, make sure to:
+
 - Verify the issue is reproducible.
 - Ensure all dependencies are listed and correct.
 - Remove any unnecessary code.

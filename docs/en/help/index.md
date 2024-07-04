@@ -18,7 +18,6 @@ Welcome to the Ultralytics Help page! We are dedicated to providing you with det
 
 We encourage you to review these resources for a seamless and productive experience. Our aim is to foster a helpful and friendly environment for everyone in the Ultralytics community. Should you require additional support, please feel free to reach out via GitHub Issues or our official discussion forums. Happy coding!
 
-
 ## FAQ
 
 ### What is Ultralytics YOLO and how does it benefit my machine learning projects?

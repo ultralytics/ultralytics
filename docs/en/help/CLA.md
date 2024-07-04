@@ -27,7 +27,6 @@ You agree that the following terms apply to all of your past, present and future
 
 **Assignment.** You agree that Ultralytics may assign this Agreement, and all of its rights, obligations and licenses hereunder.
 
-
 ## FAQ
 
 ### What is the purpose of the Ultralytics Individual Contributor License Agreement?

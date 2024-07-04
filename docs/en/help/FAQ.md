@@ -197,15 +197,15 @@ To perform inference using a trained Ultralytics YOLO model, follow these steps:
 
     ```python
     from ultralytics import YOLO
-    
-    model = YOLO('path/to/your/model.pt')
+
+    model = YOLO("path/to/your/model.pt")
     ```
 
 2. **Run Inference:**
 
     ```python
-    results = model('path/to/image.jpg')
-    
+    results = model("path/to/image.jpg")
+
     for r in results:
         print(r.boxes)  # print bounding box predictions
         print(r.masks)  # print mask predictions

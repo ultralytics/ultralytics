@@ -136,7 +136,6 @@ Ultralytics takes user privacy seriously. We design our data collection practice
 
 If you have any questions or concerns about our data collection practices, please reach out to us via our [contact form](https://ultralytics.com/contact) or via [support@ultralytics.com](mailto:support@ultralytics.com). We are dedicated to ensuring our users feel informed and confident in their privacy when using our package.
 
-
 ## FAQ
 
 ### How does Ultralytics ensure the privacy of the data it collects?
@@ -146,10 +145,11 @@ Ultralytics prioritizes user privacy through several key measures. First, all da
 ### What types of data does Ultralytics collect with Google Analytics?
 
 Ultralytics collects three primary types of data using Google Analytics:
+
 - **Usage Metrics**: These include how often and in what ways the YOLO Python package is used, preferred features, and typical command-line arguments.
 - **System Information**: General non-identifiable information about the computing environments where the package is run.
 - **Performance Data**: Metrics related to the performance of models during training, validation, and inference.
-This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
+    This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
 
 ### How can I disable data collection in the Ultralytics YOLO package?
 
@@ -158,22 +158,22 @@ To opt out of data collection, you can simply set `sync=False` in your YOLO sett
 !!! Example "Update settings"
 
     === "Python"
-    
+
     ```python
     from ultralytics import settings
-    
+
     # Disable analytics and crash reporting
     settings.update({"sync": False})
-    
+
     # Reset settings to default values
     settings.reset()
     ```
     === "CLI"
-    
+
     ```bash
     # Disable analytics and crash reporting
     yolo settings sync=False
-    
+
     # Reset settings to default values
     yolo settings reset
     ```
@@ -194,10 +194,10 @@ Yes, you can easily view your current settings to understand the configuration o
 
     ```python
     from ultralytics import settings
-    
+
     # View all settings
     print(settings)
-    
+
     # Return analytics and crash reporting setting
     value = settings["sync"]
     ```

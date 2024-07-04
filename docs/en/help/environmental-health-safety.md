@@ -36,7 +36,6 @@ This policy reflects our commitment to minimizing our environmental footprint, e
 
 Please remember that the implementation of an effective EHS policy requires the involvement and commitment of everyone working at or with Ultralytics. We encourage you to take personal responsibility for your safety and the safety of others, and to take care of the environment in which we live and work.
 
-
 ## FAQ
 
 ### What is Ultralytics' Environmental, Health, and Safety (EHS) policy?

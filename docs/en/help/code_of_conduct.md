@@ -84,7 +84,6 @@ For answers to common questions about this code of conduct, see the FAQ at https
 
 [homepage]: https://www.contributor-covenant.org
 
-
 ## FAQ
 
 ### What is the Ultralytics Contributor Covenant Code of Conduct?

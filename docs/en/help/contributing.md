@@ -130,7 +130,6 @@ Thank you for your interest in contributing to [Ultralytics open-source](https:/
 
 We look forward to seeing your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟
 
-
 ## FAQ
 
 ### Why should I contribute to Ultralytics YOLO open-source repositories?
@@ -140,9 +139,11 @@ Contributing to Ultralytics YOLO open-source repositories helps improve the soft
 ### How do I sign the Contributor License Agreement (CLA) for Ultralytics YOLO?
 
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This will ensure your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request mentioning:
+
 ```
 I have read the CLA Document and I sign the CLA
 ```
+
 For more information, see the [CLA Signing](#cla-signing) section.
 
 ### What are Google-style docstrings and why are they required for Ultralytics YOLO contributions?

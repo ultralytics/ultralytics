@@ -35,14 +35,13 @@ If you suspect or discover a security vulnerability in any of our repositories, 
 
 We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone 🙏.
 
-
 ## FAQ
 
 ### What are the security measures implemented by Ultralytics to protect user data?
 
 Ultralytics employs a comprehensive security strategy to protect user data and systems. Key measures include:
 
-- **Snyk Scanning**: Conducts security scans to detect vulnerabilities in code and Dockerfiles. 
+- **Snyk Scanning**: Conducts security scans to detect vulnerabilities in code and Dockerfiles.
 - **GitHub CodeQL**: Analyzes code semantics to detect complex vulnerabilities such as SQL injection.
 - **Dependabot Alerts**: Monitors dependencies for known vulnerabilities and sends alerts for swift remediation.
 - **Secret Scanning**: Detects sensitive data like credentials or private keys in code repositories to prevent data breaches.

@@ -230,3 +230,42 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
         yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320
         ```
+
+
+## FAQ
+
+### What is the YOLOv8 Command Line Interface (CLI) used for?
+
+The YOLOv8 Command Line Interface (CLI) by Ultralytics enables users to perform detection tasks directly from the terminal without needing a Python environment. This simplifies executing training, validation, prediction, and export tasks using single-line commands, like `yolo train data=coco8.yaml model=yolov8n.pt epochs=10`.
+
+### How do I train a YOLOv8 model using the CLI?
+
+To train a YOLOv8 model using the CLI, use a command like:
+```bash
+yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+```
+This command trains the `yolov8n` model on the `COCO8` dataset for 100 epochs at an image size of 640. Refer to the [Configuration](../modes/export.md) page for a full list of arguments you can use.
+
+### Can I export a YOLOv8 model to different formats using the CLI?
+
+Yes, you can export a YOLOv8 model to different formats like ONNX, CoreML, TensorRT, and more using the CLI. For example:
+```bash
+yolo export model=yolov8n.pt format=onnx
+```
+This command exports the `yolov8n` model to the ONNX format. See the full details in the [Export](../modes/export.md) page.
+
+### How can I run predictions on a video using the YOLOv8 CLI?
+
+To run predictions on a video using the YOLOv8 CLI, use a command like:
+```bash
+yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+```
+This command uses a pretrained segmentation model to predict objects at an image size of 320. See more examples in the [Predict](#predict) section.
+
+### What arguments can be passed to override default settings in the YOLOv8 CLI?
+
+Arguments can be passed as `arg=val` pairs to override the default settings in the YOLOv8 CLI. For example, to change the image size and confidence threshold during prediction:
+```bash
+yolo predict model=yolov8n.pt imgsz=640 conf=0.25
+```
+Refer to the [Configuration Guide](cfg.md) for the full list of available arguments.

@@ -269,4 +269,4 @@ YOLOv8 pose estimation is versatile and can be applied in various domains:
 - **Animation**: Capturing human poses for animating characters in movies and video games.
 - **Healthcare**: Analyzing patient movements for physical therapy and rehabilitation.
 - **Surveillance**: Monitoring body positions for unusual activity detection.
-    Explore more applications on the [Ultralytics Hub](https://www.ultralytics.com/hub).
+    Explore more applications on the [Ultralytics HUB](https://www.ultralytics.com/hub).

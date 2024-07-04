@@ -277,3 +277,52 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                   |
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
+
+
+## FAQ
+
+### What are the key hyperparameters for training Ultralytics YOLO models?
+
+When training Ultralytics YOLO models, key hyperparameters include `epochs`, `batch`, `imgsz`, `lr0`, `momentum`, and `optimizer`. These settings influence the model's overall performance and convergence speed. Tuning these parameters is critical for optimizing model accuracy and efficiency. You can set these parameters via the command line or in a configuration file.
+
+For detailed guidance on these settings, refer to the [Train Guide](../modes/train.md).
+
+### How can I improve the inference speed of my YOLO model using Ultralytics tools?
+
+To improve the inference speed of your YOLO model, consider using the `half` parameter to enable FP16 precision and the `optimize` parameter during export to optimize the model for target hardware. Additionally, exporting the model to formats like TensorRT or OpenVINO can significantly boost performance.
+
+For comprehensive steps on model export, see the [Export Guide](../modes/export.md).
+
+### What settings should I adjust to enhance YOLO model validation performance?
+
+For enhanced validation performance, key settings include `batch`, `imgsz`, `conf`, and `iou`. Adjusting these parameters helps balance the model's evaluation accuracy and computational efficiency. Using higher image sizes may improve accuracy, while optimized confidence and IoU thresholds help reduce false positives and negatives.
+
+More detailed information can be found in the [Val Guide](../modes/val.md).
+
+### How do I configure Ultralytics YOLO for different tasks like detection and segmentation?
+
+Ultralytics YOLO offers multiple tasks such as detection (`detect`), segmentation (`segment`), classification (`classify`), and pose estimation (`pose`). You can specify the task using the `task` parameter. Each task has tailored models and hyperparameters optimized for specific outputs.
+
+Learn more about different tasks in the [Tasks Guide](../tasks/index.md).
+
+### What is the role of augmentation settings in improving YOLO model performance?
+
+Augmentation settings introduce variability into the training data, helping the model generalize better to unseen data. Parameters such as `hsv_h`, `translate`, `scale`, and `mosaic` can significantly affect the model's robustness and performance by simulating different real-world scenarios.
+
+For a detailed list of augmentation options, visit the [Augmentation Settings](#augmentation-settings) section. 
+
+### How do I use the Ultralytics YOLO Python API for custom predictions?
+
+To use the Ultralytics YOLO Python API for custom predictions, you need to instantiate the YOLO model and call the `predict` method with your source data. You can customize the inference by setting parameters like `conf`, `iou`, and `device`.
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLOv8 model from a pre-trained weights file
+model = YOLO("yolov8n.pt")
+
+# Run predict with custom arguments
+results = model.predict(source="path/to/image.jpg", conf=0.25, imgsz=640)
+```
+
+Refer to the [Python Guide](../modes/predict.md) for more examples and details.

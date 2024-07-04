@@ -32,14 +32,33 @@ def inference():
     st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.image("https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394",
-                 width=250)
+        st.image(
+            "https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394",
+            width=250,
+        )
 
     # Add elements to vertical setting menu
     st.sidebar.title("User Configuration")
-    yolov8_model = st.sidebar.radio("Model", ("YOLOv8n", "YOLOv8s", "YOLOv8m", "YOLOv8l", "YOLOv8x",
-                                              "YOLOv8n-Seg", "YOLOv8s-Seg", "YOLOv8m-Seg", "YOLOv8l-Seg", "YOLOv8x-Seg",
-                                              "YOLOv8n-Pose", "YOLOv8s-Pose", "YOLOv8m-Pose", "YOLOv8l-Pose", "YOLOv8x-Pose"))
+    yolov8_model = st.sidebar.radio(
+        "Model",
+        (
+            "YOLOv8n",
+            "YOLOv8s",
+            "YOLOv8m",
+            "YOLOv8l",
+            "YOLOv8x",
+            "YOLOv8n-Seg",
+            "YOLOv8s-Seg",
+            "YOLOv8m-Seg",
+            "YOLOv8l-Seg",
+            "YOLOv8x-Seg",
+            "YOLOv8n-Pose",
+            "YOLOv8s-Pose",
+            "YOLOv8m-Pose",
+            "YOLOv8l-Pose",
+            "YOLOv8x-Pose",
+        ),
+    )
     conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
     nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
 

@@ -121,23 +121,23 @@ Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It 
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    # Load a model
-    model = YOLO("yolov8n.pt")  # load an official model
-    model = YOLO("path/to/best.pt")  # load a custom trained model
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
 
-    # Export the model
-    model.export(format="onnx")
-    ```
+        # Export the model
+        model.export(format="onnx")
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo export model=yolov8n.pt format=onnx  # export official model
-    yolo export model=path/to/best.pt format=onnx  # export custom trained model
-    ```
+        ```bash
+        yolo export model=yolov8n.pt format=onnx  # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        ```
 
 For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX](../integrations/onnx.md) section.
 
@@ -159,18 +159,18 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")  # Load a model
-    model.export(format="onnx", int8=True)
-    ```
+        model = YOLO("yolov8n.pt")  # Load a model
+        model.export(format="onnx", int8=True)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo export model=yolov8n.pt format=onnx int8=True   # export model with INT8 quantization
-    ```
+        ```bash
+        yolo export model=yolov8n.pt format=onnx int8=True   # export model with INT8 quantization
+        ```
 
 INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export](../modes/export.md) section.
 
@@ -184,18 +184,18 @@ To enable this feature, use the `dynamic=True` flag during export:
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
-    model.export(format="onnx", dynamic=True)
-    ```
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", dynamic=True)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo export model=yolov8n.pt format=onnx dynamic=True
-    ```
+        ```bash
+        yolo export model=yolov8n.pt format=onnx dynamic=True
+        ```
 
 For additional context, refer to the [dynamic input size configuration](#arguments).
 

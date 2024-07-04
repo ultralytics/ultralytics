@@ -119,6 +119,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         # Run inference
         results = ncnn_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -236,6 +237,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -344,6 +346,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 # Run inference
                 results = model("tcp://127.0.0.1:8888")
                 ```
+
             === "CLI"
 
                 ```bash

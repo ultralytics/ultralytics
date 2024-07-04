@@ -81,10 +81,10 @@ CLI_HELP_MSG = f"""
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
         yolo explorer
     
-    6. Streamlit experience with real-time object detection on your webcam using Ultralytics YOLOv8!
+    6. Streamlit real-time object detection on your webcam with Ultralytics YOLOv8
         yolo live-inference
         
-    6. Run special commands:
+    7. Run special commands:
         yolo help
         yolo checks
         yolo version

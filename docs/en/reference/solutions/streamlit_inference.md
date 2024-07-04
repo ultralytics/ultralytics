@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the live inference capabilities of Streamlit combined with Ultralytics YOLOv8. Learn to implement real-time object detection in your web applications with our comprehensive guide.
+keywords: Ultralytics, YOLOv8, live inference, real-time object detection, Streamlit, computer vision, webcam inference, object detection, Python, ML, cv2
 ---
 
 # Reference for `ultralytics/solutions/streamlit_inference.py`

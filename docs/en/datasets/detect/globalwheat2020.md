@@ -89,3 +89,57 @@ If you use the Global Wheat Head Dataset in your research or development work, p
         ```
 
 We would like to acknowledge the researchers and institutions that contributed to the creation and maintenance of the Global Wheat Head Dataset as a valuable resource for the plant phenotyping and crop management research community. For more information about the dataset and its creators, visit the [Global Wheat Head Dataset website](https://www.global-wheat.com/).
+
+## FAQ
+
+### What is the Global Wheat Head Dataset used for?
+
+The Global Wheat Head Dataset is primarily used for developing and training deep learning models aimed at wheat head detection. This is crucial for applications in wheat phenotyping and crop management, allowing for more accurate estimations of wheat head density, size, and overall crop yield potential. Accurate detection methods help in assessing crop health and maturity, essential for efficient crop management.
+
+### How do I train a YOLOv8n model on the Global Wheat Head Dataset?
+
+To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pre-trained model (recommended for training)
+        model = YOLO("yolov8n.pt")
+
+        # Train the model
+        results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+
+### What are the key features of the Global Wheat Head Dataset?
+
+Key features of the Global Wheat Head Dataset include:
+
+- Over 3,000 training images from Europe (France, UK, Switzerland) and North America (Canada).
+- Approximately 1,000 test images from Australia, Japan, and China.
+- High variability in wheat head appearances due to different growing environments.
+- Detailed annotations with wheat head bounding boxes to aid object detection models.
+
+These features facilitate the development of robust models capable of generalization across multiple regions.
+
+### Where can I find the configuration YAML file for the Global Wheat Head Dataset?
+
+The configuration YAML file for the Global Wheat Head Dataset, named `GlobalWheat2020.yaml`, is available on GitHub. You can access it at this [link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml). This file contains necessary information about dataset paths, classes, and other configuration details needed for model training in Ultralytics YOLO.
+
+### Why is wheat head detection important in crop management?
+
+Wheat head detection is critical in crop management because it enables accurate estimation of wheat head density and size, which are essential for evaluating crop health, maturity, and yield potential. By leveraging deep learning models trained on datasets like the Global Wheat Head Dataset, farmers and researchers can better monitor and manage crops, leading to improved productivity and optimized resource use in agricultural practices. This technological advancement supports sustainable agriculture and food security initiatives.
+
+For more information on applications of AI in agriculture, visit [AI in Agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture).

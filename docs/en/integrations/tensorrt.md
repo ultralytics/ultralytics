@@ -506,9 +506,10 @@ Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This pr
     ```
 
 2. **Run inference**:
+
     ```python
     from ultralytics import YOLO
-   
+
     model = YOLO("yolov8n.engine", task="detect")
     result = model.predict("https://ultralytics.com/images/bus.jpg")
     ```

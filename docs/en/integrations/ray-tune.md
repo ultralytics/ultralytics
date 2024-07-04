@@ -272,8 +272,9 @@ Ray Tune seamlessly integrates with Ultralytics YOLOv8, providing an easy-to-use
 To define a custom search space for your YOLOv8 hyperparameter tuning with Ray Tune:
 
 ```python
-from ultralytics import YOLO
 from ray import tune
+
+from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
 search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}

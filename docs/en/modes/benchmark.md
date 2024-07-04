@@ -117,7 +117,7 @@ Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance ac
 
         ```python
         from ultralytics.utils.benchmarks import benchmark
-    
+
         # Benchmark on GPU
         benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```

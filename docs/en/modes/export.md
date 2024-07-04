@@ -123,11 +123,11 @@ Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It 
 
         ```python
         from ultralytics import YOLO
-    
+
         # Load a model
         model = YOLO("yolov8n.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom trained model
-    
+
         # Export the model
         model.export(format="onnx")
         ```
@@ -161,7 +161,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
 
         ```python
         from ultralytics import YOLO
-    
+
         model = YOLO("yolov8n.pt")  # Load a model
         model.export(format="onnx", int8=True)
         ```
@@ -186,7 +186,7 @@ To enable this feature, use the `dynamic=True` flag during export:
 
         ```python
         from ultralytics import YOLO
-    
+
         model = YOLO("yolov8n.pt")
         model.export(format="onnx", dynamic=True)
         ```

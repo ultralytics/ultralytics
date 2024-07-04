@@ -803,7 +803,7 @@ This script will run predictions on each frame of the video, visualize the resul
 
 ## FAQ
 
-### What is Ultralytics YOLOv8’s Predict Mode?
+### What is Ultralytics YOLOv8's Predict Mode?
 
 Ultralytics YOLOv8's predict mode is designed for high-performance, real-time inference on a variety of data sources. It is capable of processing images, videos, and live streams, making it versatile and suitable for numerous applications such as manufacturing, sports, and safety. The predict mode also supports batch processing and streaming, thus optimizing the inference time.
 
@@ -821,8 +821,6 @@ for result in results:
     print(result.boxes)  # Process each result
 ```
 
-For more on this, refer to the [predict mode documentation](../modes/predict.md).
-
 ### What are the supported input sources for YOLOv8 inference?
 
 YOLOv8 supports a broad range of input sources including static images, video files, live streams, URLs, screenshots, and even data from various formats like PIL, OpenCV, numpy arrays, and torch tensors. Each source type can be processed efficiently, with options to use streaming mode for better memory management. For an extensive list and examples, visit the [prediction sources documentation](#inference-sources).
@@ -835,8 +833,6 @@ YOLOv8 offers multiple advantages for real-time inference:
 - **High Performance:** Designed for real-time processing without compromising accuracy.
 - **Ease of Use:** Intuitive Python and CLI interfaces.
 - **Customization:** Multiple settings and parameters for fine-tuning the model.
-
-Explore more on the benefits of using YOLOv8 for inference on our [real-time inference guide](../modes/predict.md).
 
 ### How do I visualize the results of YOLOv8 model predictions?
 

@@ -214,7 +214,7 @@ YOLOv8 supports various dataset formats, including COCO and custom datasets for 
 
 ### Can I validate my instance segmentation model using YOLOv8?
 
-Yes, you can validate your trained YOLOv8 instance segmentation model on datasets such as COCO128-seg. Here’s an example in Python:
+Yes, you can validate your trained YOLOv8 instance segmentation model on datasets such as COCO128-seg. Here's an example in Python:
 
 ```python
 from ultralytics import YOLO

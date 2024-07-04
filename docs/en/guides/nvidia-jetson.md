@@ -8,6 +8,17 @@ keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, performanc
 
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/mUybgOlSxxA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLOv8
+</p>
+
 <img width="1024" src="https://github.com/ultralytics/ultralytics/assets/20147381/c68fb2eb-371a-43e5-b7b8-2b869d90bc07" alt="NVIDIA Jetson Ecosystem">
 
 !!! Note

@@ -226,7 +226,6 @@ To optimize the learning rate for Ultralytics YOLO, start by setting an initial 
         model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
-
 For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.md#augmentation-settings).
 
 ### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLOv8?

@@ -185,5 +185,4 @@ You can access YOLOv8 model evaluation metrics using Python with the following s
         print("Mean recall:", results.box.mr)
         ```
 
-
 Analyzing these metrics helps fine-tune and optimize your YOLOv8 model. For a deeper dive, check out our guide on [YOLOv8 metrics](../modes/val.md).

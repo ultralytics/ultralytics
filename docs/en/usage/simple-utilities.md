@@ -569,8 +569,6 @@ make_divisible(7, 2)
 # >>> 8
 ```
 
-
-
 ## FAQ
 
 ### What utilities are included in the Ultralytics package to enhance machine learning workflows?

@@ -181,8 +181,6 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is Ultralytics YOLOv8 used for?
@@ -194,9 +192,9 @@ Ultralytics YOLOv8 is a highly efficient object detection model used to identify
 You can train a YOLOv8 model on your custom dataset using either Python or the command-line interface (CLI). Here's a quick example:
 
 !!! Example
-    === "Python"
-        ```python
-        from ultralytics import YOLO
+=== "Python"
+```python
+from ultralytics import YOLO
 
         # Load a pretrained model
         model = YOLO("yolov8n.pt")
@@ -217,9 +215,9 @@ For a comprehensive list of available training arguments, check the [Configurati
 To validate the performance of your YOLOv8 model, you can use the `val` mode, which checks the model's accuracy on a validation dataset and provides metrics such as mAP (mean Average Precision). Here are examples in both Python and CLI:
 
 !!! Example
-    === "Python"
-        ```python
-        from ultralytics import YOLO
+=== "Python"
+```python
+from ultralytics import YOLO
 
         # Load a trained model
         model = YOLO("path/to/trained-model.pt")
@@ -243,9 +241,9 @@ Ultralytics HUB is a user-friendly platform designed to simplify the entire mach
 You can export a trained YOLOv8 model to various formats such as ONNX, CoreML, and TensorRT using the `export` function. Below is an example:
 
 !!! Example
-    === "Python"
-        ```python
-        from ultralytics import YOLO
+=== "Python"
+```python
+from ultralytics import YOLO
 
         # Load a trained model
         model = YOLO("path/to/trained-model.pt")

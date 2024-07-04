@@ -196,8 +196,6 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I train a YOLOv8-pose model with my custom dataset?
@@ -213,7 +211,9 @@ model = YOLO("yolov8n-pose.yaml")
 # Train the model with your custom dataset
 results = model.train(data="path/to/your-dataset.yaml", epochs=100, imgsz=640)
 ```
+
 Or using the CLI:
+
 ```bash
 yolo pose train data=path/to/your-dataset.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 ```
@@ -231,10 +231,13 @@ model = YOLO("yolov8n-pose.pt")
 # Export the model to ONNX format
 model.export(format="onnx")
 ```
+
 Or using the CLI:
+
 ```bash
 yolo export model=yolov8n-pose.pt format=onnx
 ```
+
 For a complete list of supported formats and usage details, refer to the [Export](../modes/export.md) page.
 
 ### How can I validate the performance of my trained YOLOv8-pose model?
@@ -251,10 +254,13 @@ model = YOLO("path/to/best.pt")
 metrics = model.val()  # Dataset and settings are retained from training
 print(metrics.box.map50)  # Print map50 metric
 ```
+
 Or using the CLI:
+
 ```bash
 yolo pose val model=path/to/best.pt  # Validate custom model
 ```
+
 Refer to the [Val](../modes/val.md) section for additional details.
 
 ### What are some recommended pretrained models for pose estimation with YOLOv8?
@@ -280,8 +286,11 @@ model = YOLO("path/to/best.pt")
 # Predict with the model
 results = model("https://ultralytics.com/images/bus.jpg")
 ```
+
 Or using the CLI:
+
 ```bash
 yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'
 ```
+
 For detailed guidance and additional options, see the [Predict](../modes/predict.md) page.

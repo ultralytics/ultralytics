@@ -96,8 +96,6 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 
 For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
-
-
 ## FAQ
 
 ### What are the key advantages of using Ultralytics YOLOv8 for object detection?

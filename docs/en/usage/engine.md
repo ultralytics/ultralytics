@@ -94,8 +94,6 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 There are other components that can be customized similarly like `Validators` and `Predictors`. See Reference section for more information on these.
 
-
-
 ## FAQ
 
 ### How do I customize the Ultralytics YOLOv8 DetectionTrainer for specific tasks?
@@ -105,10 +103,12 @@ To customize the Ultralytics YOLOv8 `DetectionTrainer` for a specific task, you 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
 
+
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
         """Loads a custom detection model given configuration and weight files."""
         ...
+
 
 trainer = CustomTrainer(overrides={...})
 trainer.train()
@@ -133,11 +133,13 @@ You can add callbacks to monitor and modify the training process in Ultralytics 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
 
+
 # callback to upload model weights
 def log_model(trainer):
     """Logs the path of the last model weight used by the trainer."""
     last_weight_path = trainer.last
     print(last_weight_path)
+
 
 trainer = DetectionTrainer(overrides={...})
 trainer.add_callback("on_train_epoch_end", log_model)  # Adds to existing callbacks
@@ -163,10 +165,12 @@ Yes, Ultralytics YOLOv8 `DetectionTrainer` is highly flexible and can be customi
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
 
+
 class CustomDetectionTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
         """Loads a custom detection model."""
         ...
+
 
 trainer = CustomDetectionTrainer(overrides={...})
 trainer.train()

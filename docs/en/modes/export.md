@@ -111,8 +111,6 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
-
-
 ## FAQ
 
 ### How do I export a YOLOv8 model to ONNX format?

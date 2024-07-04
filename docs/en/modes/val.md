@@ -122,14 +122,12 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-
-
 ## FAQ
 
 ### How do I validate my YOLOv8 model with Ultralytics?
 
 To validate your YOLOv8 model, you can use the Val mode provided by Ultralytics. For example, using the Python API, you can load a model and run validation with:
-    
+
 ```python
 from ultralytics import YOLO
 
@@ -142,7 +140,7 @@ print(metrics.box.map)  # map50-95
 ```
 
 Alternatively, you can use the command-line interface (CLI):
-    
+
 ```bash
 yolo val model=yolov8n.pt
 ```
@@ -152,12 +150,13 @@ For further customization, you can adjust various arguments like `imgsz`, `batch
 ### What metrics can I get from YOLOv8 model validation?
 
 YOLOv8 model validation provides several key metrics to assess model performance. These include:
+
 - mAP50 (mean Average Precision at IoU threshold 0.5)
 - mAP75 (mean Average Precision at IoU threshold 0.75)
 - mAP50-95 (mean Average Precision across multiple IoU thresholds from 0.5 to 0.95)
 
 Using the Python API, you can access these metrics as follows:
-    
+
 ```python
 metrics = model.val()  # assumes `model` has been loaded
 print(metrics.box.map)  # mAP50-95
@@ -171,6 +170,7 @@ For a complete performance evaluation, it's crucial to review all these metrics.
 ### What are the advantages of using Ultralytics YOLO for validation?
 
 Using Ultralytics YOLO for validation provides several advantages:
+
 - **Precision:** YOLOv8 offers accurate performance metrics including mAP50, mAP75, and mAP50-95.
 - **Convenience:** The models remember their training settings, making validation straightforward.
 - **Flexibility:** You can validate against the same or different datasets and image sizes.
@@ -183,7 +183,7 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 Yes, you can validate your YOLOv8 model using a custom dataset. Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the validation data, class names, and other relevant details.
 
 Example in Python:
-    
+
 ```python
 from ultralytics import YOLO
 
@@ -196,7 +196,7 @@ print(metrics.box.map)  # map50-95
 ```
 
 Example using CLI:
-    
+
 ```bash
 yolo val model=yolov8n.pt data=path/to/your/custom_dataset.yaml
 ```
@@ -208,7 +208,7 @@ For more customizable options during validation, see the [Example Validation wit
 To save the validation results to a JSON file, you can set the `save_json` argument to `True` when running validation. This can be done in both the Python API and CLI.
 
 Example in Python:
-    
+
 ```python
 from ultralytics import YOLO
 
@@ -220,7 +220,7 @@ metrics = model.val(save_json=True)
 ```
 
 Example using CLI:
-    
+
 ```bash
 yolo val model=yolov8n.pt save_json=True
 ```

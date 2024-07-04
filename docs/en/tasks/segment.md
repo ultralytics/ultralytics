@@ -186,8 +186,6 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I perform instance segmentation using Ultralytics YOLOv8?
@@ -306,7 +304,7 @@ Yes, you can perform instance segmentation using a custom-trained YOLOv8-seg mod
         from ultralytics import YOLO
 
         # Load a custom model
-        model = YOLO("path/to/best.pt") 
+        model = YOLO("path/to/best.pt")
 
         # Predict with the custom model
         results = model("path/to/your_image.jpg")

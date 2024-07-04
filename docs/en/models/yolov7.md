@@ -113,8 +113,6 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
@@ -132,23 +130,25 @@ As of now, Ultralytics does not directly support YOLOv7 in its tools and platfor
 ### How do I install and run YOLOv7 for a custom object detection project?
 
 To install and run YOLOv7, follow these steps:
-1. Clone the YOLOv7 repository: 
-   ```bash
-   git clone https://github.com/WongKinYiu/yolov7
-   ```
+
+1. Clone the YOLOv7 repository:
+    ```bash
+    git clone https://github.com/WongKinYiu/yolov7
+    ```
 2. Navigate to the cloned directory and install dependencies:
-   ```bash
-   cd yolov7
-   pip install -r requirements.txt
-   ```
+    ```bash
+    cd yolov7
+    pip install -r requirements.txt
+    ```
 3. Prepare your dataset and configure the model parameters according to the [usage instructions](https://github.com/WongKinYiu/yolov7) provided in the repository.
-For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
+   For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
 
 ### What are the key features and optimizations introduced in YOLOv7?
 
 YOLOv7 offers several key features that revolutionize real-time object detection:
+
 - **Model Re-parameterization**: Enhances the model's performance by optimizing gradient propagation paths.
 - **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
 - **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
-For further details on these features, see the [YOLOv7 Overview](#overview) section.
+    For further details on these features, see the [YOLOv7 Overview](#overview) section.

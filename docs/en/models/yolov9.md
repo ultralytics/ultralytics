@@ -178,8 +178,6 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What innovations does YOLOv9 introduce for real-time object detection?
@@ -193,6 +191,7 @@ YOLOv9 outperforms state-of-the-art real-time object detectors by achieving high
 ### How can I train a YOLOv9 model using Python and CLI?
 
 You can train a YOLOv9 model using both Python and CLI commands. For Python, instantiate a model using the `YOLO` class and call the `train` method:
+
 ```python
 from ultralytics import YOLO
 
@@ -200,10 +199,13 @@ from ultralytics import YOLO
 model = YOLO("yolov9c.pt")
 results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
+
 For CLI training, execute:
+
 ```bash
 yolo train model=yolov9c.yaml data=coco8.yaml epochs=100 imgsz=640
 ```
+
 Learn more about [usage examples](#usage-examples) for training and inference.
 
 ### What are the advantages of using Ultralytics YOLOv9 for lightweight models?

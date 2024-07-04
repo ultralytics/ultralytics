@@ -336,8 +336,6 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
-
-
 ## FAQ
 
 ### What is the YOLO-World model and how does it work?
@@ -367,6 +365,7 @@ results[0].show()
 ### Why should I choose YOLO-World over traditional Open-Vocabulary detection models?
 
 YOLO-World provides several advantages over traditional Open-Vocabulary detection models:
+
 - **Real-Time Performance:** It leverages the computational speed of CNNs to offer quick, efficient detection.
 - **Efficiency and Low Resource Requirement:** YOLO-World maintains high performance while significantly reducing computational and resource demands.
 - **Customizable Prompts:** The model supports dynamic prompt setting, allowing users to specify custom detection classes without retraining.
@@ -434,3 +433,4 @@ data = {
 
 model = YOLOWorld("yolov8s-worldv2.yaml")
 model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
+```

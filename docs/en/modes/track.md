@@ -368,8 +368,6 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 [people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
 
-
-
 ## FAQ
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
@@ -405,8 +403,11 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
     ```python
     import threading
+
     import cv2
+
     from ultralytics import YOLO
+
 
     def run_tracker_in_thread(filename, model, file_index):
         video = cv2.VideoCapture(filename)
@@ -420,6 +421,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         video.release()
+
 
     model1 = YOLO("yolov8n.pt")
     model2 = YOLO("yolov8n-seg.pt")
@@ -441,6 +443,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 ### What are the real-world applications of multi-object tracking with Ultralytics YOLO?
 
 Multi-object tracking with Ultralytics YOLO has numerous applications, including:
+
 - **Transportation:** Vehicle tracking for traffic management and autonomous driving.
 - **Retail:** People tracking for in-store analytics and security.
 - **Aquaculture:** Fish tracking for monitoring aquatic environments.
@@ -455,8 +458,10 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
 
     ```python
     from collections import defaultdict
+
     import cv2
     import numpy as np
+
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.pt")

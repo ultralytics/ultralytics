@@ -337,8 +337,6 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
-
-
 ## FAQ
 
 ### How do I train an object detection model using Ultralytics YOLOv8?
@@ -380,7 +378,7 @@ These features make training efficient and customizable to your needs. For more 
 
 ### How do I resume training from an interrupted session in Ultralytics YOLOv8?
 
-To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint. 
+To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint.
 
 !!! Example "Resume Training Example"
 
@@ -406,7 +404,7 @@ Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trai
 
 ### Can I train YOLOv8 models on Apple M1 and M2 chips?
 
-Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device. 
+Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
 
 !!! Example "MPS Training Example"
 
@@ -434,14 +432,14 @@ For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-m
 
 Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here’s a brief overview:
 
-| Argument  | Default  | Description                                                                                      |
-|-----------|----------|--------------------------------------------------------------------------------------------------|
-| `model`   | `None`   | Path to the model file for training.                                                             |
-| `data`    | `None`   | Path to the dataset configuration file (e.g., `coco8.yaml`).                                     |
-| `epochs`  | `100`    | Total number of training epochs.                                                                 |
-| `batch`   | `16`     | Batch size, adjustable as integer or auto mode.                                                  |
-| `imgsz`   | `640`    | Target image size for training.                                                                  |
-| `device`  | `None`   | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`.                           |
-| `save`    | `True`   | Enables saving of training checkpoints and final model weights.                                   |
+| Argument | Default | Description                                                            |
+| -------- | ------- | ---------------------------------------------------------------------- |
+| `model`  | `None`  | Path to the model file for training.                                   |
+| `data`   | `None`  | Path to the dataset configuration file (e.g., `coco8.yaml`).           |
+| `epochs` | `100`   | Total number of training epochs.                                       |
+| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                        |
+| `imgsz`  | `640`   | Target image size for training.                                        |
+| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`. |
+| `save`   | `True`  | Enables saving of training checkpoints and final model weights.        |
 
 For an in-depth guide on training settings, check the [Train Settings](#train-settings) section.

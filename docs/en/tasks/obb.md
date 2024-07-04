@@ -202,8 +202,6 @@ Available YOLOv8-obb export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What are Oriented Bounding Boxes (OBBs) in YOLOv8?
@@ -215,6 +213,7 @@ Oriented Bounding Boxes (OBBs) provide rotated bounding boxes that more accurate
 To train a YOLOv8 OBB model, use either the CLI or Python interface. For example, to train the `yolov8n-obb` model on the `dota8.yaml` dataset for 100 epochs:
 
 **Python**
+
 ```python
 from ultralytics import YOLO
 
@@ -226,9 +225,11 @@ results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
 ```
 
 **CLI**
+
 ```bash
 yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
 ```
+
 For further details, refer to the [Train](#train) section.
 
 ### How do I use a trained YOLOv8 OBB model for predictions?
@@ -236,6 +237,7 @@ For further details, refer to the [Train](#train) section.
 A trained YOLOv8 OBB model can be used to run predictions on images both using Python and CLI. Here's an example:
 
 **Python**
+
 ```python
 from ultralytics import YOLO
 
@@ -247,6 +249,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 ```
 
 **CLI**
+
 ```bash
 yolo obb predict model=yolov8n-obb.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
 ```
@@ -258,6 +261,7 @@ Full details can be found in the [Predict](../modes/predict.md) page.
 Yes, YOLOv8 OBB models can be exported to various formats such as ONNX, TensorRT, CoreML, and more. Here's how you can export using the Python or CLI interface:
 
 **Python**
+
 ```python
 from ultralytics import YOLO
 
@@ -269,6 +273,7 @@ model.export(format="onnx")
 ```
 
 **CLI**
+
 ```bash
 yolo export model=yolov8n-obb.pt format=onnx  # export official model
 ```
@@ -277,7 +282,7 @@ For a comprehensive list of export formats, refer to the [Export](../modes/expor
 
 ### Where can I find datasets for training OBB models?
 
-The recommended dataset for training YOLOv8 OBB models is the DOTAv1 dataset. You can find the detailed OBB dataset format in the [Dataset Guide](../datasets/obb/index.md). Sample datasets like [dota8.yaml](../datasets/obb/dota8.md) are available to get started immediately. 
+The recommended dataset for training YOLOv8 OBB models is the DOTAv1 dataset. You can find the detailed OBB dataset format in the [Dataset Guide](../datasets/obb/index.md). Sample datasets like [dota8.yaml](../datasets/obb/dota8.md) are available to get started immediately.
 
 Utilizing these resources can significantly streamline your model training and validation processes.
 

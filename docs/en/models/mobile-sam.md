@@ -118,8 +118,6 @@ If you find MobileSAM useful in your research or development work, please consid
         }
         ```
 
-
-
 ## FAQ
 
 ### What is MobileSAM and how does it differ from the original SAM model?

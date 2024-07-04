@@ -100,8 +100,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_export_start` | Triggered when the export process starts |
 | `on_export_end`   | Triggered when the export process ends   |
 
-
-
 ## FAQ
 
 ### What are Ultralytics callbacks and how can I use them?
@@ -113,11 +111,13 @@ To use a callback, you can define a function and then add it to the model with t
 ```python
 from ultralytics import YOLO
 
+
 def on_predict_batch_end(predictor):
     """Handle prediction batch end by combining results with corresponding frames; modifies predictor results."""
     _, image, _, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -134,10 +134,12 @@ Here's an example of how to log additional metrics at the end of each training e
 ```python
 from ultralytics import YOLO
 
+
 def on_train_epoch_end(trainer):
     """Custom logic for additional metrics logging at the end of each training epoch."""
     additional_metric = compute_additional_metric(trainer)
-    trainer.log({'additional_metric': additional_metric})
+    trainer.log({"additional_metric": additional_metric})
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_train_epoch_end", on_train_epoch_end)
@@ -155,10 +157,12 @@ For instance, you might want to log additional validation metrics or save interm
 ```python
 from ultralytics import YOLO
 
+
 def on_val_end(validator):
     """Log custom metrics at end of validation."""
     custom_metric = compute_custom_metric(validator)
-    validator.log({'custom_metric': custom_metric})
+    validator.log({"custom_metric": custom_metric})
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_val_end", on_val_end)
@@ -176,10 +180,12 @@ Here is an example where a custom callback is used to log predictions:
 ```python
 from ultralytics import YOLO
 
+
 def on_predict_end(predictor):
     """Log predictions at the end of prediction."""
     for result in predictor.results:
         log_prediction(result)
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_end", on_predict_end)
@@ -201,11 +207,13 @@ Example: Combining frames with prediction results during prediction using `on_pr
 ```python
 from ultralytics import YOLO
 
+
 def on_predict_batch_end(predictor):
     """Combine prediction results with frames."""
     _, image, _, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
+
 
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)

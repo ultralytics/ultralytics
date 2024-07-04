@@ -331,8 +331,6 @@ You can easily customize Trainers to support custom tasks or explore R&D ideas. 
 
 [Customization tutorials](engine.md){ .md-button }
 
-
-
 ## FAQ
 
 ### How can I integrate YOLOv8 into my Python project for object detection?

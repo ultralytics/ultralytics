@@ -278,8 +278,6 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
 
-
-
 ## FAQ
 
 ### How do I improve the performance of my YOLO model during training?
@@ -289,6 +287,7 @@ Improving YOLO model performance involves tuning hyperparameters like batch size
 ### What are the key hyperparameters to consider for YOLO model accuracy?
 
 Key hyperparameters affecting YOLO model accuracy include:
+
 - **Batch Size (`batch`)**: Larger batch sizes can stabilize training but may require more memory.
 - **Learning Rate (`lr0`)**: Controls the step size for weight updates; smaller rates offer fine adjustments but slow convergence.
 - **Momentum (`momentum`)**: Helps accelerate gradient vectors in the right directions, dampening oscillations.
@@ -303,11 +302,12 @@ The learning rate (`lr0`) is crucial for optimization. A common starting point i
 ### What are the default inference settings for YOLO models?
 
 Default inference settings include:
+
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
 - **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
 - **Image Size (`imgsz=640`)**: Resizes input images prior to inference.
 - **Device (`device=None`)**: Selects CPU or GPU for inference.
-For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
+    For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
 
 ### Why should I use mixed precision training with YOLO models?
 

@@ -180,8 +180,6 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I train a YOLOv8 model for image classification?
@@ -189,8 +187,10 @@ See full `export` details in the [Export](../modes/export.md) page.
 To train a YOLOv8 model for image classification, follow these steps:
 
 1. **Load a Pretrained Model:**
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-cls.pt")  # load a pretrained model
     ```
 
@@ -200,9 +200,11 @@ To train a YOLOv8 model for image classification, follow these steps:
     ```
 
 Alternatively, you can use the CLI:
+
 ```bash
 yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
 ```
+
 Refer to the [Configuration](../usage/cfg.md) page for a full list of available arguments.
 
 ### What datasets are YOLOv8 classification models pretrained on?
@@ -219,6 +221,7 @@ Exporting a YOLOv8 model to ONNX format can be done using either Python or CLI:
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-cls.pt")  # load a model
     model.export(format="onnx")
     ```
@@ -234,6 +237,7 @@ For more details, see the [Export](../modes/export.md) page.
 ### What is the accuracy of YOLOv8 classification models on ImageNet?
 
 The accuracy of YOLOv8 classification models on the ImageNet validation set varies by model size:
+
 - YOLOv8n-cls: 69.0% Top-1, 88.3% Top-5
 - YOLOv8s-cls: 73.8% Top-1, 91.7% Top-5
 - YOLOv8m-cls: 76.8% Top-1, 93.5% Top-5
@@ -252,6 +256,7 @@ Validation of a trained YOLOv8 classification model can be done using Python or 
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("path/to/your_model.pt")  # load your trained model
     metrics = model.val()
     print(metrics.top1)  # Top-1 accuracy

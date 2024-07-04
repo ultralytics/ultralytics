@@ -97,8 +97,6 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
-
-
 ## FAQ
 
 ### What are the differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?

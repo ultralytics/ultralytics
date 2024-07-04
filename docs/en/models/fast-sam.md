@@ -239,8 +239,6 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is FastSAM and how does it differ from SAM?
@@ -254,6 +252,7 @@ FastSAM achieves real-time segmentation by decoupling the segmentation task into
 ### What are the practical applications of FastSAM?
 
 FastSAM is practical for a variety of computer vision tasks that require real-time segmentation performance. Applications include:
+
 - Industrial automation for quality control and assurance
 - Real-time video analysis for security and surveillance
 - Autonomous vehicles for object detection and segmentation
@@ -300,6 +299,7 @@ For more details on inference methods, check the [Predict Usage](#predict-usage)
 ### What types of prompts does FastSAM support for segmentation tasks?
 
 FastSAM supports multiple prompt types for guiding the segmentation tasks:
+
 - **Everything Prompt**: Generates segmentation for all visible objects.
 - **Bounding Box (BBox) Prompt**: Segments objects within a specified bounding box.
 - **Text Prompt**: Uses a descriptive text to segment objects matching the description.

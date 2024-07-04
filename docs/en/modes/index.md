@@ -72,8 +72,6 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
-
-
 ## FAQ
 
 ### How do I train a custom object detection model with Ultralytics YOLOv8?
@@ -88,8 +86,8 @@ Training a custom object detection model with Ultralytics YOLOv8 involves using 
         from ultralytics import YOLO
 
         # Train a custom model
-        model = YOLO('yolov8n.pt')
-        model.train(data='path/to/dataset.yaml', epochs=100, imgsz=640)
+        model = YOLO("yolov8n.pt")
+        model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -118,8 +116,8 @@ You can run the following command to start the validation:
         from ultralytics import YOLO
 
         # Validate the model
-        model = YOLO('yolov8n.pt')
-        model.val(data='path/to/validation.yaml')
+        model = YOLO("yolov8n.pt")
+        model.val(data="path/to/validation.yaml")
         ```
 
     === "CLI"
@@ -142,8 +140,8 @@ Ultralytics YOLOv8 offers export functionality to convert your trained model int
         from ultralytics import YOLO
 
         # Export the model
-        model = YOLO('yolov8n.pt')
-        model.export(format='onnx')
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx")
         ```
 
     === "CLI"
@@ -189,8 +187,8 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
         from ultralytics import YOLO
 
         # Track objects in a video
-        model = YOLO('yolov8n.pt')
-        model.track(source='path/to/video.mp4')
+        model = YOLO("yolov8n.pt")
+        model.track(source="path/to/video.mp4")
         ```
 
     === "CLI"

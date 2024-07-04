@@ -801,8 +801,6 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
 
-
-
 ## FAQ
 
 ### What is Ultralytics YOLOv8 and its predict mode for real-time inference?

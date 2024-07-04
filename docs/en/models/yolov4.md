@@ -69,8 +69,6 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
-
-
 ## FAQ
 
 ### What is YOLOv4 and why should I use it for object detection?

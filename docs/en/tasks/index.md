@@ -79,17 +79,17 @@ To use Ultralytics YOLOv8 for object detection, follow these steps:
 !!! Example
 
     === "Python"
-   
+
         ```python
         from ultralytics import YOLO
-    
+
         model = YOLO("yolov8n.pt")  # Load pre-trained model
         results = model.predict(source="image.jpg")  # Perform object detection
         results[0].show()
         ```
-   
+
     === "CLI"
-   
+
         ```bash
         yolo detect model=yolov8n.pt source='image.jpg'
         ```

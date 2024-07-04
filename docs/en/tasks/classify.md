@@ -193,19 +193,19 @@ To train a YOLOv8 model, you can use either Python or CLI commands. For example,
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-    
+
         # Load a model
         model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
-    
+
         # Train the model
         results = model.train(data="mnist160", epochs=100, imgsz=64)
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
         ```
@@ -223,19 +223,19 @@ You can export a trained YOLOv8 model to various formats using Python or CLI com
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-    
+
         # Load a model
         model = YOLO("yolov8n-cls.pt")  # load the trained model
-    
+
         # Export the model to ONNX
         model.export(format="onnx")
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx  # export the trained model to ONNX format
         ```
@@ -249,21 +249,21 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-    
+
         # Load a model
         model = YOLO("yolov8n-cls.pt")  # load the trained model
-    
+
         # Validate the model
         metrics = model.val()  # no arguments needed, uses the dataset and settings from training
         metrics.top1  # top1 accuracy
         metrics.top5  # top5 accuracy
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         yolo classify val model=yolov8n-cls.pt  # validate the trained model
         ```

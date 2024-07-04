@@ -338,17 +338,13 @@ You can easily customize Trainers to support custom tasks or explore R&D ideas. 
 To integrate Ultralytics YOLOv8 into your Python project for object detection, follow these steps:
 
 1. **Install Ultralytics**: Ensure you have YOLOv8 installed using `pip install ultralytics`.
-2. **Import YOLO Class**:
-
+2. **Import YOLO Class and Load a Pretrained Model**: This is recommended for training.
     ```python
+    from ultralytics import YOLO
 
-    ```
-
-3. **Load a Pretrained Model**: This is recommended for training.
-    ```python
     model = YOLO("yolov8n.pt")
     ```
-4. **Perform Object Detection**: Use the model to detect objects in an image.
+3. **Perform Object Detection**: Use the model to detect objects in an image.
     ```python
     results = model("https://ultralytics.com/images/bus.jpg")
     ```

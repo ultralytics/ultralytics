@@ -201,24 +201,25 @@ YOLOv8 is the latest version in the YOLO series of real-time object detectors, d
 
 To train a YOLOv8 model, follow these steps:
 
-1. **Load Pre-trained Model**: Start with a pre-trained model such as `yolov8n.pt`.
-2. **Prepare Dataset**: Ensure your dataset is in YOLO format (e.g., COCO, Pascal VOC).
-3. **Training Command**:
+1.  **Load Pre-trained Model**: Start with a pre-trained model such as `yolov8n.pt`.
+2.  **Prepare Dataset**: Ensure your dataset is in YOLO format (e.g., COCO, Pascal VOC).
+3.  **Training Command**:
 
-    - Python script:
+        - Python script:
 
-        ```python
-        from ultralytics import YOLO
+            ```python
+            from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
-        model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
-        ```
+            model = YOLO("yolov8n.pt")
+            model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
+            ```
 
-    - CLI command:
-      `bash
-yolo train model=yolov8n.pt data=path/to/dataset.yaml epochs=100 imgsz=640
-`
-      For more details on training modes, check the [Training Documentation](../modes/train.md).
+        - CLI command:
+          `bash
+
+    yolo train model=yolov8n.pt data=path/to/dataset.yaml epochs=100 imgsz=640
+    `
+    For more details on training modes, check the [Training Documentation](../modes/train.md).
 
 ### What tasks can YOLOv8 be used for?
 
@@ -235,23 +236,24 @@ YOLOv8 supports a wide range of computer vision tasks, including:
 
 To run inference with YOLOv8:
 
-1. **Load the Model**: Load a pre-trained YOLOv8 model.
-2. **Inference Command**:
+1.  **Load the Model**: Load a pre-trained YOLOv8 model.
+2.  **Inference Command**:
 
-    - Python script:
+        - Python script:
 
-        ```python
-        from ultralytics import YOLO
+            ```python
+            from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
-        results = model("path/to/image.jpg")
-        ```
+            model = YOLO("yolov8n.pt")
+            results = model("path/to/image.jpg")
+            ```
 
-    - CLI command:
-      `bash
-yolo predict model=yolov8n.pt source=path/to/image.jpg
-`
-      For more details on predict mode, see the [Inference Documentation](../modes/predict.md).
+        - CLI command:
+          `bash
+
+    yolo predict model=yolov8n.pt source=path/to/image.jpg
+    `
+    For more details on predict mode, see the [Inference Documentation](../modes/predict.md).
 
 ### Why should I choose YOLOv8 for real-time object detection?
 

@@ -569,8 +569,6 @@ make_divisible(7, 2)
 # >>> 8
 ```
 
-
-
 ## FAQ
 
 ### What are the main utilities provided by the Ultralytics package?

@@ -89,6 +89,7 @@ The key is to find a balance between overfitting and underfitting. Ideally, a mo
 
 <p align="center">
   <img width="100%" src="https://viso.ai/wp-content/uploads/2022/07/overfitting-underfitting-appropriate-fitting.jpg" alt="Overfitting and Underfitting Overview">
+</p>
 
 ## Data Leakage in Computer Vision and How to Avoid It
 

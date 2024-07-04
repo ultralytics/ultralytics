@@ -187,31 +187,63 @@ Please note that the DOI is pending and will be added to the citation once it is
 
 ## FAQ
 
-### What differentiates YOLOv8 from previous YOLO versions?
+### What is YOLOv8 and how does it differ from previous YOLO versions?
 
-YOLOv8 builds upon the advancements of its predecessors by incorporating state-of-the-art backbone and neck architectures for improved feature extraction and object detection performance. It utilizes an anchor-free split head for better accuracy and efficiency. With a focus on maintaining the optimal accuracy-speed tradeoff, YOLOv8 is suitable for real-time object detection across diverse applications. Explore more in [YOLOv8 Key Features](#key-features).
+YOLOv8 is the latest iteration in the Ultralytics YOLO series, designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art backbone and neck architectures, and offers optimized accuracy-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features) sections.
 
-### How can I use YOLOv8 for different tasks like segmentation and pose estimation?
+### How can I use YOLOv8 for different computer vision tasks?
 
-YOLOv8 is versatile, offering specialized variants for various tasks such as object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. These models come pre-trained and are optimized for high performance and accuracy. For more details, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes).
+YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
 
-### How do I run inference using a YOLOv8 model in Python?
+### What are the performance metrics for YOLOv8 models?
 
-To run inference with a YOLOv8 model in Python, you can use the `YOLO` class from the Ultralytics package. Here's a basic example:
+YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
 
-```python
-from ultralytics import YOLO
+### How do I train a YOLOv8 model?
 
-model = YOLO("yolov8n.pt")
-results = model("path/to/image.jpg")
-```
+Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 epochs:
 
-For detailed examples, see the [Usage Examples](#usage-examples) section.
+!!! Example
 
-### What are the performance benchmarks for YOLOv8 models?
+    === "Python"
 
-YOLOv8 models are benchmarked on datasets such as COCO and Open Images V7, showing significant improvements in mAP and speed across various hardware setups. Detailed performance metrics include parameters, FLOPs, and inference speeds on different devices. For comprehensive benchmark details, visit [Performance Metrics](#performance-metrics).
+        ```python
+        from ultralytics import YOLO
 
-### How do I export a YOLOv8 model for deployment?
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO("yolov8n.pt")
 
-You can export YOLOv8 models to various formats like ONNX, TensorRT, and CoreML for seamless deployment across different platforms. The export process ensures maximum compatibility and performance optimization. Learn more about exporting models in the [Export](../modes/export.md) section.
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+For further details, visit the [Training](../modes/train.md) documentation.
+
+### Can I benchmark YOLOv8 models for performance?
+
+Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics.utils.benchmarks import benchmark
+
+        # Benchmark on GPU
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        ```
+
+For additional information, check the [Performance Metrics](#performance-metrics) section.

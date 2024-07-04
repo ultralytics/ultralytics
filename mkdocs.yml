@@ -647,6 +647,7 @@ plugins:
         reference/ops.md: reference/utils/ops.md
         reference/results.md: reference/engine/results.md
         reference/base_val.md: index.md
+        reference/index.md: reference/cfg/__init__.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md

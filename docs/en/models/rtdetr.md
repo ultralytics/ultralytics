@@ -102,62 +102,52 @@ We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/Pad
 
 ## FAQ
 
-### What is Baidu's RT-DETR and how does it work?
+### What is Baidu's RT-DETR model and how does it work?
 
-Baidu's RT-DETR (Real-Time Detection Transformer) is an end-to-end vision transformer-based object detector designed for real-time performance without compromising accuracy. Unlike traditional object detectors, it employs a convolutional backbone with an efficient hybrid encoder that handles multiscale feature processing by decoupling intra-scale interaction and cross-scale fusion. The model also utilizes IoU-aware query selection for initializing object queries, which improves detection accuracy. For flexible applications, the inference speed can be adjusted using different decoder layers without retraining. For more details, you can check out the [original paper](https://arxiv.org/abs/2304.08069).
+Baidu's RT-DETR (Real-Time Detection Transformer) is an advanced real-time object detector built upon the Vision Transformer architecture. It efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion through its efficient hybrid encoder. By employing IoU-aware query selection, the model focuses on the most relevant objects, enhancing detection accuracy. Its adaptable inference speed, achieved by adjusting decoder layers without retraining, makes RT-DETR suitable for various real-time object detection scenarios. Learn more about RT-DETR features [here](https://arxiv.org/pdf/2304.08069.pdf).
 
-### How can I use a pre-trained RT-DETR model with Ultralytics?
+### How can I use the pre-trained RT-DETR models provided by Ultralytics?
 
-Using a pre-trained RT-DETR model with the Ultralytics Python API is straightforward. Here's an example:
+You can leverage Ultralytics Python API to use pre-trained PaddlePaddle RT-DETR models. For instance, to load an RT-DETR-l model pre-trained on COCO val2017 and achieve high FPS on T4 GPU, you can utilize the following example:
 
-```python
-from ultralytics import RTDETR
+!!! Example
 
-# Load a COCO-pretrained RT-DETR-l model
-model = RTDETR("rtdetr-l.pt")
+    === "Python"
 
-# Display model information (optional)
-model.info()
+        ```python
+        from ultralytics import RTDETR
 
-# Train the model on the COCO8 example dataset for 100 epochs
-results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        # Load a COCO-pretrained RT-DETR-l model
+        model = RTDETR("rtdetr-l.pt")
 
-# Run inference with the RT-DETR-l model on the 'bus.jpg' image
-results = model("path/to/bus.jpg")
-```
+        # Display model information (optional)
+        model.info()
 
-You can find more details on specific modes like [Predict](../modes/predict.md), [Train](../modes/train.md), and [Export](../modes/export.md).
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-### What are the key features of RT-DETR that make it unique?
+        # Run inference with the RT-DETR-l model on the 'bus.jpg' image
+        results = model("path/to/bus.jpg")
+        ```
 
-The RT-DETR model has several key features that set it apart:
+    === "CLI"
 
-1. **Efficient Hybrid Encoder**: This design processes multiscale features by decoupling intra-scale interaction and cross-scale fusion, reducing computational costs.
-2. **IoU-aware Query Selection**: Enhances object query initialization, focusing on the most relevant objects for higher detection accuracy.
-3. **Adaptable Inference Speed**: The model supports flexible adjustments of inference speed by using different decoder layers without retraining, making it highly adaptable for various real-time object detection scenarios.
+        ```bash
+        # Load a COCO-pretrained RT-DETR-l model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 
-### What performance can I expect from RT-DETR on different scales?
+        # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
+        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
+        ```
 
-The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models in different scales, offering notable performance metrics:
+### Why should I choose Baidu's RT-DETR over other real-time object detectors?
 
-- **RT-DETR-L**: Achieves 53.0% AP on COCO val2017 and runs at 114 FPS on a T4 GPU.
-- **RT-DETR-X**: Achieves 54.8% AP on COCO val2017 and runs at 74 FPS on a T4 GPU.
+Baidu's RT-DETR stands out due to its efficient hybrid encoder and IoU-aware query selection, which drastically reduce computational costs while maintaining high accuracy. Its unique ability to adjust inference speed by using different decoder layers without retraining adds significant flexibility. This makes it particularly advantageous for applications requiring real-time performance on accelerated backends like CUDA with TensorRT, outclassing many other real-time object detectors.
 
-This makes the RT-DETR models highly efficient for real-time applications requiring both speed and accuracy.
+### How does RT-DETR support adaptable inference speed for different real-time applications?
 
-### How can I acknowledge Baidu's contribution if I use RT-DETR in my research?
+Baidu's RT-DETR allows flexible adjustments of inference speed by using different decoder layers without requiring retraining. This adaptability is crucial for scaling performance across various real-time object detection tasks. Whether you need faster processing for lower precision needs or slower, more accurate detections, RT-DETR can be tailored to meet your specific requirements.
 
-If you use Baidu's RT-DETR in your research or development work, you should cite the original paper. Here is the BibTeX entry for your reference:
+### Can I use RT-DETR models with other Ultralytics modes, such as training, validation, and export?
 
-```bibtex
-@misc{lv2023detrs,
-      title={DETRs Beat YOLOs on Real-time Object Detection},
-      author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
-      year={2023},
-      eprint={2304.08069},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
-
-Additionally, acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community.
+Yes, RT-DETR models are compatible with various Ultralytics modes including training, validation, prediction, and export. You can refer to the respective documentation for detailed instructions on how to utilize these modes: [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md). This ensures a comprehensive workflow for developing and deploying your object detection solutions.

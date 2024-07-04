@@ -115,69 +115,48 @@ Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/
 
 ## FAQ
 
-### What is YOLOv5u and how does it differ from YOLOv5?
+### What is Ultralytics YOLOv5u and how does it differ from YOLOv5?
 
-YOLOv5u is an advanced version of the YOLOv5 object detection model developed by Ultralytics. It introduces an anchor-free, objectness-free split head, a feature adopted from the YOLOv8 models. This architectural change enhances the model's accuracy-speed tradeoff, making it more efficient and flexible for various object detection tasks. Learn more about these features in the [YOLOv5 Overview](#overview).
+Ultralytics YOLOv5u is an advanced version of YOLOv5, integrating the anchor-free, objectness-free split head that enhances the accuracy-speed tradeoff for real-time object detection tasks. Unlike the traditional YOLOv5, YOLOv5u adopts an anchor-free detection mechanism, making it more flexible and adaptive in diverse scenarios. For more detailed information on its features, you can refer to the [YOLOv5 Overview](#overview).
 
-### Why should I use the anchor-free split head in YOLOv5u?
+### How does the anchor-free Ultralytics head improve object detection performance in YOLOv5u?
 
-The anchor-free split head in YOLOv5u offers several advantages:
+The anchor-free Ultralytics head in YOLOv5u improves object detection performance by eliminating the dependency on predefined anchor boxes. This results in a more flexible and adaptive detection mechanism that can handle various object sizes and shapes with greater efficiency. This enhancement directly contributes to a balanced tradeoff between accuracy and speed, making YOLOv5u suitable for real-time applications. Learn more about its architecture in the [Key Features](#key-features) section.
 
-- **Flexibility:** It alleviates the need for predefined anchor boxes, making the model more adaptable to diverse object scales and shapes.
-- **Simplicity:** Reducing dependencies on anchor boxes simplifies the model architecture, potentially decreasing the computational load.
-- **Performance:** Empirical results show enhanced performance in terms of accuracy and speed, making it suitable for real-time applications.
+### Can I use pre-trained YOLOv5u models for different tasks and modes?
 
-For detailed information, see the [Anchor-free Split Ultralytics Head section](#key-features).
+Yes, you can use pre-trained YOLOv5u models for various tasks such as [Object Detection](../tasks/detect.md). These models support multiple modes, including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This flexibility allows users to leverage the capabilities of YOLOv5u models across different operational requirements. For a detailed overview, check the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
 
-### How can I deploy the YOLOv5u model for real-time object detection?
+### How do the performance metrics of YOLOv5u models compare on different platforms?
 
-Deploying YOLOv5u for real-time object detection involves several steps:
+The performance metrics of YOLOv5u models vary depending on the platform and hardware used. For example, the YOLOv5nu model achieves a 34.3 mAP on COCO dataset with a speed of 73.6 ms on CPU (ONNX) and 1.06 ms on A100 TensorRT. Detailed performance metrics for different YOLOv5u models can be found in the [Performance Metrics](#performance-metrics) section, which provides a comprehensive comparison across various devices.
 
-1. **Load the Model:**
+### How can I train a YOLOv5u model using the Ultralytics Python API?
+
+You can train a YOLOv5u model by loading a pre-trained model and running the training command with your dataset. Here's a quick example:
+
+!!! Example
+
+    === "Python"
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov5u.pt")
+    # Load a COCO-pretrained YOLOv5n model
+    model = YOLO("yolov5n.pt")
+
+    # Display model information (optional)
+    model.info()
+
+    # Train the model on the COCO8 example dataset for 100 epochs
+    results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
     ```
 
-2. **Run Inference:**
-    ```python
-    results = model("path/to/image.jpg")
+    === "CLI"
+
+    ```bash
+    # Load a COCO-pretrained YOLOv5n model and train it on the COCO8 example dataset for 100 epochs
+    yolo train model=yolov5n.pt data=coco8.yaml epochs=100 imgsz=640
     ```
 
-For a comprehensive guide, refer to the [Usage Examples](#usage-examples) section.
-
-### What are the pre-trained model variants available for YOLOv5u?
-
-YOLOv5u offers a variety of pre-trained models to cater to different needs:
-
-- **YOLOv5nu**
-- **YOLOv5su**
-- **YOLOv5mu**
-- **YOLOv5lu**
-- **YOLOv5xu**
-- **YOLOv5n6u**
-- **YOLOv5s6u**
-- **YOLOv5m6u**
-- **YOLOv5l6u**
-- **YOLOv5x6u**
-
-These models support tasks like detection and offer various modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). For detailed metrics, see the [Performance Metrics](#performance-metrics) section.
-
-### How do YOLOv5u models perform on different hardware setups?
-
-YOLOv5u models have been evaluated on both CPU and GPU hardware, demonstrating competitive performance metrics across various setups. For example:
-
-- **YOLOv5nu.pt:**
-
-    - **Speed (CPU ONNX):** 73.6 ms
-    - **Speed (A100 TensorRT):** 1.06 ms
-    - **mAP (50-95):** 34.3
-
-- **YOLOv5lu.pt:**
-    - **Speed (CPU ONNX):** 408.4 ms
-    - **Speed (A100 TensorRT):** 2.50 ms
-    - **mAP (50-95):** 52.2
-
-For more detailed performance metrics, visit the [Performance Metrics](#performance-metrics) section.
+For more detailed instructions, visit the [Usage Examples](#usage-examples) section.

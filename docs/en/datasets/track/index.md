@@ -81,4 +81,4 @@ After running a tracking job with Ultralytics YOLO, the results include various 
 - **Bounding boxes:** These indicate the location of tracked objects within the frame.
 - **Confidence scores:** These reflect the model’s confidence in detecting the tracked object.
 
-For detailed guidance on interpreting and visualizing these results, refer to the [results handling](../../reference/engine/results.md).
+For detailed guidance on interpreting and visualizing these results, refer to the [results handling guide](../../reference/engine/results.md).

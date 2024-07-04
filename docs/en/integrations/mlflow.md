@@ -172,7 +172,7 @@ For more detailed information, visit the [Ultralytics YOLO tracking documentatio
 
 ### Can I disable MLflow logging once it is enabled?
 
-Yes, you can disable MLflow logging for Ultralytics YOLO by updating the settings. Here’s how you can do it using the CLI:
+Yes, you can disable MLflow logging for Ultralytics YOLO by updating the settings. Here's how you can do it using the CLI:
 
 ```bash
 yolo settings mlflow=False

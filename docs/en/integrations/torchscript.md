@@ -201,4 +201,4 @@ After exporting YOLOv8 models to the TorchScript format, you can deploy them acr
 - **Mobile Deployment**: Use [PyTorch Mobile](https://pytorch.org/mobile/home/) for iOS and Android applications.
 - **Cloud Deployment**: Utilize services like [TorchServe](https://pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 
-Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript’s capabilities.
+Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

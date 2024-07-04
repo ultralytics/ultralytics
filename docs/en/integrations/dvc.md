@@ -256,7 +256,7 @@ These steps ensure proper version control and setup for experiment tracking. For
 
 ### How do I visualize YOLOv8 experiment results using DVCLive?
 
-DVCLive offers powerful tools to visualize the results of YOLOv8 experiments. Here’s how you can generate comparative plots:
+DVCLive offers powerful tools to visualize the results of YOLOv8 experiments. Here's how you can generate comparative plots:
 
 !!! Example "Generate Comparative Plots"
 

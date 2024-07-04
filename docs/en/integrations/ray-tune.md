@@ -209,7 +209,7 @@ To tune the hyperparameters of your Ultralytics YOLOv8 model using Ray Tune, fol
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
     ```
 
-This utilizes Ray Tune’s advanced search strategies and parallelism to efficiently optimize your model’s hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
+This utilizes Ray Tune's advanced search strategies and parallelism to efficiently optimize your model's hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
 
 ### What are the default hyperparameters for YOLOv8 tuning with Ray Tune?
 

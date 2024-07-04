@@ -168,7 +168,7 @@ For a comprehensive overview, see our [Integrations with TensorFlow.js](../integ
 
 ### How does TensorFlow.js benefit browser-based machine learning applications?
 
-TensorFlow.js is specifically designed for efficient execution of ML models in browsers and Node.js environments. Here’s how it benefits browser-based applications:
+TensorFlow.js is specifically designed for efficient execution of ML models in browsers and Node.js environments. Here's how it benefits browser-based applications:
 
 - **Reduces Latency:** Runs machine learning models locally, providing immediate results without relying on server-side computations.
 - **Improves Privacy:** Keeps sensitive data on the user's device, minimizing security risks.

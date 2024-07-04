@@ -214,7 +214,7 @@ These visualizations are essential for tracking model performance and making nec
 
 ### Can I use TensorBoard in a Google Colab environment for training YOLOv8?
 
-Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 models. Here’s a quick setup:
+Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 models. Here's a quick setup:
 
 !!! Example "Configure TensorBoard for Google Colab"
 

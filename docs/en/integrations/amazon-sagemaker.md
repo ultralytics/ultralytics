@@ -217,7 +217,7 @@ Using Ultralytics YOLOv8 on Amazon SageMaker offers several advantages:
 1. **Scalability and Management**: SageMaker provides a managed environment with features like autoscaling, which helps in real-time inference needs.
 2. **Integration with AWS Services**: Seamlessly integrate with other AWS services, such as S3 for data storage, CloudFormation for infrastructure as code, and CloudWatch for monitoring.
 3. **Ease of Deployment**: Simplified setup using AWS CDK scripts and streamlined deployment processes.
-4. **Performance**: Leverage Amazon SageMaker’s high-performance infrastructure for running large scale inference tasks efficiently.
+4. **Performance**: Leverage Amazon SageMaker's high-performance infrastructure for running large scale inference tasks efficiently.
 
 Explore more about the advantages of using SageMaker in the [introduction section](#amazon-sagemaker).
 
@@ -247,7 +247,7 @@ Refer to the [detailed steps](#step-5-deploy-the-yolov8-model) for deploying the
 To test the deployed YOLOv8 model on Amazon SageMaker:
 
 1. **Open the Test Notebook**: Locate the `2_TestEndpoint.ipynb` notebook in the SageMaker Jupyter environment.
-2. **Run the Notebook**: Follow the notebook’s instructions to send an image to the endpoint, perform inference, and display results.
+2. **Run the Notebook**: Follow the notebook's instructions to send an image to the endpoint, perform inference, and display results.
 3. **Visualize Results**: Use built-in plotting functionalities to visualize performance metrics, such as bounding boxes around detected objects.
 
 For comprehensive testing instructions, visit the [testing section](#step-6-testing-your-deployment).

@@ -443,6 +443,7 @@ nav:
           - hub/api/index.md
 
   - Reference:
+      - reference/index.md
       - cfg:
           - __init__: reference/cfg/__init__.md
       - data:

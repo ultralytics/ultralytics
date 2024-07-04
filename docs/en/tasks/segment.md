@@ -185,3 +185,93 @@ Available YOLOv8-seg export formats are in the table below. You can export to an
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+## FAQ
+
+### How do I train a YOLOv8 segmentation model on a custom dataset?
+
+To train a YOLOv8 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use tools like [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) to convert datasets from other formats. Once your dataset is ready, you can train the model using Python or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLOv8 segment model
+    model = YOLO("yolov8n-seg.pt")
+
+    # Train the model
+    results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+    ```
+
+    === "CLI"
+
+    ```bash
+    yolo segment train data=path/to/your_dataset.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+    ```
+
+Check the [Configuration](../usage/cfg.md) page for more available arguments.
+
+### What is the difference between object detection and instance segmentation in YOLOv8?
+
+Object detection identifies and localizes objects within an image by drawing bounding boxes around them, whereas instance segmentation not only identifies the bounding boxes but also delineates the exact shape of each object. YOLOv8 instance segmentation models provide masks or contours that outline each detected object, which is particularly useful for tasks where knowing the precise shape of objects is important, such as medical imaging or autonomous driving.
+
+### Why use YOLOv8 for instance segmentation?
+
+Ultralytics YOLOv8 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for instance segmentation tasks. YOLOv8 Segment models come pretrained on the [COCO dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), ensuring robust performance across a variety of objects. Additionally, YOLOv8 supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
+
+### How do I load and validate a pretrained YOLOv8 segmentation model?
+
+Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here's how you can do it using both Python and CLI:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained model
+    model = YOLO("yolov8n-seg.pt")
+
+    # Validate the model
+    metrics = model.val()
+    print("Mean Average Precision for boxes:", metrics.box.map)
+    print("Mean Average Precision for masks:", metrics.seg.map)
+    ```
+
+    === "CLI"
+
+    ```bash
+    yolo segment val model=yolov8n-seg.pt
+    ```
+
+These steps will provide you with validation metrics like Mean Average Precision (mAP), crucial for assessing model performance.
+
+### How can I export a YOLOv8 segmentation model to ONNX format?
+
+Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done using Python or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained model
+    model = YOLO("yolov8n-seg.pt")
+
+    # Export the model to ONNX format
+    model.export(format="onnx")
+    ```
+
+    === "CLI"
+
+    ```bash
+    yolo export model=yolov8n-seg.pt format=onnx
+    ```
+
+For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.

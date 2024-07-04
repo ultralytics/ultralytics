@@ -505,7 +505,7 @@ class Model(nn.Module):
                 used to customize various aspects of the validation process.
 
         Returns:
-            (dict): Validation metrics obtained from the validation process.
+            (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.

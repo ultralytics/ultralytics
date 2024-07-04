@@ -96,3 +96,55 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
         ```
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
+
+## FAQ
+
+### What is YOLOv3, and how does it improve object detection?
+
+YOLOv3 is the third iteration of the _You Only Look Once (YOLO)_ object detection algorithm. It enhances object detection accuracy by utilizing three different sizes of detection kernels: 13x13, 26x26, and 52x52. This allows the model to detect objects at multiple scales, improving accuracy for objects of varying sizes. YOLOv3 also supports multi-label predictions for bounding boxes and includes a superior feature extractor network.
+
+### Why should I use Ultralytics' implementation of YOLOv3?
+
+Ultralytics' implementation of YOLOv3, known as YOLOv3-Ultralytics, retains the original model's architecture but adds significant enhancements. It offers more pre-trained models, additional training methods, and customization options, making it user-friendly and versatile for practical applications. This implementation enhances the usability and flexibility of YOLOv3 in real-world object detection tasks.
+
+### How does YOLOv3u differ from YOLOv3 and YOLOv3-Ultralytics?
+
+YOLOv3u is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. This update eliminates the need for pre-defined anchor boxes and objectness scores, making YOLOv3u more robust and accurate in detecting objects of varying sizes and shapes, without altering the backbone and neck architecture of YOLOv3.
+
+### Can I use YOLOv3 models for multiple prediction tasks?
+
+Yes, the YOLOv3 series, including YOLOv3, YOLOv3-Ultralytics, and YOLOv3u, are designed for object detection tasks. They support several modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This versatility ensures they can be used effectively across different stages of model deployment and development in various applications.
+
+### How can I train a YOLOv3 model using Ultralytics?
+
+You can train a YOLOv3 model using Ultralytics by leveraging the Python code or CLI commands:
+
+**Using Python:**
+
+```python
+from ultralytics import YOLO
+
+# Load a COCO-pretrained YOLOv3n model
+model = YOLO("yolov3n.pt")
+
+# Display model information (optional)
+model.info()
+
+# Train the model on the COCO8 example dataset for 100 epochs
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+
+# Run inference with the YOLOv3n model on the 'bus.jpg' image
+results = model("path/to/bus.jpg")
+```
+
+**Using CLI:**
+
+```bash
+# Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
+yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+
+# Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
+yolo predict model=yolov3n.pt source=path/to/bus.jpg
+```
+
+For more details, visit the [Train](../modes/train.md) and [Predict](../modes/predict.md) documentation pages.

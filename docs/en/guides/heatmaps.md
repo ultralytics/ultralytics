@@ -335,7 +335,7 @@ These colormaps are commonly used for visualizing data with different color repr
 
 ### How does Ultralytics YOLOv8 generate heatmaps and what are their benefits?
 
-Ultralytics YOLOv8 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#heatmap-configuration) section.
+Ultralytics YOLOv8 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#arguments-heatmap) section.
 
 ### Can I use Ultralytics YOLOv8 to perform object tracking and generate a heatmap simultaneously?
 
@@ -397,8 +397,6 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()
 ```
-
-For more customization options, see the [Heatmaps using Ultralytics YOLOv8 Example](#example-heatmaps-using-ultralytics-yolov8-example).
 
 ### Why should businesses choose Ultralytics YOLOv8 for heatmap generation in data analysis?
 

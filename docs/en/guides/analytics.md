@@ -363,7 +363,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLOv8 📊](#analytics) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLOv8 📊](#analytics-using-ultralytics-yolov8-) section.
 
 ### What are the benefits of using Ultralytics YOLOv8 for creating bar plots?
 
@@ -404,7 +404,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-To learn more, visit the [Bar Plot](#bar-plot) section in the guide.
+To learn more, visit the [Bar Plot](#visual-samples) section in the guide.
 
 ### Why should I use Ultralytics YOLOv8 for creating pie charts in my data visualization projects?
 
@@ -445,7 +445,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For more information, refer to the [Pie Chart](#pie-chart) section in the guide.
+For more information, refer to the [Pie Chart](#visual-samples) section in the guide.
 
 ### Can Ultralytics YOLOv8 be used to track objects and dynamically update visualizations?
 
@@ -478,7 +478,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-To learn about the complete functionality, see the [model.track](#arguments-`model.track`) section.
+To learn about the complete functionality, see the [Tracking](../modes/track.md) section.
 
 ### What makes Ultralytics YOLOv8 different from other object detection solutions like OpenCV and TensorFlow?
 

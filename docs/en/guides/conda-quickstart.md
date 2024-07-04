@@ -150,11 +150,9 @@ Finally, install Ultralytics from the conda-forge channel:
 conda install -c conda-forge ultralytics
 ```
 
-For more details, refer to our [Conda Quickstart Guide for Ultralytics](../quickstart/#conda).
-
 ### Why should I use Conda over pip for managing dependencies in Ultralytics projects?
 
-Conda is a robust package and environment management system that offers several advantages over pip. It manages dependencies efficiently and ensures that all necessary libraries are compatible. Conda's isolated environments prevent conflicts between packages, which is crucial in data science and machine learning projects. Additionally, Conda supports binary package distribution, speeding up the installation process. For a detailed guide on setting up a Conda environment, see our [Conda Quickstart Guide for Ultralytics](../quickstart/#conda-environment).
+Conda is a robust package and environment management system that offers several advantages over pip. It manages dependencies efficiently and ensures that all necessary libraries are compatible. Conda's isolated environments prevent conflicts between packages, which is crucial in data science and machine learning projects. Additionally, Conda supports binary package distribution, speeding up the installation process.
 
 ### Can I use Ultralytics YOLO in a CUDA-enabled environment for faster performance?
 
@@ -164,7 +162,7 @@ Yes, you can enhance performance by utilizing a CUDA-enabled environment. Ensure
 conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
 ```
 
-This setup enables GPU acceleration, crucial for intensive tasks like deep learning model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart/#installing-ultralytics).
+This setup enables GPU acceleration, crucial for intensive tasks like deep learning model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart.md).
 
 ### What are the benefits of using Ultralytics Docker images with a Conda environment?
 
@@ -175,7 +173,7 @@ sudo docker pull ultralytics/ultralytics:latest-conda
 sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest-conda
 ```
 
-This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart/#docker-image).
+This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).
 
 ### How can I speed up Conda package installation in my Ultralytics environment?
 
@@ -191,4 +189,4 @@ Then configure Conda to use `libmamba` as the solver:
 conda config --set solver libmamba
 ```
 
-This setup provides faster and more efficient package management. For more tips on optimizing your environment, read about [libmamba installation](../quickstart/#speeding-up-installation-with-libmamba).
+This setup provides faster and more efficient package management. For more tips on optimizing your environment, read about [libmamba installation](../quickstart.md).

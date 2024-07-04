@@ -328,7 +328,7 @@ Here's an example command:
 python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
 ```
 
-For more details on model conversion, check out our [model export section](#convert-model-to-onnx).
+For more details on model conversion, check out our [model export section](../modes/export.md).
 
 ### What are the performance benchmarks for YOLOv8 on NVIDIA Jetson Orin NX?
 

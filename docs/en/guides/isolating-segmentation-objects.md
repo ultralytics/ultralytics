@@ -14,7 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md) for a quick walkthrough on installing the required libraries.
 
     ***
 
@@ -396,4 +396,4 @@ Yes, this is a built-in feature in Ultralytics YOLOv8. Use the `save_crop` argum
 results = model.predict(source="path/to/your/image.jpg", save_crop=True)
 ```
 
-Read more about the `save_crop` argument in the [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) section.
+Read more about the `save_crop` argument in the [Predict Mode Inference Arguments](../modes/predict.md#inference-arguments) section.

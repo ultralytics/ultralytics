@@ -18,7 +18,7 @@ Exporting models to TensorFlow Edge TPU makes machine learning tasks fast and ef
   <img width="100%" src="https://coral.ai/static/docs/images/edgetpu/compile-workflow.png" alt="TFLite Edge TPU">
 </p>
 
-The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much accuracy. It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server​​​​.
+The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much accuracy. It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
 
 ## Key Features of TFLite Edge TPU
 

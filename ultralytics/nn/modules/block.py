@@ -791,7 +791,7 @@ class C3k2(C2f2):
         super().__init__(c1, c2, n, shortcut, g, e)
         # module = (
         #     Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)))
-        #     if c2 <= 256
+        #     if c2 <= 128
         #     else C3k(self.c, self.c, nk, shortcut, g)
         # )
         # self.m = nn.ModuleList(module for _ in range(n))

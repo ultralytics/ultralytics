@@ -202,90 +202,92 @@ Available YOLOv8-obb export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### What are Oriented Bounding Boxes (OBBs) in YOLOv8?
+### What are Oriented Bounding Boxes (OBB) and how do they differ from regular bounding boxes?
 
-Oriented Bounding Boxes (OBBs) provide rotated bounding boxes that more accurately enclose objects in images compared to standard bounding boxes. This is crucial for applications requiring precise object localization, such as aerial or satellite imagery analysis. YOLOv8 OBB models use the `-obb` suffix and come pretrained on datasets like [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
+Oriented Bounding Boxes (OBB) include an additional angle to enhance object localization accuracy in images. Unlike regular bounding boxes, which are axis-aligned rectangles, OBBs can rotate to fit the orientation of the object better. This is particularly useful for applications requiring precise object placement, such as aerial or satellite imagery ([Dataset Guide](../datasets/obb/index.md)).
 
-### How can I train a YOLOv8 OBB model?
+### How do I train a YOLOv8n-obb model using a custom dataset?
 
-To train a YOLOv8 OBB model, use either the CLI or Python interface. For example, to train the `yolov8n-obb` model on the `dota8.yaml` dataset for 100 epochs:
+To train a YOLOv8n-obb model with a custom dataset, follow the example below using Python or CLI:
 
-**Python**
+!!! Example
 
-```python
-from ultralytics import YOLO
+    === "Python"
 
-# Load a pretrained model
-model = YOLO("yolov8n-obb.pt")
+        ```python
+        from ultralytics import YOLO
 
-# Train the model
-results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
-```
+        # Load a pretrained model
+        model = YOLO("yolov8n-obb.pt")
 
-**CLI**
+        # Train the model
+        results = model.train(data="path/to/custom_dataset.yaml", epochs=100, imgsz=640)
+        ```
 
-```bash
-yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
-```
+    === "CLI"
 
-For further details, refer to the [Train](#train) section.
+        ```bash
+        yolo obb train data=path/to/custom_dataset.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        ```
 
-### How do I use a trained YOLOv8 OBB model for predictions?
+For more training arguments, check the [Configuration](../usage/cfg.md) section.
 
-A trained YOLOv8 OBB model can be used to run predictions on images both using Python and CLI. Here's an example:
+### What datasets can I use for training YOLOv8-OBB models?
 
-**Python**
+YOLOv8-OBB models are pretrained on datasets like [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml) but you can use any dataset formatted for OBB. Detailed information on OBB dataset formats can be found in the [Dataset Guide](../datasets/obb/index.md).
 
-```python
-from ultralytics import YOLO
+### How can I export a YOLOv8-OBB model to ONNX format?
 
-# Load a model
-model = YOLO("yolov8n-obb.pt")
+Exporting a YOLOv8-OBB model to ONNX format is straightforward using either Python or CLI:
 
-# Predict with the model
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-```
+!!! Example
 
-**CLI**
+    === "Python"
 
-```bash
-yolo obb predict model=yolov8n-obb.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-```
+        ```python
+        from ultralytics import YOLO
 
-Full details can be found in the [Predict](../modes/predict.md) page.
+        # Load a model
+        model = YOLO("yolov8n-obb.pt")
 
-### Can YOLOv8 OBB models be exported to other formats?
+        # Export the model
+        model.export(format="onnx")
+        ```
 
-Yes, YOLOv8 OBB models can be exported to various formats such as ONNX, TensorRT, CoreML, and more. Here's how you can export using the Python or CLI interface:
+    === "CLI"
 
-**Python**
+        ```bash
+        yolo export model=yolov8n-obb.pt format=onnx
+        ```
 
-```python
-from ultralytics import YOLO
+For more export formats and details, refer to the [Export](../modes/export.md) page.
 
-# Load a model
-model = YOLO("yolov8n-obb.pt")
+### How do I validate the accuracy of a YOLOv8n-obb model?
 
-# Export the model
-model.export(format="onnx")
-```
+To validate a YOLOv8n-obb model, you can use Python or CLI commands as shown below:
 
-**CLI**
+!!! Example
 
-```bash
-yolo export model=yolov8n-obb.pt format=onnx  # export official model
-```
+    === "Python"
 
-For a comprehensive list of export formats, refer to the [Export](../modes/export.md) page.
+        ```python
+        from ultralytics import YOLO
 
-### Where can I find datasets for training OBB models?
+        # Load a model
+        model = YOLO("yolov8n-obb.pt")
 
-The recommended dataset for training YOLOv8 OBB models is the DOTAv1 dataset. You can find the detailed OBB dataset format in the [Dataset Guide](../datasets/obb/index.md). Sample datasets like [dota8.yaml](../datasets/obb/dota8.md) are available to get started immediately.
+        # Validate the model
+        metrics = model.val(data="dota8.yaml")
+        ```
 
-Utilizing these resources can significantly streamline your model training and validation processes.
+    === "CLI"
 
----
+        ```bash
+        yolo obb val model=yolov8n-obb.pt data=dota8.yaml
+        ```
 
-By addressing user questions about specific functionalities and usage of YOLOv8 OBB models, these FAQs aim to enhance the user experience and improve the topical relevance for search engines.
+See full validation details in the [Val](../modes/val.md) section.

@@ -181,80 +181,110 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### What is Ultralytics YOLOv8 used for?
+### How do I train a YOLOv8 model on my custom dataset?
 
-Ultralytics YOLOv8 is a highly efficient object detection model used to identify the location and class of objects in images or video streams. It generates bounding boxes around detected objects, along with class labels and confidence scores. This model is particularly useful for applications where real-time detection and high accuracy are critical, such as in surveillance systems, autonomous vehicles, and healthcare diagnostics. To dive deeper into using YOLOv8, visit the [Predict](../modes/predict.md) page for more details.
-
-### How can I train a YOLOv8 model on my custom dataset?
-
-You can train a YOLOv8 model on your custom dataset using either Python or the command-line interface (CLI). Here's a quick example:
+Training a YOLOv8 model on a custom dataset involves a few steps:
+1. **Prepare the Dataset**: Ensure your dataset is in the YOLO format. For guidance, refer to our [Dataset Guide](../datasets/detect/index.md).
+2. **Load the Model**: Use the Ultralytics YOLO library to load a pre-trained model or create a new model from a YAML file.
+3. **Train the Model**: Execute the `train` method in Python or the `yolo detect train` command in CLI.
 
 !!! Example
-=== "Python"
-```python
-from ultralytics import YOLO
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
 
         # Load a pretrained model
         model = YOLO("yolov8n.pt")
-
+        
         # Train the model on your custom dataset
-        results = model.train(data="path/to/your/dataset.yaml", epochs=100, imgsz=640)
+        model.train(data="my_custom_dataset.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
+
         ```bash
-        yolo detect train data=path/to/your/dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=my_custom_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-For a comprehensive list of available training arguments, check the [Configuration](../usage/cfg.md) page.
+For detailed configuration options, visit the [Configuration](../usage/cfg.md) page.
 
-### How do I validate the performance of my trained YOLOv8 model?
+### What pretrained models are available in YOLOv8?
 
-To validate the performance of your YOLOv8 model, you can use the `val` mode, which checks the model's accuracy on a validation dataset and provides metrics such as mAP (mean Average Precision). Here are examples in both Python and CLI:
+Ultralytics YOLOv8 offers various pretrained models for object detection, segmentation, and pose estimation. These models are pretrained on the COCO dataset or ImageNet for classification tasks. Here are some of the available models:
+
+- [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt)
+- [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt)
+- [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt)
+- [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt)
+- [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt)
+
+For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8) section.
+
+### How can I validate the accuracy of my trained YOLOv8 model?
+
+To validate the accuracy of your trained YOLOv8 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 
 !!! Example
-=== "Python"
-```python
-from ultralytics import YOLO
 
-        # Load a trained model
-        model = YOLO("path/to/trained-model.pt")
+    === "Python"
 
+        ```python
+        from ultralytics import YOLO
+
+        # Load the model
+        model = YOLO("path/to/best.pt")
+        
         # Validate the model
         metrics = model.val()
-        print(metrics.box.map)  # mAP 50-95
+        print(metrics.box.map)  # mAP50-95
         ```
 
     === "CLI"
+
         ```bash
-        yolo detect val model=path/to/trained-model.pt
+        yolo detect val model=path/to/best.pt
         ```
 
-### Why should I use Ultralytics HUB for managing my machine learning projects?
+For more validation details, visit the [Val](../modes/val.md) page.
 
-Ultralytics HUB is a user-friendly platform designed to simplify the entire machine learning workflow. It supports seamless data management, model training, and deployment without requiring advanced coding skills. Key advantages include cloud-based training, real-time performance tracking, and easy collaboration with teams. For more information, explore the [Ultralytics HUB](https://www.ultralytics.com/hub) page.
+### What formats can I export a YOLOv8 model to?
 
-### How can I export a trained YOLOv8 model to different formats?
-
-You can export a trained YOLOv8 model to various formats such as ONNX, CoreML, and TensorRT using the `export` function. Below is an example:
+Ultralytics YOLOv8 allows exporting models to various formats such as ONNX, TensorRT, CoreML, and more to ensure compatibility across different platforms and devices.
 
 !!! Example
-=== "Python"
-```python
-from ultralytics import YOLO
 
-        # Load a trained model
-        model = YOLO("path/to/trained-model.pt")
+    === "Python"
 
-        # Export the model
+        ```python
+        from ultralytics import YOLO
+
+        # Load the model
+        model = YOLO("yolov8n.pt")
+        
+        # Export the model to ONNX format
         model.export(format="onnx")
         ```
 
     === "CLI"
+
         ```bash
-        yolo export model=path/to/trained-model.pt format=onnx
+        yolo export model=yolov8n.pt format=onnx
         ```
 
-For a full list of available export formats and detailed instructions, visit the [Export](../modes/export.md) page.
+Check the full list of supported formats and instructions on the [Export](../modes/export.md) page.
+
+### Why should I use Ultralytics YOLOv8 for object detection?
+
+Ultralytics YOLOv8 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
+1. **Pretrained Models**: Utilize models pretrained on popular datasets like COCO and ImageNet for faster development.
+2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
+3. **Speed**: Optimized for real-time inference, making it ideal for applications requiring swift processing.
+4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.
+
+Explore our [Blog](https://www.ultralytics.com/blog) for use cases and success stories showcasing YOLOv8 in action.

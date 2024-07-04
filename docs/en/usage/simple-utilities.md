@@ -569,15 +569,25 @@ make_divisible(7, 2)
 # >>> 8
 ```
 
+
+
 ## FAQ
 
-### How do I use Ultralytics YOLO Data Explorer to understand my dataset?
+### What are the main utilities provided by the Ultralytics package?
 
-Ultralytics YOLO Data Explorer, introduced in the 8.1.0 anniversary update, is a powerful tool that allows you to better understand your dataset using text queries to find specific object instances. To learn more about this feature, visit the [YOLO Explorer](../datasets/explorer/index.md) page.
+The Ultralytics package offers several utilities designed to support and enhance machine learning workflows. Key utilities include:
 
-### What is the process for auto-annotating datasets with Ultralytics YOLO and SAM?
+- **YOLO Data Explorer**: Helps understand datasets using text queries.
+- **Auto Labeling/Annotations**: Automates dataset annotations using a YOLO model and SAM.
+- **Dataset Conversion**: Converts datasets between formats like COCO and YOLO.
+- **Image Compression**: Reduces image file sizes without compromising quality.
+- **Auto-split Dataset**: Splits datasets into train/val/test groups using random sampling.
 
-Auto-annotation with Ultralytics YOLO involves using a trained object detection model in combination with SAM for segment-based annotations. Here's an example of how to use the `auto_annotate` function:
+[Check the full utilities list](#Simple-Utilities) for more details.
+
+### How can I automate dataset annotations using Ultralytics?
+
+You can automate dataset annotations using the `auto_annotate` function from the Ultralytics package. This function requires a trained YOLO object detection model and a SAM model. Below is a sample code snippet:
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -591,11 +601,13 @@ auto_annotate(
 )
 ```
 
-For more details, see the [reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) and consider combining with the [`segments2boxes` function](#convert-segments-to-bounding-boxes).
+1. Nothing returns from this function.
 
-### How can I convert COCO JSON annotations into YOLO format?
+For more details, visit the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
 
-Ultralytics provides a `convert_coco` function that converts COCO JSON annotations into the YOLO format. Here's a sample code snippet:
+### How do I convert COCO dataset annotations to YOLO format?
+
+To convert COCO JSON annotations to YOLO format for object detection (bounding box) datasets, use the `convert_coco` function. Here's an example:
 
 ```python
 from ultralytics.data.converter import convert_coco
@@ -608,11 +620,13 @@ convert_coco(
 )
 ```
 
-For additional information, visit the [converter reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
+1. Nothing returns from this function.
 
-### Why should I use Ultralytics' `compress_one_image` function for image compression?
+Refer to the [convert_coco reference section](../reference/data/converter.md#ultralytics.data.converter.convert_coco) for additional information.
 
-Ultralytics' `compress_one_image` function is ideal to reduce image size while maintaining its aspect ratio and quality. This can be particularly beneficial for optimizing datasets. Here's how to use it:
+### How can I compress images using the Ultralytics package?
+
+You can compress images while maintaining their aspect ratio and quality using the `compress_one_image` function. Here’s how to do it:
 
 ```python
 from pathlib import Path
@@ -623,11 +637,13 @@ for f in Path("path/to/dataset").rglob("*.jpg"):
     compress_one_image(f)
 ```
 
-Learn more from the [utilities documentation](../reference/data/utils.md).
+1. Nothing returns from this function.
 
-### What are the advantages of the `autosplit` function for dataset splitting?
+For additional details, refer to the [compress_one_image function documentation](../reference/data/utils.md#ultralytics.data.utils.compress_one_image).
 
-The `autosplit` function in Ultralytics allows you to automatically split your dataset into train/val/test sets using specified fractions. This feature ensures a balanced dataset split for better training performance. Example usage:
+### How do I auto-split my dataset into train, validation, and test sets?
+
+The `autosplit` function automatically splits a dataset into `train`, `validation`, and `test` splits. Here’s an example:
 
 ```python
 from ultralytics.data.utils import autosplit
@@ -635,10 +651,10 @@ from ultralytics.data.utils import autosplit
 autosplit(
     path="path/to/images",
     weights=(0.9, 0.1, 0.0),  # (train, validation, test) fractional splits
-    annotated_only=False,  # split only images with annotation file when True
+    annotated_only=False,
 )
 ```
 
-For more details, check the [`autosplit` function](../reference/data/utils.md#ultralytics.data.utils.autosplit).
+1. Nothing returns from this function.
 
-By addressing these common questions, users will find it easier to navigate and utilize Ultralytics' comprehensive set of tools and utilities, enhancing their AI and machine learning workflows.
+Check the [autosplit reference page](../reference/data/utils.md#ultralytics.data.utils.autosplit) for more details.

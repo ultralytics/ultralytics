@@ -278,67 +278,79 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
 
+
+
 ## FAQ
 
-### What are the key hyperparameters for training Ultralytics YOLOv8 models?
+### What are the key hyperparameters for optimizing Ultralytics YOLO model performance during training?
 
-The key hyperparameters for training Ultralytics YOLOv8 models include:
+To optimize Ultralytics YOLO model performance during training, consider adjusting the following hyperparameters:
 
-- `epochs`: Total number of training epochs. Default is 100.
-- `batch`: Batch size for training. Default is 16.
-- `imgsz`: Target image size for training, usually 640.
-- `lr0`: Initial learning rate, defaulting to 0.01 for SGD.
-- `momentum`: Momentum factor for the optimizer, at 0.937.
-- `weight_decay`: Regularization term, set to 0.0005.
+- **`batch`** (default: `16`): Adjusts the number of images per batch. Can be set as an integer, auto mode for 60% GPU memory utilization, or with a specified GPU memory fraction.
+- **`epochs`** (default: `100`): Total number of training epochs, representing full passes over the dataset.
+- **`learning rate` (`lr0`)** (default: `0.01`): Initial learning rate for optimizer. Crucial for optimization process.
+- **`momentum`** (default: `0.937`): For SGD or beta1 for Adam optimizers, incorporating past gradients.
+- **`weight_decay`** (default: `0.0005`): Regularization term, penalizing large weights to prevent overfitting.
 
-For detailed descriptions and more hyperparameter configurations, visit the [training guide](../modes/train.md).
+For a comprehensive list of training settings, check the [Train Settings section](#train-settings).
 
-### How can I improve the accuracy of my YOLOv8 model predictions?
+### How do I use the prediction mode for Ultralytics YOLO models?
 
-To improve the accuracy of your YOLOv8 model predictions:
+To use the prediction mode in Ultralytics YOLO models:
 
-1. **Adjust the confidence threshold**: Lower the `conf` argument to include more detections.
-2. **Tune the IoU threshold**: Modify the `iou` argument to manage overlapping bounding boxes.
-3. **Input Image Size (`imgsz`)**: Increase the image size to enhance model resolution and detection accuracy.
-4. **Augmentation**: Use augmentation techniques like Mosaic or MixUp during training.
+- **CLI Syntax:**
 
-Refer to the [prediction guide](../modes/predict.md) for more details.
+    ```bash
+    yolo predict source='path/to/image.jpg' conf=0.25
+    ```
 
-### Why is validation important in YOLO model training?
-
-Validation is crucial in YOLO model training for several reasons:
-
-1. **Performance Monitoring**: It helps you monitor the model's accuracy and performance during training.
-2. **Overfitting Detection**: Regular validation can detect overfitting by identifying when the model's performance degrades on the validation set.
-3. **Hyperparameter Tuning**: It allows fine-tuning of hyperparameters to improve model performance.
-
-For further information on validation settings, refer to the [validation guide](../modes/val.md).
-
-### How do I export a trained Ultralytics YOLO model?
-
-To export a trained Ultralytics YOLO model:
-
-1. Use the CLI command: `yolo export format=[desired_format] device=[target_device]`.
-2. Or, in Python:
+- **Python Syntax:**
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("best.pt")
-    model.export(format="onnx")
+    model = YOLO("yolov8n.pt")
+    results = model.predict("path/to/image.jpg", conf=0.25)
     ```
 
-3. Available formats include ONNX, TorchScript, TensorFlow, among others.
+Key arguments include:
 
-For detailed instructions, visit the [export guide](../modes/export.md).
+- **`source`**: Path to the input data (image, video, directory, URL, device ID).
+- **`conf`**: Minimum confidence threshold for detections (default: `0.25`).
+- **`iou`**: IoU threshold for Non-Maximum Suppression (`0.7`).
 
-### What are the benefits of using Ultralytics HUB for model training?
+Details can be found in the [Predict Settings section](#predict-settings).
 
-Ultralytics HUB offers multiple benefits for model training:
+### Why is it important to properly configure YOLO model export settings?
 
-1. **No-Code Interface**: Train models without writing code.
-2. **Cloud Training**: Train on powerful cloud GPUs to speed up the process.
-3. **Easy Monitoring**: Real-time monitoring and visualizations of training metrics.
-4. **Seamless Integration**: Easily integrate with various data sources and deployment environments.
+Properly configuring YOLO model export settings is crucial for ensuring that your model performs optimally in different deployment environments. Key settings include:
 
-Learn more about Ultralytics HUB's features on the [Ultralytics HUB documentation](https://docs.ultralytics.com/hub/app/).
+- **`format`**: Target format like `onnx`, `torchscript`, `tensorflow`, etc.
+- **`imgsz`**: Desired image input size.
+- **`optimize`**: Apply optimization for mobile devices.
+- **`half`**: Enables FP16 quantization.
+
+By effectively setting these parameters, you can enhance model performance, compatibility, and deployment efficiency. For more details, refer to the [Export Settings section](#export-settings).
+
+### What are the most common validation settings for Ultralytics YOLO models?
+
+Common validation settings for Ultralytics YOLO models include:
+
+- **`data`**: Path to dataset configuration file.
+- **`imgsz`**: Size of input images (default: `640`).
+- **`batch`**: Number of images per batch (default: `16`).
+- **`conf`**: Minimum confidence threshold for detections (default: `0.001`).
+- **`iou`**: IoU threshold for Non-Maximum Suppression (default: `0.6`).
+
+These settings help in evaluating model performance accurately, ensuring reliability and preventing overfitting. For a full list, see the [Validation Settings section](#validation-settings).
+
+### How do I adjust data augmentation techniques for YOLO model training?
+
+Adjusting data augmentation techniques can significantly improve YOLO model robustness. Key augmentation arguments include:
+
+- **`hsv_h`** (Hue): Adjusts hue by a fraction.
+- **`translate`**: Translates images horizontally or vertically.
+- **`scale`**: Scales images by a gain factor.
+- **`mosaic`**: Combines four training images into one.
+
+Experiment with different settings to enhance model performance and generalization. For detailed augmentation settings, visit the [Augmentation Settings section](#augmentation-settings).

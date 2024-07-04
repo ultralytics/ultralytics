@@ -94,96 +94,75 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 There are other components that can be customized similarly like `Validators` and `Predictors`. See Reference section for more information on these.
 
+
+
 ## FAQ
 
-### How do I customize the YOLOv8 `DetectionTrainer` for specific tasks?
+### How do I customize the Ultralytics YOLOv8 Trainer for my specific detection task?
 
-To customize the YOLOv8 `DetectionTrainer` for specific tasks, you can subclass it and override key functions. For instance, you can overload the `get_model` function to load a custom detection model:
-
+Customizing the Ultralytics YOLOv8 Trainer to fit specific detection tasks can be done by overriding necessary functions in the `DetectionTrainer` class. For instance, to support a custom model and dataloader:
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
-
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
-        """Returns a customized detection model instance configured with specified config and weights."""
-        return MyCustomModel(...)
-```
-
-You can further extend the customization by adding callbacks or modifying loss functions. [Learn more about `DetectionTrainer` customization](#customizing-the-detectiontrainer).
-
-### What are the benefits of using Ultralytics YOLO for model training?
-
-Ultralytics YOLO offers several benefits for model training, including:
-
-- **High Performance**: Achieves state-of-the-art accuracy and speed.
-- **Ease of Use**: Simple interfaces for Python and command-line usage.
-- **Flexibility**: Highly customizable trainers like the `DetectionTrainer` allow users to fine-tune models for specific tasks.
-- **Comprehensive Documentation**: Detailed guides and references to help with setup and customization.
-
-These features make it an excellent choice for both beginners and advanced users. [Explore more about YOLO features](https://www.ultralytics.com/yolo).
-
-### How can I integrate custom loss functions in the YOLOv8 Trainer?
-
-To integrate custom loss functions in the YOLOv8 Trainer, you can subclass the `DetectionModel` and override its `init_criterion` method. Here's an example:
-
-```python
-from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.tasks import DetectionModel
-
-
-class MyCustomModel(DetectionModel):
-    def init_criterion(self):
-        """Initializes the loss function and adds a callback for uploading the model to Google Drive every 10 epochs."""
+        """Loads a custom detection model given configuration and weight files."""
         ...
-
-
-class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
-        """Returns a customized detection model instance configured with specified config and weights."""
-        return MyCustomModel(...)
-
 
 trainer = CustomTrainer(overrides={...})
 trainer.train()
 ```
+For more in-depth guidance on customization, you can reference [BaseTrainer](../reference/engine/trainer.md).
 
-For more details, see [Customizing the DetectionTrainer](#customizing-the-detectiontrainer).
+### What are the main components I can customize in the Ultralytics YOLOv8 Trainer?
 
-### What are the key functions to override in `BaseTrainer` for custom models?
+In the Ultralytics YOLOv8 Trainer, you can customize several components:
+1. **Model**: Override the `get_model(cfg, weights)` function to load a custom model.
+2. **Dataloader**: Override the `get_dataloader()` function to build a custom dataloader.
+3. **Loss function and Callbacks**: Define custom loss functions and add callbacks, such as uploading models to Google Drive after every 10 epochs:
+   ```python
+   from ultralytics.models.yolo.detect import DetectionTrainer
+   from ultralytics.nn.tasks import DetectionModel
 
-In `BaseTrainer`, the key functions to override for custom models include:
+   class MyCustomModel(DetectionModel):
+       def init_criterion(self):
+           """Initializes the loss function and adds a callback for uploading the model to Google Drive every 10 epochs."""
+           ...
 
-- `get_model(cfg, weights)`: Builds the model to be trained.
-- `get_dataloader()`: Builds the data loader for training.
+   class CustomTrainer(DetectionTrainer):
+       def get_model(self, cfg, weights):
+           return MyCustomModel(...)
 
-These functions allow you to define specific configurations and data processing steps tailored to your custom models.
+   def log_model(trainer):
+       last_weight_path = trainer.last
+       print(last_weight_path)
 
-Example:
+   trainer = CustomTrainer(overrides={...})
+   trainer.add_callback("on_train_epoch_end", log_model)
+   trainer.train()
+   ```
+For more detailed instructions, refer to the [DetectionTrainer](../reference/engine/trainer.md).
 
+### How can I add a callback function to the Ultralytics YOLOv8 Trainer?
+
+You can add a callback function to the Ultralytics YOLOv8 Trainer by using the `add_callback` method. For instance, to log the path of the last model weights used by the trainer:
 ```python
-from ultralytics.models.yolo.detect import DetectionTrainer
+def log_model(trainer):
+    """Logs the path of the last model weight used by the trainer."""
+    last_weight_path = trainer.last
+    print(last_weight_path)
 
-
-class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
-        """Returns a customized detection model instance configured with specified config and weights."""
-        ...
-
-    def get_dataloader(self):
-        """Returns a customized dataloader."""
-        ...
+trainer = CustomTrainer(overrides={...})
+trainer.add_callback("on_train_epoch_end", log_model)
+trainer.train()
 ```
+This approach can be extended to include other custom callback functionalities. For more on callback triggering events and entry points, check out the detailed [Callbacks Guide](callbacks.md).
 
-Learn more about overriding key functions in the [BaseTrainer Reference](../reference/engine/trainer.md).
+### Why should I use Ultralytics YOLOv8 for my machine learning projects?
 
-### Why should I use Ultralytics YOLOv8 for custom detection models?
-
-Ultralytics YOLOv8 is ideal for custom detection models due to its:
-
-- **High Flexibility**: Easily customizable for various tasks.
-- **User-Friendly Interface**: Simplified Python and command-line interfaces.
-- **Performance**: Maintains high speed and accuracy.
-- **Comprehensive Resources**: Detailed documentation and community support.
-
-This combination of features makes YOLOv8 a powerful tool for developing custom detection models quickly and efficiently. Learn more about how to [train custom detection models](#customizing-the-detectiontrainer).
+Ultralytics YOLOv8 offers several advantages for machine learning projects:
+1. **High Performance**: State-of-the-art real-time object detection, segmentation, and classification models.
+2. **Ease of Customization**: Easily customizable Trainer classes like `DetectionTrainer` and `BaseTrainer` allow for specific task optimization.
+3. **Comprehensive Documentation and Support**: Extensive guides and references are available, including the [Trainer engine](../reference/engine/trainer.md).
+4. **Community and Development**: Robust community support and continuous updates from Ultralytics.
+For more details on its capabilities, explore the various [YOLO models](https://docs.ultralytics.com/models/) supported by Ultralytics.

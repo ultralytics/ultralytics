@@ -141,7 +141,7 @@ In Ultralytics, Trainer, Validator, and Predictor objects are tailored for diffe
 - **Validator**: Utilized during the validation phase, it evaluates the model’s performance using a validation dataset and calculates metrics such as accuracy and loss.
 - **Predictor**: Employed in the prediction phase, it takes new input data, runs the model inference, and processes the prediction results.
 
-Each of these objects supports distinct callbacks, making it easier to customize and control the behavior at each stage of the ML pipeline. For more details, you can refer to the [Reference section](../reference).
+Each of these objects supports distinct callbacks, making it easier to customize and control the behavior at each stage of the ML pipeline. For more details, you can refer to the [Reference section](../reference/cfg/__init__.md).
 
 ### How do I incorporate Ultralytics HUB into my project?
 

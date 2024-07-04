@@ -108,7 +108,7 @@ Ultralytics callbacks are functions that are invoked at specific stages during t
 
 ### How can I customize prediction results using Ultralytics YOLOv8?
 
-You can customize prediction results in Ultralytics YOLOv8 by defining and adding custom callbacks. For instance, to return the original frame with each result object during prediction, you can use the `on_predict_batch_end` callback. Here’s an example:
+You can customize prediction results in Ultralytics YOLOv8 by defining and adding custom callbacks. For instance, to return the original frame with each result object during prediction, you can use the `on_predict_batch_end` callback. Here's an example:
 
 ```python
 from ultralytics import YOLO
@@ -138,7 +138,7 @@ Ultralytics YOLO (You Only Look Once) is a state-of-the-art real-time object det
 In Ultralytics, Trainer, Validator, and Predictor objects are tailored for different stages of the machine learning workflow.
 
 - **Trainer**: Used during the training phase, it handles the loading of datasets, model training, and logging of metrics.
-- **Validator**: Utilized during the validation phase, it evaluates the model’s performance using a validation dataset and calculates metrics such as accuracy and loss.
+- **Validator**: Utilized during the validation phase, it evaluates the model's performance using a validation dataset and calculates metrics such as accuracy and loss.
 - **Predictor**: Employed in the prediction phase, it takes new input data, runs the model inference, and processes the prediction results.
 
 Each of these objects supports distinct callbacks, making it easier to customize and control the behavior at each stage of the ML pipeline. For more details, you can refer to the [Reference section](../reference/cfg/__init__.md).

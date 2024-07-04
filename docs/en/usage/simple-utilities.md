@@ -577,7 +577,7 @@ Ultralytics YOLO Data Explorer, introduced in the 8.1.0 anniversary update, is a
 
 ### What is the process for auto-annotating datasets with Ultralytics YOLO and SAM?
 
-Auto-annotation with Ultralytics YOLO involves using a trained object detection model in combination with SAM for segment-based annotations. Here’s an example of how to use the `auto_annotate` function:
+Auto-annotation with Ultralytics YOLO involves using a trained object detection model in combination with SAM for segment-based annotations. Here's an example of how to use the `auto_annotate` function:
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -595,7 +595,7 @@ For more details, see the [reference section](../reference/data/annotator.md#ult
 
 ### How can I convert COCO JSON annotations into YOLO format?
 
-Ultralytics provides a `convert_coco` function that converts COCO JSON annotations into the YOLO format. Here’s a sample code snippet:
+Ultralytics provides a `convert_coco` function that converts COCO JSON annotations into the YOLO format. Here's a sample code snippet:
 
 ```python
 from ultralytics.data.converter import convert_coco
@@ -612,7 +612,7 @@ For additional information, visit the [converter reference page](../reference/da
 
 ### Why should I use Ultralytics' `compress_one_image` function for image compression?
 
-Ultralytics’ `compress_one_image` function is ideal to reduce image size while maintaining its aspect ratio and quality. This can be particularly beneficial for optimizing datasets. Here’s how to use it:
+Ultralytics' `compress_one_image` function is ideal to reduce image size while maintaining its aspect ratio and quality. This can be particularly beneficial for optimizing datasets. Here's how to use it:
 
 ```python
 from pathlib import Path

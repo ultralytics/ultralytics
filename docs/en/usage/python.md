@@ -351,7 +351,7 @@ Learn more about [Train mode](../modes/train.md) and [Predict mode](../modes/pre
 
 ### How do I train a custom dataset using Ultralytics YOLOv8?
 
-To train a custom dataset with YOLOv8, you need to specify your dataset and hyperparameters. You can start with a pretrained model or from scratch. Here’s an example:
+To train a custom dataset with YOLOv8, you need to specify your dataset and hyperparameters. You can start with a pretrained model or from scratch. Here's an example:
 
 ```python
 from ultralytics import YOLO
@@ -377,7 +377,7 @@ Visit the [Export](../modes/export.md) documentation for detailed export options
 
 ### How can I validate the performance of my YOLOv8 model?
 
-Validation is a crucial step after training to measure your model’s accuracy and generalization performance. You can validate your model easily using the following code:
+Validation is a crucial step after training to measure your model's accuracy and generalization performance. You can validate your model easily using the following code:
 
 ```python
 from ultralytics import YOLO
@@ -393,7 +393,7 @@ For more validation techniques and examples, refer to the [Val](../modes/val.md)
 Ultralytics YOLOv8 offers several modes including Train, Val, Predict, Export, Track, and Benchmark. Each mode serves a specific purpose:
 
 - **Train**: Train the model on a dataset.
-- **Val**: Validate the model’s performance.
+- **Val**: Validate the model's performance.
 - **Predict**: Make predictions on new data.
 - **Export**: Export the model to different formats.
 - **Track**: Perform real-time object tracking.

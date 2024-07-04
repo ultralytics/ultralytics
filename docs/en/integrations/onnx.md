@@ -142,7 +142,7 @@ To export your YOLOv8 models to ONNX format using Ultralytics, follow these step
 !!! Example "Usage"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -160,7 +160,7 @@ To export your YOLOv8 models to ONNX format using Ultralytics, follow these step
         ```
 
     === "CLI"
-    
+
         ```bash
         # Export a YOLOv8n PyTorch model to ONNX format
         yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'

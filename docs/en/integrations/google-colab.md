@@ -118,6 +118,7 @@ To start training Ultralytics YOLOv8 models on Google Colab, sign in to your Goo
 ### What are the advantages of using Google Colab for training YOLOv8 models?
 
 Google Colab offers several advantages for training YOLOv8 models:
+
 - **Zero Setup:** No initial environment setup is required; just log in and start coding.
 - **Free GPU Access:** Use powerful GPUs or TPUs without the need for expensive hardware.
 - **Integration with Google Drive:** Easily store and access datasets and models.
@@ -128,6 +129,7 @@ For more information on why you should use Google Colab, explore the [training g
 ### How can I handle Google Colab session timeouts during YOLOv8 training?
 
 Google Colab sessions timeout due to inactivity, especially for free users. To handle this:
+
 1. **Stay Active:** Regularly interact with your Colab notebook.
 2. **Save Progress:** Continuously save your work to Google Drive or GitHub.
 3. **Colab Pro:** Consider upgrading to Google Colab Pro for longer session durations.
@@ -141,6 +143,7 @@ Yes, you can use custom datasets to train YOLOv8 models in Google Colab. Upload 
 ### What should I do if my Google Colab training session is interrupted?
 
 If your Google Colab training session is interrupted:
+
 1. **Save Regularly:** Avoid losing unsaved progress by regularly saving your work to Google Drive or GitHub.
 2. **Resume Training:** Restart your session and re-run the cells from where the interruption occurred.
 3. **Use Checkpoints:** Incorporate checkpointing in your training script to save progress periodically.

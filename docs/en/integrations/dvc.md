@@ -177,9 +177,9 @@ Additionally, explore more integrations and capabilities of Ultralytics by visit
 Integrating DVCLive with Ultralytics YOLOv8 is straightforward. Start by installing the necessary packages:
 
 !!! Example "Installation"
-    
+
     === "CLI"
-    
+
     ```bash
     pip install ultralytics dvclive
     ```
@@ -187,9 +187,9 @@ Integrating DVCLive with Ultralytics YOLOv8 is straightforward. Start by install
 Next, initialize a Git repository and configure DVCLive in your project:
 
 !!! Example "Initial Environment Setup"
-    
+
     === "CLI"
-   
+
     ```bash
     git init -q
     git config --local user.email "you@example.com"
@@ -203,6 +203,7 @@ Follow our [YOLOv8 Installation guide](../quickstart.md) for detailed setup inst
 ### Why should I use DVCLive for tracking YOLOv8 experiments?
 
 Using DVCLive with YOLOv8 provides several advantages, such as:
+
 - **Automated Logging**: DVCLive automatically records key experiment details like model parameters and metrics.
 - **Easy Comparison**: Facilitates comparison of results across different runs.
 - **Visualization Tools**: Leverages DVCLive's robust data visualization capabilities for in-depth analysis.
@@ -245,6 +246,7 @@ Refer to our guide on [YOLOv8 Training with DVCLive](#yolov8-training-with-dvcli
 ### What are the steps to configure my environment for DVCLive and YOLOv8 integration?
 
 To configure your environment for a smooth integration of DVCLive and YOLOv8, follow these steps:
+
 1. **Install Required Packages**: Use `pip install ultralytics dvclive`.
 2. **Initialize Git Repository**: Run `git init -q`.
 3. **Setup DVCLive**: Execute `dvc init -q`.
@@ -259,7 +261,7 @@ DVCLive offers powerful tools to visualize the results of YOLOv8 experiments. He
 !!! Example "Generate Comparative Plots"
 
     === "CLI"
-  
+
     ```bash
     dvc plots diff $(dvc exp list --names-only)
     ```

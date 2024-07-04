@@ -184,27 +184,35 @@ Additionally, to explore other exciting integrations with Ultralytics, check out
 To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
 
 1. **Install the required packages**:
-   ```bash
-   pip install ultralytics comet_ml torch torchvision
-   ```
+
+    ```bash
+    pip install ultralytics comet_ml torch torchvision
+    ```
 
 2. **Set up your Comet API Key**:
-   ```bash
-   export COMET_API_KEY=<Your API Key>
-   ```
+
+    ```bash
+    export COMET_API_KEY=<Your API Key>
+    ```
 
 3. **Initialize your Comet project in your Python code**:
-   ```python
-   import comet_ml
-   comet_ml.init(project_name="comet-example-yolov8-coco128")
-   ```
+
+    ```python
+    import comet_ml
+
+    comet_ml.init(project_name="comet-example-yolov8-coco128")
+    ```
 
 4. **Train your YOLOv8 model and log metrics**:
-   ```python
-   from ultralytics import YOLO
-   model = YOLO("yolov8n.pt")
-   results = model.train(data="coco8.yaml", project="comet-example-yolov8-coco128", batch=32, save_period=1, save_json=True, epochs=3)
-   ```
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    results = model.train(
+        data="coco8.yaml", project="comet-example-yolov8-coco128", batch=32, save_period=1, save_json=True, epochs=3
+    )
+    ```
 
 For more detailed instructions, refer to the [Comet ML configuration section](#configuring-comet-ml).
 
@@ -224,22 +232,28 @@ By leveraging these features, you can optimize your machine learning workflows f
 Comet ML allows for extensive customization of its logging behavior using environment variables:
 
 - **Change the number of image predictions logged**:
-  ```python
-  import os
-  os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
-  ```
+
+    ```python
+    import os
+
+    os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+    ```
 
 - **Adjust batch logging interval**:
-  ```python
-  import os
-  os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
-  ```
+
+    ```python
+    import os
+
+    os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
+    ```
 
 - **Disable confusion matrix logging**:
-  ```python
-  import os
-  os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
-  ```
+
+    ```python
+    import os
+
+    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+    ```
 
 For more customization options, refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section.
 
@@ -257,8 +271,11 @@ For a detailed overview of these features, visit the [Understanding Your Model's
 ### Can I use Comet ML for offline logging when training YOLOv8 models?
 
 Yes, you can enable offline logging in Comet ML by setting the `COMET_MODE` environment variable to "offline":
+
 ```python
 import os
+
 os.environ["COMET_MODE"] = "offline"
 ```
+
 This feature allows you to log your experiment data locally, which can later be uploaded to Comet ML when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.

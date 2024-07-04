@@ -200,6 +200,7 @@ This command will provide you with vital performance metrics. For more details, 
 ### Why should I use Neural Magic's DeepSparse with YOLOv8 for object detection tasks?
 
 Integrating Neural Magic's DeepSparse with YOLOv8 offers several benefits:
+
 - **Enhanced Inference Speed:** Achieves up to 525 FPS, significantly speeding up YOLOv8's capabilities.
 - **Optimized Model Efficiency:** Uses sparsity, pruning, and quantization techniques to reduce model size and computational needs while maintaining accuracy.
 - **High Performance on Standard CPUs:** Offers GPU-like performance on cost-effective CPU hardware.

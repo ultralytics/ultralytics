@@ -215,17 +215,17 @@ This utilizes Ray Tune’s advanced search strategies and parallelism to efficie
 
 Ultralytics YOLOv8 uses the following default hyperparameters for tuning with Ray Tune:
 
-| Parameter | Value Range | Description |
-| --- | --- | --- |
-| `lr0` | `tune.uniform(1e-5, 1e-1)` | Initial learning rate |
-| `lrf` | `tune.uniform(0.01, 1.0)` | Final learning rate factor |
-| `momentum` | `tune.uniform(0.6, 0.98)` | Momentum |
-| `weight_decay` | `tune.uniform(0.0, 0.001)` | Weight decay |
-| `warmup_epochs` | `tune.uniform(0.0, 5.0)` | Warmup epochs |
-| `box` | `tune.uniform(0.02, 0.2)` | Box loss weight |
-| `cls` | `tune.uniform(0.2, 4.0)` | Class loss weight |
-| `hsv_h` | `tune.uniform(0.0, 0.1)` | Hue augmentation range |
-| `translate` | `tune.uniform(0.0, 0.9)` | Translation augmentation range |
+| Parameter       | Value Range                | Description                    |
+| --------------- | -------------------------- | ------------------------------ |
+| `lr0`           | `tune.uniform(1e-5, 1e-1)` | Initial learning rate          |
+| `lrf`           | `tune.uniform(0.01, 1.0)`  | Final learning rate factor     |
+| `momentum`      | `tune.uniform(0.6, 0.98)`  | Momentum                       |
+| `weight_decay`  | `tune.uniform(0.0, 0.001)` | Weight decay                   |
+| `warmup_epochs` | `tune.uniform(0.0, 5.0)`   | Warmup epochs                  |
+| `box`           | `tune.uniform(0.02, 0.2)`  | Box loss weight                |
+| `cls`           | `tune.uniform(0.2, 4.0)`   | Class loss weight              |
+| `hsv_h`         | `tune.uniform(0.0, 0.1)`   | Hue augmentation range         |
+| `translate`     | `tune.uniform(0.0, 0.9)`   | Translation augmentation range |
 
 These hyperparameters can be customized to suit your specific needs. For a complete list and more details, refer to the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
@@ -243,6 +243,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
 
     ```python
     import wandb
+
     from ultralytics import YOLO
 
     wandb.init(project="YOLO-Tuning", entity="your-entity")
@@ -273,18 +274,14 @@ To define a custom search space for your YOLOv8 hyperparameter tuning with Ray T
 1. **Import necessary libraries:**
 
     ```python
-    from ultralytics import YOLO
-    from ray import tune
+
     ```
 
 2. **Define a custom search space and run tuning:**
 
     ```python
     model = YOLO("yolov8n.pt")
-    search_space = {
-        "lr0": tune.uniform(1e-5, 1e-1),
-        "momentum": tune.uniform(0.6, 0.98)
-    }
+    search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
     result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
     ```
 

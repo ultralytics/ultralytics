@@ -176,6 +176,7 @@ For more details on integrating your CoreML model into an iOS app, check out the
 Once you export your YOLOv8 model to CoreML format, you have multiple deployment options:
 
 1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
+
     - **Embedded Models**: Included in the app bundle, accessible immediately.
     - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
 

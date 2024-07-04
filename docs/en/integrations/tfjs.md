@@ -126,7 +126,7 @@ Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightf
 !!! Example "Usage"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -144,7 +144,7 @@ Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightf
         ```
 
     === "CLI"
-    
+
         ```bash
         # Export a YOLOv8n PyTorch model to TF.js format
         yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'

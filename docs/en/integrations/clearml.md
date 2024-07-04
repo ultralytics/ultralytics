@@ -218,6 +218,7 @@ Setting up a ClearML task for YOLOv8 training involves initializing a task, sele
 
 ```python
 from clearml import Task
+
 from ultralytics import YOLO
 
 # Step 1: Creating a ClearML Task

@@ -128,9 +128,9 @@ Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [inte
 Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform this exportation. Here is an example using Python:
 
 !!! Example "Usage"
-    
+
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -162,6 +162,7 @@ For more detailed setup and troubleshooting, check the [Ultralytics Installation
 ### What are the advantages of using PaddlePaddle for model deployment?
 
 PaddlePaddle offers several key advantages for model deployment:
+
 - **Performance Optimization**: PaddlePaddle excels in efficient model execution and reduced memory usage.
 - **Dynamic-to-Static Graph Compilation**: It supports dynamic-to-static compilation, allowing for runtime optimizations.
 - **Operator Fusion**: By merging compatible operations, it reduces computational overhead.
@@ -172,6 +173,7 @@ You can achieve enhanced results by exporting your Ultralytics YOLOv8 models to 
 ### Why should I choose PaddlePaddle for deploying my YOLOv8 models?
 
 PaddlePaddle, developed by Baidu, is optimized for industrial and commercial AI deployments. Its large developer community and robust framework provide extensive tools similar to TensorFlow and PyTorch. By exporting your YOLOv8 models to PaddlePaddle, you leverage:
+
 - **Enhanced Performance**: Optimal execution speed and reduced memory footprint.
 - **Flexibility**: Wide compatibility with various devices from smartphones to cloud servers.
 - **Scalability**: Efficient parallel processing capabilities for distributed environments.
@@ -181,6 +183,7 @@ These features make PaddlePaddle a compelling choice for deploying YOLOv8 models
 ### How does PaddlePaddle improve model performance over other frameworks?
 
 PaddlePaddle employs several advanced techniques to optimize model performance:
+
 - **Dynamic-to-Static Graph**: Converts models into a static computational graph for runtime optimizations.
 - **Operator Fusion**: Combines compatible operations to minimize memory transfer and increase inference speed.
 - **Quantization**: Reduces model size and increases efficiency using lower-precision data while maintaining accuracy.
@@ -190,6 +193,7 @@ These techniques prioritize efficient model execution, making PaddlePaddle an ex
 ### What deployment options does PaddlePaddle offer for YOLOv8 models?
 
 PaddlePaddle provides flexible deployment options:
+
 - **Paddle Serving**: Deploys models as RESTful APIs, ideal for production with features like model versioning and online A/B testing.
 - **Paddle Inference API**: Gives low-level control over model execution for custom applications.
 - **Paddle Lite**: Optimizes models for mobile and embedded devices' limited resources.

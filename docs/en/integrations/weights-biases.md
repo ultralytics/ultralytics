@@ -171,7 +171,7 @@ Integrating Ultralytics YOLOv8 with Weights & Biases offers several benefits inc
 - **Hyperparameter Optimization:** Improve model performance by fine-tuning learning rate, batch size, etc.
 - **Comparative Analysis:** Side-by-side comparison of different training runs.
 - **Resource Monitoring:** Keep track of CPU, GPU, and memory usage.
-- **Model Artifacts Management:** Easy access and sharing of model checkpoints. 
+- **Model Artifacts Management:** Easy access and sharing of model checkpoints.
 
 Explore these features in detail on the [Weights & Biases Dashboard](#key-features-of-the-weights--biases-dashboard).
 
@@ -184,7 +184,6 @@ To configure Weights & Biases for YOLOv8 training, follow these steps:
     import wandb
     wandb.login()
     ```
-    
 2. Retrieve your API key from the Weights & Biases website.
 3. Use the API key to authenticate your development environment.
 
@@ -197,6 +196,7 @@ For training a YOLOv8 model using Weights & Biases, use the following steps in a
 ```python
 import wandb
 from wandb.integration.ultralytics import add_wandb_callback
+
 from ultralytics import YOLO
 
 # Initialize a Weights & Biases run

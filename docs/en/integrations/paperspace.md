@@ -94,6 +94,7 @@ Training a YOLOv8 model with Paperspace Gradient is straightforward and efficien
 ### What are the advantages of using Paperspace Gradient for YOLOv8 projects?
 
 Paperspace Gradient offers several unique advantages for training and deploying YOLOv8 models:
+
 - **Hardware Flexibility:** Choose from various CPU, GPU, and TPU configurations.
 - **One-Click Notebooks:** Use pre-configured Jupyter Notebooks for YOLOv8 without worrying about environment setup.
 - **Experiment Tracking:** Automatic tracking of hyperparameters, metrics, and code changes.
@@ -111,6 +112,6 @@ Yes, you can deploy YOLOv8 models on edge devices using Paperspace Gradient. The
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLOv8 training?
 
-Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments. For more on tracking and comparing experiments, visit this [guide](../modes/train.md#internal-section-here). 
+Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments. For more on tracking and comparing experiments, visit this [guide](../modes/train.md#internal-section-here).
 
 Take advantage of these features to optimize your YOLOv8 model training and achieve high performance efficiently.

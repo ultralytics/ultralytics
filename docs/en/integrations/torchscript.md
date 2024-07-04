@@ -138,7 +138,7 @@ To export a YOLOv8 model to TorchScript, you can use the following example code:
 !!! Example "Usage"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -154,9 +154,9 @@ To export a YOLOv8 model to TorchScript, you can use the following example code:
         # Run inference
         results = torchscript_model("https://ultralytics.com/images/bus.jpg")
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         # Export a YOLOv8n PyTorch model to TorchScript format
         yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
@@ -170,6 +170,7 @@ For more details about the export process, refer to the [Ultralytics documentati
 ### Why should I use TorchScript for deploying YOLOv8 models?
 
 Using TorchScript for deploying YOLOv8 models offers several advantages:
+
 - **Portability**: Exported models can run in environments without the need for Python, such as C++ applications, embedded systems, or mobile devices.
 - **Optimization**: TorchScript supports static graph execution and Just-In-Time (JIT) compilation, which can optimize model performance.
 - **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
@@ -195,7 +196,8 @@ For detailed instructions, visit the [Ultralytics Installation guide](../quickst
 ### How do I deploy my exported TorchScript YOLOv8 models?
 
 After exporting YOLOv8 models to the TorchScript format, you can deploy them across a variety of platforms:
-- **C++ API**: Ideal for low-overhead, highly efficient production environments. 
+
+- **C++ API**: Ideal for low-overhead, highly efficient production environments.
 - **Mobile Deployment**: Use [PyTorch Mobile](https://pytorch.org/mobile/home/) for iOS and Android applications.
 - **Cloud Deployment**: Utilize services like [TorchServe](https://pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 

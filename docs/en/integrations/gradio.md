@@ -122,17 +122,20 @@ if __name__ == "__main__":
 ### How do I use Gradio with Ultralytics YOLOv8 for object detection?
 
 To use Gradio with Ultralytics YOLOv8 for object detection, you can follow these steps:
+
 1. **Install Gradio:** Use the command `pip install gradio`.
 2. **Create Interface:** Write a Python script to initialize the Gradio interface. You can refer to the provided code example in the [documentation](#usage-example) for details.
 3. **Upload and Adjust:** Upload your image and adjust the confidence and IoU thresholds on the Gradio interface to get real-time object detection results.
-   
+
 Here's a minimal code snippet for reference:
 
 ```python
 import gradio as gr
+
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
+
 
 def predict_image(img, conf_threshold, iou_threshold):
     results = model.predict(
@@ -143,6 +146,7 @@ def predict_image(img, conf_threshold, iou_threshold):
         show_conf=True,
     )
     return results[0].plot() if results else None
+
 
 iface = gr.Interface(
     fn=predict_image,
@@ -161,6 +165,7 @@ iface.launch()
 ### What are the benefits of using Gradio for Ultralytics YOLOv8 object detection?
 
 Using Gradio for Ultralytics YOLOv8 object detection offers several benefits:
+
 - **User-Friendly Interface:** Gradio provides an intuitive interface for users to upload images and visualize detection results without any coding effort.
 - **Real-Time Adjustments:** You can dynamically adjust detection parameters such as confidence and IoU thresholds and see the effects immediately.
 - **Accessibility:** The web interface is accessible to anyone, making it useful for quick experiments, educational purposes, and demonstrations.
@@ -174,6 +179,7 @@ Yes, Gradio and Ultralytics YOLOv8 can be utilized together for educational purp
 ### How do I adjust the confidence and IoU thresholds in the Gradio interface for YOLOv8?
 
 In the Gradio interface for YOLOv8, you can adjust the confidence and IoU thresholds using the sliders provided. These thresholds help control the prediction accuracy and object separation:
+
 - **Confidence Threshold:** Determines the minimum confidence level for detecting objects. Slide to increase or decrease the confidence required.
 - **IoU Threshold:** Sets the intersection-over-union threshold for distinguishing between overlapping objects. Adjust this value to refine object separation.
 
@@ -182,6 +188,7 @@ For more information on these parameters, visit the [parameters explanation sect
 ### What are some practical applications of using Ultralytics YOLOv8 with Gradio?
 
 Practical applications of combining Ultralytics YOLOv8 with Gradio include:
+
 - **Real-Time Object Detection Demonstrations:** Ideal for showcasing how object detection works in real-time.
 - **Educational Tools:** Useful in academic settings to teach object detection and computer vision concepts.
 - **Prototype Development:** Efficient for developing and testing prototype object detection applications quickly.

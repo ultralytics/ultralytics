@@ -465,7 +465,7 @@ To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDI
     ```bash
     pip install ultralytics
     ```
- 
+
 2. **Export your YOLOv8 model**:
 
     ```python
@@ -478,7 +478,7 @@ To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDI
     model = YOLO("yolov8n.engine")
     results = model("https://ultralytics.com/images/bus.jpg")
     ```
-    
+
 For more details, visit the [YOLOv8 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
 
 ### What are the benefits of using TensorRT for YOLOv8 models?
@@ -497,6 +497,7 @@ For more information, explore the detailed features of TensorRT [here](https://d
 Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This process involves post-training quantization (PTQ) and calibration:
 
 1. **Export with INT8**:
+
     ```python
     from ultralytics import YOLO
 
@@ -526,6 +527,7 @@ These guides will help you integrate YOLOv8 models efficiently in various deploy
 Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
 
 - **NVIDIA A100**:
+
     - **FP32** Inference: ~0.52 ms / image
     - **FP16** Inference: ~0.34 ms / image
     - **INT8** Inference: ~0.28 ms / image

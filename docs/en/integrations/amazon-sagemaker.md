@@ -237,7 +237,7 @@ Yes, you can customize the inference logic for YOLOv8 on Amazon SageMaker:
             # Add more processing logic if necessary
         return json.dumps(infer)
     ```
-    
+
 2. **Deploy Updated Model**: Ensure you redeploy the model using Jupyter notebooks provided (`1_DeployEndpoint.ipynb`) to include these changes.
 
 Refer to the [detailed steps](#step-5-deploy-the-yolov8-model) for deploying the modified model.

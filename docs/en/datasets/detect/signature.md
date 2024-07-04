@@ -88,3 +88,83 @@ This example illustrates the variety and complexity of images in the signature D
 ## Citations and Acknowledgments
 
 The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+
+## FAQ
+
+### What is the Signature Detection Dataset, and how can it be used?
+
+The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as object detection and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications.
+
+### How do I train a YOLOv8n model on the Signature Detection Dataset?
+
+To train a YOLOv8n model on the Signature Detection Dataset, follow these steps:
+
+1. Download the `signature.yaml` dataset configuration file from [signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
+2. Use the following Python script or CLI command to start training:
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolov8n.pt")
+
+        # Train the model
+        results = model.train(data="signature.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For more details, refer to the [Training](../../modes/train.md) page.
+
+### What are the main applications of the Signature Detection Dataset?
+
+The Signature Detection Dataset can be used for:
+
+1. **Document Verification**: Automatically verifying the presence and authenticity of human signatures in documents.
+2. **Fraud Detection**: Identifying forged or fraudulent signatures in legal and financial documents.
+3. **Archival Research**: Assisting historians and archivists in the digital analysis and cataloging of historical documents.
+4. **Education**: Supporting academic research and teaching in the fields of computer vision and machine learning.
+
+### How can I perform inference using a model trained on the Signature Detection Dataset?
+
+To perform inference using a model trained on the Signature Detection Dataset, follow these steps:
+
+1. Load your fine-tuned model.
+2. Use the below Python script or CLI command to perform inference:
+
+!!! Example "Inference Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the fine-tuned model
+        model = YOLO("path/to/best.pt")
+
+        # Perform inference
+        results = model.predict("https://ultralytics.com/assets/signature-s.mp4", conf=0.75)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/signature-s.mp4" conf=0.75
+        ```
+
+### What is the structure of the Signature Detection Dataset, and where can I find more information?
+
+The Signature Detection Dataset is divided into two subsets:
+
+- **Training Set**: Contains 143 images with annotations.
+- **Validation Set**: Includes 35 images with annotations.
+
+For detailed information, you can refer to the [Dataset Structure](#dataset-structure) section. Additionally, view the complete dataset configuration in the `signature.yaml` file located at [signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).

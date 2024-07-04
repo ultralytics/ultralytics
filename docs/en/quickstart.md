@@ -337,3 +337,86 @@ The table below provides an overview of the settings available for adjustment wi
 | `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
+
+## FAQ
+
+### How do I install Ultralytics YOLOv8 using pip?
+
+To install Ultralytics YOLOv8 with pip, execute the following command:
+
+```bash
+pip install ultralytics
+```
+
+For the latest stable release, this will install the `ultralytics` package directly from the Python Package Index (PyPI). For more details, visit the [ultralytics package on PyPI](https://pypi.org/project/ultralytics/).
+
+Alternatively, you can install the latest development version directly from GitHub:
+
+```bash
+pip install git+https://github.com/ultralytics/ultralytics.git
+```
+
+Make sure to have the Git command-line tool installed on your system.
+
+### Can I install Ultralytics YOLOv8 using conda?
+
+Yes, you can install Ultralytics YOLOv8 using conda by running:
+
+```bash
+conda install -c conda-forge ultralytics
+```
+
+This method is an excellent alternative to pip and ensures compatibility with other packages in your environment. For CUDA environments, it's best to install `ultralytics`, `pytorch`, and `pytorch-cuda` simultaneously to resolve any conflicts:
+
+```bash
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+```
+
+For more instructions, visit the [Conda quickstart guide](guides/conda-quickstart.md).
+
+### What are the advantages of using Docker to run Ultralytics YOLOv8?
+
+Using Docker to run Ultralytics YOLOv8 provides an isolated and consistent environment, ensuring smooth performance across different systems. It also eliminates the complexity of local installation. Official Docker images from Ultralytics are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with different variants tailored for GPU, CPU, ARM64, NVIDIA Jetson, and Conda environments. Below are the commands to pull and run the latest image:
+
+```bash
+# Pull the latest ultralytics image from Docker Hub
+sudo docker pull ultralytics/ultralytics:latest
+
+# Run the ultralytics image in a container with GPU support
+sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+```
+
+For more detailed Docker instructions, check out the [Docker quickstart guide](guides/docker-quickstart.md).
+
+### How do I clone the Ultralytics repository for development?
+
+To clone the Ultralytics repository and set up a development environment, use the following steps:
+
+```bash
+# Clone the ultralytics repository
+git clone https://github.com/ultralytics/ultralytics
+
+# Navigate to the cloned directory
+cd ultralytics
+
+# Install the package in editable mode for development
+pip install -e .
+```
+
+This approach allows you to contribute to the project or experiment with the latest source code. For more details, visit the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
+
+### Why should I use Ultralytics YOLOv8 CLI?
+
+The Ultralytics YOLOv8 command line interface (CLI) simplifies running object detection tasks without requiring Python code. You can execute single-line commands for tasks like training, validation, and prediction straight from your terminal. The basic syntax for `yolo` commands is:
+
+```bash
+yolo TASK MODE ARGS
+```
+
+For example, to train a detection model with specified parameters:
+
+```bash
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+```
+
+Check out the full [CLI Guide](usage/cli.md) to explore more commands and usage examples.

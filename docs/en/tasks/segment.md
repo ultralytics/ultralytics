@@ -224,7 +224,7 @@ Ultralytics YOLOv8 is a state-of-the-art model recognized for its high accuracy 
 
 ### How do I load and validate a pretrained YOLOv8 segmentation model?
 
-Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here’s how you can do it using both Python and CLI:
+Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here's how you can do it using both Python and CLI:
 
 !!! Example
 

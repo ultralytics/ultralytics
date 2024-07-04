@@ -595,7 +595,7 @@ For more details, check the [auto_annotate reference section](../reference/data/
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
-To convert COCO JSON annotations into YOLO format for object detection, you can use the `convert_coco` utility. Here’s a sample code snippet:
+To convert COCO JSON annotations into YOLO format for object detection, you can use the `convert_coco` utility. Here's a sample code snippet:
 
 ```python
 from ultralytics.data.converter import convert_coco

@@ -98,7 +98,7 @@ There are other components that can be customized similarly like `Validators` an
 
 ### How do I customize the Ultralytics YOLOv8 DetectionTrainer for specific tasks?
 
-To customize the Ultralytics YOLOv8 `DetectionTrainer` for a specific task, you can override its methods to adapt to your custom model and dataloader. Start by inheriting from `DetectionTrainer` and then redefine methods like `get_model` to implement your custom functionalities. Here’s an example:
+To customize the Ultralytics YOLOv8 `DetectionTrainer` for a specific task, you can override its methods to adapt to your custom model and dataloader. Start by inheriting from `DetectionTrainer` and then redefine methods like `get_model` to implement your custom functionalities. Here's an example:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -128,7 +128,7 @@ For more details on the customization and source code, see the [`BaseTrainer` Re
 
 ### How can I add a callback to the Ultralytics YOLOv8 DetectionTrainer?
 
-You can add callbacks to monitor and modify the training process in Ultralytics YOLOv8 `DetectionTrainer`. For instance, here’s how you can add a callback to log model weights after every training epoch:
+You can add callbacks to monitor and modify the training process in Ultralytics YOLOv8 `DetectionTrainer`. For instance, here's how you can add a callback to log model weights after every training epoch:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -156,11 +156,11 @@ Ultralytics YOLOv8 offers a high-level abstraction on powerful engine executors,
 - **Performance**: Optimized for real-time object detection and various vision AI applications.
 - **Customization**: Easily extendable for custom models, loss functions, and dataloaders.
 
-Learn more about YOLOv8’s capabilities by visiting [Ultralytics YOLO](https://www.ultralytics.com/yolo).
+Learn more about YOLOv8's capabilities by visiting [Ultralytics YOLO](https://www.ultralytics.com/yolo).
 
 ### Can I use the Ultralytics YOLOv8 DetectionTrainer for non-standard models?
 
-Yes, Ultralytics YOLOv8 `DetectionTrainer` is highly flexible and can be customized for non-standard models. By inheriting from `DetectionTrainer`, you can overload different methods to support your specific model’s needs. Here’s a simple example:
+Yes, Ultralytics YOLOv8 `DetectionTrainer` is highly flexible and can be customized for non-standard models. By inheriting from `DetectionTrainer`, you can overload different methods to support your specific model's needs. Here's a simple example:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer

@@ -261,7 +261,7 @@ Compared to YOLOv8, SAM models like SAM-b and FastSAM-s are larger and slower bu
 
 ### How can I auto-annotate my dataset using SAM?
 
-Ultralytics' SAM offers an auto-annotation feature that allows generating segmentation datasets using a pre-trained detection model. Here’s an example in Python:
+Ultralytics' SAM offers an auto-annotation feature that allows generating segmentation datasets using a pre-trained detection model. Here's an example in Python:
 
 ```python
 from ultralytics.data.annotator import auto_annotate

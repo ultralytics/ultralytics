@@ -31,18 +31,24 @@ def inference():
     st.markdown(main_title_cfg, unsafe_allow_html=True)
     st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
+    with st.sidebar:
+        st.image("https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394",
+                 width=250)
+
     # Add elements to vertical setting menu
-    st.sidebar.title("USER Configuration")
-    yolov8_model = st.sidebar.radio("Model", ("yolov8n", "yolov8s", "yolov8m", "yolov8l"))
-    conf_thres = st.sidebar.text_input("Confidence Threshold", "0.25")
-    nms_thres = st.sidebar.text_input("NMS Threshold", "0.45")
+    st.sidebar.title("User Configuration")
+    yolov8_model = st.sidebar.radio("Model", ("YOLOv8n", "YOLOv8s", "YOLOv8m", "YOLOv8l", "YOLOv8x",
+                                              "YOLOv8n-Seg", "YOLOv8s-seg", "YOLOv8m-seg", "YOLOv8l-seg", "YOLOv8x-seg",
+                                              "YOLOv8n-Pose", "YOLOv8s-Pose", "YOLOv8m-Pose", "YOLOv8l-Pose", "YOLOv8x-Pose"))
+    conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
+    nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
 
     col1, col2 = st.columns(2)
     org_frame = col1.empty()
     ann_frame = col2.empty()
 
     if st.sidebar.button("Start"):
-        model = YOLO(yolov8_model + ".pt")  # Load the yolov8 model
+        model = YOLO(yolov8_model.lower() + ".pt")  # Load the yolov8 model
         videocapture = cv2.VideoCapture(0)  # Capture the webcam
 
         if not videocapture.isOpened():

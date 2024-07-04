@@ -624,7 +624,7 @@ Refer to the [convert_coco reference section](../reference/data/converter.md#ult
 
 ### How can I compress images using the Ultralytics package?
 
-You can compress images while maintaining their aspect ratio and quality using the `compress_one_image` function. Here’s how to do it:
+You can compress images while maintaining their aspect ratio and quality using the `compress_one_image` function. Here's how to do it:
 
 ```python
 from pathlib import Path
@@ -641,7 +641,7 @@ For additional details, refer to the [compress_one_image function documentation]
 
 ### How do I auto-split my dataset into train, validation, and test sets?
 
-The `autosplit` function automatically splits a dataset into `train`, `validation`, and `test` splits. Here’s an example:
+The `autosplit` function automatically splits a dataset into `train`, `validation`, and `test` splits. Here's an example:
 
 ```python
 from ultralytics.data.utils import autosplit

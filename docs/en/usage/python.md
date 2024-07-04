@@ -347,6 +347,7 @@ To integrate Ultralytics YOLOv8 into your Python project for object detection, f
     ```
 
 3. **Perform Object Detection**: Use the model to detect objects in an image.
+
     ```python
     results = model("https://ultralytics.com/images/bus.jpg")
     ```
@@ -378,6 +379,7 @@ Exporting an Ultralytics YOLOv8 model to ONNX format is straightforward:
     ```
 
 2. **Export to ONNX**:
+
     ```python
     success = model.export(format="onnx")
     ```
@@ -410,6 +412,7 @@ Fine-tuning a pretrained Ultralytics YOLOv8 model involves these steps:
     ```
 
 2. **Train the Model on Custom Dataset**:
+
     ```python
     results = model.train(data="path/to/custom_dataset.yaml", epochs=5)
     ```

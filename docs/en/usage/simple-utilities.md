@@ -599,8 +599,6 @@ auto_annotate(
 )
 ```
 
-1. Nothing returns from this function.
-
 For more details, visit the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
 
 ### How do I convert COCO dataset annotations to YOLO format?
@@ -618,8 +616,6 @@ convert_coco(
 )
 ```
 
-1. Nothing returns from this function.
-
 Refer to the [convert_coco reference section](../reference/data/converter.md#ultralytics.data.converter.convert_coco) for additional information.
 
 ### How can I compress images using the Ultralytics package?
@@ -634,8 +630,6 @@ from ultralytics.data.utils import compress_one_image
 for f in Path("path/to/dataset").rglob("*.jpg"):
     compress_one_image(f)
 ```
-
-1. Nothing returns from this function.
 
 For additional details, refer to the [compress_one_image function documentation](../reference/data/utils.md#ultralytics.data.utils.compress_one_image).
 
@@ -652,7 +646,5 @@ autosplit(
     annotated_only=False,
 )
 ```
-
-1. Nothing returns from this function.
 
 Check the [autosplit reference page](../reference/data/utils.md#ultralytics.data.utils.autosplit) for more details.

@@ -160,6 +160,7 @@ To use the COCO-Pose dataset with Ultralytics YOLO:
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-pose.pt")  # load pretrained model
     results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
     ```
@@ -175,6 +176,7 @@ To add your dataset:
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n-pose.pt")
     results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
     ```
@@ -201,6 +203,7 @@ Ultralytics provides a conversion tool to convert COCO dataset labels to the YOL
 
 ```python
 from ultralytics.data.converter import convert_coco
+
 convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
 ```
 

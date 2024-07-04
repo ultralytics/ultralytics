@@ -92,10 +92,10 @@ To test your deep learning model on the ImageNet10 dataset with an image size of
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a model
         model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
-        
+
         # Train the model
         results = model.train(data="imagenet10", epochs=5, imgsz=224)
         ```

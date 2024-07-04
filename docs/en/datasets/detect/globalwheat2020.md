@@ -106,10 +106,10 @@ To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the follo
     
         ```python
         from ultralytics import YOLO
-        
+
         # Load a pre-trained model (recommended for training)
         model = YOLO("yolov8n.pt")
-        
+
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
         ```

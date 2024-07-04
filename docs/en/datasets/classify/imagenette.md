@@ -165,10 +165,10 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
 
         ```python
         from ultralytics import YOLO
-    
+
         # Load a model
         model = YOLO("yolov8n-cls.pt")
-    
+
         # Train the model with ImageNette160
         results = model.train(data="imagenette160", epochs=100, imgsz=160)
         ```

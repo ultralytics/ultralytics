@@ -231,8 +231,6 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
         yolo cfg=default_copy.yaml imgsz=320
         ```
 
-
-
 ## FAQ
 
 ### What is the Ultralytics YOLOv8 Command Line Interface (CLI)?
@@ -242,33 +240,41 @@ The Ultralytics YOLOv8 Command Line Interface (CLI) allows users to execute dete
 ### How do I train a YOLOv8 model using the CLI?
 
 To train a YOLOv8 model using the CLI, you'll need to specify a few arguments like the dataset, model path, number of epochs, and initial learning rate. For instance, to train a detection model for 10 epochs with an initial learning rate of 0.01, you can use the command:
+
 ```bash
 yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
+
 This command trains the model on the COCO8 dataset using the YOLOv8n architecture. For additional training options, you can see the [full list of arguments](cfg.md) or execute `yolo cfg`.
 
 ### How can I export a YOLOv8 model to different formats using the CLI?
 
 To export a YOLOv8 model to various formats like ONNX, TensorRT, or CoreML, you can use the export mode with the specific format argument. For example, to export a YOLOv8 model to ONNX, you would run:
+
 ```bash
 yolo export model=yolov8n.pt format=onnx
 ```
+
 This command converts your model into ONNX format, which can then be deployed across different platforms. For a detailed list of supported export formats, refer to the [Export](../modes/export.md) page.
 
 ### What should I do if the training process is interrupted?
 
 If your training process is interrupted, you can resume it using the following command:
+
 ```bash
 yolo detect train resume model=last.pt
 ```
+
 This command will continue training from the last saved checkpoint, ensuring no progress is lost. For more detailed guidance on training and resuming interrupted sessions, refer to the relevant section in the [Training](../modes/train.md) documentation.
 
 ### How can I run predictions on a YouTube video using a pre-trained YOLOv8 segmentation model?
 
 You can run predictions on a YouTube video by specifying the model and video source in the CLI command. For instance:
+
 ```bash
 yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 ```
+
 This command uses a pre-trained YOLOv8 segmentation model to analyze frames from the provided YouTube link. For additional prediction options and custom configurations, explore the [Predict](../modes/predict.md) section.
 
 For more detailed examples and a complete guide to using the YOLOv8 Command Line Interface, visit the [Command Line Interface Usage](#command-line-interface-usage) section on the documentation page.

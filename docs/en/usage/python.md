@@ -331,18 +331,19 @@ You can easily customize Trainers to support custom tasks or explore R&D ideas. 
 
 [Customization tutorials](engine.md){ .md-button }
 
-
-
 ## FAQ
 
 ### How do I integrate Ultralytics YOLOv8 into a Python project for object detection?
 
 To integrate Ultralytics YOLOv8 into your Python project for object detection, follow these steps:
+
 1. **Install Ultralytics**: Ensure you have YOLOv8 installed using `pip install ultralytics`.
-2. **Import YOLO Class**: 
+2. **Import YOLO Class**:
+
     ```python
-    from ultralytics import YOLO
+
     ```
+
 3. **Load a Pretrained Model**: This is recommended for training.
     ```python
     model = YOLO("yolov8n.pt")
@@ -357,6 +358,7 @@ For more detailed instructions, refer to our [Installation](../quickstart.md) an
 ### What are the benefits of using Ultralytics YOLOv8 for object detection, segmentation, and classification?
 
 Ultralytics YOLOv8 offers several key advantages:
+
 - **High Accuracy**: State-of-the-art performance in object detection, segmentation, and classification tasks.
 - **Ease of Use**: Simple Python API that allows quick and easy integration.
 - **Pretrained Models**: Access to a variety of pretrained models for faster development.
@@ -368,11 +370,15 @@ Explore detailed use cases and examples in our [Train](../modes/train.md) and [P
 ### How do I export an Ultralytics YOLOv8 model to ONNX format for deployment?
 
 Exporting an Ultralytics YOLOv8 model to ONNX format is straightforward:
-1. **Load the Model**: 
+
+1. **Load the Model**:
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n.pt")
     ```
+
 2. **Export to ONNX**:
     ```python
     success = model.export(format="onnx")
@@ -383,6 +389,7 @@ You can specify additional parameters such as dynamic batch size using `model.ex
 ### What are the different modes available in Ultralytics YOLOv8, and how do they work?
 
 Ultralytics YOLOv8 provides several modes to cater to different stages of the machine learning pipeline:
+
 - **[Train Mode](../modes/train.md)**: For training the model on a custom dataset.
 - **[Val Mode](../modes/val.md)**: Used to validate the performance of the trained model.
 - **[Predict Mode](../modes/predict.md)**: For making predictions on new data.
@@ -395,11 +402,15 @@ Each mode is designed to maximize the efficiency of various tasks within the mod
 ### How can I fine-tune a pretrained Ultralytics YOLOv8 model on my custom dataset?
 
 Fine-tuning a pretrained Ultralytics YOLOv8 model involves these steps:
+
 1. **Load the Pretrained Model**:
+
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolov8n.pt")
     ```
+
 2. **Train the Model on Custom Dataset**:
     ```python
     results = model.train(data="path/to/custom_dataset.yaml", epochs=5)

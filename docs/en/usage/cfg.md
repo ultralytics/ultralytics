@@ -278,8 +278,6 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
 
-
-
 ## FAQ
 
 ### What are the key hyperparameters for optimizing Ultralytics YOLO model performance during training?

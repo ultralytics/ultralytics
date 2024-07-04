@@ -35,11 +35,13 @@ Detailed installation instructions can be found in the [quickstart guide](https:
 ### What are the system requirements for running Ultralytics models?
 
 Minimum requirements:
+
 - Python 3.7+
 - PyTorch 1.7+
 - CUDA-compatible GPU (for GPU acceleration)
 
 Recommended setup:
+
 - Python 3.8+
 - PyTorch 1.10+
 - NVIDIA GPU with CUDA 11.2+

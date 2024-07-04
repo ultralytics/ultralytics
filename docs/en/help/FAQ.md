@@ -1,4 +1,8 @@
-Here's an updated version of the FAQ with more seamlessly integrated links and additional details in some answers. I've also removed the numbers from each question as requested:
+---
+comments: true
+description: Explore common questions and solutions related to Ultralytics YOLO, from hardware requirements to model fine-tuning and real-time detection.
+keywords: Ultralytics, YOLO, FAQ, object detection, hardware requirements, fine-tuning, ONNX, TensorFlow, real-time detection, model accuracy
+---
 
 # Ultralytics YOLO Frequently Asked Questions (FAQ)
 

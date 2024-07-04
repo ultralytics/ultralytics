@@ -200,21 +200,21 @@ To train a YOLOv8 segmentation model on a custom dataset, you first need to prep
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
-
-    # Load a pretrained YOLOv8 segment model
-    model = YOLO("yolov8n-seg.pt")
-
-    # Train the model
-    results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
-    ```
+        ```python
+        from ultralytics import YOLO
+    
+        # Load a pretrained YOLOv8 segment model
+        model = YOLO("yolov8n-seg.pt")
+    
+        # Train the model
+        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo segment train data=path/to/your_dataset.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
-    ```
+        ```bash
+        yolo segment train data=path/to/your_dataset.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
@@ -234,23 +234,23 @@ Loading and validating a pretrained YOLOv8 segmentation model is straightforward
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
-
-    # Load a pretrained model
-    model = YOLO("yolov8n-seg.pt")
-
-    # Validate the model
-    metrics = model.val()
-    print("Mean Average Precision for boxes:", metrics.box.map)
-    print("Mean Average Precision for masks:", metrics.seg.map)
-    ```
+        ```python
+        from ultralytics import YOLO
+    
+        # Load a pretrained model
+        model = YOLO("yolov8n-seg.pt")
+    
+        # Validate the model
+        metrics = model.val()
+        print("Mean Average Precision for boxes:", metrics.box.map)
+        print("Mean Average Precision for masks:", metrics.seg.map)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo segment val model=yolov8n-seg.pt
-    ```
+        ```bash
+        yolo segment val model=yolov8n-seg.pt
+        ```
 
 These steps will provide you with validation metrics like Mean Average Precision (mAP), crucial for assessing model performance.
 
@@ -262,20 +262,20 @@ Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done u
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
-
-    # Load a pretrained model
-    model = YOLO("yolov8n-seg.pt")
-
-    # Export the model to ONNX format
-    model.export(format="onnx")
-    ```
+        ```python
+        from ultralytics import YOLO
+    
+        # Load a pretrained model
+        model = YOLO("yolov8n-seg.pt")
+    
+        # Export the model to ONNX format
+        model.export(format="onnx")
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo export model=yolov8n-seg.pt format=onnx
-    ```
+        ```bash
+        yolo export model=yolov8n-seg.pt format=onnx
+        ```
 
 For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.

@@ -152,7 +152,7 @@ Refer to the [Training Guide](../modes/train.md) for more details on how to effe
 
 Using **callbacks during validation** in Ultralytics YOLO can enhance model evaluation by allowing custom processing, logging, or metrics calculation. Callbacks such as `on_val_start`, `on_val_batch_end`, and `on_val_end` provide entry points to inject custom logic, ensuring detailed and comprehensive validation processes.
 
-For instance, you might want to log additional validation metrics or save intermediate results for further analysis. Here’s an example of how to log custom metrics at the end of validation:
+For instance, you might want to log additional validation metrics or save intermediate results for further analysis. Here's an example of how to log custom metrics at the end of validation:
 
 ```python
 from ultralytics import YOLO

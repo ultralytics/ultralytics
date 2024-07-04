@@ -430,7 +430,7 @@ For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-m
 
 ### What are the common training settings, and how do I configure them?
 
-Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here’s a brief overview:
+Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
 | Argument | Default | Description                                                            |
 | -------- | ------- | ---------------------------------------------------------------------- |

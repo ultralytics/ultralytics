@@ -221,7 +221,7 @@ For comprehensive details on training, refer to the [Train Section](#train).
 
 ### How do I validate a trained YOLOv8-pose model?
 
-Validation of a YOLOv8-pose model involves assessing its accuracy using the same dataset parameters retained during training. Here’s an example:
+Validation of a YOLOv8-pose model involves assessing its accuracy using the same dataset parameters retained during training. Here's an example:
 
 ```python
 from ultralytics import YOLO

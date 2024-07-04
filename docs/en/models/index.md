@@ -104,7 +104,7 @@ Ultralytics YOLOv8 offers enhanced capabilities such as real-time object detecti
 
 ### How can I train a YOLOv8 model on custom data?
 
-Training a YOLOv8 model on custom data can be easily accomplished using Ultralytics' libraries. Here’s a quick example:
+Training a YOLOv8 model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
 
 !!! Example
 

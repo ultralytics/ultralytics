@@ -368,7 +368,7 @@ Each mode is designed to provide comprehensive functionalities for different sta
 
 ### How do I train a custom YOLOv8 model using my dataset?
 
-To train a custom YOLOv8 model, you need to specify your dataset and other hyperparameters. Here’s a quick example:
+To train a custom YOLOv8 model, you need to specify your dataset and other hyperparameters. Here's a quick example:
 
 ```python
 from ultralytics import YOLO

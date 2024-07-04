@@ -21,7 +21,7 @@ theme:
   name: material
   language: en
   custom_dir: docs/overrides/
-  logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   icon:
     repo: fontawesome/brands/github

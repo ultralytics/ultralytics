@@ -101,6 +101,7 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
         metrics.top1  # top1 accuracy
         metrics.top5  # top5 accuracy
         ```
+
     === "CLI"
 
         ```bash
@@ -126,6 +127,7 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -153,6 +155,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash

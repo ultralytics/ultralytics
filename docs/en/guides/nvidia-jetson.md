@@ -194,6 +194,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         # Run inference
         results = trt_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -320,6 +321,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
+
     === "CLI"
 
         ```bash

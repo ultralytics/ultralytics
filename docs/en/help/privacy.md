@@ -77,6 +77,7 @@ To gain insight into the current configuration of your settings, you can view th
 !!! Example "View settings"
 
     === "Python"
+
         You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
         ```python
         from ultralytics import settings
@@ -89,6 +90,7 @@ To gain insight into the current configuration of your settings, you can view th
         ```
 
     === "CLI"
+
         Alternatively, the command-line interface allows you to check your settings with a simple command:
         ```bash
         yolo settings
@@ -101,6 +103,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 !!! Example "Update settings"
 
     === "Python"
+
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
         ```python
         from ultralytics import settings
@@ -113,6 +116,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         ```
 
     === "CLI"
+
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Disable analytics and crash reporting
@@ -168,6 +172,7 @@ To opt out of data collection, you can simply set `sync=False` in your YOLO sett
     # Reset settings to default values
     settings.reset()
     ```
+
     === "CLI"
 
     ```bash

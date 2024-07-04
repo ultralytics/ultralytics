@@ -61,6 +61,7 @@ Here's how you can use these formats to train your model:
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash

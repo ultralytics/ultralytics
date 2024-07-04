@@ -86,6 +86,7 @@ Object detection is straightforward with the `train` method, as illustrated belo
 !!! Example
 
     === "Python"
+
         PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
 
         ```python

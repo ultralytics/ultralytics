@@ -116,6 +116,7 @@ Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an ex
         results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

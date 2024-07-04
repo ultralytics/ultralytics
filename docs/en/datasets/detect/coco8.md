@@ -97,7 +97,7 @@ The Ultralytics COCO8 dataset is a compact yet versatile object detection datase
 
 ### How do I train a YOLOv8 model using the COCO8 dataset?
 
-To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or CLI commands. Here’s how you can start:
+To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or CLI commands. Here's how you can start:
 
 !!! Example "Train Example"
 

@@ -124,6 +124,7 @@ You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an i
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

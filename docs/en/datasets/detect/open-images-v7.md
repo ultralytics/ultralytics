@@ -138,10 +138,11 @@ Open Images V7 is an extensive and versatile dataset created by Google, designed
 
 ### How do I train a YOLOv8 model on the Open Images V7 dataset?
 
-To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here’s an example of training the YOLOv8n model for 100 epochs with an image size of 640:
+To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here's an example of training the YOLOv8n model for 100 epochs with an image size of 640:
 
 !!! Example "Train Example"
     
+
     === "Python"
     
         ```python
@@ -154,6 +155,7 @@ To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python a
         results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

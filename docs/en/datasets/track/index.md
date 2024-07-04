@@ -75,10 +75,10 @@ Yes, you can use custom datasets for multi-object tracking with Ultralytics YOLO
 
 ### How do I interpret the results from the Ultralytics YOLO tracking model?
 
-After running a tracking job with Ultralytics YOLO, the results include various data points such as tracked object IDs, their bounding boxes, and the confidence scores. Here’s a brief overview of how to interpret these results:
+After running a tracking job with Ultralytics YOLO, the results include various data points such as tracked object IDs, their bounding boxes, and the confidence scores. Here's a brief overview of how to interpret these results:
 
 - **Tracked IDs:** Each object is assigned a unique ID, which helps in tracking it across frames.
 - **Bounding boxes:** These indicate the location of tracked objects within the frame.
-- **Confidence scores:** These reflect the model’s confidence in detecting the tracked object.
+- **Confidence scores:** These reflect the model's confidence in detecting the tracked object.
 
 For detailed guidance on interpreting and visualizing these results, refer to the [results handling guide](../../reference/engine/results.md).

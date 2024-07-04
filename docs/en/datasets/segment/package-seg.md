@@ -135,6 +135,6 @@ Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time ob
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 
-The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset’s paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. 
+The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. 
 
 For more insights and practical examples, explore our [Usage](https://docs.ultralytics.com/usage/python/) section.

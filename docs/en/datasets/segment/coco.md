@@ -145,7 +145,7 @@ The COCO-Seg dataset includes several key features:
 
 ### What pretrained models are available for COCO-Seg, and what are their performance metrics?
 
-The COCO-Seg dataset supports multiple pretrained YOLOv8 segmentation models with varying performance metrics. Here’s a summary of the available models and their key metrics:
+The COCO-Seg dataset supports multiple pretrained YOLOv8 segmentation models with varying performance metrics. Here's a summary of the available models and their key metrics:
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|

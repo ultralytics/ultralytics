@@ -86,7 +86,7 @@ The **COCO8-Seg dataset** is a compact instance segmentation dataset by Ultralyt
 
 ### How can I train a YOLOv8n-seg model using the COCO8-Seg dataset?
 
-To train a **YOLOv8n-seg** model on the COCO8-Seg dataset for 100 epochs with an image size of 640, you can use Python or CLI commands. Here’s a quick example:
+To train a **YOLOv8n-seg** model on the COCO8-Seg dataset for 100 epochs with an image size of 640, you can use Python or CLI commands. Here's a quick example:
 
 !!! Example "Train Example"
 
@@ -121,4 +121,4 @@ The YAML configuration file for the **COCO8-Seg dataset** is available in the Ul
 
 ### What are some benefits of using mosaicing during training with the COCO8-Seg dataset?
 
-Using **mosaicing** during training helps increase the diversity and variety of objects and scenes in each training batch. This technique combines multiple images into a single composite image, enhancing the model's ability to generalize to different object sizes, aspect ratios, and contexts within the scene. Mosaicing is beneficial for improving a model’s robustness and accuracy, especially when working with small datasets like COCO8-Seg. For an example of mosaiced images, see the [Sample Images and Annotations](#sample-images-and-annotations) section.
+Using **mosaicing** during training helps increase the diversity and variety of objects and scenes in each training batch. This technique combines multiple images into a single composite image, enhancing the model's ability to generalize to different object sizes, aspect ratios, and contexts within the scene. Mosaicing is beneficial for improving a model's robustness and accuracy, especially when working with small datasets like COCO8-Seg. For an example of mosaiced images, see the [Sample Images and Annotations](#sample-images-and-annotations) section.

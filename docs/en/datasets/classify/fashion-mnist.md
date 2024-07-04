@@ -97,7 +97,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 ### How can I train a YOLO model on the Fashion-MNIST dataset?
 
-To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use both Python and CLI commands. Here’s a quick example to get you started:
+To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use both Python and CLI commands. Here's a quick example to get you started:
 
 !!! Example "Train Example"
 
@@ -113,6 +113,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
         ```
     
+
     === "CLI"
     
         ```bash

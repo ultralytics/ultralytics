@@ -137,7 +137,7 @@ The **Roboflow 100** dataset, developed by [Roboflow](https://roboflow.com/?ref=
 
 ### How can I use the Roboflow 100 dataset for benchmarking my object detection models?
 
-To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Benchmark class from the Ultralytics library. Here’s a brief example:
+To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Benchmark class from the Ultralytics library. Here's a brief example:
 
 !!! Example "Benchmarking example"
 

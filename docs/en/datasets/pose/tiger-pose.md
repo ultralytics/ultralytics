@@ -121,6 +121,7 @@ To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an i
         results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash
@@ -150,6 +151,7 @@ To perform inference using a YOLOv8 model trained on the Tiger-Pose dataset, you
         results = model.predict(source="https://youtu.be/MIBAT6BGE6U", show=True)
         ```
     
+
     === "CLI"
     
         ```bash

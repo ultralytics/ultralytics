@@ -92,7 +92,7 @@ Oriented Bounding Boxes (OBB) are a type of bounding box annotation where the bo
 
 ### How do I convert my existing DOTA dataset labels to YOLO OBB format for use with Ultralytics YOLOv8?
 
-You can convert DOTA dataset labels to YOLO OBB format using the `convert_dota_to_yolo_obb` function from Ultralytics. This conversion ensures compatibility with the Ultralytics YOLO models, enabling you to leverage the OBB capabilities for enhanced object detection. Here’s a quick example:
+You can convert DOTA dataset labels to YOLO OBB format using the `convert_dota_to_yolo_obb` function from Ultralytics. This conversion ensures compatibility with the Ultralytics YOLO models, enabling you to leverage the OBB capabilities for enhanced object detection. Here's a quick example:
 
 ```python
 from ultralytics.data.converter import convert_dota_to_yolo_obb
@@ -104,7 +104,7 @@ This script will reformat your DOTA annotations into a YOLO-compatible format.
 
 ### How do I train a YOLOv8 model with oriented bounding boxes (OBB) on my dataset?
 
-Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the Ultralytics API to train the model. Here’s an example in both Python and CLI:
+Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the Ultralytics API to train the model. Here's an example in both Python and CLI:
 
 !!! Example
 
@@ -120,6 +120,7 @@ Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO 
         results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

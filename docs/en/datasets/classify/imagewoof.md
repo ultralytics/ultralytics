@@ -109,6 +109,7 @@ To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset usi
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
     
+
     === "CLI"
     
         ```bash

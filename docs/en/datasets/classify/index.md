@@ -160,11 +160,11 @@ Ultralytics YOLO supports automatic downloading of several datasets for image cl
 - [Imagewoof](imagewoof.md)
 - [MNIST](mnist.md)
 
-These datasets are structured in a way that makes them easy to use with YOLO. Each dataset’s page provides further details about its structure and applications.
+These datasets are structured in a way that makes them easy to use with YOLO. Each dataset's page provides further details about its structure and applications.
 
 ### How do I add my own dataset for YOLO image classification?
 
-To use your own dataset with Ultralytics YOLO, ensure it follows the specified directory format required for the classification task, with separate `train`, `test`, and optionally `val` directories, and subdirectories for each class containing the respective images. Once your dataset is structured correctly, point the `data` argument to your dataset’s root directory when initializing the training script. Here’s an example in Python:
+To use your own dataset with Ultralytics YOLO, ensure it follows the specified directory format required for the classification task, with separate `train`, `test`, and optionally `val` directories, and subdirectories for each class containing the respective images. Once your dataset is structured correctly, point the `data` argument to your dataset's root directory when initializing the training script. Here's an example in Python:
 
 ```python
 from ultralytics import YOLO
@@ -192,7 +192,7 @@ For additional insights and real-world applications, you can explore [Ultralytic
 
 ### How can I train a model using Ultralytics YOLO?
 
-Training a model using Ultralytics YOLO can be done easily in both Python and CLI. Here’s an example:
+Training a model using Ultralytics YOLO can be done easily in both Python and CLI. Here's an example:
 
 !!! Example
 
@@ -208,6 +208,7 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

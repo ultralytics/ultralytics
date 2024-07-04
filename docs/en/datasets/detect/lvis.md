@@ -132,6 +132,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

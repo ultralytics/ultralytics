@@ -120,6 +120,7 @@ To train a YOLOv8 model with the Argoverse dataset, use the provided YAML config
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

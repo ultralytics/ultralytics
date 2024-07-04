@@ -87,7 +87,7 @@ The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large 
 
 ### How do I train a YOLO model on the CIFAR-100 dataset?
 
-You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here’s how:
+You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here's how:
 
 !!! Example "Train Example"
 
@@ -127,4 +127,4 @@ Each of the 100 classes contains 600 images, with 500 images for training and 10
 
 ### Where can I find sample images and annotations from the CIFAR-100 dataset?
 
-The CIFAR-100 dataset includes a variety of color images of various objects, making it a structured dataset for image classification tasks. You can refer to the documentation page to see [sample images and annotations](#sample-images-and-annotations). These examples highlight the dataset’s diversity and complexity, important for training robust image classification models.
+The CIFAR-100 dataset includes a variety of color images of various objects, making it a structured dataset for image classification tasks. You can refer to the documentation page to see [sample images and annotations](#sample-images-and-annotations). These examples highlight the dataset's diversity and complexity, important for training robust image classification models.

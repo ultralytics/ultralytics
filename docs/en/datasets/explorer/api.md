@@ -349,7 +349,7 @@ This will automatically install all necessary external libraries for the Explore
 
 ### How can I use the Ultralytics Explorer API for similarity search?
 
-You can use the Ultralytics Explorer API to perform similarity searches by creating an embeddings table and querying it for similar images. Here’s a basic example:
+You can use the Ultralytics Explorer API to perform similarity searches by creating an embeddings table and querying it for similar images. Here's a basic example:
 ```python
 from ultralytics import Explorer
 

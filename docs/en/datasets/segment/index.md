@@ -171,7 +171,7 @@ This script converts your COCO dataset annotations to the required YOLO format, 
 
 ### How do I prepare a YAML file for training Ultralytics YOLO models?
 
-To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here’s an example YAML configuration:
+To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here's an example YAML configuration:
 
 ```yaml
 path: ../datasets/coco8-seg  # dataset root dir

@@ -120,6 +120,7 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

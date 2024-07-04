@@ -117,7 +117,7 @@ The DOTA dataset is known for its large-scale benchmark and the challenges it pr
 
 ### How does mosaicing enhance model training with the DOTA8 dataset?
 
-Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model’s ability to generalize to different object sizes, aspect ratios, and scenes. This technique can be visually demonstrated through a training batch composed of mosaiced DOTA8 dataset images, helping in robust model development. Explore more about mosaicing and training techniques on our [Training](../../modes/train.md) page.
+Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes. This technique can be visually demonstrated through a training batch composed of mosaiced DOTA8 dataset images, helping in robust model development. Explore more about mosaicing and training techniques on our [Training](../../modes/train.md) page.
 
 ### Why should I use Ultralytics YOLOv8 for object detection tasks?
 

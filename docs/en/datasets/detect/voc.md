@@ -104,7 +104,9 @@ The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes
 To train a YOLOv8 model with the VOC dataset, you need the dataset configuration in a YAML file. Here's an example to start training a YOLOv8n model for 100 epochs with an image size of 640:
 
 !!! Example "Train Example"
+
     === "Python"
+
         ```python
         from ultralytics import YOLO
 
@@ -116,6 +118,7 @@ To train a YOLOv8 model with the VOC dataset, you need the dataset configuration
         ```
 
     === "CLI"
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640

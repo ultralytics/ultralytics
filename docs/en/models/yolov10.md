@@ -231,52 +231,60 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
 
 For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
 
+
+
 ## FAQ
 
-### What is the major innovation of YOLOv10 in real-time object detection?
+### What is YOLOv10 and how does it differ from previous YOLO versions?
 
-YOLOv10 introduces a novel approach by eliminating Non-Maximum Suppression (NMS) and optimizing various model components. This innovation results in significantly reduced inference latency and improved efficiency. By incorporating consistent dual assignments during NMS-free training and focusing on a holistic efficiency-accuracy driven design strategy, YOLOv10 achieves state-of-the-art performance with lower computational costs compared to previous YOLO versions.
+YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several key innovations to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training and optimized model components for superior performance with reduced computational overhead. For more details on its architecture and key features, check out the [YOLOv10 overview](#overview) section.
 
-### How does YOLOv10 handle the elimination of Non-Maximum Suppression (NMS)?
+### How can I get started with running inference using YOLOv10?
 
-YOLOv10 employs consistent dual assignments that use both one-to-many and one-to-one strategies during training. This ensures rich supervision and efficient end-to-end deployment, eliminating the need for Non-Maximum Suppression (NMS). The consistent matching metric aligns the supervision between these strategies, enhancing the quality and accuracy of predictions during inference without the extra computational overhead of NMS.
+For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
 
-### What are the different model scales available in YOLOv10 and their applications?
+!!! Example
 
-YOLOv10 offers various model scales tailored to different applications and computational needs:
+    === "Python"
 
-- **YOLOv10-N**: Nano version for extremely resource-constrained environments.
-- **YOLOv10-S**: Small version balancing speed and accuracy.
-- **YOLOv10-M**: Medium version for general-purpose use.
-- **YOLOv10-B**: Balanced version with increased width for higher accuracy.
-- **YOLOv10-L**: Large version for higher accuracy at the cost of increased computational resources.
-- **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
+        ```python
+        from ultralytics import YOLO
 
-Each model scale optimizes the trade-off between latency, accuracy, and computational resources, making them suitable for various real-world applications.
+        # Load the pre-trained YOLOv10-N model
+        model = YOLO("yolov10n.pt")
+        results = model("image.jpg")
+        results[0].show()
+        ```
 
-### How does YOLOv10 compare in performance with other state-of-the-art object detectors?
+    === "CLI"
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For instance, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar Average Precision (AP), and YOLOv10-B shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Extensive benchmarks, such as those on the COCO dataset, highlight YOLOv10's superior accuracy-latency trade-offs across multiple model scales.
+        ```bash
+        yolo detect predict model=yolov10n.pt source=path/to/image.jpg
+        ```
 
-### How can I train my custom dataset using YOLOv10?
+For more usage examples, visit our [Usage Examples](#usage-examples) section.
 
-You can train YOLOv10 on a custom dataset using either Python or CLI. Here's an example using Python:
+### Which model variants does YOLOv10 offer and what are their use cases?
 
-```python
-from ultralytics import YOLO
+YOLOv10 offers several model variants to cater to different use cases:
 
-# Load YOLOv10n model from scratch
-model = YOLO("yolov10n.yaml")
+- **YOLOv10-N**: Suitable for extremely resource-constrained environments
+- **YOLOv10-S**: Balances speed and accuracy
+- **YOLOv10-M**: General-purpose use
+- **YOLOv10-B**: Higher accuracy with increased width
+- **YOLOv10-L**: High accuracy at the cost of computational resources
+- **YOLOv10-X**: Maximum accuracy and performance
 
-# Train the model on the custom dataset
-model.train(data="coco8.yaml", epochs=100, imgsz=640)
-```
+Each variant is designed for different computational needs and accuracy requirements, making them versatile for a variety of applications. Explore the [Model Variants](#model-variants) section for more information.
 
-Alternatively, you can use the CLI:
+### How does the NMS-free approach in YOLOv10 improve performance?
 
-```bash
-# Build and train a YOLOv10n model on the custom COCO8 dataset for 100 epochs
-yolo train model=yolov10n.yaml data=coco8.yaml epochs=100 imgsz=640
-```
+YOLOv10 eliminates the need for non-maximum suppression (NMS) during inference by employing consistent dual assignments for training. This approach reduces inference latency and enhances prediction efficiency. The architecture also includes a one-to-one head for inference, ensuring that each object gets a single best prediction. For a detailed explanation, see the [Consistent Dual Assignments for NMS-Free Training](#consistent-dual-assignments-for-nms-free-training) section.
 
-For step-by-step guidance, refer to the [training section](../modes/train.md) in the Ultralytics documentation.
+### Where can I find the export options for YOLOv10 models?
+
+YOLOv10 supports several export formats, including TorchScript, ONNX, OpenVINO, and TensorRT. However, not all export formats provided by Ultralytics are currently supported for YOLOv10 due to its new operations. For details on the supported formats and instructions on exporting, visit the [Exporting YOLOv10](#exporting-yolov10) section.
+
+### What are the performance benchmarks for YOLOv10 models?
+
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset.  YOLOv10-B shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.

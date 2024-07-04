@@ -178,51 +178,38 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
+
+
 ## FAQ
 
-### What are the core innovations of YOLOv9 that improve efficiency and accuracy?
+### What innovations does YOLOv9 introduce for real-time object detection?
 
-YOLOv9 introduces several innovative techniques that enhance both efficiency and accuracy in real-time object detection:
-
-1. **Programmable Gradient Information (PGI)**: This technique ensures the preservation of essential data across the network's layers, facilitating reliable gradient generation and better model performance.
-2. **Generalized Efficient Layer Aggregation Network (GELAN)**: GELAN offers superior parameter utilization and computational efficiency, allowing for the flexible integration of various computational blocks.
-3. **Reversible Functions**: These functions help retain complete information flow through the network, preventing information loss especially in deeper layers, ensuring more accurate updates.
-
-To learn more about these innovations, visit our [Core Innovations](#core-innovations-of-yolov9) section.
+YOLOv9 introduces groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). These innovations address information loss challenges in deep neural networks, ensuring high efficiency, accuracy, and adaptability. PGI preserves essential data across network layers, while GELAN optimizes parameter utilization and computational efficiency. Learn more about [YOLOv9's core innovations](#core-innovations-of-yolov9) that set new benchmarks on the MS COCO dataset.
 
 ### How does YOLOv9 perform on the MS COCO dataset compared to other models?
 
-YOLOv9 sets new benchmarks on the MS COCO dataset, showcasing superior efficiency and accuracy across various model sizes. For example:
+YOLOv9 outperforms state-of-the-art real-time object detectors by achieving higher accuracy and efficiency. On the [COCO dataset](../datasets/detect/coco.md), YOLOv9 models exhibit superior mAP scores across various sizes while maintaining or reducing computational overhead. For instance, YOLOv9c achieves comparable accuracy with 42% fewer parameters and 21% less computational demand than YOLOv7 AF. Explore [performance comparisons](#performance-on-ms-coco-dataset) for detailed metrics.
 
-- **YOLOv9t** achieves 38.3 mAP (50-95) with just 2.0 million parameters, making it highly efficient for lightweight applications.
-- **YOLOv9e** achieves 55.6 mAP (50-95) with 58.1 million parameters, providing state-of-the-art accuracy.
+### How can I train a YOLOv9 model using Python and CLI?
 
-Performance comparison tables and more details can be found in the [Performance on MS COCO Dataset](#performance-on-ms-coco-dataset) section.
-
-### Why should I consider using YOLOv9 over earlier YOLO models?
-
-YOLOv9 offers several advantages over its predecessors:
-
-1. **Enhanced Accuracy**: YOLOv9 achieves higher mean Average Precision (mAP) scores by addressing information loss through advanced techniques like PGI and reversible functions.
-2. **Greater Efficiency**: The GELAN architecture ensures optimal computational efficiency, making YOLOv9 adaptable for various applications without compromising speed.
-3. **Lightweight Optimization**: YOLOv9 provides significant improvements in smaller model sizes, making it ideal for resource-constrained environments.
-
-For a detailed comparison, visit the [Introduction to YOLOv9](#introduction-to-yolov9) section.
-
-### How do reversible functions contribute to the performance of YOLOv9?
-
-Reversible functions allow a network to invert its transformations without any loss of information. This is crucial for maintaining full information flow through the network, ensuring more accurate updates to the model parameters. In YOLOv9, reversible functions help prevent information degradation, especially in deeper layers, which is vital for tasks like object detection.
-
-Here is a simple reversible function formula used in YOLOv9:
-
+You can train a YOLOv9 model using both Python and CLI commands. For Python, instantiate a model using the `YOLO` class and call the `train` method:
 ```python
-X = v_zeta(r_psi(X))
+from ultralytics import YOLO
+
+# Build a YOLOv9c model from pretrained weights and train
+model = YOLO("yolov9c.pt")
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 ```
+For CLI training, execute:
+```bash
+yolo train model=yolov9c.yaml data=coco8.yaml epochs=100 imgsz=640
+```
+Learn more about [usage examples](#usage-examples) for training and inference.
 
-For more technical details, check the [Reversible Functions](#reversible-functions) section.
+### What are the advantages of using Ultralytics YOLOv9 for lightweight models?
 
-### Can I use YOLOv9 for instance segmentation tasks?
+YOLOv9 is designed to mitigate information loss, which is particularly important for lightweight models often prone to losing significant information. By integrating Programmable Gradient Information (PGI) and reversible functions, YOLOv9 ensures essential data retention, enhancing the model’s accuracy and efficiency. This makes it highly suitable for applications requiring compact models with high performance. For more details, explore the section on [YOLOv9's impact on lightweight models](#impact-on-lightweight-models).
 
-Yes, YOLOv9 supports instance segmentation through its YOLOv9-seg variants. These models are optimized for both object detection and instance segmentation, providing high accuracy and efficiency in identifying and segmenting objects within an image.
+### What tasks and modes does YOLOv9 support?
 
-Learn more about the supported models and tasks in the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+YOLOv9 supports various tasks including object detection and instance segmentation. It is compatible with multiple operational modes such as inference, validation, training, and export. This versatility makes YOLOv9 adaptable to diverse real-time computer vision applications. Refer to the [supported tasks and modes](#supported-tasks-and-modes) section for more information.

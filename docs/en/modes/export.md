@@ -111,74 +111,104 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 
+
+
 ## FAQ
 
-### How do I export my YOLOv8 model to ONNX format using Ultralytics?
+### How do I export a YOLOv8 model to ONNX format?
 
-To export your YOLOv8 model to ONNX format, you can use either Python or the command line interface (CLI). Below are the steps for each method:
+Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
 
-**Python:**
+!!! Example
 
-```python
-from ultralytics import YOLO
+    === "Python"
 
-# Load a custom trained model
-model = YOLO("path/to/best.pt")
+    ```python
+    from ultralytics import YOLO
 
-# Export the model to ONNX format
-model.export(format="onnx")
-```
+    # Load a model
+    model = YOLO("yolov8n.pt")  # load an official model
+    model = YOLO("path/to/best.pt")  # load a custom trained model
 
-**CLI:**
+    # Export the model
+    model.export(format="onnx")
+    ```
 
-```bash
-yolo export model=path/to/best.pt format=onnx
-```
+    === "CLI"
 
-Exporting to [ONNX](../integrations/onnx.md) can provide up to a 3x CPU speedup, making it ideal for deployment in resource-constrained environments.
+    ```bash
+    yolo export model=yolov8n.pt format=onnx  # export official model
+    yolo export model=path/to/best.pt format=onnx  # export custom trained model
+    ```
 
-### What are the benefits of using TensorRT for YOLOv8 model exports?
+For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX](../integrations/onnx.md) section.
 
-Using TensorRT to export your YOLOv8 model offers several benefits:
+### What are the benefits of using TensorRT for model export?
 
-- **Performance:** Gain up to 5x GPU speedup, significantly enhancing inference speed.
-- **Efficiency:** Optimizes model execution for NVIDIA hardware, reducing latency.
-- **Compatibility:** Integrates well with various deployment environments, especially those utilizing NVIDIA GPUs.
+Using TensorRT for model export offers significant performance improvements. YOLOv8 models exported to TensorRT can achieve up to a 5x GPU speedup, making it ideal for real-time inference applications.
 
-For step-by-step instructions, follow our [TensorRT export guide](../integrations/tensorrt.md).
+- **Versatility:** Optimize models for a specific hardware setup.
+- **Speed:** Achieve faster inference through advanced optimizations.
+- **Compatibility:** Integrate smoothly with NVIDIA hardware.
 
-### Can I export my YOLOv8 model with FP16 precision and what are the advantages?
+To learn more about integrating TensorRT, see the [TensorRT](../integrations/tensorrt.md) integration guide.
 
-Yes, you can export your YOLOv8 model with FP16 (half-precision) using the `half` argument. FP16 quantization reduces the model size and can speed up inference on supported hardware. This is especially useful for deployment on devices with limited computational power.
+### How do I enable INT8 quantization when exporting my YOLOv8 model?
 
-Example:
+INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
 
-```python
-model.export(format="onnx", half=True)
-```
+!!! Example
 
-Using FP16 precision is detailed under the [ONNX integration](../integrations/onnx.md) section.
+    === "Python"
 
-### How do I specify the input image size when exporting a YOLOv8 model?
+    ```python
+    from ultralytics import YOLO
 
-You can set the desired input image size using the `imgsz` argument during the export process. This can be an integer for square images (e.g., 640) or a tuple for specific dimensions (e.g., (320, 640)).
+    model = YOLO("yolov8n.pt")  # Load a model
+    model.export(format="onnx", int8=True)
+    ```
 
-Example:
+    === "CLI"
 
-```python
-model.export(format="onnx", imgsz=(320, 640))
-```
+    ```bash
+    yolo export model=yolov8n.pt format=onnx int8=True   # export model with INT8 quantization
+    ```
 
-Setting image size appropriately ensures optimal performance and compatibility, as explained in the [Arguments](#arguments) section.
+INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export](../modes/export.md) section.
 
-### Why should I use dynamic input sizes when exporting to ONNX or TensorRT formats?
+### Why is dynamic input size important when exporting models?
 
-Using dynamic input sizes allows the exported model to handle varying image dimensions, improving flexibility and usability in different deployment scenarios.
+Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like ONNX or TensorRT, enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
 
-Example:
+To enable this feature, use the `dynamic=True` flag during export:
 
-```python
-model.export(format="engine", dynamic=True)
-```
+!!! Example
 
-This feature is particularly beneficial for applications where input sizes are not constant, as described in the [Export Formats](#export-formats) section.
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.export(format="onnx", dynamic=True)
+    ```
+
+    === "CLI"
+
+    ```bash
+    yolo export model=yolov8n.pt format=onnx dynamic=True
+    ```
+
+For additional context, refer to the [dynamic input size configuration](#export-arguments).
+
+### What are the key export arguments to consider for optimizing model performance?
+
+Understanding and configuring export arguments is crucial for optimizing model performance:
+
+- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
+- **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
+- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference.
+- **`optimize:`** Applies specific optimizations for mobile or constrained environments.
+- **`int8:`** Enables INT8 quantization, highly beneficial for edge deployments.
+
+For a detailed list and explanations of all the export arguments, visit the [Export Arguments](#arguments) section.

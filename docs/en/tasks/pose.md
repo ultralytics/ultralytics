@@ -196,96 +196,92 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### What is pose estimation with Ultralytics YOLOv8?
+### How do I train a YOLOv8-pose model with my custom dataset?
 
-Pose estimation with Ultralytics YOLOv8 involves identifying the locations of specific keypoints in an image. These keypoints can represent parts of the human body, such as joints or landmarks. The outputs are usually 2D `[x, y]` coordinates or 3D `[x, y, visible]` coordinates. YOLOv8-pose models, like `yolov8n-pose.pt`, are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and provide robust performance for various pose estimation tasks.
-
-### How can I train a YOLOv8-pose model on my custom dataset?
-
-To train a YOLOv8-pose model on your custom dataset, you need to follow these steps:
-
-1. Prepare your dataset in the YOLO format. If your dataset is in a different format (like COCO), convert it using the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool.
-2. Load a model and train it using the `yolo pose train` command or the Python API:
-
-**Python:**
+Training a YOLOv8-pose model with a custom dataset requires using the YOLO format for the dataset. First, prepare your data based on the YOLO Pose dataset format guidelines available in the [Dataset Guide](../datasets/pose/index.md). Once you have your dataset ready, you can train the model using the following Python code:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n-pose.pt")
+# Load a model
+model = YOLO("yolov8n-pose.yaml")
+
+# Train the model with your custom dataset
 results = model.train(data="path/to/your-dataset.yaml", epochs=100, imgsz=640)
 ```
-
-**CLI:**
-
+Or using the CLI:
 ```bash
-yolo pose train data=path/to/your-dataset.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+yolo pose train data=path/to/your-dataset.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 ```
 
-For more details on training, check the [Dataset Guide](../datasets/pose/index.md).
+### What are the available export formats for YOLOv8-pose models?
 
-### How do I validate a trained YOLOv8-pose model?
-
-Validating a trained YOLOv8-pose model can be performed using the `yolo pose val` command or the Python API:
-
-**Python:**
+YOLOv8-pose models can be exported to a variety of formats including ONNX, CoreML, TensorRT, OpenVINO, and more. This allows for flexibility in deploying models across different platforms. Here's an example of how to export a model to the ONNX format:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("path/to/best.pt")
-metrics = model.val()
-print(metrics.box.map)  # map50-95
-```
-
-**CLI:**
-
-```bash
-yolo pose val model=path/to/best.pt
-```
-
-Validation ensures your model's accuracy and helps identify areas for improvement. For detailed validation steps, visit the [Val](#val) section.
-
-### How can I use a YOLOv8-pose model for making predictions?
-
-You can use a YOLOv8-pose model to make predictions with the following commands:
-
-**Python:**
-
-```python
-from ultralytics import YOLO
-
+# Load a model
 model = YOLO("yolov8n-pose.pt")
-results = model("https://ultralytics.com/images/bus.jpg")
-```
 
-**CLI:**
-
-```bash
-yolo pose predict model=yolov8n-pose.pt source="https://ultralytics.com/images/bus.jpg"
-```
-
-Prediction enables you to apply your trained model to new images and visualize the keypoint detections. For more details, see the [Predict](../modes/predict.md) page.
-
-### How can I export a YOLOv8-pose model to different formats?
-
-To export a YOLOv8-pose model to formats such as ONNX or TensorRT, use the `yolo export` command or the Python API:
-
-**Python:**
-
-```python
-from ultralytics import YOLO
-
-model = YOLO("yolov8n-pose.pt")
+# Export the model to ONNX format
 model.export(format="onnx")
 ```
-
-**CLI:**
-
+Or using the CLI:
 ```bash
 yolo export model=yolov8n-pose.pt format=onnx
 ```
+For a complete list of supported formats and usage details, refer to the [Export](../modes/export.md) page.
 
-Exporting models facilitates deployment to different platforms. For more information on supported export formats, see the [Export](../modes/export.md) page.
+### How can I validate the performance of my trained YOLOv8-pose model?
+
+To validate the performance of a trained YOLOv8-pose model, you can use the `val` function which evaluates the model on its validation dataset. Example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a trained model
+model = YOLO("path/to/best.pt")
+
+# Validate the model
+metrics = model.val()  # Dataset and settings are retained from training
+print(metrics.box.map50)  # Print map50 metric
+```
+Or using the CLI:
+```bash
+yolo pose val model=path/to/best.pt  # Validate custom model
+```
+Refer to the [Val](../modes/val.md) section for additional details.
+
+### What are some recommended pretrained models for pose estimation with YOLOv8?
+
+Ultralytics offers several pretrained YOLOv8-pose models, each varying in size, speed, and accuracy to suit different needs. Here are some examples:
+
+- [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-pose.pt): 50.4 mAP (pose), speed: 131.8 ms (CPU ONNX)
+- [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-pose.pt): 60.0 mAP (pose), speed: 233.2 ms (CPU ONNX)
+- [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-pose.pt): 65.0 mAP (pose), speed: 456.3 ms (CPU ONNX)
+
+These models can be used directly for predictions or as a starting point for further training and fine-tuning. For more details, visit the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8) page.
+
+### How do I run predictions using a trained YOLOv8-pose model?
+
+To run predictions using a trained YOLOv8-pose model, you can load the model and pass the image source for inference. Here’s an example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("path/to/best.pt")
+
+# Predict with the model
+results = model("https://ultralytics.com/images/bus.jpg")
+```
+Or using the CLI:
+```bash
+yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'
+```
+For detailed guidance and additional options, see the [Predict](../modes/predict.md) page.

@@ -231,50 +231,51 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
         yolo cfg=default_copy.yaml imgsz=320
         ```
 
+
+
 ## FAQ
 
-### What is the Ultralytics YOLOv8 Command Line Interface (CLI)?
-
-The Ultralytics YOLOv8 Command Line Interface (CLI) allows users to execute detection tasks easily without needing a Python environment. By using simple single-line commands with the `yolo` command, you can perform tasks such as training, validating, predicting, and exporting models directly from your terminal. This feature is beneficial for quick deployments and ensures users can leverage YOLOv8's capabilities without extensive setup. Learn more about CLI commands and their syntax in the [Configuration Guide](cfg.md).
-
-### How do I train a YOLOv8 model using the CLI?
-
-To train a YOLOv8 model using the CLI, you'll need to specify a few arguments like the dataset, model path, number of epochs, and initial learning rate. For instance, to train a detection model for 10 epochs with an initial learning rate of 0.01, you can use the command:
+### How do I use the Ultralytics YOLOv8 command line interface (CLI) for model training?
+To train a YOLOv8 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a learning rate of 0.01, you would run:
 
 ```bash
 yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
-This command trains the model on the COCO8 dataset using the YOLOv8n architecture. For additional training options, you can see the [full list of arguments](cfg.md) or execute `yolo cfg`.
+This command uses the `train` mode with specific arguments. Refer to the full list of available arguments in the [Configuration Guide](cfg.md).
 
-### How can I export a YOLOv8 model to different formats using the CLI?
+### What tasks can I perform with the Ultralytics YOLOv8 CLI?
+The Ultralytics YOLOv8 CLI supports a variety of tasks including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
 
-To export a YOLOv8 model to various formats like ONNX, TensorRT, or CoreML, you can use the export mode with the specific format argument. For example, to export a YOLOv8 model to ONNX, you would run:
+- **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
+- **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.
+- **Export a Model**: Execute `yolo export model=<model.pt> format=<export_format>`.
+
+Each task can be customized with various arguments. For detailed syntax and examples, see the respective sections like [Train](#train), [Predict](#predict), and [Export](#export).
+
+### How can I validate the accuracy of a trained YOLOv8 model using the CLI?
+To validate a YOLOv8 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a batch size of 1 and image size of 640, run:
+
+```bash
+yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+```
+
+This command evaluates the model on the specified dataset and provides performance metrics. For more details, refer to the [Val](#val) section.
+
+### What formats can I export my YOLOv8 models to using the CLI?
+YOLOv8 models can be exported to various formats such as ONNX, CoreML, TensorRT, and more. For instance, to export a model to ONNX format, run:
 
 ```bash
 yolo export model=yolov8n.pt format=onnx
 ```
 
-This command converts your model into ONNX format, which can then be deployed across different platforms. For a detailed list of supported export formats, refer to the [Export](../modes/export.md) page.
+For complete details, visit the [Export](../modes/export.md) page.
 
-### What should I do if the training process is interrupted?
-
-If your training process is interrupted, you can resume it using the following command:
-
-```bash
-yolo detect train resume model=last.pt
-```
-
-This command will continue training from the last saved checkpoint, ensuring no progress is lost. For more detailed guidance on training and resuming interrupted sessions, refer to the relevant section in the [Training](../modes/train.md) documentation.
-
-### How can I run predictions on a YouTube video using a pre-trained YOLOv8 segmentation model?
-
-You can run predictions on a YouTube video by specifying the model and video source in the CLI command. For instance:
+### How do I customize YOLOv8 CLI commands to override default arguments?
+To override default arguments in YOLOv8 CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
 
 ```bash
-yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
-This command uses a pre-trained YOLOv8 segmentation model to analyze frames from the provided YouTube link. For additional prediction options and custom configurations, explore the [Predict](../modes/predict.md) section.
-
-For more detailed examples and a complete guide to using the YOLOv8 Command Line Interface, visit the [Command Line Interface Usage](#command-line-interface-usage) section on the documentation page.
+For a full list of available arguments and their descriptions, refer to the [Configuration Guide](cfg.md). Ensure arguments are formatted correctly, as shown in the [Overriding default arguments](#overriding-default-arguments) section.

@@ -105,72 +105,67 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### How do I benchmark Ultralytics YOLOv8 across different export formats?
+### How do I benchmark my YOLOv8 model's performance using Ultralytics?
 
-Benchmarking Ultralytics YOLOv8 involves evaluating the model's performance in terms of speed and accuracy across various export formats. You can use the `benchmark` function in Python:
+Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance across different export formats. This mode provides insights into key metrics such as mean Average Precision (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
 
-```python
-from ultralytics.utils.benchmarks import benchmark
+!!! Example
 
-# Benchmark on GPU
-benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
-```
+    === "Python"
 
-Or via CLI:
+    ```python
+    from ultralytics.utils.benchmarks import benchmark
 
-```bash
-yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-```
+    # Benchmark on GPU
+    benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+    ```
 
-This will help you understand the trade-offs between formats like ONNX, TensorRT, and OpenVINO.
+    === "CLI"
 
-### What are the key metrics to consider when benchmarking a YOLO model?
+    ```bash
+    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+    ```
 
-When benchmarking a YOLO model, key metrics include:
+For more details on benchmark arguments, visit the [Arguments](#arguments) section.
 
-- **mAP50-95:** Measures average precision at IoU thresholds from 0.50 to 0.95, particularly useful for object detection, segmentation, and pose estimation.
-- **accuracy_top5:** Used for image classification to assess the top-5 classification accuracy.
-- **Inference Time:** The time taken for each image inference, typically measured in milliseconds.
+### What are the benefits of exporting YOLOv8 models to different formats?
 
-These metrics provide a comprehensive view of the model's performance in various real-world scenarios.
+Exporting YOLOv8 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
+- **ONNX:** Provides up to 3x CPU speedup.
+- **TensorRT:** Offers up to 5x GPU speedup.
+- **OpenVINO:** Specifically optimized for Intel hardware.
+These formats enhance both the speed and accuracy of your models, making them more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
 
-### Why should I benchmark my YOLOv8 model using Ultralytics?
+### Why is benchmarking crucial in evaluating YOLOv8 models?
 
-Benchmarking your YOLOv8 model with Ultralytics has several advantages:
+Benchmarking your YOLOv8 models is essential for several reasons:
+- **Informed Decisions:** Understand the trade-offs between speed and accuracy.
+- **Resource Allocation:** Gauge the performance across different hardware options.
+- **Optimization:** Determine which export format offers the best performance for specific use cases.
+- **Cost Efficiency:** Optimize hardware usage based on benchmark results.
+Key metrics such as mAP50-95, Top-5 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
 
-- **Informed Decisions:** Helps you balance trade-offs between model speed and accuracy.
-- **Resource Allocation:** Evaluates how different export formats perform on various hardware.
-- **Optimization:** Identifies the best export format for your specific use case.
-- **Cost Efficiency:** Ensures you are utilizing hardware resources effectively based on benchmark results.
+### Which export formats are supported by YOLOv8, and what are their advantages?
 
-For a detailed guide, see the [Export](../modes/export.md) page.
-
-### What export formats are supported for model benchmarking in Ultralytics YOLOv8?
-
-Ultralytics YOLOv8 supports multiple export formats for benchmarking, including:
-
-- **ONNX:** Optimized for CPU performance.
-- **TensorRT:** Maximizes GPU efficiency.
+YOLOv8 supports a variety of export formats, each tailored for specific hardware and use cases:
+- **ONNX:** Best for CPU performance.
+- **TensorRT:** Ideal for GPU efficiency.
 - **OpenVINO:** Optimized for Intel hardware.
-- **CoreML, TensorFlow SavedModel, TF Lite, and more:** Catering to diverse deployment needs.
+- **CoreML & TensorFlow:** Useful for iOS and general ML applications.
+For a complete list of supported formats and their respective advantages, check out the [Supported Export Formats](#supported-export-formats) section.
 
-For a complete list and more details, visit the [Supported Export Formats](#supported-export-formats) section.
+### What arguments can I use to fine-tune my YOLOv8 benchmarks?
 
-### Can I perform model benchmarking on different devices using Ultralytics YOLOv8?
-
-Yes, you can benchmark models on various devices using YOLOv8. Specify the device in the benchmarking command:
-
-- **CPU**: Use `"cpu"`
-- **GPU**: Use `"cuda:0"` or specify multi-GPU setups like `"cuda:0,1"`
-
-Example:
-
-```python
-benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device="cpu")
-```
-
-This flexibility allows you to assess the performance under different hardware configurations, optimizing for the best deployment scenario.
-
-For further details, check the [Usage Examples](#usage-examples) section.
+When running benchmarks, several arguments can be customized to suit specific needs:
+- **model:** Path to the model file (e.g., "yolov8n.pt").
+- **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
+- **imgsz:** The input image size, either as a single integer or a tuple.
+- **half:** Enable FP16 inference for better performance.
+- **int8:** Activate INT8 quantization for edge devices.
+- **device:** Specify the computation device (e.g., "cpu", "cuda:0").
+- **verbose:** Control the level of logging detail.
+For a full list of arguments, refer to the [Arguments](#arguments) section.

@@ -180,72 +180,88 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### How do I start training a YOLOv8 model for image classification?
+### How do I train a YOLOv8 model for image classification?
 
-To start training a YOLOv8 model for image classification, you need to load a pretrained model and utilize your dataset. Here's a Python example that trains the YOLOv8n-cls model on the MNIST160 dataset:
+To train a YOLOv8 model for image classification, follow these steps:
 
-```python
-from ultralytics import YOLO
+1. **Load a Pretrained Model:**
+    ```python
+    from ultralytics import YOLO
+    model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+    ```
 
-# Load a model
-model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+2. **Train the Model:**
+    ```python
+    results = model.train(data="mnist160", epochs=100, imgsz=64)
+    ```
 
-# Train the model
-results = model.train(data="mnist160", epochs=100, imgsz=64)
+Alternatively, you can use the CLI:
+```bash
+yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
 ```
+Refer to the [Configuration](../usage/cfg.md) page for a full list of available arguments.
 
-For more detailed training configurations, visit the [Configuration](../usage/cfg.md) page.
+### What datasets are YOLOv8 classification models pretrained on?
 
-### What are the key advantages of using YOLOv8 for image classification?
+YOLOv8 classification models (with the `-cls` suffix) are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset. This ensures robust performance on a wide variety of images and classes. You can download these pretrained models from our [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8) page.
 
-Ultralytics YOLOv8 offers several advantages for image classification:
+### How do I export a YOLOv8 model to ONNX format?
 
-1. **Pretrained Models**: YOLOv8 classification models come pretrained on the comprehensive [ImageNet](../datasets/classify/imagenet.md) dataset, ensuring high accuracy.
-2. **Efficiency**: YOLOv8 models are optimized for speed and performance, making them suitable for both CPU and GPU inference.
-3. **Versatility**: YOLOv8 models can be exported to various formats like ONNX and CoreML, ensuring compatibility across different platforms. See the [Export](../modes/export.md) page for more details.
-4. **Simplicity**: With Ultralytics HUB, no-code options are available for those who prefer a GUI-based approach.
+Exporting a YOLOv8 model to ONNX format can be done using either Python or CLI:
 
-### How can I validate my YOLOv8 classification model?
+!!! Example
 
-To validate your YOLOv8 classification model, you can use the `model.val()` method in Python. Here's an example:
+    === "Python"
 
-```python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
+    model = YOLO("yolov8n-cls.pt")  # load a model
+    model.export(format="onnx")
+    ```
 
-# Load a model
-model = YOLO("yolov8n-cls.pt")  # load an official model
+    === "CLI"
 
-# Validate the model
-metrics = model.val()
-metrics.top1  # top1 accuracy
-metrics.top5  # top5 accuracy
-```
+    ```bash
+    yolo export model=yolov8n-cls.pt format=onnx
+    ```
 
-This approach ensures that the model's performance metrics are evaluated based on its training data and settings. For CLI validation, use: `yolo classify val model=yolov8n-cls.pt`.
+For more details, see the [Export](../modes/export.md) page.
 
-### Why should I use Ultralytics YOLOv8 pretrained models for image classification?
+### What is the accuracy of YOLOv8 classification models on ImageNet?
 
-Using Ultralytics YOLOv8 pretrained models for image classification is advantageous because:
+The accuracy of YOLOv8 classification models on the ImageNet validation set varies by model size:
+- YOLOv8n-cls: 69.0% Top-1, 88.3% Top-5
+- YOLOv8s-cls: 73.8% Top-1, 91.7% Top-5
+- YOLOv8m-cls: 76.8% Top-1, 93.5% Top-5
+- YOLOv8l-cls: 76.8% Top-1, 93.5% Top-5
+- YOLOv8x-cls: 79.0% Top-1, 94.6% Top-5
 
-1. **High Accuracy**: Pretrained on [ImageNet](../datasets/classify/imagenet.md), these models offer high classification accuracy out-of-the-box.
-2. **Efficiency**: YOLOv8 models are designed to be efficient, providing fast inference times even on resource-constrained devices.
-3. **Ease of Use**: The models are easy to integrate into your projects. Simply download and start using them without extensive setup.
-4. **Flexibility**: These models can be fine-tuned to adapt to custom datasets, enhancing your specific application requirements.
+For complete details, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) section.
 
-### Can I export a YOLOv8 classification model to different formats?
+### How can I validate my trained YOLOv8 classification model?
 
-Yes, you can export a YOLOv8 classification model to various formats such as ONNX, CoreML, and TensorRT. Here's a Python example for exporting to ONNX:
+Validation of a trained YOLOv8 classification model can be done using Python or CLI:
 
-```python
-from ultralytics import YOLO
+!!! Example
 
-# Load a model
-model = YOLO("yolov8n-cls.pt")  # load an official model
+    === "Python"
 
-# Export the model
-model.export(format="onnx")
-```
+    ```python
+    from ultralytics import YOLO
+    model = YOLO("path/to/your_model.pt")  # load your trained model
+    metrics = model.val()
+    print(metrics.top1)  # Top-1 accuracy
+    print(metrics.top5)  # Top-5 accuracy
+    ```
 
-For more details on available export formats and additional parameters, check the [Export](../modes/export.md) page.
+    === "CLI"
+
+    ```bash
+    yolo classify val model=path/to/your_model.pt
+    ```
+
+For more details, check the [Val](../modes/val.md) page.

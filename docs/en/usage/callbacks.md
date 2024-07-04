@@ -100,19 +100,18 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_export_start` | Triggered when the export process starts |
 | `on_export_end`   | Triggered when the export process ends   |
 
+
+
 ## FAQ
 
-### How do Ultralytics callbacks enhance model training and validation?
+### What are Ultralytics callbacks and how can I use them?
 
-Ultralytics callbacks provide strategic entry points at different stages of the training, validation, export, and prediction processes. They work by accepting `Trainer`, `Validator`, or `Predictor` objects to perform specific tasks or modify results. This customization allows users to optimize and extend the functionality of their machine learning models, as demonstrated in the [prediction batch example](#returning-additional-information-with-prediction). For a detailed list of the supported callbacks, refer to the [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).
+**Ultralytics callbacks** are specialized entry points triggered during key stages of model operations like training, validation, exporting, and prediction. These callbacks allow for custom functionality at specific points in the process, enabling enhancements and modifications to the workflow. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. For detailed properties of these objects, refer to the [Reference section](../reference/cfg/__init__.md).
 
-### What are practical examples of using Ultralytics callbacks?
-
-Callbacks can be used to add custom functionality during different phases of the machine learning pipeline. A practical example is updating prediction results with additional information. By defining a custom callback, you can zip prediction results with images, as shown in the [Returning additional information with Prediction](#returning-additional-information-with-prediction) example. This flexibility helps you tailor the output to your specific application needs.
+To use a callback, you can define a function and then add it to the model with the `add_callback` method. Here's an example of how to return additional information during prediction:
 
 ```python
 from ultralytics import YOLO
-
 
 def on_predict_batch_end(predictor):
     """Handle prediction batch end by combining results with corresponding frames; modifies predictor results."""
@@ -120,23 +119,98 @@ def on_predict_batch_end(predictor):
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
 
-
 model = YOLO("yolov8n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
-
-# Iterate through the results and frames
 for result, frame in model.predict():
     pass
 ```
 
-### Why should I use Ultralytics YOLOv8 for my object detection projects?
+### How can I customize Ultralytics training routine using callbacks?
 
-Ultralytics YOLOv8 offers state-of-the-art object detection, segmentation, and classification capabilities. It is designed for real-time performance and high accuracy, which makes it suitable for various applications such as security systems, inventory management, and wildlife monitoring. Additionally, the extensive documentation and support for features like callbacks, as detailed in the [training](../modes/train.md) and [predict](../modes/predict.md) modes, make it easy to customize and optimize your models.
+To customize your Ultralytics training routine using callbacks, you can inject your logic at specific stages of the training process. Ultralytics YOLO provides a variety of training callbacks such as `on_train_start`, `on_train_end`, and `on_train_batch_end`. These allow you to add custom metrics, processing, or logging.
 
-### How can I export a YOLOv8 model using Ultralytics?
+Here's an example of how to log additional metrics at the end of each training epoch:
 
-Exporting a YOLOv8 model can be done using the export mode. Ultralytics supports exporting to various formats including ONNX, TensorRT, and CoreML, among others. This feature ensures compatibility and performance optimization across different platforms. Detailed instructions on how to export your model can be found in the [Export](../modes/export.md) section.
+```python
+from ultralytics import YOLO
 
-### What unique features do Ultralytics' Validator callbacks offer?
+def on_train_epoch_end(trainer):
+    """Custom logic for additional metrics logging at the end of each training epoch."""
+    additional_metric = compute_additional_metric(trainer)
+    trainer.log({'additional_metric': additional_metric})
 
-Validator callbacks in Ultralytics are designed to trigger actions at different stages of the validation process, helping to streamline and enhance model evaluation. These callbacks can start at the beginning of validation (`on_val_start`), during each validation batch (`on_val_batch_start`, `on_val_batch_end`), and at the end (`on_val_end`). By utilizing these callbacks, you can monitor performance or capture specific metrics, thereby facilitating a more effective model validation process. For a complete list of validator callbacks, check the [Validator Callbacks](#validator-callbacks) section.
+model = YOLO("yolov8n.pt")
+model.add_callback("on_train_epoch_end", on_train_epoch_end)
+model.train(data="coco.yaml", epochs=10)
+```
+
+Refer to the [Training Guide](../modes/train.md) for more details on how to effectively use training callbacks.
+
+### Why should I use callbacks during validation in Ultralytics YOLO?
+
+Using **callbacks during validation** in Ultralytics YOLO can enhance model evaluation by allowing custom processing, logging, or metrics calculation. Callbacks such as `on_val_start`, `on_val_batch_end`, and `on_val_end` provide entry points to inject custom logic, ensuring detailed and comprehensive validation processes.
+
+For instance, you might want to log additional validation metrics or save intermediate results for further analysis. Here’s an example of how to log custom metrics at the end of validation:
+
+```python
+from ultralytics import YOLO
+
+def on_val_end(validator):
+    """Log custom metrics at end of validation."""
+    custom_metric = compute_custom_metric(validator)
+    validator.log({'custom_metric': custom_metric})
+
+model = YOLO("yolov8n.pt")
+model.add_callback("on_val_end", on_val_end)
+model.val(data="coco.yaml")
+```
+
+Check out the [Validation Guide](../modes/val.md) for further insights on incorporating callbacks into your validation process.
+
+### How do I attach a custom callback for the prediction mode in Ultralytics YOLO?
+
+To attach a custom callback for the **prediction mode** in Ultralytics YOLO, you define a callback function and register it with the prediction process. Common prediction callbacks include `on_predict_start`, `on_predict_batch_end`, and `on_predict_end`. These allow for modification of prediction outputs and integration of additional functionalities like data logging or result transformation.
+
+Here is an example where a custom callback is used to log predictions:
+
+```python
+from ultralytics import YOLO
+
+def on_predict_end(predictor):
+    """Log predictions at the end of prediction."""
+    for result in predictor.results:
+        log_prediction(result)
+
+model = YOLO("yolov8n.pt")
+model.add_callback("on_predict_end", on_predict_end)
+results = model.predict(source="image.jpg")
+```
+
+For more comprehensive usage, refer to the [Prediction Guide](../modes/predict.md) which includes detailed instructions and additional customization options.
+
+### What are some practical examples of using callbacks in Ultralytics YOLO?
+
+Ultralytics YOLO supports various practical implementations of callbacks to enhance and customize different phases like training, validation, and prediction. Some practical examples include:
+
+1. **Logging Custom Metrics**: Log additional metrics at different stages, such as the end of training or validation epochs.
+2. **Data Augmentation**: Implement custom data transformations or augmentations during prediction or training batches.
+3. **Intermediate Results**: Save intermediate results such as predictions or frames for further analysis or visualization.
+
+Example: Combining frames with prediction results during prediction using `on_predict_batch_end`:
+
+```python
+from ultralytics import YOLO
+
+def on_predict_batch_end(predictor):
+    """Combine prediction results with frames."""
+    _, image, _, _ = predictor.batch
+    image = image if isinstance(image, list) else [image]
+    predictor.results = zip(predictor.results, image)
+
+model = YOLO("yolov8n.pt")
+model.add_callback("on_predict_batch_end", on_predict_batch_end)
+for result, frame in model.predict():
+    pass
+```
+
+Explore the [Complete Callback Reference](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py) to find more options and examples.

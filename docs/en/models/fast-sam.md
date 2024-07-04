@@ -239,57 +239,70 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
+
+
 ## FAQ
 
-### What is the Fast Segment Anything Model (FastSAM) and how does it work?
+### What is FastSAM and how does it differ from SAM?
 
-Fast Segment Anything Model (FastSAM) is a real-time, CNN-based solution designed to efficiently segment any object in an image. It decouples the task into two stages: all-instance segmentation using [YOLOv8-seg](../tasks/segment.md) and prompt-guided selection. The first stage identifies all instances in the image for segmentation masks, while the second stage focuses on the region of interest based on user prompts, significantly reducing computational demands while maintaining performance quality.
+FastSAM, short for Fast Segment Anything Model, is a real-time convolutional neural network (CNN)-based solution designed to reduce computational demands while maintaining high performance in object segmentation tasks. Unlike the Segment Anything Model (SAM), which uses a heavier Transformer-based architecture, FastSAM leverages [Ultralytics YOLOv8-seg](../tasks/segment.md) for efficient instance segmentation in two stages: all-instance segmentation followed by prompt-guided selection.
 
-### How does FastSAM compare to the Segment Anything Model (SAM)?
+### How does FastSAM achieve real-time segmentation performance?
 
-FastSAM is specifically designed to address the high computational needs of the [Segment Anything Model (SAM)](sam.md). Unlike SAM, which uses a heavy Transformer architecture, FastSAM leverages more efficient CNNs, resulting in real-time performance with reduced computational resources. FastSAM achieves comparable results to SAM on benchmarks like MS COCO, but operates significantly faster, making it suitable for industrial applications that require quick results.
+FastSAM achieves real-time segmentation by decoupling the segmentation task into all-instance segmentation with YOLOv8-seg and prompt-guided selection stages. By utilizing the computational efficiency of CNNs, FastSAM offers significant reductions in computational and resource demands while maintaining competitive performance. This dual-stage approach enables FastSAM to deliver fast and efficient segmentation suitable for applications requiring quick results.
 
-### How can I use the FastSAM model for inference in my Python application?
+### What are the practical applications of FastSAM?
 
-To use the FastSAM model for inference, you can follow these steps:
+FastSAM is practical for a variety of computer vision tasks that require real-time segmentation performance. Applications include:
+- Industrial automation for quality control and assurance
+- Real-time video analysis for security and surveillance
+- Autonomous vehicles for object detection and segmentation
+- Medical imaging for precise and quick segmentation tasks
+
+Its ability to handle various user interaction prompts makes FastSAM adaptable and flexible for diverse scenarios.
+
+### How do I use the FastSAM model for inference in Python?
+
+To use FastSAM for inference in Python, you can follow the example below:
 
 ```python
 from ultralytics import FastSAM
 from ultralytics.models.fastsam import FastSAMPrompt
 
 # Define an inference source
-source = "path/to/image.jpg"
+source = "path/to/bus.jpg"
 
-# Create a FastSAM model instance
+# Create a FastSAM model
 model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
-# Run inference on the image
-results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+# Run inference on an image
+everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
 # Prepare a Prompt Process object
-prompt_process = FastSAMPrompt(source, results, device="cpu")
+prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
-# Apply different prompts
-annotations = prompt_process.everything_prompt()
-annotations = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
-annotations = prompt_process.text_prompt(text="a photo of a dog")
-annotations = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(annotations=annotations, output="./")
+# Everything prompt
+ann = prompt_process.everything_prompt()
+
+# Bounding box prompt
+ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+
+# Text prompt
+ann = prompt_process.text_prompt(text="a photo of a dog")
+
+# Point prompt
+ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+prompt_process.plot(annotations=ann, output="./")
 ```
 
-This code snippet demonstrates loading a pre-trained model and performing object segmentation based on user prompts.
+For more details on inference methods, check the [Predict Usage](#predict-usage) section of the documentation.
 
-### What are the main advantages of using FastSAM?
+### What types of prompts does FastSAM support for segmentation tasks?
 
-FastSAM offers several key advantages:
+FastSAM supports multiple prompt types for guiding the segmentation tasks:
+- **Everything Prompt**: Generates segmentation for all visible objects.
+- **Bounding Box (BBox) Prompt**: Segments objects within a specified bounding box.
+- **Text Prompt**: Uses a descriptive text to segment objects matching the description.
+- **Point Prompt**: Segments objects near specific user-defined points.
 
-- **Real-time performance:** Leveraging CNNs for quick processing suitable for industrial applications.
-- **Efficiency:** Significant reduction in computational and resource demands while maintaining performance.
-- **Flexibility:** Prompt-guided segmentation allows for flexible object identification based on user interactions.
-- **Benchmark performance:** Competitive results on benchmarks like MS COCO, demonstrating efficiency and speed.
-
-### What are the practical applications for FastSAM?
-
-FastSAM can be used in various vision tasks that require real-time and efficient object segmentation. Applications include industrial automation where quick results are essential, real-time video analysis, and any scenario where computational resources are limited but high performance is required. Its ability to perform prompt-guided segmentation makes it adaptable for tasks where user input dynamically influences segmentation needs.
-
-For more detailed information on usage and model integration, you can refer to the [Predict Usage](../modes/predict.md) section of our documentation.
+This flexibility allows FastSAM to adapt to a wide range of user interaction scenarios, enhancing its utility across different applications. For more information on using these prompts, refer to the [Key Features](#key-features) section.

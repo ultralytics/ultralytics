@@ -185,87 +185,65 @@ If you use the YOLOv8 model or any other software from this repository in your w
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
 
+
+
 ## FAQ
 
 ### What is YOLOv8 and how does it differ from previous YOLO versions?
 
-YOLOv8 is the latest version in the YOLO series of real-time object detectors, developed by Ultralytics. It introduces several advancements over previous versions, including:
+YOLOv8 is the latest iteration in the Ultralytics YOLO series, designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art backbone and neck architectures, and offers optimized accuracy-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features) sections.
 
-- **Advanced Backbone and Neck Architectures**: Enhanced feature extraction and object detection performance.
-- **Anchor-free Split Ultralytics Head**: Improves accuracy and efficiency compared to anchor-based methods.
-- **Optimized Accuracy-Speed Tradeoff**: Balances high accuracy with real-time performance.
-- **Variety of Pre-trained Models**: Provides specialized models for tasks like instance segmentation, pose estimation, and classification.
+### How can I use YOLOv8 for different computer vision tasks?
 
-YOLOv8 is suitable for diverse applications due to these improvements. For more details, explore the [YOLOv8 Overview](#overview).
+YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
 
-### How can I train a YOLOv8 model on my data?
+### What are the performance metrics for YOLOv8 models?
 
-To train a YOLOv8 model, follow these steps:
+YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
 
-1. **Load Pre-trained Model**: Start with a pre-trained model such as `yolov8n.pt`.
-2. **Prepare Dataset**: Ensure your dataset is in YOLO format (e.g., COCO, Pascal VOC).
-3. **Training Command**:
+### How do I train a YOLOv8 model?
 
-Python script:
+Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 epochs:
 
-```python
-from ultralytics import YOLO
+!!! Example
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a COCO-pretrained YOLOv8n model
+        model = YOLO("yolov8n.pt")
+        
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
 
-model = YOLO("yolov8n.pt")
-model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
-```
+    === "CLI"
 
-CLI command:
+        ```bash
+        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
 
-```bash
-    yolo train model=yolov8n.pt data=path/to/dataset.yaml epochs=100 imgsz=640
-```
+For further details, visit the [Training](../modes/train.md) documentation.
 
-For more details on training modes, check the [Training Documentation](../modes/train.md).
+### Can I benchmark YOLOv8 models for performance?
 
-### What tasks can YOLOv8 be used for?
+Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
 
-YOLOv8 supports a wide range of computer vision tasks, including:
+!!! Example
+    === "Python"
 
-- **Object Detection**: Identifies objects within images.
-- **Instance Segmentation**: Segments individual objects.
-- **Pose Estimation**: Detects human keypoints.
-- **Oriented Object Detection**: Handles objects with arbitrary orientations.
-- **Classification**: Classifies images into categories. Each task has specific pretrained models optimized for performance.
+        ```python
+        from ultralytics.utils.benchmarks import benchmark
 
-For instance segmentation, see the [Instance Segmentation Documentation](../tasks/segment.md).
+        # Benchmark on GPU
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        ```
 
-### How do I run inference using YOLOv8?
+    === "CLI"
 
-To run inference with YOLOv8:
+        ```bash
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        ```
 
-1. **Load the Model**: Load a pre-trained YOLOv8 model.
-2. **Inference Command**:
-
-- Python script:
-
-```python
-from ultralytics import YOLO
-
-model = YOLO("yolov8n.pt")
-results = model("path/to/image.jpg")
-```
-
-- CLI command:
-
-```bash
-yolo predict model=yolov8n.pt source=path/to/image.jpg
-```
-
-- For more details on predict mode, see the [Inference Documentation](../modes/predict.md).
-
-### Why should I choose YOLOv8 for real-time object detection?
-
-YOLOv8 offers several benefits for real-time object detection:
-
-- **High Accuracy and Speed**: Advanced backbone and neck architectures ensure superior performance.
-- **Efficiency**: Anchor-free split Ultralytics head improves detection efficiency.
-- **Versatility**: Supports multiple tasks, including detection, segmentation, and classification.
-- **Pre-trained Models**: Offers a variety of models to suit different tasks and requirements.
-
-These features make YOLOv8 ideal for applications ranging from surveillance to autonomous driving. For full performance metrics, check the [Performance Metrics](#performance-metrics) section.
+For additional information, check the [Performance Metrics](#performance-metrics) section.

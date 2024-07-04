@@ -181,77 +181,82 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+
+
 ## FAQ
 
-### What is YOLOv8 and how does it improve object detection?
+### What is Ultralytics YOLOv8 used for?
 
-Ultralytics YOLOv8 is a state-of-the-art deep learning model designed for real-time object detection, segmentation, and classification. It builds on the success of previous YOLO versions, offering improved accuracy, efficiency, and versatility. It's pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) and [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) datasets for various tasks. For downloading models, you can visit the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8) page.
+Ultralytics YOLOv8 is a highly efficient object detection model used to identify the location and class of objects in images or video streams. It generates bounding boxes around detected objects, along with class labels and confidence scores. This model is particularly useful for applications where real-time detection and high accuracy are critical, such as in surveillance systems, autonomous vehicles, and healthcare diagnostics. To dive deeper into using YOLOv8, visit the [Predict](../modes/predict.md) page for more details.
 
-### How do I train a YOLOv8 model on a custom dataset?
+### How can I train a YOLOv8 model on my custom dataset?
 
-Training a YOLOv8 model on a custom dataset is straightforward. You can load a pretrained model and use the `train` method to tailor it to your dataset. Below is an example using Python:
+You can train a YOLOv8 model on your custom dataset using either Python or the command-line interface (CLI). Here's a quick example:
 
-```python
-from ultralytics import YOLO
+!!! Example
+    === "Python"
+        ```python
+        from ultralytics import YOLO
 
-# Load a pretrained model
-model = YOLO("yolov8n.pt")
+        # Load a pretrained model
+        model = YOLO("yolov8n.pt")
 
-# Train the model on custom data
-results = model.train(data="path/to/custom_dataset.yaml", epochs=100, imgsz=640)
-```
+        # Train the model on your custom dataset
+        results = model.train(data="path/to/your/dataset.yaml", epochs=100, imgsz=640)
+        ```
 
-For full training instructions, see the [Train](../modes/train.md) documentation.
+    === "CLI"
+        ```bash
+        yolo detect train data=path/to/your/dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
 
-### How can I validate the performance of my YOLOv8 model?
+For a comprehensive list of available training arguments, check the [Configuration](../usage/cfg.md) page.
 
-Validating the performance of your YOLOv8 model ensures it works accurately on new data. You can use the `val` method which retains the training dataset and settings. An example in Python:
+### How do I validate the performance of my trained YOLOv8 model?
 
-```python
-from ultralytics import YOLO
+To validate the performance of your YOLOv8 model, you can use the `val` mode, which checks the model's accuracy on a validation dataset and provides metrics such as mAP (mean Average Precision). Here are examples in both Python and CLI:
 
-# Load a trained model
-model = YOLO("path/to/best.pt")
+!!! Example
+    === "Python"
+        ```python
+        from ultralytics import YOLO
 
-# Validate the model
-metrics = model.val()
-print(metrics.box.map)  # Mean Average Precision (mAP)
-```
+        # Load a trained model
+        model = YOLO("path/to/trained-model.pt")
 
-See full validation details in the [Val](../modes/val.md) section.
+        # Validate the model
+        metrics = model.val()
+        print(metrics.box.map)  # mAP 50-95
+        ```
 
-### What formats can YOLOv8 models be exported to for deployment?
+    === "CLI"
+        ```bash
+        yolo detect val model=path/to/trained-model.pt
+        ```
 
-YOLOv8 models can be exported to multiple formats such as ONNX, CoreML, TensorRT, and more, to ensure compatibility across various platforms and devices. The export command in Python:
+### Why should I use Ultralytics HUB for managing my machine learning projects?
 
-```python
-from ultralytics import YOLO
+Ultralytics HUB is a user-friendly platform designed to simplify the entire machine learning workflow. It supports seamless data management, model training, and deployment without requiring advanced coding skills. Key advantages include cloud-based training, real-time performance tracking, and easy collaboration with teams. For more information, explore the [Ultralytics HUB](https://www.ultralytics.com/hub) page.
 
-# Load a trained model
-model = YOLO("path/to/best.pt")
+### How can I export a trained YOLOv8 model to different formats?
 
-# Export the model to ONNX format
-model.export(format="onnx")
-```
+You can export a trained YOLOv8 model to various formats such as ONNX, CoreML, and TensorRT using the `export` function. Below is an example:
 
-Check all available export options on the [Export](../modes/export.md) page.
+!!! Example
+    === "Python"
+        ```python
+        from ultralytics import YOLO
 
-### How do I run predictions using a trained YOLOv8 model?
+        # Load a trained model
+        model = YOLO("path/to/trained-model.pt")
 
-Running predictions with a trained YOLOv8 model is simple. Here's how you can do it in Python:
+        # Export the model
+        model.export(format="onnx")
+        ```
 
-```python
-from ultralytics import YOLO
+    === "CLI"
+        ```bash
+        yolo export model=path/to/trained-model.pt format=onnx
+        ```
 
-# Load a trained model
-model = YOLO("path/to/best.pt")
-
-# Predict on an image
-results = model("https://ultralytics.com/images/bus.jpg")
-
-# Show results
-for result in results:
-    result.show()  # Display the predicted bounding boxes
-```
-
-For comprehensive prediction details, visit the [Predict](../modes/predict.md) page.
+For a full list of available export formats and detailed instructions, visit the [Export](../modes/export.md) page.

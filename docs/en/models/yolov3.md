@@ -97,57 +97,91 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
+
+
 ## FAQ
 
-### What are the main differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
+### What are the differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
 
-The primary differences lie in their detection head structures and additional functionalities:
+YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection algorithm developed by Joseph Redmon, known for its balance of accuracy and speed, utilizing three different scales (13x13, 26x26, and 52x52) for detections. YOLOv3-Ultralytics is Ultralytics' adaptation of YOLOv3 that adds support for more pre-trained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes. For more details on the variants, refer to the [YOLOv3 series](https://github.com/ultralytics/yolov3).
 
-- **YOLOv3:** Introduced by Joseph Redmon, known for multiscale predictions with three sizes of detection kernels (13x13, 26x26, 52x52).
-- **[YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3):** Ultralytics' version of YOLOv3 with the same architecture but enhanced with additional pre-trained models and easier customization options.
-- **YOLOv3u:** An update to YOLOv3-Ultralytics, incorporating the anchor-free, objectness-free split head from YOLOv8, improving robustness and accuracy by eliminating pre-defined anchor boxes.
+### How can I train a YOLOv3 model using Ultralytics?
 
-### How can I use YOLOv3 for object detection tasks?
+Training a YOLOv3 model with Ultralytics is straightforward. You can train the model using either Python or CLI:
 
-You can follow these steps for training and inference using Ultralytics YOLO in Python:
+!!! Example
 
-```python
-from ultralytics import YOLO
+    === "Python"
 
-# Load a COCO-pretrained YOLOv3n model
-model = YOLO("yolov3n.pt")
+        ```python
+        from ultralytics import YOLO
 
-# Display model information (optional)
-model.info()
+        # Load a COCO-pretrained YOLOv3n model
+        model = YOLO("yolov3n.pt")
 
-# Train the model on the COCO8 example dataset for 100 epochs
-results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
 
-# Run inference with the YOLOv3n model on an image
-results = model("path/to/bus.jpg")
-```
+    === "CLI"
 
-Refer to the [Training](../modes/train.md) and [Predict](../modes/predict.md) documentation for more details.
+        ```bash
+        # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
 
-### What is the advantage of using YOLOv3-Ultralytics over the original YOLOv3?
+For more comprehensive training options and guidelines, visit our [Train mode documentation](../modes/train.md).
 
-[YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) reproduces the original YOLOv3 architecture but adds significant improvements, including:
+### What makes YOLOv3u more accurate for object detection tasks?
 
-- Support for more pre-trained models
-- Additional customization options
-- Enhanced training methods
-    These features make YOLOv3-Ultralytics more versatile and user-friendly for various applications.
+YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-free, objectness-free split head used in YOLOv8 models. This upgrade eliminates the need for pre-defined anchor boxes and objectness scores, enhancing its capability to detect objects of varying sizes and shapes more precisely. This makes YOLOv3u a better choice for complex and diverse object detection tasks. For more information, refer to the [Why YOLOv3u](#overview) section.
 
-### What makes YOLOv3u more accurate and robust for object detection?
+### How can I use YOLOv3 models for inference?
 
-YOLOv3u integrates advancements from YOLOv8, specifically the anchor-free, objectness-free split head. This configuration removes the reliance on pre-defined anchor boxes and objectness scores, which enhances the model's ability to detect objects of various sizes and shapes with higher accuracy and robustness. Learn more about these innovations in the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8).
+You can perform inference using YOLOv3 models by either Python scripts or CLI commands:
 
-### Which operational modes are supported by YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
+!!! Example
 
-All three models support a comprehensive set of modes including:
+    === "Python"
 
-- [Inference](../modes/predict.md)
-- [Validation](../modes/val.md)
-- [Training](../modes/train.md)
-- [Export](../modes/export.md)
-    These modes ensure versatility in various stages of model deployment and development, providing users with the necessary toolkit for effective object detection tasks.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv3n model
+        model = YOLO("yolov3n.pt")
+
+        # Run inference with the YOLOv3n model on the 'bus.jpg' image
+        results = model("path/to/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov3n.pt source=path/to/bus.jpg
+        ```
+
+Refer to the [Inference mode documentation](../modes/predict.md) for more details on running YOLO models.
+
+### What tasks are supported by YOLOv3 and its variants?
+
+YOLOv3, YOLOv3-Ultralytics, and YOLOv3u primarily support object detection tasks. These models can be used for various stages of model deployment and development, such as Inference, Validation, Training, and Export. For a comprehensive set of tasks supported and more in-depth details, visit our [Object Detection tasks documentation](../tasks/detect.md).
+
+### Where can I find resources to cite YOLOv3 in my research?
+
+If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository. Example BibTeX citation:
+
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{redmon2018yolov3,
+          title={YOLOv3: An Incremental Improvement},
+          author={Redmon, Joseph and Farhadi, Ali},
+          journal={arXiv preprint arXiv:1804.02767},
+          year={2018}
+        }
+        ```
+
+For more citation details, refer to the [Citations and Acknowledgements](#citations-and-acknowledgements) section.

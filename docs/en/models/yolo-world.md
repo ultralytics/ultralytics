@@ -336,69 +336,101 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai
 
 For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
+
+
 ## FAQ
 
-### How do I use the YOLO-World Model for real-time object detection?
+### What is the YOLO-World model and how does it work?
 
-To use the YOLO-World Model for real-time object detection, you can integrate it into your Python application using the Ultralytics library. Here's a basic example:
+The YOLO-World model is an advanced, real-time object detection approach based on the [Ultralytics YOLOv8](yolov8.md) framework. It excels in Open-Vocabulary Detection tasks by identifying objects within an image based on descriptive texts. Using vision-language modeling and pre-training on large datasets, YOLO-World achieves high efficiency and performance with significantly reduced computational demands, making it ideal for real-time applications across various industries.
+
+### How does YOLO-World handle inference with custom prompts?
+
+YOLO-World supports a "prompt-then-detect" strategy, which utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary embeddings. This approach streamlines the detection process without the need for retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks, as shown below:
 
 ```python
 from ultralytics import YOLOWorld
 
-# Load a pretrained YOLOv8s-world model
-model = YOLOWorld("yolov8s-world.pt")
-
-# Perform real-time object detection on an image
-results = model.predict("path/to/image.jpg")
-
-# Display results
-results[0].show()
-```
-
-For detailed instructions and additional usage scenarios, refer to the [Predict Usage](#predict-usage) section in the documentation.
-
-### What are the advantages of using YOLO-World Model over traditional models?
-
-The YOLO-World Model offers several advantages:
-
-1. **Real-time Efficiency:** It utilizes CNNs for fast computations, making it suitable for real-time applications.
-2. **Lower Computational Cost:** By reducing resource requirements, it provides similar accuracy to traditional models like SAM without the heavy computational cost.
-3. **Open-Vocabulary Detection:** Capabilities enable handling a wide range of objects using descriptive prompts.
-4. **Prompt-then-Detect Strategy:** This enhances efficiency by using offline vocabulary for prompt-based detection.
-5. **Benchmark Performance:** Outperforms existing models like MDETR and GLIP in both speed and efficiency.
-
-Learn more about these features in the [Key Features](#key-features) section.
-
-### Why is the YOLOv8-Worldv2 model recommended for custom training?
-
-The YOLOv8-Worldv2 model is recommended for custom training because it supports deterministic training, ensuring consistent results across runs. Additionally, it simplifies model export to formats like ONNX and TensorRT for deployment. This makes it ideal for training custom datasets and deploying versatile object detection models.
-
-For training examples, see the [Train Usage](#train-usage) section.
-
-### Can I use custom prompts for object detection with YOLO-World?
-
-Yes, YOLO-World allows for dynamic specification of classes via custom prompts, enabling the model to detect objects specific to your application without retraining. Here's an example:
-
-```python
-from ultralytics import YOLO
-
 # Initialize a YOLO-World model
-model = YOLO("yolov8s-world.pt")
+model = YOLOWorld("yolov8s-world.pt")
 
 # Define custom classes
 model.set_classes(["person", "bus"])
 
-# Execute prediction for specified categories on an image
+# Execute prediction on an image
 results = model.predict("path/to/image.jpg")
 
 # Show results
 results[0].show()
 ```
 
-You can save and reload models with custom classes for consistent and efficient object detection. More details can be found in the [Set prompts](#set-prompts) section.
+### Why should I choose YOLO-World over traditional Open-Vocabulary detection models?
 
-### What datasets are recommended for training the YOLO-World Model from scratch?
+YOLO-World provides several advantages over traditional Open-Vocabulary detection models:
+- **Real-Time Performance:** It leverages the computational speed of CNNs to offer quick, efficient detection.
+- **Efficiency and Low Resource Requirement:** YOLO-World maintains high performance while significantly reducing computational and resource demands.
+- **Customizable Prompts:** The model supports dynamic prompt setting, allowing users to specify custom detection classes without retraining.
+- **Benchmark Excellence:** It outperforms other open-vocabulary detectors like MDETR and GLIP in both speed and efficiency on standard benchmarks.
 
-For training the YOLO-World Model from scratch, it's recommended to use datasets like Objects365 for object detection and GQA or Flickr30k for grounding tasks. These datasets provide diverse and extensive annotations ideal for training robust models.
+### How do I train a YOLO-World model on my dataset?
 
-Check out the [Reproduce official results from scratch(Experimental)](#reproduce-official-results-from-scratchexperimental) section for more information on preparing these datasets.
+Training a YOLO-World model on your dataset is straightforward through the provided Python API or CLI commands. Here's how to start training using Python:
+
+```python
+from ultralytics import YOLOWorld
+
+# Load a pretrained YOLOv8s-worldv2 model
+model = YOLOWorld("yolov8s-worldv2.pt")
+
+# Train the model on the COCO8 dataset for 100 epochs
+results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+```
+
+Or using CLI:
+
+```bash
+yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
+```
+
+### What are the available pre-trained YOLO-World models and their supported tasks?
+
+Ultralytics offers multiple pre-trained YOLO-World models supporting various tasks and operating modes:
+
+| Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
+| --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+
+### How do I reproduce the official results of YOLO-World from scratch?
+
+To reproduce the official results from scratch, you need to prepare the datasets and launch the training using the provided code. The training procedure involves creating a data dictionary and running the `train` method with a custom trainer:
+
+```python
+from ultralytics import YOLOWorld
+from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+
+data = {
+    "train": {
+        "yolo_data": ["Objects365.yaml"],
+        "grounding_data": [
+            {
+                "img_path": "../datasets/flickr30k/images",
+                "json_file": "../datasets/flickr30k/final_flickr_separateGT_train.json",
+            },
+            {
+                "img_path": "../datasets/GQA/images",
+                "json_file": "../datasets/GQA/final_mixed_train_no_coco.json",
+            },
+        ],
+    },
+    "val": {"yolo_data": ["lvis.yaml"]},
+}
+
+model = YOLOWorld("yolov8s-worldv2.yaml")
+model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)

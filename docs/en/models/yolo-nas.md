@@ -117,24 +117,47 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
 
 We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-AI/super-gradients/) team for their efforts in creating and maintaining this valuable resource for the computer vision community. We believe YOLO-NAS, with its innovative architecture and superior object detection capabilities, will become a critical tool for developers and researchers alike.
 
+
+
 ## FAQ
 
-### What is YOLO-NAS and what makes it different from other YOLO models?
+### What is YOLO-NAS and how does it improve over previous YOLO models?
 
-YOLO-NAS, developed by Deci AI, is a state-of-the-art object detection model designed to overcome the limitations of previous YOLO models. It leverages Neural Architecture Search (NAS) to create an optimal architecture for object detection, enhancing quantization support and improving accuracy-latency trade-offs. The key features include quantization-friendly blocks, advanced training schemes, and AutoNAC optimization. Find more about the architecture and its benefits in the [YOLO-NAS](#overview) section.
+YOLO-NAS, developed by Deci AI, is a state-of-the-art object detection model leveraging advanced Neural Architecture Search (NAS) technology. It addresses the limitations of previous YOLO models by introducing features like quantization-friendly basic blocks and sophisticated training schemes. This results in significant improvements in performance, particularly in environments with limited computational resources. YOLO-NAS also supports quantization, maintaining high accuracy even when converted to its INT8 version, enhancing its suitability for production environments. For more details, see the [Overview](#overview) section.
 
-### How does the quantization support in YOLO-NAS improve model performance?
+### How can I integrate YOLO-NAS models into my Python application?
 
-YOLO-NAS introduces a new quantization-friendly basic block and employs selective quantization, resulting in minimal precision drops when converted to its INT8 quantized version. This approach ensures optimal performance even when using lower-precision operations, making YOLO-NAS suitable for resource-constrained environments. Learn about the quantization capabilities in the [Key Features](#key-features) section.
+You can easily integrate YOLO-NAS models into your Python application using the `ultralytics` package. Here's a simple example of how to load a pre-trained YOLO-NAS model and perform inference:
 
-### How can I use the pre-trained YOLO-NAS models for inference and validation?
+```python
+from ultralytics import NAS
 
-Ultralytics provides pre-trained YOLO-NAS models that can be easily integrated into your Python applications using the `ultralytics` Python package. For example, to validate YOLO-NAS-s on the COCO8 dataset or run inference on an image, follow the [Inference and Validation Examples](#inference-and-validation-examples) with provided code snippets. You can also utilize the CLI for quick model execution.
+# Load a COCO-pretrained YOLO-NAS-s model
+model = NAS("yolo_nas_s.pt")
 
-### What datasets are YOLO-NAS models pre-trained on, and why does that matter?
+# Validate the model on the COCO8 example dataset
+results = model.val(data="coco8.yaml")
 
-YOLO-NAS models are pre-trained on prominent datasets such as COCO, Objects365, and Roboflow 100. This extensive pre-training makes the models highly suitable for downstream object detection tasks across various production environments. Pre-training on diverse datasets ensures better generalization and robustness, which is crucial for effective object detection. Find more details in the [Pre-trained Models](#pre-trained-models) section.
+# Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+results = model("path/to/bus.jpg")
+```
+For more information, refer to the [Inference and Validation Examples](#inference-and-validation-examples).
 
-### Can I train YOLO-NAS models using the Ultralytics package?
+### What are the key features of YOLO-NAS and why should I consider using it?
 
-Currently, the Ultralytics package supports inference and validation for YOLO-NAS models, but not training. You can still leverage the extensive pre-trained models for various object detection tasks. For more details on available modes, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+YOLO-NAS introduces several key features that make it a superior choice for object detection tasks:
+- **Quantization-Friendly Basic Block:** Enhanced architecture that improves model performance with minimal precision drop post quantization.
+- **Sophisticated Training and Quantization:** Employs advanced training schemes and post-training quantization techniques.
+- **AutoNAC Optimization and Pre-training:** Utilizes AutoNAC optimization and is pre-trained on prominent datasets like COCO, Objects365, and Roboflow 100.
+These features contribute to its high accuracy, efficient performance, and suitability for deployment in production environments. Learn more in the [Key Features](#key-features) section.
+
+### Which tasks and modes are supported by YOLO-NAS models?
+
+YOLO-NAS models support various object detection tasks and modes such as inference, validation, and export. They do not support training. The supported models include YOLO-NAS-s, YOLO-NAS-m, and YOLO-NAS-l, each tailored to different computational capacities and performance needs. For a detailed overview, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+
+### Are there pre-trained YOLO-NAS models available and how do I access them?
+
+Yes, Ultralytics provides pre-trained YOLO-NAS models that you can access directly. These models are pre-trained on datasets like COCO, ensuring high performance in terms of both speed and accuracy. You can download these models using the links provided in the [Pre-trained Models](#pre-trained-models) section. Here are some examples:
+- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_s.pt)
+- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_m.pt)
+- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_l.pt)

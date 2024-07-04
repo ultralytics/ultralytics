@@ -337,104 +337,111 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
+
+
 ## FAQ
 
-### How do I start training a custom object detection model using Ultralytics YOLOv8?
+### How do I train an object detection model using Ultralytics YOLOv8?
 
-To start training a custom object detection model with Ultralytics YOLOv8, follow these simple steps:
+To train an object detection model using Ultralytics YOLOv8, you can either use the Python API or the CLI. Below is an example for both:
 
-1. **Prepare Your Dataset**: Ensure your dataset is in YOLO format, and create a `.yaml` file specifying the dataset paths.
-2. **Choose Your Model**: Select a model configuration file (e.g., `yolov8n.yaml`) or a pre-trained model (e.g., `yolov8n.pt`).
-3. **Training Command**:
+!!! Example "Single-GPU and CPU Training Example"
 
-    - **Python API**:
+    === "Python"
 
         ```python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="custom_dataset.yaml", epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
-    - **CLI**:
+    === "CLI"
+
         ```bash
-        yolo detect train data=custom_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-For more detailed configuration options, refer to the [Train Settings](#train-settings) section in the documentation.
+For more details, refer to the [Train Settings](#train-settings) section.
 
-### What are the key hyperparameters for optimizing YOLOv8 model training?
+### What are the key features of Ultralytics YOLOv8's Train mode?
 
-Key hyperparameters that can significantly influence your YOLOv8 model training include:
+The key features of Ultralytics YOLOv8's Train mode include:
 
-- **Batch Size (`batch`)**: Controls the number of images processed in one training iteration.
-- **Learning Rate (`lr0`, `lrf`)**: Initial and final learning rates.
-- **Momentum (`momentum`)**: Influences the smoothness of weight updates.
-- **Weight Decay (`weight_decay`)**: Regularization term to prevent overfitting.
-- **Image Size (`imgsz`)**: Dimensional size to which all images are resized before training.
-- **Number of Epochs (`epochs`)**: Total iterations over the training dataset.
-- **Device (`device`)**: Select computational devices like 'cpu', 'cuda', or specific GPU IDs.
+- **Automatic Dataset Download:** Automatically downloads standard datasets like COCO, VOC, and ImageNet.
+- **Multi-GPU Support:** Scale training across multiple GPUs for faster processing.
+- **Hyperparameter Configuration:** Customize hyperparameters through YAML files or CLI arguments.
+- **Visualization and Monitoring:** Real-time tracking of training metrics for better insights.
 
-For extensive information on hyperparameters, check the [Train Settings](#train-settings) section.
+These features make training efficient and customizable to your needs. For more details, see the [Key Features of Train Mode](#key-features-of-train-mode) section.
 
-### Can I perform multi-GPU training with Ultralytics YOLOv8?
+### How do I resume training from an interrupted session in Ultralytics YOLOv8?
 
-Yes, Ultralytics YOLOv8 supports multi-GPU training. Here's how you can do it:
+To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint. 
 
-- **Python API**:
+!!! Example "Resume Training Example"
 
-    ```python
-    from ultralytics import YOLO
+    === "Python"
 
-    # Load a model
-    model = YOLO("yolov8n.pt")
+        ```python
+        from ultralytics import YOLO
 
-    # Train the model with multiple GPUs (e.g., GPU 0 and 1)
-    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
-    ```
+        # Load the partially trained model
+        model = YOLO("path/to/last.pt")
 
-- **CLI**:
-    ```bash
-    yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
-    ```
+        # Resume training
+        results = model.train(resume=True)
+        ```
 
-Refer to the [Multi-GPU Training](#multi-gpu-training) section for more details.
+    === "CLI"
 
-### How do I resume interrupted training in Ultralytics YOLOv8?
+        ```bash
+        yolo train resume model=path/to/last.pt
+        ```
 
-To resume an interrupted training session in Ultralytics YOLOv8, set the `resume` argument to `True` and provide the path to the last checkpoint file. Example commands:
+Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
 
-- **Python API**:
+### Can I train YOLOv8 models on Apple M1 and M2 chips?
 
-    ```python
-    from ultralytics import YOLO
+Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device. 
 
-    # Load the partially trained model
-    model = YOLO("path/to/last.pt")
+!!! Example "MPS Training Example"
 
-    # Resume training
-    results = model.train(resume=True)
-    ```
+    === "Python"
 
-- **CLI**:
-    ```bash
-    yolo train resume model=path/to/last.pt
-    ```
+        ```python
+        from ultralytics import YOLO
 
-More information can be found in the [Resuming Interrupted Trainings](#resuming-interrupted-trainings) section.
+        # Load a pretrained model
+        model = YOLO("yolov8n.pt")
 
-### What augmentations can I apply to improve YOLOv8 model performance?
+        # Train the model on M1/M2 chip
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
+        ```
 
-YOLOv8 supports various augmentation techniques that can enhance model performance by introducing variability during training. Key augmentations include:
+    === "CLI"
 
-- **Color Adjustments**: `hsv_h`, `hsv_s`, `hsv_v`
-- **Geometric Transformations**: `degrees`, `translate`, `scale`, `shear`, `perspective`
-- **Flipping**: `flipud`, `fliplr`
-- **Mosaic and Mixup**: `mosaic`, `mixup`
-- **AutoAugment Strategies**: `auto_augment`, `randaugment`, `autoaugment`, `augmix`
-- **Erasing and Cropping**: `erasing`, `crop_fraction`
+        ```bash
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        ```
 
-For a complete list and detailed descriptions, refer to the [Augmentation Settings and Hyperparameters](#augmentation-settings-and-hyperparameters) section.
+For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training) section.
+
+### What are the common training settings, and how do I configure them?
+
+Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here’s a brief overview:
+
+| Argument  | Default  | Description                                                                                      |
+|-----------|----------|--------------------------------------------------------------------------------------------------|
+| `model`   | `None`   | Path to the model file for training.                                                             |
+| `data`    | `None`   | Path to the dataset configuration file (e.g., `coco8.yaml`).                                     |
+| `epochs`  | `100`    | Total number of training epochs.                                                                 |
+| `batch`   | `16`     | Batch size, adjustable as integer or auto mode.                                                  |
+| `imgsz`   | `640`    | Target image size for training.                                                                  |
+| `device`  | `None`   | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`.                           |
+| `save`    | `True`   | Enables saving of training checkpoints and final model weights.                                   |
+
+For an in-depth guide on training settings, check the [Train Settings](#train-settings) section.

@@ -382,7 +382,7 @@ For extensive information on hyperparameters, check the [Train Settings](#train-
 
 ### Can I perform multi-GPU training with Ultralytics YOLOv8?
 
-Yes, Ultralytics YOLOv8 supports multi-GPU training. Here’s how you can do it:
+Yes, Ultralytics YOLOv8 supports multi-GPU training. Here's how you can do it:
 
 - **Python API**:
 

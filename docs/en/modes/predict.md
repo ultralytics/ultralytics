@@ -850,7 +850,7 @@ Ultralytics YOLOv8 is designed for high-performance, real-time inference with se
 - **Versatility:** Supports making inferences on images, videos, and live streams.
 - **Performance:** Optimized for real-time, high-speed processing without compromising accuracy.
 - **Ease of Use:** Provides intuitive Python and CLI interfaces for quick deployment and testing.
-- **Customizability:** Offers various settings to tune the model’s inference behavior to your needs.
+- **Customizability:** Offers various settings to tune the model's inference behavior to your needs.
 
 Explore more about its key features in the [Why Use Ultralytics YOLO for Inference?](#why-use-ultralytics-yolo-for-inference) section.
 

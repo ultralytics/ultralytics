@@ -108,7 +108,7 @@ Baidu's RT-DETR (Real-Time Detection Transformer) is a Vision Transformer-based 
 
 ### How can I use pre-trained RT-DETR models for object detection with Ultralytics?
 
-You can leverage the Ultralytics Python API to utilize pre-trained PaddlePaddle RT-DETR models. Here’s a Python example for training and inference:
+You can leverage the Ultralytics Python API to utilize pre-trained PaddlePaddle RT-DETR models. Here's a Python example for training and inference:
 
 ```python
 from ultralytics import RTDETR

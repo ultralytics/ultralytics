@@ -184,7 +184,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I start training a YOLOv8 model for image classification?
 
-To start training a YOLOv8 model for image classification, you need to load a pretrained model and utilize your dataset. Here’s a Python example that trains the YOLOv8n-cls model on the MNIST160 dataset:
+To start training a YOLOv8 model for image classification, you need to load a pretrained model and utilize your dataset. Here's a Python example that trains the YOLOv8n-cls model on the MNIST160 dataset:
 
 ```python
 from ultralytics import YOLO
@@ -209,7 +209,7 @@ Ultralytics YOLOv8 offers several advantages for image classification:
 
 ### How can I validate my YOLOv8 classification model?
 
-To validate your YOLOv8 classification model, you can use the `model.val()` method in Python. Here’s an example:
+To validate your YOLOv8 classification model, you can use the `model.val()` method in Python. Here's an example:
 
 ```python
 from ultralytics import YOLO
@@ -236,7 +236,7 @@ Using Ultralytics YOLOv8 pretrained models for image classification is advantage
 
 ### Can I export a YOLOv8 classification model to different formats?
 
-Yes, you can export a YOLOv8 classification model to various formats such as ONNX, CoreML, and TensorRT. Here’s a Python example for exporting to ONNX:
+Yes, you can export a YOLOv8 classification model to various formats such as ONNX, CoreML, and TensorRT. Here's a Python example for exporting to ONNX:
 
 ```python
 from ultralytics import YOLO

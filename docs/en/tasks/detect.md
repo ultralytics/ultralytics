@@ -238,7 +238,7 @@ Check all available export options on the [Export](../modes/export.md) page.
 
 ### How do I run predictions using a trained YOLOv8 model?
 
-Running predictions with a trained YOLOv8 model is simple. Here’s how you can do it in Python:
+Running predictions with a trained YOLOv8 model is simple. Here's how you can do it in Python:
 
 ```python
 from ultralytics import YOLO

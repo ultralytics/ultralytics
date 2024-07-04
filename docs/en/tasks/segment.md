@@ -227,7 +227,7 @@ YOLOv8 supports various dataset formats for instance segmentation. One commonly 
 
 To validate the performance of your trained YOLOv8 segmentation model, you can use the `val` method, which evaluates the model against a validation dataset and provides various metrics such as mAP, precision, and recall.
 
-Here’s a Python example:
+Here's a Python example:
 
     ```python
     from ultralytics import YOLO

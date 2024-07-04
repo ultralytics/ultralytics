@@ -34,7 +34,7 @@ pip install ultralytics[explorer]
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
-## Semantic Search / Vector Similarity Search
+## Vector Semantic Similarity Search
 
 Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
@@ -90,7 +90,7 @@ Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo se
 
 The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and anomaly detection.
 
-Learn more about semantic search and other features by visiting the [Feature Overview](#semantic-search--vector-similarity-search) section.
+Learn more about semantic search and other features by visiting the [Feature Overview](#vector-semantic-similarity-search) section.
 
 ### Can I use natural language to filter datasets in Ultralytics Explorer GUI?
 

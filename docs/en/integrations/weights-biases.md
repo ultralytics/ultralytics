@@ -171,7 +171,7 @@ Integrating Ultralytics YOLOv8 with Weights & Biases offers several benefits inc
 - **Resource Monitoring:** Keep track of CPU, GPU, and memory usage.
 - **Model Artifacts Management:** Easy access and sharing of model checkpoints.
 
-Explore these features in detail on the [Weights & Biases Dashboard](#key-features-of-the-weights--biases-dashboard).
+Explore these features in detail in the Weights & Biases Dashboard section above.
 
 ### How can I configure Weights & Biases for YOLOv8 training?
 
@@ -185,7 +185,7 @@ To configure Weights & Biases for YOLOv8 training, follow these steps:
 2. Retrieve your API key from the Weights & Biases website.
 3. Use the API key to authenticate your development environment.
 
-Detailed setup instructions can be found in the [Configuring Weights & Biases](#configuring-weights--biases) section.
+Detailed setup instructions can be found in the Configuring Weights & Biases section above.
 
 ### How do I train a YOLOv8 model using Weights & Biases?
 
@@ -219,7 +219,7 @@ model(["path/to/image1", "path/to/image2"])
 wandb.finish()
 ```
 
-This script initializes Weights & Biases, sets up the model, trains it, and logs results. For more details, visit the [Usage: Training YOLOv8 with Weights & Biases](#usage-training-yolov8-with-weights--biases) section.
+This script initializes Weights & Biases, sets up the model, trains it, and logs results. For more details, visit the Usage section above.
 
 ### Why should I use Ultralytics YOLOv8 with Weights & Biases over other platforms?
 

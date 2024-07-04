@@ -255,7 +255,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
     ```
 
-This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B. For further details, explore the [Integration with Weights & Biases](#integration-with-weights--biases) section.
+This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B.
 
 ### Why should I use Ray Tune for hyperparameter optimization with YOLOv8?
 

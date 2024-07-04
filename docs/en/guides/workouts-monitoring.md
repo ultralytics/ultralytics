@@ -4,7 +4,7 @@ description: Optimize your fitness routine with real-time workouts monitoring us
 keywords: workouts monitoring, Ultralytics YOLOv8, pose estimation, fitness tracking, exercise assessment, real-time feedback, exercise form, performance metrics
 ---
 
-# Workouts Monitoring using Ultralytics YOLOv8 🚀
+# Workouts Monitoring using Ultralytics YOLOv8
 
 Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
@@ -210,6 +210,8 @@ Ultralytics YOLOv8 is highly accurate in detecting and tracking exercises due to
 Yes, Ultralytics YOLOv8 can be adapted for custom workout routines. The `AIGym` class supports different pose types such as "pushup", "pullup", and "abworkout." You can specify keypoints and angles to detect specific exercises. Here is an example setup:
 
 ```python
+from ultralytics import solutions
+
 gym_object = solutions.AIGym(
     line_thickness=2,
     view_img=True,
@@ -256,4 +258,4 @@ cv2.destroyAllWindows()
 video_writer.release()
 ```
 
-This setup writes the monitored video to an output file. For more details, refer to the [Workouts Monitoring with Save Output](#workouts-monitoring-using-ultralytics-yolov8-) section.
+This setup writes the monitored video to an output file. For more details, refer to the [Workouts Monitoring with Save Output](#workouts-monitoring-using-ultralytics-yolov8) section.

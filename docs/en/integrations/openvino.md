@@ -360,7 +360,7 @@ Ultralytics YOLOv8 is optimized for real-time object detection with high accurac
 - Seamless deployment on Intel GPUs and NPUs
 - Consistent and comparable accuracy across various export formats
 
-For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#yolov8-benchmarks) on different hardware.
+For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
 
 ### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
 

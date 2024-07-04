@@ -4,7 +4,7 @@ description: Learn to create line graphs, bar plots, and pie charts using Python
 keywords: Ultralytics, YOLOv8, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
 ---
 
-# Analytics using Ultralytics YOLOv8 📊
+# Analytics using Ultralytics YOLOv8
 
 ## Introduction
 
@@ -363,7 +363,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLOv8 📊](#analytics-using-ultralytics-yolov8-) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLOv8 📊](#analytics-using-ultralytics-yolov8) section.
 
 ### What are the benefits of using Ultralytics YOLOv8 for creating bar plots?
 

@@ -4,7 +4,7 @@ description: Learn to accurately identify and count objects in real-time using U
 keywords: object counting, YOLOv8, Ultralytics, real-time object detection, AI, deep learning, object tracking, crowd analysis, surveillance, resource optimization
 ---
 
-# Object Counting using Ultralytics YOLOv8 🚀
+# Object Counting using Ultralytics YOLOv8
 
 ## What is Object Counting?
 
@@ -303,7 +303,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
 count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolov8n.pt")
 ```
 
-Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8-) section.
+Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8) section.
 
 ### What are the advantages of using Ultralytics YOLOv8 for object counting?
 

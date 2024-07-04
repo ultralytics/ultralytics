@@ -4,7 +4,7 @@ description: Learn how to crop and extract objects using Ultralytics YOLOv8 for 
 keywords: Ultralytics, YOLOv8, object cropping, object detection, image processing, video analysis, AI, machine learning
 ---
 
-# Object Cropping using Ultralytics YOLOv8 🚀
+# Object Cropping using Ultralytics YOLOv8
 
 ## What is Object Cropping?
 
@@ -116,7 +116,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### What is object cropping in Ultralytics YOLOv8 and how does it work?
 
-Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced precision by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8-).
+Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced precision by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8).
 
 ### Why should I use Ultralytics YOLOv8 for object cropping over other solutions?
 

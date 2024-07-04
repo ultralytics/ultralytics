@@ -4,7 +4,7 @@ description: Learn how to calculate distances between objects using Ultralytics 
 keywords: Ultralytics, YOLOv8, distance calculation, computer vision, object tracking, spatial positioning
 ---
 
-# Distance Calculation using Ultralytics YOLOv8 🚀
+# Distance Calculation using Ultralytics YOLOv8
 
 ## What is Distance Calculation?
 
@@ -106,7 +106,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### How do I calculate distances between objects using Ultralytics YOLOv8?
 
-To calculate distances between objects using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances. You can refer to the implementation in the [distance calculation example](#distance-calculation-using-ultralytics-yolov8-).
+To calculate distances between objects using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances. You can refer to the implementation in the [distance calculation example](#distance-calculation-using-ultralytics-yolov8).
 
 ### What are the advantages of using distance calculation with Ultralytics YOLOv8?
 

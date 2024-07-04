@@ -190,4 +190,4 @@ Ultralytics YOLOv8 offers several advantages over other object detection models,
 - **Versatility**: Supports multiple tasks, including object detection, segmentation, and pose estimation.
 - **Community and Support**: YOLOv8 is backed by an active community and extensive documentation, ensuring developers have the resources they need.
 
-For more information on the benefits of YOLOv8, explore our detailed [model page](../models/yolov8).
+For more information on the benefits of YOLOv8, explore our detailed [model page](../models/yolov8.md).

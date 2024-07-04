@@ -75,25 +75,24 @@ To use Ultralytics YOLOv8 for object detection, follow these steps:
 1. Prepare your dataset in the appropriate format.
 2. Train the YOLOv8 model using the detection task.
 3. Use the model to make predictions by feeding in new images or video frames.
-   Example:
 
 !!! Example
 
-=== "Python"
-
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolov8n.pt")  # Load pre-trained model
-    results = model.predict(source="image.jpg")  # Perform object detection
-    results[0].show()
-    ```
-
-=== "CLI"
-
-    ```bash
-    yolo detect model=yolov8n.pt source='image.jpg'
-    ```
+    === "Python"
+   
+        ```python
+        from ultralytics import YOLO
+    
+        model = YOLO("yolov8n.pt")  # Load pre-trained model
+        results = model.predict(source="image.jpg")  # Perform object detection
+        results[0].show()
+        ```
+   
+    === "CLI"
+   
+        ```bash
+        yolo detect model=yolov8n.pt source='image.jpg'
+        ```
 
 For more detailed instructions, check out our [detection examples](detect.md).
 

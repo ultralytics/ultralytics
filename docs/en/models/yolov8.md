@@ -204,7 +204,8 @@ YOLOv8 models achieve state-of-the-art performance across various benchmarking d
 Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 epochs:
 
 !!! Example
-=== "Python"
+
+    === "Python"
 
         ```python
         from ultralytics import YOLO
@@ -229,7 +230,8 @@ For further details, visit the [Training](../modes/train.md) documentation.
 Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
 
 !!! Example
-=== "Python"
+
+    === "Python"
 
         ```python
         from ultralytics.utils.benchmarks import benchmark

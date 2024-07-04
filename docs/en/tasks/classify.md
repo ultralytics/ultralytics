@@ -180,14 +180,14 @@ Available YOLOv8-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### What is the purpose of YOLOv8 in image classification?
+
 YOLOv8 models, such as `yolov8n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is particularly useful for applications where knowing the specific class of an image is sufficient, rather than identifying the location or shape of objects within the image.
 
 ### How do I train a YOLOv8 model for image classification?
+
 To train a YOLOv8 model, you can use either Python or CLI commands. For example, to train a `yolov8n-cls` model on the MNIST160 dataset for 100 epochs at an image size of 64:
 
 !!! Example
@@ -213,9 +213,11 @@ To train a YOLOv8 model, you can use either Python or CLI commands. For example,
 For more configuration options, visit the [Configuration](../usage/cfg.md) page.
 
 ### Where can I find pretrained YOLOv8 classification models?
+
 Pretrained YOLOv8 classification models can be found in the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8) section. Models like `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, etc., are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and can be easily downloaded and used for various image classification tasks.
 
 ### How can I export a trained YOLOv8 model to different formats?
+
 You can export a trained YOLOv8 model to various formats using Python or CLI commands. For instance, to export a model to ONNX format:
 
 !!! Example
@@ -241,6 +243,7 @@ You can export a trained YOLOv8 model to various formats using Python or CLI com
 For detailed export options, refer to the [Export](../modes/export.md) page.
 
 ### How do I validate a trained YOLOv8 classification model?
+
 To validate a trained model's accuracy on a dataset like MNIST160, you can use the following Python or CLI commands:
 
 !!! Example

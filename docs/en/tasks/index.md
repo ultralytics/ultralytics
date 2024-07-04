@@ -56,13 +56,12 @@ Oriented object detection goes a step further than regular object detection with
 
 YOLOv8 supports multiple tasks, including detection, segmentation, classification, oriented object detection and keypoints detection. Each of these tasks has different objectives and use cases. By understanding the differences between these tasks, you can choose the appropriate task for your computer vision application.
 
-
-
 ## FAQ
 
 ### What tasks can Ultralytics YOLOv8 perform?
 
 Ultralytics YOLOv8 is a versatile AI framework capable of performing various computer vision tasks with high accuracy and speed. These tasks include:
+
 - **[Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
 - **[Segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
 - **[Classification](classify.md):** Categorizing entire images based on their content, leveraging variants of the EfficientNet architecture.
@@ -72,20 +71,21 @@ Ultralytics YOLOv8 is a versatile AI framework capable of performing various com
 ### How do I use Ultralytics YOLOv8 for object detection?
 
 To use Ultralytics YOLOv8 for object detection, follow these steps:
+
 1. Prepare your dataset in the appropriate format.
 2. Train the YOLOv8 model using the detection task.
 3. Use the model to make predictions by feeding in new images or video frames.
-Example:
+   Example:
 
 !!! Example
 
 === "Python"
-        
+
     ```python
     from ultralytics import YOLO
 
-    model = YOLO('yolov8n.pt')  # Load pre-trained model
-    results = model.predict(source='image.jpg')  # Perform object detection
+    model = YOLO("yolov8n.pt")  # Load pre-trained model
+    results = model.predict(source="image.jpg")  # Perform object detection
     results[0].show()
     ```
 
@@ -100,6 +100,7 @@ For more detailed instructions, check out our [detection examples](detect.md).
 ### What are the benefits of using YOLOv8 for segmentation tasks?
 
 Using YOLOv8 for segmentation tasks provides several advantages:
+
 1. **High Accuracy:** The segmentation task leverages a variant of the U-Net architecture to achieve precise segmentation.
 2. **Speed:** YOLOv8 is optimized for real-time applications, offering quick processing even for high-resolution images.
 3. **Multiple Applications:** It is ideal for medical imaging, autonomous driving, and other applications requiring detailed image segmentation.

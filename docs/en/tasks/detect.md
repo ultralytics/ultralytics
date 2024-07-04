@@ -181,13 +181,12 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 See full `export` details in the [Export](../modes/export.md) page.
 
-
-
 ## FAQ
 
 ### How do I train a YOLOv8 model on my custom dataset?
 
 Training a YOLOv8 model on a custom dataset involves a few steps:
+
 1. **Prepare the Dataset**: Ensure your dataset is in the YOLO format. For guidance, refer to our [Dataset Guide](../datasets/detect/index.md).
 2. **Load the Model**: Use the Ultralytics YOLO library to load a pre-trained model or create a new model from a YAML file.
 3. **Train the Model**: Execute the `train` method in Python or the `yolo detect train` command in CLI.
@@ -201,7 +200,7 @@ Training a YOLOv8 model on a custom dataset involves a few steps:
 
         # Load a pretrained model
         model = YOLO("yolov8n.pt")
-        
+
         # Train the model on your custom dataset
         model.train(data="my_custom_dataset.yaml", epochs=100, imgsz=640)
         ```
@@ -239,7 +238,7 @@ To validate the accuracy of your trained YOLOv8 model, you can use the `.val()` 
 
         # Load the model
         model = YOLO("path/to/best.pt")
-        
+
         # Validate the model
         metrics = model.val()
         print(metrics.box.map)  # mAP50-95
@@ -266,7 +265,7 @@ Ultralytics YOLOv8 allows exporting models to various formats such as ONNX, Tens
 
         # Load the model
         model = YOLO("yolov8n.pt")
-        
+
         # Export the model to ONNX format
         model.export(format="onnx")
         ```
@@ -282,6 +281,7 @@ Check the full list of supported formats and instructions on the [Export](../mod
 ### Why should I use Ultralytics YOLOv8 for object detection?
 
 Ultralytics YOLOv8 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
+
 1. **Pretrained Models**: Utilize models pretrained on popular datasets like COCO and ImageNet for faster development.
 2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
 3. **Speed**: Optimized for real-time inference, making it ideal for applications requiring swift processing.

@@ -5,7 +5,6 @@ import time
 
 import cv2
 import torch
-import yaml
 
 
 def inference():
@@ -15,7 +14,6 @@ def inference():
     import streamlit as st
 
     from ultralytics import YOLO
-    from ultralytics.utils import ROOT
 
     # Hide main menu style
     menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
@@ -31,10 +29,6 @@ def inference():
                     font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
                     Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
                     </div>"""
-
-    # Load COCO class names
-    with open(str(ROOT / "cfg/datasets/coco.yaml"), "r") as file:
-        classes = list(yaml.safe_load(file).get("names").values())
 
     # Set html page configuration
     st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
@@ -91,9 +85,12 @@ def inference():
             "YOLOv8x-Pose",
         ),
     )
-    # Select classes
-    selected_classes = st.sidebar.multiselect("Classes", classes, default=["person", "car", "bus", "truck"])
-    selected_ind = [classes.index(option) for option in selected_classes]
+    model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
+    class_names = list(model.names.values())  # Convert dictionary to list of class names
+
+    # Multiselect box with class names and get indices of selected classes
+    selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3])
+    selected_ind = [class_names.index(option) for option in selected_classes]
 
     if not isinstance(selected_ind, list):  # Ensure selected_options is a list
         selected_ind = list(selected_ind)
@@ -108,7 +105,6 @@ def inference():
     fps_display = st.sidebar.empty()  # Placeholder for FPS display
 
     if st.sidebar.button("Start"):
-        model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
         videocapture = cv2.VideoCapture(vid_file_name)  # Capture the video
 
         if not videocapture.isOpened():

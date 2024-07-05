@@ -81,7 +81,7 @@ Then, you can create a basic Streamlit application to run live inference:
 !!! Example "Streamlit Application"
 
     === "Python"
-    
+
     ```Python
     from ultralytics import solutions
     solutions.inference()
@@ -90,7 +90,7 @@ Then, you can create a basic Streamlit application to run live inference:
     ```
 
     === "CLI"
-    
+
     ```bash
     yolo live-inference
     ```
@@ -100,6 +100,7 @@ For more details on the practical setup, refer to the [Streamlit Application Cod
 ### What are the main advantages of using Ultralytics YOLOv8 with Streamlit for real-time object detection?
 
 Using Ultralytics YOLOv8 with Streamlit for real-time object detection offers several advantages:
+
 - **Seamless Real-Time Detection**: Achieve high-accuracy, real-time object detection directly from webcam feeds.
 - **User-Friendly Interface**: Streamlit’s intuitive interface allows easy use and deployment without extensive technical knowledge.
 - **Resource Efficiency**: YOLOv8’s optimized algorithms ensure high-speed processing with minimal computational resources.
@@ -119,6 +120,7 @@ This command will launch the application in your default web browser, enabling y
 ### What are some use cases for real-time object detection using Streamlit and Ultralytics YOLOv8?
 
 Real-time object detection using Streamlit and Ultralytics YOLOv8 can be applied in various sectors:
+
 - **Security**: Real-time monitoring for unauthorized access.
 - **Retail**: Customer counting, shelf management, and more.
 - **Wildlife and Agriculture**: Monitoring animals and crop conditions.
@@ -128,6 +130,7 @@ For more in-depth use cases and examples, explore [Ultralytics Solutions](https:
 ### How does Ultralytics YOLOv8 compare to other object detection models like YOLOv5 and RCNNs?
 
 Ultralytics YOLOv8 provides several enhancements over prior models like YOLOv5 and RCNNs:
+
 - **Higher Speed and Accuracy**: Improved performance for real-time applications.
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.

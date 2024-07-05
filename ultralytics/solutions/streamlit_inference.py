@@ -3,6 +3,7 @@
 import cv2
 import streamlit as st
 import torch
+import io
 
 from ultralytics import YOLO
 
@@ -40,6 +41,22 @@ def inference():
     # Add elements to vertical setting menu
     st.sidebar.title("User Configuration")
 
+    # Add video source selection dropdown
+    source = st.sidebar.selectbox(
+        "Video", ("webcam", "video", ),)
+
+    vid_file_name = ""
+    if source == "video":
+        vid_file = st.sidebar.file_uploader("Upload Video File", type=["mp4", "mov", "avi", "mkv"])
+        if vid_file is not None:
+            g = io.BytesIO(vid_file.read())  # BytesIO Object
+            vid_location = "ultralytics.mp4"
+            with open(vid_location, 'wb') as out:  # Open temporary file as bytes
+                out.write(g.read())  # Read bytes into file
+            vid_file_name = "ultralytics.mp4"
+    elif source == "webcam":
+        vid_file_name = 0
+
     # Add dropdown menu for model selection
     yolov8_model = st.sidebar.selectbox(
         "Model",
@@ -70,13 +87,13 @@ def inference():
 
     if st.sidebar.button("Start"):
         model = YOLO(yolov8_model.lower() + ".pt")  # Load the yolov8 model
-        videocapture = cv2.VideoCapture(0)  # Capture the webcam
+        videocapture = cv2.VideoCapture(vid_file_name)  # Capture the video
 
         if not videocapture.isOpened():
             st.error("Could not open webcam.")
 
         stop_button = st.button("Stop")  # Button to stop the inference
-        # execute code until webcam closed
+        # execute code until file closed
         while videocapture.isOpened():
             success, frame = videocapture.read()
             if not success:

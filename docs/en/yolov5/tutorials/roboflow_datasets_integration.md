@@ -76,7 +76,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 ### How do I upload data to Roboflow for training YOLOv5 models?
 
-You can upload your data to Roboflow using three different methods: via the [web UI](https://docs.roboflow.com/adding-data), the [REST API](https://docs.roboflow.com/adding-data/upload-api), or through [Python](https://docs.roboflow.com/python). These options offer flexibility depending on your technical preference or project requirements. Once your data is uploaded, you can organize, label, and version it to prepare for training with Ultralytics YOLOv5 models. For more details, visit the [Upload](#upload) section of the documentation.
+You can upload your data to Roboflow using three different methods: via the website, the REST API, or through Python. These options offer flexibility depending on your technical preference or project requirements. Once your data is uploaded, you can organize, label, and version it to prepare for training with Ultralytics YOLOv5 models. For more details, visit the [Upload](#upload) section of the documentation.
 
 ### What are the advantages of using Roboflow for data labeling and versioning?
 
@@ -97,7 +97,7 @@ This code will download your dataset in a format compatible with YOLOv5, allowin
 
 ### What is active learning and how does it work with YOLOv5 and Roboflow?
 
-Active learning is a machine learning strategy that iteratively improves a model by intelligently selecting the most informative data points to label. With the Roboflow and YOLOv5 integration, you can implement active learning to continuously enhance your model's performance. This involves deploying a model, capturing new data, using the model to make predictions, and then manually verifying or correcting those predictions to further train the model. For more insights into active learning, check out [this informative article](https://blog.roboflow.com/what-is-active-learning/) and the [Active Learning](#active-learning) section of the documentation.
+Active learning is a machine learning strategy that iteratively improves a model by intelligently selecting the most informative data points to label. With the Roboflow and YOLOv5 integration, you can implement active learning to continuously enhance your model's performance. This involves deploying a model, capturing new data, using the model to make predictions, and then manually verifying or correcting those predictions to further train the model. For more insights into active learning see the [Active Learning](#active-learning) section above.
 
 ### How can I use Ultralytics environments for training YOLOv5 models on different platforms?
 

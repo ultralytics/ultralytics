@@ -154,3 +154,79 @@ For those leveraging DOTA in their endeavors, it's pertinent to cite the relevan
         ```
 
 A special note of gratitude to the team behind the DOTA datasets for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA website](https://captain-whu.github.io/DOTA/index.html).
+
+## FAQ
+
+### What is the DOTA dataset and why is it important for object detection in aerial images?
+
+The [DOTA dataset](https://captain-whu.github.io/DOTA/index.html) is a specialized dataset focused on object detection in aerial images. It features Oriented Bounding Boxes (OBB), providing annotated images from diverse aerial scenes. DOTA's diversity in object orientation, scale, and shape across its 1.7M annotations and 18 categories makes it ideal for developing and evaluating models tailored for aerial imagery analysis, such as those used in surveillance, environmental monitoring, and disaster management.
+
+### How does the DOTA dataset handle different scales and orientations in images?
+
+DOTA utilizes Oriented Bounding Boxes (OBB) for annotation, which are represented by rotated rectangles encapsulating objects regardless of their orientation. This method ensures that objects, whether small or at different angles, are accurately captured. The dataset's multiscale images, ranging from 800 × 800 to 20,000 × 20,000 pixels, further allow for the detection of both small and large objects effectively.
+
+### How can I train a model using the DOTA dataset?
+
+To train a model on the DOTA dataset, you can use the following example with Ultralytics YOLO:
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Create a new YOLOv8n-OBB model from scratch
+        model = YOLO("yolov8n-obb.yaml")
+
+        # Train the model on the DOTAv1 dataset
+        results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train a new YOLOv8n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        ```
+
+For more details on how to split and preprocess the DOTA images, refer to the [split DOTA images section](#split-dota-images).
+
+### What are the differences between DOTA-v1.0, DOTA-v1.5, and DOTA-v2.0?
+
+- **DOTA-v1.0**: Includes 15 common categories across 2,806 images with 188,282 instances. The dataset is split into training, validation, and testing sets.
+  
+- **DOTA-v1.5**: Builds upon DOTA-v1.0 by annotating very small instances (less than 10 pixels) and adding a new category, "container crane," totaling 403,318 instances.
+  
+- **DOTA-v2.0**: Expands further with annotations from Google Earth and GF-2 Satellite, featuring 11,268 images and 1,793,658 instances. It includes new categories like "airport" and "helipad."
+
+For a detailed comparison and additional specifics, check the [dataset versions section](#dataset-versions).
+
+### How can I prepare high-resolution DOTA images for training?
+
+DOTA images, which can be very large, are split into smaller resolutions for manageable training. Here's a Python snippet to split images:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics.data.split_dota import split_test, split_trainval
+
+        # split train and val set, with labels.
+        split_trainval(
+            data_root="path/to/DOTAv1.0/",
+            save_dir="path/to/DOTAv1.0-split/",
+            rates=[0.5, 1.0, 1.5],  # multiscale
+            gap=500,
+        )
+        # split test set, without labels.
+        split_test(
+            data_root="path/to/DOTAv1.0/",
+            save_dir="path/to/DOTAv1.0-split/",
+            rates=[0.5, 1.0, 1.5],  # multiscale
+            gap=500,
+        )
+        ```
+
+This process facilitates better training efficiency and model performance. For detailed instructions, visit the [split DOTA images section](#split-dota-images).

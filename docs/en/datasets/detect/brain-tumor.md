@@ -99,3 +99,70 @@ This example highlights the diversity and intricacy of images within the brain t
 ## Citations and Acknowledgments
 
 The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+
+## FAQ
+
+### What is the structure of the brain tumor dataset available in Ultralytics documentation?
+
+The brain tumor dataset is divided into two subsets: the **training set** consists of 893 images with corresponding annotations, while the **testing set** comprises 223 images with paired annotations. This structured division aids in developing robust and accurate computer vision models for detecting brain tumors. For more information on the dataset structure, visit the [Dataset Structure](#dataset-structure) section.
+
+### How can I train a YOLOv8 model on the brain tumor dataset using Ultralytics?
+
+You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For a detailed list of available arguments, refer to the [Training](../../modes/train.md) page.
+
+### What are the benefits of using the brain tumor dataset for AI in healthcare?
+
+Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. This application holds significant potential in improving patient outcomes and medical efficiencies.
+
+### How do I perform inference using a fine-tuned YOLOv8 model on the brain tumor dataset?
+
+Inference using a fine-tuned YOLOv8 model can be performed with either Python or CLI approaches. Here are the examples:
+
+!!! Example "Inference Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("path/to/best.pt")  # load a brain-tumor fine-tuned model
+
+        # Inference using the model
+        results = model.predict("https://ultralytics.com/assets/brain-tumor-sample.jpg")
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Start prediction with a finetuned *.pt model
+        yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/brain-tumor-sample.jpg"
+        ```
+
+### Where can I find the YAML configuration for the brain tumor dataset?
+
+The YAML configuration file for the brain tumor dataset can be found at [brain-tumor.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml). This file includes paths, classes, and additional relevant information necessary for training and evaluating models on this dataset.

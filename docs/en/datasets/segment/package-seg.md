@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Roboflow's Package Segmentation Dataset. Optimize logistics and enhance vision models with curated images for package identification and sorting.
+description: Explore the Roboflow Package Segmentation Dataset. Optimize logistics and enhance vision models with curated images for package identification and sorting.
 keywords: Roboflow, Package Segmentation Dataset, computer vision, package identification, logistics, warehouse automation, segmentation models, training data
 ---
 
@@ -90,3 +90,51 @@ If you integrate the crack segmentation dataset into your research or developmen
         ```
 
 We express our gratitude to the Roboflow team for their efforts in creating and maintaining the Package Segmentation dataset, a valuable asset for logistics and research projects. For additional details about the Package Segmentation dataset and its creators, please visit the [Package Segmentation Dataset Page](https://universe.roboflow.com/factorypackage/factory_package).
+
+## FAQ
+
+### What is the Roboflow Package Segmentation Dataset and how can it help in computer vision projects?
+
+The [Roboflow Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package) is a curated collection of images tailored for tasks involving package segmentation. It includes diverse images of packages in various contexts, making it invaluable for training and evaluating segmentation models. This dataset is particularly useful for applications in logistics, warehouse automation, and any project requiring precise package analysis. It helps optimize logistics and enhance vision models for accurate package identification and sorting.
+
+### How do I train an Ultralytics YOLOv8 model on the Package Segmentation Dataset?
+
+You can train an Ultralytics YOLOv8n model using both Python and CLI methods. For Python, use the snippet below:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n-seg.pt")  # load a pretrained model
+
+# Train the model
+results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
+```
+
+For CLI:
+
+```bash
+# Start training from a pretrained *.pt model
+yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+```
+
+Refer to the model [Training](../../modes/train.md) page for more details.
+
+### What are the components of the Package Segmentation Dataset, and how is it structured?
+
+The dataset is structured into three main components:
+- **Training set**: Contains 1920 images with annotations.
+- **Testing set**: Comprises 89 images with corresponding annotations.
+- **Validation set**: Includes 188 images with annotations.
+
+This structure ensures a balanced dataset for thorough model training, validation, and testing, enhancing the performance of segmentation algorithms.
+
+### Why should I use Ultralytics YOLOv8 with the Package Segmentation Dataset?
+
+Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8).
+
+### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
+
+The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. 
+
+For more insights and practical examples, explore our [Usage](https://docs.ultralytics.com/usage/python/) section.

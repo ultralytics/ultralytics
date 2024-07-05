@@ -18,6 +18,7 @@ class LetterBox:
     def __init__(
         self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32
     ):
+        """Initializes LetterBox with parameters for reshaping and transforming image while maintaining aspect ratio."""
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill

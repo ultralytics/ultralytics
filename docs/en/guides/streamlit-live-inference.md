@@ -42,7 +42,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
     === "CLI"
 
         ```bash
-        yolo live-inference
+        yolo streamlit-predict
         ```
 
 This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLOv8 model, set the confidence and NMS thresholds, and click the "Start" button to begin the real-time object detection.

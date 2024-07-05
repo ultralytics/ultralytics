@@ -82,7 +82,7 @@ CLI_HELP_MSG = f"""
         yolo explorer
     
     6. Streamlit real-time object detection on your webcam with Ultralytics YOLOv8
-        yolo live-inference
+        yolo streamlit-predict
         
     7. Run special commands:
         yolo help
@@ -519,7 +519,7 @@ def handle_explorer():
 
 def handle_streamlit_inference():
     """Open the Ultralytics Live Inference streamlit app for real time object detection."""
-    checks.check_requirements(["streamlit", "opencv-python", "torch", "ultralytics"])
+    checks.check_requirements(["streamlit", "opencv-python", "torch"])
     LOGGER.info("💡 Loading Ultralytics Live Inference app...")
     subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 
@@ -592,7 +592,7 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(),
-        "live-inference": lambda: handle_streamlit_inference(),
+        "streamlit-predict": lambda: handle_streamlit_inference(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

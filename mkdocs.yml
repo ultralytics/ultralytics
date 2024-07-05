@@ -549,6 +549,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - streamlit_inference: reference/solutions/streamlit_inference.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

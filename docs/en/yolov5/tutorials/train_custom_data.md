@@ -222,3 +222,53 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### How do I train YOLOv5 on my custom dataset?
+
+Training YOLOv5 on a custom dataset involves several steps:
+
+1. **Prepare Your Dataset**: Collect and label images. Use tools like [Roboflow](https://roboflow.com/?ref=ultralytics) to organize data and export in [YOLOv5 format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
+2. **Setup Environment**: Clone the YOLOv5 repo and install dependencies:
+    ```bash
+    git clone https://github.com/ultralytics/yolov5
+    cd yolov5
+    pip install -r requirements.txt
+    ```
+3. **Create Dataset Configuration**: Write a `dataset.yaml` file defining train/val paths and class names.
+4. **Train the Model**:
+    ```bash
+    python train.py --img 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
+    ```
+
+### What tools can I use to annotate my YOLOv5 dataset?
+
+You can use [Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics), an intuitive web-based tool for labeling images. It supports team collaboration and exports in YOLOv5 format. After collecting images, use Roboflow to create and manage annotations efficiently. Other options include tools like LabelImg and CVAT for local annotations.
+
+### Why should I use Ultralytics HUB for training my YOLO models?
+
+Ultralytics HUB offers an end-to-end platform for training, deploying, and managing YOLO models without needing extensive coding skills. Benefits of using Ultralytics HUB include:
+
+- **Easy Model Training**: Simplifies the training process with preconfigured environments.
+- **Data Management**: Effortlessly manage datasets and version control.
+- **Real-time Monitoring**: Integrates tools like [Comet](https://bit.ly/yolov5-readme-comet) for real-time metrics tracking and visualization.
+- **Collaboration**: Ideal for team projects with shared resources and easy management.
+
+### How do I convert my annotated data to YOLOv5 format?
+
+To convert annotated data to YOLOv5 format using Roboflow:
+
+1. **Upload Your Dataset** to a Roboflow workspace.
+2. **Label Images** if not already labeled.
+3. **Generate and Export** the dataset in `YOLOv5 Pytorch` format. Ensure preprocessing steps like Auto-Orient and Resize (Stretch) to the square input size (e.g., 640x640) are applied.
+4. **Download the Dataset** and integrate it into your YOLOv5 training script.
+
+### What are the licensing options for using YOLOv5 in commercial applications?
+
+Ultralytics offers two licensing options:
+
+- **AGPL-3.0 License**: An open-source license suitable for non-commercial use, ideal for students and enthusiasts.
+- **Enterprise License**: Tailored for businesses seeking to integrate YOLOv5 into commercial products and services. For detailed information, visit our [Licensing page](https://ultralytics.com/license).
+
+For more details, refer to our guide on [Ultralytics Licensing](https://ultralytics.com/license).

@@ -176,3 +176,106 @@ Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integr
 Furthermore, if you're looking to dive deeper into the practical applications of YOLOv8, specifically for image segmentation tasks, this detailed guide on [fine-tuning YOLOv8 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
 Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.
+
+## FAQ
+
+### How do I integrate Comet ML with Ultralytics YOLOv8 for training?
+
+To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
+
+1. **Install the required packages**:
+
+    ```bash
+    pip install ultralytics comet_ml torch torchvision
+    ```
+
+2. **Set up your Comet API Key**:
+
+    ```bash
+    export COMET_API_KEY=<Your API Key>
+    ```
+
+3. **Initialize your Comet project in your Python code**:
+
+    ```python
+    import comet_ml
+
+    comet_ml.init(project_name="comet-example-yolov8-coco128")
+    ```
+
+4. **Train your YOLOv8 model and log metrics**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    results = model.train(
+        data="coco8.yaml", project="comet-example-yolov8-coco128", batch=32, save_period=1, save_json=True, epochs=3
+    )
+    ```
+
+For more detailed instructions, refer to the [Comet ML configuration section](#configuring-comet-ml).
+
+### What are the benefits of using Comet ML with YOLOv8?
+
+By integrating Ultralytics YOLOv8 with Comet ML, you can:
+
+- **Monitor real-time insights**: Get instant feedback on your training results, allowing for quick adjustments.
+- **Log extensive metrics**: Automatically capture essential metrics such as mAP, loss, hyperparameters, and model checkpoints.
+- **Track experiments offline**: Log your training runs locally when internet access is unavailable.
+- **Compare different training runs**: Use the interactive Comet ML dashboard to analyze and compare multiple experiments.
+
+By leveraging these features, you can optimize your machine learning workflows for better performance and reproducibility. For more information, visit the [Comet ML integration guide](../integrations/index.md).
+
+### How do I customize the logging behavior of Comet ML during YOLOv8 training?
+
+Comet ML allows for extensive customization of its logging behavior using environment variables:
+
+- **Change the number of image predictions logged**:
+
+    ```python
+    import os
+
+    os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+    ```
+
+- **Adjust batch logging interval**:
+
+    ```python
+    import os
+
+    os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
+    ```
+
+- **Disable confusion matrix logging**:
+
+    ```python
+    import os
+
+    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+    ```
+
+For more customization options, refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section.
+
+### How do I view detailed metrics and visualizations of my YOLOv8 training on Comet ML?
+
+Once your YOLOv8 model starts training, you can access a wide range of metrics and visualizations on the Comet ML dashboard. Key features include:
+
+- **Experiment Panels**: View different runs and their metrics, including segment mask loss, class loss, and mean average precision.
+- **Metrics**: Examine metrics in tabular format for detailed analysis.
+- **Interactive Confusion Matrix**: Assess classification accuracy with an interactive confusion matrix.
+- **System Metrics**: Monitor GPU and CPU utilization, memory usage, and other system metrics.
+
+For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet ML Visualizations](#understanding-your-models-performance-with-comet-ml-visualizations) section.
+
+### Can I use Comet ML for offline logging when training YOLOv8 models?
+
+Yes, you can enable offline logging in Comet ML by setting the `COMET_MODE` environment variable to "offline":
+
+```python
+import os
+
+os.environ["COMET_MODE"] = "offline"
+```
+
+This feature allows you to log your experiment data locally, which can later be uploaded to Comet ML when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.

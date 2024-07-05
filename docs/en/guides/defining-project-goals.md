@@ -108,7 +108,24 @@ If you want to use the classes the model was pre-trained on, a practical approac
 
 Each deployment option offers different benefits and challenges, and the choice depends on specific project requirements like performance, cost, and security.
 
-## FAQs
+## Connecting with the Community
+
+Connecting with other computer vision enthusiasts can be incredibly helpful for your projects by providing support, solutions, and new ideas. Here are some great ways to learn, troubleshoot, and network:
+
+### Community Support Channels
+
+- **GitHub Issues:** Head over to the YOLOv8 GitHub repository. You can use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers can assist with specific problems you encounter.
+- **Ultralytics Discord Server:** Become part of the [Ultralytics Discord server](https://ultralytics.com/discord/). Connect with fellow users and developers, seek support, exchange knowledge, and discuss ideas.
+
+### Comprehensive Guides and Documentation
+
+- **Ultralytics YOLOv8 Documentation:** Explore the [official YOLOv8 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects.
+
+## Conclusion
+
+Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like GitHub or Discord is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.
+
+## FAQ
 
 Here are some questions that might encounter while defining your computer vision project:
 
@@ -126,19 +143,3 @@ Here are some questions that might encounter while defining your computer vision
 - **Q3:** What are some common challenges in defining the problem for a computer vision project?
     - **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
 
-## Connecting with the Community
-
-Connecting with other computer vision enthusiasts can be incredibly helpful for your projects by providing support, solutions, and new ideas. Here are some great ways to learn, troubleshoot, and network:
-
-### Community Support Channels
-
-- **GitHub Issues:** Head over to the YOLOv8 GitHub repository. You can use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers can assist with specific problems you encounter.
-- **Ultralytics Discord Server:** Become part of the [Ultralytics Discord server](https://ultralytics.com/discord/). Connect with fellow users and developers, seek support, exchange knowledge, and discuss ideas.
-
-### Comprehensive Guides and Documentation
-
-- **Ultralytics YOLOv8 Documentation:** Explore the [official YOLOv8 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects.
-
-## Conclusion
-
-Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like GitHub or Discord is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.

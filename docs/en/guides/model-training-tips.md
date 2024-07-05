@@ -140,19 +140,6 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 
 For YOLOv8, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 
-## FAQs
-
-- **Q1:** Does the Size of Training Images Affect Predictions on High-Quality Images?
-
-    - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference.
-
-- **Q2:** Does 'Auto' Optimizer Switch Between during Training?
-
-    - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
-
-- **Q3:** Can Yolov8 handle various image sizes?
-    - **A3:** Yes, YOLOv8 can handle images of various sizes. During training and prediction, the model automatically resizes the images to the specified `imgsz` parameter.
-
 ## Connecting with the Community
 
 Being part of a community of computer vision enthusiasts can help you solve problems and learn faster. Here are some ways to connect, get help, and share ideas.
@@ -171,3 +158,16 @@ Using these resources will help you solve challenges and stay up-to-date with th
 ## Key Takeaways
 
 Training computer vision models involves following good practices, optimizing your strategies, and solving problems as they arise. Techniques like adjusting batch sizes, mixed precision training, and starting with pre-trained weights can make your models work better and train faster. Methods like subset training and early stopping help you save time and resources. Staying connected with the community and keeping up with new trends will help you keep improving your model training skills.
+
+## FAQ
+
+- **Q1:** Does the Size of Training Images Affect Predictions on High-Quality Images?
+
+    - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference.
+
+- **Q2:** Does 'Auto' Optimizer Switch Between during Training?
+
+    - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
+
+- **Q3:** Can Yolov8 handle various image sizes?
+    - **A3:** Yes, YOLOv8 can handle images of various sizes. During training and prediction, the model automatically resizes the images to the specified `imgsz` parameter.

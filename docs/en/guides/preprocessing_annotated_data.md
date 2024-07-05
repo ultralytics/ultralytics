@@ -126,18 +126,6 @@ For a more advanced approach to EDA, you can use the Ultralytics Explorer tool. 
   <img width="100%" src="https://github.com/AyushExel/assets/assets/15766192/1b5f3708-be3e-44c5-9ea3-adcd522dfc75" alt="Overview of Ultralytics Explorer">
 </p>
 
-## FAQs
-
-Here are some questions that might come up while you prepare your dataset:
-
-- **Q1:** How much preprocessing is too much?
-
-    - **A1:** Preprocessing is essential but should be balanced. Overdoing it can lead to loss of critical information, overfitting, increased complexity, and higher computational costs. Focus on necessary steps like resizing, normalization, and basic augmentation, adjusting based on model performance.
-
-- **Q2:** What are the common pitfalls in EDA?
-
-    - **A2:** Common pitfalls in Exploratory Data Analysis (EDA) include ignoring data quality issues like missing values and outliers, confirmation bias, overfitting visualizations, neglecting data distribution, and overlooking correlations. A systematic approach helps gain accurate and valuable insights.
-
 ## Reach Out and Connect
 
 Having discussions about your project with other computer vision enthusiasts can give you new ideas from different perspectives. Here are some great ways to learn, troubleshoot, and network:
@@ -154,3 +142,15 @@ Having discussions about your project with other computer vision enthusiasts can
 ## Your Dataset Is Ready!
 
 Properly resized, normalized, and augmented data improves model performance by reducing noise and improving generalization. By following the preprocessing techniques and best practices outlined in this guide, you can create a solid dataset. With your preprocessed dataset ready, you can confidently proceed to the next steps in your project.
+
+## FAQ
+
+Here are some questions that might come up while you prepare your dataset:
+
+- **Q1:** How much preprocessing is too much?
+
+    - **A1:** Preprocessing is essential but should be balanced. Overdoing it can lead to loss of critical information, overfitting, increased complexity, and higher computational costs. Focus on necessary steps like resizing, normalization, and basic augmentation, adjusting based on model performance.
+
+- **Q2:** What are the common pitfalls in EDA?
+
+    - **A2:** Common pitfalls in Exploratory Data Analysis (EDA) include ignoring data quality issues like missing values and outliers, confirmation bias, overfitting visualizations, neglecting data distribution, and overlooking correlations. A systematic approach helps gain accurate and valuable insights.

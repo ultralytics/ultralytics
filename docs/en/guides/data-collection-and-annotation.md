@@ -130,7 +130,24 @@ If you are working with multiple people, consistency between different annotator
 
 While reviewing, if you find errors, correct them and update the guidelines to avoid future mistakes. Provide feedback to annotators and offer regular training to help reduce errors. Having a strong process for handling errors keeps your dataset accurate and reliable.
 
-## FAQs
+## Share Your Thoughts with the Community
+
+Bouncing your ideas and queries off other computer vision enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
+
+### Where to Find Help and Support
+
+- **GitHub Issues:** Visit the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+
+### Official Documentation
+
+- **Ultralytics YOLOv8 Documentation:** Refer to the [official YOLOv8 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
+
+## Conclusion
+
+By following the best practices for collecting and annotating data, avoiding bias, and using the right tools and techniques, you can significantly improve your model's performance. Engaging with the community and using available resources will keep you informed and help you troubleshoot issues effectively. Remember, quality data is the foundation of a successful project, and the right strategies will help you build robust and reliable models.
+
+## FAQ
 
 Here are some questions that might encounter while collecting and annotating data:
 
@@ -149,20 +166,3 @@ Here are some questions that might encounter while collecting and annotating dat
 - **Q3:** How many images do I need to collect for [YOLOv8 custom training](../modes/train.md)?
 
     - **A3:** For transfer learning and object detection, a good general rule of thumb is to have a minimum of a few hundred annotated objects per class. However, when training a model to detect just one class, it is advisable to start with at least 100 annotated images and train for around 100 epochs. For complex tasks, you may need thousands of images per class to achieve reliable model performance.
-
-## Share Your Thoughts with the Community
-
-Bouncing your ideas and queries off other computer vision enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
-
-### Where to Find Help and Support
-
-- **GitHub Issues:** Visit the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
-
-### Official Documentation
-
-- **Ultralytics YOLOv8 Documentation:** Refer to the [official YOLOv8 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
-
-## Conclusion
-
-By following the best practices for collecting and annotating data, avoiding bias, and using the right tools and techniques, you can significantly improve your model's performance. Engaging with the community and using available resources will keep you informed and help you troubleshoot issues effectively. Remember, quality data is the foundation of a successful project, and the right strategies will help you build robust and reliable models.

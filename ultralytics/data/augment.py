@@ -1210,7 +1210,7 @@ def classify_transforms(
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if isinstance(size, (tuple, list)):
-        assert len(size) == 2, f"Provided iterable should contains height and width, but got size of {len(size)}"
+        assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)
     else:
         scale_size = math.floor(size / crop_fraction)

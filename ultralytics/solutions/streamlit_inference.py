@@ -12,7 +12,6 @@ def inference():
     import streamlit as st
 
     from ultralytics import YOLO
-    from ultralytics.utils import ROOT
 
     # Hide main menu style
     menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
@@ -85,7 +84,7 @@ def inference():
         ),
     )
     model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
-    class_names = list(model.names.values())    # Convert dictionary to list of class names
+    class_names = list(model.names.values())  # Convert dictionary to list of class names
 
     # Multiselect box with class names and get indices of selected classes
     selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3])

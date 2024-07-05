@@ -21,7 +21,7 @@ main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:
 
 # Subtitle of streamlit application
 sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
-                font-family: 'Archivo', sans-serif; margin-top:-15px;">
+                font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
                 Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
                 </div>"""
 

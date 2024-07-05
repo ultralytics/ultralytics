@@ -41,12 +41,12 @@ class RGBToGrayscaleSegmentation(object):
 
 
 def test_func(*args):  # noqa
-    """Test function callback."""
+    """Test function callback for evaluating YOLO model performance metrics."""
     print("callback test passed")
 
 
 def test_export():
-    """Test model exporting functionality."""
+    """Tests the model exporting function by adding a callback and asserting its execution."""
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
     assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
@@ -55,7 +55,7 @@ def test_export():
 
 
 def test_detect():
-    """Test object detection functionality."""
+    """Test YOLO object detection training, validation, and prediction functionality."""
     overrides = {"data": "coco8.yaml", "model": "yolov8n.yaml", "imgsz": 32, "epochs": 1, "save": False}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8.yaml"
@@ -94,7 +94,7 @@ def test_detect():
 
 
 def test_segment():
-    """Test image segmentation functionality."""
+    """Tests image segmentation training, validation, and prediction pipelines using YOLO models."""
     overrides = {"data": "coco8-seg.yaml", "model": "yolov8n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
@@ -133,7 +133,7 @@ def test_segment():
 
 
 def test_classify():
-    """Test image classification functionality."""
+    """Test image classification including training, validation, and prediction phases."""
     overrides = {"data": "imagenet10", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "save": False}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "imagenet10"

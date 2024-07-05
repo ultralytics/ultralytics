@@ -8,6 +8,17 @@ keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning
 
 The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is a database of Zalando's article images—consisting of a training set of 60,000 examples and a test set of 10,000 examples. Each example is a 28x28 grayscale image, associated with a label from 10 classes. Fashion-MNIST is intended to serve as a direct drop-in replacement for the original MNIST dataset for benchmarking machine learning algorithms.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eX5ad6udQ9Q"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to do Image Classification on Fashion MNIST Dataset using Ultralytics YOLOv8
+</p>
+
 ## Key Features
 
 - Fashion-MNIST contains 60,000 training images and 10,000 testing images of Zalando's article images.
@@ -77,3 +88,52 @@ The example showcases the variety and complexity of the images in the Fashion-MN
 ## Acknowledgments
 
 If you use the Fashion-MNIST dataset in your research or development work, please acknowledge the dataset by linking to the [GitHub repository](https://github.com/zalandoresearch/fashion-mnist). This dataset was made available by Zalando Research.
+
+## FAQ
+
+### What is the Fashion-MNIST dataset and how is it different from MNIST?
+
+The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is a collection of 70,000 grayscale images of Zalando's article images, intended as a modern replacement for the original MNIST dataset. It serves as a benchmark for machine learning models in the context of image classification tasks. Unlike MNIST, which contains handwritten digits, Fashion-MNIST consists of 28x28-pixel images categorized into 10 fashion-related classes, such as T-shirt/top, trouser, and ankle boot.
+
+### How can I train a YOLO model on the Fashion-MNIST dataset?
+
+To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use both Python and CLI commands. Here's a quick example to get you started:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolov8n-cls.pt")
+
+        # Train the model on Fashion-MNIST
+        results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        yolo detect train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        ```
+
+For more detailed training parameters, refer to the [Training page](../../modes/train.md).
+
+### Why should I use the Fashion-MNIST dataset for benchmarking my machine learning models?
+
+The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is widely recognized in the deep learning community as a robust alternative to MNIST. It offers a more complex and varied set of images, making it an excellent choice for benchmarking image classification models. The dataset's structure, comprising 60,000 training images and 10,000 testing images, each labeled with one of 10 classes, makes it ideal for evaluating the performance of different machine learning algorithms in a more challenging context.
+
+### Can I use Ultralytics YOLO for image classification tasks like Fashion-MNIST?
+
+Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLOv8, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
+
+### What are the key features and structure of the Fashion-MNIST dataset?
+
+The Fashion-MNIST dataset is divided into two main subsets: 60,000 training images and 10,000 testing images. Each image is a 28x28-pixel grayscale picture representing one of 10 fashion-related classes. The simplicity and well-structured format make it ideal for training and evaluating models in machine learning and computer vision tasks. For more details on the dataset structure, see the [Dataset Structure section](#dataset-structure).
+
+### How can I acknowledge the use of the Fashion-MNIST dataset in my research?
+
+If you utilize the Fashion-MNIST dataset in your research or development projects, it's important to acknowledge it by linking to the [GitHub repository](https://github.com/zalandoresearch/fashion-mnist). This helps in attributing the data to Zalando Research, who made the dataset available for public use.

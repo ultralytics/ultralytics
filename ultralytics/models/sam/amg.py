@@ -133,7 +133,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
     """Remove small disconnected regions or holes in a mask, returning the mask and a modification indicator."""
     import cv2  # type: ignore
 
-    assert mode in {"holes", "islands"}
+    assert mode in {"holes", "islands"}, f"Provided mode {mode} is invalid"
     correct_holes = mode == "holes"
     working_mask = (correct_holes ^ mask).astype(np.uint8)
     n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)

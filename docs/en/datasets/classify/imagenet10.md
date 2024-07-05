@@ -75,3 +75,53 @@ If you use the ImageNet10 dataset in your research or development work, please c
         ```
 
 We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset. The ImageNet10 dataset, while a compact subset, is a valuable resource for quick testing and debugging in the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
+
+## FAQ
+
+### What is the ImageNet10 dataset and how is it different from the full ImageNet dataset?
+
+The [ImageNet10](https://github.com/ultralytics/yolov5/releases/download/v1.0/imagenet10.zip) dataset is a compact subset of the original [ImageNet](https://www.image-net.org/) database, created by Ultralytics for rapid CI tests, sanity checks, and training pipeline evaluations. ImageNet10 comprises only 20 images, representing the first image in the training and validation sets of the first 10 classes in ImageNet. Despite its small size, it maintains the structure and diversity of the full dataset, making it ideal for quick testing but not for benchmarking models.
+
+### How can I use the ImageNet10 dataset to test my deep learning model?
+
+To test your deep learning model on the ImageNet10 dataset with an image size of 224x224, use the following code snippets.
+
+!!! Example "Test Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="imagenet10", epochs=5, imgsz=224)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
+        ```
+
+Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.
+
+### Why should I use the ImageNet10 dataset for CI tests and sanity checks?
+
+The ImageNet10 dataset is designed specifically for CI tests, sanity checks, and quick evaluations in deep learning pipelines. Its small size allows for rapid iteration and testing, making it perfect for continuous integration processes where speed is crucial. By maintaining the structural complexity and diversity of the original ImageNet dataset, ImageNet10 provides a reliable indication of a model's basic functionality and correctness without the overhead of processing a large dataset.
+
+### What are the main features of the ImageNet10 dataset?
+
+The ImageNet10 dataset has several key features:
+
+- **Compact Size**: With only 20 images, it allows for rapid testing and debugging.
+- **Structured Organization**: Follows the WordNet hierarchy, similar to the full ImageNet dataset.
+- **CI and Sanity Checks**: Ideally suited for continuous integration tests and sanity checks.
+- **Not for Benchmarking**: While useful for quick model evaluations, it is not designed for extensive benchmarking.
+
+### Where can I download the ImageNet10 dataset?
+
+You can download the ImageNet10 dataset from the [Ultralytics GitHub releases page](https://github.com/ultralytics/yolov5/releases/download/v1.0/imagenet10.zip). For more detailed information about its structure and applications, refer to the [ImageNet10 Dataset](imagenet10.md) page.

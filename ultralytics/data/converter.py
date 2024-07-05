@@ -329,8 +329,7 @@ def convert_coco(
 
         if lvis:
             with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
-                for l in image_txt:
-                    f.write(f"{l}\n")
+                f.writelines(f"{line}\n" for line in image_txt)
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
@@ -534,25 +533,25 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
-    for l in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
-        h, w = l["shape"]
-        boxes = l["bboxes"]
+    for label in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+        h, w = label["shape"]
+        boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(l["im_file"])
+        im = cv2.imread(label["im_file"])
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False)
-        l["segments"] = sam_results[0].masks.xyn
+        label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)
-    for l in dataset.labels:
+    for label in dataset.labels:
         texts = []
-        lb_name = Path(l["im_file"]).with_suffix(".txt").name
+        lb_name = Path(label["im_file"]).with_suffix(".txt").name
         txt_file = save_dir / lb_name
-        cls = l["cls"]
-        for i, s in enumerate(l["segments"]):
+        cls = label["cls"]
+        for i, s in enumerate(label["segments"]):
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
         if texts:

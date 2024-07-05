@@ -64,8 +64,9 @@ def box_iou(box1, box2, eps=1e-7):
         (torch.Tensor): An NxM tensor containing the pairwise IoU values for every element in box1 and box2.
     """
 
+    # NOTE: Need .float() to get accurate iou values
     # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
-    (a1, a2), (b1, b2) = box1.unsqueeze(1).chunk(2, 2), box2.unsqueeze(0).chunk(2, 2)
+    (a1, a2), (b1, b2) = box1.float().unsqueeze(1).chunk(2, 2), box2.float().unsqueeze(0).chunk(2, 2)
     inter = (torch.min(a2, b2) - torch.max(a1, b1)).clamp_(0).prod(2)
 
     # IoU = inter / (area1 + area2 - inter)
@@ -1171,8 +1172,6 @@ class ClassifyMetrics(SimpleClass):
         top1 (float): The top-1 accuracy.
         top5 (float): The top-5 accuracy.
         speed (Dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
-
-    Properties:
         fitness (float): The fitness of the model, which is equal to top-5 accuracy.
         results_dict (Dict[str, Union[float, str]]): A dictionary containing the classification metrics and fitness.
         keys (List[str]): A list of keys for the results_dict.
@@ -1223,6 +1222,7 @@ class ClassifyMetrics(SimpleClass):
 
 class OBBMetrics(SimpleClass):
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
+        """Initialize an OBBMetrics instance with directory, plotting, callback, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot

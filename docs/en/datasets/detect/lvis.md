@@ -29,7 +29,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 - The dataset comprises 1203 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as umbrellas, handbags, and sports equipment.
 - Annotations include object bounding boxes, segmentation masks, and captions for each image.
 - LVIS provides standardized evaluation metrics like mean Average Precision (mAP) for object detection, and mean Average Recall (mAR) for segmentation tasks, making it suitable for comparing model performance.
-- LVIS uses the exactly the same images as [COCO](./coco.md) dataset, but with different splits and different annotations.
+- LVIS uses exactly the same images as [COCO](./coco.md) dataset, but with different splits and different annotations.
 
 ## Dataset Structure
 
@@ -107,3 +107,53 @@ If you use the LVIS dataset in your research or development work, please cite th
         ```
 
 We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).
+
+## FAQ
+
+### What is the LVIS dataset, and how is it used in computer vision?
+
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale dataset with fine-grained vocabulary-level annotations developed by Facebook AI Research (FAIR). It is primarily used for object detection and instance segmentation, featuring over 1203 object categories and 2 million instance annotations. Researchers and practitioners use it to train and benchmark models like Ultralytics YOLO for advanced computer vision tasks. The dataset's extensive size and diversity make it an essential resource for pushing the boundaries of model performance in detection and segmentation.
+
+### How can I train a YOLOv8n model using the LVIS dataset?
+
+To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size of 640, follow the example below. This process utilizes Ultralytics' framework, which offers comprehensive training features.
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=lvis.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For detailed training configurations, refer to the [Training](../../modes/train.md) documentation.
+
+### How does the LVIS dataset differ from the COCO dataset?
+
+The images in the LVIS dataset are the same as those in the [COCO dataset](./coco.md), but the two differ in terms of splitting and annotations. LVIS provides a larger and more detailed vocabulary with 1203 object categories compared to COCO's 80 categories. Additionally, LVIS focuses on annotation completeness and diversity, aiming to push the limits of object detection and instance segmentation models by offering more nuanced and comprehensive data.
+
+### Why should I use Ultralytics YOLO for training on the LVIS dataset?
+
+Ultralytics YOLO models, including the latest YOLOv8, are optimized for real-time object detection with state-of-the-art accuracy and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Moreover, Ultralytics offers seamless integration with various [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
+
+### Can I see some sample annotations from the LVIS dataset?
+
+Yes, the LVIS dataset includes a variety of images with diverse object categories and complex scenes. Here is an example of a sample image along with its annotations:
+
+![LVIS Dataset sample image](https://github.com/ultralytics/ultralytics/assets/26833433/38cc033a-68b0-47f3-a5b8-4ef554362e40)
+
+This mosaiced image demonstrates a training batch composed of multiple dataset images combined into one. Mosaicing increases the variety of objects and scenes within each training batch, enhancing the model's ability to generalize across different contexts. For more details on the LVIS dataset, explore the [LVIS dataset documentation](#key-features).

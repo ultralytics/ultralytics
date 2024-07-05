@@ -102,8 +102,8 @@ For more details on the practical setup, refer to the [Streamlit Application Cod
 Using Ultralytics YOLOv8 with Streamlit for real-time object detection offers several advantages:
 
 - **Seamless Real-Time Detection**: Achieve high-accuracy, real-time object detection directly from webcam feeds.
-- **User-Friendly Interface**: Streamlit’s intuitive interface allows easy use and deployment without extensive technical knowledge.
-- **Resource Efficiency**: YOLOv8’s optimized algorithms ensure high-speed processing with minimal computational resources.
+- **User-Friendly Interface**: Streamlit's intuitive interface allows easy use and deployment without extensive technical knowledge.
+- **Resource Efficiency**: YOLOv8's optimized algorithms ensure high-speed processing with minimal computational resources.
 
 Discover more about these advantages [here](#advantages-of-live-inference).
 

@@ -60,3 +60,44 @@ We welcome contributions from the community! If you've mastered a particular asp
 To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open up a Pull Request (PR) 🛠️. We look forward to your contributions!
 
 Let's work together to make the Ultralytics YOLO ecosystem more robust and versatile 🙏!
+
+## FAQ
+
+### How do I train a custom object detection model using Ultralytics YOLO?
+
+Training a custom object detection model with Ultralytics YOLO is straightforward. Start by preparing your dataset in the correct format and installing the Ultralytics package. Use the following code to initiate training:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8s.pt")  # Load a pre-trained YOLO model
+        model.train(data="path/to/dataset.yaml", epochs=50)  # Train on custom dataset
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo task=detect mode=train model=yolov8s.pt data=path/to/dataset.yaml epochs=50
+        ```
+
+For detailed dataset formatting and additional options, refer to our [Tips for Model Training](model-training-tips.md) guide.
+
+### What performance metrics should I use to evaluate my YOLO model?
+
+Evaluating your YOLO model performance is crucial to understanding its efficacy. Key metrics include Mean Average Precision (mAP), Intersection over Union (IoU), and F1 score. These metrics help assess the accuracy and precision of object detection tasks. You can learn more about these metrics and how to improve your model in our [YOLO Performance Metrics](yolo-performance-metrics.md) guide.
+
+### Why should I use Ultralytics HUB for my computer vision projects?
+
+Ultralytics HUB is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics HUB](https://docs.ultralytics.com/hub/) quickstart guide.
+
+### What are the common issues faced during YOLO model training, and how can I resolve them?
+
+Common issues during YOLO model training include data formatting errors, model architecture mismatches, and insufficient training data. To address these, ensure your dataset is correctly formatted, check for compatible model versions, and augment your training data. For a comprehensive list of solutions, refer to our [YOLO Common Issues](yolo-common-issues.md) guide.
+
+### How can I deploy my YOLO model for real-time object detection on edge devices?
+
+Deploying YOLO models on edge devices like NVIDIA Jetson and Raspberry Pi requires converting the model to a compatible format such as TensorRT or TFLite. Follow our step-by-step guides for [NVIDIA Jetson](nvidia-jetson.md) and [Raspberry Pi](raspberry-pi.md) deployments to get started with real-time object detection on edge hardware. These guides will walk you through installation, configuration, and performance optimization.

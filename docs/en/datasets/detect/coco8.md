@@ -88,3 +88,48 @@ If you use the COCO dataset in your research or development work, please cite th
         ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+
+## FAQ
+
+### What is the Ultralytics COCO8 dataset used for?
+
+The Ultralytics COCO8 dataset is a compact yet versatile object detection dataset consisting of the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It is designed for testing and debugging object detection models and experimentation with new detection approaches. Despite its small size, COCO8 offers enough diversity to act as a sanity check for your training pipelines before deploying larger datasets. For more details, view the [COCO8 dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
+
+### How do I train a YOLOv8 model using the COCO8 dataset?
+
+To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or CLI commands. Here's how you can start:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+
+### Why should I use Ultralytics HUB for managing my COCO8 training?
+
+Ultralytics HUB is an all-in-one web tool designed to simplify the training and deployment of YOLO models, including the Ultralytics YOLOv8 models on the COCO8 dataset. It offers cloud training, real-time tracking, and seamless dataset management. HUB allows you to start training with a single click and avoids the complexities of manual setups. Discover more about [Ultralytics HUB](https://hub.ultralytics.com) and its benefits.
+
+### What are the benefits of using mosaic augmentation in training with the COCO8 dataset?
+
+Mosaic augmentation, demonstrated in the COCO8 dataset, combines multiple images into a single image during training. This technique increases the variety of objects and scenes in each training batch, improving the model's ability to generalize across different object sizes, aspect ratios, and contexts. This results in a more robust object detection model. For more details, refer to the [training guide](#usage).
+
+### How can I validate my YOLOv8 model trained on the COCO8 dataset?
+
+Validation of your YOLOv8 model trained on the COCO8 dataset can be performed using the model's validation commands. You can invoke the validation mode via CLI or Python script to evaluate the model's performance using precise metrics. For detailed instructions, visit the [Validation](../../modes/val.md) page.

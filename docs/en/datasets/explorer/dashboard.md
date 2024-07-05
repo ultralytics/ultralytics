@@ -34,7 +34,7 @@ pip install ultralytics[explorer]
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
-## Semantic Search / Vector Similarity Search
+## Vector Semantic Similarity Search
 
 Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
@@ -71,3 +71,52 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 </p>
 
 This is a Demo build using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).
+
+## FAQ
+
+### What is Ultralytics Explorer GUI and how do I install it?
+
+Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by Large Language Models (LLMs). 
+
+To install the Explorer GUI, you can use pip:
+
+```bash
+pip install ultralytics[explorer]
+```
+
+Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo settings openai_api_key="..."`.
+
+### How does the semantic search feature in Ultralytics Explorer GUI work?
+
+The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and anomaly detection.
+
+Learn more about semantic search and other features by visiting the [Feature Overview](#vector-semantic-similarity-search) section.
+
+### Can I use natural language to filter datasets in Ultralytics Explorer GUI?
+
+Yes, with the Ask AI feature powered by large language models (LLMs), you can filter your datasets using natural language queries. You don't need to be proficient in SQL. For instance, you can ask "Show me 100 images with exactly one person and 2 dogs. There can be other objects too," and the AI will generate the appropriate query under the hood to deliver the desired results.
+
+See an example of a natural language query [here](#ask-ai).
+
+### How do I run SQL queries on datasets using Ultralytics Explorer GUI?
+
+Ultralytics Explorer GUI allows you to run SQL queries directly on your dataset to filter and manage data efficiently. To run a query, navigate to the SQL query section in the GUI and write your query. For example, to show images with at least one person and one dog, you could use:
+
+```sql
+WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
+```
+
+You can also provide only the WHERE clause, making the querying process more flexible. 
+
+For more details, refer to the [SQL Queries Section](#run-sql-queries-on-your-cv-datasets).
+
+### What are the benefits of using Ultralytics Explorer GUI for data exploration?
+
+Ultralytics Explorer GUI enhances data exploration with features like semantic search, SQL querying, and natural language interactions through the Ask AI feature. These capabilities allow users to:
+- Efficiently find visually similar images.
+- Filter datasets using complex SQL queries.
+- Utilize AI to perform natural language searches, eliminating the need for advanced SQL expertise.
+
+These features make it a versatile tool for developers, researchers, and data scientists looking to gain deeper insights into their datasets.
+
+Explore more about these features in the [Explorer GUI Documentation](#explorer-gui).

@@ -107,53 +107,56 @@ The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.055
 
 ## FAQ
 
-### What is Meituan YOLOv6 and how does it differ from other YOLO models?
+### What is Meituan YOLOv6 and what makes it unique?
 
-Meituan YOLOv6 is a highly advanced object detection model that balances speed and accuracy, making it ideal for real-time applications. This model features unique enhancements such as the Bidirectional Concatenation (BiC) module, Anchor-Aided Training (AAT) strategy, and an improved backbone and neck design, providing state-of-the-art performance on the COCO dataset. Unlike prior YOLO models, YOLOv6 incorporates these innovative strategies to enhance both inference speed and detection accuracy.
+Meituan YOLOv6 is a state-of-the-art object detector that balances speed and accuracy, ideal for real-time applications. It features notable architectural enhancements like the Bi-directional Concatenation (BiC) module and an Anchor-Aided Training (AAT) strategy. These innovations provide substantial performance gains with minimal speed degradation, making YOLOv6 a competitive choice for object detection tasks.
 
-### How do I use the YOLOv6 model in a Python script?
+### How does the Bi-directional Concatenation (BiC) Module in YOLOv6 improve performance?
 
-Using the YOLOv6 model in a Python script is straightforward. Here is a sample code snippet to get you started:
+The Bi-directional Concatenation (BiC) module in YOLOv6 enhances localization signals in the detector's neck, delivering performance improvements with negligible speed impact. This module effectively combines different feature maps, increasing the model's ability to detect objects accurately. For more details on YOLOv6's features, refer to the [Key Features](#key-features) section.
 
-```python
-from ultralytics import YOLO
+### How can I train a YOLOv6 model using Ultralytics?
 
-# Build a YOLOv6n model from scratch
-model = YOLO("yolov6n.yaml")
+You can train a YOLOv6 model using Ultralytics with simple Python or CLI commands. For instance:
 
-# Display model information (optional)
-model.info()
+!!! Example
 
-# Train the model on the COCO8 example dataset for 100 epochs
-results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+    === "Python"
 
-# Run inference with the YOLOv6n model on the 'bus.jpg' image
-results = model("path/to/bus.jpg")
-```
+        ```python
+        from ultralytics import YOLO
 
-For more detailed examples and documentation, visit the [Train](../modes/train.md) and [Predict](../modes/predict.md) pages.
+        # Build a YOLOv6n model from scratch
+        model = YOLO("yolov6n.yaml")
 
-### What are the performance metrics for different scales of YOLOv6 models?
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
 
-YOLOv6 offers pretrained models in various scales with the following performance metrics on the COCO val2017 dataset:
+    === "CLI"
 
-- **YOLOv6-N**: 37.5% AP at 1187 FPS using an NVIDIA Tesla T4 GPU
-- **YOLOv6-S**: 45.0% AP at 484 FPS
-- **YOLOv6-M**: 50.0% AP at 226 FPS
-- **YOLOv6-L**: 52.8% AP at 116 FPS
-- **YOLOv6-L6**: State-of-the-art accuracy for real-time
+        ```bash
+        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+        ```
 
-These metrics make YOLOv6 a versatile choice for both high-accuracy and high-speed applications.
+For more information, visit the [Train](../modes/train.md) page.
 
-### What are the unique features of YOLOv6 that improve its performance?
+### What are the different versions of YOLOv6 and their performance metrics?
 
-YOLOv6 introduces several key features that enhance its performance:
+YOLOv6 offers multiple versions, each optimized for different performance requirements:
 
-- **Bidirectional Concatenation (BiC) Module**: Improves localization signals and offers performance gains with minimal speed degradation.
-- **Anchor-Aided Training (AAT) Strategy**: Combines the benefits of anchor-based and anchor-free methods for better efficiency without sacrificing inference speed.
-- **Enhanced Backbone and Neck Design**: Adds additional stages to the backbone and neck, achieving state-of-the-art results on high-resolution inputs.
-- **Self-Distillation Strategy**: Boosts smaller model performance by refining the auxiliary regression branch during training and removing it during inference to maintain speed.
+- YOLOv6-N: 37.5% AP at 1187 FPS
+- YOLOv6-S: 45.0% AP at 484 FPS
+- YOLOv6-M: 50.0% AP at 226 FPS
+- YOLOv6-L: 52.8% AP at 116 FPS
+- YOLOv6-L6: State-of-the-art accuracy in real-time scenarios
 
-### How can YOLOv6 be used for mobile and embedded applications?
+These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
 
-YOLOv6 supports quantized models for different precisions and models optimized for mobile platforms, making it suitable for applications requiring low-latency and energy-efficient computations. For deployment on mobile and edge devices, you can explore conversion to formats like TFLite and ONNX, as detailed in the [Export](../modes/export.md) documentation. Quantized models ensure high performance even on resource-constrained devices, enabling real-time object detection in mobile and IoT applications.
+### How does the Anchor-Aided Training (AAT) strategy benefit YOLOv6?
+
+Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anchor-free approaches, enhancing the model's detection capabilities without compromising inference efficiency. This strategy leverages anchors during training to improve bounding box predictions, making YOLOv6 effective in diverse object detection tasks.
+
+### Which operational modes are supported by YOLOv6 models in Ultralytics?
+
+YOLOv6 supports various operational modes including Inference, Validation, Training, and Export. This flexibility allows users to fully exploit the model's capabilities in different scenarios. Check out the [Supported Tasks and Modes](#supported-tasks-and-modes) section for a detailed overview of each mode.

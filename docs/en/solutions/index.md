@@ -36,3 +36,25 @@ We welcome contributions from the community! If you've mastered a particular asp
 To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open up a Pull Request (PR) 🛠️. We look forward to your contributions!
 
 Let's work together to make the Ultralytics YOLO ecosystem more robust and versatile 🙏!
+
+## FAQ
+
+### How can I use Ultralytics YOLO for real-time object counting?
+
+Ultralytics YOLOv8 can be used for real-time object counting by leveraging its advanced object detection capabilities. You can follow our detailed guide on [Object Counting](../guides/object-counting.md) to set up YOLOv8 for live video stream analysis. Simply install YOLOv8, load your model, and process video frames to count objects dynamically.
+
+### What are the benefits of using Ultralytics YOLO for security systems?
+
+Ultralytics YOLOv8 enhances security systems by offering real-time object detection and alert mechanisms. By employing YOLOv8, you can create a security alarm system that triggers alerts when new objects are detected in the surveillance area. Learn how to set up a [Security Alarm System](../guides/security-alarm-system.md) with YOLOv8 for robust security monitoring.
+
+### How can Ultralytics YOLO improve queue management systems?
+
+Ultralytics YOLOv8 can significantly improve queue management systems by accurately counting and tracking people in queues, thus helping to reduce wait times and optimize service efficiency. Follow our detailed guide on [Queue Management](../guides/queue-management.md) to learn how to implement YOLOv8 for effective queue monitoring and analysis.
+
+### Can Ultralytics YOLO be used for workout monitoring?
+
+Yes, Ultralytics YOLOv8 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](../guides/workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLOv8.
+
+### How does Ultralytics YOLO help in creating heatmaps for data visualization?
+
+Ultralytics YOLOv8 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLOv8 for comprehensive data analysis and visualization.

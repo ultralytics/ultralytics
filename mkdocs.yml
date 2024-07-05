@@ -162,7 +162,7 @@ nav:
           - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - NEW 🚀 Live Inference: solutions/streamlit-live-inference.md # for promotion of new pages
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -314,7 +314,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - NEW 🚀 Live Inference: solutions/streamlit-live-inference.md
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md

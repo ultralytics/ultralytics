@@ -14,11 +14,11 @@ def inference():
     # Hide main menu style
     menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
 
-    # Main title of streamlit application
-    main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
-                             font-family: 'Archivo', sans-serif; margin-top:-50px;">
-                    Ultralytics YOLOv8 Streamlit Application
-                    </h1></div>"""
+# Main title of streamlit application
+main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
+                         font-family: 'Archivo', sans-serif; margin-top:-50px;margin-bottom:20px;">
+                Ultralytics YOLOv8 Streamlit Application
+                </h1></div>"""
 
     # Subtitle of streamlit application
     sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
@@ -26,6 +26,91 @@ def inference():
                     Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
                     </div>"""
 
+classes = [
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "airplane",
+    "bus",
+    "train",
+    "truck",
+    "boat",
+    "traffic light",
+    "fire hydrant",
+    "stop sign",
+    "parking meter",
+    "bench",
+    "bird",
+    "cat",
+    "dog",
+    "horse",
+    "sheep",
+    "cow",
+    "elephant",
+    "bear",
+    "zebra",
+    "giraffe",
+    "backpack",
+    "umbrella",
+    "handbag",
+    "tie",
+    "suitcase",
+    "frisbee",
+    "skis",
+    "snowboard",
+    "sports ball",
+    "kite",
+    "baseball bat",
+    "baseball glove",
+    "skateboard",
+    "surfboard",
+    "tennis racket",
+    "bottle",
+    "wine glass",
+    "cup",
+    "fork",
+    "knife",
+    "spoon",
+    "bowl",
+    "banana",
+    "apple",
+    "sandwich",
+    "orange",
+    "broccoli",
+    "carrot",
+    "hot dog",
+    "pizza",
+    "donut",
+    "cake",
+    "chair",
+    "couch",
+    "potted plant",
+    "bed",
+    "dining table",
+    "toilet",
+    "tv",
+    "laptop",
+    "mouse",
+    "remote",
+    "keyboard",
+    "cell phone",
+    "microwave",
+    "oven",
+    "toaster",
+    "sink",
+    "refrigerator",
+    "book",
+    "clock",
+    "vase",
+    "scissors",
+    "teddy bear",
+    "hair drier",
+    "toothbrush",
+]
+
+
+def inference():
     # Set html page configuration
     st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
 
@@ -81,6 +166,13 @@ def inference():
             "YOLOv8x-Pose",
         ),
     )
+    # Select classes
+    selected_classes = st.sidebar.multiselect("Classes", classes)
+    selected_ind = [classes.index(option) for option in selected_classes]
+
+    if not isinstance(selected_ind, list):  # Ensure selected_options is a list
+        selected_ind = list(selected_ind)
+
     conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
     nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
 
@@ -104,7 +196,7 @@ def inference():
                 break
 
             # Store model predictions
-            results = model(frame, conf=float(conf_thres), iou=float(nms_thres))
+            results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
             annotated_frame = results[0].plot()  # Add annotations on frame
 
             # display frame

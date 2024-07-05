@@ -686,7 +686,7 @@ class RandomFlip:
             flip_idx (array-like, optional): Index mapping for flipping keypoints, if any.
         """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
-        assert 0 <= p <= 1.0
+        assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
 
         self.p = p
         self.direction = direction
@@ -1210,7 +1210,7 @@ def classify_transforms(
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if isinstance(size, (tuple, list)):
-        assert len(size) == 2
+        assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)
     else:
         scale_size = math.floor(size / crop_fraction)
@@ -1288,7 +1288,7 @@ def classify_augmentations(
     secondary_tfl = []
     disable_color_jitter = False
     if auto_augment:
-        assert isinstance(auto_augment, str)
+        assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"
         # color jitter is typically disabled if AA/RA on,
         # this allows override without breaking old hparm cfgs
         disable_color_jitter = not force_color_jitter

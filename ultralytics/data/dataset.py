@@ -473,12 +473,8 @@ class ClassificationDataset:
 
         with contextlib.suppress(FileNotFoundError, AssertionError, AttributeError):
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
-            assert (
-                cache["version"] == DATASET_CACHE_VERSION
-            ), "Dataset cache version mismatch"  # matches current version
-            assert cache["hash"] == get_hash(
-                [x[0] for x in self.samples]
-            ), "Existing dataset cache can't be use"  # identical hash
+            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
+            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
             nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"

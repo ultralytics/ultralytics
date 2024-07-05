@@ -120,3 +120,74 @@ In this guide, we focused on how to export to TFLite format. By converting your 
 For further details on usage, visit the [TFLite official documentation](https://www.tensorflow.org/lite/guide).
 
 Also, if you're curious about other Ultralytics YOLOv8 integrations, make sure to check out our [integration guide page](../integrations/index.md). You'll find tons of helpful info and insights waiting for you there.
+
+## FAQ
+
+### How do I export a YOLOv8 model to TFLite format?
+
+To export a YOLOv8 model to TFLite format, you can use the Ultralytics library. First, install the required package using:
+
+```bash
+pip install ultralytics
+```
+
+Then, use the following code snippet to export your model:
+
+```python
+from ultralytics import YOLO
+
+# Load the YOLOv8 model
+model = YOLO("yolov8n.pt")
+
+# Export the model to TFLite format
+model.export(format="tflite")  # creates 'yolov8n_float32.tflite'
+```
+
+For CLI users, you can achieve this with:
+
+```bash
+yolo export model=yolov8n.pt format=tflite  # creates 'yolov8n_float32.tflite'
+```
+
+For more details, visit the [Ultralytics export guide](../modes/export.md).
+
+### What are the benefits of using TensorFlow Lite for YOLOv8 model deployment?
+
+TensorFlow Lite (TFLite) is an open-source deep learning framework designed for on-device inference, making it ideal for deploying YOLOv8 models on mobile, embedded, and IoT devices. Key benefits include:
+
+- **On-device optimization**: Minimize latency and enhance privacy by processing data locally.
+- **Platform compatibility**: Supports Android, iOS, embedded Linux, and MCU.
+- **Performance**: Utilizes hardware acceleration to optimize model speed and efficiency.
+
+To learn more, check out the [TFLite guide](https://www.tensorflow.org/lite/guide).
+
+### Is it possible to run YOLOv8 TFLite models on Raspberry Pi?
+
+Yes, you can run YOLOv8 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to TFLite format as explained [here](#how-do-i-export-a-yolov8-model-to-tflite-format). Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
+
+For further optimizations, you might consider using [Coral Edge TPU](https://coral.withgoogle.com/). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md).
+
+### Can I use TFLite models on microcontrollers for YOLOv8 predictions?
+
+Yes, TFLite supports deployment on microcontrollers with limited resources. TFLite's core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run basic YOLOv8 models. This makes it suitable for deployment on devices with minimal computational power and memory.
+
+To get started, visit the [TFLite Micro for Microcontrollers guide](https://www.tensorflow.org/lite/microcontrollers).
+
+### What platforms are compatible with TFLite exported YOLOv8 models?
+
+TensorFlow Lite provides extensive platform compatibility, allowing you to deploy YOLOv8 models on a wide range of devices, including:
+
+- **Android and iOS**: Native support through TFLite Android and iOS libraries.
+- **Embedded Linux**: Ideal for single-board computers such as Raspberry Pi.
+- **Microcontrollers**: Suitable for MCUs with constrained resources.
+
+For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolov8-tflite-models).
+
+### How do I troubleshoot common issues during YOLOv8 model export to TFLite?
+
+If you encounter errors while exporting YOLOv8 models to TFLite, common solutions include:
+
+- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics and TensorFlow. Refer to our [installation guide](../quickstart.md).
+- **Model support**: Verify that the specific YOLOv8 model supports TFLite export by checking [here](../modes/export.md).
+
+For additional troubleshooting tips, visit our [Common Issues guide](../guides/yolo-common-issues.md).

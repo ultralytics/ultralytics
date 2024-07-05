@@ -276,7 +276,7 @@ class BaseModel(nn.Module):
             batch (dict): Batch to compute loss on
             preds (torch.Tensor | List[torch.Tensor]): Predictions.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
         preds = self.forward(batch["img"]) if preds is None else preds

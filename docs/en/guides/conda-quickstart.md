@@ -127,3 +127,66 @@ And that's it! Your Conda installation will now use `libmamba` as the solver, wh
 ---
 
 Congratulations! You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its rich functionalities. Feel free to dive deeper into the [Ultralytics documentation](../index.md) for more advanced tutorials and examples.
+
+## FAQ
+
+### What is the process for setting up a Conda environment for Ultralytics projects?
+
+Setting up a Conda environment for Ultralytics projects is straightforward and ensures smooth package management. First, create a new Conda environment using the following command:
+
+```bash
+conda create --name ultralytics-env python=3.8 -y
+```
+
+Then, activate the new environment with:
+
+```bash
+conda activate ultralytics-env
+```
+
+Finally, install Ultralytics from the conda-forge channel:
+
+```bash
+conda install -c conda-forge ultralytics
+```
+
+### Why should I use Conda over pip for managing dependencies in Ultralytics projects?
+
+Conda is a robust package and environment management system that offers several advantages over pip. It manages dependencies efficiently and ensures that all necessary libraries are compatible. Conda's isolated environments prevent conflicts between packages, which is crucial in data science and machine learning projects. Additionally, Conda supports binary package distribution, speeding up the installation process.
+
+### Can I use Ultralytics YOLO in a CUDA-enabled environment for faster performance?
+
+Yes, you can enhance performance by utilizing a CUDA-enabled environment. Ensure that you install `ultralytics`, `pytorch`, and `pytorch-cuda` together to avoid conflicts:
+
+```bash
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+```
+
+This setup enables GPU acceleration, crucial for intensive tasks like deep learning model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart.md).
+
+### What are the benefits of using Ultralytics Docker images with a Conda environment?
+
+Using Ultralytics Docker images ensures a consistent and reproducible environment, eliminating "it works on my machine" issues. These images include a pre-configured Conda environment, simplifying the setup process. You can pull and run the latest Ultralytics Docker image with the following commands:
+
+```bash
+sudo docker pull ultralytics/ultralytics:latest-conda
+sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest-conda
+```
+
+This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).
+
+### How can I speed up Conda package installation in my Ultralytics environment?
+
+You can speed up the package installation process by using `libmamba`, a fast dependency solver for Conda. First, install the `conda-libmamba-solver` package:
+
+```bash
+conda install conda-libmamba-solver
+```
+
+Then configure Conda to use `libmamba` as the solver:
+
+```bash
+conda config --set solver libmamba
+```
+
+This setup provides faster and more efficient package management. For more tips on optimizing your environment, read about [libmamba installation](../quickstart.md).

@@ -35,7 +35,7 @@ There are a few different aspects to think about when you are planning on using 
 When training models on large datasets, efficiently utilizing your GPU is key. Batch size is an important factor. It is the number of data samples that a machine learning model processes in a single training iteration.
 Using the maximum batch size supported by your GPU, you can fully take advantage of its capabilities and reduce the time model training takes. However, you want to avoid running out of GPU memory. If you encounter memory errors, reduce the batch size incrementally until the model trains smoothly.
 
-With respect to YOLOv8, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU's capacity. Also, setting `batch=-1` in your training script will automatically determine the batch size that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
+With respect to YOLOv8, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the batch size that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
 
 ### Subset Training
 
@@ -73,7 +73,7 @@ Mixed precision training is straightforward when working with YOLOv8. You can us
 
 ### Pre-trained Weights
 
-Using pre-trained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. Transfer learning adapts pre-trained models to new, related tasks. Fine-tuning a pre-trained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
+Using pretrained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. Transfer learning adapts pretrained models to new, related tasks. Fine-tuning a pre-trained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
 
 The `pretrained` parameter makes transfer learning easy with YOLOv8. Setting `pretrained=True` will use default pre-trained weights, or you can specify a path to a custom pre-trained model. Using pre-trained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
 
@@ -96,7 +96,7 @@ However, the ideal number of epochs can vary based on your dataset's size and pr
 
 Early stopping is a valuable technique for optimizing model training. By monitoring validation performance, you can halt training once the model stops improving. You can save computational resources and prevent overfitting.
 
-The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance doesn't improve within these epochs, training is stopped to avoid wasting time and resources.
+The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
   <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*06sTlOC3AYeZAjzUDwbaMw@2x.jpeg" alt="Early Stopping Overview">

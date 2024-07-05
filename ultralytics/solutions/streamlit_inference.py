@@ -6,6 +6,8 @@ import torch
 
 from ultralytics import YOLO
 
+ultralytics_logo = "https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394"
+
 # Hide main menu style
 menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
 
@@ -31,14 +33,14 @@ def inference():
     st.markdown(main_title_cfg, unsafe_allow_html=True)
     st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
+    # Add ultralytics logo in sidebar
     with st.sidebar:
-        st.image(
-            "https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394",
-            width=250,
-        )
+        st.image(ultralytics_logo, width=250)
 
     # Add elements to vertical setting menu
     st.sidebar.title("User Configuration")
+
+    # Add dropdown menu for model selection
     yolov8_model = st.sidebar.selectbox(
         "Model",
         (

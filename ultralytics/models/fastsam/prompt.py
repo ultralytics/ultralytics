@@ -286,7 +286,7 @@ class FastSAMPrompt:
     def box_prompt(self, bbox):
         """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
-            assert bbox[2] != 0 and bbox[3] != 0
+            assert bbox[2] != 0 and bbox[3] != 0, "Bounding box width and height should not be zero"
             masks = self.results[0].masks.data
             target_height, target_width = self.results[0].orig_shape
             h = masks.shape[1]

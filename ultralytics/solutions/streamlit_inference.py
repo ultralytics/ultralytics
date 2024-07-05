@@ -4,44 +4,113 @@ import io
 import time
 
 import cv2
-import streamlit as st
 import torch
-
-from ultralytics import YOLO
-
-ultralytics_logo = "https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1771f9e6-9b6d-4911-bcff-55da6ce23394"
-
-# Hide main menu style
-menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
-
-# Main title of streamlit application
-main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
-                         font-family: 'Archivo', sans-serif; margin-top:-50px;margin-bottom:20px;">
-                Ultralytics YOLOv8 Streamlit Application
-                </h1></div>"""
-
-# Subtitle of streamlit application
-sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
-                font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
-                Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
-                </div>"""
-
-classes = [
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
-    "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-    "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack",
-    "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball",
-    "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket",
-    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-    "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
-    "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
-    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink",
-    "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier",
-    "toothbrush"
-]
 
 
 def inference():
+    # Scope imports for faster ultralytics package load speeds
+    import streamlit as st
+
+    from ultralytics import YOLO
+
+    # Hide main menu style
+    menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
+
+    # Main title of streamlit application
+    main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
+                             font-family: 'Archivo', sans-serif; margin-top:-50px;margin-bottom:20px;">
+                    Ultralytics YOLOv8 Streamlit Application
+                    </h1></div>"""
+
+    # Subtitle of streamlit application
+    sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
+                    font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
+                    Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
+                    </div>"""
+
+    classes = [
+        "person",
+        "bicycle",
+        "car",
+        "motorcycle",
+        "airplane",
+        "bus",
+        "train",
+        "truck",
+        "boat",
+        "traffic light",
+        "fire hydrant",
+        "stop sign",
+        "parking meter",
+        "bench",
+        "bird",
+        "cat",
+        "dog",
+        "horse",
+        "sheep",
+        "cow",
+        "elephant",
+        "bear",
+        "zebra",
+        "giraffe",
+        "backpack",
+        "umbrella",
+        "handbag",
+        "tie",
+        "suitcase",
+        "frisbee",
+        "skis",
+        "snowboard",
+        "sports ball",
+        "kite",
+        "baseball bat",
+        "baseball glove",
+        "skateboard",
+        "surfboard",
+        "tennis racket",
+        "bottle",
+        "wine glass",
+        "cup",
+        "fork",
+        "knife",
+        "spoon",
+        "bowl",
+        "banana",
+        "apple",
+        "sandwich",
+        "orange",
+        "broccoli",
+        "carrot",
+        "hot dog",
+        "pizza",
+        "donut",
+        "cake",
+        "chair",
+        "couch",
+        "potted plant",
+        "bed",
+        "dining table",
+        "toilet",
+        "tv",
+        "laptop",
+        "mouse",
+        "remote",
+        "keyboard",
+        "cell phone",
+        "microwave",
+        "oven",
+        "toaster",
+        "sink",
+        "refrigerator",
+        "book",
+        "clock",
+        "vase",
+        "scissors",
+        "teddy bear",
+        "hair drier",
+        "toothbrush",
+    ]
+
     # Set html page configuration
     st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
 
@@ -52,7 +121,8 @@ def inference():
 
     # Add ultralytics logo in sidebar
     with st.sidebar:
-        st.image(ultralytics_logo, width=250)
+        logo = "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg"
+        st.image(logo, width=250)
 
     # Add elements to vertical setting menu
     st.sidebar.title("User Configuration")
@@ -60,10 +130,7 @@ def inference():
     # Add video source selection dropdown
     source = st.sidebar.selectbox(
         "Video",
-        (
-            "webcam",
-            "video",
-        ),
+        ("webcam", "video"),
     )
 
     vid_file_name = ""
@@ -100,7 +167,7 @@ def inference():
         ),
     )
     # Select classes
-    selected_classes = st.sidebar.multiselect('Classes', classes)
+    selected_classes = st.sidebar.multiselect("Classes", classes)
     selected_ind = [classes.index(option) for option in selected_classes]
 
     if not isinstance(selected_ind, list):  # Ensure selected_options is a list
@@ -116,7 +183,7 @@ def inference():
     fps_display = st.sidebar.empty()  # Placeholder for FPS display
 
     if st.sidebar.button("Start"):
-        model = YOLO(yolov8_model.lower() + ".pt")  # Load the yolov8 model
+        model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
         videocapture = cv2.VideoCapture(vid_file_name)  # Capture the video
 
         if not videocapture.isOpened():
@@ -163,7 +230,4 @@ def inference():
 
 # Main function call
 if __name__ == "__main__":
-    try:
-        inference()
-    except SystemExit:
-        pass
+    inference()

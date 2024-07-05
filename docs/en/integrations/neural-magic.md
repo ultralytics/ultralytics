@@ -160,3 +160,52 @@ This guide explored integrating Ultralytics' YOLOv8 with Neural Magic's DeepSpar
 For more detailed information and advanced usage, visit [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/). Also, check out Neural Magic's documentation on the integration with YOLOv8 [here](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and watch a great session on it [here](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLOv8 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
+
+## FAQ
+
+### What is Neural Magic's DeepSparse Engine and how does it optimize YOLOv8 performance?
+
+Neural Magic's DeepSparse Engine is an inference runtime designed to optimize the execution of neural networks on CPUs through advanced techniques such as sparsity, pruning, and quantization. By integrating DeepSparse with YOLOv8, you can achieve GPU-like performance on standard CPUs, significantly enhancing inference speed, model efficiency, and overall performance while maintaining accuracy. For more details, check out the [Neural Magic's DeepSparse section](#neural-magics-deepsparse).
+
+### How can I install the needed packages to deploy YOLOv8 using Neural Magic's DeepSparse?
+
+Installing the required packages for deploying YOLOv8 with Neural Magic's DeepSparse is straightforward. You can easily install them using the CLI. Here's the command you need to run:
+
+```bash
+pip install deepsparse[yolov8]
+```
+
+Once installed, follow the steps provided in the [Installation section](#step-1-installation) to set up your environment and start using DeepSparse with YOLOv8.
+
+### How do I convert YOLOv8 models to ONNX format for use with DeepSparse?
+
+To convert YOLOv8 models to the ONNX format, which is required for compatibility with DeepSparse, you can use the following CLI command:
+
+```bash
+yolo task=detect mode=export model=yolov8n.pt format=onnx opset=13
+```
+
+This command will export your YOLOv8 model (`yolov8n.pt`) to a format (`yolov8n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolov8-to-onnx-format).
+
+### How do I benchmark YOLOv8 performance on the DeepSparse Engine?
+
+Benchmarking YOLOv8 performance on DeepSparse helps you analyze throughput and latency to ensure your model is optimized. You can use the following CLI command to run a benchmark:
+
+```bash
+deepsparse.benchmark model_path="path/to/yolov8n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
+```
+
+This command will provide you with vital performance metrics. For more details, see the [Benchmarking Performance section](#step-4-benchmarking-performance).
+
+### Why should I use Neural Magic's DeepSparse with YOLOv8 for object detection tasks?
+
+Integrating Neural Magic's DeepSparse with YOLOv8 offers several benefits:
+
+- **Enhanced Inference Speed:** Achieves up to 525 FPS, significantly speeding up YOLOv8's capabilities.
+- **Optimized Model Efficiency:** Uses sparsity, pruning, and quantization techniques to reduce model size and computational needs while maintaining accuracy.
+- **High Performance on Standard CPUs:** Offers GPU-like performance on cost-effective CPU hardware.
+- **Streamlined Integration:** User-friendly tools for easy deployment and integration.
+- **Flexibility:** Supports both standard and sparsity-optimized YOLOv8 models.
+- **Cost-Effective:** Reduces operational expenses through efficient resource utilization.
+
+For a deeper dive into these advantages, visit the [Benefits of Integrating Neural Magic's DeepSparse with YOLOv8 section](#benefits-of-integrating-neural-magics-deepsparse-with-yolov8).

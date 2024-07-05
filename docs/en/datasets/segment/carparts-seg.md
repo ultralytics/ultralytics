@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Roboflow's Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data.
+description: Explore the Roboflow Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data.
 keywords: Carparts Segmentation Dataset, Roboflow, computer vision, automotive AI, vehicle maintenance, Ultralytics
 ---
 
@@ -84,6 +84,7 @@ If you integrate the Carparts Segmentation dataset into your research or develop
 !!! Quote ""
 
     === "BibTeX"
+
         ```bibtex
            @misc{ car-seg-un1pm_dataset,
                 title = { car-seg Dataset },
@@ -100,3 +101,60 @@ If you integrate the Carparts Segmentation dataset into your research or develop
         ```
 
 We extend our thanks to the Roboflow team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects. For additional details about the Carparts Segmentation dataset and its creators, please visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm).
+
+## FAQ
+
+### What is the Roboflow Carparts Segmentation Dataset?
+
+The [Roboflow Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm) is a curated collection of images and videos specifically designed for car part segmentation tasks in computer vision. This dataset includes a diverse range of visuals captured from multiple perspectives, making it an invaluable resource for training and testing segmentation models for automotive applications.
+
+### How can I use the Carparts Segmentation Dataset with Ultralytics YOLOv8?
+
+To train a YOLOv8 model on the Carparts Segmentation dataset, you can follow these steps:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo segment train data=carparts-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        ```
+
+For more details, refer to the [Training](../../modes/train.md) documentation.
+
+### What are some applications of Carparts Segmentation?
+
+Carparts Segmentation can be widely applied in various fields such as:
+- **Automotive quality control**
+- **Auto repair and maintenance**
+- **E-commerce cataloging**
+- **Traffic monitoring**
+- **Autonomous vehicles**
+- **Insurance claim processing**
+- **Recycling initiatives**
+- **Smart city projects**
+
+This segmentation helps in accurately identifying and categorizing different vehicle components, enhancing the efficiency and automation in these industries.
+
+### Where can I find the dataset configuration file for Carparts Segmentation?
+
+The dataset configuration file for the Carparts Segmentation dataset, `carparts-seg.yaml`, can be found at the following location: [carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml).
+
+### Why should I use the Carparts Segmentation Dataset?
+
+The Carparts Segmentation Dataset provides rich, annotated data essential for developing high-accuracy segmentation models in automotive computer vision. This dataset's diversity and detailed annotations improve model training, making it ideal for applications like vehicle maintenance automation, enhancing vehicle safety systems, and supporting autonomous driving technologies. Partnering with a robust dataset accelerates AI development and ensures better model performance. 
+
+For more details, visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm).

@@ -96,3 +96,90 @@ If you use YOLOv3 in your research, please cite the original YOLO papers and the
         ```
 
 Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
+
+## FAQ
+
+### What are the differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
+
+YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection algorithm developed by Joseph Redmon, known for its balance of accuracy and speed, utilizing three different scales (13x13, 26x26, and 52x52) for detections. YOLOv3-Ultralytics is Ultralytics' adaptation of YOLOv3 that adds support for more pre-trained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes. For more details on the variants, refer to the [YOLOv3 series](https://github.com/ultralytics/yolov3).
+
+### How can I train a YOLOv3 model using Ultralytics?
+
+Training a YOLOv3 model with Ultralytics is straightforward. You can train the model using either Python or CLI:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv3n model
+        model = YOLO("yolov3n.pt")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv3n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov3n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+For more comprehensive training options and guidelines, visit our [Train mode documentation](../modes/train.md).
+
+### What makes YOLOv3u more accurate for object detection tasks?
+
+YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-free, objectness-free split head used in YOLOv8 models. This upgrade eliminates the need for pre-defined anchor boxes and objectness scores, enhancing its capability to detect objects of varying sizes and shapes more precisely. This makes YOLOv3u a better choice for complex and diverse object detection tasks. For more information, refer to the [Why YOLOv3u](#overview) section.
+
+### How can I use YOLOv3 models for inference?
+
+You can perform inference using YOLOv3 models by either Python scripts or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv3n model
+        model = YOLO("yolov3n.pt")
+
+        # Run inference with the YOLOv3n model on the 'bus.jpg' image
+        results = model("path/to/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv3n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov3n.pt source=path/to/bus.jpg
+        ```
+
+Refer to the [Inference mode documentation](../modes/predict.md) for more details on running YOLO models.
+
+### What tasks are supported by YOLOv3 and its variants?
+
+YOLOv3, YOLOv3-Ultralytics, and YOLOv3u primarily support object detection tasks. These models can be used for various stages of model deployment and development, such as Inference, Validation, Training, and Export. For a comprehensive set of tasks supported and more in-depth details, visit our [Object Detection tasks documentation](../tasks/detect.md).
+
+### Where can I find resources to cite YOLOv3 in my research?
+
+If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository. Example BibTeX citation:
+
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{redmon2018yolov3,
+          title={YOLOv3: An Incremental Improvement},
+          author={Redmon, Joseph and Farhadi, Ali},
+          journal={arXiv preprint arXiv:1804.02767},
+          year={2018}
+        }
+        ```
+
+For more citation details, refer to the [Citations and Acknowledgements](#citations-and-acknowledgements) section.

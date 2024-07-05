@@ -65,3 +65,71 @@ Engage with the community to learn more, troubleshoot issues, and share your pro
 ### Official Documentation
 
 - **Ultralytics YOLOv8 Documentation:** Refer to the [official YOLOv8 documentation](https://docs.ultralytics.com/) for comprehensive guides and insights on various computer vision tasks and projects.
+
+## FAQ
+
+### How can I set up a real-time object detection application using Streamlit and Ultralytics YOLOv8?
+
+Setting up a real-time object detection application with Streamlit and Ultralytics YOLOv8 is straightforward. First, ensure you have the Ultralytics Python package installed using:
+
+```bash
+pip install ultralytics
+```
+
+Then, you can create a basic Streamlit application to run live inference:
+
+!!! Example "Streamlit Application"
+
+    === "Python"
+    
+    ```Python
+    from ultralytics import solutions
+    solutions.inference()
+
+    ### Make sure to run the file using command `streamlit run <file-name.py>`
+    ```
+
+    === "CLI"
+    
+    ```bash
+    yolo live-inference
+    ```
+
+For more details on the practical setup, refer to the [Streamlit Application Code section](#streamlit-application-code) of the documentation.
+
+### What are the main advantages of using Ultralytics YOLOv8 with Streamlit for real-time object detection?
+
+Using Ultralytics YOLOv8 with Streamlit for real-time object detection offers several advantages:
+- **Seamless Real-Time Detection**: Achieve high-accuracy, real-time object detection directly from webcam feeds.
+- **User-Friendly Interface**: Streamlit’s intuitive interface allows easy use and deployment without extensive technical knowledge.
+- **Resource Efficiency**: YOLOv8’s optimized algorithms ensure high-speed processing with minimal computational resources.
+
+Discover more about these advantages [here](#advantages-of-live-inference).
+
+### How do I deploy a Streamlit object detection application in my web browser?
+
+After coding your Streamlit application integrating Ultralytics YOLOv8, you can deploy it by running:
+
+```bash
+streamlit run <file-name.py>
+```
+
+This command will launch the application in your default web browser, enabling you to select YOLOv8 models, set confidence, and NMS thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.
+
+### What are some use cases for real-time object detection using Streamlit and Ultralytics YOLOv8?
+
+Real-time object detection using Streamlit and Ultralytics YOLOv8 can be applied in various sectors:
+- **Security**: Real-time monitoring for unauthorized access.
+- **Retail**: Customer counting, shelf management, and more.
+- **Wildlife and Agriculture**: Monitoring animals and crop conditions.
+
+For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions).
+
+### How does Ultralytics YOLOv8 compare to other object detection models like YOLOv5 and RCNNs?
+
+Ultralytics YOLOv8 provides several enhancements over prior models like YOLOv5 and RCNNs:
+- **Higher Speed and Accuracy**: Improved performance for real-time applications.
+- **Ease of Use**: Simplified interfaces and deployment.
+- **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
+
+For a comprehensive comparison, check [Ultralytics YOLOv8 Documentation](https://docs.ultralytics.com/models/yolov8) and related blog posts discussing model performance.

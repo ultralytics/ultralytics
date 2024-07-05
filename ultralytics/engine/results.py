@@ -42,9 +42,7 @@ class BaseTensor(SimpleClass):
             base_tensor = BaseTensor(data, orig_shape)
             ```
         """
-        assert isinstance(
-            data, (torch.Tensor, np.ndarray)
-        ), f"Provided data should be torch.Tensor or np.ndarray, not type {type(data)}"
+        assert isinstance(data, (torch.Tensor, np.ndarray)), f"data must be torch.Tensor or np.ndarray"
         self.data = data
         self.orig_shape = orig_shape
 

@@ -142,4 +142,3 @@ Here are some questions that might encounter while defining your computer vision
 
 - **Q3:** What are some common challenges in defining the problem for a computer vision project?
     - **A3:** Common challenges include vague or overly broad problem statements, unrealistic objectives, lack of stakeholder alignment, insufficient understanding of technical constraints, and underestimating data requirements. Addressing these challenges requires thorough initial research, clear communication with stakeholders, and iterative refinement of the problem statement and objectives.
-

@@ -303,3 +303,39 @@ The following table summarizes how YOLOv8s models perform at different TensorRT 
 ### Acknowledgements
 
 This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
+
+## FAQ
+
+### How do I set up Ultralytics YOLOv8 on an NVIDIA Jetson device?
+
+To set up Ultralytics YOLOv8 on an [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) device, you first need to install the [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) compatible with your JetPack version. Follow the step-by-step guide in our [Quick Start Guide](nvidia-jetson.md) to configure your NVIDIA Jetson for YOLOv8 deployment.
+
+### What is the benefit of using TensorRT with YOLOv8 on NVIDIA Jetson?
+
+Using TensorRT with YOLOv8 optimizes the model for inference, significantly reducing latency and improving throughput on NVIDIA Jetson devices. TensorRT provides high-performance, low-latency deep learning inference through layer fusion, precision calibration, and kernel auto-tuning. This leads to faster and more efficient execution, particularly useful for real-time applications like video analytics and autonomous machines.
+
+### Can I run Ultralytics YOLOv8 with DeepStream SDK across different NVIDIA Jetson hardware?
+
+Yes, the guide for deploying Ultralytics YOLOv8 with the DeepStream SDK and TensorRT is compatible across the entire NVIDIA Jetson lineup. This includes devices like the Jetson Orin NX 16GB with [JetPack 5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and the Jetson Nano 4GB with [JetPack 4.6.4](https://developer.nvidia.com/jetpack-sdk-464). Refer to the section [DeepStream Configuration for YOLOv8](#deepstream-configuration-for-yolov8) for detailed steps.
+
+### How can I convert a YOLOv8 model to ONNX for DeepStream?
+
+To convert a YOLOv8 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
+
+Here's an example command:
+
+```bash
+python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
+```
+
+For more details on model conversion, check out our [model export section](../modes/export.md).
+
+### What are the performance benchmarks for YOLOv8 on NVIDIA Jetson Orin NX?
+
+The performance of YOLOv8 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
+
+- **FP32 Precision**: 15.63 ms/im, 64 FPS
+- **FP16 Precision**: 7.94 ms/im, 126 FPS
+- **INT8 Precision**: 5.53 ms/im, 181 FPS
+
+These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLOv8 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.

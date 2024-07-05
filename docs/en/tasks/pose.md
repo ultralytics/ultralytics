@@ -117,6 +117,7 @@ retains its training `data` and arguments as model attributes.
         metrics.box.map75  # map75
         metrics.box.maps  # a list contains map50-95 of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -142,6 +143,7 @@ Use a trained YOLOv8n-pose model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -169,6 +171,7 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash

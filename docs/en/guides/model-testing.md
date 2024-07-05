@@ -10,7 +10,7 @@ keywords: Overfitting and Underfitting in Machine Learning, Model Testing, Data 
 
 After [training](./model-training-tips.md) and [evaluating](./model-evaluation-insights.md) your model, it's time to test it. Model testing involves assessing how well it performs in real-world scenarios. Testing considers factors like accuracy, reliability, fairness, and how easy it is to understand the model's decisions. The goal is to make sure the model performs as intended, delivers the expected results, and fits into the [overall objective of your application](./defining-project-goals.md) or project.
 
-Model testing's definition is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your computer vision models.
+Model testing is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your computer vision models.
 
 ## Model Testing Vs. Model Evaluation
 
@@ -140,3 +140,61 @@ These resources will help you navigate challenges and remain updated on the late
 ## In Summary
 
 Building trustworthy computer vision models relies on rigorous model testing. By testing the model with previously unseen data, we can analyze it and spot weaknesses like overfitting and data leakage. Addressing these issues before deployment helps the model perform well in real-world applications. It's important to remember that model testing is just as crucial as model evaluation in guaranteeing the model's long-term success and effectiveness.
+
+## FAQ
+
+### What are the key differences between model evaluation and model testing in computer vision?
+
+Model evaluation and model testing are distinct steps in a computer vision project. Model evaluation involves using a labeled dataset to compute metrics such as accuracy, precision, recall, and F1 score, providing insights into the model's performance with a controlled dataset. Model testing, on the other hand, assesses the model's performance in real-world scenarios by applying it to new, unseen data, ensuring the model's learned behavior aligns with expectations outside the evaluation environment. For a detailed guide, refer to the [steps in a computer vision project](./steps-of-a-cv-project.md).
+
+### How can I test my Ultralytics YOLOv8 model on multiple images?
+
+To test your Ultralytics YOLOv8 model on multiple images, you can use the [prediction mode](../modes/predict.md). This mode allows you to run the model on new, unseen data to generate predictions without providing detailed metrics. This is ideal for real-world performance testing on larger image sets stored in a folder. For evaluating performance metrics, use the [validation mode](../modes/val.md) instead.
+
+### What should I do if my computer vision model shows signs of overfitting or underfitting?
+
+To address **overfitting**:
+
+- Regularization techniques like dropout.
+- Increase the size of the training dataset.
+- Simplify the model architecture.
+
+To address **underfitting**:
+
+- Use a more complex model.
+- Provide more relevant features.
+- Increase training iterations or epochs.
+
+Review misclassified images, perform thorough error analysis, and regularly track performance metrics to maintain a balance. For more information on these concepts, explore our section on [Overfitting and Underfitting](#overfitting-and-underfitting-in-machine-learning).
+
+### How can I detect and avoid data leakage in computer vision?
+
+To detect data leakage:
+
+- Verify that the testing performance is not unusually high.
+- Check feature importance for unexpected insights.
+- Intuitively review model decisions.
+- Ensure correct data division before processing.
+
+To avoid data leakage:
+
+- Use diverse datasets with various environments.
+- Carefully review data for hidden biases.
+- Ensure no overlapping information between training and testing sets.
+
+For detailed strategies on preventing data leakage, refer to our section on [Data Leakage in Computer Vision](#data-leakage-in-computer-vision-and-how-to-avoid-it).
+
+### What steps should I take after testing my computer vision model?
+
+Post-testing, if the model performance meets the project goals, proceed with deployment. If the results are unsatisfactory, consider:
+
+- Error analysis.
+- Gathering more diverse and high-quality data.
+- Hyperparameter tuning.
+- Retraining the model.
+
+Gain insights from the [Model Testing Vs. Model Evaluation](#model-testing-vs-model-evaluation) section to refine and enhance model effectiveness in real-world applications.
+
+### How do I run YOLOv8 predictions without custom training?
+
+You can run predictions using the pre-trained YOLOv8 model on your dataset to see if it suits your application needs. Utilize the [prediction mode](../modes/predict.md) to get a quick sense of performance results without diving into custom training.

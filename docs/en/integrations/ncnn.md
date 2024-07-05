@@ -118,3 +118,69 @@ In this guide, we've gone over exporting Ultralytics YOLOv8 models to the NCNN f
 For detailed instructions on usage, please refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html).
 
 Also, if you're interested in exploring other integration options for Ultralytics YOLOv8, be sure to visit our [integration guide page](index.md) for further insights and information.
+
+## FAQ
+
+### How do I export Ultralytics YOLOv8 models to NCNN format?
+
+To export your Ultralytics YOLOv8 model to NCNN format, follow these steps:
+
+- **Python**: Use the `export` function from the YOLO class.
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load the YOLOv8 model
+    model = YOLO("yolov8n.pt")
+
+    # Export to NCNN format
+    model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
+    ```
+
+- **CLI**: Use the `yolo` command with the `export` argument.
+    ```bash
+    yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
+    ```
+
+For detailed export options, check the [Export](../modes/export.md) page in the documentation.
+
+### What are the advantages of exporting YOLOv8 models to NCNN?
+
+Exporting your Ultralytics YOLOv8 models to NCNN offers several benefits:
+
+- **Efficiency**: NCNN models are optimized for mobile and embedded devices, ensuring high performance even with limited computational resources.
+- **Quantization**: NCNN supports techniques like quantization that improve model speed and reduce memory usage.
+- **Broad Compatibility**: You can deploy NCNN models on multiple platforms, including Android, iOS, Linux, and macOS.
+
+For more details, see the [Export to NCNN](#why-should-you-export-to-ncnn) section in the documentation.
+
+### Why should I use NCNN for my mobile AI applications?
+
+NCNN, developed by Tencent, is specifically optimized for mobile platforms. Key reasons to use NCNN include:
+
+- **High Performance**: Designed for efficient and fast processing on mobile CPUs.
+- **Cross-Platform**: Compatible with popular frameworks such as TensorFlow and ONNX, making it easier to convert and deploy models across different platforms.
+- **Community Support**: Active community support ensures continual improvements and updates.
+
+To understand more, visit the [NCNN overview](#key-features-of-ncnn-models) in the documentation.
+
+### What platforms are supported for NCNN model deployment?
+
+NCNN is versatile and supports various platforms:
+
+- **Mobile**: Android, iOS.
+- **Embedded Systems and IoT Devices**: Devices like Raspberry Pi and NVIDIA Jetson.
+- **Desktop and Servers**: Linux, Windows, and macOS.
+
+If running models on a Raspberry Pi isn't fast enough, converting to the NCNN format could speed things up as detailed in our [Raspberry Pi Guide](../guides/raspberry-pi.md).
+
+### How can I deploy Ultralytics YOLOv8 NCNN models on Android?
+
+To deploy your YOLOv8 models on Android:
+
+1. **Build for Android**: Follow the [NCNN Build for Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android) guide.
+2. **Integrate with Your App**: Use the NCNN Android SDK to integrate the exported model into your application for efficient on-device inference.
+
+For step-by-step instructions, refer to our guide on [Deploying YOLOv8 NCNN Models](#deploying-exported-yolov8-ncnn-models).
+
+For more advanced guides and use cases, visit the [Ultralytics documentation page](../guides/model-deployment-options.md).

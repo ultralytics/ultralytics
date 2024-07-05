@@ -1,9 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import io
+
 import cv2
 import streamlit as st
 import torch
-import io
 
 from ultralytics import YOLO
 
@@ -43,7 +44,12 @@ def inference():
 
     # Add video source selection dropdown
     source = st.sidebar.selectbox(
-        "Video", ("webcam", "video", ),)
+        "Video",
+        (
+            "webcam",
+            "video",
+        ),
+    )
 
     vid_file_name = ""
     if source == "video":
@@ -51,7 +57,7 @@ def inference():
         if vid_file is not None:
             g = io.BytesIO(vid_file.read())  # BytesIO Object
             vid_location = "ultralytics.mp4"
-            with open(vid_location, 'wb') as out:  # Open temporary file as bytes
+            with open(vid_location, "wb") as out:  # Open temporary file as bytes
                 out.write(g.read())  # Read bytes into file
             vid_file_name = "ultralytics.mp4"
     elif source == "webcam":

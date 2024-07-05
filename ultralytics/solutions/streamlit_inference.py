@@ -167,7 +167,7 @@ def inference():
         ),
     )
     # Select classes
-    selected_classes = st.sidebar.multiselect("Classes", classes)
+    selected_classes = st.sidebar.multiselect("Classes", classes, default=["person", "car", "bus", "truck"])
     selected_ind = [classes.index(option) for option in selected_classes]
 
     if not isinstance(selected_ind, list):  # Ensure selected_options is a list

@@ -9,6 +9,7 @@ import torch
 def inference():
     # Scope imports for faster ultralytics package load speeds
     import streamlit as st
+
     from ultralytics import YOLO
 
     # Hide main menu style

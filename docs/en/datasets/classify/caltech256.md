@@ -76,3 +76,60 @@ If you use the Caltech-256 dataset in your research or development work, please 
 We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the
 
 Caltech-256 dataset and its creators, visit the [Caltech-256 dataset website](https://data.caltech.edu/records/nyy15-4j048).
+
+## FAQ
+
+### What is the Caltech-256 dataset and why is it important for machine learning?
+
+The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is a large image dataset used primarily for object classification tasks in machine learning and computer vision. It consists of around 30,000 color images divided into 257 categories, covering a wide range of real-world objects. The dataset's diverse and high-quality images make it an excellent benchmark for evaluating object recognition algorithms, which is crucial for developing robust machine learning models.
+
+### How can I train a YOLO model on the Caltech-256 dataset using Python or CLI?
+
+To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the following code snippets. Refer to the model [Training](../../modes/train.md) page for additional options.
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+
+        # Train the model
+        results = model.train(data="caltech256", epochs=100, imgsz=416)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+        ```
+
+### What are the most common use cases for the Caltech-256 dataset?
+
+The Caltech-256 dataset is widely used for various object recognition tasks such as:
+
+- Training Convolutional Neural Networks (CNNs)
+- Evaluating the performance of Support Vector Machines (SVMs)
+- Benchmarking new deep learning algorithms
+- Developing object detection models using frameworks like Ultralytics YOLO
+
+Its diversity and comprehensive annotations make it ideal for research and development in machine learning and computer vision.
+
+### How is the Caltech-256 dataset structured and split for training and testing?
+
+The Caltech-256 dataset does not come with a predefined split for training and testing. Users typically create their own splits according to their specific needs. A common approach is to randomly select a subset of images for training and use the remaining images for testing. This flexibility allows users to tailor the dataset to their specific project requirements and experimental setups.
+
+### Why should I use Ultralytics YOLO for training models on the Caltech-256 dataset?
+
+Ultralytics YOLO models offer several advantages for training on the Caltech-256 dataset:
+
+- **High Accuracy**: YOLO models are known for their state-of-the-art performance in object detection tasks.
+- **Speed**: They provide real-time inference capabilities, making them suitable for applications requiring quick predictions.
+- **Ease of Use**: With Ultralytics HUB, users can train, validate, and deploy models without extensive coding.
+- **Pretrained Models**: Starting from pretrained models, like `yolov8n-cls.pt`, can significantly reduce training time and improve model accuracy.
+
+For more details, explore our [comprehensive training guide](../../modes/train.md).

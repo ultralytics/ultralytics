@@ -115,18 +115,18 @@ Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance ac
 
     === "Python"
 
-    ```python
-    from ultralytics.utils.benchmarks import benchmark
+        ```python
+        from ultralytics.utils.benchmarks import benchmark
 
-    # Benchmark on GPU
-    benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
-    ```
+        # Benchmark on GPU
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-    ```
+        ```bash
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        ```
 
 For more details on benchmark arguments, visit the [Arguments](#arguments) section.
 

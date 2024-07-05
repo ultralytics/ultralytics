@@ -190,7 +190,6 @@ Using these resources will help you overcome challenges and stay updated with th
 
 Taking on a computer vision project can be exciting and rewarding. By following the steps in this guide, you can build a solid foundation for success. Each step is crucial for developing a solution that meets your objectives and works well in real-world scenarios. As you gain experience, you'll discover advanced techniques and tools to improve your projects. Stay curious, keep learning, and explore new methods and innovations!
 
-
 ## FAQ
 
 ### How do I choose the right computer vision task for my project?
@@ -200,6 +199,7 @@ Choosing the right computer vision task depends on your project's end goal. For 
 ### Why is data annotation crucial in computer vision projects?
 
 Data annotation is vital for teaching your model to recognize patterns. The type of annotation varies with the task:
+
 - **Image Classification**: Entire image labeled as a single class.
 - **Object Detection**: Bounding boxes drawn around objects.
 - **Image Segmentation**: Each pixel labeled according to the object it belongs to.
@@ -209,6 +209,7 @@ Tools like [Label Studio](https://github.com/HumanSignal/label-studio), [CVAT](h
 ### What steps should I follow to augment and split my dataset effectively?
 
 Splitting your dataset before augmentation helps validate model performance on original, unaltered data. Follow these steps:
+
 - **Training Set**: 70-80% of your data.
 - **Validation Set**: 10-15% for hyperparameter tuning.
 - **Test Set**: Remaining 10-15% for final evaluation.
@@ -218,6 +219,7 @@ After splitting, apply data augmentation techniques like rotation, scaling, and 
 ### How can I export my trained computer vision model for deployment?
 
 Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including ONNX, TensorRT, and CoreML. To export your YOLOv8 model, follow this guide:
+
 - Use the `export` function with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).
 

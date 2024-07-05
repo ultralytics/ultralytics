@@ -147,7 +147,6 @@ Bouncing your ideas and queries off other computer vision enthusiasts can help a
 
 By following the best practices for collecting and annotating data, avoiding bias, and using the right tools and techniques, you can significantly improve your model's performance. Engaging with the community and using available resources will keep you informed and help you troubleshoot issues effectively. Remember, quality data is the foundation of a successful project, and the right strategies will help you build robust and reliable models.
 
-
 ## FAQ
 
 ### What is the best way to avoid bias in data collection for computer vision projects?

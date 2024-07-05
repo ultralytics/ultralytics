@@ -92,7 +92,7 @@ Then, you can create a basic Streamlit application to run live inference:
     === "CLI"
 
     ```bash
-    yolo live-inference
+    yolo streamlit-predict
     ```
 
 For more details on the practical setup, refer to the [Streamlit Application Code section](#streamlit-application-code) of the documentation.

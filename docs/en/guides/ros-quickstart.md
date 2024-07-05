@@ -512,3 +512,115 @@ for index, class_id in enumerate(classes):
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/3caafc4a-0edd-4e5f-8dd1-37e30be70123" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
+
+## FAQ
+
+### What is the Robot Operating System (ROS)?
+
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework commonly used in robotics to help developers create robust robot applications. It provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) for building and interfacing with robotic systems, enabling easier development of complex applications. ROS supports communication between nodes using messages over [topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics) or [services](https://wiki.ros.org/ROS/Tutorials/UnderstandingServicesParams).
+
+### How do I integrate Ultralytics YOLO with ROS for real-time object detection?
+
+Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and using YOLO for processing sensor data. Begin by installing the required dependencies like `ros_numpy` and Ultralytics YOLO:
+
+```bash
+pip install ros_numpy ultralytics
+```
+
+Next, create a ROS node and subscribe to an [image topic](../tasks/detect.md) to process the incoming data. Here is a minimal example:
+
+```python
+import ros_numpy
+import rospy
+from sensor_msgs.msg import Image
+
+from ultralytics import YOLO
+
+detection_model = YOLO("yolov8m.pt")
+rospy.init_node("ultralytics")
+det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
+
+
+def callback(data):
+    array = ros_numpy.numpify(data)
+    det_result = detection_model(array)
+    det_annotated = det_result[0].plot(show=False)
+    det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
+
+
+rospy.Subscriber("/camera/color/image_raw", Image, callback)
+rospy.spin()
+```
+
+### What are ROS topics and how are they used in Ultralytics YOLO?
+
+ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like detection or segmentation, and publish outcomes to new topics.
+
+For example, subscribe to a camera topic and process the incoming image for detection:
+
+```python
+rospy.Subscriber("/camera/color/image_raw", Image, callback)
+```
+
+### Why use depth images with Ultralytics YOLO in ROS?
+
+Depth images in ROS, represented by `sensor_msgs/Image`, provide the distance of objects from the camera, crucial for tasks like obstacle avoidance, 3D mapping, and localization. By [using depth information](https://en.wikipedia.org/wiki/Depth_map) along with RGB images, robots can better understand their 3D environment.
+
+With YOLO, you can extract segmentation masks from RGB images and apply these masks to depth images to obtain precise 3D object information, improving the robot's ability to navigate and interact with its surroundings.
+
+### How can I visualize 3D point clouds with YOLO in ROS?
+
+To visualize 3D point clouds in ROS with YOLO:
+
+1. Convert `sensor_msgs/PointCloud2` messages to numpy arrays.
+2. Use YOLO to segment RGB images.
+3. Apply the segmentation mask to the point cloud.
+
+Here's an example using Open3D for visualization:
+
+```python
+import sys
+
+import open3d as o3d
+import ros_numpy
+import rospy
+from sensor_msgs.msg import PointCloud2
+
+from ultralytics import YOLO
+
+rospy.init_node("ultralytics")
+segmentation_model = YOLO("yolov8m-seg.pt")
+
+
+def pointcloud2_to_array(pointcloud2):
+    pc_array = ros_numpy.point_cloud2.pointcloud2_to_array(pointcloud2)
+    split = ros_numpy.point_cloud2.split_rgb_field(pc_array)
+    rgb = np.stack([split["b"], split["g"], split["r"]], axis=2)
+    xyz = ros_numpy.point_cloud2.get_xyz_points(pc_array, remove_nans=False)
+    xyz = np.array(xyz).reshape((pointcloud2.height, pointcloud2.width, 3))
+    return xyz, rgb
+
+
+ros_cloud = rospy.wait_for_message("/camera/depth/points", PointCloud2)
+xyz, rgb = pointcloud2_to_array(ros_cloud)
+result = segmentation_model(rgb)
+
+if not len(result[0].boxes.cls):
+    print("No objects detected")
+    sys.exit()
+
+classes = result[0].boxes.cls.cpu().numpy().astype(int)
+for index, class_id in enumerate(classes):
+    mask = result[0].masks.data.cpu().numpy()[index, :, :].astype(int)
+    mask_expanded = np.stack([mask, mask, mask], axis=2)
+
+    obj_rgb = rgb * mask_expanded
+    obj_xyz = xyz * mask_expanded
+
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(obj_xyz.reshape((-1, 3)))
+    pcd.colors = o3d.utility.Vector3dVector(obj_rgb.reshape((-1, 3)) / 255)
+    o3d.visualization.draw_geometries([pcd])
+```
+
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation.

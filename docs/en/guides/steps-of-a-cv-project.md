@@ -190,7 +190,7 @@ Using these resources will help you overcome challenges and stay updated with th
 
 Taking on a computer vision project can be exciting and rewarding. By following the steps in this guide, you can build a solid foundation for success. Each step is crucial for developing a solution that meets your objectives and works well in real-world scenarios. As you gain experience, you'll discover advanced techniques and tools to improve your projects. Stay curious, keep learning, and explore new methods and innovations!
 
-## FAQ
+## FAQs
 
 Here are some common questions that might arise during a computer vision project:
 

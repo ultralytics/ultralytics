@@ -143,7 +143,7 @@ Having discussions about your project with other computer vision enthusiasts can
 
 Properly resized, normalized, and augmented data improves model performance by reducing noise and improving generalization. By following the preprocessing techniques and best practices outlined in this guide, you can create a solid dataset. With your preprocessed dataset ready, you can confidently proceed to the next steps in your project.
 
-## FAQ
+## FAQs
 
 Here are some questions that might come up while you prepare your dataset:
 

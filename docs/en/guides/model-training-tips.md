@@ -159,7 +159,7 @@ Using these resources will help you solve challenges and stay up-to-date with th
 
 Training computer vision models involves following good practices, optimizing your strategies, and solving problems as they arise. Techniques like adjusting batch sizes, mixed precision training, and starting with pre-trained weights can make your models work better and train faster. Methods like subset training and early stopping help you save time and resources. Staying connected with the community and keeping up with new trends will help you keep improving your model training skills.
 
-## FAQ
+## FAQs
 
 - **Q1:** Does the Size of Training Images Affect Predictions on High-Quality Images?
 

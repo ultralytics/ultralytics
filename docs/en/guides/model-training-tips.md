@@ -28,7 +28,7 @@ Now that we know what is happening behind the scenes when we train a model, let'
 
 ## Training on Large Datasets
 
-There are a few different aspects to think about when you are planning on using a large dataset to train a model. For example, you can adjust the batch size, control the GPU utilization, choose to use multi-scale training, etc. Let's walk through each of these options in detail.
+There are a few different aspects to think about when you are planning on using a large dataset to train a model. For example, you can adjust the batch size, control the GPU utilization, choose to use multiscale training, etc. Let's walk through each of these options in detail.
 
 ### Batch Size and GPU Utilization
 
@@ -45,9 +45,9 @@ When it comes to YOLOv8, you can easily implement subset training by using the `
 
 ### Multi-scale Training
 
-Multi-scale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
+Multiscale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
 
-For example, when you train YOLOv8, you can enable multi-scale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` will reduce the image size by half, while `scale=2.0` will double it. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
+For example, when you train YOLOv8, you can enable multiscale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` will reduce the image size by half, while `scale=2.0` will double it. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
 
 ### Caching
 
@@ -140,19 +140,6 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 
 For YOLOv8, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 
-## FAQs
-
-- **Q1:** Does the Size of Training Images Affect Predictions on High-Quality Images?
-
-    - **A1:** The size of training images can indeed impact the prediction accuracy of high-resolution images. Training on low-resolution images might not capture the finer details that high-resolution images contain, potentially leading to less accurate predictions when the model is applied to high-resolution images. To achieve optimal performance, it's generally recommended to train your model on images that are similar in resolution to those you expect to encounter during inference.
-
-- **Q2:** Does 'Auto' Optimizer Switch Between during Training?
-
-    - **A2:** No, the 'Auto' setting does not switch between different optimizers during training. It selects a single optimizer at the start of the training process and uses it consistently throughout the entire training session, ensuring stability and consistency in the optimization process.
-
-- **Q3:** Can Yolov8 handle various image sizes?
-    - **A3:** Yes, YOLOv8 can handle images of various sizes. During training and prediction, the model automatically resizes the images to the specified `imgsz` parameter.
-
 ## Connecting with the Community
 
 Being part of a community of computer vision enthusiasts can help you solve problems and learn faster. Here are some ways to connect, get help, and share ideas.
@@ -171,3 +158,25 @@ Using these resources will help you solve challenges and stay up-to-date with th
 ## Key Takeaways
 
 Training computer vision models involves following good practices, optimizing your strategies, and solving problems as they arise. Techniques like adjusting batch sizes, mixed precision training, and starting with pre-trained weights can make your models work better and train faster. Methods like subset training and early stopping help you save time and resources. Staying connected with the community and keeping up with new trends will help you keep improving your model training skills.
+
+## FAQ
+
+### How can I improve GPU utilization when training a large dataset with Ultralytics YOLO?
+
+To improve GPU utilization, set the `batch_size` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLOv8, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
+
+### What is mixed precision training, and how do I enable it in YOLOv8?
+
+Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. This approach speeds up training and reduces memory usage without sacrificing model accuracy. To enable mixed precision training in YOLOv8, set the `amp` parameter to `True` in your training configuration. This activates Automatic Mixed Precision (AMP) training. For more details on this optimization technique, see the [training configuration](../modes/train.md).
+
+### How does multiscale training enhance YOLOv8 model performance?
+
+Multiscale training enhances model performance by training on images of varying sizes, allowing the model to better generalize across different scales and distances. In YOLOv8, you can enable multiscale training by setting the `scale` parameter in the training configuration. For example, `scale=0.5` reduces the image size by half, while `scale=2.0` doubles it. This technique simulates objects at different distances, making the model more robust across various scenarios. For settings and more details, check out the [training configuration](../modes/train.md).
+
+### How can I use pre-trained weights to speed up training in YOLOv8?
+
+Using pre-trained weights can significantly reduce training times and improve model performance by starting from a model that already understands basic features. In YOLOv8, you can set the `pretrained` parameter to `True` or specify a path to custom pre-trained weights in your training configuration. This approach, known as transfer learning, leverages knowledge from large datasets to adapt to your specific task. Learn more about pre-trained weights and their advantages [here](../modes/train.md).
+
+### What is the recommended number of epochs for training a model, and how do I set this in YOLOv8?
+
+The number of epochs refers to the complete passes through the training dataset during model training. A typical starting point is 300 epochs. If your model overfits early, you can reduce the number. Alternatively, if overfitting isn’t observed, you might extend training to 600, 1200, or more epochs. To set this in YOLOv8, use the `epochs` parameter in your training script. For additional advice on determining the ideal number of epochs, refer to this section on [number of epochs](#the-number-of-epochs-to-train-for).

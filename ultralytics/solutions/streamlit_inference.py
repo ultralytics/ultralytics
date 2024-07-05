@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import io
+import time
 
 import cv2
 import streamlit as st
@@ -102,7 +103,7 @@ def inference():
     selected_classes = st.sidebar.multiselect('Classes', classes)
     selected_ind = [classes.index(option) for option in selected_classes]
 
-    if not isinstance(selected_ind, list):      # Ensure selected_options is a list
+    if not isinstance(selected_ind, list):  # Ensure selected_options is a list
         selected_ind = list(selected_ind)
 
     conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
@@ -112,6 +113,8 @@ def inference():
     org_frame = col1.empty()
     ann_frame = col2.empty()
 
+    fps_display = st.sidebar.empty()  # Placeholder for FPS display
+
     if st.sidebar.button("Start"):
         model = YOLO(yolov8_model.lower() + ".pt")  # Load the yolov8 model
         videocapture = cv2.VideoCapture(vid_file_name)  # Capture the video
@@ -120,12 +123,17 @@ def inference():
             st.error("Could not open webcam.")
 
         stop_button = st.button("Stop")  # Button to stop the inference
-        # execute code until file closed
+
+        prev_time = 0
         while videocapture.isOpened():
             success, frame = videocapture.read()
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
+
+            curr_time = time.time()
+            fps = 1 / (curr_time - prev_time)
+            prev_time = curr_time
 
             # Store model predictions
             results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
@@ -139,6 +147,9 @@ def inference():
                 videocapture.release()  # Release the capture
                 torch.cuda.empty_cache()  # Clear CUDA memory
                 st.stop()  # Stop streamlit app
+
+            # Display FPS in sidebar
+            fps_display.metric("FPS", f"{fps:.2f}")
 
         # Release the capture
         videocapture.release()

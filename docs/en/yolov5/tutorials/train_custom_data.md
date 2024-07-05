@@ -228,6 +228,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 ### How do I train YOLOv5 on my custom dataset?
 
 Training YOLOv5 on a custom dataset involves several steps:
+
 1. **Prepare Your Dataset**: Collect and label images. Use tools like [Roboflow](https://roboflow.com/?ref=ultralytics) to organize data and export in [YOLOv5 format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
 2. **Setup Environment**: Clone the YOLOv5 repo and install dependencies:
     ```bash
@@ -248,6 +249,7 @@ You can use [Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics), 
 ### Why should I use Ultralytics HUB for training my YOLO models?
 
 Ultralytics HUB offers an end-to-end platform for training, deploying, and managing YOLO models without needing extensive coding skills. Benefits of using Ultralytics HUB include:
+
 - **Easy Model Training**: Simplifies the training process with preconfigured environments.
 - **Data Management**: Effortlessly manage datasets and version control.
 - **Real-time Monitoring**: Integrates tools like [Comet](https://bit.ly/yolov5-readme-comet) for real-time metrics tracking and visualization.
@@ -256,6 +258,7 @@ Ultralytics HUB offers an end-to-end platform for training, deploying, and manag
 ### How do I convert my annotated data to YOLOv5 format?
 
 To convert annotated data to YOLOv5 format using Roboflow:
+
 1. **Upload Your Dataset** to a Roboflow workspace.
 2. **Label Images** if not already labeled.
 3. **Generate and Export** the dataset in `YOLOv5 Pytorch` format. Ensure preprocessing steps like Auto-Orient and Resize (Stretch) to the square input size (e.g., 640x640) are applied.
@@ -264,6 +267,7 @@ To convert annotated data to YOLOv5 format using Roboflow:
 ### What are the licensing options for using YOLOv5 in commercial applications?
 
 Ultralytics offers two licensing options:
+
 - **AGPL-3.0 License**: An open-source license suitable for non-commercial use, ideal for students and enthusiasts.
 - **Enterprise License**: Tailored for businesses seeking to integrate YOLOv5 into commercial products and services. For detailed information, visit our [Licensing page](https://ultralytics.com/license).
 

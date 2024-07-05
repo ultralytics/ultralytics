@@ -9,6 +9,8 @@ import yaml
 
 
 def inference():
+    """Runs real-time object detection on video input using Ultralytics YOLOv8 in a Streamlit application."""
+
     # Scope imports for faster ultralytics package load speeds
     import streamlit as st
 

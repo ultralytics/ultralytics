@@ -162,7 +162,7 @@ nav:
           - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - NEW 🚀 Analytics: guides/analytics.md # for promotion of new pages
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -300,7 +300,7 @@ nav:
           - datasets/track/index.md
   - NEW 🚀 Solutions:
       - solutions/index.md
-      - NEW 🚀 Analytics: guides/analytics.md
+      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -314,6 +314,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -548,6 +549,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - streamlit_inference: reference/solutions/streamlit_inference.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

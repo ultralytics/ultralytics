@@ -10,7 +10,7 @@ keywords: Computer Vision, AI, Object Detection, Image Classification, Instance 
 
 Computer vision is a subfield of artificial intelligence (AI) that helps computers see and understand the world like humans do. It processes and analyzes images or videos to extract information, recognize patterns, and make decisions based on that data.
 
-Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare), to gain valuable insights.
+Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
 
 <p align="center">
   <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQGf61lmNOm3xA/article-cover_image-shrink_720_1280/0/1656513646049?e=1722470400&v=beta&t=23Rqohhxfie38U5syPeL2XepV2QZe6_HSSC-4rAAvt4" alt="Overview of computer vision techniques">
@@ -227,4 +227,4 @@ For more information, check out the [model export guide](../modes/export.md).
 
 ### What are the best practices for monitoring and maintaining a deployed computer vision model?
 
-Continuous monitoring and maintenance are essential for a model's long-term success. Implement tools for tracking Key Performance Indicators (KPIs) and detecting anomalies. Regularly retrain the model with updated data to counteract model drift. Document the entire process, including model architecture, hyperparameters, and changes, to ensure reproducibility and ease of future updates. Learn more in our [monitoring and maintenance guide](#monitoring-maintenance-and-documentation).
+Continuous monitoring and maintenance are essential for a model's long-term success. Implement tools for tracking Key Performance Indicators (KPIs) and detecting anomalies. Regularly retrain the model with updated data to counteract model drift. Document the entire process, including model architecture, hyperparameters, and changes, to ensure reproducibility and ease of future updates. Learn more in our [monitoring and maintenance guide](#step-8-monitoring-maintenance-and-documentation).

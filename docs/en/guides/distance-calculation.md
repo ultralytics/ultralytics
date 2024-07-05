@@ -118,11 +118,11 @@ Using distance calculation with Ultralytics YOLOv8 offers several advantages:
 
 ### Can I perform distance calculation in real-time video streams with Ultralytics YOLOv8?
 
-Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLOv8. The process involves capturing video frames using OpenCV, running YOLOv8 object detection, and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolov8-).
+Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLOv8. The process involves capturing video frames using OpenCV, running YOLOv8 object detection, and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolov8).
 
 ### How do I delete points drawn during distance calculation using Ultralytics YOLOv8?
 
-To delete points drawn during distance calculation with Ultralytics YOLOv8, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolov8-).
+To delete points drawn during distance calculation with Ultralytics YOLOv8, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolov8).
 
 ### What are the key arguments for initializing the DistanceCalculation class in Ultralytics YOLOv8?
 

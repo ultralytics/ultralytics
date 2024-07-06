@@ -35,7 +35,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $A
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache-dir -e ".[export]" "albumentations>=1.4.6" comet pycocotools
+# Pin TensorRT 10.1.0 to avoid bug in 10.2.0 https://github.com/ultralytics/ultralytics/pull/14239
+RUN pip install --no-cache-dir -e ".[export]" "tensorrt-cu12==10.1.0" "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here

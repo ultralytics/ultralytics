@@ -16,7 +16,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.engine.model import Model
-from ultralytics.utils.torch_utils import model_info, smart_inference_mode
+from ultralytics.utils.torch_utils import model_info
 
 from .predict import NASPredictor
 from .val import NASValidator
@@ -49,7 +49,7 @@ class NAS(Model):
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
-    @smart_inference_mode()
+    # @smart_inference_mode()
     def _load(self, weights: str, task: str):
         """Loads an existing NAS model weights or creates a new NAS model with pretrained weights if not provided."""
         import super_gradients

@@ -33,7 +33,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import de_parallel, select_device
 
 
 class BaseValidator:
@@ -102,7 +102,7 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-    @smart_inference_mode()
+    # @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
         gets priority).

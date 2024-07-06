@@ -686,7 +686,7 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("tensorrt", cmds="-U")
+                check_requirements("tensorrt>7.0.0,<=10.1.0")
             import tensorrt as trt  # noqa
         check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
 

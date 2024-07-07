@@ -111,3 +111,83 @@ These smaller versions of the dataset allow for rapid iterations during the deve
 ## Citations and Acknowledgments
 
 If you use the ImageNette dataset in your research or development work, please acknowledge it appropriately. For more information about the ImageNette dataset, visit the [ImageNette dataset GitHub page](https://github.com/fastai/imagenette).
+
+## FAQ
+
+### What is the ImageNette dataset?
+
+The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified subset of the larger [ImageNet dataset](https://www.image-net.org/), featuring only 10 easily distinguishable classes such as tench, English springer, and French horn. It was created to offer a more manageable dataset for efficient training and evaluation of image classification models. This dataset is particularly useful for quick software development and educational purposes in machine learning and computer vision.
+
+### How can I use the ImageNette dataset for training a YOLO model?
+
+To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the following commands. Make sure to have the Ultralytics YOLO environment set up.
+
+!!! Example "Train Example"
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a model
+    model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+    # Train the model
+    results = model.train(data="imagenette", epochs=100, imgsz=224)
+    ```
+
+    === "CLI"
+
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+    ```
+
+For more details, see the [Training](../../modes/train.md) documentation page.
+
+### Why should I use ImageNette for image classification tasks?
+
+The ImageNette dataset is advantageous for several reasons:
+
+- **Quick and Simple**: It contains only 10 classes, making it less complex and time-consuming compared to larger datasets.
+- **Educational Use**: Ideal for learning and teaching the basics of image classification since it requires less computational power and time.
+- **Versatility**: Widely used to train and benchmark various machine learning models, especially in image classification.
+  
+For more details on model training and dataset management, explore the [Dataset Structure](#dataset-structure) section.
+
+### Can the ImageNette dataset be used with different image sizes?
+
+Yes, the ImageNette dataset is also available in two resized versions: ImageNette160 and ImageNette320. These versions help in faster prototyping and are especially useful when computational resources are limited. 
+
+!!! Example "Train Example with ImageNette160"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")
+
+        # Train the model with ImageNette160
+        results = model.train(data="imagenette160", epochs=100, imgsz=160)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model with ImageNette160
+        yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
+        ```
+
+For more information, refer to [Training with ImageNette160 and ImageNette320](#imagenette160-and-imagenette320).
+
+### What are some practical applications of the ImageNette dataset?
+
+The ImageNette dataset is extensively used in:
+
+- **Educational Settings**: To educate beginners in machine learning and computer vision.
+- **Software Development**: For rapid prototyping and development of image classification models.
+- **Deep Learning Research**: To evaluate and benchmark the performance of various deep learning models, especially Convolutional Neural Networks (CNNs).
+
+Explore the [Applications](#applications) section for detailed use cases.

@@ -124,3 +124,81 @@ In this guide, we explored the process of exporting Ultralytics YOLOv8 models to
 For further details on usage, visit [TorchScript's official documentation](https://pytorch.org/docs/stable/jit.html).
 
 Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+
+## FAQ
+
+### What is Ultralytics YOLOv8 model export to TorchScript?
+
+Exporting an Ultralytics YOLOv8 model to TorchScript allows for flexible, cross-platform deployment. TorchScript, a part of the PyTorch ecosystem, facilitates the serialization of models, which can then be executed in environments that lack Python support. This makes it ideal for deploying models on embedded systems, C++ environments, mobile applications, and even web browsers. Exporting to TorchScript enables efficient performance and wider applicability of your YOLOv8 models across diverse platforms.
+
+### How can I export my YOLOv8 model to TorchScript using Ultralytics?
+
+To export a YOLOv8 model to TorchScript, you can use the following example code:
+
+!!! Example "Usage"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the YOLOv8 model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to TorchScript format
+        model.export(format="torchscript")  # creates 'yolov8n.torchscript'
+
+        # Load the exported TorchScript model
+        torchscript_model = YOLO("yolov8n.torchscript")
+
+        # Run inference
+        results = torchscript_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TorchScript format
+        yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
+
+        # Run inference with the exported model
+        yolo predict model=yolov8n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For more details about the export process, refer to the [Ultralytics documentation on exporting](../modes/export.md).
+
+### Why should I use TorchScript for deploying YOLOv8 models?
+
+Using TorchScript for deploying YOLOv8 models offers several advantages:
+
+- **Portability**: Exported models can run in environments without the need for Python, such as C++ applications, embedded systems, or mobile devices.
+- **Optimization**: TorchScript supports static graph execution and Just-In-Time (JIT) compilation, which can optimize model performance.
+- **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
+- **Serialization**: Models can be serialized, allowing for platform-independent loading and inference.
+
+For more insights into deployment, visit the [PyTorch Mobile Documentation](https://pytorch.org/mobile/home/), [TorchServe Documentation](https://pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://pytorch.org/tutorials/advanced/cpp_export.html).
+
+### What are the installation steps for exporting YOLOv8 models to TorchScript?
+
+To install the required package for exporting YOLOv8 models, use the following command:
+
+!!! Tip "Installation"
+
+    === "CLI"
+
+        ```bash
+        # Install the required package for YOLOv8
+        pip install ultralytics
+        ```
+
+For detailed instructions, visit the [Ultralytics Installation guide](../quickstart.md). If any issues arise during installation, consult the [Common Issues guide](../guides/yolo-common-issues.md).
+
+### How do I deploy my exported TorchScript YOLOv8 models?
+
+After exporting YOLOv8 models to the TorchScript format, you can deploy them across a variety of platforms:
+
+- **C++ API**: Ideal for low-overhead, highly efficient production environments.
+- **Mobile Deployment**: Use [PyTorch Mobile](https://pytorch.org/mobile/home/) for iOS and Android applications.
+- **Cloud Deployment**: Utilize services like [TorchServe](https://pytorch.org/serve/getting_started.html) for scalable server-side deployment.
+
+Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

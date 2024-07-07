@@ -21,10 +21,10 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learni
 <br>
 <br>
 <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
-<a href="https://codecov.io/github/ultralytics/ultralytics"><img src="https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY" alt="Ultralytics Code Coverage"></a>
 <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
 <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
 <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
+<a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
 <br>
 <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
@@ -83,7 +83,7 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) added additional tasks such as pose estimation on the COCO keypoints dataset.
 - [YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of YOLO by Ultralytics. As a cutting-edge, state-of-the-art (SOTA) model, YOLOv8 builds on the success of previous versions, introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLOv8 supports a full range of vision AI tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). This versatility allows users to leverage YOLOv8's capabilities across diverse applications and domains.
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
-- [YOLOv10](models/yolov10.md) is created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/). This version introduces an real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
+- [YOLOv10](models/yolov10.md) is created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/). This version provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
@@ -93,3 +93,54 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 - **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://ultralytics.com/license).
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We hold the principles of open source close to our hearts ❤️, and our mission is to guarantee that our contributions can be utilized and expanded upon in ways that are beneficial to all.
+
+## FAQ
+
+### What is Ultralytics YOLO and how does it improve object detection?
+
+Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. It builds on previous versions by introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLOv8 supports various [vision AI tasks](tasks/index.md) such as detection, segmentation, pose estimation, tracking, and classification. Its state-of-the-art architecture ensures superior speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
+
+### How can I get started with YOLO installation and setup?
+
+Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using pip and get up and running in minutes. Here's a basic installation command:
+
+```bash
+pip install ultralytics
+```
+
+For a comprehensive step-by-step guide, visit our [quickstart guide](quickstart.md). This resource will help you with installation instructions, initial setup, and running your first model.
+
+### How can I train a custom YOLO model on my dataset?
+
+Training a custom YOLO model on your dataset involves a few detailed steps:
+
+1. Prepare your annotated dataset.
+2. Configure the training parameters in a YAML file.
+3. Use the `yolo train` command to start training.
+
+Here's an example command:
+
+```bash
+yolo train model=yolov8n.pt data=coco128.yaml epochs=100 imgsz=640
+```
+
+For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide, which includes examples and tips for optimizing your training process.
+
+### What are the licensing options available for Ultralytics YOLO?
+
+Ultralytics offers two licensing options for YOLO:
+
+- **AGPL-3.0 License**: This open-source license is ideal for educational and non-commercial use, promoting open collaboration.
+- **Enterprise License**: This is designed for commercial applications, allowing seamless integration of Ultralytics software into commercial products without the restrictions of the AGPL-3.0 license.
+
+For more details, visit our [Licensing](https://ultralytics.com/license) page.
+
+### How can Ultralytics YOLO be used for real-time object tracking?
+
+Ultralytics YOLO supports efficient and customizable multi-object tracking. To utilize tracking capabilities, you can use the `yolo track` command as shown below:
+
+```bash
+yolo track model=yolov8n.pt source=video.mp4
+```
+
+For a detailed guide on setting up and running object tracking, check our [tracking mode](modes/track.md) documentation, which explains the configuration and practical applications in real-time scenarios.

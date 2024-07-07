@@ -104,3 +104,56 @@ If you use the COCO-Pose dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO-Pose dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+
+## FAQ
+
+### What is the COCO-Pose dataset and how is it used with Ultralytics YOLO for pose estimation?
+
+The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset designed for pose estimation tasks. It builds upon the COCO Keypoints 2017 images and annotations, allowing for the training of models like Ultralytics YOLO for detailed pose estimation. For instance, you can use the COCO-Pose dataset to train a YOLOv8n-pose model by loading a pretrained model and training it with a YAML configuration. For training examples, refer to the [Training](../../modes/train.md) documentation.
+
+### How can I train a YOLOv8 model on the COCO-Pose dataset?
+
+Training a YOLOv8 model on the COCO-Pose dataset can be accomplished using either Python or CLI commands. For example, to train a YOLOv8n-pose model for 100 epochs with an image size of 640, you can follow the steps below:
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=coco-pose.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For more details on the training process and available arguments, check the [training page](../../modes/train.md).
+
+### What are the different metrics provided by the COCO-Pose dataset for evaluating model performance?
+
+The COCO-Pose dataset provides several standardized evaluation metrics for pose estimation tasks, similar to the original COCO dataset. Key metrics include the Object Keypoint Similarity (OKS), which evaluates the accuracy of predicted keypoints against ground truth annotations. These metrics allow for thorough performance comparisons between different models. For instance, the COCO-Pose pretrained models such as YOLOv8n-pose, YOLOv8s-pose, and others have specific performance metrics listed in the documentation, like mAP<sup>pose</sup>50-95 and mAP<sup>pose</sup>50.
+
+### How is the dataset structured and split for the COCO-Pose dataset?
+
+The COCO-Pose dataset is split into three subsets:
+
+1. **Train2017**: Contains a portion of the 118K COCO images, annotated for training pose estimation models.
+2. **Val2017**: Selected images for validation purposes during model training.
+3. **Test2017**: Images used for testing and benchmarking trained models. Ground truth annotations for this subset are not publicly available; results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+
+These subsets help organize the training, validation, and testing phases effectively. For configuration details, explore the `coco-pose.yaml` file available on [GitHub](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
+
+### What are the key features and applications of the COCO-Pose dataset?
+
+The COCO-Pose dataset extends the COCO Keypoints 2017 annotations to include 17 keypoints for human figures, enabling detailed pose estimation. Standardized evaluation metrics (e.g., OKS) facilitate comparisons across different models. Applications of the COCO-Pose dataset span various domains, such as sports analytics, healthcare, and human-computer interaction, wherever detailed pose estimation of human figures is required. For practical use, leveraging pretrained models like those provided in the documentation (e.g., YOLOv8n-pose) can significantly streamline the process ([Key Features](#key-features)).
+
+If you use the COCO-Pose dataset in your research or development work, please cite the paper with the following [BibTeX entry](#citations-and-acknowledgments).

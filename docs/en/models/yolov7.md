@@ -115,22 +115,40 @@ The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.026
 
 ## FAQ
 
-### What makes YOLOv7 the most accurate real-time object detector?
+### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
 
-YOLOv7 stands out due to its superior accuracy and speed. With an accuracy of 56.8% AP and the ability to process up to 161 FPS on a GPU V100, it surpasses all known real-time object detectors. Additionally, YOLOv7 introduces features like model re-parameterization, dynamic label assignment, and efficient parameter usage, enhancing both speed and accuracy. Check out the detailed comparison in the [source paper](https://arxiv.org/pdf/2207.02696.pdf).
+YOLOv7 is a cutting-edge real-time object detection model that achieves unparalleled speed and accuracy. It surpasses other models, such as YOLOX, YOLOv5, and PPYOLOE, in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696.pdf).
 
-### How does model re-parameterization work in YOLOv7?
+### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 
-Model re-parameterization in YOLOv7 involves optimizing the gradient propagation path across various network layers. This strategy effectively recalibrates the training process, improving detection accuracy without increasing the inference cost. For more details, refer to the [Model Re-parameterization section](#key-features) in the documentation.
+YOLOv7 introduces several innovations, including model re-parameterization and dynamic label assignment, which enhance the training process and improve inference accuracy. Compared to YOLOv5, YOLOv7 significantly boosts speed and accuracy. For instance, YOLOv7-X improves accuracy by 2.2% and reduces parameters by 22% compared to YOLOv5-X. Detailed comparisons can be found in the performance table [YOLOv7 comparison with SOTA object detectors](#comparison-of-sota-object-detectors).
 
-### Why should I choose YOLOv7 over YOLOv5 or other object detectors?
+### Can I use YOLOv7 with Ultralytics tools and platforms?
 
-YOLOv7 outperforms YOLOv5 and other detectors like YOLOR, YOLOX, and PPYOLOE in both speed and accuracy. For instance, YOLOv7 achieves 127 FPS faster and 10.7% higher accuracy compared to YOLOv5-N. Furthermore, YOLOv7 effectively reduces parameters and computation while delivering higher AP scores, making it an optimal choice for real-time applications. Learn more in our [comparison table](#comparison-of-sota-object-detectors).
+As of now, Ultralytics does not directly support YOLOv7 in its tools and platforms. Users interested in using YOLOv7 need to follow the installation and usage instructions provided in the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7). For other state-of-the-art models, you can explore and train using Ultralytics tools like [Ultralytics HUB](../hub/quickstart.md).
 
-### What datasets is YOLOv7 trained on, and how do they impact its performance?
+### How do I install and run YOLOv7 for a custom object detection project?
 
-YOLOv7 is trained exclusively on the MS COCO dataset without using additional datasets or pre-trained weights. This robust dataset provides a wide variety of images and annotations that contribute to YOLOv7's high accuracy and generalization capabilities. Explore more about dataset formats and usage in our [datasets section](https://docs.ultralytics.com/datasets/detect/coco/).
+To install and run YOLOv7, follow these steps:
 
-### Are there any practical YOLOv7 usage examples available?
+1. Clone the YOLOv7 repository:
+    ```bash
+    git clone https://github.com/WongKinYiu/yolov7
+    ```
+2. Navigate to the cloned directory and install dependencies:
+    ```bash
+    cd yolov7
+    pip install -r requirements.txt
+    ```
+3. Prepare your dataset and configure the model parameters according to the [usage instructions](https://github.com/WongKinYiu/yolov7) provided in the repository.
+   For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
 
-Currently, Ultralytics does not directly support YOLOv7 models. However, you can find detailed installation and usage instructions on the YOLOv7 GitHub repository. These steps involve cloning the repository, installing dependencies, and setting up your environment to train and use the model. Follow the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7) for the latest updates. For other examples, see our [usage examples](#usage-examples) section.
+### What are the key features and optimizations introduced in YOLOv7?
+
+YOLOv7 offers several key features that revolutionize real-time object detection:
+
+- **Model Re-parameterization**: Enhances the model's performance by optimizing gradient propagation paths.
+- **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
+- **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
+- **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
+    For further details on these features, see the [YOLOv7 Overview](#overview) section.

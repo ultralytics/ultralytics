@@ -177,3 +177,132 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
 ## Note
 
 For any inquiries, feel free to post your questions in the [Ultralytics Issue Section](https://github.com/ultralytics/ultralytics/issues/new/choose) or the discussion section mentioned below.
+
+## FAQ
+
+### How do I start using VisionEye Object Mapping with Ultralytics YOLOv8?
+
+To start using VisionEye Object Mapping with Ultralytics YOLOv8, first, you'll need to install the Ultralytics YOLO package via pip. Then, you can use the sample code provided in the documentation to set up object detection with VisionEye. Here's a simple example to get you started:
+
+```python
+import cv2
+
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    results = model.predict(frame)
+    for result in results:
+        # Perform custom logic with result
+        pass
+
+    cv2.imshow("visioneye", frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+### What are the key features of VisionEye's object tracking capability using Ultralytics YOLOv8?
+
+VisionEye's object tracking with Ultralytics YOLOv8 allows users to follow the movement of objects within a video frame. Key features include:
+
+1. **Real-Time Object Tracking**: Keeps up with objects as they move.
+2. **Object Identification**: Utilizes YOLOv8's powerful detection algorithms.
+3. **Distance Calculation**: Calculates distances between objects and specified points.
+4. **Annotation and Visualization**: Provides visual markers for tracked objects.
+
+Here's a brief code snippet demonstrating tracking with VisionEye:
+
+```python
+import cv2
+
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    results = model.track(frame, persist=True)
+    for result in results:
+        # Annotate and visualize tracking
+        pass
+
+    cv2.imshow("visioneye-tracking", frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+For a comprehensive guide, visit the [VisionEye Object Mapping with Object Tracking](#samples).
+
+### How can I calculate distances with VisionEye's YOLOv8 model?
+
+Distance calculation with VisionEye and Ultralytics YOLOv8 involves determining the distance of detected objects from a specified point in the frame. It enhances spatial analysis capabilities, useful in applications such as autonomous driving and surveillance.
+
+Here's a simplified example:
+
+```python
+import math
+
+import cv2
+
+from ultralytics import YOLO
+
+model = YOLO("yolov8s.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+center_point = (0, 480)  # Example center point
+pixel_per_meter = 10
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    results = model.track(frame, persist=True)
+    for result in results:
+        # Calculate distance logic
+        distances = [
+            (math.sqrt((box[0] - center_point[0]) ** 2 + (box[1] - center_point[1]) ** 2)) / pixel_per_meter
+            for box in results
+        ]
+
+    cv2.imshow("visioneye-distance", frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+For detailed instructions, refer to the [VisionEye with Distance Calculation](#samples).
+
+### Why should I use Ultralytics YOLOv8 for object mapping and tracking?
+
+Ultralytics YOLOv8 is renowned for its speed, accuracy, and ease of integration, making it a top choice for object mapping and tracking. Key advantages include:
+
+1. **State-of-the-art Performance**: Delivers high accuracy in real-time object detection.
+2. **Flexibility**: Supports various tasks such as detection, tracking, and distance calculation.
+3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
+4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
+
+For more information on applications and benefits, check out the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
+
+### How can I integrate VisionEye with other machine learning tools like Comet or ClearML?
+
+Ultralytics YOLOv8 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLOv8 with ClearML](https://docs.ultralytics.com/integrations/clearml/) to get started.
+
+For further exploration and integration examples, check our [Ultralytics Integrations Guide](https://docs.ultralytics.com/integrations/).

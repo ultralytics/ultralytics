@@ -95,3 +95,59 @@ If you use the Argoverse dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge Argo AI for creating and maintaining the Argoverse dataset as a valuable resource for the autonomous driving research community. For more information about the Argoverse dataset and its creators, visit the [Argoverse dataset website](https://www.argoverse.org/).
+
+## FAQ
+
+### What is the Argoverse dataset and its key features?
+
+The [Argoverse](https://www.argoverse.org/) dataset, developed by Argo AI, supports autonomous driving research. It includes over 290K labeled 3D object tracks and 5 million object instances across 1,263 distinct scenes. The dataset provides high-resolution camera images, LiDAR point clouds, and annotated HD maps, making it valuable for tasks like 3D tracking, motion forecasting, and stereo depth estimation.
+
+### How can I train an Ultralytics YOLO model using the Argoverse dataset?
+
+To train a YOLOv8 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For a detailed explanation of the arguments, refer to the model [Training](../../modes/train.md) page.
+
+### What types of data and annotations are available in the Argoverse dataset?
+
+The Argoverse dataset includes various sensor data types such as high-resolution camera images, LiDAR point clouds, and HD map data. Annotations include 3D bounding boxes, object tracks, and trajectory information. These comprehensive annotations are essential for accurate model training in tasks like 3D object tracking, motion forecasting, and stereo depth estimation.
+
+### How is the Argoverse dataset structured?
+
+The dataset is divided into three main subsets:
+
+1. **Argoverse 3D Tracking**: Contains 113 scenes with over 290K labeled 3D object tracks, focusing on 3D object tracking tasks. It includes LiDAR point clouds, camera images, and sensor calibration information.
+2. **Argoverse Motion Forecasting**: Consists of 324K vehicle trajectories collected from 60 hours of driving data, suitable for motion forecasting tasks.
+3. **Argoverse Stereo Depth Estimation**: Includes over 10K stereo image pairs with corresponding LiDAR point clouds for ground truth depth estimation.
+
+### Where can I download the Argoverse dataset now that it has been removed from Amazon S3?
+
+The Argoverse dataset `*.zip` file, previously available on Amazon S3, can now be manually downloaded from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
+
+### What is the YAML configuration file used for with the Argoverse dataset?
+
+A YAML file contains the dataset's paths, classes, and other essential information. For the Argoverse dataset, the configuration file, `Argoverse.yaml`, can be found at the following link: [Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
+
+For more information about YAML configurations, see our [datasets](../index.md) guide.

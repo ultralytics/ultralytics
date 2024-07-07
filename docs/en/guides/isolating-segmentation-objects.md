@@ -14,7 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  See the [Ultralytics Quickstart Installation section](../quickstart.md/#install-ultralytics) for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md) for a quick walkthrough on installing the required libraries.
 
     ***
 
@@ -307,3 +307,93 @@ for r in res:
 4. See [Segment Task](../tasks/segment.md#models) for more information.
 5. Learn more about [Working with Results](../modes/predict.md#working-with-results)
 6. Learn more about [Segmentation Mask Results](../modes/predict.md#masks)
+
+## FAQ
+
+### How do I isolate objects using Ultralytics YOLOv8 for segmentation tasks?
+
+To isolate objects using Ultralytics YOLOv8, follow these steps:
+
+1. **Load the model and run inference:**
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n-seg.pt")
+    results = model.predict(source="path/to/your/image.jpg")
+    ```
+
+2. **Generate a binary mask and draw contours:**
+
+    ```python
+    import cv2
+    import numpy as np
+
+    img = np.copy(results[0].orig_img)
+    b_mask = np.zeros(img.shape[:2], np.uint8)
+    contour = results[0].masks.xy[0].astype(np.int32).reshape(-1, 1, 2)
+    cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
+    ```
+
+3. **Isolate the object using the binary mask:**
+    ```python
+    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+    isolated = cv2.bitwise_and(mask3ch, img)
+    ```
+
+Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task](../tasks/segment.md) for more information.
+
+### What options are available for saving the isolated objects after segmentation?
+
+Ultralytics YOLOv8 offers two main options for saving isolated objects:
+
+1. **With a Black Background:**
+
+    ```python
+    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+    isolated = cv2.bitwise_and(mask3ch, img)
+    ```
+
+2. **With a Transparent Background:**
+    ```python
+    isolated = np.dstack([img, b_mask])
+    ```
+
+For further details, visit the [Predict Mode](../modes/predict.md) section.
+
+### How can I crop isolated objects to their bounding boxes using Ultralytics YOLOv8?
+
+To crop isolated objects to their bounding boxes:
+
+1. **Retrieve bounding box coordinates:**
+
+    ```python
+    x1, y1, x2, y2 = results[0].boxes.xyxy[0].cpu().numpy().astype(np.int32)
+    ```
+
+2. **Crop the isolated image:**
+    ```python
+    iso_crop = isolated[y1:y2, x1:x2]
+    ```
+
+Learn more about bounding box results in the [Predict Mode](../modes/predict.md#boxes) documentation.
+
+### Why should I use Ultralytics YOLOv8 for object isolation in segmentation tasks?
+
+Ultralytics YOLOv8 provides:
+
+- **High-speed** real-time object detection and segmentation.
+- **Accurate bounding box and mask generation** for precise object isolation.
+- **Comprehensive documentation** and easy-to-use API for efficient development.
+
+Explore the benefits of using YOLO in the [Segment Task documentation](../tasks/segment.md).
+
+### Can I save isolated objects including the background using Ultralytics YOLOv8?
+
+Yes, this is a built-in feature in Ultralytics YOLOv8. Use the `save_crop` argument in the `predict()` method. For example:
+
+```python
+results = model.predict(source="path/to/your/image.jpg", save_crop=True)
+```
+
+Read more about the `save_crop` argument in the [Predict Mode Inference Arguments](../modes/predict.md#inference-arguments) section.

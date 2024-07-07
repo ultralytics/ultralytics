@@ -140,3 +140,100 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `iou`     | `float` | `0.5`          | IOU Threshold                                               |
 | `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
 | `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+
+## FAQ
+
+### How can I use Ultralytics YOLOv8 for real-time queue management?
+
+To use Ultralytics YOLOv8 for real-time queue management, you can follow these steps:
+
+1. Load the YOLOv8 model with `YOLO("yolov8n.pt")`.
+2. Capture the video feed using `cv2.VideoCapture`.
+3. Define the region of interest (ROI) for queue management.
+4. Process frames to detect objects and manage queues.
+
+Here's a minimal example:
+
+```python
+import cv2
+
+from ultralytics import YOLO, solutions
+
+model = YOLO("yolov8n.pt")
+cap = cv2.VideoCapture("path/to/video.mp4")
+queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+
+queue = solutions.QueueManager(
+    classes_names=model.names,
+    reg_pts=queue_region,
+    line_thickness=3,
+    fontsize=1.0,
+    region_color=(255, 144, 31),
+)
+
+while cap.isOpened():
+    success, im0 = cap.read()
+    if success:
+        tracks = model.track(im0, show=False, persist=True, verbose=False)
+        out = queue.process_queue(im0, tracks)
+        cv2.imshow("Queue Management", im0)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+Leveraging Ultralytics [HUB](https://docs.ultralytics.com/hub/) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
+
+### What are the key advantages of using Ultralytics YOLOv8 for queue management?
+
+Using Ultralytics YOLOv8 for queue management offers several benefits:
+
+- **Plummeting Waiting Times:** Efficiently organizes queues, reducing customer wait times and boosting satisfaction.
+- **Enhancing Efficiency:** Analyzes queue data to optimize staff deployment and operations, thereby reducing costs.
+- **Real-time Alerts:** Provides real-time notifications for long queues, enabling quick intervention.
+- **Scalability:** Easily scalable across different environments like retail, airports, and healthcare.
+
+For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management/) solutions.
+
+### Why should I choose Ultralytics YOLOv8 over competitors like TensorFlow or Detectron2 for queue management?
+
+Ultralytics YOLOv8 has several advantages over TensorFlow and Detectron2 for queue management:
+
+- **Real-time Performance:** YOLOv8 is known for its real-time detection capabilities, offering faster processing speeds.
+- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics HUB](https://docs.ultralytics.com/hub/).
+- **Pretrained Models:** Access to a range of pretrained models, minimizing the time needed for setup.
+- **Community Support:** Extensive documentation and active community support make problem-solving easier.
+
+Learn how to get started with [Ultralytics YOLO](https://docs.ultralytics.com/quickstart/).
+
+### Can Ultralytics YOLOv8 handle multiple types of queues, such as in airports and retail?
+
+Yes, Ultralytics YOLOv8 can manage various types of queues, including those in airports and retail environments. By configuring the QueueManager with specific regions and settings, YOLOv8 can adapt to different queue layouts and densities.
+
+Example for airports:
+
+```python
+queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
+queue_airport = solutions.QueueManager(
+    classes_names=model.names,
+    reg_pts=queue_region_airport,
+    line_thickness=3,
+    fontsize=1.0,
+    region_color=(0, 255, 0),
+)
+```
+
+For more information on diverse applications, check out our [Real World Applications](#real-world-applications) section.
+
+### What are some real-world applications of Ultralytics YOLOv8 in queue management?
+
+Ultralytics YOLOv8 is used in various real-world applications for queue management:
+
+- **Retail:** Monitors checkout lines to reduce wait times and improve customer satisfaction.
+- **Airports:** Manages queues at ticket counters and security checkpoints for a smoother passenger experience.
+- **Healthcare:** Optimizes patient flow in clinics and hospitals.
+- **Banks:** Enhances customer service by managing queues efficiently in banks.
+
+Check our [blog on real-world queue management](https://www.ultralytics.com/blog/revolutionizing-queue-management-with-ultralytics-yolov8-and-openvino) to learn more.

@@ -39,7 +39,7 @@ Let's focus on two specific mAP metrics:
 - *mAP@.5:* Measures the average precision at a single IoU (Intersection over Union) threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement. It helps see if the model is generally good at spotting objects.
 - *mAP@.5:.95:* Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
 
-Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes​.
+Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
   <img width="100%" src="https://a.storyblok.com/f/139616/1200x800/913f78e511/ways-to-improve-mean-average-precision.webp" alt="Mean Average Precision Overview">
@@ -103,7 +103,7 @@ If you want to get a deeper understanding of your YOLOv8 model's performance, yo
 
 The results object also includes speed metrics like preprocess time, inference time, loss, and postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLOv8 model for better performance, making it more effective for your specific use case.
 
-## How Does Fine Tuning Work?
+## How Does Fine-Tuning Work?
 
 Fine-tuning involves taking a pre-trained model and adjusting its parameters to improve performance on a specific task or dataset. The process, also known as model retraining, allows the model to better understand and predict outcomes for the specific data it will encounter in real-world applications. You can retrain your model based on your model evaluation to achieve optimal results.
 
@@ -137,3 +137,52 @@ Sharing your ideas and questions with other computer vision enthusiasts can insp
 ## Final Thoughts
 
 Evaluating and fine-tuning your computer vision model are important steps for successful model deployment. These steps help make sure that your model is accurate, efficient, and suited to your overall application. The key to training the best model possible is continuous experimentation and learning. Don't hesitate to tweak parameters, try new techniques, and explore different datasets. Keep experimenting and pushing the boundaries of what's possible!
+
+## FAQ
+
+### What are the key metrics for evaluating YOLOv8 model performance?
+
+To evaluate YOLOv8 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP@.5 and mAP@.5:.95 being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLOv8 performance metrics guide](./yolo-performance-metrics.md).
+
+### How can I fine-tune a pre-trained YOLOv8 model for my specific dataset?
+
+Fine-tuning a pre-trained YOLOv8 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model using metrics, then set a higher initial learning rate by adjusting the `warmup_epochs` parameter to 0 for immediate stability. Use parameters like `rect=true` for handling varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning YOLOv8 models](#how-does-fine-tuning-work).
+
+### How can I handle variable image sizes when evaluating my YOLOv8 model?
+
+To handle variable image sizes during evaluation, use the `rect=true` parameter in YOLOv8, which adjusts the network's stride for each batch based on image sizes. The `imgsz` parameter sets the maximum dimension for image resizing, defaulting to 640. Adjust `imgsz` to suit your dataset and GPU memory. For more details, visit our [section on handling variable image sizes](#handling-variable-image-sizes).
+
+### What practical steps can I take to improve mean average precision for my YOLOv8 model?
+
+Improving mean average precision (mAP) for a YOLOv8 model involves several steps:
+
+1. **Tuning Hyperparameters**: Experiment with different learning rates, batch sizes, and image augmentations.
+2. **Data Augmentation**: Use techniques like Mosaic and MixUp to create diverse training samples.
+3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
+   Refer to our detailed guide on [model fine-tuning](#tips-for-fine-tuning-your-model) for specific strategies.
+
+### How do I access YOLOv8 model evaluation metrics in Python?
+
+You can access YOLOv8 model evaluation metrics using Python with the following steps:
+
+!!! Example "Usage"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the model
+        model = YOLO("yolov8n.pt")
+
+        # Run the evaluation
+        results = model.val(data="coco8.yaml")
+
+        # Print specific metrics
+        print("Class indices with average precision:", results.ap_class_index)
+        print("Average precision for all classes:", results.box.all_ap)
+        print("Mean average precision at IoU=0.50:", results.box.map50)
+        print("Mean recall:", results.box.mr)
+        ```
+
+Analyzing these metrics helps fine-tune and optimize your YOLOv8 model. For a deeper dive, check out our guide on [YOLOv8 metrics](../modes/val.md).

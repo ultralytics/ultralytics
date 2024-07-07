@@ -181,7 +181,7 @@ def _get_covariance_matrix(boxes):
         boxes (torch.Tensor): A tensor of shape (..., 5) representing rotated bounding boxes, with xywhr format.
 
     Returns:
-        (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): Covariance matrices corresponding 
+        (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): Covariance matrices corresponding
             to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
@@ -216,19 +216,14 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     sqrt_det2 = w2 * h2 / 12
 
     det_sum = (
-        sqrt_det1.pow(2) + sqrt_det2.pow(2)
+        sqrt_det1.pow(2)
+        + sqrt_det2.pow(2)
         + (w1.pow(2) * h2.pow(2) + w2.pow(2) * h1.pow(2)) * torch.cos(theta2 - theta1).pow(2) / 144
-        + (w1.pow(2) * h1.pow(2) + w2.pow(2) * h2.pow(2))  * torch.sin(theta2 - theta1).pow(2) / 144
+        + (w1.pow(2) * h1.pow(2) + w2.pow(2) * h2.pow(2)) * torch.sin(theta2 - theta1).pow(2) / 144
     )
-    t1 = (
-        ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / (det_sum + eps)
-    ) * 0.25
+    t1 = (((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / (det_sum + eps)) * 0.25
     t2 = (c1 + c2) * (x2 - x1) * (y1 - y2) / (det_sum + eps) * 0.5
-    t3 = (
-        det_sum
-        / (4 * sqrt_det1 * sqrt_det2 + eps)
-        + eps
-    ).log() * 0.5
+    t3 = (det_sum / (4 * sqrt_det1 * sqrt_det2 + eps) + eps).log() * 0.5
     bd = (t1 + t2 + t3).clamp(eps, 100.0)
     hd = (1.0 - (-bd).exp() + eps).sqrt()
     iou = 1 - hd
@@ -238,6 +233,7 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
             alpha = v / (v - iou + (1 + eps))
         return iou - v * alpha  # CIoU
     return iou.squeeze(-1)
+
 
 def smooth_BCE(eps=0.1):
     """
@@ -317,7 +313,7 @@ class ConfusionMatrix:
         is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
         iou = (
             probiou(
-                gt_bboxes[:,None], 
+                gt_bboxes[:, None],
                 torch.cat([detections[:, :4], detections[:, -1:]], dim=-1)[None],
             )
             if is_obb

@@ -4,7 +4,8 @@ import numpy as np
 import scipy
 from scipy.spatial.distance import cdist
 
-from ultralytics.utils.metrics import batch_probiou, bbox_ioa
+from ultralytics.utils.metrics import probiou, bbox_ioa
+#from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
 try:
     import lap  # for linear_assignment
@@ -80,9 +81,10 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if len(atlbrs) and len(btlbrs):
         if len(atlbrs[0]) == 5 and len(btlbrs[0]) == 5:
-            ious = batch_probiou(
-                np.ascontiguousarray(atlbrs, dtype=np.float32),
-                np.ascontiguousarray(btlbrs, dtype=np.float32),
+            #ious = batch_probiou(
+            ious = probiou(
+                np.ascontiguousarray(atlbrs, dtype=np.float32)[:,None],
+                np.ascontiguousarray(btlbrs, dtype=np.float32)[None],
             ).numpy()
         else:
             ious = bbox_ioa(

@@ -6,7 +6,7 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.metrics import OBBMetrics, batch_probiou
+from ultralytics.utils.metrics import OBBMetrics, probiou
 from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
@@ -64,7 +64,10 @@ class OBBValidator(DetectionValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
-        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
+        iou = probiou(
+            gt_bboxes[:, None], 
+            torch.cat([detections[:, :4], detections[:, -1:]], dim=-1)[None],
+        )
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def _prepare_batch(self, si, batch):

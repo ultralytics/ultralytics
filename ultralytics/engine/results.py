@@ -120,7 +120,12 @@ class Results(SimpleClass):
             boxes (torch.tensor, optional): A 2D tensor of bounding box coordinates for each detection.
             masks (torch.tensor, optional): A 3D tensor of detection masks, where each mask is a binary image.
             probs (torch.tensor, optional): A 1D tensor of probabilities of each class for classification task.
-            keypoints (torch.tensor, optional): A 2D tensor of keypoint coordinates for each detection.
+            keypoints (torch.tensor, optional): A 2D tensor of keypoint coordinates for each detection. For default pose
+                model, Keypoint indices for human body pose estimation are:
+                0: Nose, 1: Left Eye, 2: Right Eye, 3: Left Ear, 4: Right Ear
+                5: Left Shoulder, 6: Right Shoulder, 7: Left Elbow, 8: Right Elbow
+                9: Left Wrist, 10: Right Wrist, 11: Left Hip, 12: Right Hip
+                13: Left Knee, 14: Right Knee, 15: Left Ankle, 16: Right Ankle
             obb (torch.tensor, optional): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (dict, optional): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 

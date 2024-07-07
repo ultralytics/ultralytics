@@ -39,6 +39,26 @@ The output of a pose estimation model is a set of points that represent the keyp
 
     YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
+    In the default YOLOv8 pose model, there are 17 keypoints, each representing a different part of the human body. Here is the mapping of each index to its respective body joint:
+
+    0: Nose
+    1: Left Eye
+    2: Right Eye
+    3: Left Ear
+    4: Right Ear
+    5: Left Shoulder
+    6: Right Shoulder
+    7: Left Elbow
+    8: Right Elbow
+    9: Left Wrist
+    10: Right Wrist
+    11: Left Hip
+    12: Right Hip
+    13: Left Knee
+    14: Right Knee
+    15: Left Ankle
+    16: Right Ankle
+
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
 
 YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.

@@ -78,3 +78,53 @@ If you use the CIFAR-100 dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
+
+## FAQ
+
+### What is the CIFAR-100 dataset and why is it significant?
+
+The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large collection of 60,000 32x32 color images classified into 100 classes. Developed by the Canadian Institute For Advanced Research (CIFAR), it provides a challenging dataset ideal for complex machine learning and computer vision tasks. Its significance lies in the diversity of classes and the small size of the images, making it a valuable resource for training and testing deep learning models, like Convolutional Neural Networks (CNNs), using frameworks such as Ultralytics YOLO.
+
+### How do I train a YOLO model on the CIFAR-100 dataset?
+
+You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here's how:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="cifar100", epochs=100, imgsz=32)
+        ```
+
+    === "CLI"
+        
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+        ```
+
+For a comprehensive list of available arguments, please refer to the model [Training](../../modes/train.md) page.
+
+### What are the primary applications of the CIFAR-100 dataset?
+
+The CIFAR-100 dataset is extensively used in training and evaluating deep learning models for image classification. Its diverse set of 100 classes, grouped into 20 coarse categories, provides a challenging environment for testing algorithms such as Convolutional Neural Networks (CNNs), Support Vector Machines (SVMs), and various other machine learning approaches. This dataset is a key resource in research and development within machine learning and computer vision fields.
+
+### How is the CIFAR-100 dataset structured?
+
+The CIFAR-100 dataset is split into two main subsets:
+
+1. **Training Set**: Contains 50,000 images used for training machine learning models.
+2. **Testing Set**: Consists of 10,000 images used for testing and benchmarking the trained models.
+
+Each of the 100 classes contains 600 images, with 500 images for training and 100 for testing, making it uniquely suited for rigorous academic and industrial research.
+
+### Where can I find sample images and annotations from the CIFAR-100 dataset?
+
+The CIFAR-100 dataset includes a variety of color images of various objects, making it a structured dataset for image classification tasks. You can refer to the documentation page to see [sample images and annotations](#sample-images-and-annotations). These examples highlight the dataset's diversity and complexity, important for training robust image classification models.

@@ -110,3 +110,103 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+
+## FAQ
+
+### How do I export a YOLOv8 model to ONNX format?
+
+Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load an official model
+        model = YOLO("path/to/best.pt")  # load a custom trained model
+
+        # Export the model
+        model.export(format="onnx")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n.pt format=onnx  # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        ```
+
+For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX](../integrations/onnx.md) section.
+
+### What are the benefits of using TensorRT for model export?
+
+Using TensorRT for model export offers significant performance improvements. YOLOv8 models exported to TensorRT can achieve up to a 5x GPU speedup, making it ideal for real-time inference applications.
+
+- **Versatility:** Optimize models for a specific hardware setup.
+- **Speed:** Achieve faster inference through advanced optimizations.
+- **Compatibility:** Integrate smoothly with NVIDIA hardware.
+
+To learn more about integrating TensorRT, see the [TensorRT](../integrations/tensorrt.md) integration guide.
+
+### How do I enable INT8 quantization when exporting my YOLOv8 model?
+
+INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")  # Load a model
+        model.export(format="onnx", int8=True)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n.pt format=onnx int8=True   # export model with INT8 quantization
+        ```
+
+INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export](../modes/export.md) section.
+
+### Why is dynamic input size important when exporting models?
+
+Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like ONNX or TensorRT, enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
+
+To enable this feature, use the `dynamic=True` flag during export:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", dynamic=True)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n.pt format=onnx dynamic=True
+        ```
+
+For additional context, refer to the [dynamic input size configuration](#arguments).
+
+### What are the key export arguments to consider for optimizing model performance?
+
+Understanding and configuring export arguments is crucial for optimizing model performance:
+
+- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
+- **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
+- **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference.
+- **`optimize:`** Applies specific optimizations for mobile or constrained environments.
+- **`int8:`** Enables INT8 quantization, highly beneficial for edge deployments.
+
+For a detailed list and explanations of all the export arguments, visit the [Export Arguments](#arguments) section.

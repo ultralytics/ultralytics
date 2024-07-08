@@ -175,6 +175,7 @@ class v8DetectionLoss:
         self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+        assert self.proj.get_device() >= 0
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
@@ -198,6 +199,14 @@ class v8DetectionLoss:
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
             b, a, c = pred_dist.shape  # batch, anchors, channels
+
+            print("Device A:", pred_dist.get_device())
+            print("Device B:", self.proj.get_device())
+            assert self.proj.get_device() >= 0
+            
+            myDevice = 'cpu' if pred_dist.get_device() < 0 else pred_dist.get_device()
+            self.proj = self.proj.to(myDevice)
+
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = pred_dist.view(b, a, c // 4, 4).transpose(2,3).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)

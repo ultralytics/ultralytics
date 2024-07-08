@@ -454,7 +454,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
         ov_model = ov.convert_model(
-            self.model.cpu(),
+            self.model,
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )

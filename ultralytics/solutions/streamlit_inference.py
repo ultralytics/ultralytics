@@ -91,10 +91,10 @@ def inference():
         ),
     )
 
-    with st.spinner('Model is downloading...'):
+    with st.spinner("Model is downloading..."):
         model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
         class_names = list(model.names.values())  # Convert dictionary to list of class names
-    st.success('Model loaded successfully!')
+    st.success("Model loaded successfully!")
 
     # Multiselect box with class names and get indices of selected classes
     selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3])
@@ -134,7 +134,9 @@ def inference():
 
             # Store model predictions
             if enable_trk:
-                results = model.track(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind, persist=True)
+                results = model.track(
+                    frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind, persist=True
+                )
             else:
                 results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
             annotated_frame = results[0].plot()  # Add annotations on frame

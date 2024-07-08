@@ -83,10 +83,18 @@ def inference():
             "YOLOv8m-Pose",
             "YOLOv8l-Pose",
             "YOLOv8x-Pose",
+            "YOLOv8n-oiv7",
+            "YOLOv8s-oiv7",
+            "YOLOv8m-oiv7",
+            "YOLOv8l-oiv7",
+            "YOLOv8x-oiv7",
         ),
     )
-    model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
-    class_names = list(model.names.values())  # Convert dictionary to list of class names
+
+    with st.spinner('Model is downloading...'):
+        model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
+        class_names = list(model.names.values())  # Convert dictionary to list of class names
+    st.success('Model loaded successfully!')
 
     # Multiselect box with class names and get indices of selected classes
     selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3])
@@ -95,6 +103,7 @@ def inference():
     if not isinstance(selected_ind, list):  # Ensure selected_options is a list
         selected_ind = list(selected_ind)
 
+    enable_trk = st.sidebar.radio("Enable Tracking", ("Yes", "No"))
     conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
     nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
 
@@ -124,7 +133,10 @@ def inference():
             prev_time = curr_time
 
             # Store model predictions
-            results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
+            if enable_trk:
+                results = model.track(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind, persist=True)
+            else:
+                results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
             annotated_frame = results[0].plot()  # Add annotations on frame
 
             # display frame

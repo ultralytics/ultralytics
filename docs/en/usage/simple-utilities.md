@@ -349,6 +349,9 @@ from ultralytics.utils.ops import (
     xyxy2ltwh,  # xyxy → top-left corner, w, h
     xyxy2xywhn,  # pixel → normalized
 )
+
+for func in (ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xywhn2xyxy, xyxy2ltwh, xyxy2xywhn):
+    print(help(func))  # print function docstrings
 ```
 
 See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.
@@ -441,6 +444,86 @@ for obb in obb_boxes:
 image_with_obb = ann.result()
 ```
 
+#### Bounding Boxes Circle Annotation ([Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label))
+
+```python
+import cv2
+
+from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator, colors
+
+model = YOLO("yolov8s.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+writer = cv2.VideoWriter("Ultralytics circle annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+
+while True:
+    ret, im0 = cap.read()
+    if not ret:
+        break
+
+    annotator = Annotator(im0, line_width=2)
+
+    results = model.predict(im0)
+    boxes = results[0].boxes.xyxy.cpu()
+    clss = results[0].boxes.cls.cpu().tolist()
+
+    for box, cls in zip(boxes, clss):
+        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
+        annotator.circle_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+
+    writer.write(im0)
+    cv2.imshow("Ultralytics circle annotation", im0)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+writer.release()
+cap.release()
+cv2.destroyAllWindows()
+```
+
+#### Bounding Boxes Text Annotation ([Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label))
+
+```python
+import cv2
+
+from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator, colors
+
+model = YOLO("yolov8s.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+writer = cv2.VideoWriter("Ultralytics text annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+
+while True:
+    ret, im0 = cap.read()
+    if not ret:
+        break
+
+    annotator = Annotator(im0, line_width=2)
+
+    results = model.predict(im0)
+    boxes = results[0].boxes.xyxy.cpu()
+    clss = results[0].boxes.cls.cpu().tolist()
+
+    for box, cls in zip(boxes, clss):
+        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
+        annotator.text_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+
+    writer.write(im0)
+    cv2.imshow("Ultralytics text annotation", im0)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+writer.release()
+cap.release()
+cv2.destroyAllWindows()
+```
+
 See the [`Annotator` Reference Page](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) for additional insight.
 
 ## Miscellaneous
@@ -467,7 +550,10 @@ Want or need to use the formats of [images or videos types supported](../modes/p
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# >>> ('bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm')
+# {'tiff', 'pfm', 'bmp', 'mpo', 'dng', 'jpeg', 'png', 'webp', 'tif', 'jpg'}
+
+print(VID_FORMATS)
+# {'avi', 'mpg', 'wmv', 'mpeg', 'm4v', 'mov', 'mp4', 'asf', 'mkv', 'ts', 'gif', 'webm'}
 ```
 
 ### Make Divisible
@@ -482,3 +568,64 @@ make_divisible(7, 3)
 make_divisible(7, 2)
 # >>> 8
 ```
+
+## FAQ
+
+### What utilities are included in the Ultralytics package to enhance machine learning workflows?
+
+The Ultralytics package includes a variety of utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting COCO to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools aim to reduce manual effort, ensure consistency, and enhance data processing efficiency.
+
+### How can I use Ultralytics to auto-label my dataset?
+
+If you have a pre-trained Ultralytics YOLO object detection model, you can use it with the [SAM](../models/sam.md) model to auto-annotate your dataset in segmentation format. Here's an example:
+
+```python
+from ultralytics.data.annotator import auto_annotate
+
+auto_annotate(
+    data="path/to/new/data",
+    det_model="yolov8n.pt",
+    sam_model="mobile_sam.pt",
+    device="cuda",
+    output_dir="path/to/save_labels",
+)
+```
+
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+
+### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
+
+To convert COCO JSON annotations into YOLO format for object detection, you can use the `convert_coco` utility. Here's a sample code snippet:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(
+    "../datasets/coco/annotations/",
+    use_segments=False,
+    use_keypoints=False,
+    cls91to80=True,
+)
+```
+
+For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
+
+### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+
+The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+
+### How can I convert bounding boxes to segments in Ultralytics?
+
+To convert existing bounding box data (in `x y w h` format) to segments, you can use the `yolo_bbox2segment` function. Ensure your files are organized with separate directories for images and labels.
+
+```python
+from ultralytics.data.converter import yolo_bbox2segment
+
+yolo_bbox2segment(
+    im_dir="path/to/images",
+    save_dir=None,  # saved to "labels-segment" in the images directory
+    sam_model="sam_b.pt",
+)
+```
+
+For more information, visit the [yolo_bbox2segment reference page](../reference/data/converter.md#ultralytics.data.converter.yolo_bbox2segment).

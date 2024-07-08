@@ -130,26 +130,6 @@ If you are working with multiple people, consistency between different annotator
 
 While reviewing, if you find errors, correct them and update the guidelines to avoid future mistakes. Provide feedback to annotators and offer regular training to help reduce errors. Having a strong process for handling errors keeps your dataset accurate and reliable.
 
-## FAQs
-
-Here are some questions that might encounter while collecting and annotating data:
-
-- **Q1:** What is active learning in the context of data annotation?
-
-    - **A1:** Active learning in data annotation is a technique where a machine learning model iteratively selects the most informative data points for labeling. This improves the model's performance with fewer labeled examples. By focusing on the most valuable data, active learning accelerates the training process and improves the model's ability to generalize from limited data.
-
-<p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/5d7b77b063a9066d83e1209c/63b413cc43a073846453dca4_633a98dcd9b9793e1eebdfb6_HERO_Active%2520Learning%2520.png" alt="Overview of Active Learning">
-</p>
-
-- **Q2:** How does automated annotation work?
-
-    - **A2:** Automated annotation uses pre-trained models and algorithms to label data without needing human effort. These models, which have been trained on large datasets, can identify patterns and features in new data. Techniques like transfer learning adjust these models for specific tasks, and active learning helps by selecting the most useful data points for labeling. However, this approach is only possible in certain cases where the model has been trained on sufficiently similar data and tasks.
-
-- **Q3:** How many images do I need to collect for [YOLOv8 custom training](../modes/train.md)?
-
-    - **A3:** For transfer learning and object detection, a good general rule of thumb is to have a minimum of a few hundred annotated objects per class. However, when training a model to detect just one class, it is advisable to start with at least 100 annotated images and train for around 100 epochs. For complex tasks, you may need thousands of images per class to achieve reliable model performance.
-
 ## Share Your Thoughts with the Community
 
 Bouncing your ideas and queries off other computer vision enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
@@ -166,3 +146,38 @@ Bouncing your ideas and queries off other computer vision enthusiasts can help a
 ## Conclusion
 
 By following the best practices for collecting and annotating data, avoiding bias, and using the right tools and techniques, you can significantly improve your model's performance. Engaging with the community and using available resources will keep you informed and help you troubleshoot issues effectively. Remember, quality data is the foundation of a successful project, and the right strategies will help you build robust and reliable models.
+
+## FAQ
+
+### What is the best way to avoid bias in data collection for computer vision projects?
+
+Avoiding bias in data collection ensures that your computer vision model performs well across various scenarios. To minimize bias, consider collecting data from diverse sources to capture different perspectives and scenarios. Ensure balanced representation among all relevant groups, such as different ages, genders, and ethnicities. Regularly review and update your dataset to identify and address any emerging biases. Techniques such as oversampling underrepresented classes, data augmentation, and fairness-aware algorithms can also help mitigate bias. By employing these strategies, you maintain a robust and fair dataset that enhances your model's generalization capability.
+
+### How can I ensure high consistency and accuracy in data annotation?
+
+Ensuring high consistency and accuracy in data annotation involves establishing clear and objective labeling guidelines. Your instructions should be detailed, with examples and illustrations to clarify expectations. Consistency is achieved by setting standard criteria for annotating various data types, ensuring all annotations follow the same rules. To reduce personal biases, train annotators to stay neutral and objective. Regular reviews and updates of labeling rules help maintain accuracy and alignment with project goals. Using automated tools to check for consistency and getting feedback from other annotators also contribute to maintaining high-quality annotations.
+
+### How many images do I need for training Ultralytics YOLO models?
+
+For effective transfer learning and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 epochs. More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLOv8 training guide](../modes/train.md).
+
+### What are some popular tools for data annotation?
+
+Several popular open-source tools can streamline the data annotation process:
+
+- **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool supporting various annotation tasks, project management, and quality control features.
+- **[CVAT](https://www.cvat.ai/)**: Offers multiple annotation formats and customizable workflows, making it suitable for complex projects.
+- **[Labelme](https://github.com/labelmeai/labelme)**: Ideal for quick and straightforward image annotation with polygons.
+
+These tools can help enhance the efficiency and accuracy of your annotation workflows. For extensive feature lists and guides, refer to our [data annotation tools documentation](../datasets/index.md).
+
+### What types of data annotation are commonly used in computer vision?
+
+Different types of data annotation cater to various computer vision tasks:
+
+- **Bounding Boxes**: Used primarily for object detection, these are rectangular boxes around objects in an image.
+- **Polygons**: Provide more precise object outlines suitable for instance segmentation tasks.
+- **Masks**: Offer pixel-level detail, used in semantic segmentation to differentiate objects from the background.
+- **Keypoints**: Identify specific points of interest within an image, useful for tasks like pose estimation and facial landmark detection.
+
+Selecting the appropriate annotation type depends on your project's requirements. Learn more about how to implement these annotations and their formats in our [data annotation guide](#what-is-data-annotation).

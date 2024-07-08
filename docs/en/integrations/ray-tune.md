@@ -183,3 +183,102 @@ plt.show()
 In this documentation, we covered common workflows to analyze the results of experiments run with Ray Tune using Ultralytics. The key steps include loading the experiment results from a directory, performing basic experiment-level and trial-level analysis and plotting metrics.
 
 Explore further by looking into Ray Tune's [Analyze Results](https://docs.ray.io/en/latest/tune/examples/tune_analyze_results.html) docs page to get the most out of your hyperparameter tuning experiments.
+
+## FAQ
+
+### How do I tune the hyperparameters of my YOLOv8 model using Ray Tune?
+
+To tune the hyperparameters of your Ultralytics YOLOv8 model using Ray Tune, follow these steps:
+
+1. **Install the required packages:**
+
+    ```bash
+    pip install -U ultralytics "ray[tune]"
+    pip install wandb  # optional for logging
+    ```
+
+2. **Load your YOLOv8 model and start tuning:**
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a YOLOv8 model
+    model = YOLO("yolov8n.pt")
+
+    # Start tuning with the COCO8 dataset
+    result_grid = model.tune(data="coco8.yaml", use_ray=True)
+    ```
+
+This utilizes Ray Tune's advanced search strategies and parallelism to efficiently optimize your model's hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
+
+### What are the default hyperparameters for YOLOv8 tuning with Ray Tune?
+
+Ultralytics YOLOv8 uses the following default hyperparameters for tuning with Ray Tune:
+
+| Parameter       | Value Range                | Description                    |
+| --------------- | -------------------------- | ------------------------------ |
+| `lr0`           | `tune.uniform(1e-5, 1e-1)` | Initial learning rate          |
+| `lrf`           | `tune.uniform(0.01, 1.0)`  | Final learning rate factor     |
+| `momentum`      | `tune.uniform(0.6, 0.98)`  | Momentum                       |
+| `weight_decay`  | `tune.uniform(0.0, 0.001)` | Weight decay                   |
+| `warmup_epochs` | `tune.uniform(0.0, 5.0)`   | Warmup epochs                  |
+| `box`           | `tune.uniform(0.02, 0.2)`  | Box loss weight                |
+| `cls`           | `tune.uniform(0.2, 4.0)`   | Class loss weight              |
+| `hsv_h`         | `tune.uniform(0.0, 0.1)`   | Hue augmentation range         |
+| `translate`     | `tune.uniform(0.0, 0.9)`   | Translation augmentation range |
+
+These hyperparameters can be customized to suit your specific needs. For a complete list and more details, refer to the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
+
+### How can I integrate Weights & Biases with my YOLOv8 model tuning?
+
+To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
+
+1. **Install W&B:**
+
+    ```bash
+    pip install wandb
+    ```
+
+2. **Modify your tuning script:**
+
+    ```python
+    import wandb
+
+    from ultralytics import YOLO
+
+    wandb.init(project="YOLO-Tuning", entity="your-entity")
+
+    # Load YOLO model
+    model = YOLO("yolov8n.pt")
+
+    # Tune hyperparameters
+    result_grid = model.tune(data="coco8.yaml", use_ray=True)
+    ```
+
+This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B.
+
+### Why should I use Ray Tune for hyperparameter optimization with YOLOv8?
+
+Ray Tune offers numerous advantages for hyperparameter optimization:
+
+- **Advanced Search Strategies:** Utilizes algorithms like Bayesian Optimization and HyperOpt for efficient parameter search.
+- **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
+- **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
+
+Ray Tune seamlessly integrates with Ultralytics YOLOv8, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](../guides/hyperparameter-tuning.md) guide.
+
+### How can I define a custom search space for YOLOv8 hyperparameter tuning?
+
+To define a custom search space for your YOLOv8 hyperparameter tuning with Ray Tune:
+
+```python
+from ray import tune
+
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
+result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
+```
+
+This customizes the range of hyperparameters like initial learning rate and momentum to be explored during the tuning process. For advanced configurations, refer to the [Custom Search Space Example](#custom-search-space-example) section.

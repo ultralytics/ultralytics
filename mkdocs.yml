@@ -21,7 +21,7 @@ theme:
   name: material
   language: en
   custom_dir: docs/overrides/
-  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
+  logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   icon:
     repo: fontawesome/brands/github
@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/ultralytics
     - icon: fontawesome/brands/youtube
-      link: https://www.youtube.com/ultralytics
+      link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
@@ -162,7 +162,7 @@ nav:
           - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - NEW 🚀 Analytics: guides/analytics.md # for promotion of new pages
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -173,6 +173,8 @@ nav:
           - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
           - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
           - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
+          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it/
+          - 🇳🇱&nbsp Nederlands: https://docs.ultralytics.com/nl/
           - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
           - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
           - 🇮🇳&nbsp हिन्दी: https://docs.ultralytics.com/hi/
@@ -298,7 +300,7 @@ nav:
           - datasets/track/index.md
   - NEW 🚀 Solutions:
       - solutions/index.md
-      - NEW 🚀 Analytics: guides/analytics.md
+      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -312,6 +314,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -326,15 +329,21 @@ nav:
       - Docker Quickstart: guides/docker-quickstart.md
       - Raspberry Pi: guides/raspberry-pi.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
+      - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
+      - ROS Quickstart: guides/ros-quickstart.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
       - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
+      - Tips for Model Training: guides/model-training-tips.md
+      - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
+      - A Guide on Model Testing: guides/model-testing.md
+      - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
@@ -354,7 +363,6 @@ nav:
               - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
               - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
               - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
-              - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
               - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
               - Model Ensembling: yolov5/tutorials/model_ensembling.md
               - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
@@ -541,6 +549,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - streamlit_inference: reference/solutions/streamlit_inference.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
@@ -612,7 +621,7 @@ plugins:
       add_authors: True
       add_json_ld: True
       add_share_buttons: True
-      default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
+      default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
@@ -642,6 +651,7 @@ plugins:
         reference/ops.md: reference/utils/ops.md
         reference/results.md: reference/engine/results.md
         reference/base_val.md: index.md
+        reference/index.md: reference/cfg/__init__.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md
@@ -654,7 +664,7 @@ plugins:
         tutorials/hyperparameter-evolution.md: yolov5/tutorials/hyperparameter_evolution.md
         tutorials/model-ensembling.md: yolov5/tutorials/model_ensembling.md
         tutorials/multi-gpu-training.md: yolov5/tutorials/multi_gpu_training.md
-        tutorials/nvidia-jetson.md: yolov5/tutorials/running_on_jetson_nano.md
+        tutorials/nvidia-jetson.md: guides/nvidia-jetson.md
         tutorials/pruning-sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
         tutorials/pytorch-hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
         tutorials/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
@@ -673,7 +683,7 @@ plugins:
         yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
         yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
         yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
-        yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/jetson_nano.md: guides/nvidia-jetson.md
         yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
         yolov5/neural_magic.md: yolov5/tutorials/neural_magic_pruning_quantization.md
         yolov5/train_custom_data.md: yolov5/tutorials/train_custom_data.md
@@ -688,7 +698,7 @@ plugins:
         yolov5/tutorials/multi_gpu_training_tutorial.md: yolov5/tutorials/multi_gpu_training.md
         yolov5/tutorials/yolov5_pytorch_hub_tutorial.md: yolov5/tutorials/pytorch_hub_model_loading.md
         yolov5/tutorials/model_export_tutorial.md: yolov5/tutorials/model_export.md
-        yolov5/tutorials/jetson_nano_tutorial.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/tutorials/jetson_nano_tutorial.md: guides/nvidia-jetson.md
         yolov5/tutorials/yolov5_model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
         yolov5/tutorials/roboflow_integration.md: yolov5/tutorials/roboflow_datasets_integration.md
         yolov5/tutorials/pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
@@ -700,7 +710,8 @@ plugins:
         yolov5/tutorials/yolov5_train_custom_data.md: yolov5/tutorials/train_custom_data.md
         yolov5/tutorials/comet_integration_tutorial.md: yolov5/tutorials/comet_logging_integration.md
         yolov5/tutorials/yolov5_pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
-        yolov5/tutorials/yolov5_jetson_nano_tutorial.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/tutorials/yolov5_jetson_nano_tutorial.md: guides/nvidia-jetson.md
+        yolov5/tutorials/running_on_jetson_nano.md: guides/nvidia-jetson.md
         yolov5/tutorials/yolov5_roboflow_integration.md: yolov5/tutorials/roboflow_datasets_integration.md
         yolov5/tutorials/hyperparameter_evolution_tutorial.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/tutorials/yolov5_hyperparameter_evolution_tutorial.md: yolov5/tutorials/hyperparameter_evolution.md

@@ -6,7 +6,7 @@ name: Ultralytics CI
 on:
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     branches: [main]
   schedule:
     - cron: "0 0 * * *" # runs at 00:00 UTC every day
@@ -39,6 +39,7 @@ on:
 
 jobs:
   Docs:
+    # TODO: break this job out into it's own action with pull_request_target to allow changes to user forks
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: macos-14
     steps:
@@ -60,6 +61,7 @@ jobs:
         run: python docs/build_reference.py
       - name: Commit and Push Reference Section Changes
         run: |
+          git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           git config --global user.name "UltralyticsAssistant"
@@ -73,8 +75,10 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: python docs/build_docs.py
       - name: Commit and Push Docs changes
-        if: always() && github.event_name == 'pull_request_target'
+        continue-on-error: true
+        if: always() && github.event_name == 'pull_request'
         run: |
+          git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -177,6 +181,9 @@ jobs:
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.472
+      - name: Benchmark YOLOv10Model
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov10n.pt' imgsz=160 verbose=0.178
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -253,7 +260,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install requirements
-        run: pip install -e .
+        run: pip install -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

@@ -388,7 +388,7 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim==0.1.28", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.31", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -686,9 +686,10 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
+                check_requirements("tensorrt>7.0.0,<=10.1.0")
             import tensorrt as trt  # noqa
-        check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+        check_version(trt.__version__, ">=7.0.0", hard=True)
+        check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
@@ -822,13 +823,13 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "keras",  # required by onnx2tf package
-                "tf_keras",  # required by onnx2tf package
+                "keras",  # required by 'onnx2tf' package
+                "tf_keras",  # required by 'onnx2tf' package
+                "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>1.17.5,<=1.22.3",
-                "sng4onnx>=1.0.1",
-                "onnxslim==0.1.28",
-                "onnx_graphsurgeon>=0.3.26",
+                "onnxslim>=0.1.31",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
@@ -920,6 +921,7 @@ class Exporter:
     @try_export
     def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
         """YOLOv8 TensorFlow Lite export."""
+        # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

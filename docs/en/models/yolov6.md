@@ -104,3 +104,59 @@ We would like to acknowledge the authors for their significant contributions in 
         ```
 
 The original YOLOv6 paper can be found on [arXiv](https://arxiv.org/abs/2301.05586). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/meituan/YOLOv6). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+## FAQ
+
+### What is Meituan YOLOv6 and what makes it unique?
+
+Meituan YOLOv6 is a state-of-the-art object detector that balances speed and accuracy, ideal for real-time applications. It features notable architectural enhancements like the Bi-directional Concatenation (BiC) module and an Anchor-Aided Training (AAT) strategy. These innovations provide substantial performance gains with minimal speed degradation, making YOLOv6 a competitive choice for object detection tasks.
+
+### How does the Bi-directional Concatenation (BiC) Module in YOLOv6 improve performance?
+
+The Bi-directional Concatenation (BiC) module in YOLOv6 enhances localization signals in the detector's neck, delivering performance improvements with negligible speed impact. This module effectively combines different feature maps, increasing the model's ability to detect objects accurately. For more details on YOLOv6's features, refer to the [Key Features](#key-features) section.
+
+### How can I train a YOLOv6 model using Ultralytics?
+
+You can train a YOLOv6 model using Ultralytics with simple Python or CLI commands. For instance:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Build a YOLOv6n model from scratch
+        model = YOLO("yolov6n.yaml")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+For more information, visit the [Train](../modes/train.md) page.
+
+### What are the different versions of YOLOv6 and their performance metrics?
+
+YOLOv6 offers multiple versions, each optimized for different performance requirements:
+
+- YOLOv6-N: 37.5% AP at 1187 FPS
+- YOLOv6-S: 45.0% AP at 484 FPS
+- YOLOv6-M: 50.0% AP at 226 FPS
+- YOLOv6-L: 52.8% AP at 116 FPS
+- YOLOv6-L6: State-of-the-art accuracy in real-time scenarios
+
+These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
+
+### How does the Anchor-Aided Training (AAT) strategy benefit YOLOv6?
+
+Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anchor-free approaches, enhancing the model's detection capabilities without compromising inference efficiency. This strategy leverages anchors during training to improve bounding box predictions, making YOLOv6 effective in diverse object detection tasks.
+
+### Which operational modes are supported by YOLOv6 models in Ultralytics?
+
+YOLOv6 supports various operational modes including Inference, Validation, Training, and Export. This flexibility allows users to fully exploit the model's capabilities in different scenarios. Check out the [Supported Tasks and Modes](#supported-tasks-and-modes) section for a detailed overview of each mode.

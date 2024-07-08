@@ -84,3 +84,32 @@ This guide explored the Paperspace Gradient integration for training YOLOv8 mode
 For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
 Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your computer vision projects to the next level.
+
+## FAQ
+
+### How do I train a YOLOv8 model using Paperspace Gradient?
+
+Training a YOLOv8 model with Paperspace Gradient is straightforward and efficient. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the “Start Machine” button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to start training your YOLOv8 model. For detailed instructions, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+
+### What are the advantages of using Paperspace Gradient for YOLOv8 projects?
+
+Paperspace Gradient offers several unique advantages for training and deploying YOLOv8 models:
+
+- **Hardware Flexibility:** Choose from various CPU, GPU, and TPU configurations.
+- **One-Click Notebooks:** Use pre-configured Jupyter Notebooks for YOLOv8 without worrying about environment setup.
+- **Experiment Tracking:** Automatic tracking of hyperparameters, metrics, and code changes.
+- **Dataset Management:** Efficiently manage your datasets within Gradient.
+- **Model Serving:** Deploy models as REST APIs easily.
+- **Real-time Monitoring:** Monitor model performance and resource utilization through a dashboard.
+
+### Why should I choose Ultralytics YOLOv8 over other object detection models?
+
+Ultralytics YOLOv8 stands out for its real-time object detection capabilities and high accuracy. Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLOv8 supports various use cases, from security systems to retail inventory management. Explore more about YOLOv8's advantages [here](https://www.ultralytics.com/yolo).
+
+### Can I deploy my YOLOv8 model on edge devices using Paperspace Gradient?
+
+Yes, you can deploy YOLOv8 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like TFLite and Edge TPU, which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+
+### How does experiment tracking in Paperspace Gradient help improve YOLOv8 training?
+
+Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments.

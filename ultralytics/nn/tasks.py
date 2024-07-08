@@ -380,7 +380,7 @@ class DetectionModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
         if getattr(self, "end2end", False):
-            return E2EDetectLoss(self) 
+            return E2EDetectLoss(self)
         else:
             return v8DetectionLoss(self)
 

@@ -114,7 +114,7 @@ You can train a YOLOv8 model on the African Wildlife Dataset by using the `afric
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -126,7 +126,7 @@ You can train a YOLOv8 model on the African Wildlife Dataset by using the `afric
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640

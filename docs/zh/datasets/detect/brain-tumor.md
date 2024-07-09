@@ -113,7 +113,7 @@ You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an i
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -123,10 +123,10 @@ You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an i
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -157,7 +157,7 @@ Inference using a fine-tuned YOLOv8 model can be performed with either Python or
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start prediction with a finetuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/brain-tumor-sample.jpg"

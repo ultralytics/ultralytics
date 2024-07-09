@@ -102,7 +102,7 @@ To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 

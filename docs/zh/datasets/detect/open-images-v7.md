@@ -22,7 +22,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
 ## Open Images V7 Pretrained Models
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
@@ -141,10 +141,9 @@ Open Images V7 is an extensive and versatile dataset created by Google, designed
 To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here's an example of training the YOLOv8n model for 100 epochs with an image size of 640:
 
 !!! Example "Train Example"
-    
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -154,10 +153,10 @@ To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python a
         # Train the model on the Open Images V7 dataset
         results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
         yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -168,6 +167,7 @@ For more details on arguments and settings, refer to the [Training](../../modes/
 ### What are some key features of the Open Images V7 dataset?
 
 The Open Images V7 dataset includes approximately 9 million images with various annotations:
+
 - **Bounding Boxes**: 16 million bounding boxes across 600 object classes.
 - **Segmentation Masks**: Masks for 2.8 million objects across 350 classes.
 - **Visual Relationships**: 3.3 million annotations indicating relationships, properties, and actions.
@@ -179,17 +179,18 @@ The Open Images V7 dataset includes approximately 9 million images with various 
 
 Ultralytics provides several YOLOv8 pretrained models for the Open Images V7 dataset, each with different sizes and performance metrics:
 
-| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640 | 18.4 | 142.4 | 1.21 | 3.5 | 10.5 |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640 | 27.7 | 183.1 | 1.40 | 11.4 | 29.7 |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640 | 33.6 | 408.5 | 2.26 | 26.2 | 80.6 |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640 | 34.9 | 596.9 | 2.43 | 44.1 | 167.4 |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640 | 36.3 | 860.6 | 3.56 | 68.7 | 260.6 |
+| Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 
 ### What applications can the Open Images V7 dataset be used for?
 
 The Open Images V7 dataset supports a variety of computer vision tasks including:
+
 - **Image Classification**
 - **Object Detection**
 - **Instance Segmentation**

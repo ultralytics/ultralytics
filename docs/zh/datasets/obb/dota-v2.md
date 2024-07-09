@@ -195,9 +195,7 @@ For more details on how to split and preprocess the DOTA images, refer to the [s
 ### What are the differences between DOTA-v1.0, DOTA-v1.5, and DOTA-v2.0?
 
 - **DOTA-v1.0**: Includes 15 common categories across 2,806 images with 188,282 instances. The dataset is split into training, validation, and testing sets.
-  
 - **DOTA-v1.5**: Builds upon DOTA-v1.0 by annotating very small instances (less than 10 pixels) and adding a new category, "container crane," totaling 403,318 instances.
-  
 - **DOTA-v2.0**: Expands further with annotations from Google Earth and GF-2 Satellite, featuring 11,268 images and 1,793,658 instances. It includes new categories like "airport" and "helipad."
 
 For a detailed comparison and additional specifics, check the [dataset versions section](#dataset-versions).

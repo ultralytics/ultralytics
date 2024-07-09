@@ -167,3 +167,5 @@ pnnx*
 
 # calibration image
 calibration_*.npy
+
+**/nohup.out

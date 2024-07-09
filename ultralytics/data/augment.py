@@ -1099,7 +1099,6 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     pre_transform = Compose(
         [
             Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
-            CopyPaste(p=hyp.copy_paste),
             RandomPerspective(
                 degrees=hyp.degrees,
                 translate=hyp.translate,
@@ -1108,6 +1107,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
                 perspective=hyp.perspective,
                 pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
             ),
+            CopyPaste(p=hyp.copy_paste),
         ]
     )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation

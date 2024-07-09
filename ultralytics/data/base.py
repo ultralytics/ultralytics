@@ -14,13 +14,18 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, load_exr_to_numpy
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+
+from skimage.transform import resize, warp, AffineTransform # resize images with > 3 channels
+import OpenEXR # RGBD images in .exr format
+import Imath
 
 
 class BaseDataset(Dataset):
     """
     Base dataset class for loading and processing image data.
+    Modified for getting multi-channel inputs like RGBD or Hyperspectral images.
 
     Args:
         img_path (str): Path to the folder containing images.
@@ -153,30 +158,33 @@ class BaseDataset(Dataset):
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                if f.endswith('.exr') or f.endswith('.EXR'):
+                    im = load_exr_to_numpy(f)
+                else:
+                    im = cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
-
+ 
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 r = self.imgsz / max(h0, w0)  # ratio
                 if r != 1:  # if sizes are not equal
                     w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                    # im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR) | skimage.transform.resize for channels > 3
+                    im = resize(im, (w, h), mode='constant', anti_aliasing=True)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-
+ 
             # Add to buffer if training with augmentations
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
-                if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
+                if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
-                    if self.cache != "ram":
-                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+ 
             return im, (h0, w0), im.shape[:2]
-
+ 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self):

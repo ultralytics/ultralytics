@@ -18,6 +18,8 @@ from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
+from skimage.transform import warp, AffineTransform # The affine transformation function of cv2 can only be used for 3 channels
+
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
 DEFAULT_CROP_FRACTION = 1.0
@@ -428,28 +430,26 @@ class RandomPerspective:
     def affine_transform(self, img, border):
         """
         Applies a sequence of affine transformations centered around the image center.
-
         Args:
             img (ndarray): Input image.
             border (tuple): Border dimensions.
-
         Returns:
             img (ndarray): Transformed image.
             M (ndarray): Transformation matrix.
             s (float): Scale factor.
         """
-
+ 
         # Center
         C = np.eye(3, dtype=np.float32)
-
+ 
         C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
         C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
-
+ 
         # Perspective
         P = np.eye(3, dtype=np.float32)
         P[2, 0] = random.uniform(-self.perspective, self.perspective)  # x perspective (about y)
         P[2, 1] = random.uniform(-self.perspective, self.perspective)  # y perspective (about x)
-
+ 
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
         a = random.uniform(-self.degrees, self.degrees)
@@ -457,17 +457,17 @@ class RandomPerspective:
         s = random.uniform(1 - self.scale, 1 + self.scale)
         # s = 2 ** random.uniform(-scale, scale)
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
-
+ 
         # Shear
         S = np.eye(3, dtype=np.float32)
         S[0, 1] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # x shear (deg)
         S[1, 0] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # y shear (deg)
-
+ 
         # Translation
         T = np.eye(3, dtype=np.float32)
         T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[0]  # x translation (pixels)
         T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[1]  # y translation (pixels)
-
+ 
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
         # Affine image
@@ -475,7 +475,10 @@ class RandomPerspective:
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
             else:  # affine
-                img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
+                # img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
+                channel_list = cv2.split(img)
+                transformed_channels = [cv2.warpAffine(channel, M[:2], dsize=self.size, borderValue=(114, 114, 114)) for channel in channel_list]
+                img = cv2.merge(transformed_channels)
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):
@@ -553,55 +556,60 @@ class RandomPerspective:
         visible[out_mask] = 0
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
-    def __call__(self, labels):
-        """
-        Affine images and targets.
+    def __call__(self, labels=None, image=None):
+        """Return updated labels and image with added border."""
+        if labels is None:
+            labels = {}
+        img = labels.get("img") if image is None else image
+        shape = img.shape[:2]  # current shape [height, width]
+        new_shape = labels.pop("rect_shape", self.new_shape)
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
+ 
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        if not self.scaleup:  # only scale down, do not scale up (for better val mAP)
+            r = min(r, 1.0)
+ 
+        # Compute padding
+        ratio = r, r  # width, height ratios
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        if self.auto:  # minimum rectangle
+            dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
+        elif self.scaleFill:  # stretch
+            dw, dh = 0.0, 0.0
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
+ 
+        if self.center:
+            dw /= 2  # divide padding into 2 sides
+            dh /= 2
+ 
+        if shape[::-1] != new_unpad:  # resize
+            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
+ 
+        if img.shape[2] > 3:
+            border_img = np.ones((img.shape[0]+top+bottom, img.shape[1]+left+right, img.shape[2]), dtype=img.dtype)*114
+            border_img[top:img.shape[0]+top, left:img.shape[1]+left] = img
+            img = border_img
+        else:
+            img = cv2.copyMakeBorder(
+                img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+            )  # add border
+        if labels.get("ratio_pad"):
+            labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
+ 
+        if len(labels):
+            labels = self._update_labels(labels, ratio, dw, dh)
+            labels["img"] = img
+            labels["resized_shape"] = new_shape
+            return labels
+        else:
+            return img
 
-        Args:
-            labels (dict): a dict of `bboxes`, `segments`, `keypoints`.
-        """
-        if self.pre_transform and "mosaic_border" not in labels:
-            labels = self.pre_transform(labels)
-        labels.pop("ratio_pad", None)  # do not need ratio pad
-
-        img = labels["img"]
-        cls = labels["cls"]
-        instances = labels.pop("instances")
-        # Make sure the coord formats are right
-        instances.convert_bbox(format="xyxy")
-        instances.denormalize(*img.shape[:2][::-1])
-
-        border = labels.pop("mosaic_border", self.border)
-        self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
-        # M is affine matrix
-        # Scale for func:`box_candidates`
-        img, M, scale = self.affine_transform(img, border)
-
-        bboxes = self.apply_bboxes(instances.bboxes, M)
-
-        segments = instances.segments
-        keypoints = instances.keypoints
-        # Update bboxes if there are segments.
-        if len(segments):
-            bboxes, segments = self.apply_segments(segments, M)
-
-        if keypoints is not None:
-            keypoints = self.apply_keypoints(keypoints, M)
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
-        # Clip
-        new_instances.clip(*self.size)
-
-        # Filter instances
-        instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
-        # Make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(
-            box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
-        )
-        labels["instances"] = new_instances[i]
-        labels["cls"] = cls[i]
-        labels["img"] = img
-        labels["resized_shape"] = img.shape[:2]
-        return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """

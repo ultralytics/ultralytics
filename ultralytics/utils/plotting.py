@@ -118,6 +118,8 @@ class Annotator:
         self.pil = pil or non_ascii or input_is_pil
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
+            if im.shape[2] > 3:  # more than 3 channels
+                im = im[:, :, :3]
             self.im = im if input_is_pil else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
             try:
@@ -982,7 +984,7 @@ def plot_images(
         images *= 255  # de-normalise (optional)
 
     # Build Image
-    mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
+    mosaic = np.full((int(ns * h), int(ns * w), images[0].shape[0]), 255, dtype=np.uint8)  # init, channels can be more than 3
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)

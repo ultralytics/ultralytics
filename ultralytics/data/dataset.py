@@ -416,7 +416,7 @@ class ClassificationDataset:
         import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
-        self.base = torchvision.datasets.ImageFolder(root=root)
+        self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
         self.samples = self.base.samples
         self.root = self.base.root
 

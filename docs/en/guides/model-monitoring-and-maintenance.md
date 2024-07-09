@@ -55,7 +55,7 @@ When you are setting up your alert systems, keep these best practices in mind:
 
 - **Standardized Alerts**: Use consistent tools and formats for all alerts, such as email or messaging apps like Slack. Standardization makes it easier for you to quickly understand and respond to alerts.
 - **Include Expected Behavior**: Alert messages should clearly state what went wrong, what was expected, and the timeframe evaluated. It helps you gauge the urgency and context of the alert.
-- **Configurable Alerts**: Make alerts easily configurable to adapt to changing conditions. Allow yourself to edit thresholds, snooze, disable, or acknowledge alerts. 
+- **Configurable Alerts**: Make alerts easily configurable to adapt to changing conditions. Allow yourself to edit thresholds, snooze, disable, or acknowledge alerts.
 
 ### Data Drift Detection
 
@@ -87,7 +87,7 @@ Once a model is deployed, while monitoring, you may notice changes in data patte
 
 For example, if the data is changing gradually over time, incremental learning is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full re-training might be a better option to ensure the model does not overfit on the new data while losing track of older patterns.
 
-Regardless of the method, validation and testing are a must after updates. It is important to validate the model on a separate [test dataset](./model-testing.md) to check for performance improvements or degradation. 
+Regardless of the method, validation and testing are a must after updates. It is important to validate the model on a separate [test dataset](./model-testing.md) to check for performance improvements or degradation.
 
 ### Deciding When to Retrain Your Model
 
@@ -106,22 +106,16 @@ Documenting a computer vision project makes it easier to understand, reproduce, 
 These are some of the key elements that should be included in project documentation:
 
 - **[Project Overview](./steps-of-a-cv-project.md)**: Provide a high-level summary of the project, including the problem statement, solution approach, expected outcomes, and project scope. Explain the role of computer vision in addressing the problem and outline the stages and deliverables.
-  
 - **Model Architecture**: Detail the structure and design of the model, including its components, layers, and connections. Explain the chosen hyperparameters and the rationale behind these choices.
-  
 - **[Data Preparation](./data-collection-and-annotation.md)**: Describe the data sources, types, formats, sizes, and preprocessing steps. Discuss data quality, reliability, and any transformations applied before training the model.
-  
 - **[Training Process](./model-training-tips.md)**: Document the training procedure, including the datasets used, training parameters, and loss functions. Explain how the model was trained and any challenges encountered during training.
-  
 - **[Evaluation Metrics](./model-evaluation-insights.md)**: Specify the metrics used to evaluate the model's performance, such as accuracy, precision, recall, and F1-score. Include performance results and an analysis of these metrics.
-  
 - **[Deployment Steps](./model-deployment-options.md)**: Outline the steps taken to deploy the model, including the tools and platforms used, deployment configurations, and any specific challenges or considerations.
-  
 - **Monitoring and Maintenance Procedure**: Provide a detailed plan for monitoring the model’s performance post-deployment. Include methods for detecting and addressing data and model drift, and describe the process for regular updates and retraining.
 
 ### Tools for Documentation
 
-There are many options when it comes to documenting AI projects, with open-source tools being particularly popular. Two of these are Jupyter Notebooks and MkDocs. Jupyter Notebooks allow you to create interactive documents with embedded code, visualizations, and text, making them ideal for sharing experiments and analyses. MkDocs is a static site generator that is easy to set up and deploy and is perfect for creating and hosting project documentation online. 
+There are many options when it comes to documenting AI projects, with open-source tools being particularly popular. Two of these are Jupyter Notebooks and MkDocs. Jupyter Notebooks allow you to create interactive documents with embedded code, visualizations, and text, making them ideal for sharing experiments and analyses. MkDocs is a static site generator that is easy to set up and deploy and is perfect for creating and hosting project documentation online.
 
 ## Connect with the Community
 

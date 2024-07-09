@@ -1401,6 +1401,8 @@ class CenterCrop:
         Returns:
             (numpy.ndarray): The center-cropped and resized image as a numpy array.
         """
+        if isinstance(im, Image.Image):  # convert from PIL to numpy array if required
+            im = np.asarray(im)
         imh, imw = im.shape[:2]
         m = min(imh, imw)  # min dimension
         top, left = (imh - m) // 2, (imw - m) // 2

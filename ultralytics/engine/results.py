@@ -656,7 +656,7 @@ class Keypoints(BaseTensor):
         to(device, dtype): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
 
-    # @smart_inference_mode()  # avoid keypoints < conf in-place error
+    @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
         """Initializes the Keypoints object with detection keypoints and original image dimensions."""
         if keypoints.ndim == 2:

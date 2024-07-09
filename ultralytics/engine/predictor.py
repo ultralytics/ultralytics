@@ -211,7 +211,7 @@ class BasePredictor:
             LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
-    # @smart_inference_mode()
+    @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:

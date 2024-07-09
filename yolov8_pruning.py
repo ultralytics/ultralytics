@@ -3,9 +3,11 @@ import argparse
 import math
 import os
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+import time
 from typing import List, Union
+import json
 
 import numpy as np
 import torch
@@ -28,7 +30,7 @@ from ultralytics.cfg import TASK2DATA
 import torch_pruning as tp
 
 
-def save_pruning_performance_graph(x, y1, y2, y3, subTitleStr: str = ""):
+def save_pruning_performance_graph(x, y1, y2, y3, console_args: dict = {}, subTitleStr: str = ""):
     """
     Draw performance change graph
     Parameters
@@ -78,6 +80,7 @@ def save_pruning_performance_graph(x, y1, y2, y3, subTitleStr: str = ""):
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax2.legend(lines + lines2, labels + labels2, loc='best')
 
+    # set plot limits
     ax.set_xlim(105, -5)
     ax.set_ylim(0, max(y1) + 0.05)
     ax2.set_ylim(0.05, 1.05)
@@ -107,10 +110,14 @@ def save_pruning_performance_graph(x, y1, y2, y3, subTitleStr: str = ""):
 
     i = 0
     filename = f"{out_dir}/pruning_perf_change"
-    while os.path.exists('{}{:d}.png'.format(filename, i)):
+    while os.path.exists('{}_{:d}.png'.format(filename, i)):
         i += 1
     plt.savefig('{}_{:d}.png'.format(filename, i))
     #plt.savefig('pruning_perf_change.png')
+
+    # Save the console args passed to script
+    with open('{}_{:d}.txt'.format(filename, i), 'w') as f:
+        f.write(json.dumps(console_args))
     
 
 
@@ -119,7 +126,7 @@ def infer_shortcut(bottleneck):
     c2 = bottleneck.cv2.conv.out_channels
     return c1 == c2 and hasattr(bottleneck, 'add') and bottleneck.add
 
-
+# Quick fix to emulate layer "split"
 class C2f_v2(nn.Module):
     # CSP Bottleneck with 2 convolutions
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
@@ -187,7 +194,7 @@ def replace_c2f_with_c2f_v2(module):
 
 def save_model_v2(self: BaseTrainer):
     """
-    Disabled half precision saving. originated from ultralytics/yolo/engine/trainer.py
+    Disabled half precision saving. originated from ultralytics/engine/trainer.py
     """
     import io
 
@@ -246,13 +253,14 @@ def save_model_v2(self: BaseTrainer):
 
 def final_eval_v2(self: BaseTrainer):
     """
-    originated from ultralytics/yolo/engine/trainer.py
+    originated from ultralytics/engine/trainer.py
     """
     for f in self.last, self.best:
         if f.exists():
             strip_optimizer_v2(f)  # strip optimizers
             if f is self.best:
                 LOGGER.info(f'\nValidating {f}...')
+                self.validator.args.plots = self.args.plots # Added this
                 self.metrics = self.validator(model=f)
                 self.metrics.pop('fitness', None)
                 self.run_callbacks('on_fit_epoch_end')
@@ -260,7 +268,7 @@ def final_eval_v2(self: BaseTrainer):
 
 def strip_optimizer_v2(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
     """
-    Disabled half precision saving. originated from ultralytics/yolo/utils/torch_utils.py
+    Disabled half precision saving. originated from ultralytics/utils/torch_utils.py
     """
 
     try:
@@ -283,8 +291,8 @@ def strip_optimizer_v2(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         x["model"] = x["ema"]  # replace model with EMA
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
-    #if hasattr(x["model"], "criterion"):
-    #    x["model"].criterion = None  # strip loss criterion
+    if hasattr(x["model"], "criterion"):
+       x["model"].criterion = None  # strip loss criterion
     #x["model"].half()  # to FP16
     for p in x["model"].parameters():
         p.requires_grad = False
@@ -320,7 +328,7 @@ def strip_optimizer_v2(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
 
 def train_v2(self, trainer=None, pruning=False, **kwargs):
     """
-    Disabled loading new model when pruning flag is set. originated from ultralytics/yolo/engine/model.py
+    Disabled loading new model when pruning flag is set. originated from ultralytics/engine/model.py
     """
     self._check_is_pytorch_model()
     if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
@@ -411,7 +419,11 @@ def train_v2(self, trainer=None, pruning=False, **kwargs):
 def prune(args):
     # load trained yolov8 model
     model = YOLO(args.model)
+
+    # Append tweaked training function to model
     model.__setattr__("train_v2", train_v2.__get__(model))
+
+    # Load Config
     pruning_cfg = yaml_load(check_yaml(args.cfg))
     batch_size = pruning_cfg['batch']
 
@@ -419,17 +431,18 @@ def prune(args):
     # this part is only for sample code, number of epochs should be included in config file
     pruning_cfg['data'] = "coco128.yaml"
     pruning_cfg['epochs'] = 10
+    # TODO LR?
 
     model.model.train()
-    replace_c2f_with_c2f_v2(model.model)
+    replace_c2f_with_c2f_v2(model.model) # Prevents depGraph error (caused by layer split and concatenation)
     initialize_weights(model.model)  # set BN.eps, momentum, ReLU.inplace
 
     for name, param in model.model.named_parameters():
         param.requires_grad = True
 
     example_inputs = torch.randn(1, 3, pruning_cfg["imgsz"], pruning_cfg["imgsz"]).to(model.device)
-    macs_list, nparams_list, map_list, pruned_map_list = [], [], [], []
-    base_macs, base_nparams = tp.utils.count_ops_and_params(model.model, example_inputs)
+    macs_list, nparams_list, map_list, pruned_map_list = [], [], [], [] # Will store metrics during iterative pruning process
+    base_macs, base_nparams = tp.utils.count_ops_and_params(model.model, example_inputs) # Baseline metrics
 
     # do validation before pruning model
     pruning_cfg['name'] = f"baseline_val"
@@ -438,7 +451,7 @@ def prune(args):
     metric = validation_model.val(**pruning_cfg)
     init_map = metric.box.map
     macs_list.append(base_macs)
-    nparams_list.append(100)
+    nparams_list.append(100) # save as % of baseline
     map_list.append(init_map)
     pruned_map_list.append(init_map)
     print(f"Before Pruning: MACs={base_macs / 1e9: .5f} G, #Params={base_nparams / 1e6: .5f} M, mAP={init_map: .5f}")
@@ -469,12 +482,15 @@ def prune(args):
             unwrapped_parameters=unwrapped_parameters
         )
 
+        # TODO Regularization
         # Test regularization
         #output = model.model(example_inputs)
         #(output[0].sum() + sum([o.sum() for o in output[1]])).backward()
         #pruner.regularize(model.model)
         
+        # Prune
         pruner.step()
+
         # pre fine-tuning validation
         pruning_cfg['name'] = f"step_{i}_pre_val"
         pruning_cfg['batch'] = 1
@@ -487,11 +503,14 @@ def prune(args):
               f"mAP={pruned_map}, speed up={current_speed_up}")
 
         # fine-tuning
-        for name, param in model.model.named_parameters():
+        for _, param in model.model.named_parameters():
             param.requires_grad = True
         pruning_cfg['name'] = f"step_{i}_finetune"
         pruning_cfg['batch'] = batch_size  # restore batch size
         model.train_v2(pruning=True, **pruning_cfg)
+
+        #print(model.model.criterion)
+        #LOGGER.error("ERROR: ", str(model.model.criterion))
 
         # post fine-tuning validation
         pruning_cfg['name'] = f"step_{i}_post_val"
@@ -501,6 +520,7 @@ def prune(args):
         current_map = metric.box.map
         print(f"After fine tuning mAP={current_map}")
 
+        # Save post fine-tuning validation metrics
         macs_list.append(pruned_macs)
         nparams_list.append(pruned_nparams / base_nparams * 100)
         pruned_map_list.append(pruned_map)
@@ -512,7 +532,8 @@ def prune(args):
         save_pruning_performance_graph(nparams_list, 
                                        map_list, macs_list, 
                                        pruned_map_list,
-                                       subTitleStr=args.model)
+                                       console_args = vars(args), # Convert to dict
+                                       subTitleStr=f"{args.model} - steps: {args.iterative_steps} - target: {args.target_prune_rate}")
 
         if init_map - current_map > args.max_map_drop:
             print("Pruning early stop")
@@ -524,7 +545,7 @@ def prune(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='yolov8n.pt', help='Pretrained pruning target model file')
-    parser.add_argument('--cfg', default='default.yaml',
+    parser.add_argument('--cfg', default='my_test_cfg.yaml',
                         help='Pruning config file.'
                              ' This file should have same format with ultralytics/yolo/cfg/default.yaml')
     parser.add_argument('--iterative-steps', default=16, type=int, help='Total pruning iteration step')
@@ -533,4 +554,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Save start time
+    start_time = time.time()
+    
+    # Run pruning algorithm
     prune(args)
+
+    # Print runtime
+    runtime = str(timedelta( seconds=(time.time() - start_time) ))
+    LOGGER.info(f"--- Total runtime: {runtime} (hours:min:sec) ---")

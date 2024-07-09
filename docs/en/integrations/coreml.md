@@ -50,7 +50,7 @@ CoreML offers various deployment options for machine learning models, including:
 
     - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
 
-- **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues​.
+- **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues.
 
 ## Exporting YOLOv8 Models to CoreML
 
@@ -124,3 +124,95 @@ In this guide, we went over how to export Ultralytics YOLOv8 models to CoreML fo
 For further details on usage, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
 
 Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
+
+## FAQ
+
+### How do I export YOLOv8 models to CoreML format?
+
+To export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to CoreML format, you'll first need to ensure you have the `ultralytics` package installed. You can install it using:
+
+!!! Example "Installation"
+
+    === "CLI"
+
+        ```bash
+        pip install ultralytics
+        ```
+
+Next, you can export the model using the following Python or CLI commands:
+
+!!! Example "Usage"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")
+        model.export(format="coreml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n.pt format=coreml
+        ```
+
+For further details, refer to the [Exporting YOLOv8 Models to CoreML](../modes/export.md) section of our documentation.
+
+### What are the benefits of using CoreML for deploying YOLOv8 models?
+
+CoreML provides numerous advantages for deploying [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models on Apple devices:
+
+- **On-device Processing**: Enables local model inference on devices, ensuring data privacy and minimizing latency.
+- **Performance Optimization**: Leverages the full potential of the device's CPU, GPU, and Neural Engine, optimizing both speed and efficiency.
+- **Ease of Integration**: Offers a seamless integration experience with Apple's ecosystems, including iOS, macOS, watchOS, and tvOS.
+- **Versatility**: Supports a wide range of machine learning tasks such as image analysis, audio processing, and natural language processing using the CoreML framework.
+
+For more details on integrating your CoreML model into an iOS app, check out the guide on [Integrating a Core ML Model into Your App](https://developer.apple.com/documentation/coreml/integrating_a_core_ml_model_into_your_app).
+
+### What are the deployment options for YOLOv8 models exported to CoreML?
+
+Once you export your YOLOv8 model to CoreML format, you have multiple deployment options:
+
+1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
+
+    - **Embedded Models**: Included in the app bundle, accessible immediately.
+    - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
+
+2. **Cloud-Based Deployment**: Host CoreML models on servers and access them via API requests. This approach supports easier updates and can handle more complex models.
+
+For detailed guidance on deploying CoreML models, refer to [CoreML Deployment Options](#coreml-deployment-options).
+
+### How does CoreML ensure optimized performance for YOLOv8 models?
+
+CoreML ensures optimized performance for [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models by utilizing various optimization techniques:
+
+- **Hardware Acceleration**: Uses the device's CPU, GPU, and Neural Engine for efficient computation.
+- **Model Compression**: Provides tools for compressing models to reduce their footprint without compromising accuracy.
+- **Adaptive Inference**: Adjusts inference based on the device's capabilities to maintain a balance between speed and performance.
+
+For more information on performance optimization, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
+
+### Can I run inference directly with the exported CoreML model?
+
+Yes, you can run inference directly using the exported CoreML model. Below are the commands for Python and CLI:
+
+!!! Example "Running Inference"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        coreml_model = YOLO("yolov8n.mlpackage")
+        results = coreml_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolov8n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For additional information, refer to the [Usage section](#usage) of the CoreML export guide.

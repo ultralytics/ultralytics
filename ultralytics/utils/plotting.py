@@ -298,8 +298,8 @@ class Annotator:
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.size[1] - w:  # check if label extend beyond right side of image
-                    p1 = self.im.size[1] - w, p1[1]
+                if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
+                    p1 = self.im.size[0] - w, p1[1]
                 self.draw.rectangle(
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
@@ -317,7 +317,7 @@ class Annotator:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
                 outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.shape[1] - w:  # check if label extend beyond right side of image
+                if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
                     p1 = self.im.shape[1] - w, p1[1]
                 p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
@@ -740,18 +740,18 @@ class Annotator:
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
 
         label = f"Track ID: {track_label}" if track_label else det_label
-        text_size, _ = cv2.getTextSize(label, 0, 0.7, 1)
+        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
         cv2.rectangle(
             self.im,
             (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-            (int(mask[0][0]) + text_size[0] // 2 + 5, int(mask[0][1] + 5)),
+            (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
             mask_color,
             -1,
         )
 
         cv2.putText(
-            self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1]) - 5), 0, 0.7, (255, 255, 255), 2
+            self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, (255, 255, 255), self.tf
         )
 
     def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):

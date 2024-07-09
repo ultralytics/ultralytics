@@ -984,7 +984,9 @@ def plot_images(
         images *= 255  # de-normalise (optional)
 
     # Build Image
-    mosaic = np.full((int(ns * h), int(ns * w), images[0].shape[0]), 255, dtype=np.uint8)  # init, channels can be more than 3
+    mosaic = np.full(
+        (int(ns * h), int(ns * w), images[0].shape[0]), 255, dtype=np.uint8
+    )  # init, channels can be more than 3
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)

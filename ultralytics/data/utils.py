@@ -13,10 +13,10 @@ from pathlib import Path
 from tarfile import is_tarfile
 
 import cv2
+import Imath  # necessary for reading exr
 import numpy as np
+import OpenEXR  # RGBD images in .exr format
 from PIL import Image, ImageOps
-import OpenEXR # RGBD images in .exr format
-import Imath # necessary for reading exr
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
@@ -44,22 +44,20 @@ PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def load_exr_to_numpy(filename, mode='RGBD'):
-    """
-    Load RBGD image stored as exr file
-    """
+def load_exr_to_numpy(filename, mode="RGBD"):
+    """Load RBGD image stored as exr file."""
     exr_file = OpenEXR.InputFile(filename)
 
-    dw = exr_file.header()['dataWindow']
+    dw = exr_file.header()["dataWindow"]
     width = dw.max.x - dw.min.x + 1
     height = dw.max.y - dw.min.y + 1
 
     FLOAT = Imath.PixelType(Imath.PixelType.FLOAT)
 
-    R = np.frombuffer(exr_file.channel('R', FLOAT), dtype=np.float32).reshape(height, width)
-    G = np.frombuffer(exr_file.channel('G', FLOAT), dtype=np.float32).reshape(height, width)
-    B = np.frombuffer(exr_file.channel('B', FLOAT), dtype=np.float32).reshape(height, width)
-    D = np.frombuffer(exr_file.channel('D', FLOAT), dtype=np.float32).reshape(height, width)
+    R = np.frombuffer(exr_file.channel("R", FLOAT), dtype=np.float32).reshape(height, width)
+    G = np.frombuffer(exr_file.channel("G", FLOAT), dtype=np.float32).reshape(height, width)
+    B = np.frombuffer(exr_file.channel("B", FLOAT), dtype=np.float32).reshape(height, width)
+    D = np.frombuffer(exr_file.channel("D", FLOAT), dtype=np.float32).reshape(height, width)
 
     rgbd_image = np.stack((R, G, B, D), axis=-1)
 
@@ -125,7 +123,7 @@ def verify_image_label(args):
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         # Verify images
-        if os.path.splitext(im_file)[1] == '.exr':
+        if os.path.splitext(im_file)[1] == ".exr":
             im = load_exr_to_numpy(im_file)
             shape = im.shape[:2]
         else:
@@ -141,7 +139,7 @@ def verify_image_label(args):
         #         if f.read() != b"\xff\xd9":  # corrupt JPEG
         #             ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
         #             msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
- 
+
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
@@ -162,7 +160,7 @@ def verify_image_label(args):
                     points = lb[:, 1:]
                 assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
                 assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
- 
+
                 # All labels
                 max_cls = lb[:, 0].max()  # max label count
                 assert max_cls <= num_cls, (

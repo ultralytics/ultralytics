@@ -18,8 +18,6 @@ from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
-from skimage.transform import warp, AffineTransform # The affine transformation function of cv2 can only be used for 3 channels
-
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
 DEFAULT_CROP_FRACTION = 1.0
@@ -430,6 +428,7 @@ class RandomPerspective:
     def affine_transform(self, img, border):
         """
         Applies a sequence of affine transformations centered around the image center.
+
         Args:
             img (ndarray): Input image.
             border (tuple): Border dimensions.
@@ -438,18 +437,18 @@ class RandomPerspective:
             M (ndarray): Transformation matrix.
             s (float): Scale factor.
         """
- 
+
         # Center
         C = np.eye(3, dtype=np.float32)
- 
+
         C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
         C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
- 
+
         # Perspective
         P = np.eye(3, dtype=np.float32)
         P[2, 0] = random.uniform(-self.perspective, self.perspective)  # x perspective (about y)
         P[2, 1] = random.uniform(-self.perspective, self.perspective)  # y perspective (about x)
- 
+
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
         a = random.uniform(-self.degrees, self.degrees)
@@ -457,17 +456,17 @@ class RandomPerspective:
         s = random.uniform(1 - self.scale, 1 + self.scale)
         # s = 2 ** random.uniform(-scale, scale)
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
- 
+
         # Shear
         S = np.eye(3, dtype=np.float32)
         S[0, 1] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # x shear (deg)
         S[1, 0] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # y shear (deg)
- 
+
         # Translation
         T = np.eye(3, dtype=np.float32)
         T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[0]  # x translation (pixels)
         T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[1]  # y translation (pixels)
- 
+
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
         # Affine image
@@ -477,7 +476,10 @@ class RandomPerspective:
             else:  # affine
                 # img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
                 channel_list = cv2.split(img)
-                transformed_channels = [cv2.warpAffine(channel, M[:2], dsize=self.size, borderValue=(114, 114, 114)) for channel in channel_list]
+                transformed_channels = [
+                    cv2.warpAffine(channel, M[:2], dsize=self.size, borderValue=(114, 114, 114))
+                    for channel in channel_list
+                ]
                 img = cv2.merge(transformed_channels)
         return img, M, s
 
@@ -565,12 +567,12 @@ class RandomPerspective:
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
- 
+
         # Scale ratio (new / old)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         if not self.scaleup:  # only scale down, do not scale up (for better val mAP)
             r = min(r, 1.0)
- 
+
         # Compute padding
         ratio = r, r  # width, height ratios
         new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
@@ -581,19 +583,21 @@ class RandomPerspective:
             dw, dh = 0.0, 0.0
             new_unpad = (new_shape[1], new_shape[0])
             ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
- 
+
         if self.center:
             dw /= 2  # divide padding into 2 sides
             dh /= 2
- 
+
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
- 
+
         if img.shape[2] > 3:
-            border_img = np.ones((img.shape[0]+top+bottom, img.shape[1]+left+right, img.shape[2]), dtype=img.dtype)*114
-            border_img[top:img.shape[0]+top, left:img.shape[1]+left] = img
+            border_img = (
+                np.ones((img.shape[0] + top + bottom, img.shape[1] + left + right, img.shape[2]), dtype=img.dtype) * 114
+            )
+            border_img[top : img.shape[0] + top, left : img.shape[1] + left] = img
             img = border_img
         else:
             img = cv2.copyMakeBorder(
@@ -601,7 +605,7 @@ class RandomPerspective:
             )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
- 
+
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
             labels["img"] = img
@@ -609,7 +613,6 @@ class RandomPerspective:
             return labels
         else:
             return img
-
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """

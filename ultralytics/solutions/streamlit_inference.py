@@ -82,8 +82,8 @@ def inference():
         selected_ind = list(selected_ind)
 
     enable_trk = st.sidebar.radio("Enable Tracking", ("Yes", "No"))
-    conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
-    nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
+    conf = float(st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))
+    iou = float(st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))
 
     col1, col2 = st.columns(2)
     org_frame = col1.empty()
@@ -112,11 +112,9 @@ def inference():
 
             # Store model predictions
             if enable_trk:
-                results = model.track(
-                    frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind, persist=True
-                )
+                results = model.track(frame, conf=conf, iou=iou, classes=selected_ind, persist=True)
             else:
-                results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
+                results = model(frame, conf=conf, iou=iou, classes=selected_ind)
             annotated_frame = results[0].plot()  # Add annotations on frame
 
             # display frame

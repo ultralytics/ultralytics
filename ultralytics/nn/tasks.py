@@ -7,9 +7,6 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from ultralytics.nn.modules.ffca import (
-    C3_Faster, SCAM, FFM_Concat2, FFM_Concat3, FEM
-)
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -59,6 +56,7 @@ from ultralytics.nn.modules import (
     WorldDetect,
     v10Detect,
 )
+from ultralytics.nn.modules.ffca import FEM, SCAM, C3_Faster, FFM_Concat2, FFM_Concat3
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -943,7 +941,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SCDown,
             C2fCIB,
             C3_Faster,
-            FEM
+            FEM,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -976,10 +974,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c2]
         elif m is FFM_Concat2:
             c2 = sum(ch[x] for x in f)
-            args = [args[0], c2//2, c2//2]
+            args = [args[0], c2 // 2, c2 // 2]
         elif m is FFM_Concat3:
             c2 = sum(ch[x] for x in f)
-            args = [args[0], c2//4, c2//2, c2//4]
+            args = [args[0], c2 // 4, c2 // 2, c2 // 4]
         # --------------- ffca end ------------------
         elif m is Concat:
             c2 = sum(ch[x] for x in f)

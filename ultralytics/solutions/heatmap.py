@@ -107,16 +107,21 @@ class Heatmap:
             print("Using Circular shape now")
             self.shape = "circle"
 
-    def extract_results(self, tracks, _intialized=False):
+    def extract_results(self, tracks):
         """
         Extracts results from the provided data.
 
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        if tracks and len(tracks) > 0 and hasattr(tracks[0], 'boxes') and tracks[0].boxes is not None:
+            self.boxes = tracks[0].boxes.xyxy.cpu() if tracks[0].boxes.xyxy is not None else []
+            self.clss = tracks[0].boxes.cls.tolist() if tracks[0].boxes.cls is not None else []
+            self.track_ids = tracks[0].boxes.id.int().tolist() if tracks[0].boxes.id is not None else []
+        else:
+            self.boxes = []
+            self.clss = []
+            self.track_ids = []
 
     def generate_heatmap(self, im0, tracks):
         """
@@ -138,7 +143,7 @@ class Heatmap:
         self.extract_results(tracks)
         self.annotator = Annotator(self.im0, self.tf, None)
 
-        if self.track_ids is not None:
+        if self.track_ids:
             # Draw counting region
             if self.count_reg_pts is not None:
                 self.annotator.draw_region(
@@ -257,3 +262,4 @@ class Heatmap:
 if __name__ == "__main__":
     classes_names = {0: "person", 1: "car"}  # example class names
     heatmap = Heatmap(classes_names)
+    

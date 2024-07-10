@@ -103,7 +103,8 @@ Training losses and batch0:
 </div>
 
 ### Training preperations
--> download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1)
+-> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1)
+-> Download pretrained model 
 
 
 ## <div align="center">License</div>

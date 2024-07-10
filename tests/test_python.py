@@ -90,7 +90,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://ultralytics.com/images/zidane.jpg" if ONLINE else SOURCE,  # URI
+        "https://github.com/ultralytics/yolov5/releases/download/v1.0/zidane.jpg" if ONLINE else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy

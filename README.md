@@ -74,7 +74,8 @@ training:
 
 ```bash
 # use this command for google colab
-!yolo task=detect mode=train model=yolov8m.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
+!yolo task=detect mode=train model=yolov8m-NPs.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
+!yolo task=detect mode=train model=yolov8n-NPs.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 ```
 predicted image example:
 <div align="center">
@@ -105,7 +106,7 @@ Training losses and batch0:
 ### Training preperations
 -> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1) 
 
--> Download pretrained model [yolov8n.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8n.pt)
+-> Download pretrained models [yolov8m-NPs.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8m-NPs.pt) and [yolov8n-NPs.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8n-NPs.pt)
 
 
 ## <div align="center">License</div>

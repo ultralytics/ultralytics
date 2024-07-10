@@ -60,9 +60,9 @@ class Heatmap:
         self.heatmap_alpha = heatmap_alpha
 
         # Predict/track information
-        self.boxes = None
-        self.track_ids = None
-        self.clss = None
+        self.boxes = []
+        self.track_ids = []
+        self.clss = []
         self.track_history = defaultdict(list)
 
         # Region & Line Information
@@ -114,14 +114,10 @@ class Heatmap:
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        if tracks and getattr(tracks[0], "boxes", None) is not None:
-            self.boxes = tracks[0].boxes.xyxy.cpu() if tracks[0].boxes.xyxy is not None else []
-            self.clss = tracks[0].boxes.cls.tolist() if tracks[0].boxes.cls is not None else []
-            self.track_ids = tracks[0].boxes.id.int().tolist() if tracks[0].boxes.id is not None else []
-        else:
-            self.boxes = []
-            self.clss = []
-            self.track_ids = []
+        if tracks[0].boxes.id is not None:
+            self.boxes = tracks[0].boxes.xyxy.cpu()
+            self.clss = tracks[0].boxes.cls.tolist()
+            self.track_ids = tracks[0].boxes.id.int().tolist()
 
     def generate_heatmap(self, im0, tracks):
         """

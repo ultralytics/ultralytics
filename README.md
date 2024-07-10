@@ -44,10 +44,10 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 </div>
 </div>
 
-## <div align="center">Updatres</div>
+## <div align="center">Updates</div>
 
 YOLOv8-m & YOLOv8-n (nano-particles) trained on our own microscopic images for nao-particles detection of PtPdInGaP HEA compounds.
-
+(article will be published soon and added to this project here)
 <details open>
 <summary>Install</summary>
 

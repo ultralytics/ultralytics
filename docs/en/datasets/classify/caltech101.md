@@ -79,3 +79,71 @@ If you use the Caltech-101 dataset in your research or development work, please 
         ```
 
 We would like to acknowledge Li Fei-Fei, Rob Fergus, and Pietro Perona for creating and maintaining the Caltech-101 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the Caltech-101 dataset and its creators, visit the [Caltech-101 dataset website](https://data.caltech.edu/records/mzrjq-6wc02).
+
+## FAQ
+
+### What is the Caltech-101 dataset used for in machine learning?
+
+The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widely used in machine learning for object recognition tasks. It contains around 9,000 images across 101 categories, providing a challenging benchmark for evaluating object recognition algorithms. Researchers leverage it to train and test models, especially Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs), in computer vision.
+
+### How can I train an Ultralytics YOLO model on the Caltech-101 dataset?
+
+To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the provided code snippets. For example, to train for 100 epochs:
+
+!!! Example "Train Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="caltech101", epochs=100, imgsz=416)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
+        ```
+For more detailed arguments and options, refer to the model [Training](../../modes/train.md) page.
+
+### What are the key features of the Caltech-101 dataset?
+
+The Caltech-101 dataset includes:
+- Around 9,000 color images across 101 categories.
+- Categories covering a diverse range of objects, including animals, vehicles, and household items.
+- Variable number of images per category, typically between 40 and 800.
+- Variable image sizes, with most being medium resolution.
+
+These features make it an excellent choice for training and evaluating object recognition models in machine learning and computer vision.
+
+### Why should I cite the Caltech-101 dataset in my research?
+
+Citing the Caltech-101 dataset in your research acknowledges the creators' contributions and provides a reference for others who might use the dataset. The recommended citation is:
+
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @article{fei2007learning,
+          title={Learning generative visual models from few training examples: An incremental Bayesian approach tested on 101 object categories},
+          author={Fei-Fei, Li and Fergus, Rob and Perona, Pietro},
+          journal={Computer vision and Image understanding},
+          volume={106},
+          number={1},
+          pages={59--70},
+          year={2007},
+          publisher={Elsevier}
+        }
+        ```
+Citing helps in maintaining the integrity of academic work and assists peers in locating the original resource.
+
+### Can I use Ultralytics HUB for training models on the Caltech-101 dataset?
+
+Yes, you can use Ultralytics HUB for training models on the Caltech-101 dataset. Ultralytics HUB provides an intuitive platform for managing datasets, training models, and deploying them without extensive coding. For a detailed guide, refer to the [how to train your custom models with Ultralytics HUB](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub) blog post.

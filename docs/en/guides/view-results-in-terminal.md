@@ -139,3 +139,105 @@ w.draw(mem_file)
 !!! tip
 
     You may need to use `clear` to "erase" the view of the image in the terminal.
+
+## FAQ
+
+### How can I view YOLO inference results in a VSCode terminal on macOS or Linux?
+
+To view YOLO inference results in a VSCode terminal on macOS or Linux, follow these steps:
+
+1. Enable the necessary VSCode settings:
+
+    ```yaml
+    "terminal.integrated.enableImages": true
+    "terminal.integrated.gpuAcceleration": "auto"
+    ```
+
+2. Install the sixel library:
+
+    ```bash
+    pip install sixel
+    ```
+
+3. Load your YOLO model and run inference:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    results = model.predict(source="path_to_image")
+    plot = results[0].plot()
+    ```
+
+4. Convert the inference result image to bytes and display it in the terminal:
+
+    ```python
+    import io
+
+    import cv2
+    from sixel import SixelWriter
+
+    im_bytes = cv2.imencode(".png", plot)[1].tobytes()
+    mem_file = io.BytesIO(im_bytes)
+    SixelWriter().draw(mem_file)
+    ```
+
+For further details, visit the [predict mode](../modes/predict.md) page.
+
+### Why does the sixel protocol only work on Linux and macOS?
+
+The sixel protocol is currently only supported on Linux and macOS because these platforms have native terminal capabilities compatible with sixel graphics. Windows support for terminal graphics using sixel is still under development. For updates on Windows compatibility, check the [VSCode Issue status](https://github.com/microsoft/vscode/issues/198622) and [documentation](https://code.visualstudio.com/docs).
+
+### What if I encounter issues with displaying images in the VSCode terminal?
+
+If you encounter issues displaying images in the VSCode terminal using sixel:
+
+1. Ensure the necessary settings in VSCode are enabled:
+
+    ```yaml
+    "terminal.integrated.enableImages": true
+    "terminal.integrated.gpuAcceleration": "auto"
+    ```
+
+2. Verify the sixel library installation:
+
+    ```bash
+    pip install sixel
+    ```
+
+3. Check your image data conversion and plotting code for errors. For example:
+
+    ```python
+    import io
+
+    import cv2
+    from sixel import SixelWriter
+
+    im_bytes = cv2.imencode(".png", plot)[1].tobytes()
+    mem_file = io.BytesIO(im_bytes)
+    SixelWriter().draw(mem_file)
+    ```
+
+If problems persist, consult the [VSCode repository](https://github.com/microsoft/vscode), and visit the [plot method parameters](../modes/predict.md#plot-method-parameters) section for additional guidance.
+
+### Can YOLO display video inference results in the terminal using sixel?
+
+Displaying video inference results or animated GIF frames using sixel in the terminal is currently untested and may not be supported. We recommend starting with static images and verifying compatibility. Attempt video results at your own risk, keeping in mind performance constraints. For more information on plotting inference results, visit the [predict mode](../modes/predict.md) page.
+
+### How can I troubleshoot issues with the `python-sixel` library?
+
+To troubleshoot issues with the `python-sixel` library:
+
+1. Ensure the library is correctly installed in your virtual environment:
+
+    ```bash
+    pip install sixel
+    ```
+
+2. Verify that you have the necessary Python and system dependencies.
+
+3. Refer to the [python-sixel GitHub repository](https://github.com/lubosz/python-sixel) for additional documentation and community support.
+
+4. Double-check your code for potential errors, specifically the usage of `SixelWriter` and image data conversion steps.
+
+For further assistance on working with YOLO models and sixel integration, see the [export](../modes/export.md) and [predict mode](../modes/predict.md) documentation pages.

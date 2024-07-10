@@ -78,3 +78,81 @@ If you use the CIFAR-10 dataset in your research or development work, please cit
         ```
 
 We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-10 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-10 dataset and its creator, visit the [CIFAR-10 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
+
+## FAQ
+
+### How can I train a YOLO model on the CIFAR-10 dataset?
+
+To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow the examples provided for both Python and CLI. Here is a basic example to train your model for 100 epochs with an image size of 32x32 pixels:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a model
+    model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+    # Train the model
+    results = model.train(data="cifar10", epochs=100, imgsz=32)
+    ```
+
+    === "CLI"
+
+    ```bash
+    # Start training from a pretrained *.pt model
+    yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+    ```
+
+For more details, refer to the model [Training](../../modes/train.md) page.
+
+### What are the key features of the CIFAR-10 dataset?
+
+The CIFAR-10 dataset consists of 60,000 color images divided into 10 classes. Each class contains 6,000 images, with 5,000 for training and 1,000 for testing. The images are 32x32 pixels in size and vary across the following categories:
+
+- Airplanes
+- Cars
+- Birds
+- Cats
+- Deer
+- Dogs
+- Frogs
+- Horses
+- Ships
+- Trucks
+
+This diverse dataset is essential for training image classification models in fields such as machine learning and computer vision. For more information, visit the CIFAR-10 sections on [dataset structure](#dataset-structure) and [applications](#applications).
+
+### Why use the CIFAR-10 dataset for image classification tasks?
+
+The CIFAR-10 dataset is an excellent benchmark for image classification due to its diversity and structure. It contains a balanced mix of 60,000 labeled images across 10 different categories, which helps in training robust and generalized models. It is widely used for evaluating deep learning models, including Convolutional Neural Networks (CNNs) and other machine learning algorithms. The dataset is relatively small, making it suitable for quick experimentation and algorithm development. Explore its numerous applications in the [applications](#applications) section.
+
+### How is the CIFAR-10 dataset structured?
+
+The CIFAR-10 dataset is structured into two main subsets:
+
+1. **Training Set**: Contains 50,000 images used for training machine learning models.
+2. **Testing Set**: Consists of 10,000 images for testing and benchmarking the trained models.
+
+Each subset comprises images categorized into 10 classes, with their annotations readily available for model training and evaluation. For more detailed information, refer to the [dataset structure](#dataset-structure) section.
+
+### How can I cite the CIFAR-10 dataset in my research?
+
+If you use the CIFAR-10 dataset in your research or development projects, make sure to cite the following paper:
+
+```bibtex
+@TECHREPORT{Krizhevsky09learningmultiple,
+            author={Alex Krizhevsky},
+            title={Learning multiple layers of features from tiny images},
+            institution={},
+            year={2009}
+}
+```
+
+Acknowledging the dataset's creators helps support continued research and development in the field. For more details, see the [citations and acknowledgments](#citations-and-acknowledgments) section.
+
+### What are some practical examples of using the CIFAR-10 dataset?
+
+The CIFAR-10 dataset is often used for training image classification models, such as Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs). These models can be employed in various computer vision tasks including object detection, image recognition, and automated tagging. To see some practical examples, check the code snippets in the [usage](#usage) section.

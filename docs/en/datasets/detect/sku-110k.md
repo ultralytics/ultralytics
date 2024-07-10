@@ -91,3 +91,80 @@ If you use the SKU-110k dataset in your research or development work, please cit
         ```
 
 We would like to acknowledge Eran Goldman et al. for creating and maintaining the SKU-110k dataset as a valuable resource for the computer vision research community. For more information about the SKU-110k dataset and its creators, visit the [SKU-110k dataset GitHub repository](https://github.com/eg4000/SKU110K_CVPR19).
+
+## FAQ
+
+### What is the SKU-110k dataset and why is it important for object detection?
+
+The SKU-110k dataset consists of densely packed retail shelf images designed to aid research in object detection tasks. Developed by Eran Goldman et al., it includes over 110,000 unique SKU categories. Its importance lies in its ability to challenge state-of-the-art object detectors with diverse object appearances and close proximity, making it an invaluable resource for researchers and practitioners in computer vision. Learn more about the dataset's structure and applications in our [SKU-110k Dataset](#sku-110k-dataset) section.
+
+### How do I train a YOLOv8 model using the SKU-110k dataset?
+
+Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an example to train a YOLOv8n model for 100 epochs with an image size of 640:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+
+### What are the main subsets of the SKU-110k dataset?
+
+The SKU-110k dataset is organized into three main subsets:
+
+1. **Training set**: Contains images and annotations used for training object detection models.
+2. **Validation set**: Consists of images and annotations used for model validation during training.
+3. **Test set**: Designed for the final evaluation of trained object detection models.
+
+Refer to the [Dataset Structure](#dataset-structure) section for more details.
+
+### How do I configure the SKU-110k dataset for training?
+
+The SKU-110k dataset configuration is defined in a YAML file, which includes details about the dataset's paths, classes, and other relevant information. The `SKU-110K.yaml` file is maintained at [SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml). For example, you can train a model using this configuration as shown in our [Usage](#usage) section.
+
+### What are the key features of the SKU-110k dataset in the context of deep learning?
+
+The SKU-110k dataset features images of store shelves from around the world, showcasing densely packed objects that pose significant challenges for object detectors:
+
+- Over 110,000 unique SKU categories
+- Diverse object appearances
+- Annotations include bounding boxes and SKU category labels
+
+These features make the SKU-110k dataset particularly valuable for training and evaluating deep learning models in object detection tasks. For more details, see the [Key Features](#key-features) section.
+
+### How do I cite the SKU-110k dataset in my research?
+
+If you use the SKU-110k dataset in your research or development work, please cite the following paper:
+
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @inproceedings{goldman2019dense,
+         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+         title     = {Precise Detection in Densely Packed Scenes},
+         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+         year      = {2019}
+        }
+        ```
+
+More information about the dataset can be found in the [Citations and Acknowledgments](#citations-and-acknowledgments) section.

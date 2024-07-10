@@ -84,3 +84,50 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 | `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2 |
 | `--region-thickness` | `int`  | `2`          | Region Box thickness                       |
 | `--track-thickness`  | `int`  | `2`          | Tracking line thickness                    |
+
+## FAQ
+
+### What is object counting in specified regions using Ultralytics YOLOv8?
+
+Object counting in specified regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves detecting and tallying the number of objects within defined areas using advanced computer vision. This precise method enhances efficiency and accuracy across various applications like manufacturing, surveillance, and traffic monitoring.
+
+### How do I run the object counting script with Ultralytics YOLOv8?
+
+Follow these steps to run object counting in Ultralytics YOLOv8:
+
+1. Clone the Ultralytics repository and navigate to the directory:
+
+    ```bash
+    git clone https://github.com/ultralytics/ultralytics
+    cd ultralytics/examples/YOLOv8-Region-Counter
+    ```
+
+2. Execute the region counting script:
+    ```bash
+    python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
+    ```
+
+For more options, visit the [Run Region Counting](#steps-to-run) section.
+
+### Why should I use Ultralytics YOLOv8 for object counting in regions?
+
+Using Ultralytics YOLOv8 for object counting in regions offers several advantages:
+
+- **Precision and Accuracy:** Minimizes errors often seen in manual counting.
+- **Efficiency Improvement:** Provides real-time results and streamlines processes.
+- **Versatility and Application:** Applies to various domains, enhancing its utility.
+
+Explore deeper benefits in the [Advantages](#advantages-of-object-counting-in-regions) section.
+
+### Can the defined regions be adjusted during video playback?
+
+Yes, with Ultralytics YOLOv8, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](#step-2-run-region-counting-using-ultralytics-yolov8).
+
+### What are some real-world applications of object counting in regions?
+
+Object counting with Ultralytics YOLOv8 can be applied to numerous real-world scenarios:
+
+- **Retail:** Counting people for foot traffic analysis.
+- **Market Streets:** Crowd density management.
+
+Explore more examples in the [Real World Applications](#real-world-applications) section.

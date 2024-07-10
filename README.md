@@ -77,7 +77,11 @@ training:
 !yolo task=detect mode=train model=yolov8m.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 ```
 image example:
-<img width="100%" src="[https://github.com/ultralytics/ultralytics/assets/52988882/09ecb51e-2bfb-451d-90a9-99bb2f684129](https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.jpg)" alt="YOLOv8 performance plots"></a>
+<div align="center">
+  <p>
+    <a href="https://github.com/ultralytics/ultralytics/issues/14313#issuecomment-2219536099" target="_blank">
+      <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.jpg"></a>
+  </p>
 
 
 ### Python

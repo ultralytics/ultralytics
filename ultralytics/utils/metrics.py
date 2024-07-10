@@ -226,27 +226,16 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     cosdtheta_sq = (cos1 * cos2 + sin1 * sin2).pow(2)
 
     det_sum = (
-<<<<<<< HEAD
-        sqrt_det1.pow(2)
-        + sqrt_det2.pow(2)
-        + (w1.pow(2) * h2.pow(2) + w2.pow(2) * h1.pow(2)) * torch.cos(theta2 - theta1).pow(2) / 144
-        + (w1.pow(2) * h1.pow(2) + w2.pow(2) * h2.pow(2)) * torch.sin(theta2 - theta1).pow(2) / 144
-=======
-        (det1 + det2) * (2-c2)
+        (det1 + det2) * (2 - cosdtheta_sq)
         + (w1_term * h2_term + w2_term * h1_term) * cosdtheta_sq
->>>>>>> d0b9ba06 (Speed up probiou)
     )
     t1 = (((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / (det_sum + eps)) * 0.25
     t2 = (c1 + c2) * (x2 - x1) * (y1 - y2) / (det_sum + eps) * 0.5
-<<<<<<< HEAD
-    t3 = (det_sum / (4 * sqrt_det1 * sqrt_det2 + eps) + eps).log() * 0.5
-=======
     t3 = (
         det_sum
         / (4 * (det1 * det2).sqrt() + eps)
         + eps
     ).log() * 0.5
->>>>>>> d0b9ba06 (Speed up probiou)
     bd = (t1 + t2 + t3).clamp(eps, 100.0)
     hd = (1.0 - (-bd).exp() + eps).sqrt()
     iou = 1 - hd

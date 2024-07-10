@@ -79,7 +79,7 @@ training:
 image example:
 <div align="center">
   <p>
-    <a href="https://github.com/ultralytics/ultralytics/issues/14313#issuecomment-2219536099">
+    <a href="https://github.com/ultralytics/ultralytics/issues/14c9fcbe66b0206b90204642cd38b9f6">
       <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.png"></a>
   </p>
 

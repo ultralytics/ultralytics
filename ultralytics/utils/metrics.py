@@ -245,7 +245,7 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
         v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
         with torch.no_grad():
             alpha = v / (v - iou + (1 + eps))
-        return iou - v * alpha  # CIoU
+        return (iou - v * alpha).squeeze(-1)  # CIoU
     return iou.squeeze(-1)
 
 

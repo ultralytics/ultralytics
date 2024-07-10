@@ -8,13 +8,13 @@ keywords: Computer Vision Models, AI Model Monitoring, Data Drift Detection, Ano
 
 ## Introduction
 
-If you are here, we can assume you've completed many [steps in your computer vision project](./steps-of-a-cv-project.md): from [gathering requirements](./defining-project-goals.md), [annotating data](./data-collection-and-annotation.md), and [training the model](./model-training-tips.md) to finally [deploying](./model-deployment-practices.md) it. Your application is now running in production, but your project doesn't end here. The most important part of a computer vision project is making sure your model continues to fulfill your [project's objectives](./defining-project-goals.md) over time, and that’s where monitoring, maintaining, and documenting your computer vision model enters the picture.
+If you are here, we can assume you've completed many [steps in your computer vision project](./steps-of-a-cv-project.md): from [gathering requirements](./defining-project-goals.md), [annotating data](./data-collection-and-annotation.md), and [training the model](./model-training-tips.md) to finally [deploying](./model-deployment-practices.md) it. Your application is now running in production, but your project doesn't end here. The most important part of a computer vision project is making sure your model continues to fulfill your [project's objectives](./defining-project-goals.md) over time, and that's where monitoring, maintaining, and documenting your computer vision model enters the picture.
 
 In this guide, we'll take a closer look at how you can maintain your computer vision models after deployment. We'll explore how model monitoring can help you catch problems early on, how to keep your model accurate and up-to-date, and why documentation is important for troubleshooting.
 
 ## Model Monitoring is Key
 
-Keeping a close eye on your deployed computer vision models is essential. Without proper monitoring, models can lose accuracy. A common issue is data distribution shift or data drift, where the data the model encounters changes from what it was trained on. When the model has to make predictions on data it doesn’t recognize, it can lead to misinterpretations and poor performance. Outliers, or unusual data points, can also throw off the model’s accuracy.
+Keeping a close eye on your deployed computer vision models is essential. Without proper monitoring, models can lose accuracy. A common issue is data distribution shift or data drift, where the data the model encounters changes from what it was trained on. When the model has to make predictions on data it doesn't recognize, it can lead to misinterpretations and poor performance. Outliers, or unusual data points, can also throw off the model's accuracy.
 
 Regular model monitoring helps developers track the [model's performance](./model-evaluation-insights.md), spot anomalies, and quickly address problems like data drift. It also helps manage resources by indicating when updates are needed, avoiding expensive overhauls, and keeping the model relevant.
 
@@ -22,9 +22,9 @@ Regular model monitoring helps developers track the [model's performance](./mode
 
 Here are some best practices to keep in mind while monitoring your computer vision model in production:
 
-- **Track Performance Regularly**: Continuously monitor the model’s performance to detect changes over time.
+- **Track Performance Regularly**: Continuously monitor the model's performance to detect changes over time.
 - **Double Check the Data Quality**: Check for missing values or anomalies in the data.
-- **Use Diverse Data Sources**: Monitor data from various sources to get a comprehensive view of the model’s performance.
+- **Use Diverse Data Sources**: Monitor data from various sources to get a comprehensive view of the model's performance.
 - **Combine Monitoring Techniques**: Use a mix of drift detection algorithms and rule-based approaches to identify a wide range of issues.
 - **Monitor Inputs and Outputs**: Keep an eye on both the data the model processes and the results it produces to make sure everything is functioning correctly.
 - **Set Up Alerts**: Implement alerts for unusual behavior, such as performance drops, to be able to make quick corrective actions.
@@ -67,7 +67,7 @@ Data drift detection is a concept that helps identify when the statistical prope
 
 Here are several methods to detect data drift:
 
-**Continuous Monitoring**: Regularly monitor the model’s input data and outputs for signs of drift. Track key metrics and compare them against historical data to identify significant changes.
+**Continuous Monitoring**: Regularly monitor the model's input data and outputs for signs of drift. Track key metrics and compare them against historical data to identify significant changes.
 
 **Statistical Techniques**: Use methods like the Kolmogorov-Smirnov test or Population Stability Index (PSI) to detect changes in data distributions. These tests compare the distribution of new data with the training data to identify significant differences.
 
@@ -111,7 +111,7 @@ These are some of the key elements that should be included in project documentat
 - **[Training Process](./model-training-tips.md)**: Document the training procedure, including the datasets used, training parameters, and loss functions. Explain how the model was trained and any challenges encountered during training.
 - **[Evaluation Metrics](./model-evaluation-insights.md)**: Specify the metrics used to evaluate the model's performance, such as accuracy, precision, recall, and F1-score. Include performance results and an analysis of these metrics.
 - **[Deployment Steps](./model-deployment-options.md)**: Outline the steps taken to deploy the model, including the tools and platforms used, deployment configurations, and any specific challenges or considerations.
-- **Monitoring and Maintenance Procedure**: Provide a detailed plan for monitoring the model’s performance post-deployment. Include methods for detecting and addressing data and model drift, and describe the process for regular updates and retraining.
+- **Monitoring and Maintenance Procedure**: Provide a detailed plan for monitoring the model's performance post-deployment. Include methods for detecting and addressing data and model drift, and describe the process for regular updates and retraining.
 
 ### Tools for Documentation
 

@@ -61,6 +61,7 @@ Here's how you can use these formats to train your model:
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -111,3 +112,76 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+
+## FAQ
+
+### What is the Ultralytics YOLO dataset format and how to structure it?
+
+The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
+
+```yaml
+path: ../datasets/coco8  # dataset root directory
+train: images/train  # training images (relative to 'path')
+val: images/val  # validation images (relative to 'path')
+test:  # optional test images
+names:
+  0: person
+  1: bicycle
+  2: car
+  # ...
+```
+
+Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).
+
+### How do I convert a COCO dataset to the YOLO format?
+
+You can convert a COCO dataset to the YOLO format using the Ultralytics conversion tools. Here's a quick method:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(labels_dir="path/to/coco/annotations/")
+```
+
+This code will convert your COCO annotations to YOLO format, enabling seamless integration with Ultralytics YOLO models. For additional details, visit the [Port or Convert Label Formats](#port-or-convert-label-formats) section.
+
+### Which datasets are supported by Ultralytics YOLO for object detection?
+
+Ultralytics YOLO supports a wide range of datasets, including:
+
+- [Argoverse](argoverse.md)
+- [COCO](coco.md)
+- [LVIS](lvis.md)
+- [COCO8](coco8.md)
+- [Global Wheat 2020](globalwheat2020.md)
+- [Objects365](objects365.md)
+- [OpenImagesV7](open-images-v7.md)
+
+Each dataset page provides detailed information on the structure and usage tailored for efficient YOLOv8 training. Explore the full list in the [Supported Datasets](#supported-datasets) section.
+
+### How do I start training a YOLOv8 model using my dataset?
+
+To start training a YOLOv8 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
+
+!!! Example
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")  # Load a pretrained model
+        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        yolo detect train data=path/to/your_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+Refer to the [Usage](#usage) section for more details on utilizing different modes, including CLI commands.
+
+### Where can I find practical examples of using Ultralytics YOLO for object detection?
+
+Ultralytics provides numerous examples and practical guides for using YOLOv8 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLOv8. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.

@@ -98,7 +98,7 @@ Training losses and batch0:
 <div align="center">
   <p>
     <a href="./">
-      <img width="90%" src="./detect/train/train_batch0.png"></a>
+      <img width="90%" src="./detect/train/train_batch0.jpg"></a>
   </p>
 </div>
 

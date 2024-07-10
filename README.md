@@ -103,7 +103,7 @@ Training losses and batch0:
 </div>
 
 ### Training preperations
--> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1) :
+-> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1) 
 
 -> Download pretrained model [yolov8n.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8n.pt)
 

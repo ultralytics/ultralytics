@@ -80,31 +80,12 @@ image example:
 <div align="center">
   <p>
     <a href="https://github.com/ultralytics/ultralytics/issues/14c9fcbe66b0206b90204642cd38b9f6">
-      <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.jpg"></a>
+      <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.png"></a>
   </p>
+</div>
 
 
-### Python
 
-YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
-
-```python
-from ultralytics import YOLO
-
-# Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
-
-# Use the model
-model.train(data="coco8.yaml", epochs=3)  # train the model
-metrics = model.val()  # evaluate model performance on the validation set
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-path = model.export(format="onnx")  # export the model to ONNX format
-```
-
-See YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
-
-</details>
 
 ### Notebooks
 

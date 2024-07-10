@@ -194,9 +194,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(
-    url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True
-):
+def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
@@ -322,7 +320,11 @@ def safe_download(
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
+        pretty_url = (url if gdrive else clean_url(url)).replace(
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/",
+            "https://ultralytics.com/assets/",  # alias
+        )
+        desc = f"Downloading {pretty_url} to '{f}'"
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)

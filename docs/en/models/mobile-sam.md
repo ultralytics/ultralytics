@@ -117,3 +117,43 @@ If you find MobileSAM useful in your research or development work, please consid
           year={2023}
         }
         ```
+
+## FAQ
+
+### What is MobileSAM and how does it differ from the original SAM model?
+
+MobileSAM is a lightweight, fast image segmentation model designed for mobile applications. It retains the same pipeline as the original SAM but replaces the heavyweight ViT-H encoder (632M parameters) with a smaller Tiny-ViT encoder (5M parameters). This change results in MobileSAM being approximately 5 times smaller and 7 times faster than the original SAM. For instance, MobileSAM operates at about 12ms per image, compared to the original SAM's 456ms. You can learn more about the MobileSAM implementation in various projects [here](https://github.com/ChaoningZhang/MobileSAM).
+
+### How can I test MobileSAM using Ultralytics?
+
+Testing MobileSAM in Ultralytics can be accomplished through straightforward methods. You can use Point and Box prompts to predict segments. Here's an example using a Point prompt:
+
+```python
+from ultralytics import SAM
+
+# Load the model
+model = SAM("mobile_sam.pt")
+
+# Predict a segment based on a point prompt
+model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+```
+
+You can also refer to the [Testing MobileSAM](#testing-mobilesam-in-ultralytics) section for more details.
+
+### Why should I use MobileSAM for my mobile application?
+
+MobileSAM is ideal for mobile applications due to its lightweight architecture and fast inference speed. Compared to the original SAM, MobileSAM is approximately 5 times smaller and 7 times faster, making it suitable for environments where computational resources are limited. This efficiency ensures that mobile devices can perform real-time image segmentation without significant latency. Additionally, MobileSAM's models, such as [Inference](../modes/predict.md), are optimized for mobile performance.
+
+### How was MobileSAM trained, and is the training code available?
+
+MobileSAM was trained on a single GPU with a 100k dataset, which is 1% of the original images, in less than a day. While the training code will be made available in the future, you can currently explore other aspects of MobileSAM in the [MobileSAM GitHub repository](https://github.com/ultralytics/assets/releases/download/v8.2.0/mobile_sam.pt). This repository includes pre-trained weights and implementation details for various applications.
+
+### What are the primary use cases for MobileSAM?
+
+MobileSAM is designed for fast and efficient image segmentation in mobile environments. Primary use cases include:
+
+- **Real-time object detection and segmentation** for mobile applications.
+- **Low-latency image processing** in devices with limited computational resources.
+- **Integration in AI-driven mobile apps** for tasks such as augmented reality (AR) and real-time analytics.
+
+For more detailed use cases and performance comparisons, see the section on [Adapting from SAM to MobileSAM](#adapting-from-sam-to-mobilesam).

@@ -62,35 +62,34 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
 !!! Example "Usage: Training YOLOv8 with Weights & Biases"
 
     === "Python"
-       ```python
-       import wandb
-       from wandb.integration.ultralytics import add_wandb_callback
 
-       from ultralytics import YOLO
+        ```python
+        import wandb
+        from wandb.integration.ultralytics import add_wandb_callback
 
-       # Step 1: Initialize a Weights & Biases run
-       wandb.init(project="ultralytics", job_type="training")
+        from ultralytics import YOLO
 
-       # Step 2: Define the YOLOv8 Model and Dataset
-       model_name = "yolov8n"
-       dataset_name = "coco8.yaml"
-       model = YOLO(f"{model_name}.pt")
+        # Initialize a Weights & Biases run
+        wandb.init(project="ultralytics", job_type="training")
 
-       # Step 3: Add W&B Callback for Ultralytics
-       add_wandb_callback(model, enable_model_checkpointing=True)
+        # Load a YOLO model
+        model = YOLO("yolov8n.pt")
 
-       # Step 4: Train and Fine-Tune the Model
-       model.train(project="ultralytics", data=dataset_name, epochs=5, imgsz=640)
+        # Add W&B Callback for Ultralytics
+        add_wandb_callback(model, enable_model_checkpointing=True)
 
-       # Step 5: Validate the Model
-       model.val()
+        # Train and Fine-Tune the Model
+        model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
 
-       # Step 6: Perform Inference and Log Results
-       model(["path/to/image1", "path/to/image2"])
+        # Validate the Model
+        model.val()
 
-       # Step 7: Finalize the W&B Run
-       wandb.finish()
-       ```
+        # Perform Inference and Log Results
+        model(["path/to/image1", "path/to/image2"])
+
+        # Finalize the W&B Run
+        wandb.finish()
+        ```
 
 ### Understanding the Code
 
@@ -149,3 +148,86 @@ This guide helped you explore Ultralytics' YOLOv8 integration with Weights & Bia
 For further details on usage, visit [Weights & Biases' official documentation](https://docs.wandb.ai/guides/integrations/ultralytics).
 
 Also, be sure to check out the [Ultralytics integration guide page](../integrations/index.md), to learn more about different exciting integrations.
+
+## FAQ
+
+### How do I install the required packages for YOLOv8 and Weights & Biases?
+
+To install the required packages for YOLOv8 and Weights & Biases, open your command line interface and run:
+
+```bash
+pip install --upgrade ultralytics==8.0.186 wandb
+```
+
+For further guidance on installation steps, refer to our [YOLOv8 Installation guide](../quickstart.md). If you encounter issues, consult the [Common Issues guide](../guides/yolo-common-issues.md) for troubleshooting tips.
+
+### What are the benefits of integrating Ultralytics YOLOv8 with Weights & Biases?
+
+Integrating Ultralytics YOLOv8 with Weights & Biases offers several benefits including:
+
+- **Real-Time Metrics Tracking:** Observe metric changes during training for immediate insights.
+- **Hyperparameter Optimization:** Improve model performance by fine-tuning learning rate, batch size, etc.
+- **Comparative Analysis:** Side-by-side comparison of different training runs.
+- **Resource Monitoring:** Keep track of CPU, GPU, and memory usage.
+- **Model Artifacts Management:** Easy access and sharing of model checkpoints.
+
+Explore these features in detail in the Weights & Biases Dashboard section above.
+
+### How can I configure Weights & Biases for YOLOv8 training?
+
+To configure Weights & Biases for YOLOv8 training, follow these steps:
+
+1. Run the command to initialize Weights & Biases:
+    ```bash
+    import wandb
+    wandb.login()
+    ```
+2. Retrieve your API key from the Weights & Biases website.
+3. Use the API key to authenticate your development environment.
+
+Detailed setup instructions can be found in the Configuring Weights & Biases section above.
+
+### How do I train a YOLOv8 model using Weights & Biases?
+
+For training a YOLOv8 model using Weights & Biases, use the following steps in a Python script:
+
+```python
+import wandb
+from wandb.integration.ultralytics import add_wandb_callback
+
+from ultralytics import YOLO
+
+# Initialize a Weights & Biases run
+wandb.init(project="ultralytics", job_type="training")
+
+# Load a YOLO model
+model = YOLO("yolov8n.pt")
+
+# Add W&B Callback for Ultralytics
+add_wandb_callback(model, enable_model_checkpointing=True)
+
+# Train and Fine-Tune the Model
+model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
+
+# Validate the Model
+model.val()
+
+# Perform Inference and Log Results
+model(["path/to/image1", "path/to/image2"])
+
+# Finalize the W&B Run
+wandb.finish()
+```
+
+This script initializes Weights & Biases, sets up the model, trains it, and logs results. For more details, visit the Usage section above.
+
+### Why should I use Ultralytics YOLOv8 with Weights & Biases over other platforms?
+
+Ultralytics YOLOv8 integrated with Weights & Biases offers several unique advantages:
+
+- **High Efficiency:** Real-time tracking of training metrics and performance optimization.
+- **Scalability:** Easily manage large-scale training jobs with robust resource monitoring and utilization tools.
+- **Interactivity:** A user-friendly interactive UI for data visualization and model management.
+- **Community and Support:** Strong integration documentation and community support with flexible customization and enhancement options.
+
+For comparisons with other platforms like Comet and ClearML, refer to [Ultralytics integrations](../integrations/index.md).

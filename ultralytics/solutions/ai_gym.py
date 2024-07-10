@@ -53,9 +53,9 @@ class AIGym:
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-        self.count = list()
-        self.angle = list()
-        self.stage = list()
+        self.count = []
+        self.angle = []
+        self.stage = []
 
     def start_counting(self, im0, results):
         """

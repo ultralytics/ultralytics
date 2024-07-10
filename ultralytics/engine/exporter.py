@@ -454,7 +454,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
         ov_model = ov.convert_model(
-            self.model.cpu(),
+            self.model,
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )
@@ -686,9 +686,10 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("tensorrt", cmds="-U")
+                check_requirements("tensorrt>7.0.0,<=10.1.0")
             import tensorrt as trt  # noqa
-        check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+        check_version(trt.__version__, ">=7.0.0", hard=True)
+        check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")

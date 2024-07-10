@@ -303,3 +303,68 @@ In this guide, we've explored the different deployment options for YOLOv8. We've
 Don't forget that the YOLOv8 and Ultralytics community is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
 
 Happy deploying!
+
+## FAQ
+
+### What are the deployment options available for YOLOv8 on different hardware platforms?
+
+Ultralytics YOLOv8 supports various deployment formats, each designed for specific environments and hardware platforms. Key formats include:
+
+- **PyTorch** for research and prototyping, with excellent Python integration.
+- **TorchScript** for production environments where Python is unavailable.
+- **ONNX** for cross-platform compatibility and hardware acceleration.
+- **OpenVINO** for optimized performance on Intel hardware.
+- **TensorRT** for high-speed inference on NVIDIA GPUs.
+
+Each format has unique advantages. For a detailed walkthrough, see our [export process documentation](../modes/export.md#usage-examples).
+
+### How do I improve the inference speed of my YOLOv8 model on an Intel CPU?
+
+To enhance inference speed on Intel CPUs, you can deploy your YOLOv8 model using Intel's OpenVINO toolkit. OpenVINO offers significant performance boosts by optimizing models to leverage Intel hardware efficiently.
+
+1. Convert your YOLOv8 model to the OpenVINO format using the `model.export()` function.
+2. Follow the detailed setup guide in the [Intel OpenVINO Export documentation](../integrations/openvino.md).
+
+For more insights, check out our [blog post](https://www.ultralytics.com/blog/achieve-faster-inference-speeds-ultralytics-yolov8-openvino).
+
+### Can I deploy YOLOv8 models on mobile devices?
+
+Yes, YOLOv8 models can be deployed on mobile devices using TensorFlow Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        # Export command for TFLite format
+        model.export(format="tflite")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # CLI command for TFLite export
+        yolo export --format tflite
+        ```
+
+For more details on deploying models to mobile, refer to our [TF Lite integration guide](../integrations/tflite.md).
+
+### What factors should I consider when choosing a deployment format for my YOLOv8 model?
+
+When choosing a deployment format for YOLOv8, consider the following factors:
+
+- **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
+- **Compatibility**: ONNX offers broad compatibility across different platforms.
+- **Ease of Integration**: Formats like CoreML or TF Lite are tailored for specific ecosystems like iOS and Android, respectively.
+- **Community Support**: Formats like PyTorch and TensorFlow have extensive community resources and support.
+
+For a comparative analysis, refer to our [export formats documentation](../modes/export.md#export-formats).
+
+### How can I deploy YOLOv8 models in a web application?
+
+To deploy YOLOv8 models in a web application, you can use TensorFlow.js (TF.js), which allows for running machine learning models directly in the browser. This approach eliminates the need for backend infrastructure and provides real-time performance.
+
+1. Export the YOLOv8 model to the TF.js format.
+2. Integrate the exported model into your web application.
+
+For step-by-step instructions, refer to our guide on [TensorFlow.js integration](../integrations/tfjs.md).

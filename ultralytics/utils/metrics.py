@@ -207,10 +207,12 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
         (torch.Tensor): A tensor representing obb similarities. Its shape is obtained by
             broadcasting obb1 and obb2, and excluding the last dimension.
     """
+
     def _get_covariance_matrix(w_term, h_term, cos, sin):
         return w_term * cos**2 + h_term * sin**2, w_term * sin**2 + h_term * cos**2, (w_term - h_term) * cos * sin
-    x1, y1, wh1, theta1 = obb1.split((1,1,2,1), dim=-1)
-    x2, y2, wh2, theta2 = obb2.split((1,1,2,1), dim=-1)
+
+    x1, y1, wh1, theta1 = obb1.split((1, 1, 2, 1), dim=-1)
+    x2, y2, wh2, theta2 = obb2.split((1, 1, 2, 1), dim=-1)
 
     w1_term, h1_term = (wh1.pow(2) / 12).split(1, dim=-1)
     w2_term, h2_term = (wh2.pow(2) / 12).split(1, dim=-1)
@@ -225,17 +227,10 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     det2 = w2_term * h2_term
     cosdtheta_sq = (cos1 * cos2 + sin1 * sin2).pow(2)
 
-    det_sum = (
-        (det1 + det2) * (2 - cosdtheta_sq)
-        + (w1_term * h2_term + w2_term * h1_term) * cosdtheta_sq
-    )
+    det_sum = (det1 + det2) * (2 - cosdtheta_sq) + (w1_term * h2_term + w2_term * h1_term) * cosdtheta_sq
     t1 = (((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / (det_sum + eps)) * 0.25
     t2 = (c1 + c2) * (x2 - x1) * (y1 - y2) / (det_sum + eps) * 0.5
-    t3 = (
-        det_sum
-        / (4 * (det1 * det2).sqrt() + eps)
-        + eps
-    ).log() * 0.5
+    t3 = (det_sum / (4 * (det1 * det2).sqrt() + eps) + eps).log() * 0.5
     bd = (t1 + t2 + t3).clamp(eps, 100.0)
     hd = (1.0 - (-bd).exp() + eps).sqrt()
     iou = 1 - hd

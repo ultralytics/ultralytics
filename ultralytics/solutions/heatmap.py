@@ -114,7 +114,7 @@ class Heatmap:
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        if tracks and len(tracks) > 0 and hasattr(tracks[0], 'boxes') and tracks[0].boxes is not None:
+        if tracks and len(tracks) > 0 and hasattr(tracks[0], "boxes") and tracks[0].boxes is not None:
             self.boxes = tracks[0].boxes.xyxy.cpu() if tracks[0].boxes.xyxy is not None else []
             self.clss = tracks[0].boxes.cls.tolist() if tracks[0].boxes.cls is not None else []
             self.track_ids = tracks[0].boxes.id.int().tolist() if tracks[0].boxes.id is not None else []
@@ -262,4 +262,3 @@ class Heatmap:
 if __name__ == "__main__":
     classes_names = {0: "person", 1: "car"}  # example class names
     heatmap = Heatmap(classes_names)
-    

@@ -51,6 +51,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md) 🚀 NEW: Gain insights into the strategies and best practices for evaluating and fine-tuning your computer vision models. Learn about the iterative process of refining models to achieve optimal results.
 - [A Guide on Model Testing](model-testing.md) 🚀 NEW: A thorough guide on testing your computer vision models in realistic settings. Learn how to verify accuracy, reliability, and performance in line with project goals.
 - [Best Practices for Model Deployment](model-deployment-practices.md) 🚀 NEW: Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
+- [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md) 🚀 NEW: Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
 - [ROS Quickstart](ros-quickstart.md) 🚀 NEW: Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
 
 ## Contribute to Our Guides

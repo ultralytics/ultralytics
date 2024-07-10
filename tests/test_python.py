@@ -90,7 +90,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://ultralytics.com/images/zidane.jpg" if ONLINE else SOURCE,  # URI
+        "https://github.com/ultralytics/yolov5/releases/download/v1.0/zidane.jpg" if ONLINE else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
@@ -149,7 +149,7 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    video_url = "https://ultralytics.com/assets/decelera_portrait_min.mov"
+    video_url = "https://github.com/ultralytics/yolov5/releases/download/v1.0/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also

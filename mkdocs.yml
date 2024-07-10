@@ -344,6 +344,7 @@ nav:
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - A Guide on Model Testing: guides/model-testing.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

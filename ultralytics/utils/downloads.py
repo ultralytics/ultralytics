@@ -195,13 +195,13 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
 
 
 def check_disk_space(
-    url="https://github.com/ultralytics/yolov5/releases/download/v1.0/coco8.zip", path=Path.cwd(), sf=1.5, hard=True
+    url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True
 ):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
+        url (str, optional): The URL to the file. Defaults to 'https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.

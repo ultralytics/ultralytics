@@ -472,7 +472,7 @@ def prune(args):
     nparams_list.append(100) # save as % of baseline
     map_list.append(init_map)
     pruned_map_list.append(init_map)
-    LOGGER.INFO(f"Before Pruning: MACs={base_macs / 1e9: .5f} G, #Params={base_nparams / 1e6: .5f} M, mAP={init_map: .5f}")
+    LOGGER.info(f"Before Pruning: MACs={base_macs / 1e9: .5f} G, #Params={base_nparams / 1e6: .5f} M, mAP={init_map: .5f}")
 
     # prune same ratio of filter based on initial size
     pruning_ratio = 1 - math.pow((1 - args.target_prune_rate), 1 / args.iterative_steps)
@@ -508,7 +508,7 @@ def prune(args):
         #pruner.regularize(model.model)
         
         # Prune
-        LOGGER.INFO(f"Started pruning for iter {i + 1}")
+        LOGGER.info(f"Started pruning for iter {i + 1}")
         pruner.step()
 
         # pre fine-tuning validation
@@ -519,7 +519,7 @@ def prune(args):
         pruned_map = metric.box.map
         pruned_macs, pruned_nparams = tp.utils.count_ops_and_params(pruner.model, example_inputs.to(model.device))
         current_speed_up = float(macs_list[0]) / pruned_macs
-        LOGGER.INFO(f"After pruning iter {i + 1}: MACs={pruned_macs / 1e9} G, #Params={pruned_nparams / 1e6} M, "
+        LOGGER.info(f"After pruning iter {i + 1}: MACs={pruned_macs / 1e9} G, #Params={pruned_nparams / 1e6} M, "
               f"mAP={pruned_map}, speed up={current_speed_up}")
 
         # fine-tuning
@@ -538,7 +538,7 @@ def prune(args):
         validation_model = YOLO(model.trainer.best)
         metric = validation_model.val(**pruning_cfg)
         current_map = metric.box.map
-        LOGGER.INFO(f"After fine tuning mAP={current_map}")
+        LOGGER.info(f"After fine tuning mAP={current_map}")
 
         # Save post fine-tuning validation metrics
         macs_list.append(pruned_macs)
@@ -559,7 +559,7 @@ def prune(args):
         )
 
         if init_map - current_map > args.max_map_drop:
-            LOGGER.INFO("Pruning early stop")
+            LOGGER.info("Pruning early stop")
             break
 
     exported_path = model.export(format='onnx')
@@ -575,7 +575,7 @@ def parse_args():
     parser.add_argument('--target-prune-rate', default=0.5, type=float, help='Target pruning rate')
     parser.add_argument('--max-map-drop', default=0.2, type=float, help='Allowed maximum map drop after fine-tuning')
     parser.add_argument('--epochs', default=10, type=int, help='Fine tuning epochs')
-    parser.add_argument('--log-level', type=str, default='CRITICAL',
+    parser.add_argument('--log-level', type=str, default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'INFO'],
                         help='Set the logging level')
     return parser.parse_args()

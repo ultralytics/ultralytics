@@ -8,6 +8,17 @@ keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, performanc
 
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/mUybgOlSxxA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLOv8
+</p>
+
 <img width="1024" src="https://github.com/ultralytics/ultralytics/assets/20147381/c68fb2eb-371a-43e5-b7b8-2b869d90bc07" alt="NVIDIA Jetson Ecosystem">
 
 !!! Note
@@ -183,6 +194,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         # Run inference
         results = trt_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -309,6 +321,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -354,3 +367,31 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 ## Next Steps
 
 Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLOv8 Docs](../index.md)!
+
+## FAQ
+
+### How do I deploy Ultralytics YOLOv8 on NVIDIA Jetson devices?
+
+Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Start with Docker](#start-with-docker) and [Start without Docker](#start-without-docker).
+
+### What performance benchmarks can I expect from YOLOv8 models on NVIDIA Jetson devices?
+
+YOLOv8 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Table](#detailed-comparison-table) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
+
+### Why should I use TensorRT for deploying YOLOv8 on NVIDIA Jetson?
+
+TensorRT is highly recommended for deploying YOLOv8 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
+
+### How can I install PyTorch and Torchvision on NVIDIA Jetson?
+
+To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Install PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
+
+### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLOv8?
+
+To maximize performance on NVIDIA Jetson with YOLOv8, follow these best practices:
+
+1. Enable MAX Power Mode to utilize all CPU and GPU cores.
+2. Enable Jetson Clocks to run all cores at their maximum frequency.
+3. Install the Jetson Stats application for monitoring system metrics.
+
+For commands and additional details, refer to the [Best Practices when using NVIDIA Jetson](#best-practices-when-using-nvidia-jetson) section.

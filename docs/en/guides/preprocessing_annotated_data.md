@@ -126,18 +126,6 @@ For a more advanced approach to EDA, you can use the Ultralytics Explorer tool. 
   <img width="100%" src="https://github.com/AyushExel/assets/assets/15766192/1b5f3708-be3e-44c5-9ea3-adcd522dfc75" alt="Overview of Ultralytics Explorer">
 </p>
 
-## FAQs
-
-Here are some questions that might come up while you prepare your dataset:
-
-- **Q1:** How much preprocessing is too much?
-
-    - **A1:** Preprocessing is essential but should be balanced. Overdoing it can lead to loss of critical information, overfitting, increased complexity, and higher computational costs. Focus on necessary steps like resizing, normalization, and basic augmentation, adjusting based on model performance.
-
-- **Q2:** What are the common pitfalls in EDA?
-
-    - **A2:** Common pitfalls in Exploratory Data Analysis (EDA) include ignoring data quality issues like missing values and outliers, confirmation bias, overfitting visualizations, neglecting data distribution, and overlooking correlations. A systematic approach helps gain accurate and valuable insights.
-
 ## Reach Out and Connect
 
 Having discussions about your project with other computer vision enthusiasts can give you new ideas from different perspectives. Here are some great ways to learn, troubleshoot, and network:
@@ -154,3 +142,30 @@ Having discussions about your project with other computer vision enthusiasts can
 ## Your Dataset Is Ready!
 
 Properly resized, normalized, and augmented data improves model performance by reducing noise and improving generalization. By following the preprocessing techniques and best practices outlined in this guide, you can create a solid dataset. With your preprocessed dataset ready, you can confidently proceed to the next steps in your project.
+
+## FAQ
+
+### What is the importance of data preprocessing in computer vision projects?
+
+Data preprocessing is essential in computer vision projects because it ensures that the data is clean, consistent, and in a format that is optimal for model training. By addressing issues such as noise, inconsistency, and imbalance in raw data, preprocessing steps like resizing, normalization, augmentation, and dataset splitting help reduce computational load and improve model performance. For more details, visit the [steps of a computer vision project](../guides/steps-of-a-cv-project.md).
+
+### How can I use Ultralytics YOLO for data augmentation?
+
+For data augmentation with Ultralytics YOLOv8, you need to modify the dataset configuration file (.yaml). In this file, you can specify various augmentation techniques such as random crops, horizontal flips, and brightness adjustments. This can be effectively done using the training configurations [explained here](../modes/train.md). Data augmentation helps create a more robust dataset, reduce overfitting, and improve model generalization.
+
+### What are the best data normalization techniques for computer vision data?
+
+Normalization scales pixel values to a standard range for faster convergence and improved performance during training. Common techniques include:
+
+- **Min-Max Scaling**: Scales pixel values to a range of 0 to 1.
+- **Z-Score Normalization**: Scales pixel values based on their mean and standard deviation.
+
+For YOLOv8, normalization is handled automatically, including conversion to RGB and pixel value scaling. Learn more about it in the [model training section](../modes/train.md).
+
+### How should I split my annotated dataset for training?
+
+To split your dataset, a common practice is to divide it into 70% for training, 20% for validation, and 10% for testing. It is important to maintain the data distribution of classes across these splits and avoid data leakage by performing augmentation only on the training set. Use tools like scikit-learn or TensorFlow for efficient dataset splitting. See the detailed guide on [dataset preparation](../guides/data-collection-and-annotation.md).
+
+### Can I handle varying image sizes in YOLOv8 without manual resizing?
+
+Yes, Ultralytics YOLOv8 can handle varying image sizes through the 'imgsz' parameter during model training. This parameter ensures that images are resized so their largest dimension matches the specified size (e.g., 640 pixels), while maintaining the aspect ratio. For more flexible input handling and automatic adjustments, check the [model training section](../modes/train.md).

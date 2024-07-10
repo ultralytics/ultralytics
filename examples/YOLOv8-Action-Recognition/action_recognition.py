@@ -171,13 +171,13 @@ class HuggingFaceVideoClassifier:
         """
         if input_size is None:
             input_size = [224, 224]
-        from torchvision.transforms import v2
+        from torchvision import transforms
 
-        transform = v2.Compose(
+        transform = transforms.Compose(
             [
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Resize(input_size, antialias=True),
-                v2.Normalize(
+                transforms.Lambda(lambda x: x.float() / 255.0),
+                transforms.Resize(input_size),
+                transforms.Normalize(
                     mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
                 ),
             ]

@@ -367,3 +367,130 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 [fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
 [people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
+
+## FAQ
+
+### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
+
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like BoT-SORT and ByteTrack, which can be configured via YAML files.
+
+### How do I configure a custom tracker for Ultralytics YOLO?
+
+You can configure a custom tracker by copying an existing tracker configuration file (e.g., `custom_tracker.yaml`) from the [Ultralytics tracker configuration directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modifying parameters as needed, except for the `tracker_type`. Use this file in your tracking model like so:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
+        ```
+
+### How can I run object tracking on multiple video streams simultaneously?
+
+To run object tracking on multiple video streams simultaneously, you can use Python's `threading` module. Each thread will handle a separate video stream. Here's an example of how you can set this up:
+
+!!! Example "Multithreaded Tracking"
+
+    ```python
+    import threading
+
+    import cv2
+
+    from ultralytics import YOLO
+
+
+    def run_tracker_in_thread(filename, model, file_index):
+        video = cv2.VideoCapture(filename)
+        while True:
+            ret, frame = video.read()
+            if not ret:
+                break
+            results = model.track(frame, persist=True)
+            res_plotted = results[0].plot()
+            cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        video.release()
+
+
+    model1 = YOLO("yolov8n.pt")
+    model2 = YOLO("yolov8n-seg.pt")
+    video_file1 = "path/to/video1.mp4"
+    video_file2 = 0  # Path to a second video file, or 0 for a webcam
+
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
+
+    tracker_thread1.start()
+    tracker_thread2.start()
+
+    tracker_thread1.join()
+    tracker_thread2.join()
+
+    cv2.destroyAllWindows()
+    ```
+
+### What are the real-world applications of multi-object tracking with Ultralytics YOLO?
+
+Multi-object tracking with Ultralytics YOLO has numerous applications, including:
+
+- **Transportation:** Vehicle tracking for traffic management and autonomous driving.
+- **Retail:** People tracking for in-store analytics and security.
+- **Aquaculture:** Fish tracking for monitoring aquatic environments.
+
+These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time.
+
+### How can I visualize object tracks over multiple video frames with Ultralytics YOLO?
+
+To visualize object tracks over multiple video frames, you can use the YOLO model's tracking features along with OpenCV to draw the paths of detected objects. Here's an example script that demonstrates this:
+
+!!! Example "Plotting tracks over multiple video frames"
+
+    ```python
+    from collections import defaultdict
+
+    import cv2
+    import numpy as np
+
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    video_path = "path/to/video.mp4"
+    cap = cv2.VideoCapture(video_path)
+    track_history = defaultdict(lambda: [])
+
+    while cap.isOpened():
+        success, frame = cap.read()
+        if success:
+            results = model.track(frame, persist=True)
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+            annotated_frame = results[0].plot()
+            for box, track_id in zip(boxes, track_ids):
+                x, y, w, h = box
+                track = track_history[track_id]
+                track.append((float(x), float(y)))
+                if len(track) > 30:
+                    track.pop(0)
+                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
+
+This script will plot the tracking lines showing the movement paths of the tracked objects over time.

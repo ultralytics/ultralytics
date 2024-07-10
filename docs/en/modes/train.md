@@ -257,7 +257,6 @@ Augmentation techniques are essential for improving the robustness and performan
 | `shear`         | `float` | `0.0`         | `-180 - +180` | Shears the image by a specified degree, mimicking the effect of objects being viewed from different angles.                                                               |
 | `translate`     | `float` | `0.1`         | `0.0 - 1.0`   | Translates the image horizontally and vertically by a fraction of the image size, aiding in learning to detect partially visible objects.                                 |
 
-
 These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the optimal augmentation strategy that leads to the best model performance.
 
 !!! info

@@ -207,27 +207,52 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
         (torch.Tensor): A tensor representing obb similarities. Its shape is obtained by
             broadcasting obb1 and obb2, and excluding the last dimension.
     """
-    x1, y1, w1, h1, theta1 = obb1.split(1, dim=-1)
-    x2, y2, w2, h2, theta2 = obb2.split(1, dim=-1)
-    a1, b1, c1 = _get_covariance_matrix(obb1)
-    a2, b2, c2 = _get_covariance_matrix(obb2)
+    def _get_covariance_matrix(w_term, h_term, cos, sin):
+        return w_term * cos**2 + h_term * sin**2, w_term * sin**2 + h_term * cos**2, (w_term - h_term) * cos * sin
+    x1, y1, wh1, theta1 = obb1.split((1,1,2,1), dim=-1)
+    x2, y2, wh2, theta2 = obb2.split((1,1,2,1), dim=-1)
 
-    sqrt_det1 = w1 * h1 / 12
-    sqrt_det2 = w2 * h2 / 12
+    w1_term, h1_term = (wh1.pow(2) / 12).split(1, dim=-1)
+    w2_term, h2_term = (wh2.pow(2) / 12).split(1, dim=-1)
+
+    cos1, sin1 = torch.cos(theta1), torch.sin(theta1)
+    cos2, sin2 = torch.cos(theta2), torch.sin(theta2)
+
+    a1, b1, c1 = _get_covariance_matrix(w1_term, h1_term, cos1, sin1)
+    a2, b2, c2 = _get_covariance_matrix(w2_term, h2_term, cos2, sin2)
+
+    det1 = w1_term * h1_term
+    det2 = w2_term * h2_term
+    cosdtheta_sq = (cos1 * cos2 + sin1 * sin2).pow(2)
 
     det_sum = (
+<<<<<<< HEAD
         sqrt_det1.pow(2)
         + sqrt_det2.pow(2)
         + (w1.pow(2) * h2.pow(2) + w2.pow(2) * h1.pow(2)) * torch.cos(theta2 - theta1).pow(2) / 144
         + (w1.pow(2) * h1.pow(2) + w2.pow(2) * h2.pow(2)) * torch.sin(theta2 - theta1).pow(2) / 144
+=======
+        (det1 + det2) * (2-c2)
+        + (w1_term * h2_term + w2_term * h1_term) * cosdtheta_sq
+>>>>>>> d0b9ba06 (Speed up probiou)
     )
     t1 = (((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / (det_sum + eps)) * 0.25
     t2 = (c1 + c2) * (x2 - x1) * (y1 - y2) / (det_sum + eps) * 0.5
+<<<<<<< HEAD
     t3 = (det_sum / (4 * sqrt_det1 * sqrt_det2 + eps) + eps).log() * 0.5
+=======
+    t3 = (
+        det_sum
+        / (4 * (det1 * det2).sqrt() + eps)
+        + eps
+    ).log() * 0.5
+>>>>>>> d0b9ba06 (Speed up probiou)
     bd = (t1 + t2 + t3).clamp(eps, 100.0)
     hd = (1.0 - (-bd).exp() + eps).sqrt()
     iou = 1 - hd
     if CIoU:  # only include the wh aspect ratio part
+        w1, h1 = wh1.split(1, dim=-1)
+        w2, h2 = wh1.split(1, dim=-1)
         v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
         with torch.no_grad():
             alpha = v / (v - iou + (1 + eps))

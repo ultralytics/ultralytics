@@ -44,39 +44,41 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 </div>
 </div>
 
-## <div align="center">Documentation</div>
+## <div align="center">Updatres</div>
 
-See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full documentation on training, validation, prediction and deployment.
+YOLOv8-m & YOLOv8-n (nano-particles) trained on our own microscopic images for nao-particles detection of PtPdInGaP HEA compounds.
 
 <details open>
 <summary>Install</summary>
 
-Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
 
-[![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
 ```bash
+# clone the repository
+git clone https://github.com/manaralnaasan/nano-particles_yolov8.git
+
+# pip install the required packages 
 pip install ultralytics
+
+# Navigate into the cloned repository directory
+cd nano-particles_yolov8
 ```
 
-For alternative installation methods including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart).
 
-[![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics) [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 
-</details>
 
-<details open>
-<summary>Usage</summary>
 
-### CLI
+## <div align="center">NPs-Yolov8</div>
 
-YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
+training:
 
 ```bash
-yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
+# use this command for google colab
+!yolo task=detect mode=train model=yolov8m.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 ```
+image example:
+<img width="100%" src="[https://github.com/ultralytics/ultralytics/assets/52988882/09ecb51e-2bfb-451d-90a9-99bb2f684129](https://github.com/ultralytics/ultralytics/assets/52988882/85e0d291-5163-40c5-bedd-0e43b0bd32a2.jpg)" alt="YOLOv8 performance plots"></a>
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
 
 ### Python
 

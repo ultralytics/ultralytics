@@ -48,25 +48,20 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 YOLOv8-m & YOLOv8-n (nano-particles) trained on our own microscopic images for nao-particles detection of PtPdInGaP HEA compounds.
 (article will be published soon and added to this project here)
+
 <details open>
 <summary>Install</summary>
-
-
 
 ```bash
 # clone the repository
 git clone https://github.com/manaralnaasan/nano-particles_yolov8.git
 
-# pip install the required packages 
+# pip install the required packages
 pip install ultralytics
 
 # Navigate into the cloned repository directory
 cd nano-particles_yolov8
 ```
-
-
-
-
 
 ## <div align="center">NPs-Yolov8</div>
 
@@ -77,7 +72,9 @@ training:
 !yolo task=detect mode=train model=yolov8m-NPs.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 !yolo task=detect mode=train model=yolov8n-NPs.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 ```
+
 predicted image example:
+
 <div align="center">
   <p>
     <a href="./">
@@ -85,11 +82,10 @@ predicted image example:
   </p>
 </div>
 
-
-
-
 ### Evaluation Metrics Results
+
 Training losses and batch0:
+
 <div align="center">
   <p>
     <a href="./">
@@ -103,11 +99,11 @@ Training losses and batch0:
   </p>
 </div>
 
-### Training preperations
--> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1) 
+### Training preparations
+
+-> Download [Dataset](https://app.roboflow.com/manar-du0ri/nanoparticles-iestz/1)
 
 -> Download pretrained models [yolov8m-NPs.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8m-NPs.pt) and [yolov8n-NPs.pt](https://github.com/manaralnaasan/nano-particles_yolov8/releases/download/v1.0.0-pretrained/yolov8n-NPs.pt)
-
 
 ## <div align="center">License</div>
 

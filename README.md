@@ -76,7 +76,7 @@ training:
 # use this command for google colab
 !yolo task=detect mode=train model=yolov8m.pt data={dataset.location}/data.yaml epochs=20 imgsz=640
 ```
-image example:
+predicted image example:
 <div align="center">
   <p>
     <a href="https://github.com/ultralytics/ultralytics/issues/14c9fcbe66b0206b90204642cd38b9f6">
@@ -87,7 +87,9 @@ image example:
 
 
 
-### Notebooks
+### evaluation metrics Results
+
+
 
 Ultralytics provides interactive notebooks for YOLOv8, covering training, validation, tracking, and more. Each notebook is paired with a [YouTube](https://youtube.com/ultralytics?sub_confirmation=1) tutorial, making it easy to learn and implement advanced YOLOv8 features.
 

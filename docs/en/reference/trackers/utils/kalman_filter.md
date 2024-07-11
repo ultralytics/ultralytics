@@ -1,6 +1,6 @@
 ---
-description: Explore KalmanFilterXYAH, a key component of Ultralytics trackers. Understand its utilities and learn to leverage it in your own projects.
-keywords: Ultralytics, KalmanFilterXYAH, tracker, documentation, guide
+description: Explore Kalman filter implementations like KalmanFilterXYAH and KalmanFilterXYWH for tracking bounding boxes in image space using Ultralytics.
+keywords: Kalman Filter, Object Tracking, Python, Ultralytics, YOLO, Bounding Boxes, Image Processing
 ---
 
 # Reference for `ultralytics/trackers/utils/kalman_filter.py`

@@ -1,6 +1,6 @@
 ---
-description: Dive into the Ultralytics Auth API documentation & learn how to manage authentication in your AI & ML projects easily and effectively.
-keywords: Ultralytics, Auth, API documentation, User Authentication, AI, Machine Learning
+description: Learn how to manage API key and cookie-based authentication in Ultralytics with the Auth class. Step-by-step guide for effective authentication.
+keywords: Ultralytics, authentication, API key, cookies, Auth class, YOLO, API, guide
 ---
 
 # Reference for `ultralytics/hub/auth.py`

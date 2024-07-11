@@ -18,6 +18,7 @@ class LetterBox:
     def __init__(
         self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32
     ):
+        """Initializes LetterBox with parameters for reshaping and transforming image while maintaining aspect ratio."""
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -258,7 +259,8 @@ class Yolov8TFLite:
         img_data = img_data.transpose((0, 2, 3, 1))
 
         scale, zero_point = input_details[0]["quantization"]
-        interpreter.set_tensor(input_details[0]["index"], img_data)
+        img_data_int8 = (img_data / scale + zero_point).astype(np.int8)
+        interpreter.set_tensor(input_details[0]["index"], img_data_int8)
 
         # Run inference
         interpreter.invoke()

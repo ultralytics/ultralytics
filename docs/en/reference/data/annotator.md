@@ -1,6 +1,6 @@
 ---
-description: Enhance your machine learning model with Ultralytics’ auto_annotate function. Simplify data annotation for improved model training.
-keywords: Ultralytics, Auto-Annotate, Machine Learning, AI, Annotation, Data Processing, Model Training
+description: Explore Ultralytics' annotator script for automatic image annotation using YOLO and SAM models. Contribute to improve it on GitHub!.
+keywords: Ultralytics, image annotation, YOLO, SAM, Python script, GitHub, object detection, segmentation
 ---
 
 # Reference for `ultralytics/data/annotator.py`

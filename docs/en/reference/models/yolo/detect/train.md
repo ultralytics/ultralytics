@@ -1,6 +1,6 @@
 ---
-description: Maximize your model's potential with Ultralytics YOLO Detection Trainer. Learn advanced techniques, tips, and tricks for training.
-keywords: Ultralytics YOLO, YOLO, Detection Trainer, Model Training, Machine Learning, Deep Learning, Computer Vision
+description: Learn about the DetectionTrainer class for training YOLO models on custom datasets. Discover methods, examples, and more.
+keywords: Ultralytics, YOLO, DetectionTrainer, training, object detection, machine learning, build dataset, dataloader, detection model
 ---
 
 # Reference for `ultralytics/models/yolo/detect/train.py`

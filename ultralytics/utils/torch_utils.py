@@ -7,6 +7,7 @@ import random
 import time
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from typing import Union
 
@@ -43,8 +44,8 @@ TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Decorator to make all processes in distributed training wait for each local_master to do something."""
-    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
+    """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
+    initialized = dist.is_available() and dist.is_initialized()
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
@@ -146,11 +147,17 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
-        if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
-            raise ValueError(
-                f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-            )
+        if n > 1:  # multi-GPU
+            if batch < 1:
+                raise ValueError(
+                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                    "please specify a valid batch size, i.e. batch=16."
+                )
+            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
+                raise ValueError(
+                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
+                )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -331,19 +338,28 @@ def get_flops(model, imgsz=640):
 
 
 def get_flops_with_torch_profiler(model, imgsz=640):
-    """Compute model FLOPs (thop alternative)."""
-    if TORCH_2_0:
-        model = de_parallel(model)
-        p = next(model.parameters())
+    """Compute model FLOPs (thop package alternative, but 2-10x slower unfortunately)."""
+    if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
+        return 0.0
+    model = de_parallel(model)
+    p = next(model.parameters())
+    if not isinstance(imgsz, list):
+        imgsz = [imgsz, imgsz]  # expand if int/float
+    try:
+        # Use stride size for input tensor
         stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
-        im = torch.zeros((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+        im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
         with torch.profiler.profile(with_flops=True) as prof:
             model(im)
         flops = sum(x.flops for x in prof.key_averages()) / 1e9
-        imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
         flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
-        return flops
-    return 0
+    except Exception:
+        # Use actual image size for input tensor (i.e. required for RTDETR models)
+        im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
+        with torch.profiler.profile(with_flops=True) as prof:
+            model(im)
+        flops = sum(x.flops for x in prof.key_averages()) / 1e9
+    return flops
 
 
 def initialize_weights(model):
@@ -390,8 +406,13 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """Return second-most (for maturity) recently supported ONNX opset by this version of torch."""
-    return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1  # opset
+    """Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity."""
+    if TORCH_1_13:
+        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
+        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
+    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
+    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
+    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
 
 
 def intersect_dicts(da, db, exclude=()):
@@ -436,14 +457,17 @@ def init_seeds(seed=0, deterministic=False):
 
 
 class ModelEMA:
-    """Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
-    Keeps a moving average of everything in the model state_dict (parameters and buffers)
+    """
+    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
+    average of everything in the model state_dict (parameters and buffers)
+
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+
     To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """Create EMA."""
+        """Initialize EMA for 'model' with given arguments."""
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
@@ -486,29 +510,46 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/weights').rglob('*.pt'):
+        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
             strip_optimizer(f)
         ```
     """
-    x = torch.load(f, map_location=torch.device("cpu"))
-    if "model" not in x:
-        LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
+    try:
+        x = torch.load(f, map_location=torch.device("cpu"))
+        assert isinstance(x, dict), "checkpoint is not a Python dictionary"
+        assert "model" in x, "'model' missing from checkpoint"
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
         return
 
+    updates = {
+        "date": datetime.now().isoformat(),
+        "version": __version__,
+        "license": "AGPL-3.0 License (https://ultralytics.com/license)",
+        "docs": "https://docs.ultralytics.com",
+    }
+
+    # Update model
+    if x.get("ema"):
+        x["model"] = x["ema"]  # replace model with EMA
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
-    args = {**DEFAULT_CFG_DICT, **x["train_args"]} if "train_args" in x else None  # combine args
-    if x.get("ema"):
-        x["model"] = x["ema"]  # replace model with ema
-    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
-        x[k] = None
-    x["epoch"] = -1
+    if hasattr(x["model"], "criterion"):
+        x["model"].criterion = None  # strip loss criterion
     x["model"].half()  # to FP16
     for p in x["model"].parameters():
         p.requires_grad = False
+
+    # Update other keys
+    args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
+    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
+        x[k] = None
+    x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
     # x['model'].args = x['train_args']
-    torch.save(x, s or f)
+
+    # Save
+    torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

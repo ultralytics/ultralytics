@@ -1,6 +1,6 @@
 ---
-description: Explore in-depth guidance for using Ultralytics trackers utils matching, including merge_matches, linear_assignment, iou_distance, embedding_distance, fuse_motion, and fuse_score.
-keywords: Ultralytics, Trackers Utils, Matching, merge_matches, linear_assignment, iou_distance, embedding_distance, fuse_motion, fuse_score, documentation
+description: Explore the utility functions for matching in trackers used by Ultralytics, including linear assignment, IoU distance, embedding distance, and more.
+keywords: Ultralytics, matching utils, linear assignment, IoU distance, embedding distance, fuse score, tracking, Python, documentation
 ---
 
 # Reference for `ultralytics/trackers/utils/matching.py`

@@ -166,13 +166,14 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Download Sample Video
+      - name: Download Sample Videos
         run: |
           python -c "
           from ultralytics.utils.downloads import safe_download
           safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4')
+          safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_pose_demo.mp4')
           "
-      - name: Object Counting
+      - name: Object Counting, Heatmaps, Speed Estimation, Queue Management
         run: |
           python -c "
           import cv2
@@ -181,17 +182,47 @@ jobs:
           cap = cv2.VideoCapture('solutions_ci_demo.mp4')
           assert cap.isOpened(), 'Error reading video file'
           region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-          counter = solutions.ObjectCounter(view_img=False, reg_pts=region_points,
-          classes_names=model.names, draw_tracks=True,line_thickness=2)
+          counter = solutions.ObjectCounter(reg_pts=region_points, classes_names=model.names, draw_tracks=True)
+          heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, classes_names=model.names)
+          speed = solutions.SpeedEstimator(reg_pts=region_points, names=names)
+          queue = solutions.QueueManager(classes_names=model.names,reg_pts=region_points)
+          temp_im0 = None # Must required for multiple solutions check
           while cap.isOpened():
               success, im0 = cap.read()
               if not success:
                   break
+              temp_im0 = im0
               tracks = model.track(im0, persist=True, show=False)
               im0 = counter.start_counting(im0, tracks)
+              im0 = temp_im0
+              im0 = heatmap.generate_heatmap(im0, tracks)
+              im0 = temp_im0
+              im0 = speed.estimate_speed(im0, tracks)
+              im0 = temp_im0
+              out = queue.process_queue(im0, tracks)
           cap.release()
           cv2.destroyAllWindows()
           "
+      - name: Workouts Monitoring
+        run: |
+          python -c "
+          import cv2
+          from ultralytics import YOLO, solutions
+          model = YOLO("yolov8n-pose.pt")
+          cap = cv2.VideoCapture('solutions_ci_pose_demo.mp4')
+          assert cap.isOpened(), 'Error reading video file'
+          gym_object = solutions.AIGym(line_thickness=2,pose_type="squat",
+                                      kpts_to_check=[6, 8, 10])
+          while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+              break
+            results = model.track(im0, verbose=False)  # Tracking recommended
+            im0 = gym_object.start_counting(im0, results)
+            cap.release()
+            cv2.destroyAllWindows()
+          "
+
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     runs-on: ${{ matrix.os }}

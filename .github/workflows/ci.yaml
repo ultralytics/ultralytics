@@ -160,6 +160,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
+          python -m pip install wget
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
@@ -168,8 +169,8 @@ jobs:
           pip list
       - name: Download Sample Video
         run: |
-          from ultralytics.utils.downloads import safe_download
-          safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
+          import wget
+          wget.download('https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4', 'solutions_ci_demo.mp4')
       - name: Object Counting
         run: |
           import cv2

@@ -513,6 +513,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         for f in Path('path/to/model/checkpoints').rglob('*.pt'):
             strip_optimizer(f)
         ```
+
+    Note:
+        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
     """
     try:
         x = torch.load(f, map_location=torch.device("cpu"))

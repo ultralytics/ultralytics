@@ -4,12 +4,11 @@ import os
 from pathlib import Path
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.utils import TQDM
+from ultralytics.utils import TQDM, checks
 
 
 class FastSAMPrompt:
@@ -25,6 +24,8 @@ class FastSAMPrompt:
 
     def __init__(self, source, results, device="cuda") -> None:
         """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
+        if isinstance(source, (str, Path)) and os.path.isdir(source):
+            raise ValueError("FastSAM only accepts image paths and PIL Image sources, not directories.")
         self.device = device
         self.results = results
         self.source = source
@@ -33,9 +34,7 @@ class FastSAMPrompt:
         try:
             import clip
         except ImportError:
-            from ultralytics.utils.checks import check_requirements
-
-            check_requirements("git+https://github.com/openai/CLIP.git")
+            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
         self.clip = clip
 
@@ -115,10 +114,13 @@ class FastSAMPrompt:
             points (list, optional): Points to be plotted. Defaults to None.
             point_label (list, optional): Labels for the points. Defaults to None.
             mask_random_color (bool, optional): Whether to use random color for masks. Defaults to True.
-            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality. Defaults to True.
+            better_quality (bool, optional): Whether to apply morphological transformations for better mask quality.
+                Defaults to True.
             retina (bool, optional): Whether to use retina mask. Defaults to False.
             with_contours (bool, optional): Whether to plot contours. Defaults to True.
         """
+        import matplotlib.pyplot as plt
+
         pbar = TQDM(annotations, total=len(annotations))
         for ann in pbar:
             result_name = os.path.basename(ann.path)
@@ -203,6 +205,8 @@ class FastSAMPrompt:
             target_height (int, optional): Target height for resizing. Defaults to 960.
             target_width (int, optional): Target width for resizing. Defaults to 960.
         """
+        import matplotlib.pyplot as plt
+
         n, h, w = annotation.shape  # batch, height, width
 
         areas = np.sum(annotation, axis=(1, 2))
@@ -259,8 +263,6 @@ class FastSAMPrompt:
 
     def _crop_image(self, format_results):
         """Crops an image based on provided annotation format and returns cropped images and related data."""
-        if os.path.isdir(self.source):
-            raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size
         annotations = format_results
@@ -284,9 +286,7 @@ class FastSAMPrompt:
     def box_prompt(self, bbox):
         """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
-            assert bbox[2] != 0 and bbox[3] != 0
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
+            assert bbox[2] != 0 and bbox[3] != 0, "Bounding box width and height should not be zero"
             masks = self.results[0].masks.data
             target_height, target_width = self.results[0].orig_shape
             h = masks.shape[1]
@@ -319,8 +319,6 @@ class FastSAMPrompt:
     def point_prompt(self, points, pointlabel):  # numpy
         """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
             masks = self._format_results(self.results[0], 0)
             target_height, target_width = self.results[0].orig_shape
             h = masks[0]["segmentation"].shape[0]

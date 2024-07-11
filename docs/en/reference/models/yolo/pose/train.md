@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics PoseTrainer for YOLO models. Get a step-by-step guide on how to train on custom pose data for more accurate AI modeling.
-keywords: Ultralytics, YOLO, PoseTrainer, pose training, AI modeling, custom data training
+description: Explore the PoseTrainer class for training pose models using YOLO from Ultralytics. Includes initialization, model configuration, and plotting methods.
+keywords: PoseTrainer, YOLO, Ultralytics, pose models, training, model configuration, deep learning, machine learning, pose estimation
 ---
 
 # Reference for `ultralytics/models/yolo/pose/train.py`

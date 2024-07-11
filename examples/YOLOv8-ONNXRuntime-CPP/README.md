@@ -40,9 +40,9 @@ yolo export model=yolov8n.pt opset=12 simplify=True dynamic=False format=onnx im
 import onnx
 from onnxconverter_common import float16
 
-model = onnx.load(R'YOUR_ONNX_PATH')
+model = onnx.load(R"YOUR_ONNX_PATH")
 model_fp16 = float16.convert_float_to_float16(model)
-onnx.save(model_fp16, R'YOUR_FP16_ONNX_PATH')
+onnx.save(model_fp16, R"YOUR_FP16_ONNX_PATH")
 ```
 
 ## Download COCO.yaml file 📂
@@ -51,14 +51,14 @@ In order to run example, you also need to download coco.yaml. You can download t
 
 ## Dependencies ⚙️
 
-| Dependency                       | Version        |
-| -------------------------------- | -------------- |
-| Onnxruntime(linux,windows,macos) | >=1.14.1       |
-| OpenCV                           | >=4.0.0        |
-| C++ Standard                     | >=17           |
-| Cmake                            | >=3.5          |
-| Cuda (Optional)                  | >=11.4  \<12.0 |
-| cuDNN (Cuda required)            | =8             |
+| Dependency                       | Version       |
+| -------------------------------- | ------------- |
+| Onnxruntime(linux,windows,macos) | >=1.14.1      |
+| OpenCV                           | >=4.0.0       |
+| C++ Standard                     | >=17          |
+| Cmake                            | >=3.5         |
+| Cuda (Optional)                  | >=11.4 \<12.0 |
+| cuDNN (Cuda required)            | =8            |
 
 Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 
@@ -72,21 +72,21 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
 
 3. Create a build directory and navigate to it:
 
-    ```console
-    mkdir build && cd build
-    ```
+   ```console
+   mkdir build && cd build
+   ```
 
 4. Run CMake to generate the build files:
 
-    ```console
-    cmake ..
-    ```
+   ```console
+   cmake ..
+   ```
 
 5. Build the project:
 
-    ```console
-    make
-    ```
+   ```console
+   make
+   ```
 
 6. The built executable should now be located in the `build` directory.
 

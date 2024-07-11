@@ -18,22 +18,30 @@ on:
       Dockerfile-cpu:
         type: boolean
         description: Use Dockerfile-cpu
+        default: true
       Dockerfile-arm64:
         type: boolean
         description: Use Dockerfile-arm64
-      Dockerfile-jetson:
+        default: true
+      Dockerfile-jetson-jetpack5:
         type: boolean
-        description: Use Dockerfile-jetson
+        description: Use Dockerfile-jetson-jetpack5
+        default: true
+      Dockerfile-jetson-jetpack4:
+        type: boolean
+        description: Use Dockerfile-jetson-jetpack4
+        default: true
       Dockerfile-python:
         type: boolean
         description: Use Dockerfile-python
+        default: true
       Dockerfile-conda:
         type: boolean
         description: Use Dockerfile-conda
+        default: true
       push:
         type: boolean
-        description: Push images to Docker Hub
-        default: true
+        description: Publish all Images to Docker Hub
 
 jobs:
   docker:
@@ -54,8 +62,11 @@ jobs:
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
-          - dockerfile: "Dockerfile-jetson"
-            tags: "latest-jetson"
+          - dockerfile: "Dockerfile-jetson-jetpack5"
+            tags: "latest-jetson-jetpack5"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson-jetpack4"
+            tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
@@ -114,7 +125,7 @@ jobs:
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         uses: nick-invision/retry@v3
         with:
-          timeout_minutes: 60
+          timeout_minutes: 120
           retry_wait_seconds: 30
           max_attempts: 2 # retry once
           command: |
@@ -151,7 +162,7 @@ jobs:
 
       - name: Notify on failure
         if: github.event_name == 'push' && failure() # do not notify on cancelled() as cancelling is performed by hand
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}

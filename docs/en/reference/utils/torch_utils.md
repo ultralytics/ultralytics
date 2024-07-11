@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics-tailored torch utility features like Model EMA, early stopping, smart inference, image scaling, get_flops, and many more.
-keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, Get CPU Info, Time Sync, Fuse Deconv and bn, Get num params, Get FLOPs, Scale img, Copy attr, Intersect dicts, De_parallel, Init seeds, Profile
+description: Explore valuable torch utilities from Ultralytics for optimized model performance, including device selection, model fusion, and inference optimization.
+keywords: Ultralytics, torch utils, model optimization, device selection, inference optimization, model fusion, CPU info, PyTorch tools
 ---
 
 # Reference for `ultralytics/utils/torch_utils.py`
@@ -112,6 +112,10 @@ keywords: Ultralytics, Torch Utils, Model EMA, Early Stopping, Smart Inference, 
 <br><br>
 
 ## ::: ultralytics.utils.torch_utils.strip_optimizer
+
+<br><br>
+
+## ::: ultralytics.utils.torch_utils.convert_optimizer_state_dict_to_fp16
 
 <br><br>
 

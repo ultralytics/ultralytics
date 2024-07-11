@@ -219,6 +219,7 @@ def convert_coco(
     use_segments=False,
     use_keypoints=False,
     cls91to80=True,
+    lvis=False,
 ):
     """
     Converts COCO dataset annotations to a YOLO annotation format  suitable for training YOLO models.
@@ -229,12 +230,14 @@ def convert_coco(
         use_segments (bool, optional): Whether to include segmentation masks in the output.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
+        lvis (bool, optional): Whether to convert data in lvis dataset way.
 
     Example:
         ```python
         from ultralytics.data.converter import convert_coco
 
         convert_coco('../datasets/coco/annotations/', use_segments=True, use_keypoints=False, cls91to80=True)
+        convert_coco('../datasets/lvis/annotations/', use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
         ```
 
     Output:
@@ -251,8 +254,14 @@ def convert_coco(
 
     # Import json
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
-        fn = Path(save_dir) / "labels" / json_file.stem.replace("instances_", "")  # folder name
+        lname = "" if lvis else json_file.stem.replace("instances_", "")
+        fn = Path(save_dir) / "labels" / lname  # folder name
         fn.mkdir(parents=True, exist_ok=True)
+        if lvis:
+            # NOTE: create folders for both train and val in advance,
+            # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
+            (fn / "train2017").mkdir(parents=True, exist_ok=True)
+            (fn / "val2017").mkdir(parents=True, exist_ok=True)
         with open(json_file) as f:
             data = json.load(f)
 
@@ -263,16 +272,20 @@ def convert_coco(
         for ann in data["annotations"]:
             imgToAnns[ann["image_id"]].append(ann)
 
+        image_txt = []
         # Write labels file
         for img_id, anns in TQDM(imgToAnns.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
-            h, w, f = img["height"], img["width"], img["file_name"]
+            h, w = img["height"], img["width"]
+            f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
+            if lvis:
+                image_txt.append(str(Path("./images") / f))
 
             bboxes = []
             segments = []
             keypoints = []
             for ann in anns:
-                if ann["iscrowd"]:
+                if ann.get("iscrowd", False):
                     continue
                 # The COCO box format is [top left x, top left y, width, height]
                 box = np.array(ann["bbox"], dtype=np.float64)
@@ -314,7 +327,11 @@ def convert_coco(
                         )  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
-    LOGGER.info(f"COCO data converted successfully.\nResults saved to {save_dir.resolve()}")
+        if lvis:
+            with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
+                f.writelines(f"{line}\n" for line in image_txt)
+
+    LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):
@@ -463,7 +480,7 @@ def merge_multi_segment(segments):
                 segments[i] = np.roll(segments[i], -idx[0], axis=0)
                 segments[i] = np.concatenate([segments[i], segments[i][:1]])
                 # Deal with the first segment and the last one
-                if i in [0, len(idx_list) - 1]:
+                if i in {0, len(idx_list) - 1}:
                     s.append(segments[i])
                 else:
                     idx = [0, idx[1] - idx[0]]
@@ -471,7 +488,7 @@ def merge_multi_segment(segments):
 
         else:
             for i in range(len(idx_list) - 1, -1, -1):
-                if i not in [0, len(idx_list) - 1]:
+                if i not in {0, len(idx_list) - 1}:
                     idx = idx_list[i]
                     nidx = abs(idx[1] - idx[0])
                     s.append(segments[i][nidx:])
@@ -501,11 +518,12 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
                 ├─ ..
                 └─ NNN.txt
     """
-    from ultralytics.data import YOLODataset
-    from ultralytics.utils.ops import xywh2xyxy
-    from ultralytics.utils import LOGGER
-    from ultralytics import SAM
     from tqdm import tqdm
+
+    from ultralytics import SAM
+    from ultralytics.data import YOLODataset
+    from ultralytics.utils import LOGGER
+    from ultralytics.utils.ops import xywh2xyxy
 
     # NOTE: add placeholder to pass class index check
     dataset = YOLODataset(im_dir, data=dict(names=list(range(1000))))
@@ -515,25 +533,25 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
-    for l in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
-        h, w = l["shape"]
-        boxes = l["bboxes"]
+    for label in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+        h, w = label["shape"]
+        boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(l["im_file"])
+        im = cv2.imread(label["im_file"])
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False)
-        l["segments"] = sam_results[0].masks.xyn
+        label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)
-    for l in dataset.labels:
+    for label in dataset.labels:
         texts = []
-        lb_name = Path(l["im_file"]).with_suffix(".txt").name
+        lb_name = Path(label["im_file"]).with_suffix(".txt").name
         txt_file = save_dir / lb_name
-        cls = l["cls"]
-        for i, s in enumerate(l["segments"]):
+        cls = label["cls"]
+        for i, s in enumerate(label["segments"]):
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
         if texts:

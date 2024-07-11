@@ -9,10 +9,6 @@ try:
     import wandb as wb
 
     assert hasattr(wb, "__version__")  # verify package is not directory
-
-    import numpy as np
-    import pandas as pd
-
     _processed_plots = {}
 
 except (ImportError, AssertionError):
@@ -23,7 +19,7 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     """
     Create and log a custom metric visualization to wandb.plot.pr_curve.
 
-    This function crafts a custom metric visualization that mimics the behavior of wandb's default precision-recall
+    This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
     different classes.
 
@@ -38,7 +34,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
-    df = pd.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+    import pandas  # scope for faster 'import ultralytics'
+
+    df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
     return wb.plot_table(
@@ -77,6 +75,8 @@ def _plot_curve(
     Note:
         The function leverages the '_custom_table' function to generate the actual visualization.
     """
+    import numpy as np
+
     # Create new x
     if names is None:
         names = []
@@ -100,7 +100,7 @@ def _plot_curve(
 
 def _log_plots(plots, step):
     """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
-    for name, params in plots.items():
+    for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:
             wb.run.log({name.stem: wb.Image(str(name))}, step=step)

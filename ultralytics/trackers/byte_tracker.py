@@ -2,11 +2,11 @@
 
 import numpy as np
 
+from ..utils import LOGGER
+from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
-from ..utils.ops import xywh2ltwh
-from ..utils import LOGGER
 
 
 class STrack(BaseTrack):
@@ -47,7 +47,7 @@ class STrack(BaseTrack):
         """Initialize new STrack instance."""
         super().__init__()
         # xywh+idx or xywha+idx
-        assert len(xywh) in [5, 6], f"expected 5 or 6 values but got {len(xywh)}"
+        assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -264,11 +264,11 @@ class BYTETracker:
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
-        remain_inds = scores > self.args.track_high_thresh
+        remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_high = scores < self.args.track_high_thresh
 
-        inds_second = np.logical_and(inds_low, inds_high)
+        inds_second = inds_low & inds_high
         dets_second = bboxes[inds_second]
         dets = bboxes[remain_inds]
         scores_keep = scores[remain_inds]

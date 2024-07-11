@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics YOLO's distance calculation feature designed for advance analytics, providing an immediate, impactful way to interpret computer vision data.
-keywords: Ultralytics, YOLO, distance calculation, object tracking, data visualization, real-time tracking, machine learning, object counting, computer vision, vehicle analytics, YOLOv8, artificial intelligence
+description: Explore the Ultralytics distance calculation module. Learn to calculate distances between objects in real-time video streams with our comprehensive guide.
+keywords: Ultralytics, distance calculation, object tracking, real-time video, centroid, distance estimation, YOLO, ML, cv2
 ---
 
 # Reference for `ultralytics/solutions/distance_calculation.py`

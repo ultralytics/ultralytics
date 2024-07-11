@@ -3,8 +3,14 @@
 import json
 from time import time
 
-from ultralytics.hub.utils import HUB_WEB_ROOT, PREFIX, events
-from ultralytics.utils import LOGGER, SETTINGS
+from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession, events
+from ultralytics.utils import LOGGER, RANK, SETTINGS
+
+
+def on_pretrain_routine_start(trainer):
+    """Create a remote Ultralytics HUB session to log local model training."""
+    if RANK in {-1, 0} and SETTINGS["hub"] is True and SETTINGS["api_key"] and trainer.hub_session is None:
+        trainer.hub_session = HUBTrainingSession.create_session(trainer.args.model, trainer.args)
 
 
 def on_pretrain_routine_end(trainer):
@@ -12,10 +18,7 @@ def on_pretrain_routine_end(trainer):
     session = getattr(trainer, "hub_session", None)
     if session:
         # Start timer for upload rate limit
-        session.timers = {
-            "metrics": time(),
-            "ckpt": time(),
-        }  # start timer on session.rate_limit
+        session.timers = {"metrics": time(), "ckpt": time()}  # start timer on session.rate_limit
 
 
 def on_fit_epoch_end(trainer):
@@ -94,6 +97,7 @@ def on_export_start(exporter):
 
 callbacks = (
     {
+        "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,

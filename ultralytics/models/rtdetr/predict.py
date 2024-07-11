@@ -38,7 +38,7 @@ class RTDETRPredictor(BasePredictor):
         The method filters detections based on confidence and class if specified in `self.args`.
 
         Args:
-            preds (torch.Tensor): Raw predictions from the model.
+            preds (list): List of [predictions, extra] from the model.
             img (torch.Tensor): Processed input images.
             orig_imgs (list or torch.Tensor): Original, unprocessed images.
 
@@ -46,6 +46,9 @@ class RTDETRPredictor(BasePredictor):
             (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence scores,
                 and class labels.
         """
+        if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
+            preds = [preds, None]
+
         nd = preds[0].shape[-1]
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
 

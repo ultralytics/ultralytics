@@ -26,8 +26,8 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         bbox2 (np.ndarray): Bounding boxes, (n ,4).
     """
     polygon1 = polygon1.reshape(-1, 4, 2)
-    lt_point = np.min(polygon1, axis=-2)
-    rb_point = np.max(polygon1, axis=-2)
+    lt_point = np.min(polygon1, axis=-2)  # left-top
+    rb_point = np.max(polygon1, axis=-2)  # right-bottom
     bbox1 = np.concatenate([lt_point, rb_point], axis=-1)
 
     lt = np.maximum(bbox1[:, None, :2], bbox2[..., :2])
@@ -35,8 +35,8 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     wh = np.clip(rb - lt, 0, np.inf)
     h_overlaps = wh[..., 0] * wh[..., 1]
 
-    l, t, r, b = (bbox2[..., i] for i in range(4))
-    polygon2 = np.stack([l, t, r, t, r, b, l, b], axis=-1).reshape(-1, 4, 2)
+    left, top, right, bottom = (bbox2[..., i] for i in range(4))
+    polygon2 = np.stack([left, top, right, top, right, bottom, left, bottom], axis=-1).reshape(-1, 4, 2)
 
     sg_polys1 = [Polygon(p) for p in polygon1]
     sg_polys2 = [Polygon(p) for p in polygon2]
@@ -71,7 +71,7 @@ def load_yolo_dota(data_root, split="train"):
                     - train
                     - val
     """
-    assert split in ["train", "val"]
+    assert split in {"train", "val"}, f"Split must be 'train' or 'val', not {split}."
     im_dir = Path(data_root) / "images" / split
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(Path(data_root) / "images" / split / "*"))
@@ -86,7 +86,7 @@ def load_yolo_dota(data_root, split="train"):
     return annos
 
 
-def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.01):
+def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0.01):
     """
     Get the coordinates of windows.
 
@@ -95,6 +95,7 @@ def get_windows(im_size, crop_sizes=[1024], gaps=[200], im_rate_thr=0.6, eps=0.0
         crop_sizes (List(int)): Crop size of windows.
         gaps (List(int)): Gap between crops.
         im_rate_thr (float): Threshold of windows areas divided by image ares.
+        eps (float): Epsilon value for math operations.
     """
     h, w = im_size
     windows = []
@@ -187,7 +188,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir):
                 f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 
-def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=[1024], gaps=[200]):
+def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024,), gaps=(200,)):
     """
     Split both images and labels.
 
@@ -217,7 +218,7 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=[1024
         crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
 
 
-def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
+def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     """
     Split train and val set of DOTA.
 
@@ -247,7 +248,7 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 
-def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=[1.0]):
+def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     """
     Split test set of DOTA, labels are not included within this set.
 

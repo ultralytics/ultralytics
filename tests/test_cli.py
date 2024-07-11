@@ -32,7 +32,7 @@ def test_special_modes():
 def test_train_mps():
     """Test YOLO training on Apple MPS devices."""
     run("yolo train model=yolov8n.pt imgsz=32 epochs=1 device=mps")
-    
+
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_train(task, model, data):

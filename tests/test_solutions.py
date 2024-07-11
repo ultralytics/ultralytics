@@ -39,7 +39,7 @@ def test_major_solutions():
         im0 = speed.estimate_speed(im0, tracks)
         im0 = temp_im0
         im0 = queue.process_queue(im0, tracks)
-        del im0
+        del im0, temp_im0
     cap.release()
     cv2.destroyAllWindows()
 

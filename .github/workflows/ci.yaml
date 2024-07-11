@@ -167,10 +167,10 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Download Sample Video
-        run: |
-          from ultralytics.utils.downloads import safe_download
-          safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
+#      - name: Download Sample Video
+#        run: |
+#          from ultralytics.utils.downloads import safe_download
+#          safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
       - name: Object Counting
         run: |
           import cv2

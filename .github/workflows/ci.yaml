@@ -166,12 +166,17 @@ jobs:
         run: |
           yolo checks
           pip list
-      - name: Download Sample Videos
+      - name: Download Solutions Video
         run: |
           python -c "
           from ultralytics.utils.downloads import safe_download
           safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4')
-          safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_pose_demo.mp4')
+          "
+      - name: Download Pose Video
+        run: |
+          python -c "
+          from ultralytics.utils.downloads import safe_download
+          safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solution_ci_pose_demo.mp4')
           "
       - name: Object Counting, Heatmaps, Speed Estimation, Queue Management
         run: |

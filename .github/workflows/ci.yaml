@@ -171,7 +171,7 @@ jobs:
         run: |
           python -c "
           from ultralytics.utils.downloads import safe_download
-          safe_download(url="https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4")
+          safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4')
           "
       - name: Object Counting
         run: |

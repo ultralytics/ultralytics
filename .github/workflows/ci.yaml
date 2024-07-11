@@ -160,7 +160,6 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          python -m pip install wget
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
@@ -173,14 +172,18 @@ jobs:
           from ultralytics.utils.downloads import safe_download
           safe_download(url='https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4')
           "
-      - name: Object Counting
+      - name: Imports
         run: |
           python -c "
           import cv2
           from ultralytics import YOLO, solutions
-          model = YOLO("yolov8n.pt")
-          cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-          assert cap.isOpened(), "Error reading video file"
+          "
+      - name: Object Counting
+        run: |
+          python -c "
+          model = YOLO('yolov8n.pt')
+          cap = cv2.VideoCapture('solutions_ci_demo.mp4')
+          assert cap.isOpened(), 'Error reading video file'
           region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
           counter = solutions.ObjectCounter(view_img=False, reg_pts=region_points,
           classes_names=model.names, draw_tracks=True,line_thickness=2)

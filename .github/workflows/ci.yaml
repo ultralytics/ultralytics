@@ -142,6 +142,52 @@ jobs:
           assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'
           print(json.dumps(response.json(), indent=2))
 
+  Solutions:
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.solutions == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-14 ]
+        python-version: [ "3.11" ]
+        model: [ yolov8n ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip" # caching pip dependencies
+      - name: Install requirements
+        shell: bash # for Windows compatibility
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          yolo checks
+          pip list
+      - name: Download Sample Video
+        run: |
+          from ultralytics.utils.downloads import safe_download
+          safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
+      - name: Object Counting
+        run: |
+          import cv2
+          from ultralytics import YOLO, solutions
+          model = YOLO("yolov8n.pt")
+          cap = cv2.VideoCapture("solutions_ci_demo.mp4")
+          assert cap.isOpened(), "Error reading video file"
+          region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+          counter = solutions.ObjectCounter(view_img=False, reg_pts=region_points,
+          classes_names=model.names, draw_tracks=True,line_thickness=2)
+          while cap.isOpened():
+              success, im0 = cap.read()
+              if not success:
+                  break
+              tracks = model.track(im0, persist=True, show=False)
+              im0 = counter.start_counting(im0, tracks)
+          cap.release()
+          cv2.destroyAllWindows()
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     runs-on: ${{ matrix.os }}

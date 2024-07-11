@@ -42,4 +42,3 @@ def test_major_solutions():
         del im0
     cap.release()
     cv2.destroyAllWindows()
-

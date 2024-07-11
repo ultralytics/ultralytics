@@ -4,18 +4,13 @@ import cv2
 import pytest
 
 from ultralytics import YOLO, solutions
-
-
-def download_sample_videos():
-    from ultralytics.utils.downloads import safe_download
-
-    safe_download(url="https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4")
-    safe_download(url="https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_pose_demo.mp4")
+from ultralytics.utils.downloads import safe_download
 
 
 @pytest.mark.slow
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation and queue management solution."""
+    safe_download(url="https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4")
     model = YOLO("yolov8n.pt")
     names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
@@ -46,8 +41,10 @@ def test_major_solutions():
     cv2.destroyAllWindows()
 
 
+@pytest.mark.slow
 def test_aigym():
     """Test the workouts monitoring solution."""
+    safe_download(url="https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_pose_demo.mp4")
     model = YOLO("yolov8n-pose.pt")
     cap = cv2.VideoCapture("solutions_ci_pose_demo.mp4")
     assert cap.isOpened(), "Error reading video file"

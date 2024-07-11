@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.metrics import OKS_SIGMA
+from ultralytics.utils.metrics import OKS_SIGMA, OKS_23_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 
@@ -443,14 +443,15 @@ class v8SegmentationLoss(v8DetectionLoss):
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
 
-    def __init__(self, model):  # model must be de-paralleled
+    def __init__(self, model, tal_topk=10):  # model must be de-paralleled
         """Initializes v8PoseLoss with model, sets keypoint variables and declares a keypoint loss instance."""
-        super().__init__(model)
+        super().__init__(model, tal_topk)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
+        is_pose_23 = self.kpt_shape == [23, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
+        sigmas = torch.from_numpy(OKS_SIGMA if is_pose else OKS_23_SIGMA).to(self.device) if (is_pose or is_pose_23) else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):
@@ -739,5 +740,23 @@ class E2EDetectLoss:
         one2many = preds["one2many"]
         loss_one2many = self.one2many(one2many, batch)
         one2one = preds["one2one"]
+        loss_one2one = self.one2one(one2one, batch)
+        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+
+
+class E2EPoseLoss:
+    """Criterion class for computing training losses."""
+    def __init__(self, model):
+        """Initialize E2EPoseLoss with one-to-many and one-to-one pose losses using the provided model."""
+        self.one2many = v8PoseLoss(model, tal_topk=10)
+        self.one2one = v8PoseLoss(model, tal_topk=1)
+
+    def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+        kpts = preds[1][1] if (isinstance(preds[0], tuple) or isinstance(preds[1], tuple)) else preds[1]
+        preds = preds[1][0] if (isinstance(preds[0], tuple) or isinstance(preds[1], tuple)) else preds[0]
+        one2many = (preds["one2many"], kpts["one2many"])
+        loss_one2many = self.one2many(one2many, batch)
+        one2one = (preds["one2one"], kpts["one2one"])
         loss_one2one = self.one2one(one2one, batch)
         return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]

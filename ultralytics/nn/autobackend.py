@@ -432,7 +432,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False, embed=None):
+    def forward(self, im, augment=False, visualize=False, embed=None, is_training=True):
         """
         Runs inference on the YOLOv8 MultiBackend model.
 
@@ -441,6 +441,7 @@ class AutoBackend(nn.Module):
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
             embed (list, optional): A list of feature vectors/embeddings to return.
+            is_training (bool): whether the model is in training mode, it is used to remove one2many head in the forward pass, defaults to True (for now only working with pytorch)
 
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
@@ -453,7 +454,7 @@ class AutoBackend(nn.Module):
 
         # PyTorch
         if self.pt or self.nn_module:
-            y = self.model(im, augment=augment, visualize=visualize, embed=embed)
+            y = self.model(im, augment=augment, visualize=visualize, embed=embed, is_training=is_training)
 
         # TorchScript
         elif self.jit:
@@ -616,12 +617,13 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz=(1, 3, 640, 640)):
+    def warmup(self, imgsz=(1, 3, 640, 640), is_training=True):
         """
         Warm up the model by running one forward pass with a dummy input.
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
+            is_training (bool): whether the model is in training mode, it is used to remove one2many head in the forward pass, defaults to True (for now only working with pytorch)
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
@@ -629,7 +631,7 @@ class AutoBackend(nn.Module):
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
-                self.forward(im)  # warmup
+                self.forward(im, is_training=is_training)  # warmup
 
     @staticmethod
     def _model_type(p="path/to/model.pt"):

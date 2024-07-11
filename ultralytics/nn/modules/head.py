@@ -15,7 +15,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "v10Pose"
 
 
 class Detect(nn.Module):
@@ -48,10 +48,10 @@ class Detect(nn.Module):
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-    def forward(self, x):
+    def forward(self, x, is_training=True):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if self.end2end:
-            return self.forward_end2end(x)
+            return self.forward_end2end(x, is_training=is_training)
 
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -60,12 +60,13 @@ class Detect(nn.Module):
         y = self._inference(x)
         return y if self.export else (y, x)
 
-    def forward_end2end(self, x):
+    def forward_end2end(self, x, is_training=True):
         """
         Performs forward pass of the v10Detect module.
 
         Args:
             x (tensor): Input tensor.
+            is_training (bool): whether the model is in training mode, it is used to remove one2many head in the forward pass, defaults to True (for now only working with pytorch)
 
         Returns:
             (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
@@ -75,14 +76,20 @@ class Detect(nn.Module):
         one2one = [
             torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
         ]
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if is_training:
+            for i in range(self.nl):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return {"one2many": x, "one2one": one2one}
 
         y = self._inference(one2one)
-        y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else (y, {"one2many": x, "one2one": one2one})
+        if not self.kpt_shape: # is not Pose
+            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else (
+            (y, {"one2many": x, "one2one": one2one})
+            if is_training
+            else (y, x)
+        )
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
@@ -230,8 +237,15 @@ class Pose(Detect):
         c4 = max(ch[0] // 4, self.nk)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
 
-    def forward(self, x):
+        if self.end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+
+    def forward(self, x, is_training=True):
         """Perform forward pass through YOLO model and return predictions."""
+
+        if self.end2end:
+            return self.pose_forward_end2end(x, is_training=is_training)
+        
         bs = x[0].shape[0]  # batch size
         kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
         x = Detect.forward(self, x)
@@ -240,6 +254,44 @@ class Pose(Detect):
         pred_kpt = self.kpts_decode(bs, kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
+    def pose_forward_end2end(self, x, is_training=True):
+        """
+        Performs forward pass of the v10Pose module.
+
+        Args:
+            x (tensor): Input tensor.
+            is_training (bool): whether the model is in training mode, it is used to remove one2many head in the forward pass, defaults to True (for now only working with pytorch)
+
+        Returns:
+            (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
+        """
+
+        x_detach = [xi.detach() for xi in x]
+        bs = x[0].shape[0]  # batch size
+
+        kpt_one2one = torch.cat([self.one2one_cv4[i](x_detach[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)
+        if is_training:
+            kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+            
+        x = Detect.forward(self, x, is_training=is_training)
+        if self.training:
+            return x, {"one2many": kpt, "one2one": kpt_one2one}
+        
+        pred_kpt = self.kpts_decode(bs, kpt_one2one)
+        preds = self.postprocess(
+            torch.cat([x[0], pred_kpt], 1).permute(0, 2, 1), 
+            self.max_det, 
+            self.nc,
+            self.nk
+        )
+
+        # if not export return (inference(detect, kpt), predictions(detect, kpt))
+        return torch.cat([x, pred_kpt], 1) if self.export else (
+            (preds, (x[1], {"one2many": kpt, "one2one": kpt_one2one}))
+            if is_training
+            else (preds, (x[1], kpt_one2one))
+        )
+    
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
@@ -256,6 +308,43 @@ class Pose(Detect):
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
+
+    @staticmethod
+    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80, nk: int = 51):
+        """
+        Post-processes the predictions obtained from a YOLOv10 model.
+
+        Args:
+            preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
+            max_det (int): The maximum number of detections to keep.
+            nc (int, optional): The number of classes. Defaults to 80.
+            nk (int, optional): The number of keypoints total. Defaults to 51.
+
+        Returns:
+            (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
+                including bounding boxes, scores and cls.
+        """
+    
+        assert 4 + nc + nk == preds.shape[-1]
+        boxes, scores, keypoints = preds.split([4, nc, nk], dim=-1)
+        max_scores = scores.amax(dim=-1)
+        max_scores, index = torch.topk(max_scores, min(max_det, max_scores.shape[1]), axis=-1)
+        index = index.unsqueeze(-1)
+        boxes = torch.gather(boxes, dim=1, index=index.repeat(1, 1, boxes.shape[-1]))
+        scores = torch.gather(scores, dim=1, index=index.repeat(1, 1, scores.shape[-1]))
+        keypoints = torch.gather(keypoints, dim=1, index=index.repeat(1, 1, keypoints.shape[-1]))
+
+        # NOTE: simplify but result slightly lower mAP
+        # scores, labels = scores.max(dim=-1)
+        # return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1)], dim=-1)
+
+        scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
+        labels = index % nc
+        index = index // nc
+        boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
+        keypoints = keypoints.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, keypoints.shape[-1]))
+
+        return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype), keypoints], dim=-1)
 
 
 class Classify(nn.Module):
@@ -597,3 +686,29 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+
+class v10Pose(Pose, v10Detect):
+    """
+    v10 Pose head by merging Pose and v10Detect modules.
+
+    Args:
+        nc (int): Number of classes.
+        kpt_shape (tuple): Tuple of keypoint shape.
+        ch (tuple): Tuple of channel sizes.
+
+    Attributes:
+        max_det (int): Maximum number of detections.
+
+    Methods:
+        __init__(self, nc=80, ch=()): Initializes the v10Detect object.
+        forward(self, x): Performs forward pass of the v10Detect module.
+        bias_init(self): Initializes biases of the Detect module.
+
+    """
+
+    end2end = True
+    
+    def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
+        v10Detect.__init__(self, nc, ch)
+        Pose.__init__(self, nc, kpt_shape, ch)

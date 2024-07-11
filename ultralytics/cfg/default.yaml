@@ -124,3 +124,6 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+# Custom ---------------------------------------------------------------------------------------------------------------
+end2end: False # (bool) end-to-end model # TODO: try to remove from here and guess it from model

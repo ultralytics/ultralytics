@@ -127,7 +127,7 @@ Organize your train and val images and labels according to the example below. YO
 
 Select a pretrained model to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), the second-smallest and fastest model available. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models.
 
-<p align="center"><img width="800" alt="YOLOv5 models" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/model_comparison.png"></p>
+<p align="center"><img width="800" alt="YOLOv5 models" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/model_comparison.png"></p>
 
 ## 4. Train
 
@@ -185,7 +185,7 @@ Training results are automatically logged with [Tensorboard](https://www.tensorf
 
 This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including precision-recall (PR) curves and confusion matrices.
 
-<img alt="Local logging results" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-local_logging.jpg" width="1280">
+<img alt="Local logging results" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/image-local_logging.jpg" width="1280">
 
 Results file `results.csv` is updated after each epoch, and then plotted as `results.png` (below) after training completes. You can also plot any `results.csv` file manually:
 
@@ -195,7 +195,7 @@ from utils.plots import plot_results
 plot_results("path/to/results.csv")  # plot 'results.csv' as 'results.png'
 ```
 
-<p align="center"><img width="800" alt="results.png" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/results.png"></p>
+<p align="center"><img width="800" alt="results.png" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/results.png"></p>
 
 ## Next Steps
 

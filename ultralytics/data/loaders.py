@@ -523,7 +523,7 @@ def autocast_list(source):
     return files
 
 
-def get_best_youtube_url(url, method="pytube"):
+def get_best_youtube_url(url, method="yt-dlp"):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
@@ -544,6 +544,7 @@ def get_best_youtube_url(url, method="pytube"):
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
     if method == "pytube":
+        # Warning: get_throttling_function_name bug https://github.com/pytube/pytube/issues/1954
         check_requirements("pytube")
         from pytube import YouTube
 

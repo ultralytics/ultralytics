@@ -79,7 +79,7 @@ CLI_HELP_MSG = f"""
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
-        yolo explorer
+        yolo explorer data=data.yaml model=yolov8n.pt
     
     6. Streamlit real-time object detection on your webcam with Ultralytics YOLOv8
         yolo streamlit-predict
@@ -510,11 +510,43 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
-def handle_explorer():
-    """Open the Ultralytics Explorer GUI for dataset exploration and analysis."""
+def handle_explorer(args: List[str]):
+    """Open the Ultralytics Explorer GUI for dataset exploration and analysis.
+    Args:
+        args (List[str]): A list of command line arguments.
+
+    Returns:
+        None
+
+    Example:
+        ```bash
+        yolo explorer data=data.yaml model=yolov8n.pt
+        ```
+    """
     checks.check_requirements("streamlit")
     LOGGER.info("💡 Loading Explorer dashboard...")
-    subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
+
+    WARN = dict(data="WARNING ⚠️ no `data.yaml` passed. Default datasets will be shown.",
+                model="WARNING ⚠️ no `model` passed. Default models will be shown.")
+
+    cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
+    for a in merge_equals_args(args):
+        k, v = parse_key_value_pair(a)
+        if k == "data":
+            cmd += ["data", v]
+            del WARN["data"]
+        elif k == "model":
+            cmd += ["model", v]
+            del WARN["model"]
+        else:
+            raise SyntaxError(f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"
+                              f"{colorstr('yellow', 'bold', 'Usage')}: "
+                               "yolo explorer data=data.yaml model=yolov8n.pt")
+            return
+    for v in WARN.values():
+        LOGGER.warning(v)
+
+    subprocess.run(cmd)
 
 
 def handle_streamlit_inference():
@@ -591,7 +623,7 @@ def entrypoint(debug=""):
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
-        "explorer": lambda: handle_explorer(),
+        "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

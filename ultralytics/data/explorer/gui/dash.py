@@ -19,8 +19,7 @@ def _get_explorer():
     exp = Explorer(data=st.session_state.get("dataset"), model=st.session_state.get("model"))
     thread = Thread(
         target=exp.create_embeddings_table,
-        kwargs={"force": st.session_state.get("force_recreate_embeddings"),
-                "split": st.session_state.get("split")}
+        kwargs={"force": st.session_state.get("force_recreate_embeddings"), "split": st.session_state.get("split")},
     )
     thread.start()
     progress_bar = st.progress(0, text="Creating embeddings table...")

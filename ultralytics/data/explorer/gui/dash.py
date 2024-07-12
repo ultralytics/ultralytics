@@ -18,7 +18,9 @@ def _get_explorer():
     """Initializes and returns an instance of the Explorer class."""
     exp = Explorer(data=st.session_state.get("dataset"), model=st.session_state.get("model"))
     thread = Thread(
-        target=exp.create_embeddings_table, kwargs={"force": st.session_state.get("force_recreate_embeddings")}
+        target=exp.create_embeddings_table,
+        kwargs={"force": st.session_state.get("force_recreate_embeddings"),
+                "split": st.session_state.get("split")}
     )
     thread.start()
     progress_bar = st.progress(0, text="Creating embeddings table...")
@@ -30,7 +32,7 @@ def _get_explorer():
     progress_bar.empty()
 
 
-def init_explorer_form(data=None, model=None):
+def init_explorer_form(data=None, model=None, split=None):
     """Initializes an Explorer instance and creates embeddings table with progress tracking."""
     if data is None:
         datasets = ROOT / "cfg" / "datasets"
@@ -58,12 +60,17 @@ def init_explorer_form(data=None, model=None):
         ]
     else:
         models = [model]
+
+    splits = ["train", "val", "test"]
+
     with st.form(key="explorer_init_form"):
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.selectbox("Select dataset", ds, key="dataset", index=0)
         with col2:
             st.selectbox("Select model", models, key="model")
+        with col3:
+            st.selectbox("Select split", splits, key="split")
         st.checkbox("Force recreate embeddings", key="force_recreate_embeddings")
 
         st.form_submit_button("Explore", on_click=_get_explorer)

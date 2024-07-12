@@ -297,7 +297,7 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
     assert feats is not None
     dtype, device = feats[0].dtype, feats[0].device
     for i, stride in enumerate(strides):
-        _, _, h, w = feats[i].shape
+        h, w = int(feats[i]), int(feats[i])
         sx = torch.arange(end=w, device=device, dtype=dtype) + grid_cell_offset  # shift x
         sy = torch.arange(end=h, device=device, dtype=dtype) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_10 else torch.meshgrid(sy, sx)

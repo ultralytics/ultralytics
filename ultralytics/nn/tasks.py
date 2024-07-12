@@ -87,7 +87,7 @@ except ImportError:
 class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
-    def forward(self, x, *args, **kwargs):
+    def forward(self, x):
         """
         Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
 
@@ -97,9 +97,13 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The output of the network.
         """
-        if isinstance(x, dict):  # for cases of training and validating while training.
-            return self.loss(x, *args, **kwargs)
-        return self.predict(x, *args, **kwargs)
+        y = []
+        for m in self.model:
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)
+            y.append(x if m.i in self.save else None)
+        return x
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
         """
@@ -323,7 +327,7 @@ class DetectionModel(BaseModel):
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
 
-            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
+            # m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
         else:

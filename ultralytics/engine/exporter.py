@@ -454,7 +454,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
         ov_model = ov.convert_model(
-            self.model.cpu(),
+            self.model,
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )
@@ -686,9 +686,10 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("tensorrt", cmds="-U")
+                check_requirements("tensorrt>7.0.0,<=10.1.0")
             import tensorrt as trt  # noqa
-        check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+        check_version(trt.__version__, ">=7.0.0", hard=True)
+        check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
@@ -1016,13 +1017,13 @@ class Exporter:
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
 
-        if ARM64:
-            from tflite_support import metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as schema  # noqa
-        else:
+        try:
             # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
             from tensorflow_lite_support.metadata import metadata_schema_py_generated as schema  # noqa
             from tensorflow_lite_support.metadata.python import metadata  # noqa
+        except ImportError:  # ARM64 systems may not have the 'tensorflow_lite_support' package available
+            from tflite_support import metadata  # noqa
+            from tflite_support import metadata_schema_py_generated as schema  # noqa
 
         # Create model info
         model_meta = schema.ModelMetadataT()

@@ -21,7 +21,7 @@ theme:
   name: material
   language: en
   custom_dir: docs/overrides/
-  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
+  logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   icon:
     repo: fontawesome/brands/github
@@ -162,7 +162,7 @@ nav:
           - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - NEW 🚀 Analytics: guides/analytics.md # for promotion of new pages
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -173,6 +173,8 @@ nav:
           - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
           - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
           - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
+          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it/
+          - 🇳🇱&nbsp Nederlands: https://docs.ultralytics.com/nl/
           - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
           - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
           - 🇮🇳&nbsp हिन्दी: https://docs.ultralytics.com/hi/
@@ -298,7 +300,7 @@ nav:
           - datasets/track/index.md
   - NEW 🚀 Solutions:
       - solutions/index.md
-      - NEW 🚀 Analytics: guides/analytics.md
+      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -312,6 +314,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
+      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -341,6 +344,7 @@ nav:
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - A Guide on Model Testing: guides/model-testing.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
@@ -546,6 +550,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - streamlit_inference: reference/solutions/streamlit_inference.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
@@ -617,7 +622,7 @@ plugins:
       add_authors: True
       add_json_ld: True
       add_share_buttons: True
-      default_image: https://github.com/ultralytics/assets/blob/main/yolov8/banner-yolov8.png
+      default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
@@ -647,6 +652,7 @@ plugins:
         reference/ops.md: reference/utils/ops.md
         reference/results.md: reference/engine/results.md
         reference/base_val.md: index.md
+        reference/index.md: reference/cfg/__init__.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md

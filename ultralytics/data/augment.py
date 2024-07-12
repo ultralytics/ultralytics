@@ -845,10 +845,10 @@ class CopyPaste:
             ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
             indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
             n = len(indexes)
-            for j in random.sample(list(indexes), k=round(self.p * n)):
-            # sorted_idx = np.argsort(ioa.max(1)[indexes])
-            # indexes = indexes[sorted_idx]
-            # for j in indexes[:round(self.p * n)]:
+            # for j in random.sample(list(indexes), k=round(self.p * n)):
+            sorted_idx = np.argsort(ioa.max(1)[indexes])
+            indexes = indexes[sorted_idx]
+            for j in indexes[:round(self.p * n)]:
                 cls = np.concatenate((cls, cls[[j]]), axis=0)
                 instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
                 cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)

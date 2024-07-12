@@ -526,8 +526,10 @@ def handle_explorer(args: List[str]):
     checks.check_requirements("streamlit")
     LOGGER.info("💡 Loading Explorer dashboard...")
 
-    WARN = dict(data="WARNING ⚠️ no `data.yaml` passed. Default datasets will be shown.",
-                model="WARNING ⚠️ no `model` passed. Default models will be shown.")
+    WARN = dict(
+        data="WARNING ⚠️ no `data.yaml` passed. Default datasets will be shown.",
+        model="WARNING ⚠️ no `model` passed. Default models will be shown.",
+    )
 
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
     for a in merge_equals_args(args):
@@ -539,9 +541,11 @@ def handle_explorer(args: List[str]):
             cmd += ["model", v]
             del WARN["model"]
         else:
-            raise SyntaxError(f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"
-                              f"{colorstr('yellow', 'bold', 'Usage')}: "
-                               "yolo explorer data=data.yaml model=yolov8n.pt")
+            raise SyntaxError(
+                f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"
+                f"{colorstr('yellow', 'bold', 'Usage')}: "
+                "yolo explorer data=data.yaml model=yolov8n.pt"
+            )
             return
     for v in WARN.values():
         LOGGER.warning(v)

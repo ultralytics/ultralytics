@@ -37,7 +37,7 @@ def init_explorer_form(data=None, model=None):
         ds = [d.name for d in datasets.glob("*.yaml")]
     else:
         ds = [data]
-    
+
     if model is None:
         models = [
             "yolov8n.pt",
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     kwargs = dict()
     for i, arg in enumerate(sys.argv[1:]):
         if arg == "data":
-            kwargs["data"] = sys.argv[i+2]
+            kwargs["data"] = sys.argv[i + 2]
         elif arg == "model":
-            kwargs["model"] = sys.argv[i+2]
+            kwargs["model"] = sys.argv[i + 2]
     layout(**kwargs)

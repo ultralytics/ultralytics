@@ -285,3 +285,35 @@ Troubleshooting is an integral part of any development process, and being equipp
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
 
 Happy troubleshooting!
+
+## FAQ
+
+### How do I resolve installation errors with YOLOv8?
+
+Installation errors can often be due to compatibility issues or missing dependencies. Ensure you use Python 3.8 or later and have PyTorch 1.8 or later installed. It's beneficial to use virtual environments to avoid conflicts. For a step-by-step installation guide, follow our [official installation guide](../quickstart.md). If you encounter import errors, try a fresh installation or update the library to the latest version.
+
+### Why is my YOLOv8 model training slow on a single GPU?
+
+Training on a single GPU might be slow due to large batch sizes or insufficient memory. To speed up training, use multiple GPUs. Ensure your system has multiple GPUs available and adjust your `.yaml` configuration file to specify the number of GPUs, e.g., `gpus: 4`. Increase the batch size accordingly to fully utilize the GPUs without exceeding memory limits. Example command:
+
+```python
+model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+```
+
+### How can I ensure my YOLOv8 model is training on the GPU?
+
+If the 'device' value shows 'null' in the training logs, it generally means the training process is set to automatically use an available GPU. To explicitly assign a specific GPU, set the 'device' value in your `.yaml` configuration file. For instance:
+
+```yaml
+device: 0
+```
+
+This sets the training process to the first GPU. Consult the `nvidia-smi` command to confirm your CUDA setup.
+
+### How can I monitor and track my YOLOv8 model training progress?
+
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics HUB](https://hub.ultralytics.com). These tools allow you to log and visualize metrics such as loss, precision, recall, and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+
+### What should I do if YOLOv8 is not recognizing my dataset format?
+
+Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation/) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets/) section in the documentation.

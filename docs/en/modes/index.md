@@ -71,3 +71,130 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
 Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 [Benchmark Examples](benchmark.md){ .md-button }
+
+## FAQ
+
+### How do I train a custom object detection model with Ultralytics YOLOv8?
+
+Training a custom object detection model with Ultralytics YOLOv8 involves using the train mode. You need a dataset formatted in YOLO format, containing images and corresponding annotation files. Use the following command to start the training process:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Train a custom model
+        model = YOLO("yolov8n.pt")
+        model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train data=path/to/dataset.yaml epochs=100 imgsz=640
+        ```
+
+For more detailed instructions, you can refer to the [Ultralytics Train Guide](../modes/train.md).
+
+### What metrics does Ultralytics YOLOv8 use to validate the model's performance?
+
+Ultralytics YOLOv8 uses various metrics during the validation process to assess model performance. These include:
+
+- **mAP (mean Average Precision)**: This evaluates the accuracy of object detection.
+- **IOU (Intersection over Union)**: Measures the overlap between predicted and ground truth bounding boxes.
+- **Precision and Recall**: Precision measures the ratio of true positive detections to the total detected positives, while recall measures the ratio of true positive detections to the total actual positives.
+
+You can run the following command to start the validation:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Validate the model
+        model = YOLO("yolov8n.pt")
+        model.val(data="path/to/validation.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo val data=path/to/validation.yaml
+        ```
+
+Refer to the [Validation Guide](../modes/val.md) for further details.
+
+### How can I export my YOLOv8 model for deployment?
+
+Ultralytics YOLOv8 offers export functionality to convert your trained model into various deployment formats such as ONNX, TensorRT, CoreML, and more. Use the following example to export your model:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Export the model
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n.pt format=onnx
+        ```
+
+Detailed steps for each export format can be found in the [Export Guide](../modes/export.md).
+
+### What is the purpose of the benchmark mode in Ultralytics YOLOv8?
+
+Benchmark mode in Ultralytics YOLOv8 is used to analyze the speed and accuracy of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics.utils.benchmarks import benchmark
+
+        # Benchmark on GPU
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        ```
+
+For more details, refer to the [Benchmark Guide](../modes/benchmark.md).
+
+### How can I perform real-time object tracking using Ultralytics YOLOv8?
+
+Real-time object tracking can be achieved using the track mode in Ultralytics YOLOv8. This mode extends object detection capabilities to track objects across video frames or live feeds. Use the following example to enable tracking:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Track objects in a video
+        model = YOLO("yolov8n.pt")
+        model.track(source="path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo track source=path/to/video.mp4
+        ```
+
+For in-depth instructions, visit the [Track Guide](../modes/track.md).

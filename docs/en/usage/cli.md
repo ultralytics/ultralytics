@@ -230,3 +230,55 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
         yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320
         ```
+
+## FAQ
+
+### How do I use the Ultralytics YOLOv8 command line interface (CLI) for model training?
+
+To train a YOLOv8 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a learning rate of 0.01, you would run:
+
+```bash
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+```
+
+This command uses the `train` mode with specific arguments. Refer to the full list of available arguments in the [Configuration Guide](cfg.md).
+
+### What tasks can I perform with the Ultralytics YOLOv8 CLI?
+
+The Ultralytics YOLOv8 CLI supports a variety of tasks including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
+
+- **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
+- **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.
+- **Export a Model**: Execute `yolo export model=<model.pt> format=<export_format>`.
+
+Each task can be customized with various arguments. For detailed syntax and examples, see the respective sections like [Train](#train), [Predict](#predict), and [Export](#export).
+
+### How can I validate the accuracy of a trained YOLOv8 model using the CLI?
+
+To validate a YOLOv8 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a batch size of 1 and image size of 640, run:
+
+```bash
+yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+```
+
+This command evaluates the model on the specified dataset and provides performance metrics. For more details, refer to the [Val](#val) section.
+
+### What formats can I export my YOLOv8 models to using the CLI?
+
+YOLOv8 models can be exported to various formats such as ONNX, CoreML, TensorRT, and more. For instance, to export a model to ONNX format, run:
+
+```bash
+yolo export model=yolov8n.pt format=onnx
+```
+
+For complete details, visit the [Export](../modes/export.md) page.
+
+### How do I customize YOLOv8 CLI commands to override default arguments?
+
+To override default arguments in YOLOv8 CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
+
+```bash
+yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+```
+
+For a full list of available arguments and their descriptions, refer to the [Configuration Guide](cfg.md). Ensure arguments are formatted correctly, as shown in the [Overriding default arguments](#overriding-default-arguments) section.

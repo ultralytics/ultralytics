@@ -119,6 +119,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         # Run inference
         results = ncnn_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -236,6 +237,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -344,6 +346,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 # Run inference
                 results = model("tcp://127.0.0.1:8888")
                 ```
+
             === "CLI"
 
                 ```bash
@@ -375,3 +378,124 @@ Congratulations on successfully setting up YOLO on your Raspberry Pi! For furthe
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 
 For more information about Kashmir World Foundation's activities, you can visit their [website](https://www.kashmirworldfoundation.org/).
+
+## FAQ
+
+### How do I set up Ultralytics YOLOv8 on a Raspberry Pi without using Docker?
+
+To set up Ultralytics YOLOv8 on a Raspberry Pi without Docker, follow these steps:
+
+1. Update the package list and install `pip`:
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
+2. Install the Ultralytics package with optional dependencies:
+    ```bash
+    pip install ultralytics[export]
+    ```
+3. Reboot the device to apply changes:
+    ```bash
+    sudo reboot
+    ```
+
+For detailed instructions, refer to the [Start without Docker](#start-without-docker) section.
+
+### Why should I use Ultralytics YOLOv8's NCNN format on Raspberry Pi for AI tasks?
+
+Ultralytics YOLOv8's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](../modes/export.md).
+
+### How can I convert a YOLOv8 model to NCNN format for use on Raspberry Pi?
+
+You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n PyTorch model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to NCNN format
+        model.export(format="ncnn")  # creates 'yolov8n_ncnn_model'
+
+        # Load the exported NCNN model
+        ncnn_model = YOLO("yolov8n_ncnn_model")
+
+        # Run inference
+        results = ncnn_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to NCNN format
+        yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
+
+        # Run inference with the exported model
+        yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For more details, see the [Use NCNN on Raspberry Pi](#use-ncnn-on-raspberry-pi) section.
+
+### What are the hardware differences between Raspberry Pi 4 and Raspberry Pi 5 relevant to running YOLOv8?
+
+Key differences include:
+
+- **CPU**: Raspberry Pi 4 uses Broadcom BCM2711, Cortex-A72 64-bit SoC, while Raspberry Pi 5 uses Broadcom BCM2712, Cortex-A76 64-bit SoC.
+- **Max CPU Frequency**: Raspberry Pi 4 has a max frequency of 1.8GHz, whereas Raspberry Pi 5 reaches 2.4GHz.
+- **Memory**: Raspberry Pi 4 offers up to 8GB of LPDDR4-3200 SDRAM, while Raspberry Pi 5 features LPDDR4X-4267 SDRAM, available in 4GB and 8GB variants.
+
+These enhancements contribute to better performance benchmarks for YOLOv8 models on Raspberry Pi 5 compared to Raspberry Pi 4. Refer to the [Raspberry Pi Series Comparison](#raspberry-pi-series-comparison) table for more details.
+
+### How can I set up a Raspberry Pi Camera Module to work with Ultralytics YOLOv8?
+
+There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
+
+1. **Using `picamera2`**:
+
+    ```python
+    import cv2
+    from picamera2 import Picamera2
+
+    from ultralytics import YOLO
+
+    picam2 = Picamera2()
+    picam2.preview_configuration.main.size = (1280, 720)
+    picam2.preview_configuration.main.format = "RGB888"
+    picam2.preview_configuration.align()
+    picam2.configure("preview")
+    picam2.start()
+
+    model = YOLO("yolov8n.pt")
+
+    while True:
+        frame = picam2.capture_array()
+        results = model(frame)
+        annotated_frame = results[0].plot()
+        cv2.imshow("Camera", annotated_frame)
+
+        if cv2.waitKey(1) == ord("q"):
+            break
+
+    cv2.destroyAllWindows()
+    ```
+
+2. **Using a TCP Stream**:
+
+    ```bash
+    rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
+    ```
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    results = model("tcp://127.0.0.1:8888")
+    ```
+
+For detailed setup instructions, visit the [Inference with Camera](#inference-with-camera) section.

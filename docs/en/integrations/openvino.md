@@ -46,6 +46,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -264,6 +265,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml")
         ```
+
     === "CLI"
 
         ```bash
@@ -282,3 +284,107 @@ For the Intel® Data Center GPU Flex Series, the OpenVINO format was able to del
 The benchmarks underline the effectiveness of OpenVINO as a tool for deploying deep learning models. By converting models to the OpenVINO format, developers can achieve significant performance improvements, making it easier to deploy these models in real-world applications.
 
 For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvino.ai/).
+
+## FAQ
+
+### How do I export YOLOv8 models to OpenVINO format?
+
+Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a YOLOv8n PyTorch model
+    model = YOLO("yolov8n.pt")
+
+    # Export the model
+    model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
+    ```
+
+    === "CLI"
+
+    ```bash
+    # Export a YOLOv8n PyTorch model to OpenVINO format
+    yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+    ```
+
+For more information, refer to the [export formats documentation](../modes/export.md).
+
+### What are the benefits of using OpenVINO with YOLOv8 models?
+
+Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
+
+1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
+2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
+3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
+4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
+
+For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
+
+### How can I run inference using a YOLOv8 model exported to OpenVINO?
+
+After exporting a YOLOv8 model to OpenVINO format, you can run inference using Python or CLI:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load the exported OpenVINO model
+    ov_model = YOLO("yolov8n_openvino_model/")
+
+    # Run inference
+    results = ov_model("https://ultralytics.com/images/bus.jpg")
+    ```
+
+    === "CLI"
+
+    ```bash
+    # Run inference with the exported model
+    yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+    ```
+
+Refer to our [predict mode documentation](../modes/predict.md) for more details.
+
+### Why should I choose Ultralytics YOLOv8 over other models for OpenVINO export?
+
+Ultralytics YOLOv8 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLOv8 provides:
+
+- Up to 3x speedup on Intel CPUs
+- Seamless deployment on Intel GPUs and NPUs
+- Consistent and comparable accuracy across various export formats
+
+For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
+
+### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
+
+Yes, you can benchmark YOLOv8 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
+
+!!! Example
+
+    === "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a YOLOv8n PyTorch model
+    model = YOLO("yolov8n.pt")
+
+    # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+    results = model.benchmarks(data="coco8.yaml")
+    ```
+
+    === "CLI"
+
+    ```bash
+    # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+    yolo benchmark model=yolov8n.pt data=coco8.yaml
+    ```
+
+For detailed benchmark results, refer to our [benchmarks section](#openvino-yolov8-benchmarks) and [export formats](../modes/export.md) documentation.

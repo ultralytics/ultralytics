@@ -271,7 +271,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     fs = f", {flops:.1f} GFLOPs" if flops else ""
     yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")
     model_name = Path(yaml_file).stem.replace("yolo", "YOLO") or "Model"
-    LOGGER.info(f"{model_name} summary{fused}: {n_l} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f"{model_name} summary{fused}: {n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}")
     return n_l, n_p, n_g, flops
 
 
@@ -513,6 +513,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         for f in Path('path/to/model/checkpoints').rglob('*.pt'):
             strip_optimizer(f)
         ```
+
+    Note:
+        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
     """
     try:
         x = torch.load(f, map_location=torch.device("cpu"))

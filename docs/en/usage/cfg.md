@@ -277,3 +277,38 @@ Effective logging, checkpointing, plotting, and file management can help you kee
 | `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                   |
 | `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
 | `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
+
+## FAQ
+
+### How do I improve the performance of my YOLO model during training?
+
+Improving YOLO model performance involves tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjusting augmentation settings, selecting the right optimizer, and employing techniques like early stopping or mixed precision can also help. For detailed guidance on training settings, refer to the [Train Guide](../modes/train.md).
+
+### What are the key hyperparameters to consider for YOLO model accuracy?
+
+Key hyperparameters affecting YOLO model accuracy include:
+
+- **Batch Size (`batch`)**: Larger batch sizes can stabilize training but may require more memory.
+- **Learning Rate (`lr0`)**: Controls the step size for weight updates; smaller rates offer fine adjustments but slow convergence.
+- **Momentum (`momentum`)**: Helps accelerate gradient vectors in the right directions, dampening oscillations.
+- **Image Size (`imgsz`)**: Larger image sizes can improve accuracy but increase computational load.
+
+Adjust these values based on your dataset and hardware capabilities. Explore more in the [Train Settings](#train-settings) section.
+
+### How do I set the learning rate for training a YOLO model?
+
+The learning rate (`lr0`) is crucial for optimization. A common starting point is `0.01` for SGD or `0.001` for Adam. It's essential to monitor training metrics and adjust if necessary. Use cosine learning rate schedulers (`cos_lr`) or warmup techniques (`warmup_epochs`, `warmup_momentum`) to dynamically modify the rate during training. Find more details in the [Train Guide](../modes/train.md).
+
+### What are the default inference settings for YOLO models?
+
+Default inference settings include:
+
+- **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
+- **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
+- **Image Size (`imgsz=640`)**: Resizes input images prior to inference.
+- **Device (`device=None`)**: Selects CPU or GPU for inference.
+    For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
+
+### Why should I use mixed precision training with YOLO models?
+
+Mixed precision training, enabled with `amp=True`, helps reduce memory usage and can speed up training by utilizing the advantages of both FP16 and FP32. This is beneficial for modern GPUs, which support mixed precision natively, allowing more models to fit in memory and enable faster computations without significant loss in accuracy. Learn more about this in the [Train Guide](../modes/train.md).

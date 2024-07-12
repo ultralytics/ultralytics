@@ -99,3 +99,57 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
 | `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
 | `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+
+## FAQ
+
+### What is object blurring with Ultralytics YOLOv8?
+
+Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves automatically detecting and applying a blurring effect to specific objects in images or videos. This technique enhances privacy by concealing sensitive information while retaining relevant visual data. YOLOv8's real-time processing capabilities make it suitable for applications requiring immediate privacy protection and selective focus adjustments.
+
+### How can I implement real-time object blurring using YOLOv8?
+
+To implement real-time object blurring with YOLOv8, follow the provided Python example. This involves using YOLOv8 for object detection and OpenCV for applying the blur effect. Here's a simplified version:
+
+```python
+import cv2
+
+from ultralytics import YOLO
+
+model = YOLO("yolov8n.pt")
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+
+while cap.isOpened():
+    success, im0 = cap.read()
+    if not success:
+        break
+
+    results = model.predict(im0, show=False)
+    for box in results[0].boxes.xyxy.cpu().tolist():
+        obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
+        im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = cv2.blur(obj, (50, 50))
+
+    cv2.imshow("YOLOv8 Blurring", im0)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+### What are the benefits of using Ultralytics YOLOv8 for object blurring?
+
+Ultralytics YOLOv8 offers several advantages for object blurring:
+
+- **Privacy Protection**: Effectively obscure sensitive or identifiable information.
+- **Selective Focus**: Target specific objects for blurring, maintaining essential visual content.
+- **Real-time Processing**: Execute object blurring efficiently in dynamic environments, suitable for instant privacy enhancements.
+
+For more detailed applications, check the [advantages of object blurring section](#advantages-of-object-blurring).
+
+### Can I use Ultralytics YOLOv8 to blur faces in a video for privacy reasons?
+
+Yes, Ultralytics YOLOv8 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with OpenCV to apply a blur effect. Refer to our guide on [object detection with YOLOv8](https://docs.ultralytics.com/models/yolov8) and modify the code to target face detection.
+
+### How does YOLOv8 compare to other object detection models like Faster R-CNN for object blurring?
+
+Ultralytics YOLOv8 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLOv8's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8).

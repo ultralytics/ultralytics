@@ -120,3 +120,37 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 | `iou`     | `float` | `0.5`          | IOU Threshold                                               |
 | `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
 | `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+
+## FAQ
+
+### How does Ultralytics YOLOv8 enhance parking management systems?
+
+Ultralytics YOLOv8 greatly enhances parking management systems by providing **real-time vehicle detection** and monitoring. This results in optimized usage of parking spaces, reduced congestion, and improved safety through continuous surveillance. The [Parking Management System](https://github.com/ultralytics/ultralytics) enables efficient traffic flow, minimizing idle times and emissions in parking lots, thereby contributing to environmental sustainability. For further details, refer to the [parking management code workflow](#python-code-for-parking-management).
+
+### What are the benefits of using Ultralytics YOLOv8 for smart parking?
+
+Using Ultralytics YOLOv8 for smart parking yields numerous benefits:
+
+- **Efficiency**: Optimizes the use of parking spaces and decreases congestion.
+- **Safety and Security**: Enhances surveillance and ensures the safety of vehicles and pedestrians.
+- **Environmental Impact**: Helps in reducing emissions by minimizing vehicle idle times. More details on the advantages can be seen [here](#advantages-of-parking-management-system).
+
+### How can I define parking spaces using Ultralytics YOLOv8?
+
+Defining parking spaces is straightforward with Ultralytics YOLOv8:
+
+1. Capture a frame from a video or camera stream.
+2. Use the provided code to launch a GUI for selecting an image and drawing polygons to define parking spaces.
+3. Save the labeled data in JSON format for further processing. For comprehensive instructions, check the [selection of points](#selection-of-points) section.
+
+### Can I customize the YOLOv8 model for specific parking management needs?
+
+Yes, Ultralytics YOLOv8 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [optional arguments](#optional-arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
+
+### What are some real-world applications of Ultralytics YOLOv8 in parking lot management?
+
+Ultralytics YOLOv8 is utilized in various real-world applications for parking lot management, including:
+
+- **Parking Space Detection**: Accurately identifying available and occupied spaces.
+- **Surveillance**: Enhancing security through real-time monitoring.
+- **Traffic Flow Management**: Reducing idle times and congestion with efficient traffic handling. Images showcasing these applications can be found in [real-world applications](#real-world-applications).

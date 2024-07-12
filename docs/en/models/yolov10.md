@@ -19,7 +19,7 @@ Real-time object detection aims to accurately predict object categories and posi
 The architecture of YOLOv10 builds upon the strengths of previous YOLO models while introducing several key innovations. The model architecture consists of the following components:
 
 1. **Backbone**: Responsible for feature extraction, the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
-2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multi-scale feature fusion.
+2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
 3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
 4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
 
@@ -90,33 +90,33 @@ Compared to other state-of-the-art detectors:
 
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
-| Model              | Params (M) | FLOPs (G) | APval (%) | Latency (ms) | Latency (Forward) (ms) |
-| ------------------ | ---------- | --------- | --------- | ------------ | ---------------------- |
-| YOLOv6-3.0-N       | 4.7        | 11.4      | 37.0      | 2.69         | **1.76**               |
-| Gold-YOLO-N        | 5.6        | 12.1      | **39.6**  | 2.92         | 1.82                   |
-| YOLOv8-N           | 3.2        | 8.7       | 37.3      | 6.16         | 1.77                   |
-| **[YOLOv10-N][1]** | **2.3**    | **6.7**   | 39.5      | **1.84**     | 1.79                   |
-|                    |            |           |           |              |                        |
-| YOLOv6-3.0-S       | 18.5       | 45.3      | 44.3      | 3.42         | 2.35                   |
-| Gold-YOLO-S        | 21.5       | 46.0      | 45.4      | 3.82         | 2.73                   |
-| YOLOv8-S           | 11.2       | 28.6      | 44.9      | 7.07         | **2.33**               |
-| **[YOLOv10-S][2]** | **7.2**    | **21.6**  | **46.8**  | **2.49**     | 2.39                   |
-|                    |            |           |           |              |                        |
-| RT-DETR-R18        | 20.0       | 60.0      | 46.5      | **4.58**     | **4.49**               |
-| YOLOv6-3.0-M       | 34.9       | 85.8      | 49.1      | 5.63         | 4.56                   |
-| Gold-YOLO-M        | 41.3       | 87.5      | 49.8      | 6.38         | 5.45                   |
-| YOLOv8-M           | 25.9       | 78.9      | 50.6      | 9.50         | 5.09                   |
-| **[YOLOv10-M][3]** | **15.4**   | **59.1**  | **51.3**  | 4.74         | 4.63                   |
-|                    |            |           |           |              |                        |
-| YOLOv6-3.0-L       | 59.6       | 150.7     | 51.8      | 9.02         | 7.90                   |
-| Gold-YOLO-L        | 75.1       | 151.7     | 51.8      | 10.65        | 9.78                   |
-| YOLOv8-L           | 43.7       | 165.2     | 52.9      | 12.39        | 8.06                   |
-| RT-DETR-R50        | 42.0       | 136.0     | 53.1      | 9.20         | 9.07                   |
-| **[YOLOv10-L][5]** | **24.4**   | **120.3** | **53.4**  | **7.28**     | **7.21**               |
-|                    |            |           |           |              |                        |
-| YOLOv8-X           | 68.2       | 257.8     | 53.9      | 16.86        | 12.83                  |
-| RT-DETR-R101       | 76.0       | 259.0     | 54.3      | 13.71        | 13.58                  |
-| **[YOLOv10-X][6]** | **29.5**   | **160.4** | **54.4**  | **10.70**    | **10.60**              |
+| Model              | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
+| ------------------ | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
+| YOLOv6-3.0-N       | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
+| Gold-YOLO-N        | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
+| YOLOv8-N           | 3.2                | 8.7               | 37.3                 | 6.16                 | 1.77                         |
+| **[YOLOv10-N][1]** | **2.3**            | **6.7**           | 39.5                 | **1.84**             | 1.79                         |
+|                    |                    |                   |                      |                      |                              |
+| YOLOv6-3.0-S       | 18.5               | 45.3              | 44.3                 | 3.42                 | 2.35                         |
+| Gold-YOLO-S        | 21.5               | 46.0              | 45.4                 | 3.82                 | 2.73                         |
+| YOLOv8-S           | 11.2               | 28.6              | 44.9                 | 7.07                 | **2.33**                     |
+| **[YOLOv10-S][2]** | **7.2**            | **21.6**          | **46.8**             | **2.49**             | 2.39                         |
+|                    |                    |                   |                      |                      |                              |
+| RT-DETR-R18        | 20.0               | 60.0              | 46.5                 | **4.58**             | **4.49**                     |
+| YOLOv6-3.0-M       | 34.9               | 85.8              | 49.1                 | 5.63                 | 4.56                         |
+| Gold-YOLO-M        | 41.3               | 87.5              | 49.8                 | 6.38                 | 5.45                         |
+| YOLOv8-M           | 25.9               | 78.9              | 50.6                 | 9.50                 | 5.09                         |
+| **[YOLOv10-M][3]** | **15.4**           | **59.1**          | **51.3**             | 4.74                 | 4.63                         |
+|                    |                    |                   |                      |                      |                              |
+| YOLOv6-3.0-L       | 59.6               | 150.7             | 51.8                 | 9.02                 | 7.90                         |
+| Gold-YOLO-L        | 75.1               | 151.7             | 51.8                 | 10.65                | 9.78                         |
+| YOLOv8-L           | 43.7               | 165.2             | 52.9                 | 12.39                | 8.06                         |
+| RT-DETR-R50        | 42.0               | 136.0             | 53.1                 | 9.20                 | 9.07                         |
+| **[YOLOv10-L][5]** | **24.4**           | **120.3**         | **53.4**             | **7.28**             | **7.21**                     |
+|                    |                    |                   |                      |                      |                              |
+| YOLOv8-X           | 68.2               | 257.8             | 53.9                 | 16.86                | 12.83                        |
+| RT-DETR-R101       | 76.0               | 259.0             | 54.3                 | 13.71                | 13.58                        |
+| **[YOLOv10-X][6]** | **29.5**           | **160.4**         | **54.4**             | **10.70**            | **10.60**                    |
 
 [1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10n.pt
 [2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10s.pt
@@ -233,63 +233,56 @@ For detailed implementation, architectural innovations, and experimental results
 
 ## FAQ
 
-### What is YOLOv10 and how does it differ from previous versions?
+### What is YOLOv10 and how does it differ from previous YOLO versions?
 
-YOLOv10 is the latest version of the YOLO (You Only Look Once) series for real-time object detection, optimized for both accuracy and efficiency. Unlike previous versions, YOLOv10 eliminates the need for non-maximum suppression (NMS) by utilizing consistent dual assignments, significantly reducing inference latency. It also introduces a holistic model design approach and various architectural enhancements, making it superior in performance and computational efficiency.
+YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several key innovations to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training and optimized model components for superior performance with reduced computational overhead. For more details on its architecture and key features, check out the [YOLOv10 overview](#overview) section.
 
-Learn more about YOLOv10's architecture in the [Architecture section](#architecture).
+### How can I get started with running inference using YOLOv10?
 
-### How can I use YOLOv10 for real-time object detection in Python?
+For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
 
-To use YOLOv10 for real-time object detection in Python, you can follow this example script:
+!!! Example
 
-```python
-from ultralytics import YOLO
+    === "Python"
 
-# Load a pre-trained YOLOv10n model
-model = YOLO("yolov10n.pt")
+        ```python
+        from ultralytics import YOLO
 
-# Perform object detection on an image
-results = model("image.jpg")
+        # Load the pre-trained YOLOv10-N model
+        model = YOLO("yolov10n.pt")
+        results = model("image.jpg")
+        results[0].show()
+        ```
 
-# Display the results
-results[0].show()
-```
+    === "CLI"
 
-This example demonstrates loading a pre-trained YOLOv10 model and performing object detection on an image. You can also run detection via CLI with:
+        ```bash
+        yolo detect predict model=yolov10n.pt source=path/to/image.jpg
+        ```
 
-```bash
-# Load a COCO-pretrained YOLOv10n model and run inference on the 'bus.jpg' image
-yolo detect predict model=yolov10n.pt source=path/to/bus.jpg
-```
+For more usage examples, visit our [Usage Examples](#usage-examples) section.
 
-Explore more usage examples in the [Usage Examples](#usage-examples) section.
+### Which model variants does YOLOv10 offer and what are their use cases?
 
-### What are the key features that make YOLOv10 stand out?
+YOLOv10 offers several model variants to cater to different use cases:
 
-YOLOv10 offers several innovative features:
+- **YOLOv10-N**: Suitable for extremely resource-constrained environments
+- **YOLOv10-S**: Balances speed and accuracy
+- **YOLOv10-M**: General-purpose use
+- **YOLOv10-B**: Higher accuracy with increased width
+- **YOLOv10-L**: High accuracy at the cost of computational resources
+- **YOLOv10-X**: Maximum accuracy and performance
 
-- **NMS-Free Training**: Utilizes consistent dual assignments to eliminate NMS, reducing inference latency.
-- **Holistic Model Design**: Comprehensive optimization of model components for both efficiency and accuracy, including lightweight classification heads and large-kernel convolutions.
-- **Enhanced Model Capabilities**: Incorporates partial self-attention modules and other advanced techniques to boost performance without significant computational cost.
+Each variant is designed for different computational needs and accuracy requirements, making them versatile for a variety of applications. Explore the [Model Variants](#model-variants) section for more information.
 
-Dive into more details on these features in the [Key Features](#key-features) section.
+### How does the NMS-free approach in YOLOv10 improve performance?
 
-### Which model variants are available in YOLOv10 and how do they differ?
+YOLOv10 eliminates the need for non-maximum suppression (NMS) during inference by employing consistent dual assignments for training. This approach reduces inference latency and enhances prediction efficiency. The architecture also includes a one-to-one head for inference, ensuring that each object gets a single best prediction. For a detailed explanation, see the [Consistent Dual Assignments for NMS-Free Training](#consistent-dual-assignments-for-nms-free-training) section.
 
-YOLOv10 offers several variants tailored for different application needs:
+### Where can I find the export options for YOLOv10 models?
 
-- **YOLOv10-N**: Nano version for extremely resource-constrained environments.
-- **YOLOv10-S**: Small version balancing speed and accuracy.
-- **YOLOv10-M**: Medium version for general-purpose use.
-- **YOLOv10-B**: Balanced version with increased width for higher accuracy.
-- **YOLOv10-L**: Large version for higher accuracy at the cost of increased computational resources.
-- **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
+YOLOv10 supports several export formats, including TorchScript, ONNX, OpenVINO, and TensorRT. However, not all export formats provided by Ultralytics are currently supported for YOLOv10 due to its new operations. For details on the supported formats and instructions on exporting, visit the [Exporting YOLOv10](#exporting-yolov10) section.
 
-Each variant offers a trade-off between computational efficiency and detection accuracy, suitable for various real-time applications. See the complete [Model Variants](#model-variants) for more information.
+### What are the performance benchmarks for YOLOv10 models?
 
-### How does YOLOv10's performance compare to other object detection models?
-
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency metrics. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with a similar Average Precision (AP) on the COCO dataset. Additionally, YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C while maintaining equivalent performance.
-
-For detailed benchmark results, check out the [Performance](#performance) section.
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset. YOLOv10-B shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.

@@ -568,3 +568,64 @@ make_divisible(7, 3)
 make_divisible(7, 2)
 # >>> 8
 ```
+
+## FAQ
+
+### What utilities are included in the Ultralytics package to enhance machine learning workflows?
+
+The Ultralytics package includes a variety of utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting COCO to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools aim to reduce manual effort, ensure consistency, and enhance data processing efficiency.
+
+### How can I use Ultralytics to auto-label my dataset?
+
+If you have a pre-trained Ultralytics YOLO object detection model, you can use it with the [SAM](../models/sam.md) model to auto-annotate your dataset in segmentation format. Here's an example:
+
+```python
+from ultralytics.data.annotator import auto_annotate
+
+auto_annotate(
+    data="path/to/new/data",
+    det_model="yolov8n.pt",
+    sam_model="mobile_sam.pt",
+    device="cuda",
+    output_dir="path/to/save_labels",
+)
+```
+
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+
+### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
+
+To convert COCO JSON annotations into YOLO format for object detection, you can use the `convert_coco` utility. Here's a sample code snippet:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(
+    "../datasets/coco/annotations/",
+    use_segments=False,
+    use_keypoints=False,
+    cls91to80=True,
+)
+```
+
+For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
+
+### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+
+The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+
+### How can I convert bounding boxes to segments in Ultralytics?
+
+To convert existing bounding box data (in `x y w h` format) to segments, you can use the `yolo_bbox2segment` function. Ensure your files are organized with separate directories for images and labels.
+
+```python
+from ultralytics.data.converter import yolo_bbox2segment
+
+yolo_bbox2segment(
+    im_dir="path/to/images",
+    save_dir=None,  # saved to "labels-segment" in the images directory
+    sam_model="sam_b.pt",
+)
+```
+
+For more information, visit the [yolo_bbox2segment reference page](../reference/data/converter.md#ultralytics.data.converter.yolo_bbox2segment).

@@ -128,21 +128,95 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
     === "Python"
 
-    ```python
-    from pathlib import Path
+       ```python
+       from pathlib import Path
 
-    from ultralytics.data.utils import compress_one_image
-    from ultralytics.utils.downloads import zip_directory
+       from ultralytics.data.utils import compress_one_image
+       from ultralytics.utils.downloads import zip_directory
 
-    # Define dataset directory
-    path = Path("path/to/dataset")
+       # Define dataset directory
+       path = Path("path/to/dataset")
 
-    # Optimize images in dataset (optional)
-    for f in path.rglob("*.jpg"):
-        compress_one_image(f)
+       # Optimize images in dataset (optional)
+       for f in path.rglob("*.jpg"):
+           compress_one_image(f)
 
-    # Zip dataset into 'path/to/dataset.zip'
-    zip_directory(path)
-    ```
+       # Zip dataset into 'path/to/dataset.zip'
+       zip_directory(path)
+       ```
 
 By following these steps, you can contribute a new dataset that integrates well with Ultralytics' existing structure.
+
+## FAQ
+
+### What datasets does Ultralytics support for object detection?
+
+Ultralytics supports a wide variety of datasets for object detection, including:
+- [COCO](detect/coco.md): A large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [LVIS](detect/lvis.md): An extensive dataset with 1203 object categories, designed for more fine-grained object detection and segmentation.
+- [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
+- [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
+- [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
+
+These datasets facilitate training robust models for various object detection applications.
+
+### How do I contribute a new dataset to Ultralytics?
+
+Contributing a new dataset involves several steps:
+1. **Collect Images**: Gather images from public databases or personal collections.
+2. **Annotate Images**: Apply bounding boxes, segments, or keypoints, depending on the task.
+3. **Export Annotations**: Convert annotations into the YOLO `*.txt` format.
+4. **Organize Dataset**: Use the folder structure with `train/` and `val/` directories, each containing `images/` and `labels/` subdirectories.
+5. **Create a `data.yaml` File**: Include dataset descriptions, classes, and other relevant information.
+6. **Optimize Images (Optional)**: Reduce dataset size for efficiency.
+7. **Zip Dataset**: Compress the dataset into a zip file.
+8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing).
+
+Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive guide.
+
+### Why should I use Ultralytics Explorer for my dataset?
+
+Ultralytics Explorer offers powerful features for dataset analysis, including:
+- **Embeddings Generation**: Create vector embeddings for images.
+- **Semantic Search**: Search for similar images using embeddings or AI.
+- **SQL Queries**: Run advanced SQL queries for detailed data analysis.
+- **Natural Language Search**: Search using plain language queries for ease of use.
+
+Explore the [Ultralytics Explorer](explorer/index.md) for more information and to try the [GUI Demo](explorer/index.md).
+
+### What are the unique features of Ultralytics YOLO models for computer vision?
+
+Ultralytics YOLO models provide several unique features:
+- **Real-time Performance**: High-speed inference and training.
+- **Versatility**: Suitable for detection, segmentation, classification, and pose estimation tasks.
+- **Pretrained Models**: Access to high-performing, pretrained models for various applications.
+- **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
+
+Discover more about YOLO on the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page.
+
+### How can I optimize and zip a dataset using Ultralytics tools?
+
+To optimize and zip a dataset using Ultralytics tools, follow this example code:
+
+!!! Example "Optimize and Zip a Dataset"
+
+    === "Python"
+    
+        ```python
+        from pathlib import Path
+
+        from ultralytics.data.utils import compress_one_image
+        from ultralytics.utils.downloads import zip_directory
+
+        # Define dataset directory
+        path = Path("path/to/dataset")
+
+        # Optimize images in dataset (optional)
+        for f in path.rglob("*.jpg"):
+            compress_one_image(f)
+
+        # Zip dataset into 'path/to/dataset.zip'
+        zip_directory(path)
+        ```
+
+Learn more on how to [Optimize and Zip a Dataset](#example-code-to-optimize-and-zip-a-dataset).

@@ -203,3 +203,93 @@ If you use SAHI in your research or development work, please cite the original S
         ```
 
 We extend our thanks to the SAHI research group for creating and maintaining this invaluable resource for the computer vision community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).
+
+## FAQ
+
+### How can I integrate YOLOv8 with SAHI for sliced inference in object detection?
+
+Integrating Ultralytics YOLOv8 with SAHI (Slicing Aided Hyper Inference) for sliced inference optimizes your object detection tasks on high-resolution images by partitioning them into manageable slices. This approach improves memory usage and ensures high detection accuracy. To get started, you need to install the ultralytics and sahi libraries:
+
+```bash
+pip install -U ultralytics sahi
+```
+
+Then, download a YOLOv8 model and test images:
+
+```python
+from sahi.utils.file import download_from_url
+from sahi.utils.yolov8 import download_yolov8s_model
+
+# Download YOLOv8 model
+yolov8_model_path = "models/yolov8s.pt"
+download_yolov8s_model(yolov8_model_path)
+
+# Download test images
+download_from_url(
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg",
+    "demo_data/small-vehicles1.jpeg",
+)
+```
+
+For more detailed instructions, refer to our [Sliced Inference guide](#sliced-inference-with-yolov8).
+
+### Why should I use SAHI with YOLOv8 for object detection on large images?
+
+Using SAHI with Ultralytics YOLOv8 for object detection on large images offers several benefits:
+
+- **Reduced Computational Burden**: Smaller slices are faster to process and consume less memory, making it feasible to run high-quality detections on hardware with limited resources.
+- **Maintained Detection Accuracy**: SAHI uses intelligent algorithms to merge overlapping boxes, preserving the detection quality.
+- **Enhanced Scalability**: By scaling object detection tasks across different image sizes and resolutions, SAHI becomes ideal for various applications, such as satellite imagery analysis and medical diagnostics.
+
+Learn more about the [benefits of sliced inference](#benefits-of-sliced-inference) in our documentation.
+
+### Can I visualize prediction results when using YOLOv8 with SAHI?
+
+Yes, you can visualize prediction results when using YOLOv8 with SAHI. Here's how you can export and visualize the results:
+
+```python
+result.export_visuals(export_dir="demo_data/")
+from IPython.display import Image
+
+Image("demo_data/prediction_visual.png")
+```
+
+This command will save the visualized predictions to the specified directory and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
+
+### What features does SAHI offer for improving YOLOv8 object detection?
+
+SAHI (Slicing Aided Hyper Inference) offers several features that complement Ultralytics YOLOv8 for object detection:
+
+- **Seamless Integration**: SAHI easily integrates with YOLO models, requiring minimal code adjustments.
+- **Resource Efficiency**: It partitions large images into smaller slices, which optimizes memory usage and speed.
+- **High Accuracy**: By effectively merging overlapping detection boxes during the stitching process, SAHI maintains high detection accuracy.
+
+For a deeper understanding, read about SAHI's [key features](#key-features-of-sahi).
+
+### How do I handle large-scale inference projects using YOLOv8 and SAHI?
+
+To handle large-scale inference projects using YOLOv8 and SAHI, follow these best practices:
+
+1. **Install Required Libraries**: Ensure that you have the latest versions of ultralytics and sahi.
+2. **Configure Sliced Inference**: Determine the optimal slice dimensions and overlap ratios for your specific project.
+3. **Run Batch Predictions**: Use SAHI's capabilities to perform batch predictions on a directory of images, which improves efficiency.
+
+Example for batch prediction:
+
+```python
+from sahi.predict import predict
+
+predict(
+    model_type="yolov8",
+    model_path="path/to/yolov8n.pt",
+    model_device="cpu",  # or 'cuda:0'
+    model_confidence_threshold=0.4,
+    source="path/to/dir",
+    slice_height=256,
+    slice_width=256,
+    overlap_height_ratio=0.2,
+    overlap_width_ratio=0.2,
+)
+```
+
+For more detailed steps, visit our section on [Batch Prediction](#batch-prediction).

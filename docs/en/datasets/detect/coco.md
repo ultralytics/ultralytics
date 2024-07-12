@@ -113,3 +113,65 @@ If you use the COCO dataset in your research or development work, please cite th
         ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+
+## FAQ
+
+### What is the COCO dataset and why is it important for computer vision?
+
+The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is a large-scale dataset used for object detection, segmentation, and captioning. It contains 330K images with detailed annotations for 80 object categories, making it essential for benchmarking and training computer vision models. Researchers use COCO due to its diverse categories and standardized evaluation metrics like mean Average Precision (mAP).
+
+### How can I train a YOLO model using the COCO dataset?
+
+To train a YOLOv8 model using the COCO dataset, you can use the following code snippets:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+Refer to the [Training page](../../modes/train.md) for more details on available arguments.
+
+### What are the key features of the COCO dataset?
+
+The COCO dataset includes:
+
+- 330K images, with 200K annotated for object detection, segmentation, and captioning.
+- 80 object categories ranging from common items like cars and animals to specific ones like handbags and sports equipment.
+- Standardized evaluation metrics for object detection (mAP) and segmentation (mean Average Recall, mAR).
+- **Mosaicing** technique in training batches to enhance model generalization across various object sizes and contexts.
+
+### Where can I find pretrained YOLOv8 models trained on the COCO dataset?
+
+Pretrained YOLOv8 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
+
+- [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt)
+- [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt)
+- [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt)
+
+These models vary in size, mAP, and inference speed, providing options for different performance and resource requirements.
+
+### How is the COCO dataset structured and how do I use it?
+
+The COCO dataset is split into three subsets:
+
+1. **Train2017**: 118K images for training.
+2. **Val2017**: 5K images for validation during training.
+3. **Test2017**: 20K images for benchmarking trained models. Results need to be submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+
+The dataset's YAML configuration file is available at [coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), which defines paths, classes, and dataset details.

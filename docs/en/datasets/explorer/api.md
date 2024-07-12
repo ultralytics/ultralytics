@@ -332,3 +332,55 @@ Try our GUI Demo based on Explorer API
 - [ ] Remove images that have a higher similarity index than the given threshold
 - [ ] Automatically persist new datasets after merging/removing entries
 - [ ] Advanced Dataset Visualizations
+
+## FAQ
+
+### What is the Ultralytics Explorer API used for?
+
+The Ultralytics Explorer API is designed for comprehensive dataset exploration. It allows users to filter and search datasets using SQL queries, vector similarity search, and semantic search. This powerful Python API can handle large datasets, making it ideal for various computer vision tasks using Ultralytics models.
+
+### How do I install the Ultralytics Explorer API?
+
+To install the Ultralytics Explorer API along with its dependencies, use the following command:
+```bash
+pip install ultralytics[explorer]
+```
+This will automatically install all necessary external libraries for the Explorer API functionality. For additional setup details, refer to the [installation section](#installation) of our documentation.
+
+### How can I use the Ultralytics Explorer API for similarity search?
+
+You can use the Ultralytics Explorer API to perform similarity searches by creating an embeddings table and querying it for similar images. Here's a basic example:
+```python
+from ultralytics import Explorer
+
+# Create an Explorer object
+explorer = Explorer(data="coco128.yaml", model="yolov8n.pt")
+explorer.create_embeddings_table()
+
+# Search for similar images to a given image
+similar_images_df = explorer.get_similar(img="path/to/image.jpg")
+print(similar_images_df.head())
+```
+For more details, please visit the [Similarity Search section](#1-similarity-search).
+
+### What are the benefits of using LanceDB with Ultralytics Explorer?
+
+LanceDB, used under the hood by Ultralytics Explorer, provides scalable, on-disk embeddings tables. This ensures that you can create and reuse embeddings for large datasets like COCO without running out of memory. These tables are only created once and can be reused, enhancing efficiency in data handling.
+
+### How does the Ask AI feature work in the Ultralytics Explorer API?
+
+The Ask AI feature allows users to filter datasets using natural language queries. This feature leverages LLMs to convert these queries into SQL queries behind the scenes. Here's an example:
+
+```python
+from ultralytics import Explorer
+
+# Create an Explorer object
+explorer = Explorer(data="coco128.yaml", model="yolov8n.pt")
+explorer.create_embeddings_table()
+
+# Query with natural language
+query_result = explorer.ask_ai("show me 100 images with exactly one person and 2 dogs. There can be other objects too")
+print(query_result.head())
+```
+
+For more examples, check out the [Ask AI section](#2-ask-ai-natural-language-querying).

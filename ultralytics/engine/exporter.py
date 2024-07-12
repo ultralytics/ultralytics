@@ -1017,7 +1017,7 @@ class Exporter:
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
 
-        if ARM64:
+        if not ARM64:
             from tflite_support import metadata  # noqa
             from tflite_support import metadata_schema_py_generated as schema  # noqa
         else:

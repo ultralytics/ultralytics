@@ -544,8 +544,9 @@ def get_best_youtube_url(url, method="pytube"):
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
     if method == "pytube":
-        check_requirements("pytube")
-        from pytube import YouTube
+        # Switched from pytube to pytubefix to resolve https://github.com/pytube/pytube/issues/1954
+        check_requirements("pytubefix")
+        from pytubefix import YouTube
 
         streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
         streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution

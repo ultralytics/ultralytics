@@ -31,7 +31,7 @@ def _get_explorer():
     progress_bar.empty()
 
 
-def init_explorer_form(data=None, model=None, split=None):
+def init_explorer_form(data=None, model=None):
     """Initializes an Explorer instance and creates embeddings table with progress tracking."""
     if data is None:
         datasets = ROOT / "cfg" / "datasets"
@@ -65,7 +65,7 @@ def init_explorer_form(data=None, model=None, split=None):
     with st.form(key="explorer_init_form"):
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.selectbox("Select dataset", ds, key="dataset", index=0)
+            st.selectbox("Select dataset", ds, key="dataset")
         with col2:
             st.selectbox("Select model", models, key="model")
         with col3:

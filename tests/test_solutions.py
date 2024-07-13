@@ -85,6 +85,6 @@ def test_instance_segmentation():
 
 @pytest.mark.slow
 def test_streamlit_predict():
-    """Test streamlit predict live inference solution"""
+    """Test streamlit predict live inference solution."""
 
     solutions.inference()

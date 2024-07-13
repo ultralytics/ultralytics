@@ -387,6 +387,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     return masks
 
+
 def xyxy2xywh(x):
     """
     Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is the
@@ -405,6 +406,7 @@ def xyxy2xywh(x):
     y[..., 2] = x[..., 2] - x[..., 0]  # width
     y[..., 3] = x[..., 3] - x[..., 1]  # height
     return y
+
 
 def xywh2xyxy(x):
     """

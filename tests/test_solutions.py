@@ -81,3 +81,10 @@ def test_instance_segmentation():
                 annotator.seg_bbox(mask=mask, mask_color=color, det_label=names[int(cls)])
     cap.release()
     cv2.destroyAllWindows()
+
+
+@pytest.mark.slow
+def test_streamlit_predict():
+    """Test streamlit predict live inference solution"""
+
+    solutions.inference()

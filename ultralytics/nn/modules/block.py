@@ -789,11 +789,11 @@ class C3k2(C2f2):
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2, k=3):
         super().__init__(c1, c2, n, shortcut, g, e)
-        # self.m = nn.ModuleList(
-        #     Bottleneck(self.c, self.c, shortcut, g) if c2 <= 256 else C3k(self.c, self.c, nk, shortcut, g)
-        #     for _ in range(n)
-        # )
-        self.m = nn.ModuleList(C3k(self.c, self.c, nk, shortcut, g) for _ in range(n))
+        self.m = nn.ModuleList(
+            Bottleneck(self.c, self.c, shortcut, g) if c2 <= 256 else C3k(self.c, self.c, nk, shortcut, g)
+            for _ in range(n)
+        )
+        # self.m = nn.ModuleList(C3k(self.c, self.c, nk, shortcut, g) for _ in range(n))
 
 
 class C3k3(C2f2):

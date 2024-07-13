@@ -387,7 +387,6 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     return masks
 
-
 def xyxy2xywh(x):
     """
     Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is the
@@ -401,12 +400,11 @@ def xyxy2xywh(x):
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
-    y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
-    y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
+    y[..., 0] = x[..., 0]  # x (top-left corner)
+    y[..., 1] = x[..., 1]  # y (top-left corner)
     y[..., 2] = x[..., 2] - x[..., 0]  # width
     y[..., 3] = x[..., 3] - x[..., 1]  # height
     return y
-
 
 def xywh2xyxy(x):
     """

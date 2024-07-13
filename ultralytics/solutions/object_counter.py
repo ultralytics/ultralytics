@@ -37,7 +37,7 @@ class ObjectCounter:
         Initializes the ObjectCounter with various tracking and counting parameters.
 
         Args:
-            classes_names (dict): Dictionary of class names.
+            classes_names (list): List of class names.
             reg_pts (list): List of points defining the counting region.
             count_reg_color (tuple): RGB color of the counting region.
             count_txt_color (tuple): RGB color of the count text.

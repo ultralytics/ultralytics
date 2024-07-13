@@ -18,7 +18,7 @@ class SpeedEstimator:
         Initializes the SpeedEstimator with the given parameters.
 
         Args:
-            names (dict): Dictionary of class names.
+            names (list): List of class names.
             reg_pts (list, optional): List of region points for speed estimation. Defaults to [(20, 400), (1260, 400)].
             view_img (bool, optional): Whether to display the image with annotations. Defaults to False.
             line_thickness (int, optional): Thickness of the lines for drawing boxes and tracks. Defaults to 2.
@@ -176,5 +176,5 @@ class SpeedEstimator:
 
 
 if __name__ == "__main__":
-    names = {0: "person", 1: "car"}  # example class names
+    names = ["person", "car"]  # example class names
     speed_estimator = SpeedEstimator(names)

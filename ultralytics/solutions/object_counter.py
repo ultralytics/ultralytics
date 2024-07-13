@@ -17,7 +17,7 @@ class ObjectCounter:
 
     def __init__(
         self,
-        classes_names,
+        names,
         reg_pts=None,
         count_reg_color=(255, 0, 255),
         count_txt_color=(0, 0, 0),
@@ -37,7 +37,7 @@ class ObjectCounter:
         Initializes the ObjectCounter with various tracking and counting parameters.
 
         Args:
-            classes_names (list): List of class names.
+            names (dict): Dictionary of class names.
             reg_pts (list): List of points defining the counting region.
             count_reg_color (tuple): RGB color of the counting region.
             count_txt_color (tuple): RGB color of the count text.

@@ -89,7 +89,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 ### Arguments `SpeedEstimator`
 
 | Name               | Type   | Default                    | Description                                          |
-| ------------------ |--------| -------------------------- |------------------------------------------------------|
+| ------------------ | ------ | -------------------------- | ---------------------------------------------------- |
 | `names`            | `dict` | `None`                     | Dictionary of class names.                           |
 | `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
 | `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |

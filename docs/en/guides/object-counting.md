@@ -225,7 +225,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 Here's a table with the `ObjectCounter` arguments:
 
 | Name                 | Type    | Default                    | Description                                                            |
-| -------------------- |---------| -------------------------- |------------------------------------------------------------------------|
+| -------------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
 | `classes_names`      | `list`  | `None`                     | List of class names.                                                   |
 | `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
 | `count_reg_color`    | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |

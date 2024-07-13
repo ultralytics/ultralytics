@@ -115,7 +115,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 ### Arguments `QueueManager`
 
 | Name                | Type             | Default                    | Description                                                                         |
-| ------------------- |------------------| -------------------------- |-------------------------------------------------------------------------------------|
+| ------------------- | ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
 | `classes_names`     | `list`           | `model.names`              | A list of classes names.                                                            |
 | `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
 | `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |

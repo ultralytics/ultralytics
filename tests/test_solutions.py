@@ -62,6 +62,7 @@ def test_instance_segmentation():
     """Test the instance segmentation solution."""
 
     from ultralytics.utils.plotting import Annotator, colors
+
     model = YOLO("yolov8n-seg.pt")
     names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")

@@ -31,6 +31,7 @@ RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
+RUN python3 -m pip install pip install tk
 RUN pip install --no-cache-dir -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages

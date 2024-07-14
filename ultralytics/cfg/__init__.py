@@ -526,9 +526,10 @@ def handle_explorer(args: List[str]):
     checks.check_requirements("streamlit")
     LOGGER.info("💡 Loading Explorer dashboard...")
 
+    WARN_STR = "WARNING ⚠️ no {} passed. Default {} will be shown."
     WARN = dict(
-        data="WARNING ⚠️ no `data.yaml` passed. Default datasets will be shown.",
-        model="WARNING ⚠️ no `model` passed. Default models will be shown.",
+        data=WARN_STR.format("data.yaml", "datasets"),
+        model=WARN_STR.format("model", "models")
     )
 
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]

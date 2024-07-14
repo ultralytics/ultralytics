@@ -8,6 +8,17 @@ keywords: CIFAR-10, dataset, machine learning, computer vision, image classifica
 
 The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a collection of images used widely for machine learning and computer vision algorithms. It was developed by researchers at the CIFAR institute and consists of 60,000 32x32 color images in 10 different classes.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/fLBbyhPbWzY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train an Image Classification Model with CIFAR-10 Dataset using Ultralytics YOLOv8
+</p>
+
 ## Key Features
 
 - The CIFAR-10 dataset consists of 60,000 images, divided into 10 classes.

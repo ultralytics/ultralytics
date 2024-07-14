@@ -70,7 +70,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = solutions.ObjectCounter(
             view_img=True,
             reg_pts=region_points,
-            classes_names=model.names,
+            names=model.names,
             draw_tracks=True,
             line_thickness=2,
         )
@@ -112,7 +112,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = solutions.ObjectCounter(
             view_img=True,
             reg_pts=region_points,
-            classes_names=model.names,
+            names=model.names,
             draw_tracks=True,
             line_thickness=2,
         )
@@ -154,7 +154,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = solutions.ObjectCounter(
             view_img=True,
             reg_pts=line_points,
-            classes_names=model.names,
+            names=model.names,
             draw_tracks=True,
             line_thickness=2,
         )
@@ -196,7 +196,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         counter = solutions.ObjectCounter(
             view_img=True,
             reg_pts=line_points,
-            classes_names=model.names,
+            names=model.names,
             draw_tracks=True,
             line_thickness=2,
         )
@@ -283,7 +283,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     counter = solutions.ObjectCounter(
-        view_img=True, reg_pts=region_points, classes_names=model.names, draw_tracks=True, line_thickness=2
+        view_img=True, reg_pts=region_points, names=model.names, draw_tracks=True, line_thickness=2
     )
 
     while cap.isOpened():
@@ -334,7 +334,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     line_points = [(20, 400), (1080, 400)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     counter = solutions.ObjectCounter(
-        view_img=True, reg_pts=line_points, classes_names=model.names, draw_tracks=True, line_thickness=2
+        view_img=True, reg_pts=line_points, names=model.names, draw_tracks=True, line_thickness=2
     )
 
     while cap.isOpened():

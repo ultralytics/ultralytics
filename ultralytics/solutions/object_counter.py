@@ -72,7 +72,7 @@ class ObjectCounter:
         self.view_in_counts = view_in_counts
         self.view_out_counts = view_out_counts
 
-        self.names = classes_names  # Classes names
+        self.names = names  # Classes names
         self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Object Counter"
 

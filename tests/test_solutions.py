@@ -20,10 +20,10 @@ def test_major_solutions():
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(reg_pts=region_points, classes_names=names, view_img=False)
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, classes_names=names, view_img=False)
+    counter = solutions.ObjectCounter(reg_pts=region_points, names=names, view_img=False)
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
     speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
-    queue = solutions.QueueManager(classes_names=names, reg_pts=region_points, view_img=False)
+    queue = solutions.QueueManager(names=names, reg_pts=region_points, view_img=False)
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -78,7 +78,7 @@ def test_instance_segmentation():
             masks = results[0].masks.xy
             for mask, cls in zip(masks, clss):
                 color = colors(int(cls), True)
-                annotator.seg_bbox(mask=mask, mask_color=color, det_label=names[int(cls)])
+                annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
     cap.release()
     cv2.destroyAllWindows()
 

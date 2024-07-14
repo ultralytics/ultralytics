@@ -53,7 +53,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            classes_names=model.names,
+            names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
             fontsize=1.0,
@@ -97,7 +97,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            classes_names=model.names,
+            names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
             fontsize=1.0,
@@ -175,7 +175,7 @@ cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
 queue = solutions.QueueManager(
-    classes_names=model.names,
+    names=model.names,
     reg_pts=queue_region,
     line_thickness=3,
     fontsize=1.0,
@@ -228,7 +228,7 @@ Example for airports:
 ```python
 queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
 queue_airport = solutions.QueueManager(
-    classes_names=model.names,
+    names=model.names,
     reg_pts=queue_region_airport,
     line_thickness=3,
     fontsize=1.0,

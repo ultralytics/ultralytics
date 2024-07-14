@@ -109,14 +109,13 @@ jobs:
           response = requests.get(url, headers=headers)
           diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
 
-          # Set up OpenAI client
+          # Set up client
           client = openai.AzureOpenAI(
               api_key=OPENAI_AZURE_API_KEY,
               api_version=OPENAI_AZURE_API_VERSION,
               azure_endpoint=OPENAI_AZURE_ENDPOINT
           )
 
-          # Prepare messages for OpenAI completion
           messages = [
               {
                   "role": "system",
@@ -125,19 +124,15 @@ jobs:
               {
                   "role": "user",
                   "content": f"Summarize the updates made in the [Ultralytics](https://ultralytics.com) '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
-                             f"### 🌟 Summary (single-line synopsis)\n"
-                             f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
-                             f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
-                             f"\n\nHere's the release diff:\n\n{diff[:96000]}",
+                             f"## 🌟 Summary (single-line synopsis)\n"
+                             f"## 📊 Key Changes (bullet points highlighting any major changes)\n"
+                             f"## 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
+                             f"\n\nHere's the release diff:\n\n{diff[:300000]}",
               }
           ]
 
-          try:
-              completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
-              summary = completion.choices[0].message.content.strip()
-          except openai.error.OpenAIError as e:
-              print(f"Failed to generate summary: {e}")
-              raise
+          completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
+          summary = completion.choices[0].message.content.strip()
 
           # Get the latest commit message
           commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()

@@ -512,14 +512,14 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer():
     """Open the Ultralytics Explorer GUI for dataset exploration and analysis."""
-    checks.check_requirements("streamlit")
+    checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
 
 
 def handle_streamlit_inference():
     """Open the Ultralytics Live Inference streamlit app for real time object detection."""
-    checks.check_requirements(["streamlit", "opencv-python", "torch"])
+    checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Ultralytics Live Inference app...")
     subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 

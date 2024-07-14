@@ -311,11 +311,13 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
+        from copy import deepcopy
         from datetime import datetime
 
         from ultralytics import __version__
 
         updates = {
+            "model": deepcopy(self.model).half() if isinstance(self.model, nn.Module) else self.model,
             "date": datetime.now().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",

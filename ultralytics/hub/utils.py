@@ -185,7 +185,7 @@ class Events:
     def __init__(self):
         """Initializes the Events object with default values for events, rate_limit, and metadata."""
         self.events = []  # events list
-        self.rate_limit = 60.0  # rate limit (seconds)
+        self.rate_limit = 30.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",

@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import json
-from tkinter import filedialog, messagebox
 
 import cv2
 import numpy as np
@@ -55,6 +54,8 @@ class ParkingPtsSelection:
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
+        from tkinter import filedialog  # scope for multi-environment compatibility
+
         self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if not self.image_path:
             return
@@ -115,6 +116,8 @@ class ParkingPtsSelection:
 
     def remove_last_bounding_box(self):
         """Remove the last drawn bounding box from canvas."""
+        from tkinter import messagebox  # scope for multi-environment compatibility
+
         if self.bounding_boxes:
             self.bounding_boxes.pop()  # Remove the last bounding box
             self.canvas.delete("all")  # Clear the canvas
@@ -130,6 +133,8 @@ class ParkingPtsSelection:
 
     def save_to_json(self):
         """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
+        from tkinter import messagebox  # scope for multi-environment compatibility
+
         canvas_width, canvas_height = self.canvas.winfo_width(), self.canvas.winfo_height()
         width_scaling_factor = self.img_width / canvas_width
         height_scaling_factor = self.img_height / canvas_height

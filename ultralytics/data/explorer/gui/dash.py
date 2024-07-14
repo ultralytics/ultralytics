@@ -278,10 +278,5 @@ def layout(data=None, model=None):
 
 
 if __name__ == "__main__":
-    kwargs = dict()
-    for i, arg in enumerate(sys.argv[1:]):
-        if arg == "data":
-            kwargs["data"] = sys.argv[i + 2]
-        elif arg == "model":
-            kwargs["model"] = sys.argv[i + 2]
+    kwargs = dict(zip(sys.argv[1::2], sys.argv[2::2]))
     layout(**kwargs)

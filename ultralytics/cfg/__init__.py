@@ -534,12 +534,9 @@ def handle_explorer(args: List[str]):
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
     for a in merge_equals_args(args):
         k, v = parse_key_value_pair(a)
-        if k == "data":
-            cmd += ["data", v]
-            del WARN["data"]
-        elif k == "model":
-            cmd += ["model", v]
-            del WARN["model"]
+        if k in ("data", "model"):
+            cmd += [k, v]
+            del WARN[k]
         else:
             raise SyntaxError(
                 f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"

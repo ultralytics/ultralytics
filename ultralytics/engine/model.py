@@ -312,10 +312,12 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         from datetime import datetime
+        from copy import deepcopy
 
         from ultralytics import __version__
 
         updates = {
+            "model": deepcopy(self.model).half() if isinstance(self.model, nn.Module) else self.model,
             "date": datetime.now().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",

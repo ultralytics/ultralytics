@@ -4,7 +4,6 @@ import json
 
 import cv2
 import numpy as np
-from PIL import Image, ImageTk
 
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
@@ -15,7 +14,7 @@ class ParkingPtsSelection:
         """Initializes the UI for selecting parking zone points in a tkinter window."""
         check_requirements("tkinter")
 
-        import tkinter as tk
+        import tkinter as tk  # scope for multi-environment compatibility
 
         self.tk = tk
         self.master = tk.Tk()
@@ -54,9 +53,9 @@ class ParkingPtsSelection:
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
-        from tkinter import filedialog  # scope for multi-environment compatibility
+        from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
 
-        self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
+        self.image_path = self.tk.filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if not self.image_path:
             return
 
@@ -146,8 +145,8 @@ class ParkingPtsSelection:
                 rescaled_y = int(y * height_scaling_factor)
                 rescaled_box.append((rescaled_x, rescaled_y))
             bounding_boxes_data.append({"points": rescaled_box})
-        with open("bounding_boxes.json", "w") as json_file:
-            json.dump(bounding_boxes_data, json_file, indent=4)
+        with open("bounding_boxes.json", "w") as f:
+            json.dump(bounding_boxes_data, f, indent=4)
 
         messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
@@ -192,11 +191,10 @@ class ParkingManagement:
         self.env_check = check_imshow(warn=True)
 
     def load_model(self):
-        """Load the Ultralytics YOLOv8 model for inference and analytics."""
+        """Load the Ultralytics YOLO model for inference and analytics."""
         from ultralytics import YOLO
 
-        self.model = YOLO(self.model_path)
-        return self.model
+        return YOLO(self.model_path)
 
     @staticmethod
     def parking_regions_extraction(json_file):
@@ -206,8 +204,8 @@ class ParkingManagement:
         Args:
             json_file (str): file that have all parking slot points
         """
-        with open(json_file, "r") as json_file:
-            return json.load(json_file)
+        with open(json_file, "r") as f:
+            return json.load(f)
 
     def process_data(self, json_data, im0, boxes, clss):
         """
@@ -224,12 +222,9 @@ class ParkingManagement:
             empty_slots (int): total slots that are available in parking lot
         """
         annotator = Annotator(im0)
-        total_slots, filled_slots = len(json_data), 0
-        empty_slots = total_slots
-
+        empty_slots, filled_slots = len(json_data), 0
         for region in json_data:
-            points = region["points"]
-            points_array = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
+            points_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             region_occupied = False
 
             for box, cls in zip(boxes, clss):

@@ -311,8 +311,8 @@ class Model(nn.Module):
             AssertionError: If the model is not a PyTorch model.
         """
         self._check_is_pytorch_model()
-        from datetime import datetime
         from copy import deepcopy
+        from datetime import datetime
 
         from ultralytics import __version__
 

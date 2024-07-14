@@ -53,8 +53,9 @@ class ParkingPtsSelection:
 
     def upload_image(self):
         """Upload an image and resize it to fit canvas."""
-        from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
         from tkinter import filedialog
+
+        from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
 
         self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if not self.image_path:

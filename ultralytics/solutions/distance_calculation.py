@@ -24,7 +24,7 @@ class DistanceCalculation:
         Initializes the DistanceCalculation class with the given parameters.
 
         Args:
-            names (dict): Dictionary mapping class indices to class names.
+            names (dict): Dictionary of classes names.
             pixels_per_meter (int, optional): Conversion factor from pixels to meters. Defaults to 10.
             view_img (bool, optional): Flag to indicate if the video stream should be displayed. Defaults to False.
             line_thickness (int, optional): Thickness of the lines drawn on the image. Defaults to 2.

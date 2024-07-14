@@ -527,10 +527,7 @@ def handle_explorer(args: List[str]):
     LOGGER.info("💡 Loading Explorer dashboard...")
 
     WARN_STR = "WARNING ⚠️ no {} passed. Default {} will be shown."
-    WARN = dict(
-        data=WARN_STR.format("data.yaml", "datasets"),
-        model=WARN_STR.format("model", "models")
-    )
+    WARN = dict(data=WARN_STR.format("data.yaml", "datasets"), model=WARN_STR.format("model", "models"))
 
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
     for a in merge_equals_args(args):

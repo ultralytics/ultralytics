@@ -523,7 +523,7 @@ def handle_explorer(args: List[str]):
         yolo explorer data=data.yaml model=yolov8n.pt
         ```
     """
-    checks.check_requirements("streamlit")
+    checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
 
     WARN_STR = "WARNING ⚠️ no {} passed. Default {} will be shown."
@@ -550,7 +550,7 @@ def handle_explorer(args: List[str]):
 
 def handle_streamlit_inference():
     """Open the Ultralytics Live Inference streamlit app for real time object detection."""
-    checks.check_requirements(["streamlit", "opencv-python", "torch"])
+    checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Ultralytics Live Inference app...")
     subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 

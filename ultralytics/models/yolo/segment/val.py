@@ -167,11 +167,17 @@ class SegmentationValidator(DetectionValidator):
         Return correct prediction matrix.
 
         Args:
-            detections (array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (array[M, 5]), class, x1, y1, x2, y2
+            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
+                Each detection is of the format: x1, y1, x2, y2, conf, class.
+            gt_bboxes (torch.Tensor): Tensor of shape [M, 4] representing bounding box coordinates.
+                Each label is of the format: x1, y1, x2, y2.
+            gt_cls (torch.Tensor): Target class indices of shape [M, 1].
+            pred_masks (torch.Tensor): The predicted masks.
+            overlap (bool): Whether to use overlap.
+            masks (bool): Whether masks are present.
 
         Returns:
-            correct (array[N, 10]), for 10 IoU levels
+            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
         """
         if masks:
             if overlap:

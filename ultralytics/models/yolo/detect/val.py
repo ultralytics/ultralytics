@@ -202,13 +202,18 @@ class DetectionValidator(BaseValidator):
         Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
+                (x1, y1, x2, y2, conf, class).
+            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
+                bounding box is of the format: (x1, y1, x2, y2).
+            gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
+            (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
+
+        Note:
+            The function does not return any value directly usable for metrics calculation. Instead, it provides an
+            intermediate representation used for evaluating predictions against ground truth.
         """
         iou = box_iou(gt_bboxes, detections[:, :4])
         return self.match_predictions(detections[:, 5], gt_cls, iou)

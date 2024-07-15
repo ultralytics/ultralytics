@@ -13,6 +13,8 @@ if __name__ == '__main__':
     parser.add_argument("--end2end", action="store_true", default=True)
     parser.add_argument("--no_en2end", action="store_false", dest="end2end", default=False)
     parser.add_argument("--fraction", type=float, default=1.0)
+    parser.add_argument("--project", type=str, default="ultralytics-runs")
+    parser.add_argument("--name", type=str, default="pred")
     args = parser.parse_args()
 
     print("ARGS:", args)
@@ -40,6 +42,7 @@ if __name__ == '__main__':
                     source=os.path.join(data["path"][1:], images[i][2:-1]),
                     device=args.device,
                     end2end=args.end2end,
-                    name="pred",
+                    project=args.project,
+                    name=args.name,
                     save=True
                 )

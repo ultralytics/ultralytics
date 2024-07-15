@@ -10,6 +10,8 @@ if __name__ == '__main__':
     parser.add_argument("--device", type=list, default=['0'])
     parser.add_argument("--end2end", action="store_true", default=True)
     parser.add_argument("--no_en2end", action="store_false", dest="end2end", default=False)
+    parser.add_argument("--project", type=str, default="ultralytics-runs")
+    parser.add_argument("--name", type=str, default="val")
     args = parser.parse_args()
 
     print("ARGS:", args)
@@ -25,5 +27,7 @@ if __name__ == '__main__':
         data=args.dataset, 
         batch=args.batch,
         device=args.device,
-        end2end=args.end2end
+        end2end=args.end2end,
+        project=args.project,
+        name=args.name
     )

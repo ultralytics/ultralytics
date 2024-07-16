@@ -24,7 +24,7 @@ To get started, access the [Kaggle YOLOv8 Notebook](https://www.kaggle.com/code/
 
 ![What is the kaggle integration with respect to YOLOv8?](https://github.com/user-attachments/assets/4068b343-bb62-462c-9a44-b32413c4a765)
 
-Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md). 
+Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/user-attachments/assets/264f01b9-207b-4a8d-be5d-7b51739e9726)
 
@@ -59,11 +59,11 @@ When working with Kaggle, you might come across some common issues. Here are som
 
 Next, let’s understand the features Kaggle offers that make it an excellent platform for data science and machine learning enthusiasts. Here are some of the key highlights:
 
-- **Datasets**:   Kaggle hosts a massive collection of datasets on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLOv8 models.
+- **Datasets**: Kaggle hosts a massive collection of datasets on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLOv8 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
 - **Free Access to TPUs**: Kaggle provides free access to powerful TPUs, which are essential for training complex machine learning models. This means you can speed up processing and boost the performance of your YOLOv8 projects without incurring extra costs.
 - **Integration with Github**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
-- **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.  
+- **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.
 
 ## Why Should You Use Kaggle for Your YOLOv8 Projects?
 

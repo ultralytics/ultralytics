@@ -666,11 +666,10 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     Returns:
         (torch.Tensor): The upsampled masks.
     """
-    c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0)
+    from ultralytics.utils import deprecation_warn
+
+    deprecation_warn("process_mask_upsample", "process_mask_native")
+    return process_mask_native(protos, masks_in, bboxes, shape)
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):

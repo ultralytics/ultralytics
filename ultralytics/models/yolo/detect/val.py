@@ -42,10 +42,10 @@ class DetectionValidator(BaseValidator):
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
         if self.args.save_hybrid:
-            LOGGER.warning(f"WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
-                           f"WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n")
-
-
+            LOGGER.warning(
+                "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
+                "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
+            )
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""

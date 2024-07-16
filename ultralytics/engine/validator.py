@@ -138,7 +138,7 @@ class BaseValidator:
             elif not pt and not jit:
                 self.args.batch = 1  # export.py models default to batch-size 1
                 LOGGER.info(f"Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models")
-            
+
             if self.args.save_hybrid:
                 LOGGER.warning("WARNING ⚠️ Validation metrics will be incorrect due to `save_hybrid`")
 

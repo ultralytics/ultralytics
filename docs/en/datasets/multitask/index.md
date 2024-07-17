@@ -95,10 +95,10 @@ If keypoints for multiple classes get predicted, `flip_idx` *must* be in the nat
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-multitask.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-multitask.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco8-multitask.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-multitask.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -139,8 +139,8 @@ Ultralytics provides a convenient conversion tool to convert labels from the pop
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
-        convert_coco(labels_dir='path/to/coco/annotations/', use_segments=True)
+        convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
+        convert_coco(labels_dir="path/to/coco/annotations/", use_segments=True)
         ```
 
         After converting the datasets, merge them using the [merge_kpt_seg.py](https://github.com/stedavkle/ultralytics/tree/multitask/ultralytics/data/scripts/merge_kpt_seg.py) script:

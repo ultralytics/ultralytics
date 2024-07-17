@@ -44,6 +44,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    MultiTask,
     Pose,
     RepC3,
     RepConv,
@@ -53,7 +54,6 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
-    MultiTask,
     WorldDetect,
     v10Detect,
 )
@@ -63,10 +63,10 @@ from ultralytics.utils.loss import (
     E2EDetectLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8MultiTaskLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    v8MultiTaskLoss,
 )
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (

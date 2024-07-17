@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.models.yolo import classify, detect, obb, pose, segment, world, multitask
+from ultralytics.models.yolo import classify, detect, multitask, obb, pose, segment, world
 
 from .model import YOLO, YOLOWorld
 

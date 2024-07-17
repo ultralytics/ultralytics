@@ -4,7 +4,7 @@ from copy import copy
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import MultiTaskModel
-from ultralytics.utils import DEFAULT_CFG, RANK, LOGGER
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_results
 
 

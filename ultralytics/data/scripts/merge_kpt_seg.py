@@ -1,9 +1,11 @@
 import argparse
-import os
 import glob
-from ultralytics.utils.ops import segments2boxes
+import os
+
 import numpy as np
 from tqdm import tqdm
+
+from ultralytics.utils.ops import segments2boxes
 
 
 def match_pose_to_segment(seg_line, pose_lines):

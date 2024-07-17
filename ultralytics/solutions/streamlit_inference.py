@@ -104,7 +104,7 @@ def inference():
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
-            
+
             prev_time = time.time()
 
             # Store model predictions
@@ -118,7 +118,7 @@ def inference():
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
             prev_time = curr_time
-            
+
             # display frame
             org_frame.image(frame, channels="BGR")
             ann_frame.image(annotated_frame, channels="BGR")

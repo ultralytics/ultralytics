@@ -147,14 +147,16 @@ class SegmentationValidator(DetectionValidator):
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save
-            if self.args.save_json or self.args.save_txt:
-                pred_masks = ops.scale_image(
-                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                    pbatch["ori_shape"],
-                    ratio_pad=batch["ratio_pad"][si],
-                )
             if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si], pred_masks)
+                self.pred_to_json(
+                    predn,
+                    batch["im_file"][si],
+                    ops.scale_image(
+                        pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                        pbatch["ori_shape"],
+                        ratio_pad=batch["ratio_pad"][si],
+                    ),
+                )
             if self.args.save_txt:
                 file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
                 self.save_one_txt(predn, pred_masks, self.args.save_conf, pbatch["ori_shape"], file)

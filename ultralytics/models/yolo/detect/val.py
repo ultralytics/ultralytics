@@ -263,7 +263,10 @@ class DetectionValidator(BaseValidator):
         from ultralytics.engine.results import Results
 
         Results(
-            np.zeros((shape[0], shape[1]), dtype=np.uint8), path=None, names=self.names, boxes=predn[:, :6]
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):

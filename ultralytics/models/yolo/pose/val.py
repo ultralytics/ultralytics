@@ -148,8 +148,13 @@ class PoseValidator(DetectionValidator):
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
-                file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, pred_kpts, self.args.save_conf, pbatch["ori_shape"], file)
+                self.save_one_txt(
+                    predn,
+                    pred_kpts,
+                    self.args.save_conf,
+                    pbatch["ori_shape"],
+                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
         """

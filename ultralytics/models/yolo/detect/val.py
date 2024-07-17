@@ -41,6 +41,11 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
+        if self.args.save_hybrid:
+            LOGGER.warning(
+                "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
+                "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
+            )
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
@@ -53,14 +58,10 @@ class DetectionValidator(BaseValidator):
             height, width = batch["img"].shape[2:]
             nb = len(batch["img"])
             bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
-            self.lb = (
-                [
-                    torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
-                    for i in range(nb)
-                ]
-                if self.args.save_hybrid
-                else []
-            )  # for autolabelling
+            self.lb = [
+                torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
+                for i in range(nb)
+            ]
 
         return batch
 

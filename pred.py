@@ -7,7 +7,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--pt", type=str, default="yolov10s.pt")
     parser.add_argument("--task", type=str, default="detect")
-    parser.add_argument("--dataset", type=str, default="coco_wb.yaml")
+    parser.add_argument("--dataset", type=str, default="coco_wb.yaml") # yaml or directory path with images
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--device", type=list, default=['0'])
     parser.add_argument("--end2end", action="store_true", default=True)
@@ -25,24 +25,32 @@ if __name__ == '__main__':
     del model.model.model[-1].cv3
     del model.model.model[-1].cv4
 
-    with open(args.dataset, "r") as f:
-        data = yaml.safe_load(f)
+    if args.dataset.split('.')[-1] == "yaml": # yaml file
+        with open(args.dataset, "r") as f:
+            data = yaml.safe_load(f)
 
-        directories = os.path.join(data["path"][1:], data["val"])
+            directories = os.path.join(data["path"][1:], data["val"])
 
-        with open(directories, "r") as f:
-            images = f.readlines()
+            with open(directories, "r") as f:
+                images = f.readlines()
 
-            len_images = int(len(images) * args.fraction)
+                len_images = int(len(images) * args.fraction)
 
-            for i in range(len_images):
+                sources = [os.path.join(data["path"][1:], images[i][2:-1]) for i in range(len_images)]
+    else: # directory path
+        sources = [os.path.join(args.dataset, files) for _, _, files in os.walk(args.dataset)]
 
-                model.predict(
-                    task=args.task,
-                    source=os.path.join(data["path"][1:], images[i][2:-1]),
-                    device=args.device,
-                    end2end=args.end2end,
-                    project=args.project,
-                    name=args.name,
-                    save=True
-                )
+    for source in sources:
+        try:
+            model.predict(
+                task=args.task,
+                source=source,
+                device=args.device,
+                end2end=args.end2end,
+                project=args.project,
+                name=args.name,
+                save=True
+            )
+        except Exception as e:
+            print(f"Skipping {source} because of error: {e}.")
+            continue

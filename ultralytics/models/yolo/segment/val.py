@@ -147,16 +147,17 @@ class SegmentationValidator(DetectionValidator):
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save
-            if self.args.save_json:
+            if self.args.save_json or self.args.save_txt:
                 pred_masks = ops.scale_image(
                     pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                     pbatch["ori_shape"],
                     ratio_pad=batch["ratio_pad"][si],
                 )
+            if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
-            # if self.args.save_txt:
-            #     file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
-            #     self.save_one_txt(predn, self.args.save_conf, pbatch["ori_shape"], file)
+            if self.args.save_txt:
+                file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
+                self.save_one_txt(predn, pred_masks, self.args.save_conf, pbatch["ori_shape"], file)
 
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""
@@ -241,7 +242,11 @@ class SegmentationValidator(DetectionValidator):
         from ultralytics.engine.results import Results
 
         Results(
-            np.zeros((shape[0], shape[1]), dtype=np.uint8), path=None, names=self.names, boxes=predn[:, :6]
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
+            masks=pred_masks,
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename, pred_masks):

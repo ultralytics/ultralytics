@@ -99,23 +99,25 @@ def inference():
 
         stop_button = st.button("Stop")  # Button to stop the inference
 
-        prev_time = 0
         while videocapture.isOpened():
             success, frame = videocapture.read()
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
 
-            curr_time = time.time()
-            fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
+            prev_time = time.time()
 
             # Store model predictions
-            if enable_trk:
+            if enable_trk == "Yes":
                 results = model.track(frame, conf=conf, iou=iou, classes=selected_ind, persist=True)
             else:
                 results = model(frame, conf=conf, iou=iou, classes=selected_ind)
             annotated_frame = results[0].plot()  # Add annotations on frame
+
+            # Calculate model FPS
+            curr_time = time.time()
+            fps = 1 / (curr_time - prev_time)
+            prev_time = curr_time
 
             # display frame
             org_frame.image(frame, channels="BGR")

@@ -1,6 +1,6 @@
 ---
-description: Uncover a detailed guide to Ultralytics data utilities. Learn functions from img2label_paths to autosplit, all boosting your YOLO model’s efficiency.
-keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mask, polygons2masks_overlap, check_cls_dataset, delete_dsstore, autosplit
+description: Explore in-depth reference for utility functions in Ultralytics data module. Learn about image verification, dataset handling, and more.
+keywords: Ultralytics, dataset utils, data handling, image verification, Python, data module
 ---
 
 # Reference for `ultralytics/data/utils.py`
@@ -64,5 +64,13 @@ keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mas
 <br><br>
 
 ## ::: ultralytics.data.utils.autosplit
+
+<br><br>
+
+## ::: ultralytics.data.utils.load_dataset_cache_file
+
+<br><br>
+
+## ::: ultralytics.data.utils.save_dataset_cache_file
 
 <br><br>

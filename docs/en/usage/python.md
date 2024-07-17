@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Boost your Python projects with object detection, segmentation and classification using YOLOv8. Explore how to load, train, validate, predict, export, track and benchmark models with ease.
-keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classification, model training, validation, prediction, model export, benchmark, real-time tracking
+description: Learn to integrate YOLOv8 in Python for object detection, segmentation, and classification. Load, train models, and make predictions easily with our comprehensive guide.
+keywords: YOLOv8, Python, object detection, segmentation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
 # Python Usage
@@ -10,7 +10,7 @@ Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help
 
 <p align="center">
   <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=58"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=58"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -27,22 +27,22 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
-    # Train the model using the 'coco128.yaml' dataset for 3 epochs
-    results = model.train(data='coco128.yaml', epochs=3)
+    # Train the model using the 'coco8.yaml' dataset for 3 epochs
+    results = model.train(data="coco8.yaml", epochs=3)
 
     # Evaluate the model's performance on the validation set
     results = model.val()
 
     # Perform object detection on an image using the model
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Export the model to ONNX format
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 ## [Train](../modes/train.md)
@@ -56,7 +56,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt') # pass any model type
+        model = YOLO("yolov8n.pt")  # pass any model type
         results = model.train(epochs=5)
         ```
 
@@ -65,8 +65,8 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.yaml')
-        results = model.train(data='coco128.yaml', epochs=5)
+        model = YOLO("yolov8n.yaml")
+        results = model.train(data="coco8.yaml", epochs=5)
         ```
 
     === "Resume"
@@ -87,23 +87,31 @@ Val mode is used for validating a YOLOv8 model after it has been trained. In thi
     === "Val after training"
 
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.yaml')
-          model.train(data='coco128.yaml', epochs=5)
-          model.val()  # It'll automatically evaluate the data you trained.
+        # Load a YOLOv8 model
+        model = YOLO("yolov8n.yaml")
+
+        # Train the model
+        model.train(data="coco8.yaml", epochs=5)
+
+        # Validate on training data
+        model.val()
         ```
 
-    === "Val independently"
+    === "Val on another dataset"
 
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO("model.pt")
-          # It'll use the data YAML file in model.pt if you don't set data.
-          model.val()
-          # or you can set the data you want to val
-          model.val(data='coco128.yaml')
+        # Load a YOLOv8 model
+        model = YOLO("yolov8n.yaml")
+
+        # Train the model
+        model.train(data="coco8.yaml", epochs=5)
+
+        # Validate on separate data
+        model.val(data="path/to/separate/data.yaml")
         ```
 
 [Val Examples](../modes/val.md){ .md-button }
@@ -117,14 +125,15 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
     === "From source"
 
         ```python
-        from ultralytics import YOLO
-        from PIL import Image
         import cv2
+        from PIL import Image
+
+        from ultralytics import YOLO
 
         model = YOLO("model.pt")
         # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
         results = model.predict(source="0")
-        results = model.predict(source="folder", show=True) # Display preds. Accepts all YOLO predict arguments
+        results = model.predict(source="folder", show=True)  # Display preds. Accepts all YOLO predict arguments
 
         # from PIL
         im1 = Image.open("bus.jpg")
@@ -153,20 +162,20 @@ Predict mode is used for making predictions using a trained YOLOv8 model on new 
 
         for result in results:
             # Detection
-            result.boxes.xyxy   # box with xyxy format, (N, 4)
-            result.boxes.xywh   # box with xywh format, (N, 4)
+            result.boxes.xyxy  # box with xyxy format, (N, 4)
+            result.boxes.xywh  # box with xywh format, (N, 4)
             result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
             result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
-            result.boxes.conf   # confidence score, (N, 1)
-            result.boxes.cls    # cls, (N, 1)
+            result.boxes.conf  # confidence score, (N, 1)
+            result.boxes.cls  # cls, (N, 1)
 
             # Segmentation
-            result.masks.data      # masks, (N, H, W)
-            result.masks.xy        # x,y segments (pixels), List[segment] * N
-            result.masks.xyn       # x,y segments (normalized), List[segment] * N
+            result.masks.data  # masks, (N, H, W)
+            result.masks.xy  # x,y segments (pixels), List[segment] * N
+            result.masks.xyn  # x,y segments (normalized), List[segment] * N
 
             # Classification
-            result.probs     # cls prob, (num_class, )
+            result.probs  # cls prob, (num_class, )
 
         # Each result is composed of torch.Tensor by default,
         # in which you can easily use following functionality:
@@ -188,20 +197,20 @@ Export mode is used for exporting a YOLOv8 model to a format that can be used fo
 
         Export an official YOLOv8n model to ONNX with dynamic batch-size and image-size.
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.pt')
-          model.export(format='onnx', dynamic=True)
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", dynamic=True)
         ```
 
     === "Export to TensorRT"
 
         Export an official YOLOv8n model to TensorRT on `device=0` for acceleration on CUDA devices.
         ```python
-          from ultralytics import YOLO
+        from ultralytics import YOLO
 
-          model = YOLO('yolov8n.pt')
-          model.export(format='onnx', device=0)
+        model = YOLO("yolov8n.pt")
+        model.export(format="onnx", device=0)
         ```
 
 [Export Examples](../modes/export.md){ .md-button }
@@ -218,9 +227,9 @@ Track mode is used for tracking objects in real-time using a YOLOv8 model. In th
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official detection model
-        model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
-        model = YOLO('path/to/best.pt')  # load a custom model
+        model = YOLO("yolov8n.pt")  # load an official detection model
+        model = YOLO("yolov8n-seg.pt")  # load an official segmentation model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Track with the model
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)
@@ -242,14 +251,14 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark
-        benchmark(model='yolov8n.pt', data='coco8.yaml', imgsz=640, half=False, device=0)
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
 
 ## Explorer
 
-Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
+Explorer API can be used to explore datasets with advanced semantic, vector-similarity and SQL search among other features. It also enabled searching for images based on their content using natural language by utilizing the power of LLMs. The Explorer API allows you to write your own dataset exploration notebooks or scripts to get insights into your datasets.
 
 !!! Example "Semantic Search Using Explorer"
 
@@ -259,18 +268,16 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
-        similar = exp.get_similar(img='https://ultralytics.com/images/bus.jpg', limit=10)
+        similar = exp.get_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
         print(similar.head())
 
         # Search using multiple indices
         similar = exp.get_similar(
-                                img=['https://ultralytics.com/images/bus.jpg',
-                                     'https://ultralytics.com/images/bus.jpg'],
-                                limit=10
-                                )
+            img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"], limit=10
+        )
         print(similar.head())
         ```
 
@@ -280,14 +287,14 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data='coco128.yaml', model='yolov8n.pt')
+        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
         exp.create_embeddings_table()
 
         similar = exp.get_similar(idx=1, limit=10)
         print(similar.head())
 
         # Search using multiple indices
-        similar = exp.get_similar(idx=[1,10], limit=10)
+        similar = exp.get_similar(idx=[1, 10], limit=10)
         print(similar.head())
         ```
 
@@ -300,7 +307,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 !!! Tip "Detection Trainer Example"
 
         ```python
-        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
+        from ultralytics.models.yolo import DetectionPredictor, DetectionTrainer, DetectionValidator
 
         # trainer
         trainer = DetectionTrainer(overrides={})
@@ -323,3 +330,89 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
 [Customization tutorials](engine.md){ .md-button }
+
+## FAQ
+
+### How can I integrate YOLOv8 into my Python project for object detection?
+
+Integrating Ultralytics YOLOv8 into your Python projects is simple. You can load a pre-trained model or train a new model from scratch. Here's how to get started:
+
+```python
+from ultralytics import YOLO
+
+# Load a pretrained YOLO model
+model = YOLO("yolov8n.pt")
+
+# Perform object detection on an image
+results = model("https://ultralytics.com/images/bus.jpg")
+
+# Visualize the results
+for result in results:
+    result.show()
+```
+
+See more detailed examples in our [Predict Mode](../modes/predict.md) section.
+
+### What are the different modes available in YOLOv8?
+
+Ultralytics YOLOv8 provides various modes to cater to different machine learning workflows. These include:
+
+- **[Train](../modes/train.md)**: Train a model using custom datasets.
+- **[Val](../modes/val.md)**: Validate model performance on a validation set.
+- **[Predict](../modes/predict.md)**: Make predictions on new images or video streams.
+- **[Export](../modes/export.md)**: Export models to various formats like ONNX, TensorRT.
+- **[Track](../modes/track.md)**: Real-time object tracking in video streams.
+- **[Benchmark](../modes/benchmark.md)**: Benchmark model performance across different configurations.
+
+Each mode is designed to provide comprehensive functionalities for different stages of model development and deployment.
+
+### How do I train a custom YOLOv8 model using my dataset?
+
+To train a custom YOLOv8 model, you need to specify your dataset and other hyperparameters. Here's a quick example:
+
+```python
+from ultralytics import YOLO
+
+# Load the YOLO model
+model = YOLO("yolov8n.yaml")
+
+# Train the model with custom dataset
+model.train(data="path/to/your/dataset.yaml", epochs=10)
+```
+
+For more details on training and hyperlinks to example usage, visit our [Train Mode](../modes/train.md) page.
+
+### How do I export YOLOv8 models for deployment?
+
+Exporting YOLOv8 models in a format suitable for deployment is straightforward with the `export` function. For example, you can export a model to ONNX format:
+
+```python
+from ultralytics import YOLO
+
+# Load the YOLO model
+model = YOLO("yolov8n.pt")
+
+# Export the model to ONNX format
+model.export(format="onnx")
+```
+
+For various export options, refer to the [Export Mode](../modes/export.md) documentation.
+
+### Can I validate my YOLOv8 model on different datasets?
+
+Yes, validating YOLOv8 models on different datasets is possible. After training, you can use the validation mode to evaluate the performance:
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLOv8 model
+model = YOLO("yolov8n.yaml")
+
+# Train the model
+model.train(data="coco8.yaml", epochs=5)
+
+# Validate the model on a different dataset
+model.val(data="path/to/separate/data.yaml")
+```
+
+Check the [Val Mode](../modes/val.md) page for detailed examples and usage.

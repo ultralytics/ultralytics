@@ -75,7 +75,7 @@ class TritonRemoteModel:
             *inputs (List[np.ndarray]): Input data to the model.
 
         Returns:
-            List[np.ndarray]: Model outputs.
+            (List[np.ndarray]): Model outputs.
         """
         infer_inputs = []
         input_format = inputs[0].dtype

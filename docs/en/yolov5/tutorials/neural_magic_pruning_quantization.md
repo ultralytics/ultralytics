@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore how to achieve exceptional AI performance with DeepSparse's incredible inference speed. Discover how to deploy YOLOv5, and learn about model sparsification and fine-tuning with SparseML.
-keywords: YOLOv5, DeepSparse, Ultralytics, Neural Magic, sparsification, inference runtime, deep learning, deployment, model fine-tuning, SparseML, AI performance, GPU-class performance
+description: Learn how to deploy YOLOv5 using Neural Magic's DeepSparse for GPU-class performance on CPUs. Discover easy integration, flexible deployments, and more.
+keywords: YOLOv5, DeepSparse, Neural Magic, YOLO deployment, Sparse inference, Deep learning, Model sparsity, CPU optimization, No hardware accelerators, AI deployment
 ---
 
 <!--
@@ -52,7 +52,7 @@ Sparse networks with compressed computation, executed depth-wise in cache, allow
 
 Neural Magic's open-source model repository, SparseZoo, contains pre-sparsified checkpoints of each YOLOv5 model. Using SparseML, which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/use-cases/object-detection/sparsifying).
+[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/computer-vision/object-detection/).
 
 ## DeepSparse Usage
 
@@ -135,14 +135,16 @@ deepsparse.server \
 An example request, using Python's `requests` package:
 
 ```python
-import requests, json
+import json
+
+import requests
 
 # list of images for inference (local files on client side)
-path = ['basilica.jpg']
-files = [('request', open(img, 'rb')) for img in path]
+path = ["basilica.jpg"]
+files = [("request", open(img, "rb")) for img in path]
 
 # send request over HTTP to /predict/from_files endpoint
-url = 'http://0.0.0.0:5543/predict/from_files'
+url = "http://0.0.0.0:5543/predict/from_files"
 resp = requests.post(url=url, files=files)
 
 # response is returned in JSON

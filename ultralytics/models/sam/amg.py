@@ -35,9 +35,11 @@ def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, thresh
 
     The stability score is the IoU between the binary masks obtained by thresholding the predicted mask logits at high
     and low values.
+
+    Notes:
+        - One mask is always contained inside the other.
+        - Save memory by preventing unnecessary cast to torch.int64
     """
-    # One mask is always contained inside the other.
-    # Save memory by preventing unnecessary cast to torch.int64
     intersections = (masks > (mask_threshold + threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     unions = (masks > (mask_threshold - threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     return intersections / unions
@@ -131,7 +133,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
     """Remove small disconnected regions or holes in a mask, returning the mask and a modification indicator."""
     import cv2  # type: ignore
 
-    assert mode in {"holes", "islands"}
+    assert mode in {"holes", "islands"}, f"Provided mode {mode} is invalid"
     correct_holes = mode == "holes"
     working_mask = (correct_holes ^ mask).astype(np.uint8)
     n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)

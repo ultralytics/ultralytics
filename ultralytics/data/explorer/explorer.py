@@ -7,21 +7,22 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 from matplotlib import pyplot as plt
-from pandas import DataFrame
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, checks
+from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
+
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
 class ExplorerDataset(YOLODataset):
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
+        """Initializes the ExplorerDataset with the provided data arguments, extending the YOLODataset class."""
         super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i: int) -> Union[Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]], Tuple[None, None, None]]:
@@ -54,13 +55,18 @@ class ExplorerDataset(YOLODataset):
 
 class Explorer:
     def __init__(
-        self, data: Union[str, Path] = "coco128.yaml", model: str = "yolov8n.pt", uri: str = "~/ultralytics/explorer"
+        self,
+        data: Union[str, Path] = "coco128.yaml",
+        model: str = "yolov8n.pt",
+        uri: str = USER_CONFIG_DIR / "explorer",
     ) -> None:
-        checks.check_requirements(["lancedb>=0.4.3", "duckdb"])
+        """Initializes the Explorer class with dataset path, model, and URI for database connection."""
+        # Note duckdb==0.10.0 bug https://github.com/ultralytics/ultralytics/pull/8181
+        checks.check_requirements(["lancedb>=0.4.3", "duckdb<=0.9.2"])
         import lancedb
 
         self.connection = lancedb.connect(uri)
-        self.table_name = Path(data).name.lower() + "_" + model.lower()
+        self.table_name = f"{Path(data).name.lower()}_{model.lower()}"
         self.sim_idx_base_name = (
             f"{self.table_name}_sim_idx".lower()
         )  # Use this name and append thres and top_k to reuse the table
@@ -168,7 +174,7 @@ class Explorer:
 
     def sql_query(
         self, query: str, return_type: str = "pandas"
-    ) -> Union[DataFrame, Any, None]:  # pandas.dataframe or pyarrow.Table
+    ) -> Union[Any, None]:  # pandas.DataFrame or pyarrow.Table
         """
         Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
@@ -200,7 +206,8 @@ class Explorer:
         table = self.table.to_arrow()  # noqa NOTE: Don't comment this. This line is used by DuckDB
         if not query.startswith("SELECT") and not query.startswith("WHERE"):
             raise ValueError(
-                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE clause. found {query}"
+                f"Query must start with SELECT or WHERE. You can either pass the entire query or just the WHERE "
+                f"clause. found {query}"
             )
         if query.startswith("WHERE"):
             query = f"SELECT * FROM 'table' {query}"
@@ -243,7 +250,7 @@ class Explorer:
         idx: Union[int, List[int]] = None,
         limit: int = 25,
         return_type: str = "pandas",
-    ) -> Union[DataFrame, Any]:  # pandas.dataframe or pyarrow.Table
+    ) -> Any:  # pandas.DataFrame or pyarrow.Table
         """
         Query the table for similar images. Accepts a single image or a list of images.
 
@@ -263,10 +270,7 @@ class Explorer:
             similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
             ```
         """
-        assert return_type in {
-            "pandas",
-            "arrow",
-        }, f"Return type should be either `pandas` or `arrow`, but got {return_type}"
+        assert return_type in {"pandas", "arrow"}, f"Return type should be `pandas` or `arrow`, but got {return_type}"
         img = self._check_imgs_or_idxs(img, idx)
         similar = self.query(img, limit=limit)
 
@@ -308,20 +312,20 @@ class Explorer:
         img = plot_query_result(similar, plot_labels=labels)
         return Image.fromarray(img)
 
-    def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> DataFrame:
+    def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> Any:  # pd.DataFrame
         """
         Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are max_dist or closer to the image in the embedding space at a given index.
 
         Args:
             max_dist (float): maximum L2 distance between the embeddings to consider. Defaults to 0.2.
-            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit when running
+            top_k (float): Percentage of the closest data points to consider when counting. Used to apply limit.
                            vector search. Defaults: None.
             force (bool): Whether to overwrite the existing similarity index or not. Defaults to True.
 
         Returns:
-            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image, and columns
-                                include indices of similar images and their respective distances.
+            (pandas.DataFrame): A dataframe containing the similarity index. Each row corresponds to an image,
+                and columns include indices of similar images and their respective distances.
 
         Example:
             ```python
@@ -414,6 +418,7 @@ class Explorer:
     def _check_imgs_or_idxs(
         self, img: Union[str, np.ndarray, List[str], List[np.ndarray], None], idx: Union[None, int, List[int]]
     ) -> List[np.ndarray]:
+        """Determines whether to fetch images or indexes based on provided arguments and returns image paths."""
         if img is None and idx is None:
             raise ValueError("Either img or idx must be provided.")
         if img is not None and idx is not None:
@@ -443,12 +448,11 @@ class Explorer:
         """
         result = prompt_sql_query(query)
         try:
-            df = self.sql_query(result)
+            return self.sql_query(result)
         except Exception as e:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-        return df
 
     def visualize(self, result):
         """

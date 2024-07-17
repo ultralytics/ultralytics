@@ -1,6 +1,6 @@
 ---
-description: Find detailed guides on Ultralytics YOLO data loaders, including LoadStreams, LoadImages and LoadTensor. Learn how to get the best YouTube URLs.
-keywords: Ultralytics, data loaders, LoadStreams, LoadImages, LoadTensor, YOLO, YouTube URLs
+description: Explore detailed documentation on Ultralytics data loaders including SourceTypes, LoadStreams, and more. Enhance your ML workflows with our comprehensive guides.
+keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, LoadImagesAndVideos, LoadPilAndNumpy, LoadTensor, ML workflows
 ---
 
 # Reference for `ultralytics/data/loaders.py`
@@ -23,7 +23,7 @@ keywords: Ultralytics, data loaders, LoadStreams, LoadImages, LoadTensor, YOLO, 
 
 <br><br>
 
-## ::: ultralytics.data.loaders.LoadImages
+## ::: ultralytics.data.loaders.LoadImagesAndVideos
 
 <br><br>
 

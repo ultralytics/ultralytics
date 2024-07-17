@@ -1,0 +1,43 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Carparts-seg dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/segment/carparts-seg/
+# Example usage: yolo train data=carparts-seg.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── carparts-seg  ← downloads here (132 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/carparts-seg # dataset root dir
+train: train/images # train images (relative to 'path') 3516 images
+val: valid/images # val images (relative to 'path') 276 images
+test: test/images # test images (relative to 'path') 401 images
+
+# Classes
+names:
+  0: back_bumper
+  1: back_door
+  2: back_glass
+  3: back_left_door
+  4: back_left_light
+  5: back_light
+  6: back_right_door
+  7: back_right_light
+  8: front_bumper
+  9: front_door
+  10: front_glass
+  11: front_left_door
+  12: front_left_light
+  13: front_light
+  14: front_right_door
+  15: front_right_light
+  16: hood
+  17: left_mirror
+  18: object
+  19: right_mirror
+  20: tailgate
+  21: trunk
+  22: wheel
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/carparts-seg.zip

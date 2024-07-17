@@ -52,16 +52,29 @@ class OBBValidator(DetectionValidator):
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """
-        Return correct prediction matrix.
+        Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
+            detections (torch.Tensor): A tensor of shape (N, 7) representing the detected bounding boxes and associated
+                data. Each detection is represented as (x1, y1, x2, y2, conf, class, angle).
+            gt_bboxes (torch.Tensor): A tensor of shape (M, 5) representing the ground truth bounding boxes. Each box is
+                represented as (x1, y1, x2, y2, angle).
+            gt_cls (torch.Tensor): A tensor of shape (M,) representing class labels for the ground truth bounding boxes.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
+            (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU (Intersection over
+                Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
+
+        Example:
+            ```python
+            detections = torch.rand(100, 7)  # 100 sample detections
+            gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
+            gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
+            correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
+            ```
+
+        Note:
+            This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.
         """
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
@@ -77,7 +90,7 @@ class OBBValidator(DetectionValidator):
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        return dict(cls=cls, bbox=bbox, ori_shape=ori_shape, imgsz=imgsz, ratio_pad=ratio_pad)
+        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares and returns a batch for OBB validation with scaled and padded bounding boxes."""

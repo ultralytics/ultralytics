@@ -1,18 +1,18 @@
 ---
 comments: true
-description: Learn how to use Roboflow with Ultralytics for labeling and managing images for use in training, and for evaluating model performance.
-keywords: Ultralytics, YOLOv8, Roboflow, vector analysis, confusion matrix, data management, image labeling
+description: Learn how to gather, label, and deploy data for custom YOLOv8 models using Roboflow's powerful tools. Optimize your computer vision pipeline effortlessly.
+keywords: Roboflow, YOLOv8, data labeling, computer vision, model training, model deployment, dataset management, automated image annotation, AI tools
 ---
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you’re in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
+[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
 
 !!! Question "Licensing"
 
     Ultralytics offers two licensing options:
 
-    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an OSI-approved open-source license ideal for students and enthusiasts.
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/licenses/) open-source license ideal for students and enthusiasts.
     - The [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
 
     For more details see [Ultralytics Licensing](https://ultralytics.com/license).
@@ -22,7 +22,7 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 - Gather data for training a custom YOLOv8 model
 - Upload, convert and label data for YOLOv8 format
 - Pre-process and augment data for model robustness
-- Dataset management for [YOLOv8](https://docs.ultralytics.com/models/yolov8/)
+- Dataset management for [YOLOv8](../models/yolov8.md)
 - Export data in 40+ formats for model training
 - Upload custom YOLOv8 model weights for testing and deployment
 - Gather Data for Training a Custom YOLOv8 Model
@@ -157,7 +157,7 @@ When your dataset version has been generated, you can export your data into a ra
 <img src="https://media.roboflow.com/ultralytics/rf_export_data.png" alt="Exporting a dataset" width="800">
 </p>
 
-You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](https://docs.ultralytics.com/modes/train/).
+You are now ready to train YOLOv8 on a custom dataset. Follow this [written guide](https://blog.roboflow.com/how-to-train-yolov8-on-a-custom-dataset/) and [YouTube video](https://www.youtube.com/watch?v=wuZtUMEiKWY) for step-by-step instructions or refer to the [Ultralytics documentation](../modes/train.md).
 
 ## Upload Custom YOLOv8 Model Weights for Testing and Deployment
 
@@ -241,3 +241,29 @@ Below are a few of the many pieces of feedback we have received for using YOLOv8
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_2.png" alt="Showcase image" width="500">
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_3.png" alt="Showcase image" width="500">
 </p>
+
+## FAQ
+
+### How do I label data for YOLOv8 models using Roboflow?
+
+Labeling data for YOLOv8 models using Roboflow is straightforward with Roboflow Annotate. First, create a project on Roboflow and upload your images. After uploading, select the batch of images and click "Start Annotating." You can use the `B` key for bounding boxes or the `P` key for polygons. For faster annotation, use the SAM-based label assistant by clicking the cursor icon in the sidebar. Detailed steps can be found [here](#upload-convert-and-label-data-for-yolov8-format).
+
+### What services does Roboflow offer for collecting YOLOv8 training data?
+
+Roboflow provides two key services for collecting YOLOv8 training data: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://roboflow.com/collect?ref=ultralytics). Universe offers access to over 250,000 vision datasets, while Collect helps you gather images using a webcam and automated prompts.
+
+### How can I manage and analyze my YOLOv8 dataset using Roboflow?
+
+Roboflow offers robust dataset management tools, including dataset search, tagging, and Health Check. Use the search feature to find images based on text descriptions or tags. Health Check provides insights into dataset quality, showing class balance, image sizes, and annotation heatmaps. This helps optimize dataset performance before training YOLOv8 models. Detailed information can be found [here](#dataset-management-for-yolov8).
+
+### How do I export my YOLOv8 dataset from Roboflow?
+
+To export your YOLOv8 dataset from Roboflow, you need to create a dataset version. Click "Versions" in the sidebar, then "Create New Version" and apply any desired augmentations. Once the version is generated, click "Export Dataset" and choose the YOLOv8 format. Follow this process [here](#export-data-in-40-formats-for-model-training).
+
+### How can I integrate and deploy YOLOv8 models with Roboflow?
+
+Integrate and deploy YOLOv8 models on Roboflow by uploading your YOLOv8 weights through a few lines of Python code. Use the provided script to authenticate and upload your model, which will create an API for deployment. For details on the script and further instructions, see [this section](#upload-custom-yolov8-model-weights-for-testing-and-deployment).
+
+### What tools does Roboflow provide for evaluating YOLOv8 models?
+
+Roboflow offers model evaluation tools, including a confusion matrix and vector analysis plots. Access these tools from the "View Detailed Evaluation" button on your model page. These features help identify model performance issues and find areas for improvement. For more information, refer to [this section](#how-to-evaluate-yolov8-models).

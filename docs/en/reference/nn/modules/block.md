@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics YOLO neural network modules, Proto to BottleneckCSP. Detailed explanation of each module with easy-to-follow code examples.
-keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
+description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase!.
+keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem, HGBlock, SPP, SPPF, C1, C2, C2f, C3, C3x, RepC3, C3TR, C3Ghost, GhostBottleneck, Bottleneck, BottleneckCSP, ResNetBlock, MaxSigmoidAttnBlock, ImagePoolingAttn, ContrastiveHead, RepBottleneck, RepCSP, RepNCSPELAN4, ADown, SPPELAN, Silence, CBLinear, CBFuse
 ---
 
 # Reference for `ultralytics/nn/modules/block.py`
@@ -84,5 +84,85 @@ keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, S
 <br><br>
 
 ## ::: ultralytics.nn.modules.block.ResNetLayer
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.MaxSigmoidAttnBlock
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.C2fAttn
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ImagePoolingAttn
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ContrastiveHead
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.BNContrastiveHead
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.RepBottleneck
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.RepCSP
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.RepNCSPELAN4
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ELAN1
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.AConv
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.ADown
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.SPPELAN
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.CBLinear
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.CBFuse
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.RepVGGDW
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.CIB
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.C2fCIB
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.Attention
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.PSA
+
+<br><br>
+
+## ::: ultralytics.nn.modules.block.SCDown
 
 <br><br>

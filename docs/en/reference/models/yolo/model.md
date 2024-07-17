@@ -1,6 +1,6 @@
 ---
-description: Discover the Ultralytics YOLO model class. Learn advanced techniques, tips, and tricks for training.
-keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, Deep Learning, Computer Vision
+description: Explore the ultralytics.models.yolo.model module for YOLO object detection. Learn initialization, model mapping, and more.
+keywords: YOLO, object detection, Ultralytics, YOLO model, machine learning, Python, model initialization
 ---
 
 # Reference for `ultralytics/models/yolo/model.py`
@@ -12,5 +12,9 @@ keywords: Ultralytics YOLO, YOLO, YOLO model, Model Training, Machine Learning, 
 <br><br>
 
 ## ::: ultralytics.models.yolo.model.YOLO
+
+<br><br>
+
+## ::: ultralytics.models.yolo.model.YOLOWorld
 
 <br><br>

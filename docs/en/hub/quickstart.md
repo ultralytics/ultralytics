@@ -1,52 +1,101 @@
 ---
 comments: true
-description: Kickstart your journey with Ultralytics HUB. Learn how to train and deploy YOLOv5 and YOLOv8 models in seconds with our Quickstart guide.
-keywords: Ultralytics HUB, Quickstart, YOLOv5, YOLOv8, model training, quick deployment, drag-and-drop interface, real-time object detection
+description: Get started with Ultralytics HUB! Learn to upload datasets, train YOLO models, and manage projects easily with our user-friendly platform.
+keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project management, train models, machine learning
 ---
 
-# Quickstart Guide for Ultralytics HUB
+# Ultralytics HUB Quickstart
 
-🚧 **Under Construction** 🚧
-
-Thank you for visiting the Quickstart guide for [Ultralytics HUB](https://hub.ultralytics.com/)! We're currently hard at work building out this page to provide you with step-by-step instructions on how to get up and running with HUB in no time.
+[Ultralytics HUB](https://ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
 
 <p align="center">
-  <br>
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB.
+  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
 </p>
 
-In the meantime, here's a brief overview of what you can expect from Ultralytics HUB:
+## Get Started
 
-## What is Ultralytics HUB?
+[Ultralytics HUB](https://ultralytics.com/hub) offers a variety easy of signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
 
-Ultralytics HUB is your one-stop solution for training and deploying YOLOv5 and YOLOv8 models. It's designed with user experience in mind, featuring a drag-and-drop interface to make uploading data and training new models a breeze. Whether you're a beginner or an experienced machine learning practitioner, HUB has a range of pre-trained models and templates to accelerate your projects.
+![Ultralytics HUB screenshot of the Signup page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_1.jpg)
 
-## Key Features
+During the signup, you will be asked to complete your profile.
 
-- **User-Friendly Interface**: Simply drag and drop your data to start training.
-- **Pre-Trained Models**: Choose from a selection of pre-trained models to kick-start your projects.
-- **Real-Time Object Detection**: Deploy trained models easily for real-time object detection, instance segmentation, and classification tasks.
+![Ultralytics HUB screenshot of the Signup page profile form](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_2.jpg)
 
-## Coming Soon
+??? tip "Tip"
 
-- Detailed Steps to Start Your First Project
-- Guide on Preparing and Uploading Datasets
-- Tutorial on Model Training and Exporting
-- Integration Options and How-To's
-- And much more!
+    You can update your profile from the [Account](https://hub.ultralytics.com/settings?tab=account) tab on the [Settings](https://hub.ultralytics.com/settings) page.
 
-## Need Help Now?
+    ![Ultralytics HUB screenshot of the Settings page Account tab with an arrow pointing to the Profile card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_3.jpg)
 
-While we're polishing this page, feel free to:
+## Home
 
-- Browse through other [HUB Docs](https://docs.ultralytics.com/hub/) for detailed guides and tutorials.
-- Raise an issue on our [GitHub](https://github.com/ultralytics/hub/) for technical support.
-- Join our [Discord Community](https://ultralytics.com/discord/) for live discussions and community support.
+After signing in, you will be directed to the [Home](https://hub.ultralytics.com/home) page of [Ultralytics HUB](https://ultralytics.com/hub), which provides a comprehensive overview, quick links, and updates.
 
-Stay tuned! We'll be back soon with more detailed information to help you get the most out of Ultralytics HUB. Thank you for your patience and interest!
+The sidebar conveniently offers links to important modules of the platform, such as [Datasets](https://hub.ultralytics.com/datasets), [Projects](https://hub.ultralytics.com/projects), and [Models](https://hub.ultralytics.com/models).
+
+![Ultralytics HUB screenshot of the Home page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_home.jpg)
+
+### Recent
+
+You can easily search globally or directly access your last updated [Datasets](https://hub.ultralytics.com/datasets), [Projects](https://hub.ultralytics.com/projects), or [Models](https://hub.ultralytics.com/models) using the Recent card on the [Home](https://hub.ultralytics.com/home) page.
+
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Recent card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_recent.jpg)
+
+### Upload Dataset
+
+You can upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
+
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_1.jpg)
+
+Read more about [datasets](https://docs.ultralytics.com/hub/datasets).
+
+### Create Project
+
+You can create a project directly from the [Home](https://hub.ultralytics.com/home) page.
+
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_1.jpg)
+
+Read more about [projects](https://docs.ultralytics.com/hub/projects).
+
+### Train Model
+
+You can train a model directly from the [Home](https://hub.ultralytics.com/home) page.
+
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_1.jpg)
+
+Read more about [models](https://docs.ultralytics.com/hub/models).
+
+## Feedback
+
+We value your feedback! Feel free to leave a review at any time.
+
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Feedback button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_feedback_1.jpg)
+
+![Ultralytics HUB screenshot of the Feedback dialog](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_feedback_2.jpg)
+
+??? info "Info"
+
+    Only our team will see your feedback, and we will use it to improve our platform.
+
+## Need Help?
+
+If you encounter any issues or have questions, we're here to assist you.
+
+You can report a bug, request a feature, or ask a question on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a>.
+
+!!! note "Note"
+
+    When reporting a bug, please include your Environment Details from the [Support](https://hub.ultralytics.com/support) page.
+
+    ![Ultralytics HUB screenshot of the Support page with an arrow pointing to Support button in the sidebar and one to the Copy Environment Details button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_support.jpg)
+
+??? tip "Tip"
+
+    You can join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!

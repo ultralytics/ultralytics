@@ -130,8 +130,9 @@ class OBBValidator(DetectionValidator):
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
-        from ultralytics.engine.results import Results
         import numpy as np
+
+        from ultralytics.engine.results import Results
 
         rboxes = torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)
         # xywh, r, conf, cls

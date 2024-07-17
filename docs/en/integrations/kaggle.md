@@ -28,7 +28,7 @@ Once you sign in to your Kaggle account, you can click on the option to copy and
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/user-attachments/assets/264f01b9-207b-4a8d-be5d-7b51739e9726)
 
-On the [official YOLOv8 Kaggle notebook page](https://www.kaggle.com/code/ultralytics/yolov8), if you click on the three dots in the upper right-hand corner, you’ll notice more options will pop up.
+On the [official YOLOv8 Kaggle notebook page](https://www.kaggle.com/code/ultralytics/yolov8), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
 
 ![Overview of Options From the Official YOLOv8 Kaggle Notebook Page](https://github.com/user-attachments/assets/bca100a6-fae8-433d-8dfd-1ecf4cc4f691)
 
@@ -49,7 +49,7 @@ These options include:
 When working with Kaggle, you might come across some common issues. Here are some points to help you navigate the platform smoothly:
 
 - **Access to GPUs**: In your Kaggle notebooks, you can activate a GPU at any time, with usage allowed for up to 30 hours per week. Kaggle provides the Nvidia Tesla P100 GPU with 16GB of memory and also offers the option of using a Nvidia GPU T4 x2. Powerful hardware accelerates your machine-learning tasks, making model training and inference much faster.
-- **Kaggle Kernels**: Kaggle Kernels are free Jupyter notebook servers that can integrate GPUs, allowing you to perform machine learning operations on cloud computers. You don’t have to rely on your own computer's CPU, avoiding overload and freeing up your local resources.
+- **Kaggle Kernels**: Kaggle Kernels are free Jupyter notebook servers that can integrate GPUs, allowing you to perform machine learning operations on cloud computers. You don't have to rely on your own computer's CPU, avoiding overload and freeing up your local resources.
 - **Kaggle Datasets**: Kaggle datasets are free to download. However, it's important to check the license for each dataset to understand any usage restrictions. Some datasets may have limitations on academic publications or commercial use. You can download datasets directly to your Kaggle notebook or anywhere else via the Kaggle API.
 - **Saving and Committing Notebooks**: To save and commit a notebook on Kaggle, click "Save Version." This saves the current state of your notebook. Once the background kernel finishes generating the output files, you can access them from the Output tab on the main notebook page.
 - **Collaboration**: Kaggle supports collaboration, but multiple users cannot edit a notebook simultaneously. Collaboration on Kaggle is asynchronous, meaning users can share and work on the same notebook at different times.
@@ -57,7 +57,7 @@ When working with Kaggle, you might come across some common issues. Here are som
 
 ## Key Features of Kaggle
 
-Next, let’s understand the features Kaggle offers that make it an excellent platform for data science and machine learning enthusiasts. Here are some of the key highlights:
+Next, let's understand the features Kaggle offers that make it an excellent platform for data science and machine learning enthusiasts. Here are some of the key highlights:
 
 - **Datasets**: Kaggle hosts a massive collection of datasets on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLOv8 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
@@ -81,7 +81,7 @@ If you want to learn more about Kaggle, here are some helpful resources to guide
 
 - [**Kaggle Learn**](https://www.kaggle.com/learn): Discover a variety of free, interactive tutorials on Kaggle Learn. These courses cover essential data science topics and provide hands-on experience to help you master new skills.
 - [**Getting Started with Kaggle**](https://www.kaggle.com/code/alexisbcook/getting-started-with-kaggle): This comprehensive guide walks you through the basics of using Kaggle, from joining competitions to creating your first notebook. It's a great starting point for newcomers.
-- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions on Kaggle’s Medium page. It’s an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
+- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions on Kaggle's Medium page. It's an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
 
 ## Summary
 

@@ -147,8 +147,14 @@ class PoseValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
-            # if self.args.save_txt:
-            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+            if self.args.save_txt:
+                self.save_one_txt(
+                    predn,
+                    pred_kpts,
+                    self.args.save_conf,
+                    pbatch["ori_shape"],
+                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
         """
@@ -216,6 +222,18 @@ class PoseValidator(DetectionValidator):
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
+
+    def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
+            keypoints=pred_kpts,
+        ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):
         """Converts YOLO predictions to COCO JSON format."""

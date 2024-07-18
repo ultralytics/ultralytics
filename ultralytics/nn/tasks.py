@@ -211,7 +211,7 @@ class BaseModel(nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-            self.info(verbose=verbose)
+            self.info(verbose=verbose, imgsz=getattr(self, "args", {}).get("imgsz", None) or imgsz)
 
         return self
 

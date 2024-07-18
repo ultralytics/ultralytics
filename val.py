@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser.add_argument("--no_en2end", action="store_false", dest="end2end", default=False)
     parser.add_argument("--project", type=str, default="ultralytics-runs")
     parser.add_argument("--name", type=str, default="val")
+    parser.add_argument("--imgsz", type=int, default=640)
     args = parser.parse_args()
 
     print("ARGS:", args)
@@ -29,5 +30,6 @@ if __name__ == '__main__':
         device=args.device,
         end2end=args.end2end,
         project=args.project,
-        name=args.name
+        name=args.name,
+        imgsz=args.imgsz,
     )

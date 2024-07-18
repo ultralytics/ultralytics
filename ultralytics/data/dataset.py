@@ -15,6 +15,7 @@ from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
+from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
@@ -263,7 +264,7 @@ class YOLOMultiModalDataset(YOLODataset):
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
-        """Add texts information for multi modal model training."""
+        """Add texts information for multi-modal model training."""
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
         labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
@@ -296,10 +297,10 @@ class GroundingDataset(YOLODataset):
         with open(self.json_file, "r") as f:
             annotations = json.load(f)
         images = {f'{x["id"]:d}': x for x in annotations["images"]}
-        imgToAnns = defaultdict(list)
+        img_to_anns = defaultdict(list)
         for ann in annotations["annotations"]:
-            imgToAnns[ann["image_id"]].append(ann)
-        for img_id, anns in TQDM(imgToAnns.items(), desc=f"Reading annotations {self.json_file}"):
+            img_to_anns[ann["image_id"]].append(ann)
+        for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
             img = images[f"{img_id:d}"]
             h, w, f = img["height"], img["width"], img["file_name"]
             im_file = Path(self.img_path) / f
@@ -416,7 +417,10 @@ class ClassificationDataset:
         import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
-        self.base = torchvision.datasets.ImageFolder(root=root)
+        if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
+            self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
+        else:
+            self.base = torchvision.datasets.ImageFolder(root=root)
         self.samples = self.base.samples
         self.root = self.base.root
 

@@ -51,6 +51,10 @@ keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_d
 
 <br><br>
 
+## ::: ultralytics.cfg.handle_streamlit_inference
+
+<br><br>
+
 ## ::: ultralytics.cfg.parse_key_value_pair
 
 <br><br>

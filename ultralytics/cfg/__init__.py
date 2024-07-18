@@ -78,10 +78,13 @@ CLI_HELP_MSG = f"""
     4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
-    6. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
+    5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
         yolo explorer
-
-    5. Run special commands:
+    
+    6. Streamlit real-time object detection on your webcam with Ultralytics YOLOv8
+        yolo streamlit-predict
+        
+    7. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -509,9 +512,16 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer():
     """Open the Ultralytics Explorer GUI for dataset exploration and analysis."""
-    checks.check_requirements("streamlit")
+    checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
     subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
+
+
+def handle_streamlit_inference():
+    """Open the Ultralytics Live Inference streamlit app for real time object detection."""
+    checks.check_requirements("streamlit>=1.29.0")
+    LOGGER.info("💡 Loading Ultralytics Live Inference app...")
+    subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 
 
 def parse_key_value_pair(pair):
@@ -582,6 +592,7 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(),
+        "streamlit-predict": lambda: handle_streamlit_inference(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

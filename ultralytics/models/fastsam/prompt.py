@@ -335,7 +335,7 @@ class FastSAMPrompt:
             self.results[0].masks.data = torch.tensor(np.array([onemask]))
         return self.results
 
-    def text_prompt(self, text,clip_model_path=None):
+    def text_prompt(self, text, clip_model_path=None):
         """Processes a text prompt, applies it to existing results and returns the updated results."""
         if self.results[0].masks is not None:
             format_results = self._format_results(self.results[0], 0)

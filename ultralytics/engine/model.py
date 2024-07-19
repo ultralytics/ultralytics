@@ -588,7 +588,7 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         from .exporter import Exporter
 
-        custom = {"imgsz": self.model.args["imgsz"], "batch": 1, "data": None, "verbose": False}  # method defaults
+        custom = {"imgsz": self.model.args["imgsz"], "batch": 1, "data": None, "device": None, "verbose": False}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 

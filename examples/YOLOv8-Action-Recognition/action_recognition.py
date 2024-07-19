@@ -135,11 +135,7 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
-    """
-    Zero-shot video classifier using Hugging Face models for various devices.
-
-    See https://huggingface.co/models
-    """
+    """Zero-shot video classifier using Hugging Face models for various devices."""
 
     def __init__(
         self,

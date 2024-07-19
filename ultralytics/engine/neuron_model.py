@@ -1,10 +1,17 @@
 from pathlib import Path
 from ultralytics.engine.model import Model
+from typing import Union
+
 
 class NeuronModel(Model):
-    def __init__(self, model: str | Path = "yolov8n.pt", task: str = None, verbose: bool = False) -> None:
+    def __init__(
+        self,
+        model: Union[str, Path] = "yolov8n.pt",
+        task: str = None,
+        verbose: bool = False,
+    ) -> None:
         super().__init__(model, task, verbose)
-    
+
     def export(
         self,
         **kwargs,
@@ -32,6 +39,18 @@ class NeuronModel(Model):
         self._check_is_pytorch_model()
         from .neuron_exporter import NeuronExporter
 
-        custom = {"imgsz": self.model.args["imgsz"], "batch": 1, "data": None, "verbose": False}  # method defaults
-        args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return NeuronExporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        custom = {
+            "imgsz": self.model.args["imgsz"],
+            "batch": 1,
+            "data": None,
+            "verbose": False,
+        }  # method defaults
+        args = {
+            **self.overrides,
+            **custom,
+            **kwargs,
+            "mode": "export",
+        }  # highest priority args on the right
+        return NeuronExporter(overrides=args, _callbacks=self.callbacks)(
+            model=self.model
+        )

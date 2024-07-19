@@ -8,6 +8,17 @@ keywords: Caltech-256 dataset, object classification, image dataset, machine lea
 
 The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is an extensive collection of images used for object classification tasks. It contains around 30,000 images divided into 257 categories (256 object categories and 1 background category). The images are carefully curated and annotated to provide a challenging and diverse benchmark for object recognition algorithms.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/isc06_9qnM0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Image Classification Model using Caltech-256 Dataset with Ultralytics HUB
+</p>
+
 ## Key Features
 
 - The Caltech-256 dataset comprises around 30,000 color images divided into 257 categories.

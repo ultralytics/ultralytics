@@ -21,9 +21,9 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
     LOGGER,
+    NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
-    NUM_THREADS,
     __version__,
     colorstr,
 )
@@ -123,7 +123,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
-        torch.set_num_threads(NUM_THREADS)   # reset OMP_NUM_THREADS
+        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"

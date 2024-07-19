@@ -592,7 +592,7 @@ class Model(nn.Module):
             "imgsz": self.model.args["imgsz"],
             "batch": 1,
             "data": None,
-            "device": None,
+            "device": None,  # reset to avoid multi-GPU errors
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right

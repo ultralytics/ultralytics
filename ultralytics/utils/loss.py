@@ -607,7 +607,12 @@ class v8ClassificationLoss:
 
 
 class v8OBBLoss(v8DetectionLoss):
-    """Computes bounding box regression loss with OBB. (https://docs.ultralytics.com/datasets/obb/)"""
+    """
+    Computes bounding box regression loss with OBB.
+
+    (https://docs.ultralytics.com/datasets/obb/)
+    """
+
     def __init__(self, model):
         """
         Initializes v8OBBLoss with model, assigner, and rotated bbox loss.

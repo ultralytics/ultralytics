@@ -11,6 +11,7 @@ from ultralytics.utils.plotting import Annotator
 
 class ParkingPtsSelection:
     """Class for selecting and managing parking zone points on images using a Tkinter-based UI."""
+
     def __init__(self):
         """Initializes the UI for selecting parking zone points in a tkinter window."""
         check_requirements("tkinter")
@@ -156,6 +157,7 @@ class ParkingPtsSelection:
 
 class ParkingManagement:
     """Manages parking occupancy and availability using YOLOv8 for real-time monitoring and visualization."""
+
     def __init__(
         self,
         model_path,

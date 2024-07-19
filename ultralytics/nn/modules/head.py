@@ -281,7 +281,12 @@ class Classify(nn.Module):
 
 
 class WorldDetect(Detect):
-    """Text-conditioned object detection using contrastive learning. [Ref](https://arxiv.org/abs/2109.10355)"""
+    """
+    Text-conditioned object detection using contrastive learning.
+
+    [Ref](https://arxiv.org/abs/2109.10355)
+    """
+
     def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
         """Initialize YOLOv8 detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)

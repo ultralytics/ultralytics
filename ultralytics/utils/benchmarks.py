@@ -165,6 +165,7 @@ def benchmark(
 
 class RF100Benchmark:
     """Benchmark YOLO model performance across formats for speed and accuracy."""
+
     def __init__(self):
         """Function for initialization of RF100Benchmark."""
         self.ds_names = []

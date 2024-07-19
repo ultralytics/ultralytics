@@ -607,7 +607,6 @@ class v8ClassificationLoss:
 
 
 class v8OBBLoss(v8DetectionLoss):
-
     def __init__(self, model):
         """Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled."""
         super().__init__(model)

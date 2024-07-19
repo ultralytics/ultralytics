@@ -930,6 +930,8 @@ class PSA(nn.Module):
 
 
 class SCDown(nn.Module):
+    """Spatial Channel Downsample (SCDown) module for reducing spatial and channel dimensions."""
+
     def __init__(self, c1, c2, k, s):
         """
         Spatial Channel Downsample (SCDown) module.

@@ -56,10 +56,11 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     module_path = module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
     edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path}.py"
+    pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # properly display __init__.py filenames
     title_content = (
         f"# Reference for `{module_path}.py`\n\n"
         f"!!! Note\n\n"
-        f"    This file is available at [{url}]({url}). If you spot a problem please help fix it by [contributing]"
+        f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
         f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
     )
     md_content = ["<br><br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br>\n" for class_name in classes]

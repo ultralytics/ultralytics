@@ -607,6 +607,7 @@ class v8ClassificationLoss:
 
 
 class v8OBBLoss(v8DetectionLoss):
+    """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
     def __init__(self, model):
         """Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled."""
         super().__init__(model)

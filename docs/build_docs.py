@@ -30,6 +30,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
@@ -96,8 +97,6 @@ def update_html_head(script=""):
 
 def update_subdir_edit_links(subdir="", docs_url=""):
     """Update the HTML head section of each file."""
-    from bs4 import BeautifulSoup
-
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
@@ -153,7 +152,7 @@ def update_markdown_files(md_filepath: Path):
 
 
 def update_docs_html():
-    """Updates titles, edit links and head sections of HTML documentation for improved accessibility and relevance."""
+    """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
@@ -162,10 +161,44 @@ def update_docs_html():
         docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
     )
 
+    # Convert plaintext links to HTML hyperlinks
+    files_modified = 0
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links"):
+        with open(html_file, "r", encoding="utf-8") as file:
+            content = file.read()
+        updated_content = convert_plaintext_links_to_html(content)
+        if updated_content != content:
+            with open(html_file, "w", encoding="utf-8") as file:
+                file.write(updated_content)
+            files_modified += 1
+    print(f"Modified plaintext links in {files_modified} files.")
+
     # Update HTML file head section
     script = ""
     if any(script):
         update_html_head(script)
+
+
+def convert_plaintext_links_to_html(content):
+    """Convert plaintext links to HTML hyperlinks in the main content area only."""
+    soup = BeautifulSoup(content, "html.parser")
+
+    # Find the main content area (adjust this selector based on your HTML structure)
+    main_content = soup.find("main") or soup.find("div", class_="md-content")
+    if not main_content:
+        return content  # Return original content if main content area not found
+
+    modified = False
+    for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
+        for text_node in paragraph.find_all(string=True, recursive=False):
+            if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
+                new_text = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', str(text_node))  # note: reject http?
+                if "<a" in new_text:
+                    new_soup = BeautifulSoup(new_text, "html.parser")
+                    text_node.replace_with(new_soup)
+                    modified = True
+
+    return str(soup) if modified else content
 
 
 def main():

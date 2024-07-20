@@ -614,6 +614,9 @@ plugins:
       handlers:
         python:
           options:
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
             docstring_style: google
             show_root_heading: true
             show_source: true

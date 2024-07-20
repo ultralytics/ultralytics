@@ -10,7 +10,7 @@ from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
-def inference():
+def inference(custom_models=None):
     """Runs real-time object detection on video input using Ultralytics YOLOv8 in a Streamlit application."""
     check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
     import streamlit as st
@@ -67,7 +67,12 @@ def inference():
         vid_file_name = 0
 
     # Add dropdown menu for model selection
-    available_models = (x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolov8"))
+    available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolov8")]
+
+    # Add custom models if provided
+    if custom_models:
+        available_models.extend(custom_models)    
+     
     selected_model = st.sidebar.selectbox("Model", available_models)
     with st.spinner("Model is downloading..."):
         model = YOLO(f"{selected_model.lower()}.pt")  # Load the YOLO model

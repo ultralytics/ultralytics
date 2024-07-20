@@ -47,6 +47,30 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLOv8 model, set the confidence and NMS thresholds, and click the "Start" button to begin the real-time object detection.
 
+You can optionally add your custom models to the list of available models:
+
+!!! Example "Streamlit Application with custom models"
+
+    === "Python"
+
+        ```Python
+        from ultralytics import solutions
+
+        # Files 'custommodel1.pt' and 'custom_model_2.pt' must be in the same folder
+        custom_models = ['CustomModel1', 'Custom_Model_2']
+
+        solutions.inference(custom_models)
+
+        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo streamlit-predict
+        ```
+
+
 ## Conclusion
 
 By following this guide, you have successfully created a real-time object detection application using Streamlit and Ultralytics YOLOv8. This application allows you to experience the power of YOLOv8 in detecting objects through your webcam, with a user-friendly interface and the ability to stop the video stream at any time.

@@ -181,7 +181,7 @@ def convert_plaintext_links_to_html(content):
     for text_node in soup.find_all(string=True):
         if text_node.parent.name not in {"a", "script", "style"}:
             new_text = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', str(text_node))
-            if '<a' in new_text:
+            if "<a" in new_text:
                 text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
     return str(soup)
 

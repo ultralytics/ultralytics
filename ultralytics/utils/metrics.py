@@ -1221,6 +1221,8 @@ class ClassifyMetrics(SimpleClass):
 
 
 class OBBMetrics(SimpleClass):
+    """Metrics for evaluating oriented bounding box (OBB) detection, see https://arxiv.org/pdf/2106.06072.pdf."""
+
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
         """Initialize an OBBMetrics instance with directory, plotting, callback, and class names."""
         self.save_dir = save_dir

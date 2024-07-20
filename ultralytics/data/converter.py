@@ -370,14 +370,15 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
                 └─ mask_yolo_04.txt
     """
     import os
+
     class_index = 0
     for mask_filename in os.listdir(masks_dir):
-        if mask_filename.endswith('.png') or mask_filename.endswith('.jpg'):
+        if mask_filename.endswith(".png") or mask_filename.endswith(".jpg"):
             mask_path = os.path.join(masks_dir, mask_filename)
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the binary mask image
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)    # Find contours
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # Find contours
             yolo_format_data = []
             for contour in contours:
                 if len(contour) >= 3:  # YOLO requires at least 3 points for a valid segmentation
@@ -392,12 +393,12 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
                         yolo_format.append(round(y_normalized, 6))
                     yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_filename = os.path.splitext(mask_filename)[0] + '.txt'
+            output_filename = os.path.splitext(mask_filename)[0] + ".txt"
             output_path = os.path.join(output_dir, output_filename)
-            with open(output_path, 'w') as file:
+            with open(output_path, "w") as file:
                 for item in yolo_format_data:
-                    line = ' '.join(map(str, item))
-                    file.write(line + '\n')
+                    line = " ".join(map(str, item))
+                    file.write(line + "\n")
             LOGGER.info(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
 
 

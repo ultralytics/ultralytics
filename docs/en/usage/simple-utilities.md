@@ -62,8 +62,8 @@ The converted masks will be saved in the specified output directory.
 
 ```{ .py .annotate }
 from ultralytics.data.converter import segmentation_masks_to_yolo
-segmentation_masks_to_yolo(masks_dir="path/to/masks_dir",
-                           output_dir="path/to/output_dir")
+
+segmentation_masks_to_yolo(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir")
 ```
 
 ### Convert COCO into YOLO Format

@@ -70,7 +70,6 @@ You can optionally add your custom models to the list of available models:
         yolo streamlit-predict
         ```
 
-
 ## Conclusion
 
 By following this guide, you have successfully created a real-time object detection application using Streamlit and Ultralytics YOLOv8. This application allows you to experience the power of YOLOv8 in detecting objects through your webcam, with a user-friendly interface and the ability to stop the video stream at any time.

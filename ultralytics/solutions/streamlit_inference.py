@@ -71,8 +71,8 @@ def inference(custom_models=None):
 
     # Add custom models if provided
     if custom_models:
-        available_models.extend(custom_models)    
-     
+        available_models.extend(custom_models)
+
     selected_model = st.sidebar.selectbox("Model", available_models)
     with st.spinner("Model is downloading..."):
         model = YOLO(f"{selected_model.lower()}.pt")  # Load the YOLO model

@@ -334,6 +334,73 @@ def convert_coco(
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
+def segmentation_masks_to_yolo(masks_dir, output_dir):
+    """
+    Converts a dataset of segmentation mask images to the YOLO segmentation format.
+
+    This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+    The converted masks are saved in the specified output directory.
+
+    Args:
+        masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
+        output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
+
+    Example:
+        ```python
+        from ultralytics.data.converter import segmentation_masks_to_yolo
+
+        segmentation_masks_to_yolo('path/to/masks_directory', 'path/to/output/directory')
+        ```
+
+    Notes:
+        The expected directory structure for the masks is:
+
+            - masks
+                ├─ mask_image_01.png or mask_image_01.jpg
+                ├─ mask_image_02.png or mask_image_02.jpg
+                ├─ mask_image_03.png or mask_image_03.jpg
+                └─ mask_image_04.png or mask_image_04.jpg
+
+        After execution, the labels will be organized in the following structure:
+
+            - output_dir
+                ├─ mask_yolo_01.txt
+                ├─ mask_yolo_02.txt
+                ├─ mask_yolo_03.txt
+                └─ mask_yolo_04.txt
+    """
+    import os
+    class_index = 0
+    for mask_filename in os.listdir(masks_dir):
+        if mask_filename.endswith('.png') or mask_filename.endswith('.jpg'):
+            mask_path = os.path.join(masks_dir, mask_filename)
+            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the binary mask image
+            img_height, img_width = mask.shape  # Get image dimensions
+            print(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)    # Find contours
+            yolo_format_data = []
+            for contour in contours:
+                if len(contour) >= 3:  # YOLO requires at least 3 points for a valid segmentation
+                    contour = contour.squeeze()  # Remove single-dimensional entries
+                    yolo_format = [class_index]
+                    for point in contour:
+                        x, y = point
+                        # Normalize the coordinates
+                        x_normalized = x / img_width
+                        y_normalized = y / img_height
+                        yolo_format.append(round(x_normalized, 6))  # Rounding to 6 decimal places
+                        yolo_format.append(round(y_normalized, 6))
+                    yolo_format_data.append(yolo_format)
+            # Save Ultralytics YOLO format data to file
+            output_filename = os.path.splitext(mask_filename)[0] + '.txt'
+            output_path = os.path.join(output_dir, output_filename)
+            with open(output_path, 'w') as file:
+                for item in yolo_format_data:
+                    line = ' '.join(map(str, item))
+                    file.write(line + '\n')
+            print(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
+
+
 def convert_dota_to_yolo_obb(dota_root_path: str):
     """
     Converts DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.

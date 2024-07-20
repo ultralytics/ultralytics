@@ -376,7 +376,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
             mask_path = os.path.join(masks_dir, mask_filename)
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the binary mask image
             img_height, img_width = mask.shape  # Get image dimensions
-            print(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
+            LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)    # Find contours
             yolo_format_data = []
             for contour in contours:
@@ -398,7 +398,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
                 for item in yolo_format_data:
                     line = ' '.join(map(str, item))
                     file.write(line + '\n')
-            print(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
+            LOGGER.info(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):

@@ -30,6 +30,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
@@ -96,8 +97,6 @@ def update_html_head(script=""):
 
 def update_subdir_edit_links(subdir="", docs_url=""):
     """Update the HTML head section of each file."""
-    from bs4 import BeautifulSoup
-
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
@@ -153,7 +152,7 @@ def update_markdown_files(md_filepath: Path):
 
 
 def update_docs_html():
-    """Updates titles, edit links and head sections of HTML documentation for improved accessibility and relevance."""
+    """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
@@ -162,10 +161,28 @@ def update_docs_html():
         docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
     )
 
+    # Convert plaintext links to HTML hyperlinks
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links"):
+        with open(html_file, "r", encoding="utf-8") as file:
+            content = file.read()
+        updated_content = convert_plaintext_links_to_html(content)
+        with open(html_file, "w", encoding="utf-8") as file:
+            file.write(updated_content)
+
     # Update HTML file head section
     script = ""
     if any(script):
         update_html_head(script)
+
+
+def convert_plaintext_links_to_html(content):
+    """Convert plaintext links to HTML hyperlinks, ignoring existing HTML tags."""
+    soup = BeautifulSoup(content, "html.parser")
+    for text_node in soup.find_all(text=True):
+        if text_node.parent.name not in {"a", "script", "style"}:
+            new_text = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', str(text_node))
+            text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
+    return str(soup)
 
 
 def main():

@@ -171,7 +171,7 @@ def update_docs_html():
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified {files_modified} files.")
+    print(f"Modified plaintext links in {files_modified} files.")
 
     # Update HTML file head section
     script = ""

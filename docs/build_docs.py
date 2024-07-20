@@ -184,12 +184,12 @@ def convert_plaintext_links_to_html(content):
     soup = BeautifulSoup(content, "html.parser")
 
     # Find the main content area (adjust this selector based on your HTML structure)
-    main_content = soup.find('main') or soup.find('div', class_='md-content')
+    main_content = soup.find("main") or soup.find("div", class_="md-content")
     if not main_content:
         return content  # Return original content if main content area not found
 
     modified = False
-    for paragraph in main_content.find_all(['p', 'li']):  # Focus on paragraphs and list items
+    for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', str(text_node))  # note: reject http?

@@ -49,7 +49,7 @@ class SegmentationValidator(DetectionValidator):
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
         # more accurate vs faster
-        self.process = ops.process_mask_upsample if self.args.save_json or self.args.save_txt else ops.process_mask
+        self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def get_desc(self):

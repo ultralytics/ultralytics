@@ -18,6 +18,8 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class TorchVisionVideoClassifier:
+    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/."""
+
     from torchvision.models.video import (
         MViT_V1_B_Weights,
         MViT_V2_S_Weights,
@@ -133,6 +135,8 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
+    """Zero-shot video classifier using Hugging Face models for various devices."""
+
     def __init__(
         self,
         labels: List[str],

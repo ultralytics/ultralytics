@@ -97,7 +97,7 @@ Then, you can create a basic Streamlit application to run live inference:
 
     === "Python"
 
-    ```Python
+    ```python
     from ultralytics import solutions
     solutions.inference()
 

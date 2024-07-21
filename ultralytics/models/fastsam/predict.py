@@ -2,9 +2,9 @@
 from typing import List
 
 import torch
-from ultralytics.models.yolo.segment import SegmentationPredictor
 
 from ultralytics.models.fastsam.utils import bbox_iou
+from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class FastSAMPredictor(SegmentationPredictor):
@@ -12,9 +12,9 @@ class FastSAMPredictor(SegmentationPredictor):
     FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks in Ultralytics
     YOLO framework.
 
-    This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM.
-    It adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing
-    for single-class segmentation.
+    This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM. It
+    adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing for single-
+    class segmentation.
     """
 
     def _process_full_box(self, p: List[torch.Tensor], img: torch.Tensor) -> List[torch.Tensor]:

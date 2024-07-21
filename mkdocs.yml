@@ -621,8 +621,11 @@ plugins:
             show_root_heading: true
             show_source: true
             separate_signature: true
-            show_inheritance_diagram: true
             line_length: 80
+            show_signature_annotations: true
+            show_symbol_type_heading: true  # insiders
+            show_symbol_type_toc: true  # insiders
+            show_inheritance_diagram: true  # insiders
   - ultralytics:
       add_desc: False
       add_image: True

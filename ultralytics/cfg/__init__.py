@@ -401,8 +401,8 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing
-    error messages for mismatched keys.
+    Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
+    messages for mismatched keys.
 
     Args:
         base (Dict): The base configuration dictionary containing valid keys.

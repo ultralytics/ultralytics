@@ -99,6 +99,7 @@ Then, you can create a basic Streamlit application to run live inference:
 
     ```python
     from ultralytics import solutions
+
     solutions.inference()
 
     ### Make sure to run the file using command `streamlit run <file-name.py>`

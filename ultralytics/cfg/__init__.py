@@ -569,7 +569,7 @@ def handle_explorer(args: List[str]):
     LOGGER.info("💡 Loading Explorer dashboard...")
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
     new = dict(parse_key_value_pair(a) for a in args)
-    check_dict_alignment(base={k: DEFAULT_CFG_DICT[k] for k in ['model', 'data']}, custom=new)
+    check_dict_alignment(base={k: DEFAULT_CFG_DICT[k] for k in ["model", "data"]}, custom=new)
     for k, v in new.items():
         cmd += [k, v]
     subprocess.run(cmd)

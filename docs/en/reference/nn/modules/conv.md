@@ -9,59 +9,59 @@ keywords: Ultralytics, convolution modules, Conv, LightConv, GhostConv, YOLO, de
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/conv.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.nn.modules.conv.Conv
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.Conv2
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.LightConv
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.DWConv
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.DWConvTranspose2d
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.ConvTranspose
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.Focus
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.GhostConv
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.RepConv
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.ChannelAttention
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.SpatialAttention
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.CBAM
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.Concat
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.conv.autopad
 

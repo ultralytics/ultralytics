@@ -63,8 +63,9 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
         f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
         f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
     )
-    md_content = ["<br><br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br>\n" for class_name in classes]
-    md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br>\n" for func_name in functions)
+    md_content = ["<br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br><hr><br>\n" for class_name in classes]
+    md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br><hr><br>\n" for func_name in functions)
+    md_content[-1] = md_content[-1].replace("<hr><br>", "")  # remove last horizontal line
     md_content = header_content + title_content + "\n".join(md_content)
     if not md_content.endswith("\n"):
         md_content += "\n"

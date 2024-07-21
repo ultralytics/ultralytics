@@ -589,7 +589,7 @@ class AutoBackend(nn.Module):
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         if x.shape[-1] == 6:  # end-to-end model
                             x[:, :, [0, 2]] *= w
-                            x[:, :, [1, 3]] *= h   
+                            x[:, :, [1, 3]] *= h
                         else:
                             x[:, [0, 2]] *= w
                             x[:, [1, 3]] *= h
@@ -598,7 +598,7 @@ class AutoBackend(nn.Module):
             if len(y) == 2:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
-                if y[1].shape[-1] == 6: # end-to-end model
+                if y[1].shape[-1] == 6:  # end-to-end model
                     y = [y[1]]
                 else:
                     y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)

@@ -233,7 +233,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         (SimpleNamespace): Namespace containing the merged configuration arguments.
 
     Examples:
-        >>> from ultralytics import get_cfg
+        >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
         >>> config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
 
@@ -658,7 +658,7 @@ def smart_value(v):
 
     Notes:
         - The function uses a case-insensitive comparison for boolean and None values.
-        - For other types, it attempts to use Python's eval() function, which can be unsafe if used with untrusted input.
+        - For other types, it attempts to use Python's eval() function, which can be unsafe if used on untrusted input.
         - If no conversion is possible, the original string is returned.
     """
     v_lower = v.lower()

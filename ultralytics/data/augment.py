@@ -159,11 +159,11 @@ class Compose:
         tolist: Converts the list of transforms to a standard Python list.
 
     Examples:
-        >>> transforms = [RandomFlip(), RandomRotate(30), RandomCrop((224, 224))]
+        >>> transforms = [RandomFlip(), RandomPerspective(30]
         >>> compose = Compose(transforms)
         >>> transformed_data = compose(data)
-        >>> compose.append(Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
-        >>> compose.insert(0, Resize((256, 256)))
+        >>> compose.append(CenterCrop((224, 224)))
+        >>> compose.insert(0, RandomFlip())
     """
 
     def __init__(self, transforms):
@@ -174,8 +174,8 @@ class Compose:
             transforms (List[Callable]): A list of callable transform objects to be applied sequentially.
 
         Examples:
-            >>> from ultralytics.data.augment import Compose, Resize, RandomFlip
-            >>> transforms = [Resize(640), RandomFlip()]
+            >>> from ultralytics.data.augment import Compose, RandomHSV, RandomFlip
+            >>> transforms = [RandomHSV(), RandomFlip()]
             >>> compose = Compose(transforms)
         """
         self.transforms = transforms if isinstance(transforms, list) else [transforms]
@@ -209,7 +209,7 @@ class Compose:
             transform (BaseTransform): The transformation to be added to the composition.
 
         Examples:
-            >>> compose = Compose([RandomFlip(), RandomRotate()])
+            >>> compose = Compose([RandomFlip(), RandomPerspective()])
             >>> compose.append(RandomHSV())
         """
         self.transforms.append(transform)
@@ -244,10 +244,10 @@ class Compose:
             AssertionError: If the index is not of type int or list.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomRotate(10), RandomHSV(0.5, 0.5, 0.5)]
+            >>> transforms = [RandomFlip(), RandomPerspective(10), RandomHSV(0.5, 0.5, 0.5)]
             >>> compose = Compose(transforms)
-            >>> single_transform = compose[1]  # Returns a Compose object with only RandomRotate
-            >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomRotate
+            >>> single_transform = compose[1]  # Returns a Compose object with only RandomPerspective
+            >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         index = [index] if isinstance(index, int) else index
@@ -288,7 +288,7 @@ class Compose:
             (List): A list containing all the transform objects in the Compose instance.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomRotate(10), RandomCrop()]
+            >>> transforms = [RandomFlip(), RandomPerspective(10), CenterCrop()]
             >>> compose = Compose(transforms)
             >>> transform_list = compose.tolist()
             >>> print(len(transform_list))
@@ -304,7 +304,7 @@ class Compose:
             (str): A string representation of the Compose object, including the list of transforms.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomAffine(degrees=10, translate=0.1, scale=0.1)]
+            >>> transforms = [RandomFlip(), RandomPerspective(degrees=10, translate=0.1, scale=0.1)]
             >>> compose = Compose(transforms)
             >>> print(compose)
             Compose([
@@ -353,12 +353,12 @@ class BaseMixTransform:
 
         Args:
             dataset (Any): The dataset object containing images and labels for mixing.
-            pre_transform (Callable | None): Optional transform to apply before mixing. If None, no pre-transform is applied.
+            pre_transform (Callable | None): Optional transform to apply before mixing.
             p (float): Probability of applying the mix transformation. Should be in the range [0.0, 1.0].
 
         Examples:
             >>> dataset = YOLODataset("path/to/data")
-            >>> pre_transform = Compose([RandomFlip(), RandomRotate()])
+            >>> pre_transform = Compose([RandomFlip(), RandomPerspective()])
             >>> mix_transform = BaseMixTransform(dataset, pre_transform, p=0.5)
         """
         self.dataset = dataset
@@ -420,7 +420,7 @@ class BaseMixTransform:
             (Dict): The modified labels dictionary with augmented data after applying the mix transform.
 
         Examples:
-            >>> transform = MixUpTransform(dataset)
+            >>> transform = BaseMixTransform(dataset)
             >>> labels = {'image': img, 'bboxes': boxes, 'mix_labels': [{'image': img2, 'bboxes': boxes2}]}
             >>> augmented_labels = transform._mix_transform(labels)
         """
@@ -1271,9 +1271,9 @@ class RandomPerspective:
         been overly distorted or reduced by the augmentation process.
 
         Args:
-            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, n) where n is the
+            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, N) where n is the
                 number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, n). Format is
+            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, N). Format is
                 [x1, y1, x2, y2] in absolute coordinates.
             wh_thr (float): Width and height threshold in pixels. Boxes smaller than this in either
                 dimension are rejected.
@@ -1538,11 +1538,11 @@ class LetterBox:
         """
         Resizes and pads an image for object detection, instance segmentation, or pose estimation tasks.
 
-        This method applies letterboxing to the input image, which involves resizing the image while maintaining its aspect
-        ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
+        This method applies letterboxing to the input image, which involves resizing the image while maintaining its
+        aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
 
         Args:
-            labels (dict | None): A dictionary containing image data and associated labels. If None, an empty dict is used.
+            labels (dict | None): A dictionary containing image data and associated labels, or empty dict if None.
             image (numpy.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
@@ -1994,9 +1994,9 @@ class Format:
         """
         Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
 
-        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
-        It processes the input labels dictionary, converting annotations to the specified format and applying
-        normalization if required.
+        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
+        DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
+        applying normalization if required.
 
         Args:
             labels (Dict): A dictionary containing image and annotation data with the following keys:
@@ -2275,8 +2275,8 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         (Compose): A composition of image transformations to be applied to the dataset.
 
     Examples:
-        >>> from ultralytics.data.dataset import Dataset
-        >>> dataset = Dataset(img_path='path/to/images', imgsz=640)
+        >>> from ultralytics.data.dataset import YOLODataset
+        >>> dataset = YOLODataset(img_path='path/to/images', imgsz=640)
         >>> hyp = {'mosaic': 1.0, 'copy_paste': 0.5, 'degrees': 10.0, 'translate': 0.2, 'scale': 0.9}
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])

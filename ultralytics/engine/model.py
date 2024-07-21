@@ -1125,8 +1125,8 @@ class Model(nn.Module):
         Example:
             >>> model = Model()
             >>> task_map = model.task_map
-            >>> detect_model_class = task_map['detect']['model']
-            >>> segment_validator_class = task_map['segment']['validator']
+            >>> detect_class_map = task_map['detect']
+            >>> segment_class_map = task_map['segment']
 
         Note:
             The actual implementation of this method may vary depending on the specific tasks and

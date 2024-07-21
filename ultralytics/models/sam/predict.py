@@ -372,8 +372,7 @@ class Predictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, masks in enumerate([pred_masks]):
-            orig_img = orig_imgs[i]
+        for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
             if pred_bboxes is not None:
                 pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
@@ -381,7 +380,6 @@ class Predictor(BasePredictor):
 
             masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
-            img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False

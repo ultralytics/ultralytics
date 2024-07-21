@@ -182,7 +182,8 @@ class Compose:
 
     def __call__(self, data):
         """
-        Applies a series of transformations to input data. This method sequentially applies each transformation in the Compose object's list of transforms to the input data.
+        Applies a series of transformations to input data. This method sequentially applies each transformation in the
+        Compose object's list of transforms to the input data.
 
         Args:
             data (Any): The input data to be transformed. This can be of any type, depending on the

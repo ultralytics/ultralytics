@@ -9,7 +9,7 @@ keywords: Ultralytics, Object Counter, Real-time Tracking, Video Stream, Python,
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_counter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_counter.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/object_counter.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.solutions.object_counter.ObjectCounter
 

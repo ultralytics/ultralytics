@@ -187,11 +187,11 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
 
 def cfg2dict(cfg):
     """
-    Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+    Converts a configuration object to a dictionary.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted to a dictionary. This may be a
-            path to a configuration file, a dictionary, or a SimpleNamespace object.
+        cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
+            a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
         (Dict): Configuration object in dictionary format.
@@ -209,8 +209,9 @@ def cfg2dict(cfg):
         >>> config_dict = cfg2dict({'param1': 'value1', 'param2': 'value2'})
 
     Notes:
-        - If `cfg` is a path or a string, it will be loaded as YAML and converted to a dictionary.
-        - If `cfg` is a SimpleNamespace object, it will be converted to a dictionary using `vars()`.
+        - If cfg is a path or string, it's loaded as YAML and converted to a dictionary.
+        - If cfg is a SimpleNamespace object, it's converted to a dictionary using vars().
+        - If cfg is already a dictionary, it's returned unchanged.
     """
     if isinstance(cfg, (str, Path)):
         cfg = yaml_load(cfg)  # load dict
@@ -224,24 +225,23 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration data source.
+        cfg (str | Path | Dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
+            SimpleNamespace object.
         overrides (Dict | None): Dictionary containing key-value pairs to override the base configuration.
 
     Returns:
-        (SimpleNamespace): Namespace containing the merged training arguments.
+        (SimpleNamespace): Namespace containing the merged configuration arguments.
+
+    Examples:
+        >>> from ultralytics import get_cfg
+        >>> config = get_cfg()  # Load default configuration
+        >>> config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
-        - Special handling ensures alignment and correctness of the configuration, such as converting numeric `project`
-          and `name` to strings and validating configuration keys and values.
-
-    Examples:
-        Load default configuration:
-        >>> from ultralytics import get_cfg
-        >>> config = get_cfg()
-
-        Load from a custom file with overrides:
-        >>> config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
+        - Special handling ensures alignment and correctness of the configuration, such as converting numeric
+          `project` and `name` to strings and validating configuration keys and values.
+        - The function performs type and value checks on the configuration data.
     """
     cfg = cfg2dict(cfg)
 
@@ -270,24 +270,31 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
 def check_cfg(cfg, hard=True):
     """
-    Checks configuration argument types and values for the Ultralytics library, ensuring correctness and converting them
-    if necessary.
+    Checks configuration argument types and values for the Ultralytics library.
+
+    This function validates the types and values of configuration arguments, ensuring correctness and converting
+    them if necessary. It checks for specific key types defined in global variables such as CFG_FLOAT_KEYS,
+    CFG_FRACTION_KEYS, CFG_INT_KEYS, and CFG_BOOL_KEYS.
 
     Args:
         cfg (Dict): Configuration dictionary to validate.
         hard (bool): If True, raises exceptions for invalid types and values; if False, attempts to convert them.
 
     Examples:
-        Validate a configuration with a mix of valid and invalid values:
         >>> config = {
-        ...     'epochs': 50,         # valid integer
-        ...     'lr0': 0.01,         # valid float
-        ...     'momentum': 1.2,     # invalid float (out of 0.0-1.0 range)
-        ...     'save': 'true',      # invalid bool
+        ...     'epochs': 50,     # valid integer
+        ...     'lr0': 0.01,      # valid float
+        ...     'momentum': 1.2,  # invalid float (out of 0.0-1.0 range)
+        ...     'save': 'true',   # invalid bool
         ... }
         >>> check_cfg(config, hard=False)
         >>> print(config)
-        {'epochs': 50, 'lr0': 0.01, 'momentum': 1.2, 'save': False}  # corrected 'save' key and retained other values
+        {'epochs': 50, 'lr0': 0.01, 'momentum': 1.2, 'save': False}  # corrected 'save' key
+
+    Notes:
+        - The function modifies the input dictionary in-place.
+        - None values are ignored as they may be from optional arguments.
+        - Fraction keys are checked to be within the range [0.0, 1.0].
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
@@ -328,16 +335,15 @@ def get_save_dir(args, name=None):
     Returns the directory path for saving outputs, derived from arguments or default settings.
 
     Args:
-        args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task', 'mode', and
-            'save_dir'.
-        name (str | None): Optional name for the output directory. If not provided, it defaults to 'args.name' or the
-            'args.mode'.
+        args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task',
+            'mode', and 'save_dir'.
+        name (str | None): Optional name for the output directory. If not provided, it defaults to 'args.name'
+            or the 'args.mode'.
 
     Returns:
         (Path): Directory path where outputs should be saved.
 
     Examples:
-        Generate a save directory using provided arguments
         >>> from types import SimpleNamespace
         >>> args = SimpleNamespace(project='my_project', task='detect', mode='train', exist_ok=True)
         >>> save_dir = get_save_dir(args)
@@ -369,6 +375,11 @@ def _handle_deprecation(custom):
         >>> _handle_deprecation(custom_config)
         >>> print(custom_config)
         {'show_boxes': True, 'show_labels': True, 'line_width': 2}
+
+    Notes:
+        This function modifies the input dictionary in-place, replacing deprecated keys with their current
+        equivalents. It also handles value conversions where necessary, such as inverting boolean values for
+        'hide_labels' and 'hide_conf'.
     """
 
     for key in custom.copy().keys():
@@ -390,32 +401,29 @@ def _handle_deprecation(custom):
 
 def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
-    Check for key alignment between custom and base configuration dictionaries, handling deprecated keys and providing
-    informative error messages for mismatched keys.
+    Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
+    messages for mismatched keys.
 
     Args:
         base (Dict): The base configuration dictionary containing valid keys.
         custom (Dict): The custom configuration dictionary to be checked for alignment.
-        e (Exception | None): Optional error instance passed by the calling function. Default is None.
+        e (Exception | None): Optional error instance passed by the calling function.
 
     Raises:
-        SystemExit: Terminates the program execution if mismatched keys are found.
-
-    Notes:
-        - The function suggests corrections for mismatched keys based on similarity to valid keys.
-        - Deprecated keys in the custom configuration are automatically replaced with their updated equivalents.
-        - Detailed error messages are printed for each mismatched key to help users identify and correct their custom
-          configurations.
+        SystemExit: If mismatched keys are found between the custom and base dictionaries.
 
     Examples:
         >>> base_cfg = {'epochs': 50, 'lr0': 0.01, 'batch_size': 16}
         >>> custom_cfg = {'epoch': 100, 'lr': 0.02, 'batch_size': 32}
-
         >>> try:
         ...     check_dict_alignment(base_cfg, custom_cfg)
         ... except SystemExit:
-        ...     # Handle the error or correct the configuration
-        ...     pass
+        ...     print("Mismatched keys found")
+
+    Notes:
+        - Suggests corrections for mismatched keys based on similarity to valid keys.
+        - Automatically replaces deprecated keys in the custom configuration with updated equivalents.
+        - Prints detailed error messages for each mismatched key to help users correct their configurations.
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
@@ -434,7 +442,10 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings.
+    Merges arguments around isolated '=' in a list of strings, handling three cases:
+    1. ['arg', '=', 'val'] becomes ['arg=val'],
+    2. ['arg=', 'val'] becomes ['arg=val'],
+    3. ['arg', '=val'] becomes ['arg=val'].
 
     Args:
         args (List[str]): A list of strings where each element represents an argument.
@@ -443,20 +454,9 @@ def merge_equals_args(args: List[str]) -> List[str]:
         (List[str]): A list of strings where the arguments around isolated '=' are merged.
 
     Examples:
-        Merge arguments where equals sign is separated:
-        >>> args = ["arg1", "=", "value"]
+        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
         >>> merge_equals_args(args)
-        ["arg1=value"]
-
-        Merge arguments where equals sign is at the end of the first argument:
-        >>> args = ["arg1=", "value"]
-        >>> merge_equals_args(args)
-        ["arg1=value"]
-
-        Merge arguments where equals sign is at the beginning of the second argument:
-        >>> args = ["arg1", "=value"]
-        >>> merge_equals_args(args)
-        ["arg1=value"]
+        ['arg1=value', 'arg2=value2', 'arg3=value3']
     """
     new_args = []
     for i, arg in enumerate(args):
@@ -475,18 +475,24 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
 def handle_yolo_hub(args: List[str]) -> None:
     """
-    Handle Ultralytics HUB command-line interface (CLI) commands.
+    Handles Ultralytics HUB command-line interface (CLI) commands for authentication.
 
     This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
     script with arguments related to HUB authentication.
 
     Args:
-        args (List[str]): A list of command line arguments.
+        args (List[str]): A list of command line arguments. The first argument should be either 'login'
+            or 'logout'. For 'login', an optional second argument can be the API key.
 
     Examples:
         ```bash
         yolo hub login YOUR_API_KEY
         ```
+
+    Notes:
+        - The function imports the 'hub' module from ultralytics to perform login and logout operations.
+        - For the 'login' command, if no API key is provided, an empty string is passed to the login function.
+        - The 'logout' command does not require any additional arguments.
     """
     from ultralytics import hub
 
@@ -501,21 +507,26 @@ def handle_yolo_hub(args: List[str]) -> None:
 
 def handle_yolo_settings(args: List[str]) -> None:
     """
-    Handle YOLO settings command-line interface (CLI) commands.
+    Handles YOLO settings command-line interface (CLI) commands.
 
-    This function processes YOLO settings CLI commands such as reset. It should be called when executing a script with
-    arguments related to YOLO settings management.
+    This function processes YOLO settings CLI commands such as reset and updating individual settings. It should be
+    called when executing a script with arguments related to YOLO settings management.
 
     Args:
         args (List[str]): A list of command line arguments for YOLO settings management.
 
     Examples:
-        Reset YOLO settings:
-        >>> yolo settings reset
+        >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
+        >>> handle_yolo_settings(["default_cfg_path=yolov8n.yaml"])  # Update a specific setting
 
     Notes:
-        For more information on handling YOLO settings, visit:
-        https://docs.ultralytics.com/quickstart/#ultralytics-settings
+        - If no arguments are provided, the function will display the current settings.
+        - The 'reset' command will delete the existing settings file and create new default settings.
+        - Other arguments are treated as key-value pairs to update specific settings.
+        - The function will check for alignment between the provided settings and the existing ones.
+        - After processing, the updated settings will be displayed.
+        - For more information on handling YOLO settings, visit:
+          https://docs.ultralytics.com/quickstart/#ultralytics-settings
     """
     url = "https://docs.ultralytics.com/quickstart/#ultralytics-settings"  # help URL
     try:
@@ -539,12 +550,17 @@ def handle_explorer():
     """
     Open the Ultralytics Explorer GUI for dataset exploration and analysis.
 
-    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
-    using the Ultralytics Explorer API.
+    This function launches a graphical user interface that provides tools for interacting with and analyzing
+    datasets using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs
+    the user that the Explorer dashboard is loading.
 
     Examples:
-        Start the Ultralytics Explorer:
         >>> handle_explorer()
+
+    Notes:
+        - Requires 'streamlit' package version 1.29.0 or higher.
+        - The function does not take any arguments or return any values.
+        - It is typically called from the command line interface using the 'yolo explorer' command.
     """
     checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
@@ -553,18 +569,18 @@ def handle_explorer():
 
 def handle_streamlit_inference():
     """
-    Open the Ultralytics Live Inference streamlit app for real-time object detection.
+    Open the Ultralytics Live Inference Streamlit app for real-time object detection.
 
     This function initializes and runs a Streamlit application designed for performing live object detection using
-    Ultralytics models.
-
-    References:
-        - Streamlit documentation: https://docs.streamlit.io/
-        - Ultralytics: https://docs.ultralytics.com
+    Ultralytics models. It checks for the required Streamlit package and launches the app.
 
     Examples:
-        To run the live inference Streamlit app, execute:
         >>> handle_streamlit_inference()
+
+    Notes:
+        - Requires Streamlit version 1.29.0 or higher.
+        - The app is launched using the 'streamlit run' command.
+        - The Streamlit app file is located in the Ultralytics package directory.
     """
     checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Ultralytics Live Inference app...")
@@ -573,20 +589,32 @@ def handle_streamlit_inference():
 
 def parse_key_value_pair(pair):
     """
-    Parse a 'key=value' pair and return the key and value.
+    Parses a key-value pair string into separate key and value components.
 
     Args:
-        pair (str): The 'key=value' string to be parsed.
+        pair (str): A string containing a key-value pair in the format "key=value".
 
     Returns:
-        (tuple[str, str]): A tuple containing the key and value as separate strings.
+        (tuple): A tuple containing two elements:
+            - key (str): The parsed key.
+            - value (str): The parsed value.
+
+    Raises:
+        AssertionError: If the value is missing or empty.
 
     Examples:
         >>> key, value = parse_key_value_pair("model=yolov8n.pt")
-        >>> key
-        'model'
-        >>> value
-        'yolov8n.pt
+        >>> print(f"Key: {key}, Value: {value}")
+        Key: model, Value: yolov8n.pt
+
+        >>> key, value = parse_key_value_pair("epochs=100")
+        >>> print(f"Key: {key}, Value: {value}")
+        Key: epochs, Value: 100
+
+    Notes:
+        - The function splits the input string on the first '=' character.
+        - Leading and trailing whitespace is removed from both key and value.
+        - An assertion error is raised if the value is empty after stripping.
     """
     k, v = pair.split("=", 1)  # split on first '=' sign
     k, v = k.strip(), v.strip()  # remove spaces
@@ -596,17 +624,19 @@ def parse_key_value_pair(pair):
 
 def smart_value(v):
     """
-    Convert a string representation of a value into its appropriate Python type (int, float, bool, None, etc.).
+    Converts a string representation of a value to its appropriate Python type.
+
+    This function attempts to convert a given string into a Python object of the most appropriate type. It handles
+    conversions to None, bool, int, float, and other types that can be evaluated safely.
 
     Args:
-        v (str): String representation of the value to be converted.
+        v (str): The string representation of the value to be converted.
 
     Returns:
-        (Any): The converted value, which can be of type int, float, bool, None, or the original string if no conversion
+        (Any): The converted value. The type can be None, bool, int, float, or the original string if no conversion
             is applicable.
 
     Examples:
-        Convert a string to various types:
         >>> smart_value("42")
         42
         >>> smart_value("3.14")
@@ -617,6 +647,11 @@ def smart_value(v):
         None
         >>> smart_value("some_string")
         'some_string'
+
+    Notes:
+        - The function uses a case-insensitive comparison for boolean and None values.
+        - For other types, it attempts to use Python's eval() function, which can be unsafe if used with untrusted input.
+        - If no conversion is possible, the original string is returned.
     """
     v_lower = v.lower()
     if v_lower == "none":
@@ -639,7 +674,7 @@ def entrypoint(debug=""):
     executing the corresponding tasks such as training, validation, prediction, exporting models, and more.
 
     Args:
-        debug (str, optional): Space-separated string of command-line arguments for debugging purposes.
+        debug (str): Space-separated string of command-line arguments for debugging purposes.
 
     Examples:
         Train a detection model for 10 epochs with an initial learning_rate of 0.01:
@@ -652,9 +687,9 @@ def entrypoint(debug=""):
         >>> entrypoint("val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640")
 
     Notes:
-        - For a list of all available commands and their arguments, see the provided help messages and the Ultralytics
-          documentation at https://docs.ultralytics.com.
         - If no arguments are passed, the function will display the usage help message.
+        - For a list of all available commands and their arguments, see the provided help messages and the
+          Ultralytics documentation at https://docs.ultralytics.com.
     """
     args = (debug.split(" ") if debug else ARGV)[1:]
     if not args:  # no arguments passed
@@ -793,16 +828,24 @@ def entrypoint(debug=""):
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg():
     """
-    Copy and create a new default configuration file with '_copy' appended to its name, providing a usage example.
+    Copies the default configuration file and creates a new one with '_copy' appended to its name.
 
-    This function duplicates the existing default configuration file and appends '_copy' to its name in the current
-    working directory.
+    This function duplicates the existing default configuration file (DEFAULT_CFG_PATH) and saves it
+    with '_copy' appended to its name in the current working directory. It provides a convenient way
+    to create a custom configuration file based on the default settings.
 
     Examples:
-        Copy the default configuration file and use it in a YOLO command:
         >>> copy_default_cfg()
-        >>> # Example YOLO command with this new custom cfg:
-        >>> # yolo cfg='default_copy.yaml' imgsz=320 batch=8
+        # Output: default.yaml copied to /path/to/current/directory/default_copy.yaml
+        # Example YOLO command with this new custom cfg:
+        #   yolo cfg='/path/to/current/directory/default_copy.yaml' imgsz=320 batch=8
+
+    Notes:
+        - The new configuration file is created in the current working directory.
+        - After copying, the function prints a message with the new file's location and an example
+          YOLO command demonstrating how to use the new configuration file.
+        - This function is useful for users who want to modify the default configuration without
+          altering the original file.
     """
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")
     shutil.copy2(DEFAULT_CFG_PATH, new_file)

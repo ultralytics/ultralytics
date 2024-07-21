@@ -157,7 +157,7 @@ class Model(nn.Module):
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
-            **kwargs: Additional keyword arguments to configure the prediction process.
+            **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
@@ -482,7 +482,7 @@ class Model(nn.Module):
             source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor): The source of the image for
                 generating embeddings. Can be a file path, URL, PIL image, numpy array, etc.
             stream (bool): If True, predictions are streamed.
-            **kwargs: Additional keyword arguments for configuring the embedding process.
+            **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
         Returns:
             (List[torch.Tensor]): A list containing the image embeddings.
@@ -521,7 +521,7 @@ class Model(nn.Module):
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor | None): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor.
-            **kwargs: Additional keyword arguments for configuring the prediction process.
+            **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
@@ -580,7 +580,7 @@ class Model(nn.Module):
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream. Defaults to False.
             persist (bool): If True, persists trackers between different calls to this method. Defaults to False.
-            **kwargs: Additional keyword arguments for configuring the tracking process.
+            **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of tracking results, each encapsulated in a Results object.
@@ -622,7 +622,7 @@ class Model(nn.Module):
 
         Args:
             validator (BaseValidator | None): An instance of a custom validator class for validating the model.
-            **kwargs: Arbitrary keyword arguments for customizing the validation process.
+            **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
         Returns:
             (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
@@ -656,7 +656,7 @@ class Model(nn.Module):
         defaults, and any additional user-provided keyword arguments.
 
         Args:
-            **kwargs: Arbitrary keyword arguments to customize the benchmarking process. These are combined with
+            **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
                 default configurations, model-specific arguments, and method defaults. Common options include:
                 - data (str): Path to the dataset for benchmarking.
                 - imgsz (int | List[int]): Image size for benchmarking.
@@ -758,7 +758,7 @@ class Model(nn.Module):
 
         Args:
             trainer (BaseTrainer | None): Custom trainer instance for model training. If None, uses default.
-            **kwargs: Arbitrary keyword arguments for training configuration. Common options include:
+            **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
                 batch_size (int): Batch size for training.

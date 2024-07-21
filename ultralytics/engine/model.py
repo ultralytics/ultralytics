@@ -1122,7 +1122,7 @@ class Model(nn.Module):
             nested dictionaries. Each nested dictionary has keys 'model', 'trainer', 'validator', and
             'predictor', mapping to their respective class implementations.
 
-        Example:
+        Examples:
             >>> model = Model()
             >>> task_map = model.task_map
             >>> detect_class_map = task_map['detect']

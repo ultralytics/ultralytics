@@ -835,8 +835,6 @@ class Boxes(BaseTensor):
         data (torch.Tensor | numpy.ndarray): The raw tensor containing detection boxes and associated data.
         orig_shape (Tuple[int, int]): The original image dimensions (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
-
-    Properties:
         xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
@@ -1053,8 +1051,6 @@ class Masks(BaseTensor):
     Attributes:
         data (torch.Tensor | numpy.ndarray): The raw tensor or array containing mask data.
         orig_shape (tuple): Original image shape in (height, width) format.
-
-    Properties:
         xy (List[numpy.ndarray]): A list of segments in pixel coordinates.
         xyn (List[numpy.ndarray]): A list of normalized segments.
 
@@ -1154,8 +1150,6 @@ class Keypoints(BaseTensor):
         data (torch.Tensor): The raw tensor containing keypoint data.
         orig_shape (Tuple[int, int]): The original image dimensions (height, width).
         has_visible (bool): Indicates whether visibility information is available for keypoints.
-
-    Properties:
         xy (torch.Tensor): Keypoint coordinates in [x, y] format.
         xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
         conf (torch.Tensor): Confidence values for each keypoint, if available.
@@ -1279,8 +1273,6 @@ class Probs(BaseTensor):
     Attributes:
         data (torch.Tensor | numpy.ndarray): The raw tensor or array containing classification probabilities.
         orig_shape (tuple | None): The original image shape as (height, width). Not used in this class.
-
-    Properties:
         top1 (int): Index of the class with the highest probability.
         top5 (List[int]): Indices of the top 5 classes by probability.
         top1conf (torch.Tensor | numpy.ndarray): Confidence score of the top 1 class.
@@ -1423,8 +1415,6 @@ class OBB(BaseTensor):
         data (torch.Tensor): The raw OBB tensor containing box coordinates and associated data.
         orig_shape (tuple): Original image size as (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
-
-    Properties:
         xywhr (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height, rotation] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.

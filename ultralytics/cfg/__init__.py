@@ -567,25 +567,11 @@ def handle_explorer(args: List[str]):
     """
     checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
-
-    WARN_STR = "WARNING ⚠️ no {} passed. Default {} will be shown."
-    WARN = dict(data=WARN_STR.format("data.yaml", "datasets"), model=WARN_STR.format("model", "models"))
-
     cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
-    for a in merge_equals_args(args):
-        k, v = parse_key_value_pair(a)
-        if k in ("data", "model"):
-            cmd += [k, v]
-            del WARN[k]
-        else:
-            raise SyntaxError(
-                f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"
-                f"{colorstr('yellow', 'bold', 'Usage')}: yolo explorer data=data.yaml model=yolov8n.pt"
-            )
-            return
-    for v in WARN.values():
-        LOGGER.warning(v)
-
+    new = dict(parse_key_value_pair(a) for a in args)
+    check_dict_alignment(base={k: DEFAULT_CFG_DICT[k] for k in ['model', 'data']}, custom=new)
+    for k, v in new.items():
+        cmd += [k, v]
     subprocess.run(cmd)
 
 
@@ -609,7 +595,7 @@ def handle_streamlit_inference():
     subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 
 
-def parse_key_value_pair(pair):
+def parse_key_value_pair(pair: str = "key=value"):
     """
     Parses a key-value pair string into separate key and value components.
 

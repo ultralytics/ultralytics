@@ -562,8 +562,7 @@ def handle_explorer(args: List[str]):
         else:
             raise SyntaxError(
                 f"{colorstr('red', 'bold', k)} is not a valid explorer argument.\n"
-                f"{colorstr('yellow', 'bold', 'Usage')}: "
-                "yolo explorer data=data.yaml model=yolov8n.pt"
+                f"{colorstr('yellow', 'bold', 'Usage')}: yolo explorer data=data.yaml model=yolov8n.pt"
             )
             return
     for v in WARN.values():

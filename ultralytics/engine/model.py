@@ -234,8 +234,8 @@ class Model(nn.Module):
         """
         Initializes a new model and infers the task type from the model definitions.
 
-        This method creates a new model instance based on the provided configuration file. It loads the model 
-        configuration, infers the task type if not specified, and initializes the model using the appropriate 
+        This method creates a new model instance based on the provided configuration file. It loads the model
+        configuration, infers the task type if not specified, and initializes the model using the appropriate
         class from the task map.
 
         Args:

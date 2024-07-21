@@ -37,14 +37,14 @@ class SegmentationPredictor(DetectionPredictor):
             classes=self.args.classes,
         )
 
+        p = self._process_full_box(p=p, img=img)  # process full box (use in FastSAMPredictor)
+
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        proto = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]  # tuple if PyTorch model or array if exported
-        for i, pred in enumerate(p):
-            orig_img = orig_imgs[i]
-            img_path = self.batch[0][i]
+        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+        for i, (pred, orig_img, img_path) in enumerate(zip(p, orig_imgs, self.batch[0])):
             if not len(pred):  # save empty boxes
                 masks = None
             elif self.args.retina_masks:
@@ -55,3 +55,7 @@ class SegmentationPredictor(DetectionPredictor):
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results
+
+    def _process_full_box(self, p, img):
+        """This function use to post-process the full box in `FastSAMPredictor`."""
+        return p

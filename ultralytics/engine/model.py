@@ -241,7 +241,7 @@ class Model(nn.Module):
         Args:
             cfg (str): Path to the model configuration file in YAML format.
             task (str | None): The specific task for the model. If None, it will be inferred from the config.
-            model (BaseModel | None): A custom model instance. If provided, it will be used instead of creating
+            model (nn.Module | None): A custom model instance. If provided, it will be used instead of creating
                 a new one.
             verbose (bool): If True, displays model information during loading.
 
@@ -621,7 +621,8 @@ class Model(nn.Module):
         configurations, method-specific defaults, and user-provided arguments to configure the validation process.
 
         Args:
-            validator (BaseValidator | None): An instance of a custom validator class for validating the model.
+            validator (ultralytics.engine.validator.BaseValidator | None): An instance of a custom validator class for
+                validating the model.
             **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
         Returns:

@@ -31,7 +31,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
     === "Python"
 
-        ```Python
+        ```python
         from ultralytics import solutions
 
         solutions.inference()
@@ -53,7 +53,7 @@ You can optionally supply a specific model in Python:
 
     === "Python"
 
-        ```Python
+        ```python
         from ultralytics import solutions
 
         # Pass a model as an argument

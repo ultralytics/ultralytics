@@ -8,21 +8,21 @@ from ultralytics import SAM, YOLO
 def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="", output_dir=None):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
-    
+
     This function processes images in a specified directory, detects objects using a YOLO model, and then
     generates segmentation masks using a SAM model. The resulting annotations are saved as text files.
-    
+
     Args:
         data (str): Path to a folder containing images to be annotated.
         det_model (str): Path or name of the pre-trained YOLO detection model.
         sam_model (str): Path or name of the pre-trained SAM segmentation model.
         device (str): Device to run the models on (e.g., 'cpu', 'cuda', '0').
         output_dir (str | None): Directory to save the annotated results. If None, a default directory is created.
-    
+
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate
         >>> auto_annotate(data='ultralytics/assets', det_model='yolov8n.pt', sam_model='mobile_sam.pt')
-    
+
     Notes:
         - The function creates a new directory for output if not specified.
         - Annotation results are saved as text files with the same names as the input images.

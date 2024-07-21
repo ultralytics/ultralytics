@@ -9,163 +9,163 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.utils.TQDM
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.SimpleClass
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.IterableSimpleNamespace
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.ThreadingLocked
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.TryExcept
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.Retry
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.SettingsManager
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.plt_settings
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.set_logging
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.emojis
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.yaml_save
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.yaml_load
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.yaml_print
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.read_device_model
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_ubuntu
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_colab
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_kaggle
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_jupyter
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_docker
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_raspberrypi
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_jetson
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_online
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_pip_package
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_dir_writeable
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_pytest_running
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_github_action_running
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_git_dir
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.is_git_dir
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_git_origin_url
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_git_branch
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_default_args
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_ubuntu_version
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.get_user_config_dir
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.colorstr
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.remove_colorstr
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.threaded
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.set_sentry
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.deprecation_warn
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.clean_url
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.url2file
 

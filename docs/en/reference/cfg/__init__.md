@@ -9,63 +9,63 @@ keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_d
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/cfg/__init__.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.cfg.cfg2dict
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.get_cfg
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.check_cfg
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.get_save_dir
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg._handle_deprecation
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.check_dict_alignment
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.merge_equals_args
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.handle_yolo_hub
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.handle_yolo_settings
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.handle_explorer
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.handle_streamlit_inference
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.parse_key_value_pair
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.smart_value
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.entrypoint
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.cfg.copy_default_cfg
 

@@ -620,6 +620,12 @@ plugins:
             docstring_style: google
             show_root_heading: true
             show_source: true
+            separate_signature: true
+            line_length: 80
+            show_signature_annotations: true
+            show_symbol_type_heading: true # insiders
+            show_symbol_type_toc: true # insiders
+            show_inheritance_diagram: true # insiders
   - ultralytics:
       add_desc: False
       add_image: True

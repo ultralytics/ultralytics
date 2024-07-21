@@ -9,19 +9,19 @@ keywords: Ultralytics, utils, patches, imread, imwrite, imshow, torch_save, Open
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/patches.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/patches.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/patches.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.utils.patches.imread
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.patches.imwrite
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.patches.imshow
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.patches.torch_save
 

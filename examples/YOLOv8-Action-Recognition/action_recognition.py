@@ -266,7 +266,7 @@ def crop_and_pad(frame, box, margin_percent):
 def run(
     weights: str = "yolov8n.pt",
     device: str = "",
-    source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    source: str = "https://www.youtube.com/watch?v=uXlWYZ022zU",
     output_path: Optional[str] = None,
     crop_margin_percentage: int = 10,
     num_video_sequence_samples: int = 8,
@@ -427,7 +427,7 @@ def parse_opt():
     parser.add_argument(
         "--source",
         type=str,
-        default="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        default="https://www.youtube.com/watch?v=uXlWYZ022zU",
         help="video file path or youtube URL",
     )
     parser.add_argument("--output-path", type=str, default="output_video.mp4", help="output video file path")

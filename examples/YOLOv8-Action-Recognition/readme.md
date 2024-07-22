@@ -38,7 +38,7 @@ The action recognition model will automatically detect and track people in the v
 python action_recognition.py
 
 # Basic usage
-python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --labels "dancing" "singing a song"
+python action_recognition.py --source "https://www.youtube.com/watch?v=uXlWYZ022zU" --labels "walking" "running" "brushing teeth" "looking into phone" "weight lifting" "cooking" "sitting"
 
 # Use local video file
 python action_recognition.py --source path/to/video.mp4
@@ -59,7 +59,8 @@ python action_recognition.py --fp16
 python action_recognition.py --output-path output.mp4
 
 # Combine multiple options
-python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "dancing" "singing a song" --fp16
+python action_recognition.py --source "https://www.youtube.com/watch?v=uXlWYZ022zU" --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "walking" "running" "brushing teeth" "looking into phone" "weight lifting" "cooking" "sitting"
+ --fp16
 ```
 
 ## Usage Options
@@ -74,7 +75,7 @@ python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgX
 - `--video-cls-overlap-ratio`: Overlap ratio between video sequences (default: 0.25)
 - `--fp16`: Use FP16 for inference (only for HuggingFace models)
 - `--video-classifier-model`: Video classifier model name or path (default: "microsoft/xclip-base-patch32")
-- `--labels`: Labels for zero-shot video classification (default: \["dancing" "singing a song"\])
+- `--labels`: Labels for zero-shot video classification (default: \["walking" "running" "brushing teeth" "looking into phone" "weight lifting" "cooking" "sitting"\])
 
 ## FAQ
 
@@ -87,7 +88,8 @@ Action recognition is a computational method used to identify and classify actio
 Yes, custom action labels are supported by the action recognition system. The `action_recognition.py` script allows users to specify their own custom labels for zero-shot video classification. This can be done using the `--labels` argument when running the script. For example:
 
 ```bash
-python action_recognition.py --source https://www.youtube.com/watch?v=dQw4w9WgXcQ --labels "dancing" "singing" "jumping"
+python action_recognition.py --source https://www.youtube.com/watch?v=uXlWYZ022zU --labels "walking" "running" "brushing teeth" "looking into phone" "weight lifting" "cooking" "sitting"
+
 ```
 
 You can adjust these labels to match the specific actions you want to recognize in your video. The system will then attempt to classify the detected actions based on these custom labels.
@@ -96,16 +98,16 @@ Additionally, you can choose between different video classification models:
 
 1. For Hugging Face models, you can use any compatible video classification model. The default is set to:
 
-   - "microsoft/xclip-base-patch32"
+    - "microsoft/xclip-base-patch32"
 
 2. For TorchVision models (no support for zero-shot labels), you can select from the following options:
 
-   - "s3d"
-   - "r3d_18"
-   - "swin3d_t"
-   - "swin3d_b"
-   - "mvit_v1_b"
-   - "mvit_v2_s"
+    - "s3d"
+    - "r3d_18"
+    - "swin3d_t"
+    - "swin3d_b"
+    - "mvit_v1_b"
+    - "mvit_v2_s"
 
 **3. Why Combine Action Recognition with YOLOv8?**
 

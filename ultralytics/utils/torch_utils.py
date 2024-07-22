@@ -7,6 +7,7 @@ import random
 import time
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from typing import Union
 
@@ -20,6 +21,7 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
     LOGGER,
+    NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     __version__,
@@ -39,12 +41,13 @@ TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
+TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Decorator to make all processes in distributed training wait for each local_master to do something."""
-    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
+    """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
+    initialized = dist.is_available() and dist.is_initialized()
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
@@ -170,6 +173,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
 
+    if arg in {"cpu", "mps"}:
+        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
     if verbose:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
@@ -270,7 +275,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     fs = f", {flops:.1f} GFLOPs" if flops else ""
     yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")
     model_name = Path(yaml_file).stem.replace("yolo", "YOLO") or "Model"
-    LOGGER.info(f"{model_name} summary{fused}: {n_l} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f"{model_name} summary{fused}: {n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}")
     return n_l, n_p, n_g, flops
 
 
@@ -456,14 +461,17 @@ def init_seeds(seed=0, deterministic=False):
 
 
 class ModelEMA:
-    """Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
-    Keeps a moving average of everything in the model state_dict (parameters and buffers)
+    """
+    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
+    average of everything in the model state_dict (parameters and buffers)
+
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+
     To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """Create EMA."""
+        """Initialize EMA for 'model' with given arguments."""
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
@@ -506,29 +514,49 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/weights').rglob('*.pt'):
+        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
             strip_optimizer(f)
         ```
+
+    Note:
+        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
     """
-    x = torch.load(f, map_location=torch.device("cpu"))
-    if "model" not in x:
-        LOGGER.info(f"Skipping {f}, not a valid Ultralytics model.")
+    try:
+        x = torch.load(f, map_location=torch.device("cpu"))
+        assert isinstance(x, dict), "checkpoint is not a Python dictionary"
+        assert "model" in x, "'model' missing from checkpoint"
+    except Exception as e:
+        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
         return
 
+    updates = {
+        "date": datetime.now().isoformat(),
+        "version": __version__,
+        "license": "AGPL-3.0 License (https://ultralytics.com/license)",
+        "docs": "https://docs.ultralytics.com",
+    }
+
+    # Update model
+    if x.get("ema"):
+        x["model"] = x["ema"]  # replace model with EMA
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
-    args = {**DEFAULT_CFG_DICT, **x["train_args"]} if "train_args" in x else None  # combine args
-    if x.get("ema"):
-        x["model"] = x["ema"]  # replace model with ema
-    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
-        x[k] = None
-    x["epoch"] = -1
+    if hasattr(x["model"], "criterion"):
+        x["model"].criterion = None  # strip loss criterion
     x["model"].half()  # to FP16
     for p in x["model"].parameters():
         p.requires_grad = False
+
+    # Update other keys
+    args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
+    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
+        x[k] = None
+    x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
     # x['model'].args = x['train_args']
-    torch.save(x, s or f)
+
+    # Save
+    torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

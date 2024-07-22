@@ -15,9 +15,12 @@ img_height = 640
 
 
 class LetterBox:
+    """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+
     def __init__(
         self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32
     ):
+        """Initializes LetterBox with parameters for reshaping and transforming image while maintaining aspect ratio."""
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -85,6 +88,8 @@ class LetterBox:
 
 
 class Yolov8TFLite:
+    """Class for performing object detection using YOLOv8 model converted to TensorFlow Lite format."""
+
     def __init__(self, tflite_model, input_image, confidence_thres, iou_thres):
         """
         Initializes an instance of the Yolov8TFLite class.

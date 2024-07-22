@@ -68,3 +68,25 @@ We would like to acknowledge the YOLOv4 authors for their significant contributi
         ```
 
 The original YOLOv4 paper can be found on [arXiv](https://arxiv.org/abs/2004.10934). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/AlexeyAB/darknet). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+
+## FAQ
+
+### What is YOLOv4 and why should I use it for object detection?
+
+YOLOv4, which stands for "You Only Look Once version 4," is a state-of-the-art real-time object detection model developed by Alexey Bochkovskiy in 2020. It achieves an optimal balance between speed and accuracy, making it highly suitable for real-time applications. YOLOv4's architecture incorporates several innovative features like Weighted-Residual-Connections (WRC), Cross-Stage-Partial-connections (CSP), and Self-adversarial-training (SAT), among others, to achieve state-of-the-art results. If you're looking for a high-performance model that operates efficiently on conventional GPUs, YOLOv4 is an excellent choice.
+
+### How does the architecture of YOLOv4 enhance its performance?
+
+The architecture of YOLOv4 includes several key components: the backbone, the neck, and the head. The backbone, which can be models like VGG, ResNet, or CSPDarknet53, is pre-trained to predict classes and bounding boxes. The neck, utilizing PANet, connects feature maps from different stages for comprehensive data extraction. Finally, the head, which uses configurations from YOLOv3, makes the final object detections. YOLOv4 also employs "bag of freebies" techniques like mosaic data augmentation and DropBlock regularization, further optimizing its speed and accuracy.
+
+### What are "bag of freebies" in the context of YOLOv4?
+
+"Bag of freebies" refers to methods that improve the training accuracy of YOLOv4 without increasing the cost of inference. These techniques include various forms of data augmentation like photometric distortions (adjusting brightness, contrast, etc.) and geometric distortions (scaling, cropping, flipping, rotating). By increasing the variability of the input images, these augmentations help YOLOv4 generalize better to different types of images, thereby improving its robustness and accuracy without compromising its real-time performance.
+
+### Why is YOLOv4 considered suitable for real-time object detection on conventional GPUs?
+
+YOLOv4 is designed to optimize both speed and accuracy, making it ideal for real-time object detection tasks that require quick and reliable performance. It operates efficiently on conventional GPUs, needing only one for both training and inference. This makes it accessible and practical for various applications ranging from recommendation systems to standalone process management, thereby reducing the need for extensive hardware setups and making it a cost-effective solution for real-time object detection.
+
+### How can I get started with YOLOv4 if Ultralytics does not currently support it?
+
+To get started with YOLOv4, you should visit the official [YOLOv4 GitHub repository](https://github.com/AlexeyAB/darknet). Follow the installation instructions provided in the README file, which typically include cloning the repository, installing dependencies, and setting up environment variables. Once installed, you can train the model by preparing your dataset, configuring the model parameters, and following the usage instructions provided. Since Ultralytics does not currently support YOLOv4, it is recommended to refer directly to the YOLOv4 GitHub for the most up-to-date and detailed guidance.

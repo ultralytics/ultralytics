@@ -8,6 +8,7 @@ from .object_counter import ObjectCounter
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
+from .streamlit_inference import inference
 
 __all__ = (
     "AIGym",
@@ -15,6 +16,7 @@ __all__ = (
     "Heatmap",
     "ObjectCounter",
     "ParkingManagement",
+    "ParkingPtsSelection",
     "QueueManager",
     "SpeedEstimator",
     "Analytics",

@@ -14,20 +14,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 ## Recipe Walk Through
 
-1.  Begin with the necessary imports
-
-    ```python
-    from pathlib import Path
-
-    import cv2
-    import numpy as np
-
-    from ultralytics import YOLO
-    ```
-
-    ???+ tip "Ultralytics Install"
-
-        See the Ultralytics [Quickstart](../quickstart.md/#install-ultralytics) Installation section for a quick walkthrough on installing the required libraries.
+1.  See the [Ultralytics Quickstart Installation section](../quickstart.md) for a quick walkthrough on installing the required libraries.
 
     ***
 
@@ -61,6 +48,10 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 3.  Now iterate over the results and the contours. For workflows that want to save an image to file, the source image `base-name` and the detection `class-label` are retrieved for later use (optional).
 
     ```{ .py .annotate }
+    from pathlib import Path
+
+    import numpy as np
+
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
@@ -86,6 +77,8 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
     ```{ .py .annotate }
+    import cv2
+
     # Create binary mask
     b_mask = np.zeros(img.shape[:2], np.uint8)
 
@@ -178,12 +171,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/ultralytics/assets/62214284/103dbf90-c169-4f77-b791-76cdf09c6f22){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -225,12 +217,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 Additional steps required to crop image to only include object region.
 
                 ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/ultralytics/assets/62214284/5910244f-d1e1-44af-af7f-6dea4c688da8){ align="right" }
-                ``` { .py .annotate }
+                ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
                 # Crop image to object region
                 iso_crop = isolated[y1:y2, x1:x2]
-
                 ```
 
                 1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
@@ -316,3 +307,93 @@ for r in res:
 4. See [Segment Task](../tasks/segment.md#models) for more information.
 5. Learn more about [Working with Results](../modes/predict.md#working-with-results)
 6. Learn more about [Segmentation Mask Results](../modes/predict.md#masks)
+
+## FAQ
+
+### How do I isolate objects using Ultralytics YOLOv8 for segmentation tasks?
+
+To isolate objects using Ultralytics YOLOv8, follow these steps:
+
+1. **Load the model and run inference:**
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n-seg.pt")
+    results = model.predict(source="path/to/your/image.jpg")
+    ```
+
+2. **Generate a binary mask and draw contours:**
+
+    ```python
+    import cv2
+    import numpy as np
+
+    img = np.copy(results[0].orig_img)
+    b_mask = np.zeros(img.shape[:2], np.uint8)
+    contour = results[0].masks.xy[0].astype(np.int32).reshape(-1, 1, 2)
+    cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
+    ```
+
+3. **Isolate the object using the binary mask:**
+    ```python
+    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+    isolated = cv2.bitwise_and(mask3ch, img)
+    ```
+
+Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task](../tasks/segment.md) for more information.
+
+### What options are available for saving the isolated objects after segmentation?
+
+Ultralytics YOLOv8 offers two main options for saving isolated objects:
+
+1. **With a Black Background:**
+
+    ```python
+    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+    isolated = cv2.bitwise_and(mask3ch, img)
+    ```
+
+2. **With a Transparent Background:**
+    ```python
+    isolated = np.dstack([img, b_mask])
+    ```
+
+For further details, visit the [Predict Mode](../modes/predict.md) section.
+
+### How can I crop isolated objects to their bounding boxes using Ultralytics YOLOv8?
+
+To crop isolated objects to their bounding boxes:
+
+1. **Retrieve bounding box coordinates:**
+
+    ```python
+    x1, y1, x2, y2 = results[0].boxes.xyxy[0].cpu().numpy().astype(np.int32)
+    ```
+
+2. **Crop the isolated image:**
+    ```python
+    iso_crop = isolated[y1:y2, x1:x2]
+    ```
+
+Learn more about bounding box results in the [Predict Mode](../modes/predict.md#boxes) documentation.
+
+### Why should I use Ultralytics YOLOv8 for object isolation in segmentation tasks?
+
+Ultralytics YOLOv8 provides:
+
+- **High-speed** real-time object detection and segmentation.
+- **Accurate bounding box and mask generation** for precise object isolation.
+- **Comprehensive documentation** and easy-to-use API for efficient development.
+
+Explore the benefits of using YOLO in the [Segment Task documentation](../tasks/segment.md).
+
+### Can I save isolated objects including the background using Ultralytics YOLOv8?
+
+Yes, this is a built-in feature in Ultralytics YOLOv8. Use the `save_crop` argument in the `predict()` method. For example:
+
+```python
+results = model.predict(source="path/to/your/image.jpg", save_crop=True)
+```
+
+Read more about the `save_crop` argument in the [Predict Mode Inference Arguments](../modes/predict.md#inference-arguments) section.

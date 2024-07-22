@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, Pro Plan, upgrade guide, cloud training, storage, inf
 
 # Ultralytics HUB Pro
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) offers the Pro Plan as a monthly or annual subscription.
+[Ultralytics HUB](https://ultralytics.com/hub) offers the Pro Plan as a monthly or annual subscription.
 
 The Pro Plan provides early access to upcoming features and includes enhanced benefits:
 

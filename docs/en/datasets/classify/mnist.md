@@ -84,3 +84,44 @@ research or development work, please cite the following paper:
         ```
 
 We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](http://yann.lecun.com/exdb/mnist/).
+
+## FAQ
+
+### What is the MNIST dataset, and why is it important in machine learning?
+
+The [MNIST](http://yann.lecun.com/exdb/mnist/) dataset, or Modified National Institute of Standards and Technology dataset, is a widely-used collection of handwritten digits designed for training and testing image classification systems. It includes 60,000 training images and 10,000 testing images, all of which are grayscale and 28x28 pixels in size. The dataset's importance lies in its role as a standard benchmark for evaluating image classification algorithms, helping researchers and engineers to compare methods and track progress in the field.
+
+### How can I use Ultralytics YOLO to train a model on the MNIST dataset?
+
+To train a model on the MNIST dataset using Ultralytics YOLO, you can follow these steps:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="mnist", epochs=100, imgsz=32)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        cnn detect train data=mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        ```
+
+For a detailed list of available training arguments, refer to the [Training](../../modes/train.md) page.
+
+### What is the difference between the MNIST and EMNIST datasets?
+
+The MNIST dataset contains only handwritten digits, whereas the Extended MNIST (EMNIST) dataset includes both digits and uppercase and lowercase letters. EMNIST was developed as a successor to MNIST and utilizes the same 28x28 pixel format for the images, making it compatible with tools and models designed for the original MNIST dataset. This broader range of characters in EMNIST makes it useful for a wider variety of machine learning applications.
+
+### Can I use Ultralytics HUB to train models on custom datasets like MNIST?
+
+Yes, you can use Ultralytics HUB to train models on custom datasets like MNIST. Ultralytics HUB offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics HUB Quickstart](https://docs.ultralytics.com/hub/quickstart/) page.

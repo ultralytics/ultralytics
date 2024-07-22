@@ -362,10 +362,11 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    raise FileNotFoundError(f"Image Not Found {path}")
-                paths.append(path)
-                imgs.append(im0)
-                info.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                else:
+                    paths.append(path)
+                    imgs.append(im0)
+                    info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
                 if self.count >= self.ni:  # end of image list
                     break
@@ -543,8 +544,9 @@ def get_best_youtube_url(url, method="pytube"):
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
     if method == "pytube":
-        check_requirements("pytube")
-        from pytube import YouTube
+        # Switched from pytube to pytubefix to resolve https://github.com/pytube/pytube/issues/1954
+        check_requirements("pytubefix==6.3.4")  # bug in 6.4.2 https://github.com/JuanBindez/pytubefix/issues/123
+        from pytubefix import YouTube
 
         streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
         streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution

@@ -59,3 +59,29 @@ In the sunburst graphic below, the innermost circle is the entire project, movin
 <a href="https://codecov.io/github/ultralytics/ultralytics">
     <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Image">
 </a>
+
+## FAQ
+
+### What is Continuous Integration (CI) in Ultralytics?
+
+Continuous Integration (CI) in Ultralytics involves automatically integrating and testing code changes to ensure high-quality standards. Our CI setup includes running [unit tests, linting checks, and comprehensive tests](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml). Additionally, we perform [Docker deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml), [broken link checks](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml), [CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) for security vulnerabilities, and [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) to package and distribute our software.
+
+### How does Ultralytics check for broken links in documentation and code?
+
+Ultralytics uses a specific CI action to [check for broken links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml) within our markdown and HTML files. This helps maintain the integrity of our documentation by scanning and identifying dead or broken links, ensuring that users always have access to accurate and live resources.
+
+### Why is CodeQL analysis important for Ultralytics' codebase?
+
+[CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) is crucial for Ultralytics as it performs semantic code analysis to find potential security vulnerabilities and maintain high-quality standards. With CodeQL, we can proactively identify and mitigate risks in our code, helping us deliver robust and secure software solutions.
+
+### How does Ultralytics utilize Docker for deployment?
+
+Ultralytics employs Docker to validate the deployment of our projects through a dedicated CI action. This process ensures that our [Dockerfile and associated scripts](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml) are functioning correctly, allowing for consistent and reproducible deployment environments which are critical for scalable and reliable AI solutions.
+
+### What is the role of automated PyPI publishing in Ultralytics?
+
+Automated [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) ensures that our projects can be packaged and published without errors. This step is essential for distributing Ultralytics' Python packages, allowing users to easily install and use our tools via the Python Package Index (PyPI).
+
+### How does Ultralytics measure code coverage and why is it important?
+
+Ultralytics measures code coverage by integrating with [Codecov](https://codecov.io/github/ultralytics/ultralytics), providing insights into how much of the codebase is executed during tests. High code coverage can indicate well-tested code, helping to uncover untested areas that might be prone to bugs. Detailed code coverage metrics can be explored via badges displayed on our main repositories or directly on [Codecov](https://codecov.io/gh/ultralytics/ultralytics).

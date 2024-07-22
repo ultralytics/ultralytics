@@ -37,8 +37,6 @@ class SegmentationPredictor(DetectionPredictor):
             classes=self.args.classes,
         )
 
-        p = self._process_full_box(p=p, img=img)  # process full box (use in FastSAMPredictor)
-
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
@@ -55,7 +53,3 @@ class SegmentationPredictor(DetectionPredictor):
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results
-
-    def _process_full_box(self, p, img):
-        """This function use to post-process the full box in `FastSAMPredictor`."""
-        return p

@@ -56,10 +56,10 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model.info()
 
         # Run inference with bboxes prompt
-        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+        results = model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with points prompt
-        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        results = model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "Segment everything"
@@ -127,6 +127,10 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Segment with additional args
         results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
+
+!!! Note
+
+    All the returned `results` in above examples are [Results](../modes/predict.md#working-with-results) object which allows access predicted masks and source image easily.
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 

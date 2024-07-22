@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from .action_recognition import ActionRecognition
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
@@ -9,7 +10,6 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
-from.action_recognition import ActionRecognition
 
 __all__ = (
     "AIGym",
@@ -22,5 +22,5 @@ __all__ = (
     "SpeedEstimator",
     "Analytics",
     "inference",
-    "ActionRecognition"
+    "ActionRecognition",
 )

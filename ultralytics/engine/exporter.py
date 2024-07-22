@@ -563,7 +563,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
             if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
-                (unzip_dir / name).rename(pnnx)  # move binary to ROOT
+                shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
                 pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
                 shutil.rmtree(unzip_dir)  # delete unzip dir
 

@@ -104,7 +104,7 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {9, 10}:  # TF EdgeTPU and TF.js
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                assert not is_end2end, "End-to-end models not supported by TF EdgeTPU and TF.js yet"                
+                assert not is_end2end, "End-to-end models not supported by TF EdgeTPU and TF.js yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"

@@ -18,10 +18,10 @@ Action recognition involves identifying and classifying actions performed by obj
 
 ## Real World Applications
 
-| Surveillance | Sports Analysis |
-| :----------: | :-------------: |
+|                                          Surveillance                                          |                                           Sports Analysis                                            |
+| :--------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
 | ![Surveillance](https://github.com/RizwanMunawar/ultralytics/assets/62513924/surveillance.jpg) | ![Sports Analysis](https://github.com/RizwanMunawar/ultralytics/assets/62513924/sports_analysis.jpg) |
-| Real-time action recognition for enhanced security | Analyzing player movements and actions |
+|                       Real-time action recognition for enhanced security                       |                                Analyzing player movements and actions                                |
 
 ## How to Use Action Recognition
 
@@ -40,6 +40,7 @@ Here is an example of how to use the `ActionRecognition` class for real-time act
 
 ```python
 import cv2
+
 from ultralytics import YOLO
 from ultralytics.solutions.action_recognition import ActionRecognition
 

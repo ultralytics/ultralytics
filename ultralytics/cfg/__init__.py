@@ -79,7 +79,7 @@ CLI_HELP_MSG = f"""
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
-        yolo explorer
+        yolo explorer data=data.yaml model=yolov8n.pt
     
     6. Streamlit real-time object detection on your webcam with Ultralytics YOLOv8
         yolo streamlit-predict
@@ -233,7 +233,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         (SimpleNamespace): Namespace containing the merged configuration arguments.
 
     Examples:
-        >>> from ultralytics import get_cfg
+        >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
         >>> config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
 
@@ -546,16 +546,19 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
-def handle_explorer():
+def handle_explorer(args: List[str]):
     """
-    Open the Ultralytics Explorer GUI for dataset exploration and analysis.
+    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
+    using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the
+    Explorer dashboard is loading.
 
-    This function launches a graphical user interface that provides tools for interacting with and analyzing
-    datasets using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs
-    the user that the Explorer dashboard is loading.
+    Args:
+        args (List[str]): A list of optional command line arguments.
 
     Examples:
-        >>> handle_explorer()
+        ```bash
+        yolo explorer data=data.yaml model=yolov8n.pt
+        ```
 
     Notes:
         - Requires 'streamlit' package version 1.29.0 or higher.
@@ -564,7 +567,12 @@ def handle_explorer():
     """
     checks.check_requirements("streamlit>=1.29.0")
     LOGGER.info("💡 Loading Explorer dashboard...")
-    subprocess.run(["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"])
+    cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
+    new = dict(parse_key_value_pair(a) for a in args)
+    check_dict_alignment(base={k: DEFAULT_CFG_DICT[k] for k in ["model", "data"]}, custom=new)
+    for k, v in new.items():
+        cmd += [k, v]
+    subprocess.run(cmd)
 
 
 def handle_streamlit_inference():
@@ -587,7 +595,7 @@ def handle_streamlit_inference():
     subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
 
 
-def parse_key_value_pair(pair):
+def parse_key_value_pair(pair: str = "key=value"):
     """
     Parses a key-value pair string into separate key and value components.
 
@@ -650,7 +658,7 @@ def smart_value(v):
 
     Notes:
         - The function uses a case-insensitive comparison for boolean and None values.
-        - For other types, it attempts to use Python's eval() function, which can be unsafe if used with untrusted input.
+        - For other types, it attempts to use Python's eval() function, which can be unsafe if used on untrusted input.
         - If no conversion is possible, the original string is returned.
     """
     v_lower = v.lower()
@@ -705,7 +713,7 @@ def entrypoint(debug=""):
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
-        "explorer": lambda: handle_explorer(),
+        "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

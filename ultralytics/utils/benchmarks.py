@@ -130,7 +130,9 @@ def benchmark(
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
-            assert i not in {8} or not is_end2end or not MACOS, "TFLite is not supported for end-to-end models on MacOS" # TFLite in MacOS for end-to-end models
+            assert (
+                i not in {8} or not is_end2end or not MACOS
+            ), "TFLite is not supported for end-to-end models on MacOS"  # TFLite in MacOS for end-to-end models
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
             # Validate

@@ -71,9 +71,7 @@ class FastSAMPredictor(DetectionPredictor):
 
         results = []
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
-        for i, pred in enumerate(p):
-            orig_img = orig_imgs[i]
-            img_path = self.batch[0][i]
+        for i, (pred, orig_img, img_path) in enumerate(zip(p, orig_imgs, self.batch[0])):
             if not len(pred):  # save empty boxes
                 masks = None
             elif self.args.retina_masks:

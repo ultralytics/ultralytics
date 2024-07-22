@@ -1,6 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-from typing import List
-
 import torch
 
 from ultralytics.models.fastsam.utils import bbox_iou

@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+from torch import Tensor
 
 from ultralytics.utils import TQDM, checks
 
@@ -24,6 +25,8 @@ class FastSAMPrompt:
 
     def __init__(self, source, results, device="cuda") -> None:
         """Initializes FastSAMPrompt with given source, results and device, and assigns clip for linear assignment."""
+        if isinstance(source, (str, Path)) and os.path.isdir(source):
+            raise ValueError("FastSAM only accepts image paths and PIL Image sources, not directories.")
         self.device = device
         self.results = results
         self.source = source
@@ -247,7 +250,7 @@ class FastSAMPrompt:
         ax.imshow(show)
 
     @torch.no_grad()
-    def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
+    def retrieve(self, model, preprocess, elements, search_text: str, device) -> Tensor:
         """Processes images and text with a model, calculates similarity, and returns softmax score."""
         preprocessed_images = [preprocess(image).to(device) for image in elements]
         tokenized_text = self.clip.tokenize([search_text]).to(device)
@@ -261,34 +264,27 @@ class FastSAMPrompt:
 
     def _crop_image(self, format_results):
         """Crops an image based on provided annotation format and returns cropped images and related data."""
-        if os.path.isdir(self.source):
-            raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
         image = Image.fromarray(cv2.cvtColor(self.results[0].orig_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size
         annotations = format_results
         mask_h, mask_w = annotations[0]["segmentation"].shape
         if ori_w != mask_w or ori_h != mask_h:
             image = image.resize((mask_w, mask_h))
-        cropped_boxes = []
         cropped_images = []
-        not_crop = []
         filter_id = []
         for _, mask in enumerate(annotations):
             if np.sum(mask["segmentation"]) <= 100:
                 filter_id.append(_)
                 continue
             bbox = self._get_bbox_from_mask(mask["segmentation"])  # bbox from mask
-            cropped_boxes.append(self._segment_image(image, bbox))  # save cropped image
-            cropped_images.append(bbox)  # save cropped image bbox
+            cropped_images.append(self._segment_image(image, bbox))  # save cropped image
 
-        return cropped_boxes, cropped_images, not_crop, filter_id, annotations
+        return cropped_images, filter_id, annotations
 
     def box_prompt(self, bbox):
         """Modifies the bounding box properties and calculates IoU between masks and bounding box."""
         if self.results[0].masks is not None:
-            assert bbox[2] != 0 and bbox[3] != 0
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
+            assert bbox[2] != 0 and bbox[3] != 0, "Bounding box width and height should not be zero"
             masks = self.results[0].masks.data
             target_height, target_width = self.results[0].orig_shape
             h = masks.shape[1]
@@ -321,8 +317,6 @@ class FastSAMPrompt:
     def point_prompt(self, points, pointlabel):  # numpy
         """Adjusts points on detected masks based on user input and returns the modified results."""
         if self.results[0].masks is not None:
-            if os.path.isdir(self.source):
-                raise ValueError(f"'{self.source}' is a directory, not a valid source for this function.")
             masks = self._format_results(self.results[0], 0)
             target_height, target_width = self.results[0].orig_shape
             h = masks[0]["segmentation"].shape[0]
@@ -341,15 +335,14 @@ class FastSAMPrompt:
             self.results[0].masks.data = torch.tensor(np.array([onemask]))
         return self.results
 
-    def text_prompt(self, text):
+    def text_prompt(self, text, clip_download_root=None):
         """Processes a text prompt, applies it to existing results and returns the updated results."""
         if self.results[0].masks is not None:
             format_results = self._format_results(self.results[0], 0)
-            cropped_boxes, cropped_images, not_crop, filter_id, annotations = self._crop_image(format_results)
-            clip_model, preprocess = self.clip.load("ViT-B/32", device=self.device)
-            scores = self.retrieve(clip_model, preprocess, cropped_boxes, text, device=self.device)
-            max_idx = scores.argsort()
-            max_idx = max_idx[-1]
+            cropped_images, filter_id, annotations = self._crop_image(format_results)
+            clip_model, preprocess = self.clip.load("ViT-B/32", download_root=clip_download_root, device=self.device)
+            scores = self.retrieve(clip_model, preprocess, cropped_images, text, device=self.device)
+            max_idx = torch.argmax(scores)
             max_idx += sum(np.array(filter_id) <= int(max_idx))
             self.results[0].masks.data = torch.tensor(np.array([annotations[max_idx]["segmentation"]]))
         return self.results

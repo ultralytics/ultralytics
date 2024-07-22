@@ -61,7 +61,7 @@ python yolov8_sahi_tracking.py --source "path/to/video.mp4" --save-img --weights
 
 **1. What is SAHI?**
 
-SAHI stands for Slicing, Analysis, and Healing of Images. It is a library designed to optimize object detection algorithms for large-scale and high-resolution images. The library source code is available on [GitHub](https://github.com/obss/sahi).
+SAHI stands for Slicing Aided Hyper Inference. It is a library designed to optimize object detection algorithms for large-scale and high-resolution images. The library source code is available on [GitHub](https://github.com/obss/sahi).
 
 **2. Why use SAHI with YOLOv8?**
 

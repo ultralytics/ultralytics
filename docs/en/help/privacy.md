@@ -1,6 +1,6 @@
 ---
-description: Learn about how Ultralytics collects and uses data to improve user experience, ensure software stability, and address privacy concerns, with options to opt-out.
-keywords: Ultralytics, Data Collection, User Privacy, Google Analytics, Sentry, Crash Reporting, Anonymized Data, Privacy Settings, Opt-Out
+description: Discover how Ultralytics collects and uses anonymized data to enhance the YOLO Python package while prioritizing user privacy and control.
+keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, Sentry, privacy, anonymized data, user control, crash reporting
 ---
 
 # Data Collection for Ultralytics Python Package
@@ -77,6 +77,7 @@ To gain insight into the current configuration of your settings, you can view th
 !!! Example "View settings"
 
     === "Python"
+
         You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
         ```python
         from ultralytics import settings
@@ -85,10 +86,11 @@ To gain insight into the current configuration of your settings, you can view th
         print(settings)
 
         # Return analytics and crash reporting setting
-        value = settings['sync']
+        value = settings["sync"]
         ```
 
     === "CLI"
+
         Alternatively, the command-line interface allows you to check your settings with a simple command:
         ```bash
         yolo settings
@@ -101,18 +103,20 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 !!! Example "Update settings"
 
     === "Python"
+
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
         ```python
         from ultralytics import settings
 
         # Disable analytics and crash reporting
-        settings.update({'sync': False})
+        settings.update({"sync": False})
 
         # Reset settings to default values
         settings.reset()
         ```
 
     === "CLI"
+
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Disable analytics and crash reporting
@@ -135,3 +139,78 @@ Ultralytics takes user privacy seriously. We design our data collection practice
 ## Questions or Concerns
 
 If you have any questions or concerns about our data collection practices, please reach out to us via our [contact form](https://ultralytics.com/contact) or via [support@ultralytics.com](mailto:support@ultralytics.com). We are dedicated to ensuring our users feel informed and confident in their privacy when using our package.
+
+## FAQ
+
+### How does Ultralytics ensure the privacy of the data it collects?
+
+Ultralytics prioritizes user privacy through several key measures. First, all data collected via Google Analytics and Sentry is anonymized to ensure that no personally identifiable information (PII) is gathered. Secondly, data is analyzed in aggregate form, allowing us to observe patterns without identifying individual user activities. Finally, we do not collect any training or inference images, further protecting user data. These measures align with our commitment to transparency and privacy. For more details, visit our [Privacy Considerations](#privacy-considerations) section.
+
+### What types of data does Ultralytics collect with Google Analytics?
+
+Ultralytics collects three primary types of data using Google Analytics:
+
+- **Usage Metrics**: These include how often and in what ways the YOLO Python package is used, preferred features, and typical command-line arguments.
+- **System Information**: General non-identifiable information about the computing environments where the package is run.
+- **Performance Data**: Metrics related to the performance of models during training, validation, and inference.
+    This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
+
+### How can I disable data collection in the Ultralytics YOLO package?
+
+To opt out of data collection, you can simply set `sync=False` in your YOLO settings. This action stops the transmission of any analytics or crash reports. You can disable data collection using Python or CLI methods:
+
+!!! Example "Update settings"
+
+    === "Python"
+
+        ```python
+        from ultralytics import settings
+
+        # Disable analytics and crash reporting
+        settings.update({"sync": False})
+
+        # Reset settings to default values
+        settings.reset()
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Disable analytics and crash reporting
+        yolo settings sync=False
+
+        # Reset settings to default values
+        yolo settings reset
+        ```
+
+For more details on modifying your settings, refer to the [Modifying Settings](#modifying-settings) section.
+
+### How does crash reporting with Sentry work in Ultralytics YOLO?
+
+If the `sentry-sdk` package is pre-installed, Sentry collects detailed crash logs and error messages whenever a crash event occurs. This data helps us diagnose and resolve issues promptly, improving the robustness and reliability of the YOLO Python package. The collected crash logs are scrubbed of any personally identifiable information to protect user privacy. For more information, check the [Sentry Crash Reporting](#sentry-crash-reporting) section.
+
+### Can I inspect my current data collection settings in Ultralytics YOLO?
+
+Yes, you can easily view your current settings to understand the configuration of your data collection preferences. Use the following methods to inspect these settings:
+
+!!! Example "View settings"
+
+    === "Python"
+
+        ```python
+        from ultralytics import settings
+
+        # View all settings
+        print(settings)
+
+        # Return analytics and crash reporting setting
+        value = settings["sync"]
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo settings
+        ```
+
+For further details, refer to the [Inspecting Settings](#inspecting-settings) section.

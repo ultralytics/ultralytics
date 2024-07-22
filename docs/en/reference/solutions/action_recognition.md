@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore Ultralytics' Action Recognition solution leveraging YOLO for real-time action detection and video classification.
+keywords: Ultralytics, YOLO, action recognition, zero-shot, video classification, Hugging Face, computer vision, real-time action detection, AI solutions, machine learning
 ---
 
 # Reference for `ultralytics/solutions/action_recognition.py`

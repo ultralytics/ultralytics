@@ -5,6 +5,8 @@
 name: Ultralytics Actions
 
 on:
+  issues:
+    types: [opened, edited]
   pull_request_target:
     branches: [main]
     types: [opened, closed, synchronize]
@@ -17,6 +19,7 @@ jobs:
         uses: ultralytics/actions@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, do not modify
+          labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           markdown: true # format Markdown
           prettier: true # format YAML

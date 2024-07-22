@@ -63,6 +63,27 @@ GELAN represents a strategic architectural advancement, enabling YOLOv9 to achie
 
 ![YOLOv9 architecture comparison](https://github.com/ultralytics/ultralytics/assets/26833433/286a3971-677b-45e6-a90b-4b6bd565a7af)
 
+## YOLOv9 Benchmarks
+
+Benchmarking in YOLOv9 using [Ultralytics](https://docs.ultralytics.com/modes/benchmark/) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
+
+- **Performance Evaluation:** Assessing the model's speed and accuracy.
+- **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
+- **Framework Support:** Providing a comprehensive framework within Ultralytics YOLOv8 to facilitate these assessments and ensure consistent and reliable results.
+
+By benchmarking, you can ensure that your model not only performs well in controlled testing environments but also maintains high performance in practical, real-world applications.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ziJR01lKnio"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Benchmark the YOLOv9 Model Using the Ultralytics Python Package
+</p>
+
 ## Performance on MS COCO Dataset
 
 The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exemplifies its significant advancements in real-time object detection, setting new benchmarks across various model sizes. Table 1 presents a comprehensive comparison of state-of-the-art real-time object detectors, illustrating YOLOv9's superior efficiency and accuracy.

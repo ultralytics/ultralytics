@@ -13,8 +13,4 @@ keywords: FastSAM, bounding boxes, IoU, Ultralytics, image processing, computer 
 
 ## ::: ultralytics.models.fastsam.utils.adjust_bboxes_to_image_border
 
-<br><br><hr><br>
-
-## ::: ultralytics.models.fastsam.utils.bbox_iou
-
 <br><br>

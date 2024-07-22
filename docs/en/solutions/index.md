@@ -29,6 +29,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Parking Management](../guides/parking-management.md) 🚀 NEW: Organize and direct vehicle flow in parking areas with YOLOv8, optimizing space utilization and user experience.
 - [Analytics](../guides/analytics.md) 📊 NEW: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLOv8 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀 NEW: Leverage the power of YOLOv8 for real-time object detection directly through your web browser with a user-friendly Streamlit interface.
+- [Action Recognition](../reference/solutions/action_recognition.md) 🚀 NEW: Explore Ultralytics' Action Recognition solution leveraging YOLO for real-time action detection and video classification. Learn to implement action recognition in your projects using [action_recognition.py](../guides/action-recognition.md).
 
 ## Contribute to Our Solutions
 

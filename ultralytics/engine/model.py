@@ -583,7 +583,7 @@ class Model(nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): A list of tracking results, each encapsulated in a Results object.
+            (List[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
 
         Raises:
             AttributeError: If the predictor does not have registered trackers.
@@ -1028,8 +1028,8 @@ class Model(nn.Module):
         The default callbacks are defined in the 'callbacks.default_callbacks' dictionary, which contains predefined
         functions for various events in the model's lifecycle, such as on_train_start, on_epoch_end, etc.
 
-        This method is useful when you want to revert to the original set of callbacks after making custom modifications,
-        ensuring consistent behavior across different runs or experiments.
+        This method is useful when you want to revert to the original set of callbacks after making custom
+        modifications, ensuring consistent behavior across different runs or experiments.
 
         Examples:
             >>> model = YOLO('yolov8n.pt')
@@ -1122,7 +1122,7 @@ class Model(nn.Module):
             nested dictionaries. Each nested dictionary has keys 'model', 'trainer', 'validator', and
             'predictor', mapping to their respective class implementations.
 
-        Example:
+        Examples:
             >>> model = Model()
             >>> task_map = model.task_map
             >>> detect_class_map = task_map['detect']

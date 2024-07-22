@@ -27,9 +27,10 @@ class TLCYOLO(YOLO):
     @property
     def task_map(self):
         """ Map head to 3LC model, trainer, validator, and predictor classes. """
-        task_map = super().task_map
-        task_map["detect"]["model"] = TLCDetectionModel
-        task_map["detect"]["trainer"] = TLCDetectionTrainer
-        task_map["detect"]["validator"] = TLCDetectionValidator
-
-        return task_map
+        return {
+            "detect": {
+                "model": TLCDetectionModel,
+                "trainer": TLCDetectionTrainer,
+                "validator": TLCDetectionValidator,
+            }
+        }

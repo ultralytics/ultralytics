@@ -198,9 +198,9 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 | [OpenVINO](../integrations/openvino.md)           | ✅        |
 | [TensorRT](../integrations/tensorrt.md)           | ✅        |
 | [CoreML](../integrations/coreml.md)               | ❌        |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | ❌        |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | ❌        |
-| [TF Lite](../integrations/tflite.md)              | ❌        |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅        |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅        |
+| [TF Lite](../integrations/tflite.md)              | ✅        |
 | [TF Edge TPU](../integrations/edge-tpu.md)        | ❌        |
 | [TF.js](../integrations/tfjs.md)                  | ❌        |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌        |

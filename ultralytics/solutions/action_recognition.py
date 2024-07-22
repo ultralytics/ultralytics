@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
 
@@ -358,6 +358,7 @@ class HuggingFaceVideoClassifier:
             device (str or torch.device, optional): The device to run the model on. Defaults to "".
             fp16 (bool, optional): Whether to use FP16 for inference. Defaults to False.
         """
+        check_requirements("transformers")
         from transformers import AutoModel, AutoProcessor
 
         self.fp16 = fp16

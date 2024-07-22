@@ -6,6 +6,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 import torch
+from ultralytics.utils.checks import check_imshow
 
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
@@ -35,6 +36,10 @@ class ActionRecognition:
         ]
         self.fp16 = fp16
         self.device = select_device(device)
+
+        # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)
+        self.window_name = "Ultralytics YOLOv8 Action Recognition"
 
         if video_classifier_model in TorchVisionVideoClassifier.available_model_names():
             print("'fp16' is not supported for TorchVisionVideoClassifier. Setting fp16 to False.")
@@ -86,9 +91,10 @@ class ActionRecognition:
 
     def display_frames(self):
         """Displays the current frame."""
-        cv2.imshow("Ultralytics Action Recognition", self.im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
+        if self.env_check:
+            cv2.namedWindow(self.window_name)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
 
     def predict_action(self, sequences):
         """

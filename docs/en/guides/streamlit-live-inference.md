@@ -31,7 +31,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
     === "Python"
 
-        ```Python
+        ```python
         from ultralytics import solutions
 
         solutions.inference()
@@ -46,6 +46,21 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         ```
 
 This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLOv8 model, set the confidence and NMS thresholds, and click the "Start" button to begin the real-time object detection.
+
+You can optionally supply a specific model in Python:
+
+!!! Example "Streamlit Application with a custom model"
+
+    === "Python"
+
+        ```python
+        from ultralytics import solutions
+
+        # Pass a model as an argument
+        solutions.inference(model="path/to/model.pt")
+
+        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        ```
 
 ## Conclusion
 
@@ -82,8 +97,9 @@ Then, you can create a basic Streamlit application to run live inference:
 
     === "Python"
 
-    ```Python
+    ```python
     from ultralytics import solutions
+
     solutions.inference()
 
     ### Make sure to run the file using command `streamlit run <file-name.py>`

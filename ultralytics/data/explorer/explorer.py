@@ -21,6 +21,8 @@ from .utils import get_sim_index_schema, get_table_schema, plot_query_result, pr
 
 
 class ExplorerDataset(YOLODataset):
+    """Extends YOLODataset for advanced data exploration and manipulation in model training workflows."""
+
     def __init__(self, *args, data: dict = None, **kwargs) -> None:
         """Initializes the ExplorerDataset with the provided data arguments, extending the YOLODataset class."""
         super().__init__(*args, data=data, **kwargs)
@@ -54,6 +56,8 @@ class ExplorerDataset(YOLODataset):
 
 
 class Explorer:
+    """Utility class for image embedding, table creation, and similarity querying using LanceDB and YOLO models."""
+
     def __init__(
         self,
         data: Union[str, Path] = "coco128.yaml",

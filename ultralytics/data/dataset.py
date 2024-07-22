@@ -280,6 +280,8 @@ class YOLOMultiModalDataset(YOLODataset):
 
 
 class GroundingDataset(YOLODataset):
+    """Handles object detection tasks by loading annotations from a specified JSON file, supporting YOLO format."""
+
     def __init__(self, *args, task="detect", json_file, **kwargs):
         """Initializes a GroundingDataset for object detection, loading annotations from a specified JSON file."""
         assert task == "detect", "`GroundingDataset` only support `detect` task for now!"

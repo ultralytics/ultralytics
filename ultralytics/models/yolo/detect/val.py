@@ -41,6 +41,11 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
+        if self.args.save_hybrid:
+            LOGGER.warning(
+                "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
+                "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
+            )
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
@@ -53,21 +58,21 @@ class DetectionValidator(BaseValidator):
             height, width = batch["img"].shape[2:]
             nb = len(batch["img"])
             bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
-            self.lb = (
-                [
-                    torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
-                    for i in range(nb)
-                ]
-                if self.args.save_hybrid
-                else []
-            )  # for autolabelling
+            self.lb = [
+                torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
+                for i in range(nb)
+            ]
 
         return batch
 
     def init_metrics(self, model):
         """Initialize evaluation metrics for YOLO."""
         val = self.data.get(self.args.split, "")  # validation path
-        self.is_coco = isinstance(val, str) and "coco" in val and val.endswith(f"{os.sep}val2017.txt")  # is COCO
+        self.is_coco = (
+            isinstance(val, str)
+            and "coco" in val
+            and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
+        )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(len(model.names)))
         self.args.save_json |= (self.is_coco or self.is_lvis) and not self.training  # run on final val if training COCO
@@ -159,8 +164,12 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
-                file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, self.args.save_conf, pbatch["ori_shape"], file)
+                self.save_one_txt(
+                    predn,
+                    self.args.save_conf,
+                    pbatch["ori_shape"],
+                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                )
 
     def finalize_metrics(self, *args, **kwargs):
         """Set final values for metrics speed and confusion matrix."""
@@ -202,13 +211,18 @@ class DetectionValidator(BaseValidator):
         Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
+                (x1, y1, x2, y2, conf, class).
+            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
+                bounding box is of the format: (x1, y1, x2, y2).
+            gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
+            (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
+
+        Note:
+            The function does not return any value directly usable for metrics calculation. Instead, it provides an
+            intermediate representation used for evaluating predictions against ground truth.
         """
         iou = box_iou(gt_bboxes, detections[:, :4])
         return self.match_predictions(detections[:, 5], gt_cls, iou)
@@ -255,12 +269,14 @@ class DetectionValidator(BaseValidator):
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
-        gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
-        for *xyxy, conf, cls in predn.tolist():
-            xywh = (ops.xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-            line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
-            with open(file, "a") as f:
-                f.write(("%g " * len(line)).rstrip() % line + "\n")
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
+        ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):
         """Serialize YOLO predictions to COCO json format."""

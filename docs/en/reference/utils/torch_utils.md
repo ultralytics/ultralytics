@@ -27,6 +27,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.autocast
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.get_cpu_info
 
 <br><br><hr><br>

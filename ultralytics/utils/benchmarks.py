@@ -100,9 +100,11 @@ def benchmark(
                 assert not is_end2end, "End-to-end models not supported by CoreML and TF.js yet"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
-            if i in {6, 7, 8, 9, 10}:  # All TF formats
+            if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                assert not is_end2end, "End-to-end models not supported by onnx2tf yet"
+            if i in {9, 10}:  # TF EdgeTPU and TF.js
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+                assert not is_end2end, "End-to-end models not supported by TF EdgeTPU and TF.js yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"

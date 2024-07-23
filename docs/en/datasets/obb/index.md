@@ -15,7 +15,7 @@ Training a precise object detection model with oriented bounding boxes (OBB) req
 The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1. It follows this format:
 
 ```bash
-class_index, x1, y1, x2, y2, x3, y3, x4, y4
+class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 
 Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the bounding box's center point (xy), width, height, and rotation.

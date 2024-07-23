@@ -453,11 +453,12 @@ class AutoBackend(nn.Module):
 
         # PyTorch
         if self.pt or self.nn_module:
-            y = (
-                self.model(im)
-                if "yolonas" in self.model.__class__.__name__.lower()
-                else self.model(im, augment=augment, visualize=visualize, embed=embed)
-            )
+            y = self.model(im)
+            #y = (
+            #    self.model(im)
+            #    if "yolonas" in self.model.__class__.__name__.lower()
+            #    else self.model(im, augment=augment, visualize=visualize, embed=embed)
+            #)
 
         # TorchScript
         elif self.jit:

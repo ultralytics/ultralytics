@@ -168,12 +168,14 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+        if isinstance(self.args.device, str) and len(self.args.device) and "," in self.args.device:  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
+        elif self.args.device == "multi_cpu":
+            world_size = min(max(self.args.batch, 0), os.cpu_count())  # default to device 0
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0
 
@@ -181,11 +183,11 @@ class BaseTrainer:
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             # Argument checks
             if self.args.rect:
-                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
+                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU/Multi-CPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch < 1.0:
                 LOGGER.warning(
-                    "WARNING ⚠️ 'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting "
+                    "WARNING ⚠️ 'batch<1' for AutoBatch is incompatible with Multi-GPU/Multi-CPU training, setting "
                     "default 'batch=16'"
                 )
                 self.args.batch = 16
@@ -213,10 +215,16 @@ class BaseTrainer:
 
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        if torch.cuda.is_available():
+            torch.cuda.set_device(RANK)
+            self.device = torch.device("cuda", RANK)
+
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        else:
+            self.device = torch.device("cpu", RANK)
+
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
@@ -266,7 +274,10 @@ class BaseTrainer:
         self.amp = bool(self.amp)  # as boolean
         self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            if torch.cuda.is_available():
+                self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            else:
+                self.model = nn.parallel.DistributedDataParallel(self.model, find_unused_parameters=True)
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)

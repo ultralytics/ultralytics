@@ -49,6 +49,7 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
+    autocast,
 )
 
 
@@ -376,7 +377,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with torch.amp.autocast("cuda", enabled=bool(self.amp)):
+                with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:

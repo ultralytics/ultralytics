@@ -76,7 +76,6 @@ def test_predict_txt():
     _ = YOLO(MODEL)(source=txt_file, imgsz=32)
 
 
-@pytest.mark.skipif(False, reason="directory is not writeable")
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""

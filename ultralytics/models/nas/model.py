@@ -65,6 +65,14 @@ class NAS(Model):
             self.model._original_call = self.model.__call__
             self.model.__call__ = new_call
 
+            # Override the __call__ method to ignore additional arguments
+            def new_forward(x, *args, **kwargs):
+                """Ignore additional __call__ arguments."""
+                return self.model._original_forward(x)
+
+            self.model._original_forward = self.model.forward
+            self.model.forward = new_forward
+
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 

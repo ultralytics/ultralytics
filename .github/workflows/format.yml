@@ -5,6 +5,8 @@
 name: Ultralytics Actions
 
 on:
+  issues:
+    types: [opened, edited]
   pull_request_target:
     branches: [main]
     types: [opened, closed, synchronize]
@@ -16,7 +18,8 @@ jobs:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, do not modify
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }} # note GITHUB_TOKEN automatically generated
+          labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           markdown: true # format Markdown
           prettier: true # format YAML

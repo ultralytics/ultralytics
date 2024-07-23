@@ -18,7 +18,6 @@ import torch
 from ultralytics.engine.model import Model
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
-
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -57,7 +56,13 @@ class NAS(Model):
 
         suffix = Path(weights).suffix
         if suffix == ".pt":
-            self.model = torch.load(attempt_download_asset(weights))
+            self.model_inner = torch.load(attempt_download_asset(weights))
+
+            def model_wrapper(arg1, *args, **kwargs):  # ignore additional Ultralytics args like 'augment', etc.
+                return self.model_inner(arg1)
+
+            self.model = model_wrapper
+
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
         # Standardize model

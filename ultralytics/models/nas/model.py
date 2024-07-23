@@ -18,7 +18,6 @@ import torch
 from ultralytics.engine.model import Model
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info
-
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -60,6 +59,8 @@ class NAS(Model):
 
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
+
+        torch.save(self.model, str(Path().cwd() / Path(weights.name)))
 
         # # Override the forward method to ignore additional arguments
         # def new_forward(x, *args, **kwargs):

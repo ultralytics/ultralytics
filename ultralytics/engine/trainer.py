@@ -43,13 +43,13 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     EarlyStopping,
     ModelEMA,
+    autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
-    autocast,
 )
 
 

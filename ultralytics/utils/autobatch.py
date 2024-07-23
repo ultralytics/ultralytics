@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
-from ultralytics.utils.torch_utils import profile, autocast
+from ultralytics.utils.torch_utils import autocast, profile
 
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):

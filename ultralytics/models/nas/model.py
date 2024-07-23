@@ -12,6 +12,7 @@ Example:
 """
 
 from pathlib import Path
+from types import MethodType
 
 import torch
 
@@ -56,18 +57,15 @@ class NAS(Model):
 
         suffix = Path(weights).suffix
         if suffix == ".pt":
-            # Wrap model to ignore additional args: self.model(im, augment=augment, visualize=visualize, embed=embed)
-            class ModelWrapper:
-                def __init__(self):
-                    self.model = torch.load(attempt_download_asset(weights))
+            self.model = torch.load(attempt_download_asset(weights))
 
-                def __call__(self, arg, *args, **kwargs):
-                    return self.model(arg)
+            # Override the __call__ method to ignore additional arguments
+            def new_call(model, x, *args, **kwargs):
+                """Ignore additional __call__ arguments."""
+                return model._original_call(x)
 
-                def __getattr__(self, attr):
-                    return getattr(self.model, attr)
-
-            self.model = ModelWrapper()
+            self.model._original_call = self.model.__call__
+            self.model.__call__ = MethodType(new_call, self.model)
 
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")

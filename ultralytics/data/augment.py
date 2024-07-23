@@ -2350,8 +2350,6 @@ def classify_transforms(
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    interpolation = getattr(T.InterpolationMode, interpolation)
-
     if isinstance(size, (tuple, list)):
         assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)
@@ -2362,7 +2360,7 @@ def classify_transforms(
     # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
     if scale_size[0] == scale_size[1]:
         # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
-        tfl = [T.Resize(scale_size[0], interpolation=interpolation)]
+        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
     else:
         # Resize the shortest edge to matching target dim for non-square target
         tfl = [T.Resize(scale_size)]

@@ -61,7 +61,7 @@ class NAS(Model):
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
-        torch.save(self.model, str(Path().cwd() / Path(weights.name)))
+        torch.save(self.model, str(Path().cwd() / Path(weights).name))
 
         # # Override the forward method to ignore additional arguments
         # def new_forward(x, *args, **kwargs):

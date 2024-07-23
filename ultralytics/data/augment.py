@@ -159,11 +159,11 @@ class Compose:
         tolist: Converts the list of transforms to a standard Python list.
 
     Examples:
-        >>> transforms = [RandomFlip(), RandomRotate(30), RandomCrop((224, 224))]
+        >>> transforms = [RandomFlip(), RandomPerspective(30)]
         >>> compose = Compose(transforms)
         >>> transformed_data = compose(data)
-        >>> compose.append(Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
-        >>> compose.insert(0, Resize((256, 256)))
+        >>> compose.append(CenterCrop((224, 224)))
+        >>> compose.insert(0, RandomFlip())
     """
 
     def __init__(self, transforms):
@@ -174,8 +174,8 @@ class Compose:
             transforms (List[Callable]): A list of callable transform objects to be applied sequentially.
 
         Examples:
-            >>> from ultralytics.data.augment import Compose, Resize, RandomFlip
-            >>> transforms = [Resize(640), RandomFlip()]
+            >>> from ultralytics.data.augment import Compose, RandomHSV, RandomFlip
+            >>> transforms = [RandomHSV(), RandomFlip()]
             >>> compose = Compose(transforms)
         """
         self.transforms = transforms if isinstance(transforms, list) else [transforms]
@@ -209,7 +209,7 @@ class Compose:
             transform (BaseTransform): The transformation to be added to the composition.
 
         Examples:
-            >>> compose = Compose([RandomFlip(), RandomRotate()])
+            >>> compose = Compose([RandomFlip(), RandomPerspective()])
             >>> compose.append(RandomHSV())
         """
         self.transforms.append(transform)
@@ -232,7 +232,7 @@ class Compose:
 
     def __getitem__(self, index: Union[list, int]) -> "Compose":
         """
-        Retrieve a specific transform or a set of transforms using indexing.
+        Retrieves a specific transform or a set of transforms using indexing.
 
         Args:
             index (int | List[int]): Index or list of indices of the transforms to retrieve.
@@ -244,10 +244,10 @@ class Compose:
             AssertionError: If the index is not of type int or list.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomRotate(10), RandomHSV(0.5, 0.5, 0.5)]
+            >>> transforms = [RandomFlip(), RandomPerspective(10), RandomHSV(0.5, 0.5, 0.5)]
             >>> compose = Compose(transforms)
-            >>> single_transform = compose[1]  # Returns a Compose object with only RandomRotate
-            >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomRotate
+            >>> single_transform = compose[1]  # Returns a Compose object with only RandomPerspective
+            >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         index = [index] if isinstance(index, int) else index
@@ -288,7 +288,7 @@ class Compose:
             (List): A list containing all the transform objects in the Compose instance.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomRotate(10), RandomCrop()]
+            >>> transforms = [RandomFlip(), RandomPerspective(10), CenterCrop()]
             >>> compose = Compose(transforms)
             >>> transform_list = compose.tolist()
             >>> print(len(transform_list))
@@ -304,12 +304,12 @@ class Compose:
             (str): A string representation of the Compose object, including the list of transforms.
 
         Examples:
-            >>> transforms = [RandomFlip(), RandomAffine(degrees=10, translate=0.1, scale=0.1)]
+            >>> transforms = [RandomFlip(), RandomPerspective(degrees=10, translate=0.1, scale=0.1)]
             >>> compose = Compose(transforms)
             >>> print(compose)
             Compose([
                 RandomFlip(),
-                RandomAffine(degrees=10, translate=0.1, scale=0.1)
+                RandomPerspective(degrees=10, translate=0.1, scale=0.1)
             ])
         """
         return f"{self.__class__.__name__}({', '.join([f'{t}' for t in self.transforms])})"
@@ -353,12 +353,12 @@ class BaseMixTransform:
 
         Args:
             dataset (Any): The dataset object containing images and labels for mixing.
-            pre_transform (Callable | None): Optional transform to apply before mixing. If None, no pre-transform is applied.
+            pre_transform (Callable | None): Optional transform to apply before mixing.
             p (float): Probability of applying the mix transformation. Should be in the range [0.0, 1.0].
 
         Examples:
             >>> dataset = YOLODataset("path/to/data")
-            >>> pre_transform = Compose([RandomFlip(), RandomRotate()])
+            >>> pre_transform = Compose([RandomFlip(), RandomPerspective()])
             >>> mix_transform = BaseMixTransform(dataset, pre_transform, p=0.5)
         """
         self.dataset = dataset
@@ -420,7 +420,7 @@ class BaseMixTransform:
             (Dict): The modified labels dictionary with augmented data after applying the mix transform.
 
         Examples:
-            >>> transform = MixUpTransform(dataset)
+            >>> transform = BaseMixTransform(dataset)
             >>> labels = {'image': img, 'bboxes': boxes, 'mix_labels': [{'image': img2, 'bboxes': boxes2}]}
             >>> augmented_labels = transform._mix_transform(labels)
         """
@@ -662,13 +662,12 @@ class Mosaic(BaseMixTransform):
         updates the corresponding labels for each image in the mosaic.
 
         Args:
-            labels (Dict): A dictionary containing image data and labels for the base image (index 0) and
-                three additional images (indices 1-3) in the 'mix_labels' key.
+            labels (Dict): A dictionary containing image data and labels for the base image (index 0) and three
+                additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the
-                mosaic image as a numpy array, and other keys contain the combined and adjusted labels for
-                all four images.
+            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
+                image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
@@ -963,7 +962,7 @@ class RandomPerspective:
         shear (float): Maximum shear angle in degrees.
         perspective (float): Perspective distortion factor.
         border (Tuple[int, int]): Mosaic border size as (x, y).
-        pre_transform (callable): Optional transform to apply before the random perspective.
+        pre_transform (Callable | None): Optional transform to apply before the random perspective.
 
     Methods:
         affine_transform: Applies affine transformations to the input image.
@@ -988,9 +987,8 @@ class RandomPerspective:
         """
         Initializes RandomPerspective object with transformation parameters.
 
-        This class implements random perspective and affine transformations on images and corresponding
-        bounding boxes, segments, and keypoints. Transformations include rotation, translation, scaling,
-        and shearing.
+        This class implements random perspective and affine transformations on images and corresponding bounding boxes,
+        segments, and keypoints. Transformations include rotation, translation, scaling, and shearing.
 
         Args:
             degrees (float): Degree range for random rotations.
@@ -999,8 +997,8 @@ class RandomPerspective:
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             border (Tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
-            pre_transform (Callable | None): Function/transform to apply to the image before starting the
-                random transformation.
+            pre_transform (Callable | None): Function/transform to apply to the image before starting the random
+                transformation.
 
         Examples:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
@@ -1121,8 +1119,8 @@ class RandomPerspective:
         the transformed segments. It clips the transformed segments to fit within the new bounding boxes.
 
         Args:
-            segments (np.ndarray): Input segments with shape (N, M, 2), where N is the number of segments and M
-                is the number of points in each segment.
+            segments (np.ndarray): Input segments with shape (N, M, 2), where N is the number of segments and M is the
+                number of points in each segment.
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
@@ -1203,10 +1201,10 @@ class RandomPerspective:
 
         Returns:
             (Dict): Transformed labels dictionary containing:
-                'img' (ndarray): The transformed image.
-                'cls' (ndarray): Updated class labels.
-                'instances' (Instances): Updated object instances.
-                'resized_shape' (Tuple[int, int]): New image shape after transformation.
+                - 'img' (np.ndarray): The transformed image.
+                - 'cls' (np.ndarray): Updated class labels.
+                - 'instances' (Instances): Updated object instances.
+                - 'resized_shape' (Tuple[int, int]): New image shape after transformation.
 
         Examples:
             >>> transform = RandomPerspective()
@@ -1271,9 +1269,9 @@ class RandomPerspective:
         been overly distorted or reduced by the augmentation process.
 
         Args:
-            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, n) where n is the
+            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, N) where n is the
                 number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, n). Format is
+            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, N). Format is
                 [x1, y1, x2, y2] in absolute coordinates.
             wh_thr (float): Width and height threshold in pixels. Boxes smaller than this in either
                 dimension are rejected.
@@ -1411,9 +1409,8 @@ class RandomFlip:
         It also updates any instances (bounding boxes, keypoints, etc.) accordingly.
 
         Args:
-            p (float): The probability of applying the flip. Must be between 0 and 1. Default is 0.5.
+            p (float): The probability of applying the flip. Must be between 0 and 1.
             direction (str): The direction to apply the flip. Must be 'horizontal' or 'vertical'.
-                Default is 'horizontal'.
             flip_idx (List[int] | None): Index mapping for flipping keypoints, if any.
 
         Raises:
@@ -1538,15 +1535,15 @@ class LetterBox:
         """
         Resizes and pads an image for object detection, instance segmentation, or pose estimation tasks.
 
-        This method applies letterboxing to the input image, which involves resizing the image while maintaining its aspect
-        ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
+        This method applies letterboxing to the input image, which involves resizing the image while maintaining its
+        aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
 
         Args:
-            labels (dict | None): A dictionary containing image data and associated labels. If None, an empty dict is used.
-            image (numpy.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
+            labels (Dict | None): A dictionary containing image data and associated labels, or empty dict if None.
+            image (np.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
-            (dict | tuple): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
+            (Dict | Tuple): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
                 updated labels, and additional metadata. If 'labels' is empty, returns a tuple containing the resized
                 and padded image, and a tuple of (ratio, (left_pad, top_pad)).
 
@@ -1675,17 +1672,16 @@ class CopyPaste:
         Applies Copy-Paste augmentation to an image and its instances.
 
         Args:
-            labels (dict): A dictionary containing:
-                - 'img' (numpy.ndarray): The image to augment.
-                - 'cls' (numpy.ndarray): Class labels for the instances.
+            labels (Dict): A dictionary containing:
+                - 'img' (np.ndarray): The image to augment.
+                - 'cls' (np.ndarray): Class labels for the instances.
                 - 'instances' (ultralytics.engine.results.Instances): Object containing bounding boxes, segments, etc.
 
         Returns:
-            (dict): Dictionary with augmented image and updated instances under 'img', 'cls', and 'instances' keys.
+            (Dict): Dictionary with augmented image and updated instances under 'img', 'cls', and 'instances' keys.
 
         Examples:
-            >>> labels = {'img': np.random.rand(640, 640, 3), 'cls': np.array([0, 1, 2]),
-            ...           'instances': Instances(...)}
+            >>> labels = {'img': np.random.rand(640, 640, 3), 'cls': np.array([0, 1, 2]), 'instances': Instances(...)}
             >>> augmenter = CopyPaste(p=0.5)
             >>> augmented_labels = augmenter(labels)
         """
@@ -1874,8 +1870,12 @@ class Albumentations:
 
         Examples:
             >>> transform = Albumentations(p=0.5)
-            >>> augmented = transform({"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1]),
-            ...                        "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]))})
+            >>> labels = {
+            ...     "img": np.random.rand(640, 640, 3),
+            ...     "cls": np.array([0, 1]),
+            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]))
+            ... }
+            >>> augmented = transform(labels)
             >>> assert augmented["img"].shape == (640, 640, 3)
 
         Notes:
@@ -1974,6 +1974,7 @@ class Format:
             mask_ratio (int): Downsample ratio for masks.
             mask_overlap (bool): Whether masks can overlap.
             batch_idx (bool): Whether to keep batch indexes.
+            bgr (float): The probability to return BGR images.
 
         Examples:
             >>> format = Format(bbox_format='xyxy', return_mask=True, return_keypoint=False)
@@ -1994,9 +1995,9 @@ class Format:
         """
         Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
 
-        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
-        It processes the input labels dictionary, converting annotations to the specified format and applying
-        normalization if required.
+        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
+        DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
+        applying normalization if required.
 
         Args:
             labels (Dict): A dictionary containing image and annotation data with the following keys:
@@ -2069,7 +2070,7 @@ class Format:
         5. Converts the Numpy array to a PyTorch tensor.
 
         Args:
-            img (ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
 
         Returns:
             (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
@@ -2130,11 +2131,11 @@ class RandomLoadText:
     to reflect the sampled texts and can optionally pad the text list to a fixed length.
 
     Attributes:
-        prompt_format (str): Format string for text prompts. Default is '{}'.
-        neg_samples (Tuple[int, int]): Range for randomly sampling negative texts. Default is (80, 80).
-        max_samples (int): Maximum number of different text samples in one image. Default is 80.
-        padding (bool): Whether to pad texts to max_samples. Default is False.
-        padding_value (str): The text used for padding when padding is True. Default is "".
+        prompt_format (str): Format string for text prompts.
+        neg_samples (Tuple[int, int]): Range for randomly sampling negative texts.
+        max_samples (int): Maximum number of different text samples in one image.
+        padding (bool): Whether to pad texts to max_samples.
+        padding_value (str): The text used for padding when padding is True.
 
     Methods:
         __call__: Processes the input labels and returns updated classes and texts.
@@ -2268,15 +2269,15 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (dict): A dictionary of hyperparameters controlling various aspects of the transformations.
+        hyp (Dict): A dictionary of hyperparameters controlling various aspects of the transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
         (Compose): A composition of image transformations to be applied to the dataset.
 
     Examples:
-        >>> from ultralytics.data.dataset import Dataset
-        >>> dataset = Dataset(img_path='path/to/images', imgsz=640)
+        >>> from ultralytics.data.dataset import YOLODataset
+        >>> dataset = YOLODataset(img_path='path/to/images', imgsz=640)
         >>> hyp = {'mosaic': 1.0, 'copy_paste': 0.5, 'degrees': 10.0, 'translate': 0.2, 'scale': 0.9}
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
@@ -2332,15 +2333,12 @@ def classify_transforms(
     center cropping, conversion to tensor, and normalization.
 
     Args:
-        size (int | tuple): The target size for the transformed image. If an int, it defines the
-            shortest edge. If a tuple, it defines (height, width).
-        mean (tuple): Mean values for each RGB channel used in normalization. Defaults to
-            DEFAULT_MEAN.
+        size (int | tuple): The target size for the transformed image. If an int, it defines the shortest edge. If a
+            tuple, it defines (height, width).
+        mean (tuple): Mean values for each RGB channel used in normalization.
         std (tuple): Standard deviation values for each RGB channel used in normalization.
-            Defaults to DEFAULT_STD.
-        interpolation (int): Interpolation method for resizing. Defaults to Image.BILINEAR.
-        crop_fraction (float): Fraction of the image to be cropped. Defaults to
-            DEFAULT_CROP_FRACTION.
+        interpolation (int): Interpolation method for resizing.
+        crop_fraction (float): Fraction of the image to be cropped.
 
     Returns:
         (torchvision.transforms.Compose): A composition of torchvision transforms.
@@ -2482,7 +2480,7 @@ def classify_augmentations(
 # NOTE: keep this class for backward compatibility
 class ClassifyLetterBox:
     """
-    YOLOv8 LetterBox class for image preprocessing in classification tasks.
+    A class for resizing and padding images for classification tasks.
 
     This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
     It resizes and pads images to a specified size while maintaining the original aspect ratio.
@@ -2512,8 +2510,8 @@ class ClassifyLetterBox:
         pads images to a specified size while maintaining the original aspect ratio.
 
         Args:
-            size (Union[int, Tuple[int, int]]): Target size for the letterboxed image. If int, a square image of
-                (size, size) is created. If tuple, it should be (height, width).
+            size (int | Tuple[int, int]): Target size for the letterboxed image. If an int, a square image of
+                (size, size) is created. If a tuple, it should be (height, width).
             auto (bool): If True, automatically calculates the short side based on stride. Default is False.
             stride (int): The stride value, used when 'auto' is True. Default is 32.
 

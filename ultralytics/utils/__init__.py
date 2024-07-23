@@ -1066,8 +1066,9 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_save
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
+torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths

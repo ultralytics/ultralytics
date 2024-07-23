@@ -41,6 +41,7 @@ from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_m
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
+    TORCH_1_13,
     EarlyStopping,
     ModelEMA,
     autocast,
@@ -50,7 +51,6 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
-    TORCH_1_13,
 )
 
 

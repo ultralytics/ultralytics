@@ -69,6 +69,8 @@ def inference(model=None):
     # Add dropdown menu for model selection
     available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolov8")]
     if model:
+        # Since we are later adding '.pt' to the model name (when loading YOLO model a few lines later), remove it here if the string ends with .pt
+        model = model.split(".pt")[0]
         available_models.insert(0, model)
 
     selected_model = st.sidebar.selectbox("Model", available_models)

@@ -2322,7 +2322,7 @@ def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
-    interpolation='BILINEAR',
+    interpolation="BILINEAR",
     crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
     """
@@ -2349,6 +2349,7 @@ def classify_transforms(
         >>> transformed_img = transforms(img)
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
     interpolation = getattr(T.InterpolationMode, interpolation)
 
     if isinstance(size, (tuple, list)):
@@ -2390,7 +2391,7 @@ def classify_augmentations(
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
-    interpolation='BILINEAR',
+    interpolation="BILINEAR",
 ):
     """
     Creates a composition of image augmentation transforms for classification tasks.
@@ -2423,6 +2424,7 @@ def classify_augmentations(
     """
     # Transforms to apply if Albumentations not installed
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
     interpolation = getattr(T.InterpolationMode, interpolation)
 
     if not isinstance(size, int):

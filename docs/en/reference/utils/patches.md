@@ -23,10 +23,10 @@ keywords: Ultralytics, utils, patches, imread, imwrite, imshow, torch_save, Open
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.patches.torch_save
+## ::: ultralytics.utils.patches.torch_load
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.patches.torch_load
+## ::: ultralytics.utils.patches.torch_save
 
 <br><br>

@@ -58,24 +58,16 @@ class NAS(Model):
         if suffix == ".pt":
             self.model = torch.load(attempt_download_asset(weights))
 
-            # Override the __call__ method to ignore additional arguments
-            def new_call(x, *args, **kwargs):
-                """Ignore additional __call__ arguments."""
-                return self.model._original_call(x)
-
-            self.model._original_call = self.model.__call__
-            self.model.__call__ = new_call
-
-            # Override the __call__ method to ignore additional arguments
-            def new_forward(x, *args, **kwargs):
-                """Ignore additional __call__ arguments."""
-                return self.model._original_forward(x)
-
-            self.model._original_forward = self.model.forward
-            self.model.forward = new_forward
-
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
+
+        # Override the forward method to ignore additional arguments
+        def new_forward(x, *args, **kwargs):
+            """Ignore additional __call__ arguments."""
+            return self.model._original_forward(x)
+
+        self.model._original_forward = self.model.forward
+        self.model.forward = new_forward
 
         # Standardize model
         self.model.fuse = lambda verbose=True: self.model

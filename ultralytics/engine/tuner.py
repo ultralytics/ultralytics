@@ -194,7 +194,7 @@ class Tuner:
                 cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
                 return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
-                metrics = torch.load(ckpt_file)["train_metrics"]
+                metrics = torch.load(ckpt_file, weights_only=False)["train_metrics"]
                 assert return_code == 0, "training failed"
 
             except Exception as e:

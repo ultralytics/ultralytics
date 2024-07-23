@@ -63,13 +63,13 @@ class NAS(Model):
 
         torch.save(self.model, str(Path().cwd() / Path(weights).name))
 
-        # # Override the forward method to ignore additional arguments
-        # def new_forward(x, *args, **kwargs):
-        #     """Ignore additional __call__ arguments."""
-        #     return self.model._original_forward(x)
-        #
-        # self.model._original_forward = self.model.forward
-        # self.model.forward = new_forward
+        # Override the forward method to ignore additional arguments
+        def new_forward(x, *args, **kwargs):
+            """Ignore additional __call__ arguments."""
+            return self.model._original_forward(x)
+
+        self.model._original_forward = self.model.forward
+        self.model.forward = new_forward
 
         # Standardize model
         self.model.fuse = lambda verbose=True: self.model

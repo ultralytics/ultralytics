@@ -18,7 +18,6 @@ import torch
 from ultralytics.engine.model import Model
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
-
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -58,6 +57,15 @@ class NAS(Model):
         suffix = Path(weights).suffix
         if suffix == ".pt":
             self.model = torch.load(attempt_download_asset(weights))
+
+            # Override the __call__ method to ignore additional arguments
+            def new_call(x, *args, **kwargs):
+                """Ignore additional __call__ arguments."""
+                return self.model._original_call(x)
+
+            self.model._original_call = self.model.__call__
+            self.model.__call__ = new_call
+
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 

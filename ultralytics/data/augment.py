@@ -2322,7 +2322,7 @@ def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
-    interpolation=Image.BILINEAR,
+    interpolation='BILINEAR',
     crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
     """
@@ -2337,7 +2337,7 @@ def classify_transforms(
             tuple, it defines (height, width).
         mean (tuple): Mean values for each RGB channel used in normalization.
         std (tuple): Standard deviation values for each RGB channel used in normalization.
-        interpolation (int): Interpolation method for resizing.
+        interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
         crop_fraction (float): Fraction of the image to be cropped.
 
     Returns:
@@ -2349,6 +2349,7 @@ def classify_transforms(
         >>> transformed_img = transforms(img)
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
+    interpolation = getattr(T.InterpolationMode, interpolation)
 
     if isinstance(size, (tuple, list)):
         assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
@@ -2389,7 +2390,7 @@ def classify_augmentations(
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
-    interpolation=Image.BILINEAR,
+    interpolation='BILINEAR',
 ):
     """
     Creates a composition of image augmentation transforms for classification tasks.
@@ -2411,7 +2412,7 @@ def classify_augmentations(
         hsv_v (float): Image HSV-Value augmentation factor.
         force_color_jitter (bool): Whether to apply color jitter even if auto augment is enabled.
         erasing (float): Probability of random erasing.
-        interpolation (int): Interpolation method.
+        interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
 
     Returns:
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
@@ -2422,6 +2423,7 @@ def classify_augmentations(
     """
     # Transforms to apply if Albumentations not installed
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
+    interpolation = getattr(T.InterpolationMode, interpolation)
 
     if not isinstance(size, int):
         raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")

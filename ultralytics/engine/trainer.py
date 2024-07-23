@@ -29,6 +29,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    NUM_THREADS,
     __version__,
     callbacks,
     clean_url,
@@ -175,7 +176,7 @@ class BaseTrainer:
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
         elif self.args.device == "multi_cpu":
-            world_size = min(max(self.args.batch, 0), os.cpu_count())  # default to device 0
+            world_size = NUM_THREADS + 1  # default to device 0
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0
 
@@ -218,15 +219,16 @@ class BaseTrainer:
         if torch.cuda.is_available():
             torch.cuda.set_device(RANK)
             self.device = torch.device("cuda", RANK)
-
+            backend="nccl" if dist.is_nccl_available() else "gloo"
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         else:
+            backend="gloo"
             self.device = torch.device("cpu", RANK)
 
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
 
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=world_size,

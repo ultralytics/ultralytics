@@ -173,7 +173,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
 
-    if arg in {"cpu", "mps"}:
+    if arg in {"cpu", "mps"} and device != "multi_cpu":
         torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
     if verbose:
         LOGGER.info(s if newline else s.rstrip())

@@ -56,10 +56,10 @@ class NAS(Model):
 
         suffix = Path(weights).suffix
         if suffix == ".pt":
-            self.model_inner = torch.load(attempt_download_asset(weights))
+            self.model_single_arg = torch.load(attempt_download_asset(weights))
 
             def model_wrapper(arg1, *args, **kwargs):  # ignore additional Ultralytics args like 'augment', etc.
-                return self.model_inner(arg1)
+                return self.model_single_arg(arg1)
 
             self.model = model_wrapper
 

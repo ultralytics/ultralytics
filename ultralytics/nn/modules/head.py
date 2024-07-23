@@ -121,6 +121,7 @@ class Detect(nn.Module):
         x2 = self.relu(dbox[:, 3, :])
         y_bb = torch.stack((x1, y1, x2, y2), 1).transpose(1, 2)
 
+        # return torch.cat((dbox, cls.sigmoid()), 1)
         return y_bb, cls.sigmoid().permute(0, 2, 1)
 
     def bias_init(self):

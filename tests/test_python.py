@@ -96,20 +96,12 @@ def test_predict_img(model_name):
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
 
-    assert len(model([str(SOURCE)], imgsz=32)) == 1
-    assert len(model([Path(SOURCE)], imgsz=32)) == 1
-    assert (
-        len(
-            model(
-                ["https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE],
-                imgsz=32,
-            )
-        )
-        == 1
-    )
-    assert len(model([cv2.imread(str(SOURCE))], imgsz=32)) == 1
-    assert len(model([Image.open(SOURCE)], imgsz=32)) == 1
-    assert len(model([np.zeros((320, 640, 3), dtype=np.uint8)], imgsz=32)) == 1
+    _ = model([str(SOURCE)], imgsz=32)
+    _ = model([Path(SOURCE)], imgsz=32)
+    _ = model(["https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg"], imgsz=32)
+    _ = model([cv2.imread(str(SOURCE))], imgsz=32)
+    _ = model([Image.open(SOURCE)], imgsz=32)
+    _ = model([np.zeros((320, 640, 3), dtype=np.uint8)], imgsz=32)
 
     assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 

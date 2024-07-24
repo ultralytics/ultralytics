@@ -1,0 +1,21 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Default solutions settings
+
+names: None   # (dict) solutions dictionary
+view_img: False   # (bool) display an output image
+window_name: "Ultralytics Solutions"
+
+# Object counter settings -------------------------------------------------------------------------------------------------------
+reg_pts: "[(20, 400), (1260, 400)]"
+count_reg_color: "(255, 0, 255)"
+count_txt_color: "(0, 0, 0)"
+count_bg_color: "(255, 255, 255)"
+line_thickness: 2
+track_thickness: 2
+view_in_counts: True
+view_out_counts: True
+draw_tracks: False
+track_color: None
+region_thickness: 5
+line_dist_thresh: 15
+

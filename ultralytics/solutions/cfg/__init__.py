@@ -4,9 +4,7 @@ from ultralytics.utils import yaml_load, IterableSimpleNamespace
 
 
 def extract_cfg_data(FILE):
-    print(FILE)
     ROOT = FILE.parents[0]  # solutions
-    print(ROOT)
     DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
     DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
     for k, v in DEFAULT_CFG_DICT.items():

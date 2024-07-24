@@ -116,7 +116,7 @@ class ActionRecognition:
             sequences (torch.Tensor): The input sequences for the model. Batched video frames with shape (B, T, H, W, C).
 
         Returns:
-            torch.Tensor: The model's output.
+            (torch.Tensor): The model's output.
         """
         return self.video_classifier(sequences)
 
@@ -128,8 +128,8 @@ class ActionRecognition:
             outputs (torch.Tensor): The model's output.
 
         Returns:
-            List[List[str]]: The predicted top3 labels.
-            List[List[float]]: The predicted top3 confidences.
+            (List[List[str]]): The predicted top3 labels.
+            (List[List[float]]): The predicted top3 confidences.
         """
         pred_labels = []
         pred_confs = []
@@ -332,7 +332,7 @@ class TorchVisionVideoClassifier:
                                       (B, T, C, H, W) for batched video frames or (T, C, H, W) for single video frames.
 
         Returns:
-            torch.Tensor: The model's output.
+            (torch.Tensor): The model's output.
         """
         with torch.inference_mode():
             return self.model(sequences)

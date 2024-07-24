@@ -186,8 +186,7 @@ class v8DetectionLoss:
             i = targets[:, 0]  # image index
             _, counts = i.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            max_count = counts.max().item()
-            max_count = 0 if max_count < 0 else max_count
+            max_count = max(counts.max().item(), 0)
             out = torch.zeros(batch_size, max_count, ne - 1, device=self.device)
             for j in range(batch_size):
                 matches = i == j

@@ -239,7 +239,9 @@ class TorchVisionVideoClassifier:
         supports_r3d = check_requirements("torchvision>=0.8.1", install=False)
         self.supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
         supports_mvitv1b = supports_s3d = check_requirements("torchvision>=0.14.0", install=False)
-        supports_mvitv2s = supports_swin3dt = supports_swin3db = check_requirements("torchvision>=0.15.0", install=False)
+        supports_mvitv2s = supports_swin3dt = supports_swin3db = check_requirements(
+            "torchvision>=0.15.0", install=False
+        )
 
         model_name_to_model_and_weights = {}
         if supports_r3d:

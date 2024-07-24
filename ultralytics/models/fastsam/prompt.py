@@ -10,6 +10,7 @@ from PIL import Image
 from torch import Tensor
 
 from ultralytics.utils import TQDM, checks
+from ultralytics.utils import plt_settings
 
 
 class FastSAMPrompt:
@@ -93,6 +94,7 @@ class FastSAMPrompt:
                 y2 = max(y2, y_t + h_t)
         return [x1, y1, x2, y2]
 
+    @plt_settings()
     def plot(
         self,
         annotations,

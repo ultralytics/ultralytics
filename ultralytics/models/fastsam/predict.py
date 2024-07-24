@@ -29,3 +29,22 @@ class FastSAMPredictor(SegmentationPredictor):
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
         return results
+
+    def inference(self, im, bboxes=None, points=None, texts=None):
+        """
+        Perform image segmentation inference based on the given input cues, using the currently loaded image. This
+        method leverages FastSAM's (Based on Ultralytics YOLOv8) architecture and CLIP model for real-time and 
+        promptable segmentation tasks.
+
+        Args:
+            im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
+            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
+            texts (List, optional): Textual prompts.
+        """
+        results = super().inference(im)
+        if bboxes is not None:
+            bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
+            bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
+            for result in results:
+                pass

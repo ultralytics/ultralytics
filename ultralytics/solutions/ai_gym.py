@@ -102,4 +102,4 @@ class AIGym:
 
 if __name__ == "__main__":
     kpts_to_check = [0, 1, 2]  # example keypoints
-    aigym = AIGym()
+    aigym = AIGym(kpts_to_check=kpts_to_check)

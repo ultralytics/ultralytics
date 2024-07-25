@@ -484,7 +484,7 @@ def check_model_file_from_stem(model="yolov8n"):
         return model
 
 
-def check_file(file, suffix="", download=True, download_dir='.', hard=True):
+def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces

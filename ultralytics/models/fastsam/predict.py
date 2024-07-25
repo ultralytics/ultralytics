@@ -26,6 +26,7 @@ class FastSAMPredictor(SegmentationPredictor):
         """Applies box postprocess for FastSAM predictions."""
         bboxes = self.prompts.pop("bboxes", None)
         points = self.prompts.pop("points", None)
+        labels = self.prompts.pop("labels", None)
         texts = self.prompts.pop("texts", None)
         results = super().postprocess(preds, img, orig_imgs)
         for result in results:
@@ -37,7 +38,7 @@ class FastSAMPredictor(SegmentationPredictor):
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 
-        return self.prompt(results, bboxes=bboxes, points=points, texts=texts)
+        return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
 
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
         """
@@ -75,12 +76,14 @@ class FastSAMPredictor(SegmentationPredictor):
                 assert len(labels) == len(
                     points
                 ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
-                idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                idx = (
+                    torch.ones(len(result), dtype=torch.bool, device=self.device)
+                    if labels.sum() == 0  # all negative points
+                    else torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                )
                 for p, l in zip(points, labels):
-                    if l:
-                        idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True
-                    else:
-                        pass
+                    idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                result = result[idx]
 
             prompt_results.append(result)
 

@@ -10,7 +10,7 @@ draw_tracks: False
 track_color: None
 
 # Object counter settings -----------------------------------------------------------------
-reg_pts: "[(20, 400), (1260, 400)]"
+reg_pts: &reg_pts "[(20, 400), (1260, 400)]"
 count_reg_color: &count_reg_color "(255, 0, 255)"
 count_txt_color: "(0, 0, 0)"
 count_bg_color: "(255, 255, 255)"
@@ -27,5 +27,13 @@ pose_down_angle: 90
 pose_type: "pullup"
 
 # Anchors and aliases ---------------------------------------------------------------------
-spdl_dist_thresh: *line_dist_thresh
-region_color: *count_reg_color
+spdl_dist_thresh: *line_dist_thresh     # For speed estimation
+region_color: *count_reg_color    # For Queue management
+
+
+# Heatmaps settings -----------------------------------------------------------------------
+shape: "circle"
+heatmap_alpha: 0.5
+count_reg_pts: *reg_pts
+decay_factor: 0.99
+colormap: cv2.COLORMAP_JET

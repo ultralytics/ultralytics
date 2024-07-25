@@ -424,13 +424,6 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def make_divisible(x, divisor):
-    """Returns nearest x divisible by divisor."""
-    if isinstance(divisor, torch.Tensor):
-        divisor = int(divisor.max())  # to int
-    return math.ceil(x / divisor) * divisor
-
-
 def copy_attr(a, b, include=(), exclude=()):
     """Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes."""
     for k, v in b.__dict__.items():

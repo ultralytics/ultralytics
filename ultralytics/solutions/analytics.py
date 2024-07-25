@@ -12,6 +12,7 @@ from matplotlib.figure import Figure
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
+from ultralytics.utils.plotting import colors
 
 FILE = Path(__file__).resolve()  # get path of file
 
@@ -52,19 +53,8 @@ class Analytics:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.args.bg_color)
             self.ax.set_facecolor(self.args.bg_color)
-            color_palette = [
-                (31, 119, 180),
-                (255, 127, 14),
-                (44, 160, 44),
-                (214, 39, 40),
-                (148, 103, 189),
-                (140, 86, 75),
-                (227, 119, 194),
-                (127, 127, 127),
-                (188, 189, 34),
-                (23, 190, 207),
-            ]
-            self.color_palette = [(r / 255, g / 255, b / 255, 1) for r, g, b in color_palette]
+
+            self.color_palette = [(r / 255, g / 255, b / 255, 1) for r, g, b in colors.palette]
             self.color_cycle = cycle(self.color_palette)
             self.color_mapping = {}
 

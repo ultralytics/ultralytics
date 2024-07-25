@@ -21,6 +21,7 @@ class QueueManager:
     """A class to manage the queue in a real-time video stream based on object tracks."""
 
     def __init__(self, **kwargs):
+        import ast
         """Initializes the QueueManager with specified parameters for tracking and counting objects."""
         self.args = get_cfg(extract_cfg_data(FILE))
         for key, value in kwargs.items():
@@ -41,6 +42,8 @@ class QueueManager:
         self.counts = 0
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
+        self.args.count_txt_color = ast.literal_eval(self.args.count_txt_color)
+        self.args.count_reg_color = ast.literal_eval(self.args.count_reg_color)
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
@@ -86,7 +89,7 @@ class QueueManager:
             self.annotator.queue_counts_display(
                 label,
                 points=self.args.reg_pts,
-                region_color=self.args.region_color,
+                region_color=self.args.count_reg_color,
                 txt_color=self.args.count_txt_color,
             )
 

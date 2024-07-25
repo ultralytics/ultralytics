@@ -3,7 +3,6 @@
 from collections import defaultdict
 
 import cv2
-import ast
 from pathlib import Path
 
 from ultralytics.cfg import get_cfg
@@ -22,6 +21,7 @@ class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
     def __init__(self, **kwargs):
+        import ast
         self.args = get_cfg(extract_cfg_data(FILE))
         if 'names' not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")

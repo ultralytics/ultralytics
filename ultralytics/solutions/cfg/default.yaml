@@ -11,16 +11,21 @@ track_color: None
 
 # Object counter settings -----------------------------------------------------------------
 reg_pts: "[(20, 400), (1260, 400)]"
-count_reg_color: "(255, 0, 255)"
+count_reg_color: &count_reg_color "(255, 0, 255)"
 count_txt_color: "(0, 0, 0)"
 count_bg_color: "(255, 255, 255)"
 view_in_counts: True
 view_out_counts: True
 region_thickness: 5
-line_dist_thresh: 15
+line_dist_thresh: &line_dist_thresh 15
+
 
 # Workouts monitoring settings ------------------------------------------------------------
 kpts_to_check: [6, 8, 10]
 pose_up_angle: 145
 pose_down_angle: 90
 pose_type: "pullup"
+
+# Anchors and aliases ---------------------------------------------------------------------
+spdl_dist_thresh: *line_dist_thresh
+region_color: *count_reg_color

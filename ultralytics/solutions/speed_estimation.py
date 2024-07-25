@@ -5,54 +5,44 @@ from time import time
 
 import cv2
 import numpy as np
+from pathlib import Path
 
-from ultralytics.utils.checks import check_imshow
+from ultralytics.cfg import get_cfg
+from ultralytics.solutions.cfg import extract_cfg_data
 from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.checks import check_imshow
+
+FILE = Path(__file__).resolve()     # get path of file
 
 
 class SpeedEstimator:
     """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
+    def __init__(self, **kwargs):
+        """Initializes the SpeedEstimator with the given parameters."""
+        self.args = get_cfg(extract_cfg_data(FILE))
+        if 'names' not in kwargs:
+            raise ValueError("Error: Classes names 'names' argument is required")
+        for key, value in kwargs.items():
+            if hasattr(self.args, key):
+                setattr(self.args, key, value)
+            else:
+                print(f"Warning: Unknown argument Skipping!!! {key}")
 
-    def __init__(self, names, reg_pts=None, view_img=False, line_thickness=2, region_thickness=5, spdl_dist_thresh=10):
-        """
-        Initializes the SpeedEstimator with the given parameters.
-
-        Args:
-            names (dict): Dictionary of class names.
-            reg_pts (list, optional): List of region points for speed estimation. Defaults to [(20, 400), (1260, 400)].
-            view_img (bool, optional): Whether to display the image with annotations. Defaults to False.
-            line_thickness (int, optional): Thickness of the lines for drawing boxes and tracks. Defaults to 2.
-            region_thickness (int, optional): Thickness of the region lines. Defaults to 5.
-            spdl_dist_thresh (int, optional): Distance threshold for speed calculation. Defaults to 10.
-        """
-        # Visual & image information
         self.im0 = None
         self.annotator = None
-        self.view_img = view_img
-
-        # Region information
-        self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
-        self.region_thickness = region_thickness
-
-        # Tracking information
         self.clss = None
-        self.names = names
         self.boxes = None
         self.trk_ids = None
         self.trk_pts = None
-        self.line_thickness = line_thickness
         self.trk_history = defaultdict(list)
 
         # Speed estimation information
         self.current_time = 0
         self.dist_data = {}
         self.trk_idslist = []
-        self.spdl_dist_thresh = spdl_dist_thresh
         self.trk_previous_times = {}
         self.trk_previous_points = {}
-
-        # Check if the environment supports imshow
-        self.env_check = check_imshow(warn=True)
+        self.env_check = check_imshow(warn=True)    # Check if the environment supports imshow
 
     def extract_tracks(self, tracks):
         """
@@ -96,7 +86,7 @@ class SpeedEstimator:
             cls (str): Object class name.
             track (list): Tracking history for drawing tracks path.
         """
-        speed_label = f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.names[int(cls)]
+        speed_label = f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args.names[int(cls)]
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
         self.annotator.box_label(box, speed_label, bbox_color)
@@ -111,11 +101,11 @@ class SpeedEstimator:
             trk_id (int): Object track id.
             track (list): Tracking history for drawing tracks path.
         """
-        if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
+        if not self.args.reg_pts[0][0] < track[-1][0] < self.args.reg_pts[1][0]:
             return
-        if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:
+        if self.args.reg_pts[1][1] - self.args.spdl_dist_thresh < track[-1][1] < self.args.reg_pts[1][1] + self.args.spdl_dist_thresh:
             direction = "known"
-        elif self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[0][1] + self.spdl_dist_thresh:
+        elif self.args.reg_pts[0][1] - self.args.spdl_dist_thresh < track[-1][1] < self.args.reg_pts[0][1] + self.args.spdl_dist_thresh:
             direction = "known"
         else:
             direction = "unknown"
@@ -146,13 +136,13 @@ class SpeedEstimator:
         """
         self.im0 = im0
         if tracks[0].boxes.id is None:
-            if self.view_img and self.env_check:
+            if self.args.view_img and self.env_check:
                 self.display_frames()
             return im0
 
         self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.line_thickness)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.region_thickness)
+        self.annotator = Annotator(self.im0, line_width=self.args.line_thickness)
+        self.annotator.draw_region(reg_pts=self.args.reg_pts, color=region_color, thickness=self.args.region_thickness)
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)
@@ -163,7 +153,7 @@ class SpeedEstimator:
             self.plot_box_and_track(trk_id, box, cls, track)
             self.calculate_speed(trk_id, track)
 
-        if self.view_img and self.env_check:
+        if self.args.view_img and self.env_check:
             self.display_frames()
 
         return im0
@@ -177,4 +167,4 @@ class SpeedEstimator:
 
 if __name__ == "__main__":
     names = {0: "person", 1: "car"}  # example class names
-    speed_estimator = SpeedEstimator(names)
+    speed_estimator = SpeedEstimator(names=names)

@@ -30,8 +30,7 @@ class QueueManager:
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             else:
-                print(f"Warning: Unknown argument {key}")
-                print(f"Skipping!!! {key}")
+                print(f"Warning: Unknown argument Skipping!!! {key}")
 
         # Region & Line Information
         self.counting_region = (
@@ -43,6 +42,7 @@ class QueueManager:
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
         self.args.count_txt_color = ast.literal_eval(self.args.count_txt_color)
+        self.args.count_reg_color = ast.literal_eval(self.args.count_reg_color)
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
@@ -89,7 +89,7 @@ class QueueManager:
                 label,
                 points=self.args.reg_pts,
                 region_color=self.args.count_reg_color,
-                # txt_color=self.args.count_txt_color,
+                txt_color=self.args.count_txt_color,
             )
 
         self.counts = 0  # Reset counts after displaying
@@ -123,4 +123,4 @@ class QueueManager:
 
 if __name__ == "__main__":
     classes_names = {0: "person", 1: "car"}  # example class names
-    queue_manager = QueueManager(classes_names)
+    queue_manager = QueueManager(names=classes_names)

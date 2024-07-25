@@ -20,8 +20,8 @@ class AIGym:
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             else:
-                print(f"Warning: Unknown argument {key}")
-                print(f"Skipping!!! {key}")
+                print(f"Warning: Unknown argument Skipping!!! {key}")
+
         self.im0 = None
         self.keypoints = None
         self.angle = None
@@ -101,4 +101,4 @@ class AIGym:
 
 if __name__ == "__main__":
     kpts_to_check = [0, 1, 2]  # example keypoints
-    aigym = AIGym(kpts_to_check)
+    aigym = AIGym()

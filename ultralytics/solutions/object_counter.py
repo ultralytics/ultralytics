@@ -29,8 +29,7 @@ class ObjectCounter:
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             else:
-                print(f"Warning: Unknown argument {key}")
-                print(f"Skipping!!! {key}")
+                print(f"Warning: Unknown argument Skipping!!! {key}")
 
         self.im0 = None
         self.annotator = None
@@ -171,4 +170,4 @@ class ObjectCounter:
 
 if __name__ == "__main__":
     classes_names = {0: "person", 1: "car"}  # example class names
-    ObjectCounter(classes_names)
+    ObjectCounter(names=classes_names)

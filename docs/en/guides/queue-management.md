@@ -56,7 +56,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
             region_color=(255, 144, 31),
         )
 
@@ -100,7 +99,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
             region_color=(255, 144, 31),
         )
 
@@ -138,7 +136,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
 | `track_color`       | `tuple`          | `None`                     | Color of the tracks. If `None`, different colors will be used for different tracks. |
 | `region_thickness`  | `int`            | `5`                        | Thickness of the counting region lines.                                             |
-| `fontsize`          | `float`          | `0.7`                      | Font size for the text annotations.                                                 |
 
 ### Arguments `model.track`
 
@@ -178,7 +175,6 @@ queue = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region,
     line_thickness=3,
-    fontsize=1.0,
     region_color=(255, 144, 31),
 )
 
@@ -231,7 +227,6 @@ queue_airport = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region_airport,
     line_thickness=3,
-    fontsize=1.0,
     region_color=(0, 255, 0),
 )
 ```

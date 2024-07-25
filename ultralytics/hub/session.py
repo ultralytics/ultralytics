@@ -93,7 +93,7 @@ class HUBTrainingSession:
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():
-            print(emojis(f"Loading HUB model {self.model_url} 🚀"))
+            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
             self.model_file = self.model.get_weights_url("best")
             return
 

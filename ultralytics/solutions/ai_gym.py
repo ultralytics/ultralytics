@@ -92,7 +92,7 @@ class AIGym:
 
         # Display the image if environment supports it and view_img is True
         if self.env_check and self.args.view_img:
-            cv2.imshow("Ultralytics YOLOv8 AI GYM", self.im0)
+            cv2.imshow(self.args.window_name, self.im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 

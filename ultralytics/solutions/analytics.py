@@ -101,7 +101,7 @@ class Analytics:
         self.ax.clear()
         color_cycle = cycle(list(colors.hexs))
         for key, y_data in y_data_dict.items():
-            color = "#"+next(color_cycle)
+            color = "#" + next(color_cycle)
             self.ax.fill_between(x_data, y_data, color=color, alpha=0.6)
             self.ax.plot(
                 x_data,

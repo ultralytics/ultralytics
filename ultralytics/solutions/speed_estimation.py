@@ -1,26 +1,27 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+from pathlib import Path
 from time import time
 
 import cv2
 import numpy as np
-from pathlib import Path
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.plotting import Annotator, colors
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class SpeedEstimator:
     """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
+
     def __init__(self, **kwargs):
         """Initializes the SpeedEstimator with the given parameters."""
         self.args = get_cfg(extract_cfg_data(FILE))
-        if 'names' not in kwargs:
+        if "names" not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")
         for key, value in kwargs.items():
             if hasattr(self.args, key):
@@ -42,7 +43,7 @@ class SpeedEstimator:
         self.trk_idslist = []
         self.trk_previous_times = {}
         self.trk_previous_points = {}
-        self.env_check = check_imshow(warn=True)    # Check if the environment supports imshow
+        self.env_check = check_imshow(warn=True)  # Check if the environment supports imshow
 
     def extract_tracks(self, tracks):
         """
@@ -86,7 +87,9 @@ class SpeedEstimator:
             cls (str): Object class name.
             track (list): Tracking history for drawing tracks path.
         """
-        speed_label = f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args.names[int(cls)]
+        speed_label = (
+            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args.names[int(cls)]
+        )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
         self.annotator.box_label(box, speed_label, bbox_color)
@@ -103,9 +106,17 @@ class SpeedEstimator:
         """
         if not self.args.reg_pts[0][0] < track[-1][0] < self.args.reg_pts[1][0]:
             return
-        if self.args.reg_pts[1][1] - self.args.spdl_dist_thresh < track[-1][1] < self.args.reg_pts[1][1] + self.args.spdl_dist_thresh:
+        if (
+            self.args.reg_pts[1][1] - self.args.spdl_dist_thresh
+            < track[-1][1]
+            < self.args.reg_pts[1][1] + self.args.spdl_dist_thresh
+        ):
             direction = "known"
-        elif self.args.reg_pts[0][1] - self.args.spdl_dist_thresh < track[-1][1] < self.args.reg_pts[0][1] + self.args.spdl_dist_thresh:
+        elif (
+            self.args.reg_pts[0][1] - self.args.spdl_dist_thresh
+            < track[-1][1]
+            < self.args.reg_pts[0][1] + self.args.spdl_dist_thresh
+        ):
             direction = "known"
         else:
             direction = "unknown"

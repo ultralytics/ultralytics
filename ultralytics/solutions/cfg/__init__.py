@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import yaml_load, IterableSimpleNamespace
+from ultralytics.utils import IterableSimpleNamespace, yaml_load
 
 
 def extract_cfg_data(FILE):

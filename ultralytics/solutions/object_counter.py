@@ -1,20 +1,20 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+from pathlib import Path
 
 import cv2
-from pathlib import Path
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements("shapely>=2.0.0")
 
 from shapely.geometry import LineString, Point, Polygon
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class ObjectCounter:
@@ -22,8 +22,9 @@ class ObjectCounter:
 
     def __init__(self, **kwargs):
         import ast
+
         self.args = get_cfg(extract_cfg_data(FILE))
-        if 'names' not in kwargs:
+        if "names" not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")
         for key, value in kwargs.items():
             if hasattr(self.args, key):
@@ -64,8 +65,9 @@ class ObjectCounter:
         self.annotator = Annotator(self.im0, self.args.line_thickness, self.args.names)
 
         # Draw region or line
-        self.annotator.draw_region(reg_pts=self.args.reg_pts, color=self.args.count_reg_color,
-                                   thickness=self.args.region_thickness)
+        self.annotator.draw_region(
+            reg_pts=self.args.reg_pts, color=self.args.count_reg_color, thickness=self.args.region_thickness
+        )
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
@@ -75,8 +77,9 @@ class ObjectCounter:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.args.names[cls]}#{track_id}",
-                                         color=colors(int(track_id), True))
+                self.annotator.box_label(
+                    box, label=f"{self.args.names[cls]}#{track_id}", color=colors(int(track_id), True)
+                )
 
                 # Store class info
                 if self.args.names[cls] not in self.class_wise_count:
@@ -140,8 +143,9 @@ class ObjectCounter:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
-            self.annotator.display_analytics(self.im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color,
-                                             10)
+            self.annotator.display_analytics(
+                self.im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color, 10
+            )
 
     def display_frames(self):
         """Displays the current frame with annotations and regions in a window."""

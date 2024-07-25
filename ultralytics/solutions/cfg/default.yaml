@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default solutions settings
 
-names: dict   # (dict) solutions dictionary
-view_img: False   # (bool) display an output image
+names: dict # (dict) solutions dictionary
+view_img: False # (bool) display an output image
 window_name: "Ultralytics Solutions"
 line_thickness: &line_thickness 2
 track_thickness: 2
@@ -19,7 +19,6 @@ view_out_counts: True
 region_thickness: 5
 line_dist_thresh: &line_dist_thresh 15
 
-
 # Workouts monitoring settings ------------------------------------------------------------
 kpts_to_check: [6, 8, 10]
 pose_up_angle: 145
@@ -27,9 +26,8 @@ pose_down_angle: 90
 pose_type: "pullup"
 
 # Anchors and aliases ---------------------------------------------------------------------
-spdl_dist_thresh: *line_dist_thresh     # For speed estimation
-region_color: *count_reg_color    # For Queue management
-
+spdl_dist_thresh: *line_dist_thresh # For speed estimation
+region_color: *count_reg_color # For Queue management
 
 # Heatmaps settings -----------------------------------------------------------------------
 shape: "circle"

@@ -1,12 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import cv2
 from pathlib import Path
 
-from ultralytics.utils.checks import check_imshow
-from ultralytics.utils.plotting import Annotator
+import cv2
+
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
+from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.plotting import Annotator
 
 FILE = Path(__file__).resolve()  # get path of file
 

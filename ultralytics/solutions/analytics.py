@@ -2,19 +2,18 @@
 
 import warnings
 from itertools import cycle
+from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from pathlib import Path
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
-from ultralytics.utils.plotting import colors
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class Analytics:
@@ -23,10 +22,11 @@ class Analytics:
     def __init__(self, **kwargs):
         """Initialize the Analytics class with various chart types."""
         import ast
+
         self.args = get_cfg(extract_cfg_data(FILE))
-        if 'writer' not in kwargs:
+        if "writer" not in kwargs:
             raise ValueError("Error: Video writer is required")
-        elif 'im0_shape' not in kwargs:
+        elif "im0_shape" not in kwargs:
             raise ValueError("Error: Im0 is required")
         for key, value in kwargs.items():
             if hasattr(self.args, key):
@@ -45,8 +45,8 @@ class Analytics:
             self.ax = self.fig.add_subplot(111, facecolor=self.args.bg_color)
             if self.args.type == "line":
                 rgb = ast.literal_eval(self.args.line_color)
-                hex_color = '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
-                self.line, = self.ax.plot([], [], color=hex_color, linewidth=self.args.line_width)
+                hex_color = "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+                (self.line,) = self.ax.plot([], [], color=hex_color, linewidth=self.args.line_width)
 
         elif self.args.type in {"bar", "pie"}:
             # Initialize bar or pie plot
@@ -76,7 +76,6 @@ class Analytics:
         self.ax.set_xlabel(self.args.x_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
         self.ax.set_ylabel(self.args.y_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
         self.ax.tick_params(axis="both", colors=self.args.fg_color)
-
 
     def update_area(self, frame_number, counts_dict):
         """
@@ -130,7 +129,9 @@ class Analytics:
         self.ax.set_title(self.args.title, color=self.args.fg_color, fontsize=self.args.fontsize)
         self.ax.set_xlabel(self.args.x_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
         self.ax.set_ylabel(self.args.y_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
-        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.args.bg_color, edgecolor=self.args.fg_color)
+        legend = self.ax.legend(
+            loc="upper left", fontsize=13, facecolor=self.args.bg_color, edgecolor=self.args.fg_color
+        )
 
         # Set legend text color
         for text in legend.get_texts():
@@ -263,7 +264,9 @@ class Analytics:
         self.ax.clear()
 
         # Create pie chart without labels inside the slices
-        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle, textprops={"color": self.args.fg_color})
+        wedges, autotexts = self.ax.pie(
+            sizes, autopct=None, startangle=start_angle, textprops={"color": self.args.fg_color}
+        )
 
         # Construct legend labels with percentages
         legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]

@@ -1,16 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+from pathlib import Path
 
 import cv2
-from pathlib import Path
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.plotting import Annotator, colors
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class DistanceCalculation:
@@ -19,8 +19,9 @@ class DistanceCalculation:
     def __init__(self, **kwargs):
         """Initializes the DistanceCalculation class with the kwargs arguments."""
         import ast
+
         self.args = get_cfg(extract_cfg_data(FILE))
-        if 'names' not in kwargs:
+        if "names" not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")
         for key, value in kwargs.items():
             if hasattr(self.args, key):
@@ -40,7 +41,7 @@ class DistanceCalculation:
         self.left_mouse_count = 0
         self.selected_boxes = {}
 
-        self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         self.args.line_color = ast.literal_eval(self.args.line_color)
         self.args.centroid_color = ast.literal_eval(self.args.centroid_color)
 

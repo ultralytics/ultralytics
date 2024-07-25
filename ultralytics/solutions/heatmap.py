@@ -1,31 +1,32 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+from pathlib import Path
 
 import cv2
 import numpy as np
-from pathlib import Path
 
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
-from ultralytics.utils.plotting import Annotator
-
 from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.utils.plotting import Annotator
 
 check_requirements("shapely>=2.0.0")
 
 from shapely.geometry import LineString, Point, Polygon
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class Heatmap:
     """A class to draw heatmaps in real-time video stream based on their tracks."""
+
     def __init__(self, **kwargs):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
         import ast
+
         self.args = get_cfg(extract_cfg_data(FILE))
-        if 'names' not in kwargs:
+        if "names" not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")
         for key, value in kwargs.items():
             if hasattr(self.args, key):
@@ -114,7 +115,9 @@ class Heatmap:
             # Draw counting region
             if self.args.count_reg_pts is not None:
                 self.annotator.draw_region(
-                    reg_pts=self.args.count_reg_pts, color=self.args.count_reg_color, thickness=self.args.region_thickness
+                    reg_pts=self.args.count_reg_pts,
+                    color=self.args.count_reg_color,
+                    thickness=self.args.region_thickness,
                 )
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
@@ -126,15 +129,15 @@ class Heatmap:
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0: self.heatmap.shape[0], 0: self.heatmap.shape[1]]
+                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
                     mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += (
-                        2 * mask[int(box[1]): int(box[3]), int(box[0]): int(box[2])]
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     )
 
                 else:
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
                 # Store tracking hist
                 track_line = self.track_history[track_id]
@@ -181,15 +184,15 @@ class Heatmap:
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0: self.heatmap.shape[0], 0: self.heatmap.shape[1]]
+                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
                     mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += (
-                        2 * mask[int(box[1]): int(box[3]), int(box[0]): int(box[2])]
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
                     )
 
                 else:
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
         if self.args.count_reg_pts is not None:
             labels_dict = {}
@@ -206,7 +209,9 @@ class Heatmap:
                         labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
             if labels_dict is not None:
-                self.annotator.display_analytics(self.im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color, 10)
+                self.annotator.display_analytics(
+                    self.im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color, 10
+                )
 
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)

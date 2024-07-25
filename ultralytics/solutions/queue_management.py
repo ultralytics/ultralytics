@@ -1,20 +1,20 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-
-import cv2
 from pathlib import Path
 
-from ultralytics.utils.checks import check_imshow, check_requirements
-from ultralytics.utils.plotting import Annotator, colors
+import cv2
+
 from ultralytics.cfg import get_cfg
 from ultralytics.solutions.cfg import extract_cfg_data
+from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements("shapely>=2.0.0")
 
 from shapely.geometry import Point, Polygon
 
-FILE = Path(__file__).resolve()     # get path of file
+FILE = Path(__file__).resolve()  # get path of file
 
 
 class QueueManager:
@@ -22,10 +22,11 @@ class QueueManager:
 
     def __init__(self, **kwargs):
         import ast
+
         """Initializes the QueueManager with specified parameters for tracking and counting objects."""
         self.args = get_cfg(extract_cfg_data(FILE))
         for key, value in kwargs.items():
-            if 'names' not in kwargs:
+            if "names" not in kwargs:
                 raise ValueError("Error: Classes names 'names' argument is required")
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
@@ -34,13 +35,15 @@ class QueueManager:
 
         # Region & Line Information
         self.counting_region = (
-            Polygon(self.args.reg_pts) if len(self.args.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
+            Polygon(self.args.reg_pts)
+            if len(self.args.reg_pts) >= 3
+            else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
         self.im0 = None
         self.annotator = None  # Annotator
         self.counts = 0
         self.track_history = defaultdict(list)
-        self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         self.args.count_txt_color = ast.literal_eval(self.args.count_txt_color)
         self.args.count_reg_color = ast.literal_eval(self.args.count_reg_color)
 
@@ -58,7 +61,9 @@ class QueueManager:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.args.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                self.annotator.box_label(
+                    box, label=f"{self.args.names[cls]}#{track_id}", color=colors(int(track_id), True)
+                )
 
                 # Update track history
                 track_line = self.track_history[track_id]
@@ -98,7 +103,9 @@ class QueueManager:
     def display_frames(self):
         """Displays the current frame with annotations."""
         if self.env_check and self.args.view_img:
-            self.annotator.draw_region(reg_pts=self.args.reg_pts, thickness=self.args.region_thickness, color=self.args.count_reg_color)
+            self.annotator.draw_region(
+                reg_pts=self.args.reg_pts, thickness=self.args.region_thickness, color=self.args.count_reg_color
+            )
             cv2.namedWindow(self.args.window_name)
             cv2.imshow(self.args.window_name, self.im0)
             # Close window on 'q' key press

@@ -37,3 +37,8 @@ heatmap_alpha: 0.5
 count_reg_pts: *reg_pts
 decay_factor: 0.99
 colormap: cv2.COLORMAP_JET
+
+# Distance calculation settings -----------------------------------------------------------
+pixels_per_meter: 10
+line_color: (255, 255, 0)
+centroid_color: (255, 0, 255)

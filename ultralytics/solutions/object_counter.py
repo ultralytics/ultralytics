@@ -21,6 +21,7 @@ class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
     def __init__(self, **kwargs):
+        """Initialize the object counter class with kwargs arguments."""
         import ast
 
         self.args = get_cfg(extract_cfg_data(FILE))

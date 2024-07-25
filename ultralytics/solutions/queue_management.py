@@ -21,9 +21,9 @@ class QueueManager:
     """A class to manage the queue in a real-time video stream based on object tracks."""
 
     def __init__(self, **kwargs):
+        """Initialize the queuemanager class with kwargs arguments."""
         import ast
 
-        """Initializes the QueueManager with specified parameters for tracking and counting objects."""
         self.args = get_cfg(extract_cfg_data(FILE))
         for key, value in kwargs.items():
             if "names" not in kwargs:

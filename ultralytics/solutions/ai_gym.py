@@ -16,6 +16,7 @@ class AIGym:
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
     def __init__(self, **kwargs):
+        """Initialize the AiGYM class with kwargs arguments."""
         self.args = get_cfg(extract_cfg_data(FILE))
         for key, value in kwargs.items():
             if hasattr(self.args, key):

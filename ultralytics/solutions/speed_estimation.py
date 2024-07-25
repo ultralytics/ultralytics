@@ -19,7 +19,7 @@ class SpeedEstimator:
     """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
 
     def __init__(self, **kwargs):
-        """Initializes the SpeedEstimator with the given parameters."""
+        """Initializes the SpeedEstimator with the kwargs arguments."""
         self.args = get_cfg(extract_cfg_data(FILE))
         if "names" not in kwargs:
             raise ValueError("Error: Classes names 'names' argument is required")

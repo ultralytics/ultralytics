@@ -28,7 +28,7 @@ class FastSAM(Model):
         assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM models only support pre-trained models."
         super().__init__(model=model, task="segment")
 
-    def predict(self, source, stream=False, bboxes=None, points=None, texts=None, **kwargs):
+    def predict(self, source, stream=False, bboxes=None, points=None, labels=None, texts=None, **kwargs):
         """
         Performs segmentation prediction on the given image or video source.
 
@@ -37,6 +37,7 @@ class FastSAM(Model):
             stream (bool, optional): If True, enables real-time streaming. Defaults to False.
             bboxes (list, optional): List of bounding box coordinates for prompted segmentation. Defaults to None.
             points (list, optional): List of points for prompted segmentation. Defaults to None.
+            labels (list, optional): List of labels for prompted segmentation. Defaults to None.
             texts (list, optional): List of texts for prompted segmentation. Defaults to None.
 
         Returns:
@@ -44,7 +45,7 @@ class FastSAM(Model):
         """
         overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024)
         kwargs.update(overrides)
-        prompts = dict(bboxes=bboxes, points=points, texts=texts)
+        prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     @property

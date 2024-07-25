@@ -17,10 +17,11 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     LOGGER,
     RANK,
+    SETTINGS,
     callbacks,
     checks,
     emojis,
-    yaml_load, SETTINGS,
+    yaml_load,
 )
 
 

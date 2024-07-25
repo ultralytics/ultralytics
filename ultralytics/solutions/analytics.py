@@ -8,80 +8,50 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from pathlib import Path
+
+from ultralytics.cfg import get_cfg
+from ultralytics.solutions.cfg import extract_cfg_data
+from ultralytics.utils.plotting import colors
+
+FILE = Path(__file__).resolve()     # get path of file
 
 
 class Analytics:
     """A class to create and update various types of charts (line, bar, pie, area) for visual analytics."""
 
-    def __init__(
-        self,
-        type,
-        writer,
-        im0_shape,
-        title="ultralytics",
-        x_label="x",
-        y_label="y",
-        bg_color="white",
-        fg_color="black",
-        line_color="yellow",
-        line_width=2,
-        points_width=10,
-        fontsize=13,
-        view_img=False,
-        save_img=True,
-        max_points=50,
-    ):
-        """
-        Initialize the Analytics class with various chart types.
-
-        Args:
-            type (str): Type of chart to initialize ('line', 'bar', 'pie', or 'area').
-            writer (object): Video writer object to save the frames.
-            im0_shape (tuple): Shape of the input image (width, height).
-            title (str): Title of the chart.
-            x_label (str): Label for the x-axis.
-            y_label (str): Label for the y-axis.
-            bg_color (str): Background color of the chart.
-            fg_color (str): Foreground (text) color of the chart.
-            line_color (str): Line color for line charts.
-            line_width (int): Width of the lines in line charts.
-            points_width (int): Width of line points highlighter
-            fontsize (int): Font size for chart text.
-            view_img (bool): Whether to display the image.
-            save_img (bool): Whether to save the image.
-            max_points (int): Specifies when to remove the oldest points in a graph for multiple lines.
-        """
-
-        self.bg_color = bg_color
-        self.fg_color = fg_color
-        self.view_img = view_img
-        self.save_img = save_img
-        self.title = title
-        self.writer = writer
-        self.max_points = max_points
-        self.line_color = line_color
-        self.x_label = x_label
-        self.y_label = y_label
-        self.points_width = points_width
-        self.line_width = line_width
-        self.fontsize = fontsize
+    def __init__(self, **kwargs):
+        """Initialize the Analytics class with various chart types."""
+        import ast
+        self.args = get_cfg(extract_cfg_data(FILE))
+        if 'writer' not in kwargs:
+            raise ValueError("Error: Video writer is required")
+        elif 'im0_shape' not in kwargs:
+            raise ValueError("Error: Im0 is required")
+        for key, value in kwargs.items():
+            if hasattr(self.args, key):
+                setattr(self.args, key, value)
+            else:
+                print(f"Warning: Unknown argument Skipping!!! {key}")
 
         # Set figure size based on image shape
-        figsize = (im0_shape[0] / 100, im0_shape[1] / 100)
+        figsize = (self.args.im0_shape[0] / 100, self.args.im0_shape[1] / 100)
 
-        if type in {"line", "area"}:
+        if self.args.type in {"line", "area"}:
             # Initialize line or area plot
             self.lines = {}
-            self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
+            self.fig = Figure(facecolor=self.args.bg_color, figsize=figsize)
             self.canvas = FigureCanvas(self.fig)
-            self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
-            if type == "line":
-                (self.line,) = self.ax.plot([], [], color=self.line_color, linewidth=self.line_width)
+            self.ax = self.fig.add_subplot(111, facecolor=self.args.bg_color)
+            if self.args.type == "line":
+                rgb = ast.literal_eval(self.args.line_color)
+                hex_color = '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
+                self.line, = self.ax.plot([], [], color=hex_color, linewidth=self.args.line_width)
 
-        elif type in {"bar", "pie"}:
+        elif self.args.type in {"bar", "pie"}:
             # Initialize bar or pie plot
-            self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
-            self.ax.set_facecolor(self.bg_color)
+            self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.args.bg_color)
+            self.ax.set_facecolor(self.args.bg_color)
             color_palette = [
                 (31, 119, 180),
                 (255, 127, 14),
@@ -102,10 +72,11 @@ class Analytics:
             self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
-        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        self.ax.tick_params(axis="both", colors=self.fg_color)
+        self.ax.set_title(self.args.title, color=self.args.fg_color, fontsize=self.args.fontsize)
+        self.ax.set_xlabel(self.args.x_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
+        self.ax.set_ylabel(self.args.y_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
+        self.ax.tick_params(axis="both", colors=self.args.fg_color)
+
 
     def update_area(self, frame_number, counts_dict):
         """
@@ -133,7 +104,7 @@ class Analytics:
                 y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
 
         # Remove the oldest points if the number of points exceeds max_points
-        if len(x_data) > self.max_points:
+        if len(x_data) > self.args.max_points:
             x_data = x_data[1:]
             for key in counts_dict.keys():
                 y_data_dict[key] = y_data_dict[key][1:]
@@ -150,20 +121,20 @@ class Analytics:
                 x_data,
                 y_data,
                 color=color,
-                linewidth=self.line_width,
+                linewidth=self.args.line_width,
                 marker="o",
-                markersize=self.points_width,
+                markersize=self.args.points_width,
                 label=f"{key} Data Points",
             )
 
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
-        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.fg_color)
+        self.ax.set_title(self.args.title, color=self.args.fg_color, fontsize=self.args.fontsize)
+        self.ax.set_xlabel(self.args.x_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
+        self.ax.set_ylabel(self.args.y_label, color=self.args.fg_color, fontsize=self.args.fontsize - 3)
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.args.bg_color, edgecolor=self.args.fg_color)
 
         # Set legend text color
         for text in legend.get_texts():
-            text.set_color(self.fg_color)
+            text.set_color(self.args.fg_color)
 
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
@@ -202,14 +173,14 @@ class Analytics:
         warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
             if obj not in self.lines:
-                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.points_width)
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.args.points_width)
                 self.lines[obj] = line
 
             x_data = self.lines[obj].get_xdata()
             y_data = self.lines[obj].get_ydata()
 
             # Remove the initial point if the number of points exceeds max_points
-            if len(x_data) >= self.max_points:
+            if len(x_data) >= self.args.max_points:
                 x_data = np.delete(x_data, 0)
                 y_data = np.delete(y_data, 0)
 
@@ -223,7 +194,7 @@ class Analytics:
         self.canvas.draw()
 
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.view_img = False  # for multiple line view_img not supported yet, coming soon!
+        self.args.view_img = False  # for multiple line view_img not supported yet, coming soon!
         self.write_and_display(im0)
 
     def write_and_display(self, im0):
@@ -233,8 +204,8 @@ class Analytics:
             im0 (ndarray): Image for processing
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-        cv2.imshow(self.title, im0) if self.view_img else None
-        self.writer.write(im0) if self.save_img else None
+        cv2.imshow(self.args.title, im0) if self.args.view_img else None
+        self.args.writer.write(im0) if self.args.save_img else None
 
     def update_bar(self, count_dict):
         """
@@ -246,7 +217,7 @@ class Analytics:
 
         # Update bar graph data
         self.ax.clear()
-        self.ax.set_facecolor(self.bg_color)
+        self.ax.set_facecolor(self.args.bg_color)
         labels = list(count_dict.keys())
         counts = list(count_dict.values())
 
@@ -265,7 +236,7 @@ class Analytics:
                 str(count),
                 ha="center",
                 va="bottom",
-                color=self.fg_color,
+                color=self.args.fg_color,
             )
 
         # Display and save the updated graph
@@ -292,7 +263,7 @@ class Analytics:
         self.ax.clear()
 
         # Create pie chart without labels inside the slices
-        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle, textprops={"color": self.fg_color})
+        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle, textprops={"color": self.args.fg_color})
 
         # Construct legend labels with percentages
         legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
@@ -309,4 +280,4 @@ class Analytics:
 
 
 if __name__ == "__main__":
-    Analytics("line", writer=None, im0_shape=None)
+    Analytics(type="line", writer=None, im0_shape=None)

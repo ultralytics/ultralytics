@@ -4,7 +4,7 @@
 names: dict   # (dict) solutions dictionary
 view_img: False   # (bool) display an output image
 window_name: "Ultralytics Solutions"
-line_thickness: 2
+line_thickness: &line_thickness 2
 track_thickness: 2
 draw_tracks: False
 track_color: None
@@ -42,3 +42,18 @@ colormap: cv2.COLORMAP_JET
 pixels_per_meter: 10
 line_color: (255, 255, 0)
 centroid_color: (255, 0, 255)
+
+# Analytics settings ----------------------------------------------------------------------
+type: "line"
+writer: None
+im0_shape: None
+title: "ultralytics"
+x_label: "x"
+y_label: "y"
+bg_color: "white"
+fg_color: "black"
+line_width: *line_thickness
+points_width: 10
+fontsize: 13
+save_img: True
+max_points: 50

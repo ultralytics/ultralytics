@@ -43,7 +43,6 @@ class QueueManager:
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
         self.args.count_txt_color = ast.literal_eval(self.args.count_txt_color)
-        self.args.count_reg_color = ast.literal_eval(self.args.count_reg_color)
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
@@ -90,7 +89,7 @@ class QueueManager:
                 label,
                 points=self.args.reg_pts,
                 region_color=self.args.count_reg_color,
-                txt_color=self.args.count_txt_color,
+                # txt_color=self.args.count_txt_color,
             )
 
         self.counts = 0  # Reset counts after displaying
@@ -99,7 +98,7 @@ class QueueManager:
     def display_frames(self):
         """Displays the current frame with annotations."""
         if self.env_check and self.args.view_img:
-            self.annotator.draw_region(reg_pts=self.args.reg_pts, thickness=self.args.region_thickness, color=self.args.region_color)
+            self.annotator.draw_region(reg_pts=self.args.reg_pts, thickness=self.args.region_thickness, color=self.args.count_reg_color)
             cv2.namedWindow(self.args.window_name)
             cv2.imshow(self.args.window_name, self.im0)
             # Close window on 'q' key press

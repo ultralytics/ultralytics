@@ -28,7 +28,7 @@ class FastSAMPredictor(SegmentationPredictor):
         points = self.prompts.pop("points", None)
         texts = self.prompts.pop("texts", None)
         results = super().postprocess(preds, img, orig_imgs)
-        for i, result in enumerate(results):
+        for result in results:
             full_box = torch.tensor(
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=preds[0].device, dtype=torch.float32
             )
@@ -37,19 +37,54 @@ class FastSAMPredictor(SegmentationPredictor):
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 
+        return self.prompt(results, bboxes=bboxes, points=points, texts=texts)
+
+    def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
+        """
+        Internal function for image segmentation inference based on cues like bounding boxes, points, and masks.
+        Leverages SAM's specialized architecture for prompt-based, real-time segmentation.
+
+        Args:
+            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            texts (List[str], optional): Textual prompts, a list contains string objects.
+        """
+        if bboxes is None and points is None and texts is None:
+            return results
+        prompt_results = []
+        for result in results:
             # bboxes prompt
+            masks = result.masks.data
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
                 bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-                masks = result.masks.data
                 bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
                 mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in bboxes])
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
                 idx = torch.argmax(mask_areas / union, dim=1)
-                results[i] = result[idx]
-        return results
+                result = result[idx]
+            if points is not None:
+                points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
+                points = points[None] if points.ndim == 1 else points
+                if labels is None:
+                    labels = torch.ones(points.shape[0])
+                labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+                assert len(labels) == len(
+                    points
+                ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                for p, l in zip(points, labels):
+                    if l:
+                        idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True
+                    else:
+                        pass
+
+            prompt_results.append(result)
+
+        return prompt_results
 
     def set_prompts(self, prompts):
         """Set prompts in advance."""

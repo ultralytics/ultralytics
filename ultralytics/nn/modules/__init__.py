@@ -53,6 +53,8 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    GatherExcite,
+    SEAttention
 )
 from .conv import (
     CBAM,
@@ -150,4 +152,6 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "GatherExcite",
+    "SEAttention"
 )

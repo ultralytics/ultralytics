@@ -85,7 +85,13 @@ class FastSAMPredictor(SegmentationPredictor):
                     idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
                 result = result[idx]
             if texts is not None:
-                pass
+                crop_ims, filter_idx = [], []
+                for i, b in enumerate(result.boxes.xyxy.tolist()):
+                    x1, y1, x2, y2 = [int(x) for x in b]
+                    if masks[i].sum() <= 100:
+                        filter_idx.append(i)
+                        continue
+                    crop_ims.append(result.orig_img[y1:y2, x1:x2])
 
             prompt_results.append(result)
 

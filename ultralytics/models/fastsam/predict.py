@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import torch
 
+from PIL import Image
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils import DEFAULT_CFG, checks
@@ -49,15 +50,15 @@ class FastSAMPredictor(SegmentationPredictor):
             bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
             points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
             labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
-            texts (List[str], optional): Textual prompts, a list contains string objects.
+            texts (str | List[str], optional): Textual prompts, a list contains string objects.
         """
         if bboxes is None and points is None and texts is None:
             return results
         prompt_results = []
         for result in results:
             # bboxes prompt
-            masks = result.masks.data
             if bboxes is not None:
+                masks = result.masks.data
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
                 bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
                 bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
@@ -82,16 +83,22 @@ class FastSAMPredictor(SegmentationPredictor):
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
                 for p, l in zip(points, labels):
-                    idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                    idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
                 result = result[idx]
             if texts is not None:
+                if isinstance(texts, str):
+                    texts = [texts]
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = [int(x) for x in b]
-                    if masks[i].sum() <= 100:
+                    if result.masks.data[i].sum() <= 100:
                         filter_idx.append(i)
                         continue
-                    crop_ims.append(result.orig_img[y1:y2, x1:x2])
+                    crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
+                similarity = self._clip_inference(crop_ims, texts)
+                idx = torch.argmax(similarity, dim=-1)  # (M, )
+                idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(idx)).sum(0)
+                result = result[idx]
 
             prompt_results.append(result)
 

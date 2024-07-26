@@ -256,6 +256,7 @@ class ModelMeta(Model):
         momentum: float = 0.937,
         weight_decay: float = 0.0005,
         warmup_epochs: Union[int, float] = 3.0,
+        warmup_momentum: float = 0.8,
         warmup_bias_lr: float = 0.1,
         box: float = 7.5,
         cls: float = 0.5,
@@ -410,7 +411,6 @@ class ModelMeta(Model):
             agnostic_nms (bool): Enables class-agnostic Non-Maximum Suppression (NMS), which merges overlapping boxes of different classes. Useful in multi-class detection scenarios where class overlap is common.
             classes (list[int]): Filters predictions to a set of class IDs. Only detections belonging to the specified classes will be returned. Useful for focusing on relevant objects in multi-class detection tasks.
             retina_masks (bool): Uses high-resolution segmentation masks if available in the model. This can enhance mask quality for segmentation tasks, providing finer detail.
-            embed (list[int]): Specifies the layers from which to extract feature vectors or embeddings. Useful for downstream tasks like clustering or similarity search.
             stream (bool): Returns a generator for memory efficient processing.
             show (bool): If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing.
             save (bool): Enables saving of the annotated images or videos to file. Useful for documentation, further analysis, or sharing results.

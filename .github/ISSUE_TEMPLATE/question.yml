@@ -23,7 +23,7 @@ body:
   - type: textarea
     attributes:
       label: Question
-      description: What is your question? Please provide as much information as possible. Include detailed code examples to reproduce the problem and describe the context in which the issue occurs. Format your text and code using [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) for clarity and readability. Following these guidelines will help us assist you more effectively. 
+      description: What is your question? Please provide as much information as possible. Include detailed code examples to reproduce the problem and describe the context in which the issue occurs. Format your text and code using [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) for clarity and readability. Following these guidelines will help us assist you more effectively.
       placeholder: |
         💡 ProTip! Include as much information as possible (logs, tracebacks, screenshots etc.) to receive the most helpful response.
     validations:

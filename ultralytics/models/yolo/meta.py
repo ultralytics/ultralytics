@@ -129,8 +129,6 @@ class ModelMeta(Model):
 
     def predict(
         self,
-        *,
-        predictor: object = None,
         source: Union[
             str,
             Path,
@@ -139,6 +137,8 @@ class ModelMeta(Model):
             torch.Tensor,
             list[Union[str, Path, np.ndarray, Image.Image, torch.Tensor]],
         ] = None,
+        *,
+        predictor: object = None,
         conf: float = 0.25,
         iou: float = 0.45,
         imgsz: Union[int, tuple[int, int]] = 640,
@@ -350,7 +350,6 @@ class ModelMeta(Model):
 
     def track(
         self,
-        *,
         source: Union[
             str,
             Path,
@@ -359,6 +358,7 @@ class ModelMeta(Model):
             torch.Tensor,
             list[Union[str, Path, np.ndarray, Image.Image, torch.Tensor]],
         ] = None,
+        *,
         conf: float = 0.25,
         iou: float = 0.45,
         tracker: str = "botsort",

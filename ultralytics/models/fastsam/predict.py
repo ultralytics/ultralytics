@@ -1,10 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import torch
-
 from PIL import Image
+
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils.metrics import box_iou
 from ultralytics.utils import DEFAULT_CFG, checks
+from ultralytics.utils.metrics import box_iou
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -106,7 +106,8 @@ class FastSAMPredictor(SegmentationPredictor):
         return prompt_results
 
     def _clip_inference(self, images, texts):
-        """CLIP Inference process.
+        """
+        CLIP Inference process.
 
         Args:
             images (List[PIL.Image]): A list of source images and each of them should be PIL.Image type with RGB channel order.
@@ -127,8 +128,8 @@ class FastSAMPredictor(SegmentationPredictor):
         image_features = self.clip_model.encode_image(images)
         text_features = self.clip_model.encode_text(tokenized_text)
         image_features /= image_features.norm(dim=-1, keepdim=True)  # (N, 512)
-        text_features /= text_features.norm(dim=-1, keepdim=True)    # (M, 512)
-        return (image_features * text_features[:, None]).sum(-1)    # (M, N)
+        text_features /= text_features.norm(dim=-1, keepdim=True)  # (M, 512)
+        return (image_features * text_features[:, None]).sum(-1)  # (M, N)
 
     def set_prompts(self, prompts):
         """Set prompts in advance."""

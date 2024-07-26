@@ -84,7 +84,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 )
                 for p, l in zip(points, labels):
                     point_idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
-                idx = idx & point_idx
+                idx = idx | point_idx
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]

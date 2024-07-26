@@ -360,7 +360,13 @@ class LoadImagesAndVideos:
                         self._new_video(self.files[self.count])
             else:
                 self.mode = "image"
-                im0 = cv2.imread(path)  # BGR
+                #if image is not tiff or tif, use imread from opencv
+                if path.split(".")[-1].lower() not in ["tiff", "tif"]:
+                    im0 = cv2.imread(path) #BGR
+                else: #Tiff case is handled through libtiff
+                    import libtiff
+                    tif = libtiff.TIFF.open(path, mode='r')
+                    im0 = tif.read_image()
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

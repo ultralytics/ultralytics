@@ -85,6 +85,9 @@ To perform object detection on an image, use the `predict` method as shown below
 
         # Run inference with texts prompt
         results = model(source, texts="a photo of a dog")
+
+        # Run inference with bboxes and points and texts prompt at the same time
+        results = model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
         ```
 
     === "CLI"

@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Ultralytics Solution Initialization modules
+keywords: Ultralytics, Solutions, Object Counting, Heatmaps, Queue Management, Speed Estimation, Distance calculation, Parking Management
 ---
 
 # Reference for `ultralytics/solutions/cfg/__init__.py`

@@ -84,7 +84,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 )
                 for p, l in zip(points, labels):
                     point_idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
-                idx = idx | point_idx
+                idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]
@@ -98,7 +98,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 similarity = self._clip_inference(crop_ims, texts)
                 text_idx = torch.argmax(similarity, dim=-1)  # (M, )
                 if len(filter_idx):
-                    text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(idx)).sum(0)
+                    text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(text_idx)).sum(0)
                 idx[text_idx] = True
 
             prompt_results.append(result[idx])

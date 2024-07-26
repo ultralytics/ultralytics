@@ -23,6 +23,7 @@ from ultralytics.utils import (
     yaml_load,
 )
 
+
 class Model(nn.Module):
     """
     A base class for implementing YOLO models, unifying APIs across different model types.

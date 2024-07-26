@@ -3,7 +3,7 @@ import torch
 
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils.metrics import box_iou
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, checks
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -96,6 +96,32 @@ class FastSAMPredictor(SegmentationPredictor):
             prompt_results.append(result)
 
         return prompt_results
+
+    def _clip_inference(self, images, texts):
+        """CLIP Inference process.
+
+        Args:
+            images (List[PIL.Image]): A list of source images and each of them should be PIL.Image type with RGB channel order.
+            texts (List[str]): A list of prompt texts and each of them should be string object.
+
+        Returns:
+            (torch.Tensor): The similarity between given images and texts.
+        """
+        try:
+            import clip
+        except ImportError:
+            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
+            import clip
+        if (not hasattr(self, "clip_model")) or (not hasattr(self, "clip_preprocess")):
+            self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
+        images = [self.clip_preprocess(image).to(self.device) for image in images]
+        tokenized_text = self.clip.tokenize(texts).to(self.device)
+        stacked_images = torch.stack(images)
+        image_features = self.clip_model.encode_image(stacked_images)
+        text_features = self.clip_model.encode_text(tokenized_text)
+        image_features /= image_features.norm(dim=-1, keepdim=True)  # (N, 512)
+        text_features /= text_features.norm(dim=-1, keepdim=True)    # (M, 512)
+        return (image_features * text_features[:, None]).sum(-1)    # (M, N)
 
     def set_prompts(self, prompts):
         """Set prompts in advance."""

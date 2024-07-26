@@ -129,8 +129,9 @@ class Heatmap:
                     radius = min(x1 - x0, y1 - y0) // 2
                     y_indices, x_indices = np.ogrid[y0:y1, x0:x1]  # Create a coordinate grid for the bounding box area
                     dist_sq = (x_indices - center_x) ** 2 + (
-                                y_indices - center_y) ** 2  # Calculate squared distances from the center
-                    mask = dist_sq <= radius ** 2  # Create a mask for the circle
+                        y_indices - center_y
+                    ) ** 2  # Calculate squared distances from the center
+                    mask = dist_sq <= radius**2  # Create a mask for the circle
                     self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
 
                 else:
@@ -181,9 +182,11 @@ class Heatmap:
                     x0, y0, x1, y1 = map(int, [box[0], box[1], box[2], box[3]])
                     center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
                     radius = min(x1 - x0, y1 - y0) // 2
-                    y_indices, x_indices = np.ogrid[y0:y1, x0:x1]   # Create a coordinate grid for the bounding box area
-                    dist_sq = (x_indices - center_x) ** 2 + (y_indices - center_y) ** 2 # Calculate squared distances from the center
-                    mask = dist_sq <= radius ** 2   # Create a mask for the circle
+                    y_indices, x_indices = np.ogrid[y0:y1, x0:x1]  # Create a coordinate grid for the bounding box area
+                    dist_sq = (x_indices - center_x) ** 2 + (
+                        y_indices - center_y
+                    ) ** 2  # Calculate squared distances from the center
+                    mask = dist_sq <= radius**2  # Create a mask for the circle
                     self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
                 else:
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2

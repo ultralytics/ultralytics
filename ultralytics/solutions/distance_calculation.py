@@ -28,7 +28,6 @@ class DistanceCalculation:
                 setattr(self.args, key, value)
             else:
                 print(f"Warning: Unknown argument Skipping!!! {key}")
-        self.im0 = None
         self.annotator = None
 
         # Prediction & tracking information
@@ -118,14 +117,12 @@ class DistanceCalculation:
         Returns:
             (ndarray): The processed image frame.
         """
-        self.im0 = im0
         if tracks[0].boxes.id is None:
-            if self.args.view_img:
-                self.display_frames()
+            cv2.imshow("Ultralytics Distance Estimation", im0)
             return im0
 
         self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.args.line_thickness)
+        self.annotator = Annotator(im0, line_width=self.args.line_thickness)
 
         for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
             self.annotator.box_label(box, color=colors(int(cls), True), label=self.args.names[int(cls)])
@@ -145,19 +142,16 @@ class DistanceCalculation:
 
         self.centroids = []
 
+        # Displays the current frame with annotations
         if self.args.view_img and self.env_check:
-            self.display_frames()
+            cv2.namedWindow("Ultralytics Distance Estimation")
+            cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
+            cv2.imshow("Ultralytics Distance Estimation", im0)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
 
         return im0
-
-    def display_frames(self):
-        """Displays the current frame with annotations."""
-        cv2.namedWindow("Ultralytics Distance Estimation")
-        cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
-        cv2.imshow("Ultralytics Distance Estimation", self.im0)
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
 
 
 if __name__ == "__main__":

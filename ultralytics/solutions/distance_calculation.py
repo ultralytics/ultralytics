@@ -117,30 +117,28 @@ class DistanceCalculation:
         Returns:
             (ndarray): The processed image frame.
         """
-        if tracks[0].boxes.id is None:
-            cv2.imshow("Ultralytics Distance Estimation", im0)
-            return im0
+        if tracks[0].boxes.id is not None:
 
-        self.extract_tracks(tracks)
-        self.annotator = Annotator(im0, line_width=self.args.line_thickness)
+            self.extract_tracks(tracks)
+            self.annotator = Annotator(im0, line_width=self.args.line_thickness)
 
-        for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
-            self.annotator.box_label(box, color=colors(int(cls), True), label=self.args.names[int(cls)])
+            for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
+                self.annotator.box_label(box, color=colors(int(cls), True), label=self.args.names[int(cls)])
+
+                if len(self.selected_boxes) == 2:
+                    for trk_id in self.selected_boxes.keys():
+                        if trk_id == track_id:
+                            self.selected_boxes[track_id] = box
 
             if len(self.selected_boxes) == 2:
-                for trk_id in self.selected_boxes.keys():
-                    if trk_id == track_id:
-                        self.selected_boxes[track_id] = box
+                self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
 
-        if len(self.selected_boxes) == 2:
-            self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
+                distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
+                self.annotator.plot_distance_and_line(
+                    distance_m, distance_mm, self.centroids, self.args.line_color, self.args.centroid_color
+                )
 
-            distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
-            self.annotator.plot_distance_and_line(
-                distance_m, distance_mm, self.centroids, self.args.line_color, self.args.centroid_color
-            )
-
-        self.centroids = []
+            self.centroids = []
 
         # Displays the current frame with annotations
         if self.args.view_img and self.env_check:

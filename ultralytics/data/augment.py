@@ -1366,7 +1366,7 @@ class RandomHSV:
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+            hue, sat, val = cv2.split(cv2.cvtColor(img[:,:,:3], cv2.COLOR_BGR2HSV)) ###OVERRIDE, assuming first three channels are BGR
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
@@ -1585,8 +1585,14 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
+        #Get number of channels from image
+        ch = img.shape[2] if len(img.shape) == 3 else 1 ##GENERALIZING TO MULTI-CHANNEL IMGS
+        if ch == 3: #This is default in YOLO, is not even checked.
+            value = (114, 114, 114)
+        else:
+            value = (114, 114, 114, 114)
         img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=value
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation

@@ -122,10 +122,9 @@ class FastSAMPredictor(SegmentationPredictor):
             import clip
         if (not hasattr(self, "clip_model")) or (not hasattr(self, "clip_preprocess")):
             self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
-        images = [self.clip_preprocess(image).to(self.device) for image in images]
+        images = torch.stack([self.clip_preprocess(image).to(self.device) for image in images])
         tokenized_text = clip.tokenize(texts).to(self.device)
-        stacked_images = torch.stack(images)
-        image_features = self.clip_model.encode_image(stacked_images)
+        image_features = self.clip_model.encode_image(images)
         text_features = self.clip_model.encode_text(tokenized_text)
         image_features /= image_features.norm(dim=-1, keepdim=True)  # (N, 512)
         text_features /= text_features.norm(dim=-1, keepdim=True)    # (M, 512)

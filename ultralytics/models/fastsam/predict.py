@@ -57,8 +57,9 @@ class FastSAMPredictor(SegmentationPredictor):
         prompt_results = []
         for result in results:
             # bboxes prompt
+            masks = result.masks.data
+            idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
-                masks = result.masks.data
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
                 bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
                 bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
@@ -66,8 +67,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
-                idx = torch.argmax(mask_areas / union, dim=1)
-                result = result[idx]
+                idx[torch.argmax(mask_areas / union, dim=1)] = True
             if points is not None:
                 points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
                 points = points[None] if points.ndim == 1 else points
@@ -77,14 +77,14 @@ class FastSAMPredictor(SegmentationPredictor):
                 assert len(labels) == len(
                     points
                 ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
-                idx = (
+                point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
                 for p, l in zip(points, labels):
-                    idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
-                result = result[idx]
+                    point_idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                idx = idx & point_idx
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]
@@ -96,12 +96,12 @@ class FastSAMPredictor(SegmentationPredictor):
                         continue
                     crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
                 similarity = self._clip_inference(crop_ims, texts)
-                idx = torch.argmax(similarity, dim=-1)  # (M, )
+                text_idx = torch.argmax(similarity, dim=-1)  # (M, )
                 if len(filter_idx):
-                    idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(idx)).sum(0)
-                result = result[idx]
+                    text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(idx)).sum(0)
+                idx[text_idx] = True
 
-            prompt_results.append(result)
+            prompt_results.append(result[idx])
 
         return prompt_results
 

@@ -118,7 +118,6 @@ class DistanceCalculation:
             (ndarray): The processed image frame.
         """
         if tracks[0].boxes.id is not None:
-
             self.extract_tracks(tracks)
             self.annotator = Annotator(im0, line_width=self.args.line_thickness)
 
@@ -131,7 +130,9 @@ class DistanceCalculation:
                             self.selected_boxes[track_id] = box
 
             if len(self.selected_boxes) == 2:
-                self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
+                self.centroids = [
+                    self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes
+                ]
 
                 distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
                 self.annotator.plot_distance_and_line(

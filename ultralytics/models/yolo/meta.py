@@ -45,6 +45,7 @@ class ModelMeta(Model):
         int8: bool = False,
         device: str = None,
         verbose: bool = False,
+        mode: str = None,
     ) -> DataFrame:
         """
         Benchmarks the model across various export formats to evaluate performance.
@@ -62,6 +63,7 @@ class ModelMeta(Model):
             int8 (bool): Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.
             device (str or list): Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.
             verbose (bool or float): Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.
+            mode (str): YOLO mode, i.e. train, val, predict, export, track, benchmark
 
         Returns:
             (DataFrame): A pandas DataFrame containing the results of the benchmarking process, including metrics for

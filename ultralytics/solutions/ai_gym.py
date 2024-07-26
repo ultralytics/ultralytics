@@ -24,8 +24,6 @@ class AIGym:
             else:
                 print(f"Warning: Unknown argument Skipping!!! {key}")
 
-        self.im0 = None
-        self.keypoints = None
         self.angle = None
         self.count = None
         self.stage = None
@@ -43,10 +41,8 @@ class AIGym:
             im0 (ndarray): Current frame from the video stream.
             results (list): Pose estimation data.
         """
-        self.im0 = im0
-
         if not len(results[0]):
-            return self.im0
+            return im0
 
         if len(results[0]) > len(self.count):
             new_human = len(results[0]) - len(self.count)
@@ -54,10 +50,10 @@ class AIGym:
             self.angle += [0] * new_human
             self.stage += ["-"] * new_human
 
-        self.keypoints = results[0].keypoints.data
+        keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=self.args.line_thickness)
 
-        for ind, k in enumerate(reversed(self.keypoints)):
+        for ind, k in enumerate(reversed(keypoints)):
             # Estimate angle and draw specific points based on pose type
             if self.args.pose_type in {"pushup", "pullup", "abworkout", "squat"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
@@ -65,7 +61,7 @@ class AIGym:
                     k[int(self.args.kpts_to_check[1])].cpu(),
                     k[int(self.args.kpts_to_check[2])].cpu(),
                 )
-                self.im0 = self.annotator.draw_specific_points(k, self.args.kpts_to_check, shape=(640, 640), radius=10)
+                im0 = self.annotator.draw_specific_points(k, self.args.kpts_to_check, shape=(640, 640), radius=10)
 
                 # Check and update pose stages and counts based on angle
                 if self.args.pose_type in {"abworkout", "pullup"}:
@@ -94,11 +90,11 @@ class AIGym:
 
         # Display the image if environment supports it and view_img is True
         if self.env_check and self.args.view_img:
-            cv2.imshow(self.args.window_name, self.im0)
+            cv2.imshow(self.args.window_name, im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
-        return self.im0
+        return im0
 
 
 if __name__ == "__main__":

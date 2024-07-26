@@ -14,6 +14,7 @@ from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, P
 
 DROP = {"self", "__class__"}
 
+
 class ModelMeta(Model):
     """
     A class representing the meta information and functionality of a model.
@@ -33,7 +34,6 @@ class ModelMeta(Model):
 
     def __init__(self, model: str = None, task: str = None, verbose: bool = False) -> None:
         super().__init__(model=model, task=task, verbose=verbose)
-
 
     def benchmark(
         self,
@@ -62,7 +62,7 @@ class ModelMeta(Model):
             int8 (bool): Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.
             device (str or list): Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.
             verbose (bool or float): Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.
-        
+
         Returns:
             (DataFrame): A pandas DataFrame containing the results of the benchmarking process, including metrics for
                 different export formats.
@@ -76,7 +76,6 @@ class ModelMeta(Model):
             >>> print(results)
         """
         return super().benchmark(**{k: v for k, v in locals().items() if k not in DROP})
-
 
     def export(
         self,
@@ -125,7 +124,6 @@ class ModelMeta(Model):
             'path/to/exported/model.onnx'
         """
         return super().export(**{k: v for k, v in locals().items() if k not in DROP})
-
 
     def predict(
         self,
@@ -218,7 +216,6 @@ class ModelMeta(Model):
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         return super().predict(**{k: v for k, v in locals().items() if k not in DROP})
-
 
     def train(
         self,
@@ -349,7 +346,6 @@ class ModelMeta(Model):
         """
         return super().train(**{k: v for k, v in locals().items() if k not in DROP})
 
-
     def track(
         self,
         *,
@@ -443,7 +439,6 @@ class ModelMeta(Model):
             - Batch size is set to 1 for tracking in videos.
         """
         return super().track(**{k: v for k, v in locals().items() if k not in DROP})
-
 
     def val(
         self,

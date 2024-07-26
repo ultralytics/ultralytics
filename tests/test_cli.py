@@ -80,17 +80,8 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
         # Remove small regions
         new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
-        # Run inference with bboxes prompt
-        results = model(source, bboxes=[439, 437, 524, 709])
-
-        # Run inference with points prompt
-        results = model(source, points=[[200, 200]], labels=[1])
-
-        # Run inference with texts prompt
-        results = model(source, texts="a photo of a dog")
-
         # Run inference with bboxes and points and texts prompt at the same time
-        results = model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
+        results = sam_model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 
 
 def test_mobilesam():

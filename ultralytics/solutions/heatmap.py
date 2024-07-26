@@ -216,7 +216,7 @@ class Heatmap:
         im0 = cv2.addWeighted(im0, 1 - self.args.heatmap_alpha, heatmap_colored, self.args.heatmap_alpha, 0)
 
         if self.env_check and self.args.view_img:
-            cv2.imshow("Ultralytics Heatmap", im0)
+            cv2.imshow(self.args.window_name, im0)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

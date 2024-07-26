@@ -143,9 +143,9 @@ class DistanceCalculation:
 
         # Displays the current frame with annotations
         if self.args.view_img and self.env_check:
-            cv2.namedWindow("Ultralytics Distance Estimation")
-            cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
-            cv2.imshow("Ultralytics Distance Estimation", im0)
+            cv2.namedWindow(self.args.window_name)
+            cv2.setMouseCallback(self.args.window_name, self.mouse_event_for_distance)
+            cv2.imshow(self.args.window_name, im0)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

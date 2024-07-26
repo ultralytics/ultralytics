@@ -9,12 +9,12 @@ from ultralytics import YOLO
 from ultralytics.cfg import DEFAULT_CFG_PATH, MODES
 
 
-def type2str_list(obj) -> list[str]:
+def type2str_list(obj:object) -> list[str]:
     """
     Converts a nested type object into a list of strings representing the types.
 
     Args:
-        obj: The object to convert.
+        obj (object): The object to convert.
 
     Returns:
         A list of strings representing the types.

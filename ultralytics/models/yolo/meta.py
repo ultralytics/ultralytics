@@ -164,6 +164,7 @@ class ModelMeta(Model):
         show_conf: bool = False,
         show_boxes: bool = False,
         line_width: int = None,
+        verbose: bool = True,
     ) -> Union[list[Results], Generator[Results, None, None]]:
         """
         Performs predictions on the given image source using the YOLO model.
@@ -200,6 +201,7 @@ class ModelMeta(Model):
             show_conf (bool): Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection.
             show_boxes (bool): Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames.
             line_width (None or int): Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity.
+            verbose (bool): Enables verbose output during inference, providing detailed logs and progress updates. Useful for closely monitoring the inference process.
 
         Returns:
             (list[Results] | Generator[Results]): Inference results as list or generator of Results objects if `stream==True`.

@@ -66,7 +66,6 @@ To perform object detection on an image, use the `predict` method as shown below
 
         ```python
         from ultralytics import FastSAM
-        from ultralytics.models.fastsam import FastSAMPrompt
 
         # Define an inference source
         source = "path/to/bus.jpg"
@@ -264,7 +263,6 @@ To use FastSAM for inference in Python, you can follow the example below:
 
 ```python
 from ultralytics import FastSAM
-from ultralytics.models.fastsam import FastSAMPrompt
 
 # Define an inference source
 source = "path/to/bus.jpg"
@@ -275,21 +273,17 @@ model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 # Run inference on an image
 everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-# Prepare a Prompt Process object
-prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
+# Run inference with bboxes prompt
+results = model(source, bboxes=[439, 437, 524, 709])
 
-# Everything prompt
-ann = prompt_process.everything_prompt()
+# Run inference with points prompt
+results = model(source, points=[[200, 200]], labels=[1])
 
-# Bounding box prompt
-ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+# Run inference with texts prompt
+results = model(source, texts="a photo of a dog")
 
-# Text prompt
-ann = prompt_process.text_prompt(text="a photo of a dog")
-
-# Point prompt
-ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(annotations=ann, output="./")
+# Run inference with bboxes and points and texts prompt at the same time
+results = model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 ```
 
 For more details on inference methods, check the [Predict Usage](#predict-usage) section of the documentation.

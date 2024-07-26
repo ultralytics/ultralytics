@@ -36,7 +36,6 @@ class Heatmap:
 
         self.annotator = None
         self.initialized = False
-        self.im0 = None
         self.heatmap = None
 
         # Predict/track information
@@ -99,17 +98,16 @@ class Heatmap:
             im0 (nd array): Image
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        self.im0 = im0
 
         # Initialize heatmap only once
         if not self.initialized:
-            self.heatmap = np.zeros((int(self.im0.shape[0]), int(self.im0.shape[1])), dtype=np.float32)
+            self.heatmap = np.zeros((int(im0.shape[0]), int(im0.shape[1])), dtype=np.float32)
             self.initialized = True
 
         self.heatmap *= self.args.decay_factor  # decay factor
         self.extract_results(tracks)
 
-        self.annotator = Annotator(self.im0, self.args.line_thickness, None)
+        self.annotator = Annotator(im0, self.args.line_thickness, None)
 
         if self.track_ids:
             # Draw counting region
@@ -126,15 +124,14 @@ class Heatmap:
                     self.class_wise_count[self.args.names[cls]] = {"IN": 0, "OUT": 0}
 
                 if self.args.shape == "circle":
-                    center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
-                    radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
-
-                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
-
-                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
-                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-                    )
+                    x0, y0, x1, y1 = map(int, [box[0], box[1], box[2], box[3]])
+                    center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
+                    radius = min(x1 - x0, y1 - y0) // 2
+                    y_indices, x_indices = np.ogrid[y0:y1, x0:x1]  # Create a coordinate grid for the bounding box area
+                    dist_sq = (x_indices - center_x) ** 2 + (
+                                y_indices - center_y) ** 2  # Calculate squared distances from the center
+                    mask = dist_sq <= radius ** 2  # Create a mask for the circle
+                    self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
 
                 else:
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
@@ -181,16 +178,13 @@ class Heatmap:
         else:
             for box, cls in zip(self.boxes, self.clss):
                 if self.args.shape == "circle":
-                    center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
-                    radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
-
-                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
-
-                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
-                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-                    )
-
+                    x0, y0, x1, y1 = map(int, [box[0], box[1], box[2], box[3]])
+                    center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
+                    radius = min(x1 - x0, y1 - y0) // 2
+                    y_indices, x_indices = np.ogrid[y0:y1, x0:x1]   # Create a coordinate grid for the bounding box area
+                    dist_sq = (x_indices - center_x) ** 2 + (y_indices - center_y) ** 2 # Calculate squared distances from the center
+                    mask = dist_sq <= radius ** 2   # Create a mask for the circle
+                    self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
                 else:
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
@@ -210,25 +204,21 @@ class Heatmap:
 
             if labels_dict is not None:
                 self.annotator.display_analytics(
-                    self.im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color, 10
+                    im0, labels_dict, self.args.count_txt_color, self.args.count_bg_color, 10
                 )
 
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.args.colormap)
-        self.im0 = cv2.addWeighted(self.im0, 1 - self.args.heatmap_alpha, heatmap_colored, self.args.heatmap_alpha, 0)
+        im0 = cv2.addWeighted(im0, 1 - self.args.heatmap_alpha, heatmap_colored, self.args.heatmap_alpha, 0)
 
         if self.env_check and self.args.view_img:
-            self.display_frames()
+            cv2.imshow("Ultralytics Heatmap", im0)
 
-        return self.im0
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
 
-    def display_frames(self):
-        """Display frame."""
-        cv2.imshow("Ultralytics Heatmap", self.im0)
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
+        return im0
 
 
 if __name__ == "__main__":

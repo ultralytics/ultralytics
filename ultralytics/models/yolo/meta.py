@@ -1,15 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
-from typing import Union, Generator
+from typing import Generator, Union
 
 import numpy as np
-from PIL import Image
 import torch
+from pandas import DataFrame
+from PIL import Image
 
 from ultralytics.engine.model import Model
 from ultralytics.engine.results import Results
-from ultralytics.utils.metrics import DetMetrics, SegmentMetrics, PoseMetrics, OBBMetrics, ClassifyMetrics
+from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 DROP = {"self", "__class__"}
 
@@ -34,8 +35,52 @@ class ModelMeta(Model):
         super().__init__(model=model, task=task, verbose=verbose)
 
 
+    def benchmark(
+        self,
+        *,
+        model: str = None,
+        data: str = None,
+        imgsz: Union[int, tuple[int]] = 640,
+        half: bool = False,
+        int8: bool = False,
+        device: str = None,
+        verbose: bool = False,
+    ) -> DataFrame:
+        """
+        Benchmarks the model across various export formats to evaluate performance.
+
+        This method assesses the model's performance in different export formats, such as ONNX, TorchScript, etc.
+        It uses the 'benchmark' function from the ultralytics.utils.benchmarks module. The benchmarking is
+        configured using a combination of default configuration values, model-specific arguments, method-specific
+        defaults, and any additional user-provided keyword arguments.
+
+        Args:
+            model (str): Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolov8n.pt"` for pre-trained models or configuration files.
+            data (str): Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for validation data. Example: `"coco8.yaml"`.
+            imgsz (int or tuple): The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.
+            half (bool): Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.
+            int8 (bool): Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.
+            device (str or list): Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.
+            verbose (bool or float): Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.
+        
+        Returns:
+            (DataFrame): A pandas DataFrame containing the results of the benchmarking process, including metrics for
+                different export formats.
+
+        Raises:
+            AssertionError: If the model is not a PyTorch model.
+
+        Examples:
+            >>> model = YOLO('yolov8n.pt')
+            >>> results = model.benchmark(data='coco8.yaml', imgsz=640, half=True)
+            >>> print(results)
+        """
+        return super().benchmark(**{k: v for k, v in locals().items() if k not in DROP})
+
+
     def export(
         self,
+        *,
         format: str = "torchscript",
         imgsz: Union[int, tuple] = 640,
         keras: bool = False,
@@ -84,6 +129,7 @@ class ModelMeta(Model):
 
     def predict(
         self,
+        *,
         predictor: object = None,
         source: Union[
             str,
@@ -108,6 +154,16 @@ class ModelMeta(Model):
         retina_masks: bool = False,
         embed: list[int] = None,
         stream: bool = False,
+        show: bool = False,
+        save: bool = False,
+        save_frames: bool = False,
+        save_txt: bool = False,
+        save_conf: bool = False,
+        save_crop: bool = False,
+        show_labels: bool = False,
+        show_conf: bool = False,
+        show_boxes: bool = False,
+        line_width: int = None,
     ) -> Union[list[Results], Generator[Results, None, None]]:
         """
         Performs predictions on the given image source using the YOLO model.
@@ -118,22 +174,32 @@ class ModelMeta(Model):
 
         Args:
             predictor (BasePredictor | None): An instance of a custom predictor class for making predictions. If None, the method uses a default predictor.
-            source (str | Path | np.ndarray | Image.Image | torch.Tensor | list[str | Path | np.ndarray | Image.Image | torch.Tensor]): Input source.
-            conf (float): Confidence threshold.
-            iou (float): IoU threshold.
-            imgsz (int | tuple[int, int]: Inference size (pixels).
-            half (bool): Use half precision.
-            device (str): Device to use for inference, "cpu", "cuda", .
-            max_det (int): Maximum number of detections per image.
-            vid_stride (int): Frame stride for video inference.
-            stream_buffer (bool): Stream video frames from a buffer.
-            visualize (bool): Visualize the results.
-            augment (bool): Use augmented inference.
-            agnostic_nms (bool): Use agnostic NMS.
-            classes (list[int]): List of classes to filter the results.
-            retina_masks (bool): Use retina masks.
-            embed (list[int]): List of indices to embed in the results.
+            source (str | Path | np.ndarray | Image.Image | torch.Tensor | list[str | Path | np.ndarray | Image.Image | torch.Tensor]): Specifies the data source for inference. Can be an image path, video file, directory, URL, or device ID for live feeds. Supports a wide range of formats and sources, enabling flexible application across different types of input.
+            conf (float): Sets the minimum confidence threshold for detections. Objects detected with confidence below this threshold will be disregarded. Adjusting this value can help reduce false positives.
+            iou (float): Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values result in fewer detections by eliminating overlapping boxes, useful for reducing duplicates.
+            imgsz (int | tuple[int, int]): Defines the image size for inference. Can be a single integer `640` for square resizing or a (height, width) tuple. Proper sizing can improve detection accuracy and processing speed.
+            half (bool): Enables half-precision (FP16) inference, which can speed up model inference on supported GPUs with minimal impact on accuracy.
+            device (str): Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.
+            max_det (int): Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes.
+            vid_stride (int): Frame stride for video inputs. Allows skipping frames in videos to speed up processing at the cost of temporal resolution. A value of 1 processes every frame, higher values skip frames.
+            stream_buffer (bool): Determines if all frames should be buffered when processing video streams (`True`), or if the model should return the most recent frame (`False`). Useful for real-time applications.
+            visualize (bool): Activates visualization of model features during inference, providing insights into what the model is "seeing". Useful for debugging and model interpretation.
+            augment (bool): Enables test-time augmentation (TTA) for predictions, potentially improving detection robustness at the cost of inference speed.
+            agnostic_nms (bool): Enables class-agnostic Non-Maximum Suppression (NMS), which merges overlapping boxes of different classes. Useful in multi-class detection scenarios where class overlap is common.
+            classes (list[int]): Filters predictions to a set of class IDs. Only detections belonging to the specified classes will be returned. Useful for focusing on relevant objects in multi-class detection tasks.
+            retina_masks (bool): Uses high-resolution segmentation masks if available in the model. This can enhance mask quality for segmentation tasks, providing finer detail.
+            embed (list[int]): Specifies the layers from which to extract feature vectors or embeddings. Useful for downstream tasks like clustering or similarity search.
             stream (bool): Returns a generator for memory efficient processing.
+            show (bool): If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing.
+            save (bool): Enables saving of the annotated images or videos to file. Useful for documentation, further analysis, or sharing results.
+            save_frames (bool): When processing videos, saves individual frames as images. Useful for extracting specific frames or for detailed frame-by-frame analysis.
+            save_txt (bool): Saves detection results in a text file, following the format `[class] [x_center] [y_center] [width] [height] [confidence]`. Useful for integration with other analysis tools.
+            save_conf (bool): Includes confidence scores in the saved text files. Enhances the detail available for post-processing and analysis.
+            save_crop (bool): Saves cropped images of detections. Useful for dataset augmentation, analysis, or creating focused datasets for specific objects.
+            show_labels (bool): Displays labels for each detection in the visual output. Provides immediate understanding of detected objects.
+            show_conf (bool): Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection.
+            show_boxes (bool): Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames.
+            line_width (None or int): Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity.
 
         Returns:
             (list[Results] | Generator[Results]): Inference results as list or generator of Results objects if `stream==True`.
@@ -154,6 +220,7 @@ class ModelMeta(Model):
 
     def train(
         self,
+        *,
         trainer: object = None,
         model: str = None,
         data: str = None,
@@ -282,6 +349,7 @@ class ModelMeta(Model):
 
     def track(
         self,
+        *,
         source: Union[
             str,
             Path,
@@ -306,6 +374,16 @@ class ModelMeta(Model):
         agnostic_nms: bool = False,
         classes: list[int] = None,
         retina_masks: bool = False,
+        show: bool = False,
+        save: bool = False,
+        save_frames: bool = False,
+        save_txt: bool = False,
+        save_conf: bool = False,
+        save_crop: bool = False,
+        show_labels: bool = False,
+        show_conf: bool = False,
+        show_boxes: bool = False,
+        line_width: int = None,
     ) -> Union[list[Results], Generator[Results, None, None]]:
         """
         Conducts object tracking on the specified input source using the registered trackers.
@@ -315,26 +393,35 @@ class ModelMeta(Model):
         The method registers trackers if not already present and can persist them between calls.
 
         Args:
-            source (str | Path | np.ndarray | Image.Image | torch.Tensor | list[str | Path | np.ndarray | Image.Image | torch.Tensor]): Input source.
-            conf (float): Confidence threshold.
-            iou (float): IoU threshold.
+            source (str | Path | np.ndarray | Image.Image | torch.Tensor | list[str | Path | np.ndarray | Image.Image | torch.Tensor]): Specifies the data source for inference. Can be an image path, video file, directory, URL, or device ID for live feeds. Supports a wide range of formats and sources, enabling flexible application across different types of input.
+            conf (float): Sets the minimum confidence threshold for detections. Objects detected with confidence below this threshold will be disregarded. Adjusting this value can help reduce false positives.
+            iou (float): Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Lower values result in fewer detections by eliminating overlapping boxes, useful for reducing duplicates.
             tracker (str): Tracker type to use for object tracking, such as 'bytetrack' or 'botsort'.
             stream (bool): If True, treats the input source as a continuous video stream. Defaults to False.
             persist (bool): If True, persists trackers between different calls to this method. Defaults to False.
-            imgsz (int | tuple[int, int]: Inference size (pixels).
-            half (bool): Use half precision.
-            device (str): Device to use for inference, "cpu", "cuda", .
-            max_det (int): Maximum number of detections per image.
-            vid_stride (int): Frame stride for video inference.
-            stream_buffer (bool): Stream video frames from a buffer.
-            visualize (bool): Visualize the results.
-            augment (bool): Use augmented inference.
-            agnostic_nms (bool): Use agnostic NMS.
-            classes (list[int]): List of classes to filter the results.
-            retina_masks (bool): Use retina masks.
-            embed (list[int]): List of indices to embed in the results.
+            imgsz (int | tuple[int, int]): Defines the image size for inference. Can be a single integer `640` for square resizing or a (height, width) tuple. Proper sizing can improve detection accuracy and processing speed.
+            half (bool): Enables half-precision (FP16) inference, which can speed up model inference on supported GPUs with minimal impact on accuracy.
+            device (str): Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.
+            max_det (int): Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes.
+            vid_stride (int): Frame stride for video inputs. Allows skipping frames in videos to speed up processing at the cost of temporal resolution. A value of 1 processes every frame, higher values skip frames.
+            stream_buffer (bool): Determines if all frames should be buffered when processing video streams (`True`), or if the model should return the most recent frame (`False`). Useful for real-time applications.
+            visualize (bool): Activates visualization of model features during inference, providing insights into what the model is "seeing". Useful for debugging and model interpretation.
+            augment (bool): Enables test-time augmentation (TTA) for predictions, potentially improving detection robustness at the cost of inference speed.
+            agnostic_nms (bool): Enables class-agnostic Non-Maximum Suppression (NMS), which merges overlapping boxes of different classes. Useful in multi-class detection scenarios where class overlap is common.
+            classes (list[int]): Filters predictions to a set of class IDs. Only detections belonging to the specified classes will be returned. Useful for focusing on relevant objects in multi-class detection tasks.
+            retina_masks (bool): Uses high-resolution segmentation masks if available in the model. This can enhance mask quality for segmentation tasks, providing finer detail.
+            embed (list[int]): Specifies the layers from which to extract feature vectors or embeddings. Useful for downstream tasks like clustering or similarity search.
             stream (bool): Returns a generator for memory efficient processing.
-            persist (bool): If True, persists trackers between different calls to this method. Defaults to False.
+            show (bool): If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing.
+            save (bool): Enables saving of the annotated images or videos to file. Useful for documentation, further analysis, or sharing results.
+            save_frames (bool): When processing videos, saves individual frames as images. Useful for extracting specific frames or for detailed frame-by-frame analysis.
+            save_txt (bool): Saves detection results in a text file, following the format `[class] [x_center] [y_center] [width] [height] [confidence]`. Useful for integration with other analysis tools.
+            save_conf (bool): Includes confidence scores in the saved text files. Enhances the detail available for post-processing and analysis.
+            save_crop (bool): Saves cropped images of detections. Useful for dataset augmentation, analysis, or creating focused datasets for specific objects.
+            show_labels (bool): Displays labels for each detection in the visual output. Provides immediate understanding of detected objects.
+            show_conf (bool): Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection.
+            show_boxes (bool): Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames.
+            line_width (None or int): Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity.
 
         Returns:
             (list[Results] | Generator[Results]): A list, or generator when `stream==True`, of tracking results, each a Results object.
@@ -358,6 +445,7 @@ class ModelMeta(Model):
 
     def val(
         self,
+        *,
         data: str = None,
         imgsz: int = 640,
         batch: int = 16,

@@ -25,13 +25,17 @@ COPY . $APP_HOME
 RUN chown -R root:root $APP_HOME
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
 
+# Download onnxruntime-gpu 1.18.0 from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
+ADD https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
+
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache-dir \
-    https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl \
+    onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.3.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl
 RUN pip install --no-cache-dir -e ".[export]"
+RUN rm *.whl
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

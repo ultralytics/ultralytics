@@ -1,11 +1,9 @@
 import time
-
 from collections import defaultdict, deque
 from typing import Union
 
 import cv2
 import numpy as np
-
 from shapely.geometry import Point, Polygon
 
 from ultralytics.utils.checks import check_imshow
@@ -15,15 +13,16 @@ from ultralytics.utils.plotting import Annotator, colors
 class IllegalParking(object):
     """A class for judging illegal parking in a real-time video stream based on their tracks."""
 
-    def __init__(self,
-                 names: dict,
-                 polygon_coords: list = None,
-                 view_img: bool = False,
-                 line_thickness: int = 2,
-                 polygon_thickness: int = 5,
-                 parking_threshold: int = 50,
-                 object_iou_threshold: float = 0.80
-                 ):
+    def __init__(
+        self,
+        names: dict,
+        polygon_coords: list = None,
+        view_img: bool = False,
+        line_thickness: int = 2,
+        polygon_thickness: int = 5,
+        parking_threshold: int = 50,
+        object_iou_threshold: float = 0.80,
+    ):
         """
         Initializes the IllegalParking with the given parameters.
 
@@ -128,8 +127,11 @@ class IllegalParking(object):
             cls(str): Object class code.
         """
         is_parking = track_id in self.parking_ids_set
-        parking_label = f"{self.names[int(cls)]}: {int(time.time() - self.trk_start_time[track_id])} s." if (
-            is_parking) else self.names[int(cls)]
+        parking_label = (
+            f"{self.names[int(cls)]}: {int(time.time() - self.trk_start_time[track_id])} s."
+            if (is_parking)
+            else self.names[int(cls)]
+        )
         bbox_color = colors(int(track_id)) if is_parking else (255, 0, 255)
         self.annotator.box_label(box, parking_label, bbox_color)
 
@@ -182,8 +184,10 @@ class IllegalParking(object):
                 is_gt_parking_threshold = len(self.trk_window[trk_id]) > self.parking_threshold
                 if is_gt_parking_threshold:
                     self.trk_window[trk_id].pop(0)
-                is_parking = is_gt_parking_threshold and (
-                        IllegalParking.iou(self.trk_window[trk_id], box) >= self.object_iou_threshold).all()
+                is_parking = (
+                    is_gt_parking_threshold
+                    and (IllegalParking.iou(self.trk_window[trk_id], box) >= self.object_iou_threshold).all()
+                )
                 if is_parking:
                     self.parking_ids_set.add(trk_id)
                     self.trk_start_time.setdefault(trk_id, time.time())
@@ -205,6 +209,6 @@ class IllegalParking(object):
             return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     my_names = {0: "truck", 1: "car"}
     illegal_parking = IllegalParking(my_names)

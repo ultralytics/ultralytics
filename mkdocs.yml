@@ -536,6 +536,7 @@ nav:
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
+              - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md

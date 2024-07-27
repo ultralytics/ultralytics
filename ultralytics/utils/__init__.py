@@ -975,6 +975,11 @@ class SettingsManager(dict):
             "tensorboard": True,
             "wandb": True,
         }
+        self.help_msg = (
+            f"\nView settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
+        )
 
         super().__init__(copy.deepcopy(self.defaults))
 
@@ -986,15 +991,10 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self["settings_version"], self.version)
-            help_msg = (
-                f"\nView settings with 'yolo settings' or at '{self.file}'"
-                "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
-                "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
-            )
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    f"with your settings or a recent ultralytics package update. {help_msg}"
+                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
                 )
                 self.reset()
 
@@ -1002,7 +1002,7 @@ class SettingsManager(dict):
                 LOGGER.warning(
                     f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
                     f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                    f"Please change one to avoid possible issues during training. {help_msg}"
+                    f"Please change one to avoid possible issues during training. {self.help_msg}"
                 )
 
     def load(self):
@@ -1015,6 +1015,12 @@ class SettingsManager(dict):
 
     def update(self, *args, **kwargs):
         """Updates a setting value in the current settings."""
+        for k, v in kwargs.items():
+            if k not in self.defaults:
+                raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
+            t = type(self.defaults[k])
+            if not isinstance(v, t):
+                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
         super().update(*args, **kwargs)
         self.save()
 

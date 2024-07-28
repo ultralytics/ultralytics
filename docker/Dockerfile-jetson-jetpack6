@@ -5,9 +5,6 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-jetpack
 FROM nvcr.io/nvidia/l4t-jetpack:r36.3.0
 
-# Set environment variables
-ENV APP_HOME /usr/src/ultralytics
-
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -18,12 +15,12 @@ RUN apt update && \
     apt install --no-install-recommends -y git python3-pip libopenmpi-dev libopenblas-base libomp-dev
 
 # Create working directory
-WORKDIR $APP_HOME
+WORKDIR /ultralytics
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+COPY . .
+RUN chown -R root:root .
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.18.0 from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
 ADD https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl

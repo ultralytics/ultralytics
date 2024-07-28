@@ -11,18 +11,18 @@ import requests
 class GCPRegions:
     """
     A class for managing and analyzing Google Cloud Platform (GCP) regions.
-    
+
     This class provides functionality to initialize, categorize, and analyze GCP regions based on their
     geographical location, tier classification, and network latency.
-    
+
     Attributes:
         regions (Dict[str, Tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
-    
+
     Methods:
         tier1: Returns a list of tier 1 GCP regions.
         tier2: Returns a list of tier 2 GCP regions.
         lowest_latency: Determines the GCP region(s) with the lowest network latency.
-    
+
     Examples:
         >>> gcp = GCPRegions()
         >>> tier1_regions = gcp.tier1()
@@ -30,6 +30,7 @@ class GCPRegions:
         >>> lowest_latency_region = gcp.lowest_latency(verbose=True)
         >>> print(f"Lowest latency region: {lowest_latency_region[0][0]}")
     """
+
     def __init__(self):
         """Initializes the GCPRegions class with predefined Google Cloud Platform regions and their details."""
         self.regions = {
@@ -110,17 +111,17 @@ class GCPRegions:
     ) -> List[Tuple[str, float, float, float, float]]:
         """
         Determines the GCP regions with the lowest latency based on ping tests.
-        
+
         Args:
             top (int): Number of top regions to return.
             verbose (bool): If True, prints detailed latency information for all tested regions.
             tier (int | None): Filter regions by tier (1 or 2). If None, all regions are tested.
             retries (int): Number of ping attempts per region.
-        
+
         Returns:
-            (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and 
+            (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
             latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
-        
+
         Examples:
             >>> gcp = GCPRegions()
             >>> results = gcp.lowest_latency(top=3, verbose=True, tier=1, retries=2)

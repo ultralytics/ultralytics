@@ -10,6 +10,7 @@ import requests
 
 class GCPRegions:
     def __init__(self):
+        """Initializes the GCPRegions class with predefined Google Cloud Platform regions and their details."""
         self.regions = {
             "asia-east1": (1, "Taiwan", "China"),
             "asia-east2": (2, "Hong Kong", "China"),
@@ -52,13 +53,16 @@ class GCPRegions:
         }
 
     def tier1(self) -> List[str]:
+        """Returns a list of GCP regions classified as tier 1 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 1]
 
     def tier2(self) -> List[str]:
+        """Returns a list of GCP regions classified as tier 2 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 2]
 
     @staticmethod
     def _ping_region(region: str, retries: int = 1) -> Tuple[str, float, float, float, float]:
+        """Pings a specified GCP region and returns latency statistics: mean, min, max, and standard deviation."""
         url = f"https://{region}-docker.pkg.dev"
         latencies = []
         for _ in range(retries):

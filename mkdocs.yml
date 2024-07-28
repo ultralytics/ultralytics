@@ -476,6 +476,8 @@ nav:
       - hub:
           - __init__: reference/hub/__init__.md
           - auth: reference/hub/auth.md
+          - google:
+              - __init__: reference/hub/google/__init__.md
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
       - models:

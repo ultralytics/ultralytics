@@ -12,7 +12,7 @@ You can use JupyterLab to [work on projects](../guides/steps-of-a-cv-project.md)
 
 ## What is JupyterLab?
 
-JupyterLab is an open-source web-based platform designed for working with Jupyter notebooks, code, and data. It's an upgrade from the traditional Jupyter Notebook interface that provides a more versatile and powerful user experience. 
+JupyterLab is an open-source web-based platform designed for working with Jupyter notebooks, code, and data. It's an upgrade from the traditional Jupyter Notebook interface that provides a more versatile and powerful user experience.
 
 JupyterLab allows you to work with notebooks, text editors, terminals, and other tools all in one place. Its flexible design lets you organize your workspace to fit your needs and makes it easier to perform tasks like data analysis, visualization, and machine learning. JupyterLab also supports real-time collaboration, making it ideal for team projects in research and data science.
 
@@ -32,8 +32,8 @@ There are multiple platforms for developing and evaluating machine learning mode
 
 - **Easy Cell Management**: Managing cells in JupyterLab is a breeze. Instead of the cumbersome cut-and-paste method, you can simply drag and drop cells to rearrange them.
 - **Cross-Notebook Cell Copying**: JupyterLab makes it simple to copy cells between different notebooks. You can drag and drop cells from one notebook to another.
-- **Easy Switch to Classic Notebook View**: For those who miss the classic Jupyter Notebook interface, JupyterLab offers an easy switch back. Simply replace `/lab` in the URL with `/tree` to return to the familiar notebook view. 
-- **Multiple Views**: JupyterLab supports multiple views of the same notebook, which is particularly useful for long notebooks. You can open different sections side-by-side for comparison or exploration, and any changes made in one view are reflected in the other. 
+- **Easy Switch to Classic Notebook View**: For those who miss the classic Jupyter Notebook interface, JupyterLab offers an easy switch back. Simply replace `/lab` in the URL with `/tree` to return to the familiar notebook view.
+- **Multiple Views**: JupyterLab supports multiple views of the same notebook, which is particularly useful for long notebooks. You can open different sections side-by-side for comparison or exploration, and any changes made in one view are reflected in the other.
 - **Customizable Themes**: JupyterLab includes a built-in Dark theme for the notebook, which is perfect for late-night coding sessions. There are also themes available for the text editor and terminal, allowing you to customize the appearance of your entire workspace.
 
 ## Common Issues While Working with JupyterLab
@@ -44,7 +44,7 @@ When working with Kaggle, you might come across some common issues. Here are som
 - **Installing Python Packages**: Sometimes, you might need additional Python packages that aren’t pre-installed on the server. You can easily install these packages in your home directory or a virtual environment by using the command `python -m pip install package-name`. To see all installed packages, use `python -m pip list`.
 - **Deploying Flask/FastAPI API to Posit Connect**: You can deploy your Flask and FastAPI APIs to Posit Connect using the [rsconnect-python](https://docs.posit.co/rsconnect-python/) package from the terminal. Doing so makes it easier to integrate your web applications with JupyterLab and share them with others.
 - **Installing JupyterLab Extensions**: JupyterLab supports various extensions to enhance functionality. You can install and customize these extensions to suit your needs. For detailed instructions, refer to [JupyterLab Extensions Guide](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html) for more information.
-- **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions. 
+- **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions.
 
 ## How to Use JupyterLab to Try Out YOLOv8
 
@@ -61,7 +61,7 @@ First, you need to install JupyterLab. Open your terminal and run the command:
         ```bash
         # Install the required package for JupyterLab
         pip install jupyterlab
-        ```   
+        ```
 
 ### Step 2: Download the YOLOv8 Tutorial Notebook
 
@@ -77,7 +77,7 @@ Navigate to the directory where you saved the notebook file using your terminal.
 
         ```bash
         jupyter lab
-        ```   
+        ```
 
 Once you’ve run this command, it will open JupyterLab in your default web browser, as shown below.
 
@@ -85,7 +85,7 @@ Once you’ve run this command, it will open JupyterLab in your default web brow
 
 ### Step 4: Start Experimenting
 
-In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLOv8. 
+In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLOv8.
 
 ![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/user-attachments/assets/71fe86d8-1964-4cde-9f62-479dfa41c75b)
 
@@ -99,7 +99,7 @@ If you're excited to learn more about JupyterLab, here are some great resources 
 
 - [**JupyterLab Documentation**](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html): Dive into the official JupyterLab Documentation to explore its features and capabilities. It's a great way to understand how to use this powerful tool to its fullest potential.
 - [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It’s a great way to start experimenting immediately.
-- [**Installation Guide**](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html): For a step-by-step guide on installing JupyterLab on your local machine, check out the installation guide. 
+- [**Installation Guide**](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html): For a step-by-step guide on installing JupyterLab on your local machine, check out the installation guide.
 
 ## Summary
 

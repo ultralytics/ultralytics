@@ -26,7 +26,7 @@ class GCPRegions:
     Examples:
         >>> from ultralytics.hub.google import GCPRegions
         >>> regions = GCPRegions()
-        >>> lowest_latency_region = regions.lowest_latency(verbose=True, retries=3)
+        >>> lowest_latency_region = regions.lowest_latency(verbose=True, attempts=3)
         >>> print(f"Lowest latency region: {lowest_latency_region[0][0]}")
     """
 
@@ -82,11 +82,11 @@ class GCPRegions:
         return [region for region, info in self.regions.items() if info[0] == 2]
 
     @staticmethod
-    def _ping_region(region: str, retries: int = 1) -> Tuple[str, float, float, float, float]:
+    def _ping_region(region: str, attempts: int = 1) -> Tuple[str, float, float, float, float]:
         """Pings a specified GCP region and returns latency statistics: mean, min, max, and standard deviation."""
         url = f"https://{region}-docker.pkg.dev"
         latencies = []
-        for _ in range(retries):
+        for _ in range(attempts):
             try:
                 start_time = time.time()
                 _ = requests.head(url, timeout=5)
@@ -106,7 +106,7 @@ class GCPRegions:
         top: int = 1,
         verbose: bool = False,
         tier: Optional[int] = None,
-        retries: int = 1,
+        attempts: int = 1,
     ) -> List[Tuple[str, float, float, float, float]]:
         """
         Determines the GCP regions with the lowest latency based on ping tests.
@@ -115,7 +115,7 @@ class GCPRegions:
             top (int): Number of top regions to return.
             verbose (bool): If True, prints detailed latency information for all tested regions.
             tier (int | None): Filter regions by tier (1 or 2). If None, all regions are tested.
-            retries (int): Number of ping attempts per region.
+            attempts (int): Number of ping attempts per region.
 
         Returns:
             (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
@@ -123,15 +123,15 @@ class GCPRegions:
 
         Examples:
             >>> regions = GCPRegions()
-            >>> results = regions.lowest_latency(top=3, verbose=True, tier=1, retries=2)
+            >>> results = regions.lowest_latency(top=3, verbose=True, tier=1, attempts=2)
             >>> print(results[0][0])  # Print the name of the lowest latency region
         """
         if verbose:
-            print(f"Testing GCP regions for latency (with {retries} {'retry' if retries == 1 else 'retries'})...")
+            print(f"Testing GCP regions for latency (with {attempts} {'retry' if attempts == 1 else 'attempts'})...")
 
         regions_to_test = [k for k, v in self.regions.items() if v[0] == tier] if tier else list(self.regions.keys())
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            results = list(executor.map(lambda r: self._ping_region(r, retries), regions_to_test))
+            results = list(executor.map(lambda r: self._ping_region(r, attempts), regions_to_test))
 
         sorted_results = sorted(results, key=lambda x: x[1])
 
@@ -156,4 +156,4 @@ class GCPRegions:
 # Usage example
 if __name__ == "__main__":
     regions = GCPRegions()
-    top_3_latency_tier1 = regions.lowest_latency(top=3, verbose=True, tier=1, retries=3)
+    top_3_latency_tier1 = regions.lowest_latency(top=3, verbose=True, tier=1, attempts=3)

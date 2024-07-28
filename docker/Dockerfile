@@ -6,7 +6,6 @@
 FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 
 # Set environment variables
-ENV APP_HOME /usr/src/ultralytics
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
 ENV MKL_THREADING_LAYER=GNU
 
@@ -26,7 +25,7 @@ RUN apt update \
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-WORKDIR $APP_HOME
+WORKDIR /ultralytics
 
 # Copy contents and assign permissions
 COPY . .
@@ -62,7 +61,7 @@ RUN rm -rf tmp
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 
 # Pull and Run with local directory access
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/shared/datasets:/usr/src/datasets $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/shared/datasets:/datasets $t
 
 # Kill all
 # sudo docker kill $(sudo docker ps -q)

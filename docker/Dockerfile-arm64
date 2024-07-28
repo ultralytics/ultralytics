@@ -24,9 +24,9 @@ RUN apt update \
 WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
+COPY . .
 RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Remove python3.11/EXTERNALLY-MANAGED to avoid 'externally-managed-environment' issue, Debian 12 Bookworm error
 RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED

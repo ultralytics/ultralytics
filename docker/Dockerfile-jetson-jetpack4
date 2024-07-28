@@ -30,9 +30,9 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+COPY . .
+RUN chown -R root:root .
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.8.0 and tensorrt 8.2.0.6
 # Other versions can be seen in https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048

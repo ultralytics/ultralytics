@@ -24,9 +24,9 @@ RUN apt update \
 WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
+COPY . .
 RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Remove opencv-python from Ultralytics dependencies as it conflicts with opencv-python installed in base image
 RUN grep -v "opencv-python" pyproject.toml > temp.toml && mv temp.toml pyproject.toml

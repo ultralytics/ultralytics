@@ -21,9 +21,9 @@ RUN apt update && \
 WORKDIR $APP_HOME
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+COPY . .
+RUN chown -R root:root .
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.18.0 from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
 ADD https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl

@@ -5,9 +5,6 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda
 FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime
 
-# Set environment variables
-ENV APP_HOME /usr/src/ultralytics
-
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -27,12 +24,12 @@ RUN ln -sf /usr/bin/python3.8 /usr/bin/python3
 RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 # Create working directory
-WORKDIR $APP_HOME
+WORKDIR /ultralytics
 
 # Copy contents and assign permissions
-COPY . $APP_HOME
-RUN chown -R root:root $APP_HOME
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt $APP_HOME
+COPY . .
+RUN chown -R root:root .
+ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.8.0 and tensorrt 8.2.0.6
 # Other versions can be seen in https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048

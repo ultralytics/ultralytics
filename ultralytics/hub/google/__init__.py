@@ -26,8 +26,6 @@ class GCPRegions:
     Examples:
         >>> from ultralytics.hub.google import GCPRegions
         >>> regions = GCPRegions()
-        >>> tier1_regions = regions.tier1()
-        >>> print(f"Number of Tier 1 regions: {len(tier1_regions)}")
         >>> lowest_latency_region = regions.lowest_latency(verbose=True, retries=3)
         >>> print(f"Lowest latency region: {lowest_latency_region[0][0]}")
     """
@@ -124,8 +122,8 @@ class GCPRegions:
             latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:
-            >>> gcp = GCPRegions()
-            >>> results = gcp.lowest_latency(top=3, verbose=True, tier=1, retries=2)
+            >>> regions = GCPRegions()
+            >>> results = regions.lowest_latency(top=3, verbose=True, tier=1, retries=2)
             >>> print(results[0][0])  # Print the name of the lowest latency region
         """
         if verbose:

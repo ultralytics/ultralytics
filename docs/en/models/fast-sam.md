@@ -112,8 +112,6 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
         predictor = FastSAMPredictor(overrides=overrides)
 
         # Segment everything
-        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
-        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
         everything_results = predictor("ultralytics/assets/bus.jpg")
 
         # Prompt inference

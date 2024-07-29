@@ -126,22 +126,22 @@ To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the 
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    # Load a model
-    model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
-    # Train the model
-    results = model.train(data="imagenette", epochs=100, imgsz=224)
-    ```
+        # Train the model
+        results = model.train(data="imagenette", epochs=100, imgsz=224)
+        ```
 
     === "CLI"
 
-    ```bash
-    # Start training from a pretrained *.pt model
-    yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
-    ```
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+        ```
 
 For more details, see the [Training](../../modes/train.md) documentation page.
 

@@ -17,6 +17,7 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     LOGGER,
     RANK,
+    SETTINGS,
     callbacks,
     checks,
     emojis,
@@ -286,7 +287,7 @@ class Model(nn.Module):
             >>> model._load('path/to/weights.pth', task='detect')
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
-            weights = checks.check_file(weights)  # automatically download and return local filename
+            weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
 
         if Path(weights).suffix == ".pt":

@@ -39,18 +39,18 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
 
     === "Python"
     
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")  # Load the YOLOv8 model
-    results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
-    ```
+        model = YOLO("yolov8n.pt")  # Load the YOLOv8 model
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+        ```
 
     === "CLI"
 
-    ```bash
-    yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
-    ```
+        ```bash
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
+        ```
     
 These commands load the YOLOv8 model and use it for tracking objects in the given video source with specific confidence (`conf`) and Intersection over Union (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 

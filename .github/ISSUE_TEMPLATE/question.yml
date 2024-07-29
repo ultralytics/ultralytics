@@ -1,14 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 name: ❓ Question
-description: Ask a Ultralytics YOLO question
+description: Ask an Ultralytics YOLO question
 # title: " "
 labels: [question]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for asking a Ultralytics YOLO ❓ Question!
+        Thank you for asking an Ultralytics YOLO ❓ Question!
 
   - type: checkboxes
     attributes:

@@ -403,6 +403,7 @@ nav:
       - Google Colab: integrations/google-colab.md
       - Kaggle: integrations/kaggle.md
       - JupyterLab: integrations/jupyterlab.md
+      - IBM Watsonx: integrations/ibm-watsonx.md
   - HUB:
       - hub/index.md
       - Web:

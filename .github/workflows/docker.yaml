@@ -23,6 +23,10 @@ on:
         type: boolean
         description: Use Dockerfile-arm64
         default: true
+      Dockerfile-jetson-jetpack6:
+        type: boolean
+        description: Use Dockerfile-jetson-jetpack6
+        default: true
       Dockerfile-jetson-jetpack5:
         type: boolean
         description: Use Dockerfile-jetson-jetpack5
@@ -61,6 +65,9 @@ jobs:
             platforms: "linux/amd64"
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson-jetpack6"
+            tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
           - dockerfile: "Dockerfile-jetson-jetpack5"
             tags: "latest-jetson-jetpack5"

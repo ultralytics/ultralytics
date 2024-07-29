@@ -64,7 +64,8 @@ class FastSAMPredictor(SegmentationPredictor):
             results = [results]
         for result in results:
             # bboxes prompt
-            masks = scale_masks(result.masks.data[None], result.orig_shape)[0]
+            if masks.shape[1:] != result.orig_shape:
+                masks = scale_masks(result.masks.data[None], result.orig_shape)[0]
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)

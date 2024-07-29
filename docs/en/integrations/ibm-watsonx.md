@@ -8,11 +8,11 @@ keywords: IBM Watsonx, IBM Watsonx AI, What is Watson?, IBM Watson Integration, 
 
 Nowadays, scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) are becoming more common and transforming the way we handle visual data. A great example is IBM Watsonx, an advanced AI and data platform that simplifies the development, deployment, and management of AI models. It offers a complete suite for the entire AI lifecycle and seamless integration with IBM Cloud services.
 
-You can train [Ultralytics YOLOv8 models](https://github.com/ultralytics/ultralytics) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. In this guide, we'll walk you through the process of training YOLOv8 with IBM Watsonx, covering everything from setting up your environment to evaluating your trained models. Let’s get started!
+You can train [Ultralytics YOLOv8 models](https://github.com/ultralytics/ultralytics) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. In this guide, we'll walk you through the process of training YOLOv8 with IBM Watsonx, covering everything from setting up your environment to evaluating your trained models. Let's get started!
 
 ## What is IBM Watsonx?
 
-[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial generative AI and scientific data. IBM Watsonx’s three components - watsonx.ai, watsonx.data, and watsonx.governance - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
+[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial generative AI and scientific data. IBM Watsonx's three components - watsonx.ai, watsonx.data, and watsonx.governance - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
   <img width="800" src="https://cdn.stackoverflow.co/images/jo7n4k8s/production/48b67e6aec41f89031a3426cbd1f78322e6776cb-8800x4950.jpg?auto=format" alt="Overview of IBM Watsonx">
@@ -22,7 +22,7 @@ Its user-friendly interface and collaborative capabilities streamline the develo
 
 ## Key Features of IBM Watsonx
 
-IBM Watsonx is made of three main components: watsonx.ai, watsonx.data, and watsonx.governance. Each component offers features that cater to different aspects of AI and data management. Let’s take a closer look at them.
+IBM Watsonx is made of three main components: watsonx.ai, watsonx.data, and watsonx.governance. Each component offers features that cater to different aspects of AI and data management. Let's take a closer look at them.
 
 ### [Watsonx.ai](https://www.ibm.com/products/watsonx-ai)
 
@@ -42,11 +42,11 @@ You can use IBM Watsonx to accelerate your YOLOv8 model training workflow.
 
 ### Prerequisites
 
-You need an [IBM Cloud account](https://cloud.ibm.com/registration) to create a [watsonx.ai](https://www.ibm.com/products/watsonx-ai) project, and you’ll also need a [Kaggle](./kaggle.md) account to load the data set.
+You need an [IBM Cloud account](https://cloud.ibm.com/registration) to create a [watsonx.ai](https://www.ibm.com/products/watsonx-ai) project, and you'll also need a [Kaggle](./kaggle.md) account to load the data set.
 
 ### Step 1: Set Up Your Environment
 
-First, you’ll need to set up an IBM account to use a Jupyter Notebook. Log in to [watsonx.ai](https://eu-de.dataplatform.cloud.ibm.com/registration/stepone?preselect_region=true) using your IBM Cloud account.
+First, you'll need to set up an IBM account to use a Jupyter Notebook. Log in to [watsonx.ai](https://eu-de.dataplatform.cloud.ibm.com/registration/stepone?preselect_region=true) using your IBM Cloud account.
 
 Then, create a [watsonx.ai project](https://www.ibm.com/docs/en/watsonx/saas?topic=projects-creating-project), and a [Jupyter Notebook](https://www.ibm.com/docs/en/watsonx/saas?topic=editor-creating-managing-notebooks).
 
@@ -88,7 +88,7 @@ Then, you can import the needed packages.
 
 For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLOv8 model to detect and classify litter and biological objects in underwater images.
 
-We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you’ll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".
+We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you'll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".
 
 Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into Watsonx.
 
@@ -248,7 +248,7 @@ Run the following command-line code to fine tune a pretrained default YOLOv8 mod
         !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolov8s.pt epochs=2 batch=32 lr0=.04 plots=True
         ```
 
-Here’s a closer look at the parameters in the model training command:
+Here's a closer look at the parameters in the model training command:
 
 - **task**: It specifies the computer vision task for which you are using the specified YOLO model and data set.
 - **mode**: Denotes the purpose for which you are loading the specified model and data. Since we are training a model, it is set to "train." Later, when we test our model's performance, we will set it to "predict."
@@ -257,7 +257,7 @@ Here’s a closer look at the parameters in the model training command:
 - **lr0**: Specifies the model's initial learning rate.
 - **plots**: Directs YOLO to generate and save plots of our model's training and evaluation metrics.
 
-For a detailed understanding of the model training process and best practices, refer to the [YOLOv8 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you’re using YOLOv8 effectively.
+For a detailed understanding of the model training process and best practices, refer to the [YOLOv8 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLOv8 effectively.
 
 ### Step 6: Test the Model
 
@@ -312,7 +312,7 @@ Unlike precision, recall moves in the opposite direction, showing greater recall
 
 ### Step 8: Calculating Intersection Over Union
 
-You can measure the prediction accuracy by calculating the IoU between a predicted bounding box and a ground truth bounding box for the same object. Check out [IBM’s tutorial on training YOLOv8](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/) for more details.
+You can measure the prediction accuracy by calculating the IoU between a predicted bounding box and a ground truth bounding box for the same object. Check out [IBM's tutorial on training YOLOv8](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/) for more details.
 
 ## Summary
 

@@ -100,22 +100,22 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    # Load a model
-    model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
-    # Train the model
-    results = model.train(data="cifar10", epochs=100, imgsz=32)
-    ```
+        # Train the model
+        results = model.train(data="cifar10", epochs=100, imgsz=32)
+        ```
 
     === "CLI"
 
-    ```bash
-    # Start training from a pretrained *.pt model
-    yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
-    ```
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        ```
 
 For more details, refer to the model [Training](../../modes/train.md) page.
 

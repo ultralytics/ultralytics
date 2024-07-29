@@ -55,6 +55,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [JupyterLab](jupyterlab.md): Find out how to use JupyterLab's interactive and customizable environment to train and evaluate Ultralytics models with ease and efficiency.
 
+- [IBM Watsonx](ibm-watsonx.md): See how IBM Watsonx simplifies the training and evaluation of Ultralytics models with its cutting-edge AI tools, effortless integration, and advanced model management system.
+
 ## Deployment Integrations
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.

@@ -117,7 +117,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
         # Prompt inference
         bbox_results = predictor.prompt(everything_results, bboxes=[[200, 200, 300, 300]])
         point_results = predictor.prompt(everything_results, points=[200, 200])
-        text_results = predictor.prompt(everything_results, texts="human hair")
+        text_results = predictor.prompt(everything_results, texts="a photo of a dog")
         ```
 
 !!! Note

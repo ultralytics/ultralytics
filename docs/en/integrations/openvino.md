@@ -64,6 +64,8 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `format` | `'openvino'` | format to export to                                  |
 | `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480) |
 | `half`   | `False`      | FP16 quantization                                    |
+| `int8`   | `False`      | INT8 quantization                                    |
+| `batch`  | `1`          | batch size for inference                             |
 
 ## Benefits of OpenVINO
 

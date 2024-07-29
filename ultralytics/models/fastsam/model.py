@@ -43,8 +43,6 @@ class FastSAM(Model):
         Returns:
             (list): The model predictions.
         """
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024)
-        kwargs.update(overrides)
         prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 

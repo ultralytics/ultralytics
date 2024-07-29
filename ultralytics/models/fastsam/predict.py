@@ -5,6 +5,7 @@ from PIL import Image
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG, checks
 from ultralytics.utils.metrics import box_iou
+from ultralytics.utils.ops import scale_masks
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -63,7 +64,7 @@ class FastSAMPredictor(SegmentationPredictor):
             results = [results]
         for result in results:
             # bboxes prompt
-            masks = result.masks.data
+            masks = scale_masks(result.masks.data[None], result.orig_shape)[0]
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)

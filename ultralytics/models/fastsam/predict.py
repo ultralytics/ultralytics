@@ -63,9 +63,10 @@ class FastSAMPredictor(SegmentationPredictor):
         if not isinstance(results, list):
             results = [results]
         for result in results:
-            # bboxes prompt
+            masks = result.masks.data
             if masks.shape[1:] != result.orig_shape:
-                masks = scale_masks(result.masks.data[None], result.orig_shape)[0]
+                masks = scale_masks(masks[None], result.orig_shape)[0]
+            # bboxes prompt
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
@@ -91,7 +92,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
                 for p, l in zip(points, labels):
-                    point_idx[torch.nonzero(result.masks.data[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                    point_idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):
@@ -99,7 +100,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = [int(x) for x in b]
-                    if result.masks.data[i].sum() <= 100:
+                    if masks[i].sum() <= 100:
                         filter_idx.append(i)
                         continue
                     crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))

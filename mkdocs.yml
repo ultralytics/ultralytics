@@ -403,6 +403,7 @@ nav:
       - Google Colab: integrations/google-colab.md
       - Kaggle: integrations/kaggle.md
       - JupyterLab: integrations/jupyterlab.md
+      - IBM Watsonx: integrations/ibm-watsonx.md
   - HUB:
       - hub/index.md
       - Web:
@@ -485,7 +486,6 @@ nav:
           - fastsam:
               - model: reference/models/fastsam/model.md
               - predict: reference/models/fastsam/predict.md
-              - prompt: reference/models/fastsam/prompt.md
               - utils: reference/models/fastsam/utils.md
               - val: reference/models/fastsam/val.md
           - nas:

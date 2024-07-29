@@ -402,6 +402,7 @@ nav:
       - Paperspace Gradient: integrations/paperspace.md
       - Google Colab: integrations/google-colab.md
       - Kaggle: integrations/kaggle.md
+      - JupyterLab: integrations/jupyterlab.md
   - HUB:
       - hub/index.md
       - Web:

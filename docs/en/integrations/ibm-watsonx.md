@@ -6,7 +6,7 @@ keywords: IBM Watsonx, IBM Watsonx AI, What is Watson?, IBM Watson Integration, 
 
 # A Step-by-Step Guide to Training YOLOv8 Models with IBM Watsonx
 
-Nowadays, scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) are becoming more common and transforming the way we handle visual data. A great example is IBM Watsonx, an advanced AI and data platform that simplifies the development, deployment, and management of AI models. It offers a complete suite for the entire AI lifecycle and seamless integration with IBM Cloud services. 
+Nowadays, scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) are becoming more common and transforming the way we handle visual data. A great example is IBM Watsonx, an advanced AI and data platform that simplifies the development, deployment, and management of AI models. It offers a complete suite for the entire AI lifecycle and seamless integration with IBM Cloud services.
 
 You can train [Ultralytics YOLOv8 models](https://github.com/ultralytics/ultralytics) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. In this guide, we'll walk you through the process of training YOLOv8 with IBM Watsonx, covering everything from setting up your environment to evaluating your trained models. Let’s get started!
 
@@ -46,9 +46,9 @@ You need an [IBM Cloud account](https://cloud.ibm.com/registration) to create a 
 
 ### Step 1: Set Up Your Environment
 
-First, you’ll need to set up an IBM account to use a Jupyter Notebook. Log in to [watsonx.ai](https://eu-de.dataplatform.cloud.ibm.com/registration/stepone?preselect_region=true) using your IBM Cloud account.  
+First, you’ll need to set up an IBM account to use a Jupyter Notebook. Log in to [watsonx.ai](https://eu-de.dataplatform.cloud.ibm.com/registration/stepone?preselect_region=true) using your IBM Cloud account.
 
-Then, create a [watsonx.ai project](https://www.ibm.com/docs/en/watsonx/saas?topic=projects-creating-project), and a [Jupyter Notebook](https://www.ibm.com/docs/en/watsonx/saas?topic=editor-creating-managing-notebooks).   
+Then, create a [watsonx.ai project](https://www.ibm.com/docs/en/watsonx/saas?topic=projects-creating-project), and a [Jupyter Notebook](https://www.ibm.com/docs/en/watsonx/saas?topic=editor-creating-managing-notebooks).
 
 Once you do so, a notebook environment will open for you to load your data set. You can use the code from this tutorial to tackle a simple object detection model training task.
 
@@ -69,7 +69,7 @@ Next, you can install and import the necessary Python libraries.
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-Then, you can import the needed packages. 
+Then, you can import the needed packages.
 
 !!! Example "Import Relevant Libraries"
 
@@ -78,23 +78,17 @@ Then, you can import the needed packages.
         ```python
         # Import ultralytics
         import ultralytics
+
         ultralytics.checks()
-        from ultralytics import YOLO
-        import yaml
 
         # Import packages to retrieve and display image files
-        import glob
-        import os
-        import shutil
-        from PIL import Image
-        from IPython.display import display
         ```
 
 ### Step 3: Load the Data
 
-For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLOv8 model to detect and classify litter and biological objects in underwater images.   
+For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLOv8 model to detect and classify litter and biological objects in underwater images.
 
-We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you’ll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".   
+We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you’ll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".
 
 Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into Watsonx.
 
@@ -168,13 +162,13 @@ To reorganize the data set directory, we can run the following script:
         ```python
         # Function to reorganize dir
         def organize_files(directory):
-            for subdir in ['train', 'test', 'val']:
+            for subdir in ["train", "test", "val"]:
                 subdir_path = os.path.join(directory, subdir)
                 if not os.path.exists(subdir_path):
                     continue
 
-                images_dir = os.path.join(subdir_path, 'images')
-                labels_dir = os.path.join(subdir_path, 'labels')
+                images_dir = os.path.join(subdir_path, "images")
+                labels_dir = os.path.join(subdir_path, "labels")
 
                 # Create image and label subdirs if non-existent
                 os.makedirs(images_dir, exist_ok=True)
@@ -182,13 +176,14 @@ To reorganize the data set directory, we can run the following script:
 
                 # Move images and labels to respective subdirs
                 for filename in os.listdir(subdir_path):
-                    if filename.endswith('.txt'):
+                    if filename.endswith(".txt"):
                         shutil.move(os.path.join(subdir_path, filename), os.path.join(labels_dir, filename))
-                    elif filename.endswith('.jpg') or filename.endswith('.png') or filename.endswith('.jpeg'):
+                    elif filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
                         shutil.move(os.path.join(subdir_path, filename), os.path.join(images_dir, filename))
                     # Delete .xml files
-                    elif filename.endswith('.xml'):
+                    elif filename.endswith(".xml"):
                         os.remove(os.path.join(subdir_path, filename))
+
 
         if __name__ == "__main__":
             directory = f"{work_dir}/trash_ICRA19/dataset"
@@ -197,17 +192,17 @@ To reorganize the data set directory, we can run the following script:
 
 Next, we need to modify the .yaml file for the data set. This is the setup we will use in our .yaml file. Class ID numbers start from 0:
 
-```yaml 
+```yaml
 path: /path/to/dataset/directory # root directory for dataset
-train: train/images  # train images subdirectory
-val: train/images  # validation images subdirectory
+train: train/images # train images subdirectory
+val: train/images # validation images subdirectory
 test: test/images # test images subdirectory
 
 # Classes
 names:
-  0: plastic
-  1: bio
-  2: rov
+    0: plastic
+    1: bio
+    2: rov
 ```
 
 Run the following script to delete the current contents of config.yaml and replace it with the above contents that reflect our new data set directory structure. Be certain to replace the work_dir portion of the root directory path in line 4 with your own working directory path we retrieved earlier. Leave the train, val, and test subdirectory definitions. Also, do not change {work_dir} in line 23 of the code.
@@ -220,26 +215,23 @@ Run the following script to delete the current contents of config.yaml and repla
         # Contents of new confg.yaml file
         def update_yaml_file(file_path):
             data = {
-                'path': 'work_dir/trash_ICRA19/dataset',
-                'train': 'train/images',
-                'val': 'train/images',
-                'test': 'test/images',
-                'names': {
-                    0: 'plastic',
-                    1: 'bio',
-                    2: 'rov'
-                }
+                "path": "work_dir/trash_ICRA19/dataset",
+                "train": "train/images",
+                "val": "train/images",
+                "test": "test/images",
+                "names": {0: "plastic", 1: "bio", 2: "rov"},
             }
 
             # Ensures the "names" list appears after the sub/directories
-            names_data = data.pop('names')
-            with open(file_path, 'w') as yaml_file:
+            names_data = data.pop("names")
+            with open(file_path, "w") as yaml_file:
                 yaml.dump(data, yaml_file)
-                yaml_file.write('\n')
-                yaml.dump({'names': names_data}, yaml_file) 
+                yaml_file.write("\n")
+                yaml.dump({"names": names_data}, yaml_file)
+
 
         if __name__ == "__main__":
-            file_path = f"{work_dir}/trash_ICRA19/config.yaml" #.yaml file path
+            file_path = f"{work_dir}/trash_ICRA19/config.yaml"  # .yaml file path
             update_yaml_file(file_path)
             print(f"{file_path} updated successfully.")
         ```
@@ -281,10 +273,10 @@ We can now run inference to test the performance of our fine-tuned model:
 
 This brief script generates predicted labels for each image in our test set, as well as new output image files that overlay the predicted bounding box atop the original image.
 
-Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.   
+Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.  
 The parameter `conf=0.5` informs the model to ignore all predictions with a confidence level of less than 50%.
 
-Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.   
+Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.  
 we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! Example "Display Predictions"
@@ -293,7 +285,7 @@ we can load the images with predicted bounding box overlays to view how our mode
 
         ```python
         # Show the first ten images from the preceding prediction task
-        for pred_dir in glob.glob(f'{work_dir}/runs/detect/predict/*.jpg')[:10]:
+        for pred_dir in glob.glob(f"{work_dir}/runs/detect/predict/*.jpg")[:10]:
             img = Image.open(pred_dir)
             display(img)
         ```

@@ -98,6 +98,30 @@ To perform object detection on an image, use the `predict` method as shown below
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
+!!! Example "FastSAMPredictor example"
+
+    This way you can run inference on image and get all the segment `results` once and run prompts inference multiple times without running inference multiple times.
+
+    === "Prompt inference"
+
+        ```python
+        from ultralytics.models.fastsam import FastSAMPredictor
+
+        # Create FastSAMPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="FastSAM-s.pt", save=False, imgsz=1024)
+        predictor = FastSAMPredictor(overrides=overrides)
+
+        # Segment everything
+        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
+        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
+        everything_results = predictor("ultralytics/assets/bus.jpg")
+
+        # Prompt inference
+        bbox_results = predictor.prompt(everything_results, bboxes=[[200, 200, 300, 300]])
+        point_results = predictor.prompt(everything_results, points=[200, 200])
+        text_results = predictor.prompt(everything_results, texts="human hair")
+        ```
+
 !!! Note
 
     All the returned `results` in above examples are [Results](../modes/predict.md#working-with-results) object which allows access predicted masks and source image easily.

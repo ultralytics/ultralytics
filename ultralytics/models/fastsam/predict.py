@@ -52,10 +52,15 @@ class FastSAMPredictor(SegmentationPredictor):
             points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
             labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
             texts (str | List[str], optional): Textual prompts, a list contains string objects.
+
+        Returns:
+            (List[Results]): The output results determined by prompts.
         """
         if bboxes is None and points is None and texts is None:
             return results
         prompt_results = []
+        if not isinstance(results, list):
+            results = [results]
         for result in results:
             # bboxes prompt
             masks = result.masks.data

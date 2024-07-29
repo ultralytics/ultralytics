@@ -402,6 +402,8 @@ nav:
       - Paperspace Gradient: integrations/paperspace.md
       - Google Colab: integrations/google-colab.md
       - Kaggle: integrations/kaggle.md
+      - JupyterLab: integrations/jupyterlab.md
+      - IBM Watsonx: integrations/ibm-watsonx.md
   - HUB:
       - hub/index.md
       - Web:
@@ -476,13 +478,14 @@ nav:
       - hub:
           - __init__: reference/hub/__init__.md
           - auth: reference/hub/auth.md
+          - google:
+              - __init__: reference/hub/google/__init__.md
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
       - models:
           - fastsam:
               - model: reference/models/fastsam/model.md
               - predict: reference/models/fastsam/predict.md
-              - prompt: reference/models/fastsam/prompt.md
               - utils: reference/models/fastsam/utils.md
               - val: reference/models/fastsam/val.md
           - nas:
@@ -536,6 +539,7 @@ nav:
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
+              - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md

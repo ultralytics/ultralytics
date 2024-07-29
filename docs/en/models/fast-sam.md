@@ -66,7 +66,6 @@ To perform object detection on an image, use the `predict` method as shown below
 
         ```python
         from ultralytics import FastSAM
-        from ultralytics.models.fastsam import FastSAMPrompt
 
         # Define an inference source
         source = "path/to/bus.jpg"
@@ -77,23 +76,17 @@ To perform object detection on an image, use the `predict` method as shown below
         # Run inference on an image
         everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-        # Prepare a Prompt Process object
-        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
+        # Run inference with bboxes prompt
+        results = model(source, bboxes=[439, 437, 524, 709])
 
-        # Everything prompt
-        results = prompt_process.everything_prompt()
+        # Run inference with points prompt
+        results = model(source, points=[[200, 200]], labels=[1])
 
-        # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
-        results = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+        # Run inference with texts prompt
+        results = model(source, texts="a photo of a dog")
 
-        # Text prompt
-        results = prompt_process.text_prompt(text="a photo of a dog")
-
-        # Point prompt
-        # points default [[0,0]] [[x1,y1],[x2,y2]]
-        # point_label default [0] [1,0] 0:background, 1:foreground
-        results = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=results, output="./")
+        # Run inference with bboxes and points and texts prompt at the same time
+        results = model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
         ```
 
     === "CLI"
@@ -104,6 +97,28 @@ To perform object detection on an image, use the `predict` method as shown below
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+
+!!! Example "FastSAMPredictor example"
+
+    This way you can run inference on image and get all the segment `results` once and run prompts inference multiple times without running inference multiple times.
+
+    === "Prompt inference"
+
+        ```python
+        from ultralytics.models.fastsam import FastSAMPredictor
+
+        # Create FastSAMPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="FastSAM-s.pt", save=False, imgsz=1024)
+        predictor = FastSAMPredictor(overrides=overrides)
+
+        # Segment everything
+        everything_results = predictor("ultralytics/assets/bus.jpg")
+
+        # Prompt inference
+        bbox_results = predictor.prompt(everything_results, bboxes=[[200, 200, 300, 300]])
+        point_results = predictor.prompt(everything_results, points=[200, 200])
+        text_results = predictor.prompt(everything_results, texts="a photo of a dog")
+        ```
 
 !!! Note
 
@@ -270,7 +285,6 @@ To use FastSAM for inference in Python, you can follow the example below:
 
 ```python
 from ultralytics import FastSAM
-from ultralytics.models.fastsam import FastSAMPrompt
 
 # Define an inference source
 source = "path/to/bus.jpg"
@@ -281,21 +295,17 @@ model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 # Run inference on an image
 everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
-# Prepare a Prompt Process object
-prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
+# Run inference with bboxes prompt
+results = model(source, bboxes=[439, 437, 524, 709])
 
-# Everything prompt
-ann = prompt_process.everything_prompt()
+# Run inference with points prompt
+results = model(source, points=[[200, 200]], labels=[1])
 
-# Bounding box prompt
-ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+# Run inference with texts prompt
+results = model(source, texts="a photo of a dog")
 
-# Text prompt
-ann = prompt_process.text_prompt(text="a photo of a dog")
-
-# Point prompt
-ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(annotations=ann, output="./")
+# Run inference with bboxes and points and texts prompt at the same time
+results = model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 ```
 
 For more details on inference methods, check the [Predict Usage](#predict-usage) section of the documentation.

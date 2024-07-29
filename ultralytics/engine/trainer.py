@@ -41,7 +41,6 @@ from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_m
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
-    TORCH_1_13,
     EarlyStopping,
     ModelEMA,
     autocast,
@@ -266,11 +265,7 @@ class BaseTrainer:
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp)
-            if TORCH_1_13
-            else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -512,7 +507,7 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
+        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):

@@ -48,6 +48,7 @@ class HUBTrainingSession:
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
         self.model = None
         self.model_url = None
+        self.model_file = None
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
@@ -91,10 +92,13 @@ class HUBTrainingSession:
             raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
+        if self.model.is_trained():
+            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
+            self.model_file = self.model.get_weights_url("best")
+            return
 
+        # Set training args and start heartbeats for HUB to monitor agent
         self._set_train_args()
-
-        # Start heartbeats for HUB to monitor agent
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
@@ -195,8 +199,6 @@ class HUBTrainingSession:
             ValueError: If the model is already trained, if required dataset information is missing, or if there are
                 issues with the provided training arguments.
         """
-        if self.model.is_trained():
-            raise ValueError(emojis(f"Model is already trained and uploaded to {self.model_url} 🚀"))
 
         if self.model.is_resumable():
             # Model has saved weights

@@ -22,9 +22,9 @@ Here are some of the key features that make JupyterLab a great option for model 
 
 - **All-in-One Workspace**: JupyterLab is a one-stop shop for all your data science needs. Unlike the classic Jupyter Notebook, which had separate interfaces for text editing, terminal access, and notebooks, JupyterLab integrates all these features into a single, cohesive environment. You can view and edit various file formats, including JPEG, PDF, and CSV, directly within JupyterLab. An all-in-one workspace lets you access everything you need at your fingertips, streamlining your workflow and saving you time.
 - **Flexible Layouts**: One of JupyterLab's standout features is its flexible layout. You can drag, drop, and resize tabs to create a personalized layout that helps you work more efficiently. The collapsible left sidebar keeps essential tabs like the file browser, running kernels, and command palette within easy reach. You can have multiple windows open at once, allowing you to multitask and manage your projects more effectively.
-- **Interactive Code Consoles**: Code consoles in JupyterLab provide an interactive space to test out snippets of code or functions. They also serve as a log of computations made within a notebook. Creating a new console for a notebook and viewing all kernel activity is straightforward. This feature is especially useful when you’re experimenting with new ideas or troubleshooting issues in your code.
+- **Interactive Code Consoles**: Code consoles in JupyterLab provide an interactive space to test out snippets of code or functions. They also serve as a log of computations made within a notebook. Creating a new console for a notebook and viewing all kernel activity is straightforward. This feature is especially useful when you're experimenting with new ideas or troubleshooting issues in your code.
 - **Markdown Preview**: Working with Markdown files is more efficient in JupyterLab, thanks to its simultaneous preview feature. As you write or edit your Markdown file, you can see the formatted output in real-time. It makes it easier to double-check that your documentation looks perfect, saving you from having to switch back and forth between editing and preview modes.
-- **Run Code from Text Files**: If you’re sharing a text file with code, JupyterLab makes it easy to run it directly within the platform. You can highlight the code and press Shift + Enter to execute it. It is great for verifying code snippets quickly and helps guarantee that the code you share is functional and error-free.
+- **Run Code from Text Files**: If you're sharing a text file with code, JupyterLab makes it easy to run it directly within the platform. You can highlight the code and press Shift + Enter to execute it. It is great for verifying code snippets quickly and helps guarantee that the code you share is functional and error-free.
 
 ## Why Should You Use JupyterLab for Your YOLOv8 Projects?
 
@@ -41,7 +41,7 @@ There are multiple platforms for developing and evaluating machine learning mode
 When working with Kaggle, you might come across some common issues. Here are some tips to help you navigate the platform smoothly:
 
 - **Managing Kernels**: Kernels are crucial because they manage the connection between the code you write in JupyterLab and the environment where it runs. They can also access and share data between notebooks. When you close a Jupyter Notebook, the kernel might still be running because other notebooks could be using it. If you want to completely shut down a kernel, you can select it, right-click, and choose "Shut Down Kernel" from the pop-up menu.
-- **Installing Python Packages**: Sometimes, you might need additional Python packages that aren’t pre-installed on the server. You can easily install these packages in your home directory or a virtual environment by using the command `python -m pip install package-name`. To see all installed packages, use `python -m pip list`.
+- **Installing Python Packages**: Sometimes, you might need additional Python packages that aren't pre-installed on the server. You can easily install these packages in your home directory or a virtual environment by using the command `python -m pip install package-name`. To see all installed packages, use `python -m pip list`.
 - **Deploying Flask/FastAPI API to Posit Connect**: You can deploy your Flask and FastAPI APIs to Posit Connect using the [rsconnect-python](https://docs.posit.co/rsconnect-python/) package from the terminal. Doing so makes it easier to integrate your web applications with JupyterLab and share them with others.
 - **Installing JupyterLab Extensions**: JupyterLab supports various extensions to enhance functionality. You can install and customize these extensions to suit your needs. For detailed instructions, refer to [JupyterLab Extensions Guide](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html) for more information.
 - **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions.
@@ -79,7 +79,7 @@ Navigate to the directory where you saved the notebook file using your terminal.
         jupyter lab
         ```
 
-Once you’ve run this command, it will open JupyterLab in your default web browser, as shown below.
+Once you've run this command, it will open JupyterLab in your default web browser, as shown below.
 
 ![Image Showing How JupyterLab Opens On the Browser](https://github.com/user-attachments/assets/bac4b140-1d64-4034-b980-7c0721121ec2)
 
@@ -91,14 +91,14 @@ In JupyterLab, open the tutorial.ipynb notebook. You can now start running the c
 
 JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLOv8 works.
 
-For a detailed understanding of the model training process and best practices, refer to the [YOLOv8 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you’re using YOLOv8 effectively.
+For a detailed understanding of the model training process and best practices, refer to the [YOLOv8 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLOv8 effectively.
 
 ## Keep Learning about Jupyterlab
 
 If you're excited to learn more about JupyterLab, here are some great resources to get you started:
 
 - [**JupyterLab Documentation**](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html): Dive into the official JupyterLab Documentation to explore its features and capabilities. It's a great way to understand how to use this powerful tool to its fullest potential.
-- [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It’s a great way to start experimenting immediately.
+- [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It's a great way to start experimenting immediately.
 - [**Installation Guide**](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html): For a step-by-step guide on installing JupyterLab on your local machine, check out the installation guide.
 
 ## Summary

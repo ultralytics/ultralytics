@@ -77,12 +77,11 @@ cv2.destroyAllWindows()
 
 ### Methods
 
-- `recognize_actions(im0, tracks)`: Recognizes actions based on tracking data.
-- `process_tracks(tracks)`: Extracts results from the provided tracking data and stores track information.
-- `plot_box_and_action(box, label_text)`: Plots track and bounding box with action labels.
+- `recognize_actions(im0, tracks: List[Results])`: Recognizes actions based on tracking data.
+- `process_tracks(tracks: List[Results])`: Extracts results from the provided tracking data and stores track information.
+- `plot_box_and_action(box: List[int] or ndarray, label_text: str)`: Plots track and bounding box with action labels.
 - `display_frames()`: Displays the current frame.
-- `predict_action(sequences)`: Perform inference on the given sequences.
-- `postprocess(outputs)`: Postprocess the model's batch output.
+- `postprocess(outputs: torch.Tensor)`: Postprocess the model's batch output of shape `(batch_size, num_classes)`.
 
 ## Conclusion
 

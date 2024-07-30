@@ -112,7 +112,7 @@ class ActionRecognition:
         Postprocess the model's batch output.
 
         Args:
-            outputs (torch.Tensor): The model's output.
+            outputs (torch.Tensor): The model's output. In the shape (batch_size, num_classes).
 
         Returns:
             (List[List[str]]): The predicted top3 labels.
@@ -177,7 +177,7 @@ class ActionRecognition:
             % int(self.num_video_sequence_samples * self.vid_stride * (1 - self.video_cls_overlap_ratio))
             == 0
         ):
-            crops_batch = torch.cat(crops_to_infer, dim=0)  # crops_batch shape: (B, T, H, W, C)
+            crops_batch = torch.cat(crops_to_infer, dim=0)  # crops_batch shape: (batch_size, timestep, height, width, channel)
             output_batch = self.video_classifier(crops_batch)
             pred_labels, pred_confs = self.postprocess(output_batch)
 

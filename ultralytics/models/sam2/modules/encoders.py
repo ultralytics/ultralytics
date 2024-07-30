@@ -215,6 +215,9 @@ class Hiera(nn.Module):
 
         self.patch_embed = PatchEmbed(
             embed_dim=embed_dim,
+            kernel_size=(7, 7),
+            stride=(4, 4),
+            padding=(3, 3),
         )
         # Which blocks have global att?
         self.global_att_blocks = global_att_blocks

@@ -44,7 +44,7 @@ class SAM(Model):
         """
         if model and Path(model).suffix not in {".pt", ".pth"}:
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
-        self.is_sam2 = "sam2" in model
+        self.is_sam2 = "sam2" in Path(model).stem
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
@@ -57,7 +57,6 @@ class SAM(Model):
         """
         if self.is_sam2:
             from ..sam2.build import build_sam2
-
             self.model = build_sam2(weights)
         else:
             self.model = build_sam(weights)
@@ -119,5 +118,4 @@ class SAM(Model):
             (dict): A dictionary mapping the 'segment' task to its corresponding 'Predictor'.
         """
         from ..sam2.predict import SAM2Predictor
-
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}

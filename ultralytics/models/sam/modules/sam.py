@@ -17,9 +17,9 @@ from .encoders import ImageEncoderViT, PromptEncoder
 
 class SAMModel(nn.Module):
     """
-    SAMModel (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate image
-    embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by the mask
-    decoder to predict object masks.
+    SAMModel (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate
+    image embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by
+    the mask decoder to predict object masks.
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.

@@ -21,8 +21,4 @@ keywords: Ultralytics, YOLO, action recognition, zero-shot, video classification
 
 ## ::: ultralytics.solutions.action_recognition.HuggingFaceVideoClassifier
 
-<br><br><hr><br>
-
-## ::: ultralytics.solutions.action_recognition.crop_and_pad
-
 <br><br>

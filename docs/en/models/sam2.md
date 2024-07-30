@@ -43,7 +43,7 @@ For a deeper understanding of SAM2's architecture and capabilities, explore the 
 SAM2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
 | Metric                             | SAM2          | Previous SOTA |
-| ---------------------------------- | ------------- | ------------- |
+|------------------------------------|---------------|---------------|
 | **Interactive Video Segmentation** | **Best**      | -             |
 | **Human Interactions Required**    | **3x fewer**  | Baseline      |
 | **Image Segmentation Accuracy**    | **Improved**  | SAM           |
@@ -83,7 +83,7 @@ The SA-V dataset, developed for SAM2's training, is one of the largest and most 
 SAM2 has demonstrated superior performance across major video segmentation benchmarks:
 
 | Dataset         | J&F  | J    | F    |
-| --------------- | ---- | ---- | ---- |
+|-----------------|------|------|------|
 | **DAVIS 2017**  | 82.5 | 79.8 | 85.2 |
 | **YouTube-VOS** | 81.2 | 78.9 | 83.5 |
 
@@ -92,7 +92,7 @@ SAM2 has demonstrated superior performance across major video segmentation bench
 In interactive segmentation tasks, SAM2 shows significant efficiency and accuracy:
 
 | Dataset               | NoC@90 | AUC   |
-| --------------------- | ------ | ----- |
+|-----------------------|--------|-------|
 | **DAVIS Interactive** | 1.54   | 0.872 |
 
 ## Installation
@@ -112,9 +112,9 @@ pip install ultralytics
 The following table details the available SAM2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
 | Model Type | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+|------------|---------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ### SAM2 Prediction Examples
 
@@ -179,7 +179,7 @@ SAM2 can be utilized across a broad spectrum of tasks, including real-time video
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
+|------------------------------------------------|----------------------------|------------------------|----------------------------|
 | Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
 | [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
@@ -234,7 +234,7 @@ To auto-annotate your dataset using SAM2, follow this example:
     ```
 
 | Argument     | Type                    | Description                                                                                             | Default        |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
+|--------------|-------------------------|---------------------------------------------------------------------------------------------------------|----------------|
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional         | Pre-trained SAM2 segmentation model. Defaults to 'sam2_b.pt'.                                           | `'sam2_b.pt'`  |
@@ -270,3 +270,78 @@ If SAM2 is a crucial part of your research or development work, please cite it u
         ```
 
 We extend our gratitude to Meta AI for their contributions to the AI community with this groundbreaking model and dataset.
+
+## FAQ
+
+### What is SAM2 and how does it improve upon the original Segment Anything Model (SAM)?
+
+SAM2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization. SAM2 offers several improvements over the original SAM, including:
+
+- **Unified Model Architecture**: Combines image and video segmentation capabilities in a single model.
+- **Real-Time Performance**: Processes approximately 44 frames per second, making it suitable for applications requiring immediate feedback.
+- **Zero-Shot Generalization**: Segments objects it has never encountered before, useful in diverse visual domains.
+- **Interactive Refinement**: Allows users to iteratively refine segmentation results by providing additional prompts.
+- **Advanced Handling of Visual Challenges**: Manages common video segmentation challenges like object occlusion and reappearance.
+
+For more details on SAM2's architecture and capabilities, explore the [SAM2 research paper](https://arxiv.org/abs/2401.12741).
+
+### How can I use SAM2 for real-time video segmentation?
+
+SAM2 can be utilized for real-time video segmentation by leveraging its promptable interface and real-time inference capabilities. Here’s a basic example:
+
+!!! Example "Segment with Prompts"
+
+    Use prompts to segment specific objects in images or videos.
+
+    === "Python"
+
+        ```python
+        from ultralytics import SAM2
+
+        # Load a model
+        model = SAM2("sam2_b.pt")
+
+        # Display model information (optional)
+        model.info()
+
+        # Segment with bounding box prompt
+        results = model("path/to/image.jpg", bboxes=[100, 100, 200, 200])
+
+        # Segment with point prompt
+        results = model("path/to/image.jpg", points=[150, 150], labels=[1])
+        ```
+
+For more comprehensive usage, refer to the [How to Use SAM2](#how-to-use-sam2-versatility-in-image-and-video-segmentation) section.
+
+### What datasets are used to train SAM2, and how do they enhance its performance?
+
+SAM2 is trained on the SA-V dataset, one of the largest and most diverse video segmentation datasets available. The SA-V dataset includes:
+
+- **51,000+ Videos**: Captured across 47 countries, providing a wide range of real-world scenarios.
+- **600,000+ Mask Annotations**: Detailed spatio-temporal mask annotations, referred to as "masklets," covering whole objects and parts.
+- **Dataset Scale**: Features 4.5 times more videos and 53 times more annotations than previous largest datasets, offering unprecedented diversity and complexity.
+
+This extensive dataset allows SAM2 to achieve superior performance across major video segmentation benchmarks and enhances its zero-shot generalization capabilities. For more information, see the [SA-V Dataset](#sa-v-dataset) section.
+
+### How does SAM2 handle occlusions and object reappearances in video segmentation?
+
+SAM2 includes a sophisticated memory mechanism to manage temporal dependencies and occlusions in video data. The memory mechanism consists of:
+
+- **Memory Encoder and Memory Bank**: Stores features from past frames.
+- **Memory Attention Module**: Utilizes stored information to maintain consistent object tracking over time.
+- **Occlusion Head**: Specifically handles scenarios where objects are not visible, predicting the likelihood of an object being occluded.
+
+This mechanism ensures continuity even when objects are temporarily obscured or exit and re-enter the scene. For more details, refer to the [Memory Mechanism and Occlusion Handling](#memory-mechanism-and-occlusion-handling) section.
+
+### How does SAM2 compare to other segmentation models like YOLOv8?
+
+SAM2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here’s a comparison:
+
+| Model                                          | Size                       | Parameters             | Speed (CPU)                |
+|------------------------------------------------|----------------------------|------------------------|----------------------------|
+| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+
+For more details, see the [SAM comparison vs YOLOv8](#sam-comparison-vs-yolov8) section.

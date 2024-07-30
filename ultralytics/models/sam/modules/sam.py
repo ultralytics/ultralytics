@@ -15,15 +15,14 @@ from .decoders import MaskDecoder
 from .encoders import ImageEncoderViT, PromptEncoder
 
 
-class Sam(nn.Module):
+class SAMModel(nn.Module):
     """
-    Sam (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate image
-    embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by the mask
-    decoder to predict object masks.
+    SAMModel (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate
+    image embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by
+    the mask decoder to predict object masks.
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
-        image_format (str): Format of the input image, default is 'RGB'.
         image_encoder (ImageEncoderViT): The backbone used to encode the image into embeddings.
         prompt_encoder (PromptEncoder): Encodes various types of input prompts.
         mask_decoder (MaskDecoder): Predicts object masks from the image and prompt embeddings.
@@ -32,7 +31,6 @@ class Sam(nn.Module):
     """
 
     mask_threshold: float = 0.0
-    image_format: str = "RGB"
 
     def __init__(
         self,
@@ -43,7 +41,7 @@ class Sam(nn.Module):
         pixel_std: List[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """
-        Initialize the Sam class to predict object masks from an image and input prompts.
+        Initialize the SAMModel class to predict object masks from an image and input prompts.
 
         Note:
             All forward() operations moved to SAMPredictor.

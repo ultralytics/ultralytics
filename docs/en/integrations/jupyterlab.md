@@ -108,3 +108,102 @@ We've explored how JupyterLab can be a powerful tool for experimenting with Ultr
 For more details, visit the [JupyterLab FAQ Page](https://jupyterlab.readthedocs.io/en/stable/getting_started/faq.html).
 
 Interested in more YOLOv8 integrations? Check out the [Ultralytics integration guide](./index.md) to explore additional tools and capabilities for your machine learning projects.
+
+## FAQ
+
+### How do I use JupyterLab to train a YOLOv8 model?
+
+To train a YOLOv8 model using JupyterLab:
+
+1. Install JupyterLab and the Ultralytics package:
+
+    ```python
+    pip install jupyterlab ultralytics
+    ```
+
+2. Launch JupyterLab and open a new notebook.
+
+3. Import the YOLO model and load a pretrained model:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    ```
+
+4. Train the model on your custom dataset:
+
+    ```python
+    results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)
+    ```
+
+5. Visualize training results using JupyterLab's built-in plotting capabilities:
+    ```python
+    %matplotlib inline
+    from ultralytics.utils.plotting import plot_results
+    plot_results(results)
+    ```
+
+JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
+
+### What are the key features of JupyterLab that make it suitable for YOLOv8 projects?
+
+JupyterLab offers several features that make it ideal for YOLOv8 projects:
+
+1. Interactive code execution: Test and debug YOLOv8 code snippets in real-time.
+2. Integrated file browser: Easily manage datasets, model weights, and configuration files.
+3. Flexible layout: Arrange multiple notebooks, terminals, and output windows side-by-side for efficient workflow.
+4. Rich output display: Visualize YOLOv8 detection results, training curves, and model performance metrics inline.
+5. Markdown support: Document your YOLOv8 experiments and findings with rich text and images.
+6. Extension ecosystem: Enhance functionality with extensions for version control, [remote computing](google-colab.md), and more.
+
+These features allow for a seamless development experience when working with YOLOv8 models, from data preparation to model deployment.
+
+### How can I optimize YOLOv8 model performance using JupyterLab?
+
+To optimize YOLOv8 model performance in JupyterLab:
+
+1. Use the autobatch feature to determine the optimal batch size:
+
+    ```python
+    from ultralytics.utils.autobatch import autobatch
+
+    optimal_batch_size = autobatch(model)
+    ```
+
+2. Implement [hyperparameter tuning](../guides/hyperparameter-tuning.md) using libraries like Ray Tune:
+
+    ```python
+    from ultralytics.utils.tuner import run_ray_tune
+
+    best_results = run_ray_tune(model, data="path/to/data.yaml")
+    ```
+
+3. Visualize and analyze model metrics using JupyterLab's plotting capabilities:
+
+    ```python
+    from ultralytics.utils.plotting import plot_results
+
+    plot_results(results.results_dict)
+    ```
+
+4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and accuracy for your specific use case.
+
+JupyterLab's interactive environment allows for quick iterations and real-time feedback, making it easier to optimize your YOLOv8 models efficiently.
+
+### How do I handle common issues when working with JupyterLab and YOLOv8?
+
+When working with JupyterLab and YOLOv8, you might encounter some common issues. Here's how to handle them:
+
+1. GPU memory issues:
+
+    - Use `torch.cuda.empty_cache()` to clear GPU memory between runs.
+    - Adjust batch size or image size to fit your GPU memory.
+
+2. Package conflicts:
+
+    - Create a separate conda environment for your YOLOv8 projects to avoid conflicts.
+    - Use `!pip install package_name` in a notebook cell to install missing packages.
+
+3. Kernel crashes:
+    - Restart the kernel and run cells one by one to identify the problematic code.

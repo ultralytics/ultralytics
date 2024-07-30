@@ -152,8 +152,15 @@ class BaseDataset(Dataset):
                     LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
-            else:  # read image
-                im = cv2.imread(f)  # BGR
+            else:  # read image, use tifffile.imread for .tif files, opencv.imread() in all other cases
+                if f.split(".")[-1].lower() not in ["tif", "tiff"]: #Use opencv for non-tiff (.tif or .tiff)
+                    im = cv2.imread(f, cv2.IMREAD_UNCHANGED) # BGR
+                else:
+                    import tifffile
+                    im = tifffile.imread(f)
+                    #Reshape to put channels last
+                    im = np.moveaxis(im, 0, -1)
+                    print(im.shape)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

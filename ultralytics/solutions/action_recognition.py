@@ -89,16 +89,14 @@ class ActionRecognition:
             if len(self.track_history[track_id]) > self.num_video_sequence_samples:
                 self.track_history[track_id].pop(0)
 
-    def plot_box_and_action(self, box, pred_label, pred_conf):
+    def plot_box_and_action(self, box: List[float], label_text: str):
         """
         Plots track and bounding box with action label.
 
         Args:
             box (list): Object bounding box data.
-            pred_label (str): Predicted action label.
-            pred_conf (float): Confidence of the predicted action.
+            label_text (str): Text to display on the image.
         """
-        label_text = f"{pred_label} ({pred_conf:.2f})"
         self.annotator.box_label(box, label_text, color=(0, 0, 255))
 
     def display_frames(self):
@@ -198,13 +196,46 @@ class ActionRecognition:
             for box, track_id, pred_label, pred_conf in zip(self.boxes, track_ids_to_infer, pred_labels, pred_confs):
                 top2_preds = sorted(zip(pred_label, pred_conf), key=lambda x: x[1], reverse=True)
                 label_text = " | ".join([f"{label} ({conf:.2f})" for label, conf in top2_preds])
-                self.plot_box_and_action(box, track_id, label_text, pred_conf)
+                self.plot_box_and_action(box, label_text)
 
         return im0
 
 
 class TorchVisionVideoClassifier:
     """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/models.html#video-classification."""
+
+    supports_r3d = check_requirements("torchvision>=0.8.1", install=False)
+    supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
+    supports_mvitv1b = supports_s3d = check_requirements("torchvision>=0.14.0", install=False)
+    supports_mvitv2s = supports_swin3dt = supports_swin3db = check_requirements(
+        "torchvision>=0.15.0", install=False
+    )
+
+    model_name_to_model_and_weights = {}
+    if supports_r3d:
+        from torchvision.models.video import R3D_18_Weights, r3d_18
+
+        model_name_to_model_and_weights["r3d_18"] = (r3d_18, R3D_18_Weights.DEFAULT)
+    if supports_s3d:
+        from torchvision.models.video import S3D_Weights, s3d
+
+        model_name_to_model_and_weights["s3d"] = (s3d, S3D_Weights.DEFAULT)
+    if supports_swin3db:
+        from torchvision.models.video import Swin3D_B_Weights, swin3d_b
+
+        model_name_to_model_and_weights["swin3d_b"] = (swin3d_b, Swin3D_B_Weights.DEFAULT)
+    if supports_swin3dt:
+        from torchvision.models.video import Swin3D_T_Weights, swin3d_t
+
+        model_name_to_model_and_weights["swin3d_t"] = (swin3d_t, Swin3D_T_Weights.DEFAULT)
+    if supports_mvitv1b:
+        from torchvision.models.video import MViT_V1_B_Weights, mvit_v1_b
+
+        model_name_to_model_and_weights["mvit_v1_b"] = (mvit_v1_b, MViT_V1_B_Weights.DEFAULT)
+    if supports_mvitv2s:
+        from torchvision.models.video import MViT_V2_S_Weights, mvit_v2_s
+
+    model_name_to_model_and_weights["mvit_v2_s"] = (mvit_v2_s, MViT_V2_S_Weights.DEFAULT)
 
     def __init__(self, model_name: str, device: str or torch.device = ""):
         """
@@ -217,40 +248,6 @@ class TorchVisionVideoClassifier:
         Raises:
             ValueError: If an invalid model name is provided.
         """
-        supports_r3d = check_requirements("torchvision>=0.8.1", install=False)
-        self.supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
-        supports_mvitv1b = supports_s3d = check_requirements("torchvision>=0.14.0", install=False)
-        supports_mvitv2s = supports_swin3dt = supports_swin3db = check_requirements(
-            "torchvision>=0.15.0", install=False
-        )
-
-        model_name_to_model_and_weights = {}
-        if supports_r3d:
-            from torchvision.models.video import R3D_18_Weights, r3d_18
-
-            model_name_to_model_and_weights["r3d_18"] = (r3d_18, R3D_18_Weights.DEFAULT)
-        if supports_s3d:
-            from torchvision.models.video import S3D_Weights, s3d
-
-            model_name_to_model_and_weights["s3d"] = (s3d, S3D_Weights.DEFAULT)
-        if supports_swin3db:
-            from torchvision.models.video import Swin3D_B_Weights, swin3d_b
-
-            model_name_to_model_and_weights["swin3d_b"] = (swin3d_b, Swin3D_B_Weights.DEFAULT)
-        if supports_swin3dt:
-            from torchvision.models.video import Swin3D_T_Weights, swin3d_t
-
-            model_name_to_model_and_weights["swin3d_t"] = (swin3d_t, Swin3D_T_Weights.DEFAULT)
-        if supports_mvitv1b:
-            from torchvision.models.video import MViT_V1_B_Weights, mvit_v1_b
-
-            model_name_to_model_and_weights["mvit_v1_b"] = (mvit_v1_b, MViT_V1_B_Weights.DEFAULT)
-        if supports_mvitv2s:
-            from torchvision.models.video import MViT_V2_S_Weights, mvit_v2_s
-
-        model_name_to_model_and_weights["mvit_v2_s"] = (mvit_v2_s, MViT_V2_S_Weights.DEFAULT)
-
-        self.model_name_to_model_and_weights = model_name_to_model_and_weights
 
         if model_name not in self.model_name_to_model_and_weights:
             raise ValueError(f"Invalid model name '{model_name}'. Available models: {self.available_model_names()}")
@@ -399,7 +396,7 @@ class HuggingFaceVideoClassifier:
                 [
                     v2.ToDtype(torch.float32, scale=True),
                     v2.Resize(input_size, antialias=True),
-                    v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
+                    v2.Normalize(mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std),
                 ]
             )
         else:
@@ -509,10 +506,9 @@ if __name__ == "__main__":
         success, frame = cap.read()
         if not success:
             break
-        # Perform object detection
-        results = model(frame)
+        # Perform object tracking
+        tracks = model.track(frame, persist=True, classes=[0])
         # Perform action recognition
-        tracks = results.tracks
         annotated_frame = action_recognition.recognize_actions(frame, tracks)
         # Display the frame
         cv2.imshow("Action Recognition", annotated_frame)

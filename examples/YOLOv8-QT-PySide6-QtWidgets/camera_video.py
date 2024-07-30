@@ -1,27 +1,25 @@
-from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
-                                  QImageCapture, QMediaCaptureSession, QVideoSink,
-                                  QMediaDevices, QMediaMetaData, QAudioOutput, QVideoFrame,
-                                  QMediaRecorder, QMediaFormat, QMediaPlayer)
-from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QFileDialog, QInputDialog
-from PySide6.QtCore import QDateTime, QDir, QTimer, Qt, Slot, QThread, Signal, \
-    QSize, QStandardPaths, QObject
-from ui_camera_video import Ui_camera_video
-from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QAction, QImage, QKeySequence, QPixmap, QIcon, QPalette, QColor
-from queue import Queue
-from ultralytics import YOLO
-from threading import Thread
-import time
-import cv2
 import os
 import sys
+import time
 from datetime import datetime
+from queue import Queue
+
+import cv2
 import numpy as np
-import style_rc
+from PySide6.QtCore import QStandardPaths, QThread, Signal, Slot
+from PySide6.QtGui import QIcon, QImage, QPixmap
+from PySide6.QtMultimedia import (
+    QMediaFormat,
+)
+from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
+from ui_camera_video import Ui_camera_video
+
+from ultralytics import YOLO
 
 # pyside6-uic camera_video.ui -o ui_camera_video.py
 AVI = "video/x-msvideo"  # AVI
-MP4 = 'video/mp4'
+MP4 = "video/mp4"
+
 
 def get_supported_mime_types():
     result = []
@@ -30,10 +28,12 @@ def get_supported_mime_types():
         result.append(mime_type.name())
     return result
 
+
 allimg = []
 # index = 0
 Result_in_queue_maxsize = 100
-result_que = Queue(maxsize = Result_in_queue_maxsize)
+result_que = Queue(maxsize=Result_in_queue_maxsize)
+
 
 class ThreadQ(QThread):
     updateFrame = Signal(cv2.Mat)
@@ -53,24 +53,26 @@ class ThreadQ(QThread):
 
     def set_input(self, fname):
         self.input = fname
-    
+
     def set_model(self):
-        if self.m!=None:
+        if self.m != None:
             del self.m
             import gc
+
             gc.collect()
         self.m = YOLO(self.model)
 
-    '''
+    """
     #########################
     method 1
     #########################
-    '''
+    """
+
     def run(self):
         self.set_model()
-        if self.input == 'camera':
+        if self.input == "camera":
             self.cap = cv2.VideoCapture(0)
-        elif self.input=='video':
+        elif self.input == "video":
             self.cap = cv2.VideoCapture(self.video)
 
         if self.checked:
@@ -84,13 +86,13 @@ class ThreadQ(QThread):
                 fps = 24
             # fps = 10
             movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
-            if '/' in movies_location:
+            if "/" in movies_location:
                 movies_location = movies_location.replace("/", os.sep)
-            if '\\' in movies_location:
+            if "\\" in movies_location:
                 movies_location = movies_location.replace("\\", os.sep)
             date = datetime.now().isoformat().__str__().replace(".", "_").replace(":", "_")
             outpath = movies_location + os.sep + date + ".avi"
-            self.videowriter = cv2.VideoWriter(outpath, cv2.VideoWriter_fourcc(*'XVID'), fps, sizes)
+            self.videowriter = cv2.VideoWriter(outpath, cv2.VideoWriter_fourcc(*"XVID"), fps, sizes)
         # cnt = 0
         if self.input in ["camera", "video"]:
             ret = True
@@ -102,7 +104,7 @@ class ThreadQ(QThread):
                 if not ret:
                     continue
 
-                result = self.m.predict(frame, batch = 1, stream=False)
+                result = self.m.predict(frame, batch=1, stream=False)
                 frame = result[0].plot()
                 # cv2.putText(frame, str(fps)+"_"+str(sizes), (100, 100), cvfont, 0.5, [255, 0, 0], 1)
                 # cv2.putText(frame, str(nu), (360, 360), cvfont, 2, [255, 0, 0], 1)
@@ -124,13 +126,13 @@ class ThreadQ(QThread):
             # outpath = r'C:\Users\10696\Desktop\CV\ZouJiu1\Pytorch_YOLOV3\log\output'
             # nu = 0
             for i in os.listdir(self.video):
-                if '.jpg' in i or '.jpeg' in i or '.png' in i or '.bmp' in i:
+                if ".jpg" in i or ".jpeg" in i or ".png" in i or ".bmp" in i:
                     allimg.append(i)
             for i in allimg:
                 if self.image_stop:
                     break
                 frame = cv2.imread(os.path.join(self.video, i))
-                result = self.m.predict(frame, batch = 1, stream=False)
+                result = self.m.predict(frame, batch=1, stream=False)
                 frame = result[0].plot()
                 # cv2.imwrite(os.path.join(outpath, str(nu)+".jpg"), frame)
                 # nu += 1
@@ -138,7 +140,7 @@ class ThreadQ(QThread):
                     img = cv2.resize(frame, sizes)
                     self.videowriter.write(img)
                 color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                
+
                 # # Creating and scaling QImage
                 # h, w, ch = color_frame.shape
                 # img = QImage(color_frame.data, w, h, ch * w, QImage.Format_RGB888)
@@ -149,11 +151,11 @@ class ThreadQ(QThread):
             self.videowriter.release()
             self.videowriter = True
 
-    '''
+    """
     #########################
     method 2
     #########################
-    '''
+    """
     # def run(self):
     #     self.set_model()
     #     if self.input == 'camera':
@@ -240,12 +242,11 @@ class ThreadQ(QThread):
     #     if self.checked:
     #         self.videowriter.release()
     #         self.videowriter = True
-
-    '''
+    """
     #########################
     method 3
     #########################
-    '''
+    """
     # def run(self):
     #     self.set_model()
     #     if self.input == 'camera':
@@ -256,7 +257,7 @@ class ThreadQ(QThread):
     #     Result_in_queue_maxsize = 20
     #     image_que = Queue(maxsize = Image_in_queue_maxsize)
     #     result_que = Queue(maxsize = Result_in_queue_maxsize)
-        
+
     #     if self.checked:
     #         fps = 24
     #         sizes = (640, 500)
@@ -302,7 +303,7 @@ class ThreadQ(QThread):
     #             self.cap = cv2.VideoCapture(0)
     #         elif self.input=='video':
     #             self.cap = cv2.VideoCapture(self.video)
-            
+
     #         if self.input in ["camera", "video"]:
     #             if not self.cap.isOpened():
     #                 self.cap.release()
@@ -342,7 +343,7 @@ class ThreadQ(QThread):
     #                 # img = QImage(color_frame.data, w, h, ch * w, QImage.Format_RGB888)
     #                 self.updateFrame.emit(color_frame)
     #             result_que.task_done()
-        
+
     #     def start_():
     #         t0 = Thread(target=get_image, args = ())
     #         t1 = Thread(target=predict_image, args=(1,))
@@ -364,6 +365,7 @@ class ThreadQ(QThread):
     #         self.videowriter.release()
     #         self.videowriter = True
 
+
 class Camera(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -383,7 +385,6 @@ class Camera(QMainWindow):
         self.centralwidget_status = self._ui.centralwidget.saveGeometry()
         self.setWindowTitle("Yolov* Camera Video")
 
-
     @Slot()
     def open(self):
         file_dialog = QFileDialog(self)
@@ -392,7 +393,7 @@ class Camera(QMainWindow):
         movies_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DesktopLocation)
         file_dialog.setDirectory(movies_location)
         if file_dialog.exec() == QDialog.Accepted:
-            self.url = file_dialog.selectedUrls()[0].toString()[10-2:]
+            self.url = file_dialog.selectedUrls()[0].toString()[10 - 2 :]
             self._ui.lineEdit.setEnabled(True)
             self._ui.lineEdit.setText(self.url)
             self.th.model = self.url
@@ -403,13 +404,13 @@ class Camera(QMainWindow):
     def open_video(self):
         self._ui.save.setEnabled(True)
         self.th.set_input(self._ui.input.currentText())
-        if self.th.input=='video':
+        if self.th.input == "video":
             file_dialog = QFileDialog(self)
-            is_windows = sys.platform == 'win32'
+            is_windows = sys.platform == "win32"
             self._mime_types = []
             if not self._mime_types:
                 self._mime_types = get_supported_mime_types()
-                if (is_windows and AVI not in self._mime_types):
+                if is_windows and AVI not in self._mime_types:
                     self._mime_types.append(AVI)
                 elif MP4 not in self._mime_types:
                     self._mime_types.append(MP4)
@@ -423,7 +424,7 @@ class Camera(QMainWindow):
             movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
             file_dialog.setDirectory(movies_location)
             if file_dialog.exec() == QDialog.Accepted:
-                self.url = file_dialog.selectedUrls()[0].toString()[10-2:]
+                self.url = file_dialog.selectedUrls()[0].toString()[10 - 2 :]
                 self._ui.lineEdit_2.setEnabled(True)
                 self._ui.lineEdit_2.setText(self.url)
                 self.th.video = self.url
@@ -435,7 +436,7 @@ class Camera(QMainWindow):
             # movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
             # file_dialog.setDirectory(movies_location)
             if file_dialog.exec() == QDialog.Accepted:
-                self.url = file_dialog.selectedUrls()[0].toString()[10-2:]
+                self.url = file_dialog.selectedUrls()[0].toString()[10 - 2 :]
                 self._ui.lineEdit_2.setEnabled(True)
                 self._ui.lineEdit_2.setText(self.url)
                 self.th.video = self.url
@@ -504,7 +505,7 @@ class Camera(QMainWindow):
         self._ui.stop.setEnabled(False)
         self._ui.lineEdit.setEnabled(True)
         self._ui.save.setEnabled(True)
-        if self.th.input=='camera':
+        if self.th.input == "camera":
             self._ui.video.setEnabled(False)
             self._ui.lineEdit_2.setEnabled(False)
         else:
@@ -518,11 +519,11 @@ class Camera(QMainWindow):
     @Slot()
     def input(self, text):
         self._ui.save.setEnabled(True)
-        if text=="camera":
+        if text == "camera":
             self._ui.start.setEnabled(True)
             self._ui.video.setEnabled(False)
             self._ui.lineEdit_2.setEnabled(False)
-        elif text=='video':
+        elif text == "video":
             self._ui.start.setEnabled(True)
             self._ui.video.setEnabled(True)
             self._ui.lineEdit_2.setEnabled(True)
@@ -536,13 +537,15 @@ class Camera(QMainWindow):
             self._ui.lineEdit_2.setEnabled(True)
 
         self.th.set_input(text)
-    
+
     @Slot()
-    def save(self, ):
+    def save(
+        self,
+    ):
         self.th.checked = self._ui.save.isChecked()
-    
+
     @Slot(cv2.Mat)
-    def setImage(self, image:cv2.Mat):
+    def setImage(self, image: cv2.Mat):
         # Creating and scaling QImage
         h, w, ch = image.shape
         size = self._ui.label.size()
@@ -554,31 +557,20 @@ class Camera(QMainWindow):
         hh = int(h * r)
         ww = int(w * r)
         image = cv2.resize(image, (ww, hh), interpolation=cv2.INTER_LINEAR)
-        left = (wid - ww)//2 
+        left = (wid - ww) // 2
         right = wid - left - ww
-        top = (hei - hh)//2
+        top = (hei - hh) // 2
         bottom = hei - hh - top
-        image = cv2.copyMakeBorder(
-            image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0, 0, 0)
-        )
+        image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0, 0, 0))
         h, w, ch = image.shape
         image = QImage(image.data, w, h, ch * w, QImage.Format_RGB888)
         # image = image.scaled(self._ui.label.size(), Qt.KeepAspectRatio,
-                                #   Qt.SmoothTransformation)
+        #   Qt.SmoothTransformation)
         self._ui.label.setPixmap(QPixmap.fromImage(image))
         # self._ui.centralwidget.restoreGeometry(self.centralwidget_status)
         # self._ui.label.adjustSize()
         # self.update()
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
 
 if __name__ == "__main__":
     # pyside6-rcc style.qrc -o style_rc.py
@@ -593,9 +585,9 @@ if __name__ == "__main__":
     # app.setDesktopFileName("Yolov8 Camera Video")
     # app.setOrganizationName("Yolov8 Camera Video")
     # app.setApplicationName("Yolov8 Camera Video")
-    
+
     # # Force the style to be the same on all OSs:
-    # app.setStyle("Fusion") 
+    # app.setStyle("Fusion")
 
     # # Now use a palette to switch to dark colors:
     # palette = QPalette() # 调色板
@@ -605,5 +597,5 @@ if __name__ == "__main__":
     # palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white) # 给按钮文字配置颜色
     # palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red) # 给高亮文本配置颜色，
     # app.setPalette(palette)
-    
+
     sys.exit(app.exec())

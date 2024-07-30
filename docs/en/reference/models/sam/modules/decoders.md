@@ -13,8 +13,4 @@ keywords: Ultralytics, MaskDecoder, MLP, machine learning, transformer architect
 
 ## ::: ultralytics.models.sam.modules.decoders.MaskDecoder
 
-<br><br><hr><br>
-
-## ::: ultralytics.models.sam.modules.decoders.MLP
-
 <br><br>

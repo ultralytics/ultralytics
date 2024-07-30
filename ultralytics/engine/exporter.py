@@ -451,15 +451,15 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                import onnxslim
+                # import onnxslim
 
-                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
-                model_onnx = onnxslim.slim(model_onnx)
+                # LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+                # model_onnx = onnxslim.slim(model_onnx)
 
                 # ONNX Simplifier (deprecated as must be compiled with 'cmake' in aarch64 and Conda CI environments)
-                # import onnxsim
-                # model_onnx, check = onnxsim.simplify(model_onnx)
-                # assert check, "Simplified ONNX model could not be validated"
+                import onnxsim
+                model_onnx, check = onnxsim.simplify(model_onnx)
+                assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 

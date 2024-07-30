@@ -168,6 +168,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
         run: |
+          pip install black
           export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
           git clone https://github.com/ultralytics/docs.git docs-repo

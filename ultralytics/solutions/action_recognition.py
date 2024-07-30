@@ -12,6 +12,7 @@ from ultralytics.utils import crop_and_pad
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils import crop_and_pad
 
 
 class ActionRecognition:

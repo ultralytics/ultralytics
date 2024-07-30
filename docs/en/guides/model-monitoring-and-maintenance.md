@@ -135,3 +135,38 @@ Using these resources will help you solve challenges and stay up-to-date with th
 ## Key Takeaways
 
 We covered key tips for monitoring, maintaining, and documenting your computer vision models. Regular updates and re-training help the model adapt to new data patterns. Detecting and fixing data drift helps your model stay accurate. Continuous monitoring catches issues early, and good documentation makes collaboration and future updates easier. Following these steps will help your computer vision project stay successful and effective over time.
+
+## FAQ
+
+### How do I monitor the performance of my deployed computer vision model?
+
+Monitoring the performance of your deployed computer vision model is crucial to ensure its accuracy and reliability over time. You can use tools like [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), and [Evidently AI](https://www.evidentlyai.com/) to track key metrics, detect anomalies, and identify data drift. Regularly monitor inputs and outputs, set up alerts for unusual behavior, and use diverse data sources to get a comprehensive view of your model's performance. For more details, check out our section on [Model Monitoring](#model-monitoring-is-key).
+
+### What are the best practices for maintaining computer vision models after deployment?
+
+Maintaining computer vision models involves regular updates, retraining, and monitoring to ensure continued accuracy and relevance. Best practices include:
+
+- **Continuous Monitoring**: Track performance metrics and data quality regularly.
+- **Data Drift Detection**: Use statistical techniques to identify changes in data distributions.
+- **Regular Updates and Retraining**: Implement incremental learning or periodic full retraining based on data changes.
+- **Documentation**: Maintain detailed documentation of model architecture, training processes, and evaluation metrics. For more insights, visit our [Model Maintenance](#model-maintenance) section.
+
+### Why is data drift detection important for AI models?
+
+Data drift detection is essential because it helps identify when the statistical properties of the input data change over time, which can degrade model performance. Techniques like continuous monitoring, statistical tests (e.g., Kolmogorov-Smirnov test), and feature drift analysis can help spot issues early. Addressing data drift ensures that your model remains accurate and relevant in changing environments. Learn more about data drift detection in our [Data Drift Detection](#data-drift-detection) section.
+
+### What tools can I use for anomaly detection in computer vision models?
+
+For anomaly detection in computer vision models, tools like [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), and [Evidently AI](https://www.evidentlyai.com/) are highly effective. These tools can help you set up alert systems to detect unusual data points or patterns that deviate from expected behavior. Configurable alerts and standardized messages can help you respond quickly to potential issues. Explore more in our [Anomaly Detection and Alert Systems](#anomaly-detection-and-alert-systems) section.
+
+### How can I document my computer vision project effectively?
+
+Effective documentation of a computer vision project should include:
+
+- **Project Overview**: High-level summary, problem statement, and solution approach.
+- **Model Architecture**: Details of the model structure, components, and hyperparameters.
+- **Data Preparation**: Information on data sources, preprocessing steps, and transformations.
+- **Training Process**: Description of the training procedure, datasets used, and challenges encountered.
+- **Evaluation Metrics**: Metrics used for performance evaluation and analysis.
+- **Deployment Steps**: Steps taken for model deployment and any specific challenges.
+- **Monitoring and Maintenance Procedure**: Plan for ongoing monitoring and maintenance. For more comprehensive guidelines, refer to our [Documentation](#documentation) section.

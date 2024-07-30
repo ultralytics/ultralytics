@@ -71,7 +71,7 @@ cv2.destroyAllWindows()
 - `fp16`: Whether to use half-precision floating point. Defaults to `False`.
 - `crop_margin_percentage`: Percentage of margin to add around detected objects. Defaults to ``.
 - `num_video_sequence_samples`: Number of sequential video frames to use for action recognition. Defaults to `8`.
-- `skip_frame`: Number of frames to skip between detections. Defaults to `2`.
+- `vid_stride`: Number of frames to skip between detections. Defaults to `2`.
 - `video_cls_overlap_ratio`: Overlap ratio between video sequences. Defaults to `0.25`.
 - `device`: The device to run the model on. Defaults to `""`.
 

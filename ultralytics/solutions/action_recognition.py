@@ -378,7 +378,7 @@ class HuggingFaceVideoClassifier:
         if input_size is None:
             input_size = [224, 224]
 
-        if self.upports_transforms_v2:
+        if self.supports_transforms_v2:
             from torchvision.transforms import v2
 
             transform = v2.Compose(

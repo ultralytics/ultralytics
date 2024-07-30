@@ -5,7 +5,7 @@ from typing import List, Tuple, Type
 import torch
 from torch import nn
 
-from ultralytics.nn.modules import LayerNorm2d, MLP
+from ultralytics.nn.modules import MLP, LayerNorm2d
 
 
 class MaskDecoder(nn.Module):

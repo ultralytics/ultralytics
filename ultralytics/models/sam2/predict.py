@@ -1,8 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import torch
+
 from ..sam.predict import Predictor
 from .build import build_sam2
-import torch
 
 
 class SAM2Predictor(Predictor):

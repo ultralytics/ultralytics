@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple, Type
 import torch
 from torch import nn
 
-from ultralytics.nn.modules import LayerNorm2d, MLP
+from ultralytics.nn.modules import MLP, LayerNorm2d
 
 
 class MaskDecoder(nn.Module):
@@ -27,8 +27,7 @@ class MaskDecoder(nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
     ) -> None:
         """
-        Predicts masks given an image and prompt embeddings, using a
-        transformer architecture.
+        Predicts masks given an image and prompt embeddings, using a transformer architecture.
 
         Arguments:
           transformer_dim (int): the channel dimension of the transformer
@@ -158,7 +157,11 @@ class MaskDecoder(nn.Module):
         repeat_image: bool,
         high_res_features: Optional[List[torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Predicts masks. See 'forward' for more details."""
+        """
+        Predicts masks.
+
+        See 'forward' for more details.
+        """
         # Concatenate output tokens
         s = 0
         if self.pred_obj_scores:
@@ -234,10 +237,11 @@ class MaskDecoder(nn.Module):
 
     def _dynamic_multimask_via_stability(self, all_mask_logits, all_iou_scores):
         """
-        When outputting a single mask, if the stability score from the current single-mask
-        output (based on output token 0) falls below a threshold, we instead select from
-        multi-mask outputs (based on output token 1~3) the mask with the highest predicted
-        IoU score. This is intended to ensure a valid mask for both clicking and tracking.
+        When outputting a single mask, if the stability score from the current single-mask output (based on output token
+        0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3) the mask with
+        the highest predicted IoU score.
+
+        This is intended to ensure a valid mask for both clicking and tracking.
         """
         # The best mask from multimask output tokens (1~3)
         multimask_logits = all_mask_logits[:, 1:, :, :]

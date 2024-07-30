@@ -7,6 +7,7 @@ import torch.nn.functional as F
 def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
     """
     Select up to `max_cond_frame_num` conditioning frames from `cond_frame_outputs`
+
     that are temporally closest to the current frame at `frame_idx`. Here, we take
     - a) the closest conditioning frame before `frame_idx` (if any);
     - b) the closest conditioning frame after `frame_idx` (if any);
@@ -48,9 +49,7 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
 
 
 def get_1d_sine_pe(pos_inds, dim, temperature=10000):
-    """
-    Get 1D sine positional embedding as in the original Transformer paper.
-    """
+    """Get 1D sine positional embedding as in the original Transformer paper."""
     pe_dim = dim // 2
     dim_t = torch.arange(pe_dim, dtype=torch.float32, device=pos_inds.device)
     dim_t = temperature ** (2 * (dim_t // 2) / pe_dim)
@@ -134,6 +133,7 @@ def window_partition(x, window_size):
 def window_unpartition(windows, window_size, pad_hw, hw):
     """
     Window unpartition into original sequences and removing padding.
+
     Args:
         x (tensor): input tokens with [B * num_windows, window_size, window_size, C].
         window_size (int): window size.

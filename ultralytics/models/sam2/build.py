@@ -1,10 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils.downloads import attempt_download_asset
-from .modules.sam2 import SAM2Base
-from .modules.encoders import ImageEncoder, MemoryEncoder, Hiera, FpnNeck
-from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 import torch
+
+from ultralytics.utils.downloads import attempt_download_asset
+
+from .modules.encoders import FpnNeck, Hiera, ImageEncoder, MemoryEncoder
+from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
+from .modules.sam2 import SAM2Base
 
 
 def build_sam2_t(checkpoint=None):

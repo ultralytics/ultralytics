@@ -3,14 +3,14 @@
 import torch
 import torch.distributed
 import torch.nn.functional as F
-
 from torch.nn.init import trunc_normal_
+
+from ultralytics.models.sam.modules.encoders import PromptEncoder
+from ultralytics.nn.modules import MLP
 
 from .decoders import MaskDecoder
 from .sam2_blocks import TwoWayTransformer
 from .utils import get_1d_sine_pe, select_closest_cond_frames
-from ultralytics.models.sam.modules.encoders import PromptEncoder
-from ultralytics.nn.modules import MLP
 
 # a large negative value as a placeholder score for missing objects
 NO_OBJ_SCORE = -1024.0
@@ -402,6 +402,7 @@ class SAM2Base(torch.nn.Module):
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
         """
         Directly turn binary `mask_inputs` into a output mask logits without using SAM.
+
         (same input and output shapes as in _forward_sam_heads above).
         """
         # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).
@@ -621,7 +622,7 @@ class SAM2Base(torch.nn.Module):
                 pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
                 return pix_feat_with_mem
 
-            # Use a dummy token on the first frame (to avoid emtpy memory input to tranformer encoder)
+            # Use a dummy token on the first frame (to avoid empty memory input to transformer encoder)
             to_cat_memory = [self.no_mem_embed.expand(1, B, self.mem_dim)]
             to_cat_memory_pos_embed = [self.no_mem_pos_enc.expand(1, B, self.mem_dim)]
 
@@ -787,8 +788,9 @@ class SAM2Base(torch.nn.Module):
 
     def _apply_non_overlapping_constraints(self, pred_masks):
         """
-        Apply non-overlapping constraints to the object scores in pred_masks. Here we
-        keep only the highest scoring object at each spatial location in pred_masks.
+        Apply non-overlapping constraints to the object scores in pred_masks.
+
+        Here we keep only the highest scoring object at each spatial location in pred_masks.
         """
         batch_size = pred_masks.size(0)
         if batch_size == 1:

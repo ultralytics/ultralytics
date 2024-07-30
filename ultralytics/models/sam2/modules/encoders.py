@@ -1,12 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.models.sam.modules.encoders import PatchEmbed
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .sam2_blocks import MultiScaleBlock, PositionEmbeddingSine, MaskDownSampler, Fuser, CXBlock
+
+from ultralytics.models.sam.modules.encoders import PatchEmbed
+
+from .sam2_blocks import CXBlock, Fuser, MaskDownSampler, MultiScaleBlock, PositionEmbeddingSine
 
 
 class MemoryEncoder(nn.Module):
@@ -84,10 +86,8 @@ class ImageEncoder(nn.Module):
 
 
 class FpnNeck(nn.Module):
-    """
-    A modified variant of Feature Pyramid Network (FPN) neck
-    (we remove output conv and also do bicubic interpolation similar to ViT
-    pos embed interpolation)
+    """A modified variant of Feature Pyramid Network (FPN) neck (we remove output conv and also do bicubic interpolation
+    similar to ViT pos embed interpolation)
     """
 
     def __init__(
@@ -101,11 +101,8 @@ class FpnNeck(nn.Module):
         fuse_type: str = "sum",
         fpn_top_down_levels: Optional[List[int]] = None,
     ):
-        """Initialize the neck
-        :param trunk: the backbone
-        :param position_encoding: the positional encoding to use
-        :param d_model: the dimension of the model
-        :param neck_norm: the normalization to use
+        """Initialize the neck :param trunk: the backbone :param position_encoding: the positional encoding to use
+        :param d_model: the dimension of the model :param neck_norm: the normalization to use.
         """
         super().__init__()
         self.position_encoding = PositionEmbeddingSine(num_pos_feats=256)

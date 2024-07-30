@@ -1,19 +1,26 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import copy
+import math
+from functools import partial
+from typing import Optional, Tuple, Type, Union
+
+import torch
+import torch.nn.functional as F
+from torch import Tensor, nn
+
 from ultralytics.models.sam.modules.transformer import (
-    TwoWayAttentionBlock as SAMTwoWayAttentionBlock,
-    TwoWayTransformer as SAMTwoWayTransformer,
     Attention,
 )
+from ultralytics.models.sam.modules.transformer import (
+    TwoWayAttentionBlock as SAMTwoWayAttentionBlock,
+)
+from ultralytics.models.sam.modules.transformer import (
+    TwoWayTransformer as SAMTwoWayTransformer,
+)
 from ultralytics.nn.modules import MLP, LayerNorm2d
+
 from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
-from functools import partial
-from typing import Type, Tuple, Union, Optional
-from torch import Tensor, nn
-import torch.nn.functional as F
-import torch
-import math
-import copy
 
 
 class DropPath(nn.Module):
@@ -36,11 +43,11 @@ class DropPath(nn.Module):
 
 class MaskDownSampler(nn.Module):
     """
-    Progressively downsample a mask by total_stride, each time by stride.
-    Note that LayerNorm is applied per *token*, like in ViT.
+    Progressively downsample a mask by total_stride, each time by stride. Note that LayerNorm is applied per *token*,
+    like in ViT.
 
-    With each downsample (by a factor stride**2), channel capacity increases by the same factor.
-    In the end, we linearly project to embed_dim channels.
+    With each downsample (by a factor stride**2), channel capacity increases by the same factor. In the end, we linearly
+    project to embed_dim channels.
     """
 
     def __init__(
@@ -80,10 +87,10 @@ class MaskDownSampler(nn.Module):
 
 # Lightly adapted from ConvNext (https://github.com/facebookresearch/ConvNeXt)
 class CXBlock(nn.Module):
-    r"""ConvNeXt Block. There are two equivalent implementations:
-    (1) DwConv -> LayerNorm (channels_first) -> 1x1 Conv -> GELU -> 1x1 Conv; all in (N, C, H, W)
-    (2) DwConv -> Permute to (N, H, W, C); LayerNorm (channels_last) -> Linear -> GELU -> Linear; Permute back
-    We use (2) as we find it slightly faster in PyTorch
+    r"""
+    ConvNeXt Block. There are two equivalent implementations: (1) DwConv -> LayerNorm (channels_first) -> 1x1 Conv ->
+    GELU -> 1x1 Conv; all in (N, C, H, W) (2) DwConv -> Permute to (N, H, W, C); LayerNorm (channels_last) -> Linear ->
+    GELU -> Linear; Permute back We use (2) as we find it slightly faster in PyTorch.
 
     Args:
         dim (int): Number of input channels.
@@ -458,9 +465,8 @@ class MultiScaleBlock(nn.Module):
 
 
 class PositionEmbeddingSine(nn.Module):
-    """
-    This is a more standard version of the position embedding, very similar to the one
-    used by the Attention is all you need paper, generalized to work on images.
+    """This is a more standard version of the position embedding, very similar to the one used by the Attention is all
+    you need paper, generalized to work on images.
     """
 
     def __init__(
@@ -494,12 +500,8 @@ class PositionEmbeddingSine(nn.Module):
 
         pos_x = x_embed[:, None] / dim_t
         pos_y = y_embed[:, None] / dim_t
-        pos_x = torch.stack(
-            (pos_x[:, 0::2].sin(), pos_x[:, 1::2].cos()), dim=2
-        ).flatten(1)
-        pos_y = torch.stack(
-            (pos_y[:, 0::2].sin(), pos_y[:, 1::2].cos()), dim=2
-        ).flatten(1)
+        pos_x = torch.stack((pos_x[:, 0::2].sin(), pos_x[:, 1::2].cos()), dim=2).flatten(1)
+        pos_y = torch.stack((pos_y[:, 0::2].sin(), pos_y[:, 1::2].cos()), dim=2).flatten(1)
         return pos_x, pos_y
 
     @torch.no_grad()
@@ -545,12 +547,8 @@ class PositionEmbeddingSine(nn.Module):
 
         pos_x = x_embed[:, :, :, None] / dim_t
         pos_y = y_embed[:, :, :, None] / dim_t
-        pos_x = torch.stack(
-            (pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4
-        ).flatten(3)
-        pos_y = torch.stack(
-            (pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4
-        ).flatten(3)
+        pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3)
+        pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
         pos = torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
         self.cache[cache_key] = pos[0]
         return pos

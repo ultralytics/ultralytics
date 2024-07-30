@@ -1,10 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import copy
 from typing import Optional
 
 import torch
-import copy
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 from .sam2_blocks import RoPEAttention
 

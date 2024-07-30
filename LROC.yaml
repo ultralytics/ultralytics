@@ -1,0 +1,9 @@
+path: C:\Users\Administrator\Desktop\yolo\ultralytics\datasets\LROC
+train: img
+val: txt
+test:
+
+# Classes
+names:
+  0: crater
+

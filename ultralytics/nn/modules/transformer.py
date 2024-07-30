@@ -183,7 +183,6 @@ class MLP(nn.Module):
         self.sigmoid = sigmoid
         self.act = act
 
-
     def forward(self, x):
         """Forward pass for the entire MLP."""
         for i, layer in enumerate(self.layers):

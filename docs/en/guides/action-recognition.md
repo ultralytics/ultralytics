@@ -57,17 +57,14 @@ while cap.isOpened():
     success, frame = cap.read()
     if not success:
         break
-    # Perform object detection
-    results = model(frame)
+    # Perform object tracking
+    tracks = model.track(frame, persist=True, classes=[0])
     # Perform action recognition
-    tracks = results.tracks
     annotated_frame = action_recognition.recognize_actions(frame, tracks)
     # Display the frame
     cv2.imshow("Action Recognition", annotated_frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
-cap.release()
-cv2.destroyAllWindows()
 ```
 
 ### Arguments
@@ -85,7 +82,7 @@ cv2.destroyAllWindows()
 
 - `recognize_actions(im0, tracks)`: Recognizes actions based on tracking data.
 - `process_tracks(tracks)`: Extracts results from the provided tracking data and stores track information.
-- `plot_box_and_action(box, pred_label, pred_conf)`: Plots track and bounding box with action label.
+- `plot_box_and_action(box, label_text)`: Plots track and bounding box with action labels.
 - `display_frames()`: Displays the current frame.
 - `predict_action(sequences)`: Perform inference on the given sequences.
 - `postprocess(outputs)`: Postprocess the model's batch output.

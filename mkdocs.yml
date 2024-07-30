@@ -509,6 +509,17 @@ nav:
                   - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
                   - transformer: reference/models/sam/modules/transformer.md
               - predict: reference/models/sam/predict.md
+          - sam2:
+              - build: reference/models/sam2/build.md
+              - model: reference/models/sam2/model.md
+              - predict: reference/models/sam2/predict.md
+              - modules:
+                - decoders: reference/models/sam2/modules/decoders.md
+                - encoders: reference/models/sam2/modules/encoders.md
+                - memory_attention: reference/models/sam2/modules/memory_attention.md
+                - sam2: reference/models/sam2/modules/sam2.md
+                - sam2_blocks: reference/models/sam2/modules/sam2_blocks.md
+                - utils: reference/models/sam2/modules/utils.md
           - utils:
               - loss: reference/models/utils/loss.md
               - ops: reference/models/utils/ops.md

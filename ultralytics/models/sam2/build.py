@@ -15,7 +15,7 @@ def build_sam2_l(checkpoint=None):
         encoder_global_att_blocks=[23, 33, 43],
         encoder_window_spec=[8, 4, 16, 8],
         endcoder_backbone_channel_list=[1152, 576, 288, 144],
-        checkpoint=checkpoint
+        checkpoint=checkpoint,
     )
 
 
@@ -74,6 +74,11 @@ def _build_sam2(
         multimask_max_pt_num=1,
         use_mlp_for_obj_ptr_proj=True,
         compile_image_encoder=False,
+        sam_mask_decoder_extra_args=dict(
+            dynamic_multimask_via_stability=True,
+            dynamic_multimask_stability_delta=0.05,
+            dynamic_multimask_stability_thresh=0.98,
+        ),
     )
 
     if checkpoint is not None:

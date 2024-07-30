@@ -204,7 +204,7 @@ class ActionRecognition:
 class TorchVisionVideoClassifier:
     """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/models.html#video-classification."""
 
-    supports_r3d = check_requirements("torchvision>=0.8.1", install=False)
+    supports_r3d = check_requirements("torchvision>=0.13.0", install=False)
     supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
     supports_mvitv1b = supports_s3d = check_requirements("torchvision>=0.14.0", install=False)
     supports_mvitv2s = supports_swin3dt = supports_swin3db = check_requirements("torchvision>=0.15.0", install=False)
@@ -500,7 +500,7 @@ if __name__ == "__main__":
     labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
     action_recognition = ActionRecognition(video_classifier_model=video_classifier_model, labels=labels, device=device)
 
-    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    cap = cv2.VideoCapture("/Users/fca/Downloads/action-recog-test-video.mp4")
     assert cap.isOpened(), "Error reading video file"
     while cap.isOpened():
         success, frame = cap.read()

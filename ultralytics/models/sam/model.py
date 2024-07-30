@@ -57,6 +57,7 @@ class SAM(Model):
         """
         if self.is_sam2:
             from ..sam2.build import build_sam2
+
             self.model = build_sam2(weights)
         else:
             self.model = build_sam(weights)
@@ -118,4 +119,5 @@ class SAM(Model):
             (dict): A dictionary mapping the 'segment' task to its corresponding 'Predictor'.
         """
         from ..sam2.predict import SAM2Predictor
+
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}

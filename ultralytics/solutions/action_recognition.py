@@ -177,7 +177,9 @@ class ActionRecognition:
             % int(self.num_video_sequence_samples * self.vid_stride * (1 - self.video_cls_overlap_ratio))
             == 0
         ):
-            crops_batch = torch.cat(crops_to_infer, dim=0)  # crops_batch shape: (batch_size, timestep, height, width, channel)
+            crops_batch = torch.cat(
+                crops_to_infer, dim=0
+            )  # crops_batch shape: (batch_size, timestep, height, width, channel)
             output_batch = self.video_classifier(crops_batch)
             pred_labels, pred_confs = self.postprocess(output_batch)
 

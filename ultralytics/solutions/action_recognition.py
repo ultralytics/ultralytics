@@ -341,7 +341,7 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
-    """Zero-shot video classifier using Hugging Face models for various devices."""
+    """ideo classifier using Hugging Face models; see https://huggingface.co/models?pipeline_tag=video-classification."""
 
     supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
 

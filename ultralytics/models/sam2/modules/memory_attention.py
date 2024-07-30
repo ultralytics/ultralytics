@@ -11,6 +11,7 @@ from .sam2_blocks import RoPEAttention
 
 class MemoryAttentionLayer(nn.Module):
     """Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks."""
+
     def __init__(
         self,
         d_model: int = 256,
@@ -99,6 +100,7 @@ class MemoryAttentionLayer(nn.Module):
 
 class MemoryAttention(nn.Module):
     """Memory attention module for processing sequential data with self and cross-attention mechanisms."""
+
     def __init__(
         self,
         d_model: int,

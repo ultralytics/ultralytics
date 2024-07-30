@@ -7,17 +7,17 @@ import torch.nn.functional as F
 def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
     """
     Selects the closest conditioning frames to a given frame index.
-    
+
     Args:
         frame_idx (int): Current frame index.
         cond_frame_outputs (Dict[int, Any]): Dictionary of conditioning frame outputs keyed by frame indices.
         max_cond_frame_num (int): Maximum number of conditioning frames to select.
-    
+
     Returns:
         (Tuple[Dict[int, Any], Dict[int, Any]]): A tuple containing two dictionaries:
             - selected_outputs: Selected items from cond_frame_outputs.
             - unselected_outputs: Items not selected from cond_frame_outputs.
-    
+
     Examples:
         >>> frame_idx = 5
         >>> cond_frame_outputs = {1: 'a', 3: 'b', 7: 'c', 9: 'd'}
@@ -124,16 +124,16 @@ def apply_rotary_enc(
 def window_partition(x, window_size):
     """
     Partitions input tensor into non-overlapping windows with padding if needed.
-    
+
     Args:
         x (torch.Tensor): Input tensor with shape (B, H, W, C).
         window_size (int): Size of each window.
-    
+
     Returns:
         (Tuple[torch.Tensor, Tuple[int, int]]): A tuple containing:
             - windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
             - (Hp, Wp) (Tuple[int, int]): Padded height and width before partition.
-    
+
     Examples:
         >>> x = torch.randn(1, 16, 16, 3)
         >>> windows, (Hp, Wp) = window_partition(x, window_size=4)
@@ -156,10 +156,10 @@ def window_partition(x, window_size):
 def window_unpartition(windows, window_size, pad_hw, hw):
     """
     Unpartitions windowed sequences into original sequences and removes padding.
-    
+
     This function reverses the windowing process, reconstructing the original input from windowed segments
     and removing any padding that was added during the windowing process.
-    
+
     Args:
         windows (torch.Tensor): Input tensor of windowed sequences with shape (B * num_windows, window_size,
             window_size, C), where B is the batch size, num_windows is the number of windows, window_size is
@@ -167,11 +167,11 @@ def window_unpartition(windows, window_size, pad_hw, hw):
         window_size (int): Size of each window.
         pad_hw (Tuple[int, int]): Padded height and width (Hp, Wp) of the input before windowing.
         hw (Tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.
-    
+
     Returns:
         (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W
             are the original height and width, and C is the number of channels.
-    
+
     Examples:
         >>> windows = torch.rand(32, 8, 8, 64)  # 32 windows of size 8x8 with 64 channels
         >>> pad_hw = (16, 16)  # Padded height and width

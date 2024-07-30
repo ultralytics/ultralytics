@@ -500,7 +500,7 @@ if __name__ == "__main__":
     labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
     action_recognition = ActionRecognition(video_classifier_model=video_classifier_model, labels=labels, device=device)
 
-    cap = cv2.VideoCapture("/Users/fca/Downloads/action-recog-test-video.mp4")
+    cap = cv2.VideoCapture("your/video/path.mp4")
     assert cap.isOpened(), "Error reading video file"
     while cap.isOpened():
         success, frame = cap.read()

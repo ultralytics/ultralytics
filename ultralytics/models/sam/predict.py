@@ -334,7 +334,7 @@ class Predictor(BasePredictor):
         """
         device = select_device(self.args.device, verbose=verbose)
         if model is None:
-            model = build_sam(self.args.model)
+            model = self.get_model()
         model.eval()
         self.model = model.to(device)
         self.device = device
@@ -347,6 +347,10 @@ class Predictor(BasePredictor):
         self.model.stride = 32
         self.model.fp16 = False
         self.done_warmup = True
+
+    def get_model(self):
+        """Built Segment Anything Model (SAM) model."""
+        return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
         """

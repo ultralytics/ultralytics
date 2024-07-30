@@ -13,6 +13,7 @@ from .sam2_blocks import CXBlock, Fuser, MaskDownSampler, MultiScaleBlock, Posit
 
 class MemoryEncoder(nn.Module):
     """Encodes pixel features and masks into a memory representation for efficient image segmentation."""
+
     def __init__(
         self,
         out_dim,
@@ -57,6 +58,7 @@ class MemoryEncoder(nn.Module):
 
 class ImageEncoder(nn.Module):
     """Encodes images using a trunk-neck architecture, producing multi-scale features and positional encodings."""
+
     def __init__(
         self,
         trunk: nn.Module,
@@ -104,10 +106,10 @@ class FpnNeck(nn.Module):
     ):
         """
         Initializes a modified Feature Pyramid Network (FPN) neck.
-        
+
         This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
         similar to ViT positional embedding interpolation.
-        
+
         Args:
             d_model (int): Dimension of the model.
             backbone_channel_list (List[int]): List of channel dimensions from the backbone.
@@ -117,7 +119,7 @@ class FpnNeck(nn.Module):
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
             fpn_top_down_levels (Optional[List[int]]): Levels to have top-down features in outputs.
-        
+
         Attributes:
             position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding.
             convs (nn.ModuleList): List of convolutional layers for each backbone level.
@@ -125,7 +127,7 @@ class FpnNeck(nn.Module):
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion.
             fpn_top_down_levels (List[int]): Levels with top-down feature propagation.
-        
+
         Examples:
             >>> backbone_channels = [64, 128, 256, 512]
             >>> fpn_neck = FpnNeck(256, backbone_channels)
@@ -165,15 +167,15 @@ class FpnNeck(nn.Module):
     def forward(self, xs: List[torch.Tensor]):
         """
         Performs forward pass through the Feature Pyramid Network (FPN) neck.
-        
+
         Args:
             xs (List[torch.Tensor]): List of input tensors from the backbone, with shape (B, C, H, W) for each tensor.
-        
+
         Returns:
             (Tuple[List[torch.Tensor], List[torch.Tensor]]): A tuple containing two lists:
                 - out: List of output feature maps after FPN processing, with shape (B, d_model, H, W) for each tensor.
                 - pos: List of positional encodings corresponding to each output feature map.
-        
+
         Examples:
             >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
             >>> inputs = [torch.rand(1, c, 32, 32) for c in [64, 128, 256, 512]]

@@ -9,11 +9,11 @@ from .build import build_sam2
 class SAM2Predictor(Predictor):
     """
     A predictor class for the Segment Anything Model 2 (SAM2), extending the base Predictor class.
-    
+
     This class provides an interface for model inference tailored to image segmentation tasks, leveraging SAM2's
     advanced architecture and promptable segmentation capabilities. It facilitates flexible and real-time mask
     generation, working with various types of prompts such as bounding boxes, points, and low-resolution masks.
-    
+
     Attributes:
         cfg (Dict): Configuration dictionary specifying model and task-related parameters.
         overrides (Dict): Dictionary containing values that override the default configuration.
@@ -26,13 +26,13 @@ class SAM2Predictor(Predictor):
         model (torch.nn.Module): The loaded SAM2 model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         _bb_feat_sizes (List[Tuple[int, int]]): List of feature sizes for different backbone levels.
-    
+
     Methods:
         get_model: Builds and returns the SAM2 model.
         prompt_inference: Performs image segmentation inference based on various prompts.
         set_image: Preprocesses and sets a single image for inference.
         get_im_features: Extracts image features from the SAM2 image encoder.
-    
+
     Examples:
         >>> predictor = SAM2Predictor(model='sam2_l.pt')
         >>> predictor.set_image('path/to/image.jpg')
@@ -62,7 +62,7 @@ class SAM2Predictor(Predictor):
     ):
         """
         Performs image segmentation inference based on various prompts using SAM2 architecture.
-        
+
         Args:
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
@@ -71,13 +71,13 @@ class SAM2Predictor(Predictor):
             masks (np.ndarray | None): Low-resolution masks from previous predictions with shape (N, H, W).
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
             img_idx (int): Index of the image in the batch to process.
-        
+
         Returns:
             (tuple): Tuple containing:
                 - np.ndarray: Output masks with shape (C, H, W), where C is the number of generated masks.
                 - np.ndarray: Quality scores for each mask, with length C.
                 - np.ndarray: Low-resolution logits with shape (C, 256, 256) for subsequent inference.
-        
+
         Examples:
             >>> predictor = SAM2Predictor(cfg)
             >>> image = torch.rand(1, 3, 640, 640)
@@ -145,16 +145,16 @@ class SAM2Predictor(Predictor):
     def set_image(self, image):
         """
         Preprocesses and sets a single image for inference.
-        
+
         This function sets up the model if not already initialized, configures the data source to the specified image,
         and preprocesses the image for feature extraction. Only one image can be set at a time.
-        
+
         Args:
             image (str | np.ndarray): Image file path as a string, or a numpy array image read by cv2.
-        
+
         Raises:
             AssertionError: If more than one image is set.
-        
+
         Examples:
             >>> predictor = SAM2Predictor()
             >>> predictor.set_image("path/to/image.jpg")

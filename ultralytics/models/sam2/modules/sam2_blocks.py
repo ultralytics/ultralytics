@@ -25,6 +25,7 @@ from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window
 
 class DropPath(nn.Module):
     """Implements stochastic depth regularization for neural networks during training."""
+
     def __init__(self, drop_prob=0.0, scale_by_keep=True):
         """Initialize DropPath module with specified drop probability and scaling option."""
         super(DropPath, self).__init__()
@@ -87,10 +88,10 @@ class MaskDownSampler(nn.Module):
 class CXBlock(nn.Module):
     """
     ConvNeXt Block for efficient feature extraction in convolutional neural networks.
-    
+
     This block implements a modified version of the ConvNeXt architecture, offering two equivalent
     implementations for improved performance and flexibility.
-    
+
     Attributes:
         dwconv (nn.Conv2d): Depthwise convolution layer.
         norm (LayerNorm2d): Layer normalization applied to channels.
@@ -99,10 +100,10 @@ class CXBlock(nn.Module):
         pwconv2 (nn.Linear): Second pointwise convolution implemented as a linear layer.
         gamma (nn.Parameter | None): Learnable scale parameter for layer scaling.
         drop_path (nn.Module): DropPath layer for stochastic depth regularization.
-    
+
     Methods:
         forward: Processes the input tensor through the ConvNeXt block.
-    
+
     Examples:
         >>> import torch
         >>> x = torch.randn(1, 64, 56, 56)
@@ -123,10 +124,10 @@ class CXBlock(nn.Module):
     ):
         """
         Initialize a ConvNeXt Block.
-        
+
         This block implements a ConvNeXt architecture with optional depthwise convolution, layer normalization,
         pointwise convolutions, and GELU activation.
-        
+
         Args:
             dim (int): Number of input channels.
             kernel_size (int): Size of the convolutional kernel. Default is 7.
@@ -134,7 +135,7 @@ class CXBlock(nn.Module):
             drop_path (float): Stochastic depth rate. Default is 0.0.
             layer_scale_init_value (float): Initial value for Layer Scale. Default is 1e-6.
             use_dwconv (bool): Whether to use depthwise convolution. Default is True.
-        
+
         Attributes:
             dwconv (nn.Conv2d): Depthwise or standard 2D convolution layer.
             norm (LayerNorm2d): Layer normalization applied to the output of dwconv.
@@ -142,7 +143,7 @@ class CXBlock(nn.Module):
             act (nn.GELU): GELU activation function.
             pwconv2 (nn.Linear): Second pointwise convolution implemented as a linear layer.
             gamma (nn.Parameter | None): Learnable scale parameter for the residual path.
-        
+
         Examples:
             >>> block = CXBlock(dim=64, kernel_size=7, padding=3)
             >>> x = torch.randn(1, 64, 32, 32)
@@ -189,16 +190,16 @@ class CXBlock(nn.Module):
 class Fuser(nn.Module):
     """
     A module for fusing features through multiple layers of a neural network.
-    
+
     This class applies a series of identical layers to an input tensor, optionally projecting the input first.
-    
+
     Attributes:
         proj (nn.Module): An optional input projection layer. Identity if no projection is needed.
         layers (nn.ModuleList): A list of identical layers to be applied sequentially.
-    
+
     Methods:
         forward: Applies the fuser to an input tensor.
-    
+
     Examples:
         >>> layer = CXBlock(dim=256)
         >>> fuser = Fuser(layer, num_layers=3, dim=256, input_projection=True)
@@ -207,22 +208,23 @@ class Fuser(nn.Module):
         >>> print(output.shape)
         torch.Size([1, 256, 32, 32])
     """
+
     def __init__(self, layer, num_layers, dim=None, input_projection=False):
         """
         Initializes the Fuser module.
-        
+
         This module creates a sequence of identical layers and optionally applies an input projection.
-        
+
         Args:
             layer (nn.Module): The layer to be replicated in the fuser.
             num_layers (int): The number of times to replicate the layer.
             dim (int | None): The dimension for input projection, if used.
             input_projection (bool): Whether to use input projection.
-        
+
         Attributes:
             proj (nn.Module): The input projection layer, or nn.Identity if not used.
             layers (nn.ModuleList): A list of replicated layers.
-        
+
         Examples:
             >>> layer = nn.Linear(64, 64)
             >>> fuser = Fuser(layer, num_layers=3, dim=64, input_projection=True)
@@ -248,11 +250,11 @@ class Fuser(nn.Module):
 class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
     """
     A two-way attention block for performing self-attention and cross-attention in both directions.
-    
+
     This block extends the SAMTwoWayAttentionBlock and consists of four main components: self-attention on
     sparse inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and
     cross-attention from dense to sparse inputs.
-    
+
     Attributes:
         self_attn (Attention): Self-attention layer for queries.
         norm1 (nn.LayerNorm): Layer normalization after the first attention block.
@@ -263,10 +265,10 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
         norm4 (nn.LayerNorm): Layer normalization after the third attention block.
         cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
         skip_first_layer_pe (bool): Flag to skip positional encoding in the first layer.
-    
+
     Methods:
         forward: Processes input through the attention blocks and MLP.
-    
+
     Examples:
         >>> block = TwoWayAttentionBlock(embedding_dim=256, num_heads=8)
         >>> sparse_input = torch.randn(1, 100, 256)
@@ -285,10 +287,10 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
     ) -> None:
         """
         Initializes a TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
-        
+
         This block consists of four main layers: self-attention on sparse inputs, cross-attention of sparse inputs
         to dense inputs, an MLP block on sparse inputs, and cross-attention of dense inputs to sparse inputs.
-        
+
         Args:
             embedding_dim (int): The channel dimension of the embeddings.
             num_heads (int): The number of heads in the attention layers.
@@ -296,7 +298,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
             activation (Type[nn.Module]): The activation function of the MLP block.
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
-        
+
         Attributes:
             self_attn (Attention): The self-attention layer for the queries.
             norm1 (nn.LayerNorm): Layer normalization following the first attention block.
@@ -307,7 +309,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
             norm4 (nn.LayerNorm): Layer normalization following the third attention block.
             cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
-        
+
         Examples:
             >>> block = TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
             >>> sparse_inputs = torch.randn(1, 100, 256)
@@ -321,11 +323,11 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
 class TwoWayTransformer(SAMTwoWayTransformer):
     """
     A Two-Way Transformer module for simultaneous attention to image and query points.
-    
+
     This class implements a specialized transformer decoder that attends to an input image using queries with
     supplied positional embeddings. It is particularly useful for tasks like object detection, image
     segmentation, and point cloud processing.
-    
+
     Attributes:
         depth (int): Number of layers in the transformer.
         embedding_dim (int): Channel dimension for input embeddings.
@@ -334,10 +336,10 @@ class TwoWayTransformer(SAMTwoWayTransformer):
         layers (nn.ModuleList): List of TwoWayAttentionBlock layers comprising the transformer.
         final_attn_token_to_image (Attention): Final attention layer from queries to image.
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
-    
+
     Methods:
         forward: Processes input image embeddings and query embeddings through the transformer.
-    
+
     Examples:
         >>> transformer = TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
         >>> image_embedding = torch.randn(1, 256, 64, 64)
@@ -356,10 +358,10 @@ class TwoWayTransformer(SAMTwoWayTransformer):
     ) -> None:
         """
         Initializes a TwoWayTransformer instance.
-        
+
         This transformer decoder attends to an input image using queries with supplied positional embeddings.
         It is designed for tasks like object detection, image segmentation, and point cloud processing.
-        
+
         Args:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for the input embeddings.
@@ -367,7 +369,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
             mlp_dim (int): Channel dimension internal to the MLP block.
             activation (Type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
-        
+
         Attributes:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for the input embeddings.
@@ -376,7 +378,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
             layers (nn.ModuleList): List of TwoWayAttentionBlock layers comprising the transformer.
             final_attn_token_to_image (Attention): Final attention layer from queries to image.
             norm_final_attn (nn.LayerNorm): Layer normalization applied to the final queries.
-        
+
         Examples:
             >>> transformer = TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
             >>> transformer
@@ -483,6 +485,7 @@ def do_pool(x: torch.Tensor, pool: nn.Module, norm: nn.Module = None) -> torch.T
 
 class MultiScaleAttention(nn.Module):
     """Implements multi-scale self-attention with optional query pooling for efficient feature extraction."""
+
     def __init__(
         self,
         dim: int,
@@ -535,6 +538,7 @@ class MultiScaleAttention(nn.Module):
 
 class MultiScaleBlock(nn.Module):
     """Multiscale attention block with window partitioning and query pooling for efficient vision transformers."""
+
     def __init__(
         self,
         dim: int,

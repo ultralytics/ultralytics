@@ -18,6 +18,7 @@ NO_OBJ_SCORE = -1024.0
 
 class SAM2Base(torch.nn.Module):
     """SAM2Base class for Segment Anything Model 2 with memory-based video object segmentation capabilities."""
+
     mask_threshold: float = 0.0
 
     def __init__(
@@ -253,7 +254,7 @@ class SAM2Base(torch.nn.Module):
     ):
         """
         Forward SAM prompt encoders and mask heads.
-        
+
         Args:
             backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
             point_inputs (Dict[str, torch.Tensor] | None): Dictionary containing point prompts.
@@ -268,7 +269,7 @@ class SAM2Base(torch.nn.Module):
                 for SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,
                 output only 1 mask and its IoU estimate.
-        
+
         Returns:
             (Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]):
                 low_res_multimasks: Tensor of shape (B, M, H*4, W*4) with SAM output mask logits.
@@ -278,9 +279,9 @@ class SAM2Base(torch.nn.Module):
                 high_res_masks: Tensor of shape (B, 1, H*16, W*16) with best high-resolution mask.
                 obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
                 object_score_logits: Tensor of shape (B,) with object score logits.
-        
+
             Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
-        
+
         Examples:
             >>> backbone_features = torch.rand(1, 256, 32, 32)
             >>> point_inputs = {"point_coords": torch.rand(1, 2, 2), "point_labels": torch.tensor([[1, 0]])}
@@ -449,7 +450,7 @@ class SAM2Base(torch.nn.Module):
         )
 
     def forward_image(self, img_batch: torch.Tensor):
-        """Process image batch through encoder to extract multi-level features for SAM model"""
+        """Process image batch through encoder to extract multi-level features for SAM model."""
         backbone_out = self.image_encoder(img_batch)
         if self.use_high_res_features_in_sam:
             # precompute projected level 0 and level 1 features in SAM decoder

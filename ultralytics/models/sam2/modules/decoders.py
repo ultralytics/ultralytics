@@ -10,6 +10,7 @@ from ultralytics.nn.modules import MLP, LayerNorm2d
 
 class MaskDecoder(nn.Module):
     """Transformer-based decoder predicting instance segmentation masks from image and prompt embeddings."""
+
     def __init__(
         self,
         transformer_dim: int,
@@ -29,7 +30,7 @@ class MaskDecoder(nn.Module):
     ) -> None:
         """
         Initializes the MaskDecoder module for predicting instance segmentation masks.
-        
+
         Args:
             transformer_dim (int): Channel dimension of the transformer.
             transformer (nn.Module): Transformer used to predict masks.
@@ -45,7 +46,7 @@ class MaskDecoder(nn.Module):
             pred_obj_scores (bool): Whether to predict object scores.
             pred_obj_scores_mlp (bool): Whether to use MLP for object score prediction.
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
-        
+
         Attributes:
             transformer_dim (int): Channel dimension of the transformer.
             transformer (nn.Module): Transformer used to predict masks.
@@ -127,7 +128,7 @@ class MaskDecoder(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Predicts masks given image and prompt embeddings.
-        
+
         Args:
             image_embeddings (torch.Tensor): Embeddings from the image encoder.
             image_pe (torch.Tensor): Positional encoding with the shape of image_embeddings.
@@ -136,13 +137,13 @@ class MaskDecoder(nn.Module):
             multimask_output (bool): Whether to return multiple masks or a single mask.
             repeat_image (bool): Flag to repeat the image embeddings.
             high_res_features (List[torch.Tensor] | None): Optional high-resolution features.
-        
+
         Returns:
             (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): A tuple containing:
                 - masks (torch.Tensor): Batched predicted masks.
                 - iou_pred (torch.Tensor): Batched predictions of mask quality.
                 - sam_tokens_out (torch.Tensor): Batched SAM token for mask output.
-        
+
         Examples:
             >>> image_embeddings = torch.rand(1, 256, 64, 64)
             >>> image_pe = torch.rand(1, 256, 64, 64)
@@ -268,9 +269,9 @@ class MaskDecoder(nn.Module):
         """
         Dynamically selects the most stable mask output based on stability scores and IoU predictions.
 
-        When outputting a single mask, if the stability score from the current single-mask output (based on output
-        token 0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3)
-        the mask with the highest predicted IoU score.
+        When outputting a single mask, if the stability score from the current single-mask output (based on output token
+        0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3) the mask with
+        the highest predicted IoU score.
 
         This is intended to ensure a valid mask for both clicking and tracking.
         """

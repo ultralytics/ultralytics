@@ -17,6 +17,8 @@ NO_OBJ_SCORE = -1024.0
 
 
 class SAM2Base(torch.nn.Module):
+    mask_threshold: float = 0.0
+
     def __init__(
         self,
         image_encoder,

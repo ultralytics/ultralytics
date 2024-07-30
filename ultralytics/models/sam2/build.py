@@ -30,10 +30,31 @@ def _build_sam2(
         ),
         scalp=1,
     )
-    memory_attention = MemoryAttention(
-        d_model=256,
-        pos_enc_at_input=True,
-        num_layers=4,
-        layer=MemoryAttentionLayer()
-    )
+    memory_attention = MemoryAttention(d_model=256, pos_enc_at_input=True, num_layers=4, layer=MemoryAttentionLayer())
     memory_encoder = MemoryEncoder(out_dim=64)
+    return SAM2Base(
+        image_encoder=image_encoder,
+        memory_attention=memory_attention,
+        memory_encoder=memory_encoder,
+        num_maskmem=7,
+        image_size=1024,
+        sigmoid_scale_for_mem_enc=20.0,
+        sigmoid_bias_for_mem_enc=-10.0,
+        use_mask_input_as_output_without_sam=True,
+        directly_add_no_mem_embed=True,
+        use_high_res_features_in_sam=True,
+        multimask_output_in_sam=True,
+        iou_prediction_use_sigmoid=True,
+        use_obj_ptrs_in_encoder=True,
+        add_tpos_enc_to_obj_ptrs=True,
+        only_obj_ptrs_in_the_past_for_eval=True,
+        pred_obj_scores=True,
+        pred_obj_scores_mlp=True,
+        fixed_no_obj_ptr=True,
+        multimask_output_for_tracking=True,
+        use_multimask_token_for_obj_ptr=True,
+        multimask_min_pt_num=0,
+        multimask_max_pt_num=1,
+        use_mlp_for_obj_ptr_proj=True,
+        compile_image_encoder=False,
+    )

@@ -235,6 +235,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
           activation (nn.Module): the activation to use in the MLP block
         """
         super().__init__(depth, embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate)
+        self.layers = nn.ModuleList()
         for i in range(depth):
             self.layers.append(
                 TwoWayAttentionBlock(

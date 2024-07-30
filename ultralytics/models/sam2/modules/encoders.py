@@ -6,7 +6,7 @@ from typing import Tuple, List, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .sam2_blocks import MultiScaleBlock
+from .sam2_blocks import MultiScaleBlock, PositionEmbeddingSine
 
 
 class MemoryEncoder(nn.Module):
@@ -95,7 +95,6 @@ class FpnNeck(nn.Module):
 
     def __init__(
         self,
-        position_encoding: nn.Module,
         d_model: int,
         backbone_channel_list: List[int],
         kernel_size: int = 1,
@@ -112,7 +111,7 @@ class FpnNeck(nn.Module):
         :param neck_norm: the normalization to use
         """
         super().__init__()
-        self.position_encoding = position_encoding
+        self.position_encoding = PositionEmbeddingSine(num_pos_feats=256)
         self.convs = nn.ModuleList()
         self.backbone_channel_list = backbone_channel_list
         for dim in backbone_channel_list:

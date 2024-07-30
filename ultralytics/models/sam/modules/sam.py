@@ -23,7 +23,6 @@ class Sam(nn.Module):
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
-        image_format (str): Format of the input image, default is 'RGB'.
         image_encoder (ImageEncoderViT): The backbone used to encode the image into embeddings.
         prompt_encoder (PromptEncoder): Encodes various types of input prompts.
         mask_decoder (MaskDecoder): Predicts object masks from the image and prompt embeddings.
@@ -32,7 +31,6 @@ class Sam(nn.Module):
     """
 
     mask_threshold: float = 0.0
-    image_format: str = "RGB"
 
     def __init__(
         self,

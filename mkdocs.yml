@@ -512,7 +512,6 @@ nav:
           - sam2:
               - build: reference/models/sam2/build.md
               - model: reference/models/sam2/model.md
-              - predict: reference/models/sam2/predict.md
               - modules:
                   - decoders: reference/models/sam2/modules/decoders.md
                   - encoders: reference/models/sam2/modules/encoders.md
@@ -520,6 +519,7 @@ nav:
                   - sam2: reference/models/sam2/modules/sam2.md
                   - sam2_blocks: reference/models/sam2/modules/sam2_blocks.md
                   - utils: reference/models/sam2/modules/utils.md
+              - predict: reference/models/sam2/predict.md
           - utils:
               - loss: reference/models/utils/loss.md
               - ops: reference/models/utils/ops.md

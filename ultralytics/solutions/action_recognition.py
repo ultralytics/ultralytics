@@ -493,7 +493,7 @@ def crop_and_pad(frame, box, margin_percent):
 
 if __name__ == "__main__":
     from ultralytics import YOLO
-    #from ultralytics.solutions.action_recognition import ActionRecognition
+    # from ultralytics.solutions.action_recognition import ActionRecognition
 
     # Initialize the YOLO model
     model = YOLO("yolov8n.pt")

@@ -287,7 +287,7 @@ For more details on SAM2's architecture and capabilities, explore the [SAM2 rese
 
 ### How can I use SAM2 for real-time video segmentation?
 
-SAM2 can be utilized for real-time video segmentation by leveraging its promptable interface and real-time inference capabilities. Here’s a basic example:
+SAM2 can be utilized for real-time video segmentation by leveraging its promptable interface and real-time inference capabilities. Here's a basic example:
 
 !!! Example "Segment with Prompts"
 
@@ -335,7 +335,7 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 
 ### How does SAM2 compare to other segmentation models like YOLOv8?
 
-SAM2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here’s a comparison:
+SAM2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)                |
 | ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |

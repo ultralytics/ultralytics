@@ -239,7 +239,7 @@ nav:
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
       - SAM (Segment Anything Model): models/sam.md
-      - SAM2 (Segment Anything Model 2): models/sam-2.md
+      - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
@@ -509,6 +509,17 @@ nav:
                   - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
                   - transformer: reference/models/sam/modules/transformer.md
               - predict: reference/models/sam/predict.md
+          - sam2:
+              - build: reference/models/sam2/build.md
+              - model: reference/models/sam2/model.md
+              - modules:
+                  - decoders: reference/models/sam2/modules/decoders.md
+                  - encoders: reference/models/sam2/modules/encoders.md
+                  - memory_attention: reference/models/sam2/modules/memory_attention.md
+                  - sam2: reference/models/sam2/modules/sam2.md
+                  - sam2_blocks: reference/models/sam2/modules/sam2_blocks.md
+                  - utils: reference/models/sam2/modules/utils.md
+              - predict: reference/models/sam2/predict.md
           - utils:
               - loss: reference/models/utils/loss.md
               - ops: reference/models/utils/ops.md

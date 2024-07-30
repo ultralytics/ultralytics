@@ -39,7 +39,7 @@ class SAM2(SAM):
         Raises:
             NotImplementedError: If the model file extension is not .pt or .pth.
         """
-        super().__init__(model=model, task="segment")
+        super().__init__(model=model)
 
     def _load(self, weights: str, task=None):
         """

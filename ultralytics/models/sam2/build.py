@@ -8,6 +8,7 @@ import torch
 
 
 def build_sam2_t(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM2) tiny-size model."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 7, 2],
@@ -20,6 +21,7 @@ def build_sam2_t(checkpoint=None):
 
 
 def build_sam2_s(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM2) small-size model."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 11, 2],
@@ -32,6 +34,7 @@ def build_sam2_s(checkpoint=None):
 
 
 def build_sam2_b(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM2) base-size model."""
     return _build_sam2(
         encoder_embed_dim=112,
         encoder_stages=[2, 3, 16, 3],
@@ -45,6 +48,7 @@ def build_sam2_b(checkpoint=None):
 
 
 def build_sam2_l(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM2) l-size model."""
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],
@@ -66,6 +70,7 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
+    """Builds the selected SAM2 model architecture."""
     image_encoder = ImageEncoder(
         trunk=Hiera(
             embed_dim=encoder_embed_dim,

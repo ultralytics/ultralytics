@@ -457,7 +457,7 @@ class HuggingFaceVideoClassifier:
         return pred_labels, pred_confs
 
 
-def crop_and_pad(frame, box, margin_percent: int = 10) -> np.ndarray:
+def crop_and_pad(frame: np.ndarray, box: List[int], margin_percent: int = 10) -> np.ndarray:
     """
     Crop box with margin and take square crop from frame.
 

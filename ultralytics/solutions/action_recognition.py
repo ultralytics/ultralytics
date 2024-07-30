@@ -83,7 +83,7 @@ class ActionRecognition:
         self.track_ids = tracks[0].boxes.id.cpu().numpy()
 
         for box, track_id in zip(self.boxes, self.track_ids):
-            crop = self.crop_and_pad(self.im0, box, self.crop_margin_percentage)
+            crop = crop_and_pad(self.im0, box, self.crop_margin_percentage)
             self.track_history[track_id].append(crop)
 
             if len(self.track_history[track_id]) > self.num_video_sequence_samples:
@@ -202,28 +202,9 @@ class ActionRecognition:
 
         return im0
 
-    def crop_and_pad(self, frame, box, margin_percent):
-        """Crop box with margin and take square crop from frame."""
-        x1, y1, x2, y2 = map(int, box)
-        w, h = x2 - x1, y2 - y1
-
-        margin_x, margin_y = int(w * margin_percent / 100), int(h * margin_percent / 100)
-        x1, y1 = max(0, x1 - margin_x), max(0, y1 - margin_y)
-        x2, y2 = min(frame.shape[1], x2 + margin_x), min(frame.shape[0], y2 + margin_y)
-
-        size = max(y2 - y1, x2 - x1)
-        center_y, center_x = (y1 + y2) // 2, (x1 + x2) // 2
-        half_size = size // 2
-        square_crop = frame[
-            max(0, center_y - half_size) : min(frame.shape[0], center_y + half_size),
-            max(0, center_x - half_size) : min(frame.shape[1], center_x + half_size),
-        ]
-
-        return cv2.resize(square_crop, (224, 224), interpolation=cv2.INTER_LINEAR)
-
 
 class TorchVisionVideoClassifier:
-    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/."""
+    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/models.html#video-classification."""
 
     def __init__(self, model_name: str, device: str or torch.device = ""):
         """
@@ -511,7 +492,32 @@ def crop_and_pad(frame, box, margin_percent):
 
 
 if __name__ == "__main__":
+    from ultralytics import YOLO
+    #from ultralytics.solutions.action_recognition import ActionRecognition
+
+    # Initialize the YOLO model
+    model = YOLO("yolov8n.pt")
+
     device = ""
     video_classifier_model = "microsoft/xclip-base-patch32"
     labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
     action_recognition = ActionRecognition(video_classifier_model=video_classifier_model, labels=labels, device=device)
+
+    cap = cv2.VideoCapture("path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
+    while cap.isOpened():
+        success, frame = cap.read()
+        if not success:
+            break
+        # Perform object detection
+        results = model(frame)
+        # Perform action recognition
+        tracks = results.tracks
+        annotated_frame = action_recognition.recognize_actions(frame, tracks)
+        # Display the frame
+        cv2.imshow("Action Recognition", annotated_frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()

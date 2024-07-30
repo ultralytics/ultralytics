@@ -10,6 +10,7 @@ from .sam2_blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):
+    """Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks."""
     def __init__(
         self,
         d_model: int = 256,
@@ -19,6 +20,7 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool = True,
         pos_enc_at_cross_attn_queries: bool = False,
     ):
+        """Initializes a MemoryAttentionLayer with self-attention, cross-attention, and feedforward components."""
         super().__init__()
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
@@ -52,7 +54,7 @@ class MemoryAttentionLayer(nn.Module):
         self.pos_enc_at_cross_attn_keys = pos_enc_at_cross_attn_keys
 
     def _forward_sa(self, tgt, query_pos):
-        # Self-Attention
+        """Performs self-attention on input tensor using positional encoding and RoPE attention mechanism."""
         tgt2 = self.norm1(tgt)
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
         tgt2 = self.self_attn(q, k, v=tgt2)
@@ -60,6 +62,7 @@ class MemoryAttentionLayer(nn.Module):
         return tgt
 
     def _forward_ca(self, tgt, memory, query_pos, pos, num_k_exclude_rope=0):
+        """Performs cross-attention between target and memory tensors using RoPEAttention mechanism."""
         kwds = {}
         if num_k_exclude_rope > 0:
             assert isinstance(self.cross_attn_image, RoPEAttention)
@@ -84,7 +87,7 @@ class MemoryAttentionLayer(nn.Module):
         query_pos: Optional[Tensor] = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
-        # Self-Attn, Cross-Attn
+        """Performs self-attention, cross-attention, and MLP operations on input tensors for memory-based attention."""
         tgt = self._forward_sa(tgt, query_pos)
         tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
         # MLP
@@ -95,6 +98,7 @@ class MemoryAttentionLayer(nn.Module):
 
 
 class MemoryAttention(nn.Module):
+    """Memory attention module for processing sequential data with self and cross-attention mechanisms."""
     def __init__(
         self,
         d_model: int,
@@ -103,6 +107,7 @@ class MemoryAttention(nn.Module):
         num_layers: int,
         batch_first: bool = True,  # Do layers expect batch first input?
     ):
+        """Initializes MemoryAttention module with layers and normalization for attention processing."""
         super().__init__()
         self.d_model = d_model
         self.layers = nn.ModuleList([copy.deepcopy(layer) for _ in range(num_layers)])
@@ -119,6 +124,7 @@ class MemoryAttention(nn.Module):
         memory_pos: Optional[Tensor] = None,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ):
+        """Applies self-attention and cross-attention to input tensors, processing through multiple layers."""
         if isinstance(curr, list):
             assert isinstance(curr_pos, list)
             assert len(curr) == len(curr_pos) == 1

@@ -12,11 +12,13 @@ from .sam2_blocks import CXBlock, Fuser, MaskDownSampler, MultiScaleBlock, Posit
 
 
 class MemoryEncoder(nn.Module):
+    """Encodes pixel features and masks into a memory representation for efficient image segmentation."""
     def __init__(
         self,
         out_dim,
         in_dim=256,  # in_dim of pix_feats
     ):
+        """Initializes the MemoryEncoder module for encoding pixel features and masks in SAM-like models."""
         super().__init__()
 
         self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1)
@@ -34,8 +36,7 @@ class MemoryEncoder(nn.Module):
         masks: torch.Tensor,
         skip_mask_sigmoid: bool = False,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        ## Process masks
-        # sigmoid, so that less domain shift from gt masks which are bool
+        """Processes pixel features and masks, fusing them to generate encoded memory representations."""
         if not skip_mask_sigmoid:
             masks = F.sigmoid(masks)
         masks = self.mask_downsampler(masks)
@@ -55,12 +56,14 @@ class MemoryEncoder(nn.Module):
 
 
 class ImageEncoder(nn.Module):
+    """Encodes images using a trunk-neck architecture, producing multi-scale features and positional encodings."""
     def __init__(
         self,
         trunk: nn.Module,
         neck: nn.Module,
         scalp: int = 0,
     ):
+        """Initializes an image encoder with a trunk, neck, and optional scalp for feature extraction."""
         super().__init__()
         self.trunk = trunk
         self.neck = neck
@@ -70,7 +73,7 @@ class ImageEncoder(nn.Module):
         ), f"Channel dims of trunk and neck do not match. Trunk: {self.trunk.channel_list}, neck: {self.neck.backbone_channel_list}"
 
     def forward(self, sample: torch.Tensor):
-        # Forward through backbone
+        """Processes image input through trunk and neck, returning features, positional encodings, and FPN outputs."""
         features, pos = self.neck(self.trunk(sample))
         if self.scalp > 0:
             # Discard the lowest resolution features
@@ -86,9 +89,7 @@ class ImageEncoder(nn.Module):
 
 
 class FpnNeck(nn.Module):
-    """A modified variant of Feature Pyramid Network (FPN) neck (we remove output conv and also do bicubic interpolation
-    similar to ViT pos embed interpolation)
-    """
+    """Feature Pyramid Network (FPN) neck variant for multi-scale feature fusion in object detection models."""
 
     def __init__(
         self,
@@ -101,8 +102,34 @@ class FpnNeck(nn.Module):
         fuse_type: str = "sum",
         fpn_top_down_levels: Optional[List[int]] = None,
     ):
-        """Initialize the neck :param trunk: the backbone :param position_encoding: the positional encoding to use
-        :param d_model: the dimension of the model :param neck_norm: the normalization to use.
+        """
+        Initializes a modified Feature Pyramid Network (FPN) neck.
+        
+        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
+        similar to ViT positional embedding interpolation.
+        
+        Args:
+            d_model (int): Dimension of the model.
+            backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+            kernel_size (int): Kernel size for the convolutional layers.
+            stride (int): Stride for the convolutional layers.
+            padding (int): Padding for the convolutional layers.
+            fpn_interp_model (str): Interpolation mode for FPN feature resizing.
+            fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
+            fpn_top_down_levels (Optional[List[int]]): Levels to have top-down features in outputs.
+        
+        Attributes:
+            position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding.
+            convs (nn.ModuleList): List of convolutional layers for each backbone level.
+            backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+            fpn_interp_model (str): Interpolation mode for FPN feature resizing.
+            fuse_type (str): Type of feature fusion.
+            fpn_top_down_levels (List[int]): Levels with top-down feature propagation.
+        
+        Examples:
+            >>> backbone_channels = [64, 128, 256, 512]
+            >>> fpn_neck = FpnNeck(256, backbone_channels)
+            >>> print(fpn_neck)
         """
         super().__init__()
         self.position_encoding = PositionEmbeddingSine(num_pos_feats=256)
@@ -136,6 +163,22 @@ class FpnNeck(nn.Module):
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
     def forward(self, xs: List[torch.Tensor]):
+        """
+        Performs forward pass through the Feature Pyramid Network (FPN) neck.
+        
+        Args:
+            xs (List[torch.Tensor]): List of input tensors from the backbone, with shape (B, C, H, W) for each tensor.
+        
+        Returns:
+            (Tuple[List[torch.Tensor], List[torch.Tensor]]): A tuple containing two lists:
+                - out: List of output feature maps after FPN processing, with shape (B, d_model, H, W) for each tensor.
+                - pos: List of positional encodings corresponding to each output feature map.
+        
+        Examples:
+            >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
+            >>> inputs = [torch.rand(1, c, 32, 32) for c in [64, 128, 256, 512]]
+            >>> outputs, positions = fpn_neck(inputs)
+        """
         out = [None] * len(self.convs)
         pos = [None] * len(self.convs)
         assert len(xs) == len(self.convs)
@@ -168,9 +211,7 @@ class FpnNeck(nn.Module):
 
 
 class Hiera(nn.Module):
-    """
-    Reference: https://arxiv.org/abs/2306.00989
-    """
+    """Hierarchical vision transformer for efficient multi-scale feature extraction in image processing tasks."""
 
     def __init__(
         self,
@@ -198,6 +239,7 @@ class Hiera(nn.Module):
         ),
         return_interm_layers=True,  # return feats from every stage
     ):
+        """Initializes a Hiera model with configurable architecture for hierarchical vision transformers."""
         super().__init__()
 
         assert len(stages) == len(window_spec)
@@ -263,6 +305,7 @@ class Hiera(nn.Module):
         )
 
     def _get_pos_embed(self, hw: Tuple[int, int]) -> torch.Tensor:
+        """Generate positional embeddings by interpolating and combining window and background embeddings."""
         h, w = hw
         window_embed = self.pos_embed_window
         pos_embed = F.interpolate(self.pos_embed, size=(h, w), mode="bicubic")
@@ -271,6 +314,7 @@ class Hiera(nn.Module):
         return pos_embed
 
     def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """Performs hierarchical vision transformer forward pass, returning multi-scale feature maps."""
         x = self.patch_embed(x)
         # x: (B, H, W, C)
 

@@ -9,6 +9,7 @@ from ultralytics.nn.modules import MLP, LayerNorm2d
 
 
 class MaskDecoder(nn.Module):
+    """Transformer-based decoder predicting instance segmentation masks from image and prompt embeddings."""
     def __init__(
         self,
         transformer_dim: int,
@@ -27,19 +28,43 @@ class MaskDecoder(nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
     ) -> None:
         """
-        Predicts masks given an image and prompt embeddings, using a transformer architecture.
-
-        Arguments:
-          transformer_dim (int): the channel dimension of the transformer
-          transformer (nn.Module): the transformer used to predict masks
-          num_multimask_outputs (int): the number of masks to predict
-            when disambiguating masks
-          activation (nn.Module): the type of activation to use when
-            upscaling masks
-          iou_head_depth (int): the depth of the MLP used to predict
-            mask quality
-          iou_head_hidden_dim (int): the hidden dimension of the MLP
-            used to predict mask quality
+        Initializes the MaskDecoder module for predicting instance segmentation masks.
+        
+        Args:
+            transformer_dim (int): Channel dimension of the transformer.
+            transformer (nn.Module): Transformer used to predict masks.
+            num_multimask_outputs (int): Number of masks to predict when disambiguating masks.
+            activation (Type[nn.Module]): Type of activation to use when upscaling masks.
+            iou_head_depth (int): Depth of the MLP used to predict mask quality.
+            iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
+            use_high_res_features (bool): Whether to use high-resolution features.
+            iou_prediction_use_sigmoid (bool): Whether to use sigmoid for IOU prediction.
+            dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
+            dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
+            dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
+            pred_obj_scores (bool): Whether to predict object scores.
+            pred_obj_scores_mlp (bool): Whether to use MLP for object score prediction.
+            use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
+        
+        Attributes:
+            transformer_dim (int): Channel dimension of the transformer.
+            transformer (nn.Module): Transformer used to predict masks.
+            num_multimask_outputs (int): Number of masks to predict when disambiguating masks.
+            iou_token (nn.Embedding): Embedding for IOU token.
+            num_mask_tokens (int): Total number of mask tokens.
+            mask_tokens (nn.Embedding): Embedding for mask tokens.
+            pred_obj_scores (bool): Whether to predict object scores.
+            obj_score_token (nn.Embedding): Embedding for object score token.
+            use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
+            output_upscaling (nn.Sequential): Upscaling layers for output.
+            use_high_res_features (bool): Whether to use high-resolution features.
+            conv_s0 (nn.Conv2d): Convolutional layer for high-resolution features (s0).
+            conv_s1 (nn.Conv2d): Convolutional layer for high-resolution features (s1).
+            output_hypernetworks_mlps (nn.ModuleList): List of MLPs for output hypernetworks.
+            iou_prediction_head (MLP): MLP for IOU prediction.
+            pred_obj_score_head (nn.Linear | MLP): Linear layer or MLP for object score prediction.
+            dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
+            dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -101,20 +126,31 @@ class MaskDecoder(nn.Module):
         high_res_features: Optional[List[torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Predict masks given image and prompt embeddings.
-
-        Arguments:
-          image_embeddings (torch.Tensor): the embeddings from the image encoder
-          image_pe (torch.Tensor): positional encoding with the shape of image_embeddings
-          sparse_prompt_embeddings (torch.Tensor): the embeddings of the points and boxes
-          dense_prompt_embeddings (torch.Tensor): the embeddings of the mask inputs
-          multimask_output (bool): Whether to return multiple masks or a single
-            mask.
-
+        Predicts masks given image and prompt embeddings.
+        
+        Args:
+            image_embeddings (torch.Tensor): Embeddings from the image encoder.
+            image_pe (torch.Tensor): Positional encoding with the shape of image_embeddings.
+            sparse_prompt_embeddings (torch.Tensor): Embeddings of the points and boxes.
+            dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs.
+            multimask_output (bool): Whether to return multiple masks or a single mask.
+            repeat_image (bool): Flag to repeat the image embeddings.
+            high_res_features (List[torch.Tensor] | None): Optional high-resolution features.
+        
         Returns:
-          torch.Tensor: batched predicted masks
-          torch.Tensor: batched predictions of mask quality
-          torch.Tensor: batched SAM token for mask output
+            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): A tuple containing:
+                - masks (torch.Tensor): Batched predicted masks.
+                - iou_pred (torch.Tensor): Batched predictions of mask quality.
+                - sam_tokens_out (torch.Tensor): Batched SAM token for mask output.
+        
+        Examples:
+            >>> image_embeddings = torch.rand(1, 256, 64, 64)
+            >>> image_pe = torch.rand(1, 256, 64, 64)
+            >>> sparse_prompt_embeddings = torch.rand(1, 2, 256)
+            >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
+            >>> decoder = MaskDecoder(256, transformer)
+            >>> masks, iou_pred, sam_tokens_out = decoder.forward(image_embeddings, image_pe,
+            ...     sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
         """
         masks, iou_pred, mask_tokens_out, object_score_logits = self.predict_masks(
             image_embeddings=image_embeddings,
@@ -157,11 +193,7 @@ class MaskDecoder(nn.Module):
         repeat_image: bool,
         high_res_features: Optional[List[torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Predicts masks.
-
-        See 'forward' for more details.
-        """
+        """Predicts instance segmentation masks from image and prompt embeddings using a transformer architecture."""
         # Concatenate output tokens
         s = 0
         if self.pred_obj_scores:
@@ -224,10 +256,7 @@ class MaskDecoder(nn.Module):
         return masks, iou_pred, mask_tokens_out, object_score_logits
 
     def _get_stability_scores(self, mask_logits):
-        """
-        Compute stability scores of the mask logits based on the IoU between upper and
-        lower thresholds, similar to https://github.com/fairinternal/onevision/pull/568.
-        """
+        """Computes mask stability scores based on IoU between upper and lower thresholds."""
         mask_logits = mask_logits.flatten(-2)
         stability_delta = self.dynamic_multimask_stability_delta
         area_i = torch.sum(mask_logits > stability_delta, dim=-1).float()
@@ -237,9 +266,11 @@ class MaskDecoder(nn.Module):
 
     def _dynamic_multimask_via_stability(self, all_mask_logits, all_iou_scores):
         """
-        When outputting a single mask, if the stability score from the current single-mask output (based on output token
-        0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3) the mask with
-        the highest predicted IoU score.
+        Dynamically selects the most stable mask output based on stability scores and IoU predictions.
+
+        When outputting a single mask, if the stability score from the current single-mask output (based on output
+        token 0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3)
+        the mask with the highest predicted IoU score.
 
         This is intended to ensure a valid mask for both clicking and tracking.
         """

@@ -17,6 +17,7 @@ NO_OBJ_SCORE = -1024.0
 
 
 class SAM2Base(torch.nn.Module):
+    """SAM2Base class for Segment Anything Model 2 with memory-based video object segmentation capabilities."""
     mask_threshold: float = 0.0
 
     def __init__(
@@ -91,6 +92,7 @@ class SAM2Base(torch.nn.Module):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
+        """Initializes SAM2Base model with image encoder, memory attention, and memory encoder components."""
         super().__init__()
 
         # Part 1: the image backbone
@@ -183,16 +185,18 @@ class SAM2Base(torch.nn.Module):
 
     @property
     def device(self):
+        """Returns the device on which the model's parameters are stored."""
         return next(self.parameters()).device
 
     def forward(self, *args, **kwargs):
+        """Processes input frames and prompts to generate object masks and scores in video sequences."""
         raise NotImplementedError(
             "Please use the corresponding methods in SAM2VideoPredictor for inference."
             "See notebooks/video_predictor_example.ipynb for an example."
         )
 
     def _build_sam_heads(self):
-        """Build SAM-style prompt encoder and mask decoder."""
+        """Builds SAM-style prompt encoder and mask decoder for image segmentation tasks."""
         self.sam_prompt_embed_dim = self.hidden_dim
         self.sam_image_embedding_size = self.image_size // self.backbone_stride
 
@@ -249,42 +253,40 @@ class SAM2Base(torch.nn.Module):
     ):
         """
         Forward SAM prompt encoders and mask heads.
-
-        Inputs:
-        - backbone_features: image features of [B, C, H, W] shape
-        - point_inputs: a dictionary with "point_coords" and "point_labels", where
-          1) "point_coords" has [B, P, 2] shape and float32 dtype and contains the
-             absolute pixel-unit coordinate in (x, y) format of the P input points
-          2) "point_labels" has shape [B, P] and int32 dtype, where 1 means
-             positive clicks, 0 means negative clicks, and -1 means padding
-        - mask_inputs: a mask of [B, 1, H*16, W*16] shape, float or bool, with the
-          same spatial size as the image.
-        - high_res_features: either 1) None or 2) or a list of length 2 containing
-          two feature maps of [B, C, 4*H, 4*W] and [B, C, 2*H, 2*W] shapes respectively,
-          which will be used as high-resolution feature maps for SAM decoder.
-        - multimask_output: if it's True, we output 3 candidate masks and their 3
-          corresponding IoU estimates, and if it's False, we output only 1 mask and
-          its corresponding IoU estimate.
-
-        Outputs:
-        - low_res_multimasks: [B, M, H*4, W*4] shape (where M = 3 if
-          `multimask_output=True` and M = 1 if `multimask_output=False`), the SAM
-          output mask logits (before sigmoid) for the low-resolution masks, with 4x
-          the resolution (1/4 stride) of the input backbone_features.
-        - high_res_multimasks: [B, M, H*16, W*16] shape (where M = 3
-          if `multimask_output=True` and M = 1 if `multimask_output=False`),
-          upsampled from the low-resolution masks, with shape size as the image
-          (stride is 1 pixel).
-        - ious, [B, M] shape, where (where M = 3 if `multimask_output=True` and M = 1
-          if `multimask_output=False`), the estimated IoU of each output mask.
-        - low_res_masks: [B, 1, H*4, W*4] shape, the best mask in `low_res_multimasks`.
-          If `multimask_output=True`, it's the mask with the highest IoU estimate.
-          If `multimask_output=False`, it's the same as `low_res_multimasks`.
-        - high_res_masks: [B, 1, H*16, W*16] shape, the best mask in `high_res_multimasks`.
-          If `multimask_output=True`, it's the mask with the highest IoU estimate.
-          If `multimask_output=False`, it's the same as `high_res_multimasks`.
-        - obj_ptr: [B, C] shape, the object pointer vector for the output mask, extracted
-          based on the output token from the SAM mask decoder.
+        
+        Args:
+            backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
+            point_inputs (Dict[str, torch.Tensor] | None): Dictionary containing point prompts.
+                'point_coords': Tensor of shape (B, P, 2) with float32 dtype, containing absolute
+                    pixel-unit coordinates in (x, y) format for P input points.
+                'point_labels': Tensor of shape (B, P) with int32 dtype, where 1 means positive clicks,
+                    0 means negative clicks, and -1 means padding.
+            mask_inputs (torch.Tensor | None): Mask of shape (B, 1, H*16, W*16), float or bool, with the
+                same spatial size as the image.
+            high_res_features (List[torch.Tensor] | None): List of two feature maps with shapes
+                (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps
+                for SAM decoder.
+            multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,
+                output only 1 mask and its IoU estimate.
+        
+        Returns:
+            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]):
+                low_res_multimasks: Tensor of shape (B, M, H*4, W*4) with SAM output mask logits.
+                high_res_multimasks: Tensor of shape (B, M, H*16, W*16) with upsampled mask logits.
+                ious: Tensor of shape (B, M) with estimated IoU for each output mask.
+                low_res_masks: Tensor of shape (B, 1, H*4, W*4) with best low-resolution mask.
+                high_res_masks: Tensor of shape (B, 1, H*16, W*16) with best high-resolution mask.
+                obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
+                object_score_logits: Tensor of shape (B,) with object score logits.
+        
+            Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
+        
+        Examples:
+            >>> backbone_features = torch.rand(1, 256, 32, 32)
+            >>> point_inputs = {"point_coords": torch.rand(1, 2, 2), "point_labels": torch.tensor([[1, 0]])}
+            >>> mask_inputs = torch.rand(1, 1, 512, 512)
+            >>> results = model._forward_sam_heads(backbone_features, point_inputs, mask_inputs)
+            >>> low_res_multimasks, high_res_multimasks, ious, low_res_masks, high_res_masks, obj_ptr, object_score_logits = results
         """
         B = backbone_features.size(0)
         device = backbone_features.device
@@ -400,11 +402,7 @@ class SAM2Base(torch.nn.Module):
         )
 
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
-        """
-        Directly turn binary `mask_inputs` into a output mask logits without using SAM.
-
-        (same input and output shapes as in _forward_sam_heads above).
-        """
+        """Processes mask inputs to generate output mask logits and object pointers without using SAM."""
         # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).
         out_scale, out_bias = 20.0, -10.0  # sigmoid(-10.0)=4.5398e-05
         mask_inputs_float = mask_inputs.float()
@@ -451,7 +449,7 @@ class SAM2Base(torch.nn.Module):
         )
 
     def forward_image(self, img_batch: torch.Tensor):
-        """Get the image feature on the input batch."""
+        """Process image batch through encoder to extract multi-level features for SAM model"""
         backbone_out = self.image_encoder(img_batch)
         if self.use_high_res_features_in_sam:
             # precompute projected level 0 and level 1 features in SAM decoder
@@ -461,7 +459,7 @@ class SAM2Base(torch.nn.Module):
         return backbone_out
 
     def _prepare_backbone_features(self, backbone_out):
-        """Prepare and flatten visual features."""
+        """Prepare and flatten visual features from the image backbone output."""
         backbone_out = backbone_out.copy()
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
@@ -487,7 +485,7 @@ class SAM2Base(torch.nn.Module):
         num_frames,
         track_in_reverse=False,  # tracking in reverse time order (for demo usage)
     ):
-        """Fuse the current frame's visual feature map with previous memory."""
+        """Prepares memory-conditioned features by fusing current frame's visual features with previous memories."""
         B = current_vision_feats[-1].size(1)  # batch size on this frame
         C = self.hidden_dim
         H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
@@ -648,7 +646,7 @@ class SAM2Base(torch.nn.Module):
         pred_masks_high_res,
         is_mask_from_pts,
     ):
-        """Encode the current image and its prediction into a memory feature."""
+        """Encodes the current frame's features and predicted masks into a new memory representation."""
         B = current_vision_feats[-1].size(1)  # batch size on this frame
         C = self.hidden_dim
         H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
@@ -702,6 +700,7 @@ class SAM2Base(torch.nn.Module):
         # The previously predicted SAM mask logits (which can be fed together with new clicks in demo).
         prev_sam_mask_logits=None,
     ):
+        """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
         current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
         # High-resolution feature maps for the SAM head, reshape (HW)BC => BCHW
         if len(current_vision_feats) > 1:
@@ -777,7 +776,7 @@ class SAM2Base(torch.nn.Module):
         return current_out
 
     def _use_multimask(self, is_init_cond_frame, point_inputs):
-        """Whether to use multimask output in the SAM head."""
+        """Determines whether to use multiple mask outputs in the SAM head based on configuration and inputs."""
         num_pts = 0 if point_inputs is None else point_inputs["point_labels"].size(1)
         multimask_output = (
             self.multimask_output_in_sam
@@ -787,11 +786,7 @@ class SAM2Base(torch.nn.Module):
         return multimask_output
 
     def _apply_non_overlapping_constraints(self, pred_masks):
-        """
-        Apply non-overlapping constraints to the object scores in pred_masks.
-
-        Here we keep only the highest scoring object at each spatial location in pred_masks.
-        """
+        """Applies non-overlapping constraints to object masks, keeping highest scoring object at each location."""
         batch_size = pred_masks.size(0)
         if batch_size == 1:
             return pred_masks

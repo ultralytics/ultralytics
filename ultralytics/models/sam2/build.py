@@ -10,7 +10,7 @@ from .modules.sam2 import SAM2Base
 
 
 def build_sam2_t(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) tiny-size model."""
+    """Build and return a Segment Anything Model (SAM2) tiny-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 7, 2],
@@ -23,7 +23,7 @@ def build_sam2_t(checkpoint=None):
 
 
 def build_sam2_s(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) small-size model."""
+    """Builds and returns a small-size Segment Anything Model (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 11, 2],
@@ -36,7 +36,7 @@ def build_sam2_s(checkpoint=None):
 
 
 def build_sam2_b(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) base-size model."""
+    """Builds and returns a Segment Anything Model (SAM2) base-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=112,
         encoder_stages=[2, 3, 16, 3],
@@ -50,7 +50,7 @@ def build_sam2_b(checkpoint=None):
 
 
 def build_sam2_l(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) l-size model."""
+    """Build and return a Segment Anything Model (SAM2) large-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],
@@ -72,7 +72,7 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
-    """Builds the selected SAM2 model architecture."""
+    """Builds a SAM2 model with specified architecture parameters and optional checkpoint loading."""
     image_encoder = ImageEncoder(
         trunk=Hiera(
             embed_dim=encoder_embed_dim,
@@ -143,7 +143,7 @@ sam_model_map = {
 
 
 def build_sam2(ckpt="sam_b.pt"):
-    """Build a SAM model specified by ckpt."""
+    """Constructs a Segment Anything Model (SAM2) based on the specified checkpoint, with various size options."""
     model_builder = None
     ckpt = str(ckpt)  # to allow Path ckpt types
     for k in sam_model_map.keys():

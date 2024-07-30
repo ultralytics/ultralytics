@@ -78,7 +78,7 @@ class MaskDecoder(nn.Module):
             iou_head_hidden_dim,
             self.num_mask_tokens,
             iou_head_depth,
-            sigmoid_output=iou_prediction_use_sigmoid,
+            sigmoid=iou_prediction_use_sigmoid,
         )
         if self.pred_obj_scores:
             self.pred_obj_score_head = nn.Linear(transformer_dim, 1)

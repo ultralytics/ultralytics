@@ -1,5 +1,5 @@
 ---
-description: Explore detailed documentation of various SAM2 encoder modules such as ImageEncoderViT, PromptEncoder, and more, available in Ultralytics' repository.
+description: Explore detailed documentation of various SAM2 encoder modules such as MemoryAttentionLayer, MemoryAttention, available in Ultralytics' repository.
 keywords: Ultralytics, SAM2 encoder, MemoryAttentionLayer, MemoryAttention
 ---
 

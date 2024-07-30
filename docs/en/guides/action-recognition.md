@@ -67,7 +67,7 @@ cv2.destroyAllWindows()
 ### Arguments
 
 - `video_classifier_model`: Name or path of the video classifier model. Defaults to `"microsoft/xclip-base-patch32"`. [Hugging Face Video Classification Models](https://huggingface.co/models?pipeline_tag=video-classification) and [TorchVision Video Classification Models](https://pytorch.org/vision/stable/models.html#video-classification) are supported.
-- `labels`: List of labels for zero-shot classification. Defaults to a predefined list.
+- `labels`: List of string labels for zero-shot classification.
 - `fp16`: Whether to use half-precision floating point. Defaults to `False`.
 - `crop_margin_percentage`: Percentage of margin to add around detected objects. Defaults to ``.
 - `num_video_sequence_samples`: Number of sequential video frames to use for action recognition. Defaults to `8`.

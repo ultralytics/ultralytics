@@ -212,7 +212,9 @@ class HuggingFaceVideoClassifier:
                 [
                     v2.ToDtype(torch.float32, scale=True),
                     v2.Resize(input_size, antialias=True),
-                    v2.Normalize(mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std),
+                    v2.Normalize(
+                        mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
+                    ),
                 ]
             )
         else:

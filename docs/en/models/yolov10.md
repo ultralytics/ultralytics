@@ -10,6 +10,17 @@ YOLOv10, built on the [Ultralytics](https://ultralytics.com) [Python package](ht
 
 ![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/ultralytics/assets/26833433/f9b1bec0-928e-41ce-a205-e12db3c4929a)
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_gRqR-miFPE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train YOLOv10 on SKU-110k Dataset using Ultralytics | Retail Dataset
+</p>
+
 ## Overview
 
 Real-time object detection aims to accurately predict object categories and positions in images with low latency. The YOLO series has been at the forefront of this research due to its balance between performance and efficiency. However, reliance on NMS and architectural inefficiencies have hindered optimal performance. YOLOv10 addresses these issues by introducing consistent dual assignments for NMS-free training and a holistic efficiency-accuracy driven model design strategy.

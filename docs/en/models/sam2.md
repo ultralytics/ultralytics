@@ -4,30 +4,106 @@ description: Discover SAM2, the next generation of Meta's Segment Anything Model
 keywords: SAM2, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
 
+!!! Note "🚧 SAM2 Integration In Progress 🚧"
+
+    The SAM2 features described in this documentation are currently not enabled in the `ultralytics` package. The Ultralytics team is actively working on integrating SAM2, and these capabilities should be available soon. We appreciate your patience as we work to implement this exciting new model.
+
 # SAM2: Segment Anything Model 2
 
-Experience the next evolution in object segmentation with SAM2. This advanced model extends the capabilities of the original Segment Anything Model (SAM) to support real-time, promptable segmentation across both images and videos. SAM2's innovative design and robust dataset make it a powerful tool for a wide range of applications.
+SAM2, the successor to Meta's Segment Anything Model (SAM), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
-## Introduction to SAM2
+## Key Features
 
-SAM2 builds upon the foundational concepts of SAM, introducing a unified model architecture that excels in handling dynamic visual data. It is designed to perform zero-shot generalization, allowing it to segment unseen objects in new visual domains without additional training. This capability, coupled with real-time processing speeds, sets SAM2 apart as a leading model for both image and video segmentation.
+### Unified Model Architecture
 
-Trained on the comprehensive [SA-V dataset](https://ai.meta.com/datasets/segment-anything/), which includes over 51,000 videos and 600,000 mask annotations, SAM2 is equipped to deliver state-of-the-art performance in diverse scenarios.
+SAM2 combines the capabilities of image and video segmentation in a single model. This unification simplifies deployment and allows for consistent performance across different media types. It leverages a flexible prompt-based interface, enabling users to specify objects of interest through various prompt types, such as points, bounding boxes, or masks.
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
-**SA-V Example images.** The SA-V dataset includes diverse, real-world videos with detailed mask annotations, providing a rich training ground for SAM2.
+### Real-Time Performance
 
-## Key Features of SAM2
+The model achieves real-time inference speeds, processing approximately 44 frames per second. This makes SAM2 suitable for applications requiring immediate feedback, such as video editing and augmented reality.
 
-- **Unified Model Architecture:** SAM2 integrates image and video segmentation capabilities into a single model, facilitating seamless transitions between media types.
-- **Real-Time Performance:** Achieves approximately 44 frames per second, making it suitable for real-time applications.
-- **Zero-Shot Generalization:** Capable of segmenting objects in unfamiliar domains without needing domain-specific training.
-- **Interactive Refinement:** Supports iterative refinement through user prompts, allowing precise control over segmentation output.
-- **Advanced Handling of Visual Challenges:** Equipped with mechanisms to manage occlusions, reappearances, and ambiguous scenarios through multi-mask predictions.
+### Zero-Shot Generalization
+
+SAM2 can segment objects it has never encountered before, demonstrating strong zero-shot generalization. This is particularly useful in diverse or evolving visual domains where pre-defined categories may not cover all possible objects.
+
+### Interactive Refinement
+
+Users can iteratively refine the segmentation results by providing additional prompts, allowing for precise control over the output. This interactivity is essential for fine-tuning results in applications like video annotation or medical imaging.
+
+### Advanced Handling of Visual Challenges
+
+SAM2 includes mechanisms to manage common video segmentation challenges, such as object occlusion and reappearance. It uses a sophisticated memory mechanism to keep track of objects across frames, ensuring continuity even when objects are temporarily obscured or exit and re-enter the scene.
 
 For a deeper understanding of SAM2's architecture and capabilities, explore the [SAM2 research paper](https://arxiv.org/abs/2401.12741).
 
-## Available Models, Supported Tasks, and Operating Modes
+## Performance and Technical Details
+
+SAM2 sets a new benchmark in the field, outperforming previous models on various metrics:
+
+| Metric                             | SAM2          | Previous SOTA |
+|------------------------------------|---------------|---------------|
+| **Interactive Video Segmentation** | **Best**      | -             |
+| **Human Interactions Required**    | **3x fewer**  | Baseline      |
+| **Image Segmentation Accuracy**    | **Improved**  | SAM           |
+| **Inference Speed**                | **6x faster** | SAM           |
+
+## Model Architecture
+
+### Core Components
+
+- **Image and Video Encoder**: Utilizes a transformer-based architecture to extract high-level features from both images and video frames. This component is responsible for understanding the visual content at each timestep.
+- **Prompt Encoder**: Processes user-provided prompts (points, boxes, masks) to guide the segmentation task. This allows SAM2 to adapt to user input and target specific objects within a scene.
+- **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent object tracking over time.
+- **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
+
+### Memory Mechanism and Occlusion Handling
+
+The memory mechanism allows SAM2 to handle temporal dependencies and occlusions in video data. As objects move and interact, SAM2 records their features in a memory bank. When an object becomes occluded, the model can rely on this memory to predict its position and appearance when it reappears. The occlusion head specifically handles scenarios where objects are not visible, predicting the likelihood of an object being occluded.
+
+### Multi-Mask Ambiguity Resolution
+
+In situations with ambiguity (e.g., overlapping objects), SAM2 can generate multiple mask predictions. This feature is crucial for accurately representing complex scenes where a single mask might not sufficiently describe the scene's nuances.
+
+## SA-V Dataset
+
+The SA-V dataset, developed for SAM2's training, is one of the largest and most diverse video segmentation datasets available. It includes:
+
+- **51,000+ Videos**: Captured across 47 countries, providing a wide range of real-world scenarios.
+- **600,000+ Mask Annotations**: Detailed spatio-temporal mask annotations, referred to as "masklets," covering whole objects and parts.
+- **Dataset Scale**: It features 4.5 times more videos and 53 times more annotations than previous largest datasets, offering unprecedented diversity and complexity.
+
+## Benchmarks
+
+### Video Object Segmentation
+
+SAM2 has demonstrated superior performance across major video segmentation benchmarks:
+
+| Dataset         | J&F  | J    | F    |
+|-----------------|------|------|------|
+| **DAVIS 2017**  | 82.5 | 79.8 | 85.2 |
+| **YouTube-VOS** | 81.2 | 78.9 | 83.5 |
+
+### Interactive Segmentation
+
+In interactive segmentation tasks, SAM2 shows significant efficiency and accuracy:
+
+| Dataset               | NoC@90 | AUC   |
+|-----------------------|--------|-------|
+| **DAVIS Interactive** | 1.54   | 0.872 |
+
+## Installation
+
+To install SAM2, use the following command. All SAM2 models will automatically download on first use.
+
+```bash
+pip install ultralytics
+```
+
+## Available Models, Supported Tasks, and Usage Examples
+
+!!! Note "🚧 SAM2 Integration In Progress 🚧"
+
+    The SAM2 features described in this documentation are currently not enabled in the `ultralytics` package. The Ultralytics team is actively working on integrating SAM2, and these capabilities should be available soon. We appreciate your patience as we work to implement this exciting new model.
 
 The following table details the available SAM2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
@@ -164,6 +240,15 @@ To auto-annotate your dataset using SAM2, follow this example:
 | output_dir | str, None, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | None         |
 
 This function facilitates the rapid creation of high-quality segmentation datasets, ideal for researchers and developers aiming to accelerate their projects.
+
+## Limitations
+
+Despite its strengths, SAM2 has certain limitations:
+
+- **Tracking Stability**: SAM2 may lose track of objects during extended sequences or significant viewpoint changes.
+- **Object Confusion**: The model can sometimes confuse similar-looking objects, particularly in crowded scenes.
+- **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
+- **Detail Accuracy**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
 ## Citations and Acknowledgements
 

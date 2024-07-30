@@ -7,10 +7,10 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.engine.results import Results
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
-from ultralytics.engine.results import Results
 
 
 class ActionRecognition:

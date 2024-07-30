@@ -180,3 +180,12 @@ class SAM2Predictor(Predictor):
             for feat, feat_size in zip(vision_feats[::-1], self._bb_feat_sizes[::-1])
         ][::-1]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
+
+
+class SAM2VideoPredictor(SAM2Predictor):
+    """The predictor class to handle user interactions with videos and manage inference states."""
+
+    def get_model(self):
+        model = super().get_model()
+        model.set_binarize(True)
+        return model

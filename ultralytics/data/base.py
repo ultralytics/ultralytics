@@ -160,7 +160,6 @@ class BaseDataset(Dataset):
                     im = tifffile.imread(f)
                     #Reshape to put channels last
                     im = np.moveaxis(im, 0, -1)
-                    print(im.shape)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

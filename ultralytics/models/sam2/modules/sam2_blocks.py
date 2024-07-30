@@ -6,10 +6,11 @@ from ultralytics.models.sam.modules.transformer import (
     Attention,
 )
 from ultralytics.nn.modules import MLP, LayerNorm2d
-from .utils import apply_rotary_enc, compute_axial_cis
+from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
 from functools import partial
-from typing import Type
+from typing import Type, Tuple, Union
 from torch import Tensor, nn
+import torch.nn.functional as F
 import torch
 import math
 import copy
@@ -307,3 +308,149 @@ class RoPEAttention(Attention):
         out = self.out_proj(out)
 
         return out
+
+
+def do_pool(x: torch.Tensor, pool: nn.Module, norm: nn.Module = None) -> torch.Tensor:
+    if pool is None:
+        return x
+    # (B, H, W, C) -> (B, C, H, W)
+    x = x.permute(0, 3, 1, 2)
+    x = pool(x)
+    # (B, C, H', W') -> (B, H', W', C)
+    x = x.permute(0, 2, 3, 1)
+    if norm:
+        x = norm(x)
+
+    return x
+
+
+class MultiScaleAttention(nn.Module):
+    def __init__(
+        self,
+        dim: int,
+        dim_out: int,
+        num_heads: int,
+        q_pool: nn.Module = None,
+    ):
+        super().__init__()
+
+        self.dim = dim
+        self.dim_out = dim_out
+
+        self.num_heads = num_heads
+        head_dim = dim_out // num_heads
+        self.scale = head_dim**-0.5
+
+        self.q_pool = q_pool
+        self.qkv = nn.Linear(dim, dim_out * 3)
+        self.proj = nn.Linear(dim_out, dim_out)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B, H, W, _ = x.shape
+        # qkv with shape (B, H * W, 3, nHead, C)
+        qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1)
+        # q, k, v with shape (B, H * W, nheads, C)
+        q, k, v = torch.unbind(qkv, 2)
+
+        # Q pooling (for downsample at stage changes)
+        if self.q_pool:
+            q = do_pool(q.reshape(B, H, W, -1), self.q_pool)
+            H, W = q.shape[1:3]  # downsampled shape
+            q = q.reshape(B, H * W, self.num_heads, -1)
+
+        # Torch's SDPA expects [B, nheads, H*W, C] so we transpose
+        x = F.scaled_dot_product_attention(
+            q.transpose(1, 2),
+            k.transpose(1, 2),
+            v.transpose(1, 2),
+        )
+        # Transpose back
+        x = x.transpose(1, 2)
+        x = x.reshape(B, H, W, -1)
+
+        x = self.proj(x)
+
+        return x
+
+
+class MultiScaleBlock(nn.Module):
+    def __init__(
+        self,
+        dim: int,
+        dim_out: int,
+        num_heads: int,
+        mlp_ratio: float = 4.0,
+        drop_path: float = 0.0,
+        norm_layer: Union[nn.Module, str] = "LayerNorm",
+        q_stride: Tuple[int, int] = None,
+        act_layer: nn.Module = nn.GELU,
+        window_size: int = 0,
+    ):
+        super().__init__()
+
+        if isinstance(norm_layer, str):
+            norm_layer = partial(getattr(nn, norm_layer), eps=1e-6)
+
+        self.dim = dim
+        self.dim_out = dim_out
+        self.norm1 = norm_layer(dim)
+
+        self.window_size = window_size
+
+        self.pool, self.q_stride = None, q_stride
+        if self.q_stride:
+            self.pool = nn.MaxPool2d(kernel_size=q_stride, stride=q_stride, ceil_mode=False)
+
+        self.attn = MultiScaleAttention(
+            dim,
+            dim_out,
+            num_heads=num_heads,
+            q_pool=self.pool,
+        )
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+        self.norm2 = norm_layer(dim_out)
+        self.mlp = MLP(
+            dim_out,
+            int(dim_out * mlp_ratio),
+            dim_out,
+            num_layers=2,
+            activation=act_layer,
+        )
+
+        if dim != dim_out:
+            self.proj = nn.Linear(dim, dim_out)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        shortcut = x  # B, H, W, C
+        x = self.norm1(x)
+
+        # Skip connection
+        if self.dim != self.dim_out:
+            shortcut = do_pool(self.proj(x), self.pool)
+
+        # Window partition
+        window_size = self.window_size
+        if window_size > 0:
+            H, W = x.shape[1], x.shape[2]
+            x, pad_hw = window_partition(x, window_size)
+
+        # Window Attention + Q Pooling (if stage change)
+        x = self.attn(x)
+        if self.q_stride:
+            # Shapes have changed due to Q pooling
+            window_size = self.window_size // self.q_stride[0]
+            H, W = shortcut.shape[1:3]
+
+            pad_h = (window_size - H % window_size) % window_size
+            pad_w = (window_size - W % window_size) % window_size
+            pad_hw = (H + pad_h, W + pad_w)
+
+        # Reverse window partition
+        if self.window_size > 0:
+            x = window_unpartition(x, window_size, pad_hw, (H, W))
+
+        x = shortcut + self.drop_path(x)
+        # MLP
+        x = x + self.drop_path(self.mlp(self.norm2(x)))
+        return x

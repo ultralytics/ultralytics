@@ -343,6 +343,8 @@ class TorchVisionVideoClassifier:
 class HuggingFaceVideoClassifier:
     """Zero-shot video classifier using Hugging Face models for various devices."""
 
+    supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
+
     def __init__(
         self,
         labels: List[str],
@@ -385,9 +387,7 @@ class HuggingFaceVideoClassifier:
         if input_size is None:
             input_size = [224, 224]
 
-        supports_transforms_v2 = check_requirements("torchvision>=0.16.0", install=False)
-
-        if supports_transforms_v2:
+        if self.upports_transforms_v2:
             from torchvision.transforms import v2
 
             transform = v2.Compose(

@@ -315,7 +315,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
+      - Live Inference: guides/streamlit-live-inference.md
       - NEW 🚀 Action Recognition: guides/action-recognition.md
   - Guides:
       - guides/index.md

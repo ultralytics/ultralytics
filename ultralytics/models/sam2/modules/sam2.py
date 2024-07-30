@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch.nn.init import trunc_normal_
 
 from .decoders import MaskDecoder
-from .transformer import TwoWayTransformer
+from .sam2_blocks import TwoWayTransformer
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 from ultralytics.models.sam.modules.encoders import PromptEncoder
 from ultralytics.nn.modules import MLP

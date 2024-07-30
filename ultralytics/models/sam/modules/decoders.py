@@ -27,7 +27,6 @@ class MaskDecoder(nn.Module):
 
     def __init__(
         self,
-        *,
         transformer_dim: int,
         transformer: nn.Module,
         num_multimask_outputs: int = 3,

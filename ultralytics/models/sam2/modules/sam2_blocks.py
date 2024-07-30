@@ -242,7 +242,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
                     embedding_dim=embedding_dim,
                     num_heads=num_heads,
                     mlp_dim=mlp_dim,
-                    activation=activation,
+                    activation=activation(),
                     attention_downsample_rate=attention_downsample_rate,
                     skip_first_layer_pe=(i == 0),
                 )

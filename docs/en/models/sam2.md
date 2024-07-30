@@ -12,6 +12,8 @@ keywords: SAM2, Segment Anything, video segmentation, image segmentation, prompt
 
 SAM2, the successor to Meta's Segment Anything Model (SAM), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
+![SAM2 Example Results](https://github.com/facebookresearch/segment-anything-2/raw/main/assets/sa_v_dataset.jpg?raw=true)
+
 ## Key Features
 
 ### Unified Model Architecture
@@ -48,6 +50,8 @@ SAM2 sets a new benchmark in the field, outperforming previous models on various
 | **Inference Speed**                | **6x faster** | SAM           |
 
 ## Model Architecture
+
+![SAM2 Architecture Diagram](https://github.com/facebookresearch/segment-anything-2/blob/main/assets/model_diagram.png?raw=true)
 
 ### Core Components
 
@@ -107,10 +111,10 @@ pip install ultralytics
 
 The following table details the available SAM2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-| Model Type | Pre-trained Weights                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|-------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
-| SAM2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v9.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ❌         | ❌          | ❌        | ❌      |
-| SAM2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v9.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ❌         | ❌          | ❌        | ❌      |
+| Model Type | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
+|------------|---------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## How to Use SAM2: Versatility in Image and Video Segmentation
 

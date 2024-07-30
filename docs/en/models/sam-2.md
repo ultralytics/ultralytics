@@ -42,7 +42,7 @@ For a deeper understanding of SAM 2's architecture and capabilities, explore the
 
 SAM 2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
-| Metric                             | SAM 2          | Previous SOTA |
+| Metric                             | SAM 2         | Previous SOTA |
 | ---------------------------------- | ------------- | ------------- |
 | **Interactive Video Segmentation** | **Best**      | -             |
 | **Human Interactions Required**    | **3x fewer**  | Baseline      |
@@ -111,8 +111,8 @@ pip install ultralytics
 
 The following table details the available SAM 2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-| Model Type | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| Model Type  | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
+| ----------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | SAM 2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 | SAM 2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
@@ -237,7 +237,7 @@ To auto-annotate your dataset using SAM 2, follow this example:
 | ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
-| `sam_model`  | `str`, optional         | Pre-trained SAM 2 segmentation model. Defaults to 'sam2_b.pt'.                                           | `'sam2_b.pt'`  |
+| `sam_model`  | `str`, optional         | Pre-trained SAM 2 segmentation model. Defaults to 'sam2_b.pt'.                                          | `'sam2_b.pt'`  |
 | `device`     | `str`, optional         | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |                |
 | `output_dir` | `str`, `None`, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | `None`         |
 

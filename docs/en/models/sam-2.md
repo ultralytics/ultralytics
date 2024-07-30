@@ -311,7 +311,7 @@ SAM 2 can be utilized for real-time video segmentation by leveraging its prompta
         results = model("path/to/image.jpg", points=[150, 150], labels=[1])
         ```
 
-For more comprehensive usage, refer to the [How to Use SAM 2](#how-to-use-sam2-versatility-in-image-and-video-segmentation) section.
+For more comprehensive usage, refer to the [How to Use SAM 2](#how-to-use-sam-2-versatility-in-image-and-video-segmentation) section.
 
 ### What datasets are used to train SAM 2, and how do they enhance its performance?
 

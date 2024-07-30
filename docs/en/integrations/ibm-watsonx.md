@@ -366,7 +366,7 @@ To preprocess your dataset for YOLOv8 training on IBM Watsonx:
 2. **Update .yaml File**: Modify the `.yaml` configuration file to reflect the new directory structure and class names.
 3. **Run Preprocessing Script**: Use a Python script to reorganize your dataset and update the `.yaml` file accordingly.
 
-Here’s a sample script to organize your dataset:
+Here's a sample script to organize your dataset:
 
 ```python
 import os
@@ -404,7 +404,7 @@ For more details, refer to our [data preprocessing guide](../guides/preprocessin
 Before you start training a YOLOv8 model on IBM Watsonx, ensure you have the following prerequisites:
 
 - **IBM Cloud Account**: Create an account on IBM Cloud to access Watsonx.ai.
-- **Kaggle Account**: For loading datasets, you’ll need a Kaggle account and an API key.
+- **Kaggle Account**: For loading datasets, you'll need a Kaggle account and an API key.
 - **Jupyter Notebook**: Set up a Jupyter Notebook environment within Watsonx.ai for coding and model training.
 
 For more information on setting up your environment, visit our [Ultralytics Installation guide](../quickstart.md).

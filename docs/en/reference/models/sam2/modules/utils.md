@@ -1,6 +1,6 @@
 ---
-description: Explore the detailed API reference for Ultralytics SAM2 models.
-keywords: Ultralytics, SAM2, API Reference, models, window partition, data processing, YOLO
+description: Explore the detailed API reference for Ultralytics SAM 2 models.
+keywords: Ultralytics, SAM 2, API Reference, models, window partition, data processing, YOLO
 ---
 
 # Reference for `ultralytics/models/sam2/modules/utils.py`

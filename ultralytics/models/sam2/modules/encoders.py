@@ -42,8 +42,7 @@ class MemoryEncoder(nn.Module):
             masks = F.sigmoid(masks)
         masks = self.mask_downsampler(masks)
 
-        ## Fuse pix_feats and downsampled masks
-        # in case the visual features are on CPU, cast them to CUDA
+        # Fuse pix_feats and downsampled masks, in case the visual features are on CPU, cast them to CUDA
         pix_feat = pix_feat.to(masks.device)
 
         x = self.pix_feat_proj(pix_feat)
@@ -57,7 +56,7 @@ class MemoryEncoder(nn.Module):
 
 
 class ImageEncoder(nn.Module):
-    """Encodes images using a trunk-neck architecture, producing multi-scale features and positional encodings."""
+    """Encodes images using a trunk-neck architecture, producing multiscale features and positional encodings."""
 
     def __init__(
         self,
@@ -70,9 +69,10 @@ class ImageEncoder(nn.Module):
         self.trunk = trunk
         self.neck = neck
         self.scalp = scalp
-        assert (
-            self.trunk.channel_list == self.neck.backbone_channel_list
-        ), f"Channel dims of trunk and neck do not match. Trunk: {self.trunk.channel_list}, neck: {self.neck.backbone_channel_list}"
+        assert self.trunk.channel_list == self.neck.backbone_channel_list, (
+            f"Channel dims of trunk and neck do not match. "
+            f"Trunk: {self.trunk.channel_list}, neck: {self.neck.backbone_channel_list}"
+        )
 
     def forward(self, sample: torch.Tensor):
         """Processes image input through trunk and neck, returning features, positional encodings, and FPN outputs."""
@@ -91,7 +91,7 @@ class ImageEncoder(nn.Module):
 
 
 class FpnNeck(nn.Module):
-    """Feature Pyramid Network (FPN) neck variant for multi-scale feature fusion in object detection models."""
+    """Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models."""
 
     def __init__(
         self,
@@ -213,7 +213,7 @@ class FpnNeck(nn.Module):
 
 
 class Hiera(nn.Module):
-    """Hierarchical vision transformer for efficient multi-scale feature extraction in image processing tasks."""
+    """Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks."""
 
     def __init__(
         self,
@@ -316,7 +316,7 @@ class Hiera(nn.Module):
         return pos_embed
 
     def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
-        """Performs hierarchical vision transformer forward pass, returning multi-scale feature maps."""
+        """Performs hierarchical vision transformer forward pass, returning multiscale feature maps."""
         x = self.patch_embed(x)
         # x: (B, H, W, C)
 

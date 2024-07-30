@@ -228,8 +228,8 @@ class PromptEncoder(nn.Module):
         """Embeds mask inputs."""
         return self.mask_downscaling(masks)
 
+    @staticmethod
     def _get_batch_size(
-        self,
         points: Optional[Tuple[torch.Tensor, torch.Tensor]],
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],

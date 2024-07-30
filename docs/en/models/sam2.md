@@ -4,11 +4,11 @@ description: Discover SAM2, the next generation of Meta's Segment Anything Model
 keywords: SAM2, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
 
+# SAM2: Segment Anything Model 2
+
 !!! Note "🚧 SAM2 Integration In Progress 🚧"
 
     The SAM2 features described in this documentation are currently not enabled in the `ultralytics` package. The Ultralytics team is actively working on integrating SAM2, and these capabilities should be available soon. We appreciate your patience as we work to implement this exciting new model.
-
-# SAM2: Segment Anything Model 2
 
 SAM2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 

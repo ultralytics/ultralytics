@@ -233,7 +233,7 @@ class TorchVisionVideoClassifier:
     if supports_mvitv2s:
         from torchvision.models.video import MViT_V2_S_Weights, mvit_v2_s
 
-    model_name_to_model_and_weights["mvit_v2_s"] = (mvit_v2_s, MViT_V2_S_Weights.DEFAULT)
+        model_name_to_model_and_weights["mvit_v2_s"] = (mvit_v2_s, MViT_V2_S_Weights.DEFAULT)
 
     def __init__(self, model_name: str, device: str or torch.device = ""):
         """

@@ -416,15 +416,17 @@ class Predictor(BasePredictor):
             AssertionError: If more than one image is set.
         """
         if self.model is None:
-            model = build_sam(self.args.model)
-            self.setup_model(model)
+            self.setup_model(model=None)
         self.setup_source(image)
         assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
         for batch in self.dataset:
             im = self.preprocess(batch[1])
-            self.features = self.model.image_encoder(im)
-            self.im = im
+            self.features = self.get_im_features(im)
             break
+
+    def get_im_features(self, im):
+        """Get image features from the SAM image encoder."""
+        return self.model.image_encoder(im)
 
     def set_prompts(self, prompts):
         """Set prompts in advance."""

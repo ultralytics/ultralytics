@@ -37,12 +37,6 @@ on:
         default: false
         type: boolean
 
-permissions:
-  actions: write
-  contents: write
-  pull-requests: write
-  statuses: write
-
 jobs:
   Docs:
     # TODO: break this job out into it's own action with pull_request_target to allow changes to user forks

@@ -177,7 +177,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int = 2048,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: Type[nn.Module] = nn.ReLU(),
         attention_downsample_rate: int = 2,
         skip_first_layer_pe: bool = False,
     ) -> None:
@@ -194,7 +194,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
           skip_first_layer_pe (bool): skip the PE on the first layer
         """
         super().__init__(embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate, skip_first_layer_pe)
-        self.mlp = MLP(embedding_dim, mlp_dim, embedding_dim, num_layers=2, activation=activation)
+        self.mlp = MLP(embedding_dim, mlp_dim, embedding_dim, num_layers=2, act=activation)
 
 
 class TwoWayTransformer(SAMTwoWayTransformer):

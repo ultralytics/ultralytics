@@ -102,7 +102,7 @@ class SAM2Predictor(Predictor):
 
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
             points=points,
-            boxes=None,
+            boxes=bboxes,
             masks=masks,
         )
         # Predict masks

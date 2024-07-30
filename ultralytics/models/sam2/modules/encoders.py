@@ -70,7 +70,7 @@ class ImageEncoder(nn.Module):
         self.neck = neck
         self.scalp = scalp
         assert self.trunk.channel_list == self.neck.backbone_channel_list, (
-            "Channel dims of trunk {self.trunk.channel_list} and neck {self.neck.backbone_channel_list} do not match."
+            f"Channel dims of trunk {self.trunk.channel_list} and neck {self.neck.backbone_channel_list} do not match."
         )
 
     def forward(self, sample: torch.Tensor):

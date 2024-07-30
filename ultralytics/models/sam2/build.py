@@ -17,7 +17,7 @@ def build_sam2_t(checkpoint=None):
         encoder_num_heads=1,
         encoder_global_att_blocks=[5, 7, 9],
         encoder_window_spec=[8, 4, 14, 7],
-        endcoder_backbone_channel_list=[768, 384, 192, 96],
+        encoder_backbone_channel_list=[768, 384, 192, 96],
         checkpoint=checkpoint,
     )
 
@@ -30,7 +30,7 @@ def build_sam2_s(checkpoint=None):
         encoder_num_heads=1,
         encoder_global_att_blocks=[7, 10, 13],
         encoder_window_spec=[8, 4, 14, 7],
-        endcoder_backbone_channel_list=[768, 384, 192, 96],
+        encoder_backbone_channel_list=[768, 384, 192, 96],
         checkpoint=checkpoint,
     )
 
@@ -44,7 +44,7 @@ def build_sam2_b(checkpoint=None):
         encoder_global_att_blocks=[12, 16, 20],
         encoder_window_spec=[8, 4, 14, 7],
         encoder_window_spatial_size=[14, 14],
-        endcoder_backbone_channel_list=[896, 448, 224, 112],
+        encoder_backbone_channel_list=[896, 448, 224, 112],
         checkpoint=checkpoint,
     )
 
@@ -57,7 +57,7 @@ def build_sam2_l(checkpoint=None):
         encoder_num_heads=2,
         encoder_global_att_blocks=[23, 33, 43],
         encoder_window_spec=[8, 4, 16, 8],
-        endcoder_backbone_channel_list=[1152, 576, 288, 144],
+        encoder_backbone_channel_list=[1152, 576, 288, 144],
         checkpoint=checkpoint,
     )
 
@@ -67,7 +67,7 @@ def _build_sam2(
     encoder_stages=[2, 6, 36, 4],
     encoder_num_heads=2,
     encoder_global_att_blocks=[7, 15, 23, 31],
-    endcoder_backbone_channel_list=[1152, 576, 288, 144],
+    encoder_backbone_channel_list=[1152, 576, 288, 144],
     encoder_window_spatial_size=[7, 7],
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
@@ -84,7 +84,7 @@ def _build_sam2(
         ),
         neck=FpnNeck(
             d_model=256,
-            backbone_channel_list=endcoder_backbone_channel_list,
+            backbone_channel_list=encoder_backbone_channel_list,
             fpn_top_down_levels=[2, 3],
             fpn_interp_model="nearest",
         ),

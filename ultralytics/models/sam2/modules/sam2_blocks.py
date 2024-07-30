@@ -220,7 +220,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: Type[nn.Module] = nn.ReLU(),
         attention_downsample_rate: int = 2,
     ) -> None:
         """

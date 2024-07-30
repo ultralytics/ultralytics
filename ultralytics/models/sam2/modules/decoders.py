@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from typing import List, Optional, Tuple, Type
 
 import torch

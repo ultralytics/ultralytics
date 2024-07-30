@@ -16,22 +16,16 @@ Action recognition involves identifying and classifying actions performed by obj
 - **Sports Analysis:** Analyze player movements and actions to provide insights and improve performance.
 - **Behavior Monitoring:** Monitor and analyze behaviors in various settings, such as retail or healthcare.
 
-## Real World Applications
-
-|                                          Surveillance                                          |                                           Sports Analysis                                            |
-| :--------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
-| ![Surveillance](https://github.com/RizwanMunawar/ultralytics/assets/62513924/surveillance.jpg) | ![Sports Analysis](https://github.com/RizwanMunawar/ultralytics/assets/62513924/sports_analysis.jpg) |
-|                       Real-time action recognition for enhanced security                       |                                Analyzing player movements and actions                                |
-
 ## How to Use Action Recognition
 
 ### Installation
 
-Ensure you have the necessary dependencies installed:
+Ensure you have `ultralytics`, and `pytorch` installed by following the steps in [Quickstart](https://docs.ultralytics.com/quickstart/).
+
+Then install the `transformers` package:
 
 ```bash
-pip install ultralytics
-pip install torch torchvision transformers
+pip install transformers
 ```
 
 ### Example Usage
@@ -65,14 +59,17 @@ while cap.isOpened():
     cv2.imshow("Action Recognition", annotated_frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
+
+cap.release()
+cv2.destroyAllWindows()
 ```
 
 ### Arguments
 
-- `video_classifier_model`: Name or path of the video classifier model. Defaults to `"microsoft/xclip-base-patch32"`.
+- `video_classifier_model`: Name or path of the video classifier model. Defaults to `"microsoft/xclip-base-patch32"`. [Hugging Face Video Classification Models](https://huggingface.co/models?pipeline_tag=video-classification) and [TorchVision Video Classification Models](https://pytorch.org/vision/stable/models.html#video-classification) are supported.
 - `labels`: List of labels for zero-shot classification. Defaults to a predefined list.
 - `fp16`: Whether to use half-precision floating point. Defaults to `False`.
-- `crop_margin_percentage`: Percentage of margin to add around detected objects. Defaults to `10`.
+- `crop_margin_percentage`: Percentage of margin to add around detected objects. Defaults to ``.
 - `num_video_sequence_samples`: Number of video frames to use for classification. Defaults to `8`.
 - `skip_frame`: Number of frames to skip between detections. Defaults to `2`.
 - `video_cls_overlap_ratio`: Overlap ratio between video sequences. Defaults to `0.25`.

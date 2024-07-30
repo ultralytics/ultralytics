@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover detailed instructions for building various Segment Anything Model (SAM2) architectures with Ultralytics.
+keywords: Ultralytics, SAM2 model, Segment Anything Model, SAM, model building, deep learning, AI
 ---
 
 # Reference for `ultralytics/models/sam2/build.py`

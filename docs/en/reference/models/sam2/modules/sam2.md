@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover the Ultralytics SAM2 module for object segmentation. Learn about its components, such as image encoders and mask decoders, in this comprehensive guide.
+keywords: Ultralytics, SAM2 Module, object segmentation, image encoder, mask decoder, prompt encoder, AI, machine learning
 ---
 
 # Reference for `ultralytics/models/sam2/modules/sam2.py`

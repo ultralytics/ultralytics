@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore detailed documentation of various SAM2 encoder modules such as MemoryAttentionLayer, MemoryAttention, available in Ultralytics' repository.
+keywords: Ultralytics, SAM2 encoder, MemoryAttentionLayer, MemoryAttention
 ---
 
 # Reference for `ultralytics/models/sam2/modules/memory_attention.py`

@@ -91,15 +91,6 @@ class ActionRecognition:
             if len(self.track_history[track_id]) > self.num_video_sequence_samples:
                 self.track_history[track_id].pop(0)
 
-    def plot_box_and_action(self, box: List[float], label_text: str):
-        """
-        Plots track and bounding box with action label.
-
-        Args:
-            box (list): Object bounding box data.
-            label_text (str): Text to display on the image.
-        """
-        self.annotator.box_label(box, label_text, color=(0, 0, 255))
 
     def display_frames(self):
         """Displays the current frame."""
@@ -188,7 +179,7 @@ class ActionRecognition:
             for box, track_id, pred_label, pred_conf in zip(self.boxes, track_ids_to_infer, pred_labels, pred_confs):
                 top2_preds = sorted(zip(pred_label, pred_conf), key=lambda x: x[1], reverse=True)
                 label_text = " | ".join([f"{label} ({conf:.2f})" for label, conf in top2_preds])
-                self.plot_box_and_action(box, label_text)
+                self.annotator.box_label(box, label_text, color=(0, 0, 255))
 
         return im0
 

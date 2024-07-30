@@ -210,7 +210,12 @@ To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
 
     model = YOLO("yolov8n.pt")
     results = model.train(
-        data="coco8.yaml", project="comet-example-yolov8-coco128", batch=32, save_period=1, save_json=True, epochs=3,
+        data="coco8.yaml",
+        project="comet-example-yolov8-coco128",
+        batch=32,
+        save_period=1,
+        save_json=True,
+        epochs=3,
     )
     ```
 

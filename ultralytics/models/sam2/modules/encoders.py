@@ -6,25 +6,22 @@ from typing import Tuple, List, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .sam2_blocks import MultiScaleBlock, PositionEmbeddingSine
+from .sam2_blocks import MultiScaleBlock, PositionEmbeddingSine, MaskDownSampler, Fuser, CXBlock
 
 
 class MemoryEncoder(nn.Module):
     def __init__(
         self,
         out_dim,
-        mask_downsampler,
-        fuser,
-        position_encoding,
         in_dim=256,  # in_dim of pix_feats
     ):
         super().__init__()
 
-        self.mask_downsampler = mask_downsampler
+        self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1)
 
         self.pix_feat_proj = nn.Conv2d(in_dim, in_dim, kernel_size=1)
-        self.fuser = fuser
-        self.position_encoding = position_encoding
+        self.fuser = Fuser(CXBlock(dim=256), num_layers=2)
+        self.position_encoding = PositionEmbeddingSine(num_pos_feats=64)
         self.out_proj = nn.Identity()
         if out_dim != in_dim:
             self.out_proj = nn.Conv2d(in_dim, out_dim, kernel_size=1)

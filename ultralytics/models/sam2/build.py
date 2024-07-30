@@ -7,6 +7,43 @@ from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 import torch
 
 
+def build_sam2_t(checkpoint=None):
+    return _build_sam2(
+        encoder_embed_dim=96,
+        encoder_stages=[1, 2, 7, 2],
+        encoder_num_heads=1,
+        encoder_global_att_blocks=[5, 7, 9],
+        encoder_window_spec=[8, 4, 14, 7],
+        endcoder_backbone_channel_list=[768, 384, 192, 96],
+        checkpoint=checkpoint,
+    )
+
+
+def build_sam2_s(checkpoint=None):
+    return _build_sam2(
+        encoder_embed_dim=96,
+        encoder_stages=[1, 2, 11, 2],
+        encoder_num_heads=1,
+        encoder_global_att_blocks=[7, 10, 13],
+        encoder_window_spec=[8, 4, 14, 7],
+        endcoder_backbone_channel_list=[768, 384, 192, 96],
+        checkpoint=checkpoint,
+    )
+
+
+def build_sam2_b(checkpoint=None):
+    return _build_sam2(
+        encoder_embed_dim=112,
+        encoder_stages=[2, 3, 16, 3],
+        encoder_num_heads=2,
+        encoder_global_att_blocks=[12, 16, 20],
+        encoder_window_spec=[8, 4, 14, 7],
+        encoder_window_spatial_size=[14, 14],
+        endcoder_backbone_channel_list=[896, 448, 224, 112],
+        checkpoint=checkpoint,
+    )
+
+
 def build_sam2_l(checkpoint=None):
     return _build_sam2(
         encoder_embed_dim=144,

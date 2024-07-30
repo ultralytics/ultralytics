@@ -91,7 +91,6 @@ class ActionRecognition:
             if len(self.track_history[track_id]) > self.num_video_sequence_samples:
                 self.track_history[track_id].pop(0)
 
-
     def display_frames(self):
         """Displays the current frame."""
         if self.env_check:

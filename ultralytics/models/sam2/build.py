@@ -1,10 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
+from ultralytics.utils.downloads import attempt_download_asset
 from .modules.sam2 import SAM2Base
 from .modules.encoders import ImageEncoder, MemoryEncoder, Hiera, FpnNeck
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
+import torch
 
 
-def build_sam2_l():
+def build_sam2_l(checkpoint=None):
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],
@@ -23,6 +26,7 @@ def _build_sam2(
     endcoder_backbone_channel_list=[1152, 576, 288, 144],
     encoder_window_spatial_size=[7, 7],
     encoder_window_spec=[8, 4, 16, 8],
+    checkpoint=None,
 ):
     image_encoder = ImageEncoder(
         trunk=Hiera(
@@ -43,7 +47,8 @@ def _build_sam2(
     )
     memory_attention = MemoryAttention(d_model=256, pos_enc_at_input=True, num_layers=4, layer=MemoryAttentionLayer())
     memory_encoder = MemoryEncoder(out_dim=64)
-    return SAM2Base(
+
+    sam2 = SAM2Base(
         image_encoder=image_encoder,
         memory_attention=memory_attention,
         memory_encoder=memory_encoder,
@@ -69,3 +74,11 @@ def _build_sam2(
         use_mlp_for_obj_ptr_proj=True,
         compile_image_encoder=False,
     )
+
+    if checkpoint is not None:
+        checkpoint = attempt_download_asset(checkpoint)
+        with open(checkpoint, "rb") as f:
+            state_dict = torch.load(f)["model"]
+        sam2.load_state_dict(state_dict)
+    sam2.eval()
+    return sam2

@@ -383,7 +383,7 @@ class MultiScaleBlock(nn.Module):
         drop_path: float = 0.0,
         norm_layer: Union[nn.Module, str] = "LayerNorm",
         q_stride: Tuple[int, int] = None,
-        act_layer: nn.Module = nn.GELU,
+        act_layer: nn.Module = nn.GELU(),
         window_size: int = 0,
     ):
         super().__init__()
@@ -415,7 +415,7 @@ class MultiScaleBlock(nn.Module):
             int(dim_out * mlp_ratio),
             dim_out,
             num_layers=2,
-            activation=act_layer,
+            act=act_layer,
         )
 
         if dim != dim_out:

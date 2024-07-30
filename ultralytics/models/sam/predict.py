@@ -168,7 +168,7 @@ class Predictor(BasePredictor):
                 - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
                 - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
         """
-        features = self.model.image_encoder(im) if self.features is None else self.features
+        features = self.get_im_features(im) if self.features is None else self.features
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])

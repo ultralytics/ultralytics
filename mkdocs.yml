@@ -659,6 +659,7 @@ plugins:
         sdk.md: index.md
         hub/inference_api.md: hub/inference-api.md
         usage/hyperparameter_tuning.md: integrations/ray-tune.md
+        models/sam2.md: models/sam-2.md
         reference/base_pred.md: reference/engine/predictor.md
         reference/base_trainer.md: reference/engine/trainer.md
         reference/exporter.md: reference/engine/exporter.md

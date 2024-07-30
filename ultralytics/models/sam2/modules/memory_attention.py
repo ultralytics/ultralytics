@@ -6,28 +6,31 @@ import torch
 import copy
 from torch import nn, Tensor
 
-from .transformer import RoPEAttention
+from .sam2_blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):
     def __init__(
         self,
-        activation: str,
-        cross_attention: nn.Module,
-        d_model: int,
-        dim_feedforward: int,
-        dropout: float,
-        pos_enc_at_attn: bool,
-        pos_enc_at_cross_attn_keys: bool,
-        pos_enc_at_cross_attn_queries: bool,
-        self_attention: nn.Module,
+        d_model: int = 256,
+        dim_feedforward: int = 2048,
+        dropout: float = 0.1,
+        pos_enc_at_attn: bool = False,
+        pos_enc_at_cross_attn_keys: bool = True,
+        pos_enc_at_cross_attn_queries: bool = False,
     ):
         super().__init__()
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
         self.dropout_value = dropout
-        self.self_attn = self_attention
-        self.cross_attn_image = cross_attention
+        self.self_attn = RoPEAttention(embedding_dim=256, num_heads=1, downsample_rate=1)
+        self.cross_attn_image = RoPEAttention(
+            rope_k_repeat=True,
+            embedding_dim=256,
+            num_heads=1,
+            downsample_rate=1,
+            kv_in_dim=64,
+        )
 
         # Implementation of Feedforward model
         self.linear1 = nn.Linear(d_model, dim_feedforward)
@@ -41,7 +44,6 @@ class MemoryAttentionLayer(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
         self.dropout3 = nn.Dropout(dropout)
 
-        self.activation_str = activation
         self.activation = nn.ReLU()
 
         # Where to add pos enc

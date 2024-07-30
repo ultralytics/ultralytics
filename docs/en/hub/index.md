@@ -76,3 +76,52 @@ We hope that the resources here will help you get the most out of HUB. Please br
 - [**Ultralytics HUB App**](app/index.md): Learn about the Ultralytics HUB App, which allows you to run models directly on your mobile device.
     - [**iOS**](app/ios.md): Explore CoreML acceleration on iPhones and iPads.
     - [**Android**](app/android.md): Explore TFLite acceleration on Android devices.
+
+## FAQ
+
+### How do I get started with Ultralytics HUB for training YOLO models?
+
+To get started with [Ultralytics HUB](https://ultralytics.com/hub), follow these steps:
+
+1. **Sign Up:** Create an account on the [Ultralytics HUB](https://ultralytics.com/hub).
+2. **Upload Dataset:** Navigate to the [Datasets](datasets.md) section to upload your custom dataset.
+3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5 or YOLOv8 model to start training.
+4. **Deploy Model:** Once trained, preview and deploy your model using the [Ultralytics HUB App](app/index.md) for real-time tasks.
+
+For a detailed guide, refer to the [Quickstart](quickstart.md) page.
+
+### What are the benefits of using Ultralytics HUB over other AI platforms?
+
+[Ultralytics HUB](https://ultralytics.com/hub) offers several unique benefits:
+
+- **User-Friendly Interface:** Intuitive design for easy dataset uploads and model training.
+- **Pre-Trained Models:** Access to a variety of pre-trained YOLOv5 and YOLOv8 models.
+- **Cloud Training:** Seamless cloud training capabilities, detailed on the [Cloud Training](cloud-training.md) page.
+- **Real-Time Deployment:** Effortlessly deploy models for real-time applications using the [Ultralytics HUB App](app/index.md).
+- **Team Collaboration:** Collaborate with your team efficiently through the [Teams](teams.md) feature.
+
+Explore more about the advantages in our [Ultralytics HUB Blog](https://www.ultralytics.com/blog/ultralytics-hub-a-game-changer-for-computer-vision).
+
+### Can I use Ultralytics HUB for object detection on mobile devices?
+
+Yes, Ultralytics HUB supports object detection on mobile devices. You can run YOLOv5 and YOLOv8 models on both iOS and Android devices using the Ultralytics HUB App. For more details:
+
+- **iOS:** Learn about CoreML acceleration on iPhones and iPads in the [iOS](app/ios.md) section.
+- **Android:** Explore TFLite acceleration on Android devices in the [Android](app/android.md) section.
+
+### How do I manage and organize my projects in Ultralytics HUB?
+
+Ultralytics HUB allows you to manage and organize your projects efficiently. You can group your models into projects for better organization. To learn more:
+
+- Visit the [Projects](projects.md) page for detailed instructions on creating, editing, and managing projects.
+- Use the [Teams](teams.md) feature to collaborate with team members and share resources.
+
+### What integrations are available with Ultralytics HUB?
+
+Ultralytics HUB offers seamless integrations with various platforms to enhance your machine learning workflows. Some key integrations include:
+
+- **Roboflow:** For dataset management and model training. Learn more on the [Integrations](integrations.md) page.
+- **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab) section.
+- **Weights & Biases:** For enhanced experiment tracking and visualization. Explore the [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases) integration.
+
+For a complete list of integrations, refer to the [Integrations](integrations.md) page.

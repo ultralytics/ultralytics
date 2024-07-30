@@ -155,7 +155,7 @@ JupyterLab offers several features that make it ideal for YOLOv8 projects:
 3. Flexible layout: Arrange multiple notebooks, terminals, and output windows side-by-side for efficient workflow.
 4. Rich output display: Visualize YOLOv8 detection results, training curves, and model performance metrics inline.
 5. Markdown support: Document your YOLOv8 experiments and findings with rich text and images.
-6. Extension ecosystem: Enhance functionality with extensions for version control, [remote computing](../guides/google-colab.md), and more.
+6. Extension ecosystem: Enhance functionality with extensions for version control, [remote computing](google-colab.md), and more.
 
 These features allow for a seamless development experience when working with YOLOv8 models, from data preparation to model deployment.
 

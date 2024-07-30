@@ -321,3 +321,90 @@ We explored IBM Watsonx key features, and how to train a YOLOv8 model using IBM 
 For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
 
 Also, be sure to check out the [Ultralytics integration guide page](./index.md), to learn more about different exciting integrations.
+
+## FAQ
+
+### How do I train a YOLOv8 model using IBM Watsonx?
+
+To train a YOLOv8 model using IBM Watsonx, follow these steps:
+
+1. **Set Up Your Environment**: Create an IBM Cloud account and set up a Watsonx.ai project. Use a Jupyter Notebook for your coding environment.
+2. **Install Libraries**: Install necessary libraries like `torch`, `opencv`, and `ultralytics`.
+3. **Load Data**: Use the Kaggle API to load your dataset into Watsonx.
+4. **Preprocess Data**: Organize your dataset into the required directory structure and update the `.yaml` configuration file.
+5. **Train the Model**: Use the YOLO command-line interface to train your model with specific parameters like `epochs`, `batch size`, and `learning rate`.
+6. **Test and Evaluate**: Run inference to test the model and evaluate its performance using metrics like precision and recall.
+
+For detailed instructions, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+
+### What are the key features of IBM Watsonx for AI model training?
+
+IBM Watsonx offers several key features for AI model training:
+
+- **Watsonx.ai**: Provides tools for AI development, including access to IBM-supported custom models and third-party models like Llama 3. It includes the Prompt Lab, Tuning Studio, and Flows Engine for comprehensive AI lifecycle management.
+- **Watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
+- **Watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
+
+For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
+
+### Why should I use IBM Watsonx for training Ultralytics YOLOv8 models?
+
+IBM Watsonx is an excellent choice for training Ultralytics YOLOv8 models due to its comprehensive suite of tools that streamline the AI lifecycle. Key benefits include:
+
+- **Scalability**: Easily scale your model training with IBM Cloud services.
+- **Integration**: Seamlessly integrate with various data sources and APIs.
+- **User-Friendly Interface**: Simplifies the development process with a collaborative and intuitive interface.
+- **Advanced Tools**: Access to powerful tools like the Prompt Lab, Tuning Studio, and Flows Engine for enhancing model performance.
+
+Learn more about [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) and how to train models using IBM Watsonx in our [integration guide](./index.md).
+
+### How can I preprocess my dataset for YOLOv8 training on IBM Watsonx?
+
+To preprocess your dataset for YOLOv8 training on IBM Watsonx:
+
+1. **Organize Directories**: Ensure your dataset follows the YOLO directory structure with separate subdirectories for images and labels within the train/val/test split.
+2. **Update .yaml File**: Modify the `.yaml` configuration file to reflect the new directory structure and class names.
+3. **Run Preprocessing Script**: Use a Python script to reorganize your dataset and update the `.yaml` file accordingly.
+
+Here's a sample script to organize your dataset:
+
+```python
+import os
+import shutil
+
+
+def organize_files(directory):
+    for subdir in ["train", "test", "val"]:
+        subdir_path = os.path.join(directory, subdir)
+        if not os.path.exists(subdir_path):
+            continue
+
+        images_dir = os.path.join(subdir_path, "images")
+        labels_dir = os.path.join(subdir_path, "labels")
+
+        os.makedirs(images_dir, exist_ok=True)
+        os.makedirs(labels_dir, exist_ok=True)
+
+        for filename in os.listdir(subdir_path):
+            if filename.endswith(".txt"):
+                shutil.move(os.path.join(subdir_path, filename), os.path.join(labels_dir, filename))
+            elif filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
+                shutil.move(os.path.join(subdir_path, filename), os.path.join(images_dir, filename))
+
+
+if __name__ == "__main__":
+    directory = f"{work_dir}/trash_ICRA19/dataset"
+    organize_files(directory)
+```
+
+For more details, refer to our [data preprocessing guide](../guides/preprocessing_annotated_data.md).
+
+### What are the prerequisites for training a YOLOv8 model on IBM Watsonx?
+
+Before you start training a YOLOv8 model on IBM Watsonx, ensure you have the following prerequisites:
+
+- **IBM Cloud Account**: Create an account on IBM Cloud to access Watsonx.ai.
+- **Kaggle Account**: For loading datasets, you'll need a Kaggle account and an API key.
+- **Jupyter Notebook**: Set up a Jupyter Notebook environment within Watsonx.ai for coding and model training.
+
+For more information on setting up your environment, visit our [Ultralytics Installation guide](../quickstart.md).

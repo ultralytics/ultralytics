@@ -16,8 +16,8 @@ from .utils import get_1d_sine_pe, select_closest_cond_frames
 NO_OBJ_SCORE = -1024.0
 
 
-class SAM2Base(torch.nn.Module):
-    """SAM2Base class for Segment Anything Model 2 with memory-based video object segmentation capabilities."""
+class SAM2Model(torch.nn.Module):
+    """SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities."""
 
     mask_threshold: float = 0.0
 
@@ -93,7 +93,7 @@ class SAM2Base(torch.nn.Module):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """Initializes SAM2Base model with image encoder, memory attention, and memory encoder components."""
+        """Initializes SAM2Model model with image encoder, memory attention, and memory encoder components."""
         super().__init__()
 
         # Part 1: the image backbone

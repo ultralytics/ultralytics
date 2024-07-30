@@ -6,7 +6,7 @@ from ultralytics.utils.downloads import attempt_download_asset
 
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, MemoryEncoder
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
-from .modules.sam2 import SAM2Base
+from .modules.sam2 import SAM2Model
 
 
 def build_sam2_t(checkpoint=None):
@@ -93,7 +93,7 @@ def _build_sam2(
     memory_attention = MemoryAttention(d_model=256, pos_enc_at_input=True, num_layers=4, layer=MemoryAttentionLayer())
     memory_encoder = MemoryEncoder(out_dim=64)
 
-    sam2 = SAM2Base(
+    sam2 = SAM2Model(
         image_encoder=image_encoder,
         memory_attention=memory_attention,
         memory_encoder=memory_encoder,

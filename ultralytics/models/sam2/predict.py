@@ -470,24 +470,6 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         inference_state = {}
         inference_state["num_frames"] = self.dataset.frames
-        # whether to offload the video frames to CPU memory
-        # turning on this option saves the GPU memory with only a very small overhead
-        inference_state["offload_video_to_cpu"] = offload_video_to_cpu
-        # whether to offload the inference state to CPU memory
-        # turning on this option saves the GPU memory at the cost of a lower tracking fps
-        # (e.g. in a test case of 768x768 model, fps dropped from 27 to 24 when tracking one object
-        # and from 24 to 21 when tracking two objects)
-        inference_state["offload_state_to_cpu"] = offload_state_to_cpu
-        # the original video height and width, used for resizing final output scores
-        # inference_state["video_height"] = video_height
-        # inference_state["video_width"] = video_width
-
-        inference_state["device"] = torch.device("cuda")
-        if offload_state_to_cpu:
-            inference_state["storage_device"] = torch.device("cpu")
-        else:
-            inference_state["storage_device"] = torch.device("cuda")
-
         # inputs on each frame
         inference_state["point_inputs_per_obj"] = {}
         inference_state["mask_inputs_per_obj"] = {}
@@ -610,18 +592,15 @@ class SAM2VideoPredictor(SAM2Predictor):
             prev_sam_mask_logits=prev_sam_mask_logits,
         )
 
-        # optionally offload the output to CPU memory to save GPU space
-        storage_device = self.inference_state["storage_device"]
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
-            maskmem_features = maskmem_features.to(torch.bfloat16)
-            maskmem_features = maskmem_features.to(storage_device, non_blocking=True)
+            maskmem_features = maskmem_features.to(dtype=torch.bfloat16, device=self.device, non_blocking=True)
         pred_masks_gpu = current_out["pred_masks"]
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
         # if self.fill_hole_area > 0:
         #     pred_masks_gpu = fill_holes_in_mask_scores(pred_masks_gpu, self.fill_hole_area)
-        pred_masks = pred_masks_gpu.to(storage_device, non_blocking=True)
+        pred_masks = pred_masks_gpu.to(self.device, non_blocking=True)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(current_out)
         # object pointer is a small tensor, so we always keep it on GPU memory for fast access
@@ -663,10 +642,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         Resize the object scores to the original video resolution (video_res_masks)
         and apply non-overlapping constraints for final output.
         """
-        device = self.inference_state["device"]
         video_H = self.inference_state["video_height"]
         video_W = self.inference_state["video_width"]
-        any_res_masks = any_res_masks.to(device, non_blocking=True)
+        any_res_masks = any_res_masks.to(self.device, non_blocking=True)
         if any_res_masks.shape[-2:] == (video_H, video_W):
             video_res_masks = any_res_masks
         else:
@@ -721,13 +699,13 @@ class SAM2VideoPredictor(SAM2Predictor):
                 size=(batch_size, 1, consolidated_H, consolidated_W),
                 fill_value=-1024.0,
                 dtype=torch.float32,
-                device=self.inference_state["storage_device"],
+                device=self.device,
             ),
             "obj_ptr": torch.full(
                 size=(batch_size, self.model.hidden_dim),
                 fill_value=-1024.0,
                 dtype=torch.float32,
-                device=self.inference_state["device"],
+                device=self.device,
             ),
         }
         empty_mask_ptr = None
@@ -775,9 +753,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Optionally, apply non-overlapping constraints on the consolidated scores
         # and rerun the memory encoder
         if run_mem_encoder:
-            device = self.inference_state["device"]
             high_res_masks = torch.nn.functional.interpolate(
-                consolidated_out["pred_masks"].to(device, non_blocking=True),
+                consolidated_out["pred_masks"].to(self.device, non_blocking=True),
                 size=self.imgsz,
                 mode="bilinear",
                 align_corners=False,
@@ -840,9 +817,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
 
         # optionally offload the output to CPU memory to save GPU space
-        storage_device = self.inference_state["storage_device"]
-        maskmem_features = maskmem_features.to(torch.bfloat16)
-        maskmem_features = maskmem_features.to(storage_device, non_blocking=True)
+        maskmem_features = maskmem_features.to(dtype=torch.bfloat16, device=self.device, non_blocking=True)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc({"maskmem_pos_enc": maskmem_pos_enc})
         return maskmem_features, maskmem_pos_enc

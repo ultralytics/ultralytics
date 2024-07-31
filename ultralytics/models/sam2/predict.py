@@ -2,6 +2,7 @@
 
 import torch
 
+from collections import OrderedDict
 from ..sam.predict import Predictor
 from .build import build_sam2
 
@@ -185,7 +186,91 @@ class SAM2Predictor(Predictor):
 class SAM2VideoPredictor(SAM2Predictor):
     """The predictor class to handle user interactions with videos and manage inference states."""
 
+    fill_hole_area = 8  # not used
+
     def get_model(self):
         model = super().get_model()
         model.set_binarize(True)
         return model
+
+    def add_new_points(self):
+        pass
+
+    def init_state(
+        self,
+        offload_video_to_cpu=False,
+        offload_state_to_cpu=False,
+    ):
+        """Initialize a inference state."""
+        assert self.dataset is not None
+        assert self.dataset.mode == "video"
+
+        inference_state = {}
+        inference_state["num_frames"] = self.dataset.frames
+        # whether to offload the video frames to CPU memory
+        # turning on this option saves the GPU memory with only a very small overhead
+        inference_state["offload_video_to_cpu"] = offload_video_to_cpu
+        # whether to offload the inference state to CPU memory
+        # turning on this option saves the GPU memory at the cost of a lower tracking fps
+        # (e.g. in a test case of 768x768 model, fps dropped from 27 to 24 when tracking one object
+        # and from 24 to 21 when tracking two objects)
+        inference_state["offload_state_to_cpu"] = offload_state_to_cpu
+        # the original video height and width, used for resizing final output scores
+        # inference_state["video_height"] = video_height
+        # inference_state["video_width"] = video_width
+
+        inference_state["device"] = torch.device("cuda")
+        if offload_state_to_cpu:
+            inference_state["storage_device"] = torch.device("cpu")
+        else:
+            inference_state["storage_device"] = torch.device("cuda")
+
+        # inputs on each frame
+        inference_state["point_inputs_per_obj"] = {}
+        inference_state["mask_inputs_per_obj"] = {}
+        # visual features on a small number of recently visited frames for quick interactions
+        inference_state["cached_features"] = {}
+        # values that don't change across frames (so we only need to hold one copy of them)
+        inference_state["constants"] = {}
+        # mapping between client-side object id and model-side object index
+        inference_state["obj_id_to_idx"] = OrderedDict()
+        inference_state["obj_idx_to_id"] = OrderedDict()
+        inference_state["obj_ids"] = []
+        # A storage to hold the model's tracking results and states on each frame
+        inference_state["output_dict"] = {
+            "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+            "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+        }
+        # Slice (view) of each object tracking results, sharing the same memory with "output_dict"
+        inference_state["output_dict_per_obj"] = {}
+        # A temporary storage to hold new outputs when user interact with a frame
+        # to add clicks or mask (it's merged into "output_dict" before propagation starts)
+        inference_state["temp_output_dict_per_obj"] = {}
+        # Frames that already holds consolidated outputs from click or mask inputs
+        # (we directly use their consolidated outputs during tracking)
+        inference_state["consolidated_frame_inds"] = {
+            "cond_frame_outputs": set(),  # set containing frame indices
+            "non_cond_frame_outputs": set(),  # set containing frame indices
+        }
+        # metadata for each tracking frame (e.g. which direction it's tracked)
+        inference_state["tracking_has_started"] = False
+        inference_state["frames_already_tracked"] = {}
+        # Warm up the visual backbone and cache the image feature on frame 0
+        if len(inference_state["cached_features"]) == 0:
+            inference_state["cached_features"] = {0: self._set_first_frame()}
+        self._get_image_feature(inference_state, frame_idx=0, batch_size=1)
+        return inference_state
+
+    def _set_first_frame(self):
+        """Extracts and processes the first frame from the video."""
+        assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
+        for batch in self.dataset:
+            im = self.preprocess(batch[1])
+            break
+        return self.get_im_features(im)
+
+    def get_im_features(self, im):
+        """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
+        backbone_out = self.model.forward_image(im)
+        features = self.model._prepare_backbone_features(backbone_out)
+        return features

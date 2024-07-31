@@ -258,7 +258,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Warm up the visual backbone and cache the image feature on frame 0
         if len(inference_state["cached_features"]) == 0:
             inference_state["cached_features"] = {0: self._set_first_frame()}
-        self._get_image_feature(inference_state, frame_idx=0, batch_size=1)
         return inference_state
 
     def _set_first_frame(self):

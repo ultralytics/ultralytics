@@ -241,7 +241,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert bboxes is None and masks is None, "Bounding boxes and masks as prompts has not been supported yet."
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
-        r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
+        r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         if points is not None:
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
             points = points[None] if points.ndim == 1 else points
@@ -258,7 +258,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             bboxes *= r
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
-        if self.dataset.frame == 1:
+        if self.dataset.frame - 1 == 0:   # `self.dataset.frame` starts from 1.
             self.add_new_points(im, obj_id=0, points=points, labels=labels)
 
     @smart_inference_mode()
@@ -270,7 +270,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         labels,
         frame_idx=0,
         clear_old_points=True,
-        normalize_coords=True,
     ):
         """Add new points to a frame."""
         obj_idx = self._obj_id_to_idx(obj_id)
@@ -315,6 +314,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
             prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
         current_out, _ = self._run_single_frame_inference(
+            im=im,
             output_dict=obj_output_dict,  # run on the slice of a single object
             frame_idx=frame_idx,
             batch_size=1,  # run on the slice of a single object

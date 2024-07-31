@@ -260,8 +260,10 @@ class SAM2VideoPredictor(SAM2Predictor):
             bboxes *= r
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
+
         if self.dataset.frame - 1 == 0:  # `self.dataset.frame` starts from 1.
             self.add_new_points(obj_id=0, points=points, labels=labels)
+        self.propagate_in_video_preflight()
 
     @smart_inference_mode()
     def add_new_points(

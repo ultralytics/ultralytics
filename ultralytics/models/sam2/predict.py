@@ -3,6 +3,7 @@
 import torch
 
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.torch_utils import smart_inference_mode
 from collections import OrderedDict
 from ..sam.predict import Predictor
 from .build import build_sam2
@@ -209,6 +210,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         model.set_binarize(True)
         return model
 
+    @smart_inference_mode()
     def add_new_points(
         self,
         frame_idx,

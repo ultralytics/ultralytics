@@ -1,6 +1,6 @@
 ---
-description: Discover the Ultralytics Sam module for object segmentation. Learn about its components, such as image encoders and mask decoders, in this comprehensive guide.
-keywords: Ultralytics, Sam Module, object segmentation, image encoder, mask decoder, prompt encoder, AI, machine learning
+description: Discover the Ultralytics SAM module for object segmentation. Learn about its components, such as image encoders and mask decoders, in this comprehensive guide.
+keywords: Ultralytics, SAM Module, object segmentation, image encoder, mask decoder, prompt encoder, AI, machine learning
 ---
 
 # Reference for `ultralytics/models/sam/modules/sam.py`
@@ -11,6 +11,6 @@ keywords: Ultralytics, Sam Module, object segmentation, image encoder, mask deco
 
 <br>
 
-## ::: ultralytics.models.sam.modules.sam.Sam
+## ::: ultralytics.models.sam.modules.sam.SAMModel
 
 <br><br>

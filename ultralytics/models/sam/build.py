@@ -14,7 +14,7 @@ from ultralytics.utils.downloads import attempt_download_asset
 
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
-from .modules.sam import Sam
+from .modules.sam import SAMModel
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
 
@@ -105,7 +105,7 @@ def _build_sam(
             out_chans=prompt_embed_dim,
         )
     )
-    sam = Sam(
+    sam = SAMModel(
         image_encoder=image_encoder,
         prompt_encoder=PromptEncoder(
             embed_dim=prompt_embed_dim,

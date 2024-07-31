@@ -646,19 +646,19 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         return consolidated_out
 
-    def _get_empty_mask_ptr(self, inference_state, frame_idx):
+    def _get_empty_mask_ptr(self, frame_idx):
         """Get a dummy object pointer based on an empty mask on the current frame."""
         # A dummy (empty) mask with a single object
         batch_size = 1
         mask_inputs = torch.zeros(
             (batch_size, 1, self.image_size, self.image_size),
             dtype=torch.float32,
-            device=inference_state["device"],
+            device=self.device,
         )
 
         # Retrieve correct image features
         current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
-            inference_state, frame_idx, batch_size
+            frame_idx, batch_size
         )
 
         # Feed the empty mask and image feature above to get a dummy object pointer
@@ -671,7 +671,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             point_inputs=None,
             mask_inputs=mask_inputs,
             output_dict={},
-            num_frames=inference_state["num_frames"],
+            num_frames=self.inference_state["num_frames"],
             track_in_reverse=False,
             run_mem_encoder=False,
             prev_sam_mask_logits=None,

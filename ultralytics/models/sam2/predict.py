@@ -385,10 +385,14 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx,
             is_cond=is_cond,
             run_mem_encoder=False,
-            consolidate_at_video_res=True,
+            # consolidate_at_video_res=True,
+            consolidate_at_video_res=False,
         )
-        _, video_res_masks = self._get_orig_video_res_output(consolidated_out["pred_masks_video_res"])
-        return frame_idx, obj_ids, video_res_masks
+        # _, video_res_masks = self._get_orig_video_res_output(consolidated_out["pred_masks_video_res"])
+        # _, video_res_masks = self._get_orig_video_res_output(consolidated_out["pred_masks"])
+        # return frame_idx, obj_ids, video_res_masks  # original return
+        pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
+        return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
     @smart_inference_mode()
     def propagate_in_video_preflight(self):

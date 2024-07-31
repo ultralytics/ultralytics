@@ -41,7 +41,7 @@ We welcome contributions in the form of pull requests. To streamline the review 
 
 ### CLA Signing
 
-Before we can accept your pull request, you must sign a [Contributor License Agreement (CLA)](docs\en\help\CLA.md). This legal document ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
+Before we can accept your pull request, you must sign a [Contributor License Agreement (CLA)](docs/en/help/CLA.md). This legal document ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR and add a comment in your PR saying:
 

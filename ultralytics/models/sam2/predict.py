@@ -240,12 +240,31 @@ class SAM2VideoPredictor(SAM2Predictor):
         masks = self.prompts.pop("masks", masks)
         assert bboxes is None and masks is None, "Bounding boxes and masks as prompts has not been supported yet."
 
+        src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
+        r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
+        if points is not None:
+            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            points = points[None] if points.ndim == 1 else points
+            # Assuming labels are all positive if users don't pass labels.
+            if labels is None:
+                labels = torch.ones(points.shape[0])
+            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            points *= r
+            # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
+            points, labels = points[:, None], labels[:, None]
+        if bboxes is not None:
+            bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
+            bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
+            bboxes *= r
+        if masks is not None:
+            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
         if self.dataset.frame == 1:
-            self.add_new_points(obj_id=0, points=points, labels=labels)
+            self.add_new_points(im, obj_id=0, points=points, labels=labels)
 
     @smart_inference_mode()
     def add_new_points(
         self,
+        im,
         obj_id,
         points,
         labels,
@@ -257,23 +276,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_idx = self._obj_id_to_idx(obj_id)
         point_inputs_per_frame = self.inference_state["point_inputs_per_obj"][obj_idx]
         mask_inputs_per_frame = self.inference_state["mask_inputs_per_obj"][obj_idx]
-
-        if not isinstance(points, torch.Tensor):
-            points = torch.tensor(points, dtype=torch.float32)
-        if not isinstance(labels, torch.Tensor):
-            labels = torch.tensor(labels, dtype=torch.int32)
-        if points.dim() == 2:
-            points = points.unsqueeze(0)  # add batch dimension
-        if labels.dim() == 1:
-            labels = labels.unsqueeze(0)  # add batch dimension
-        if normalize_coords:
-            video_H = self.inference_state["video_height"]
-            video_W = self.inference_state["video_width"]
-            points = points / torch.tensor([video_W, video_H]).to(points.device)
-        # scale the (normalized) coordinates by the model's internal image size
-        points = points * self.image_size
-        points = points.to(self.inference_state["device"])
-        labels = labels.to(self.inference_state["device"])
 
         if not clear_old_points:
             point_inputs = point_inputs_per_frame.get(frame_idx, None)

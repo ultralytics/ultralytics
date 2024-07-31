@@ -261,9 +261,54 @@ class SAM2VideoPredictor(SAM2Predictor):
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
-        if self.dataset.frame - 1 == 0:  # `self.dataset.frame` starts from 1.
+        frame = self.dataset.frame - 1
+        if frame == 0:  # `self.dataset.frame` starts from 1.
             self.add_new_points(obj_id=0, points=points, labels=labels)
         self.propagate_in_video_preflight()
+
+        output_dict = self.inference_state["output_dict"]
+        consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
+        obj_ids = self.inference_state["obj_ids"]
+        batch_size = len(self.inference_state["obj_idx_to_id"])
+        if len(output_dict["cond_frame_outputs"]) == 0:
+            raise RuntimeError("No points are provided; please add points first")
+        clear_non_cond_mem = self.clear_non_cond_mem_around_input and (
+            self.clear_non_cond_mem_for_multi_obj or batch_size <= 1
+        )
+
+        if frame in consolidated_frame_inds["cond_frame_outputs"]:
+            storage_key = "cond_frame_outputs"
+            current_out = output_dict[storage_key][frame]
+            pred_masks = current_out["pred_masks"]
+            if clear_non_cond_mem:
+                # clear non-conditioning memory of the surrounding frames
+                self._clear_non_cond_mem_around_input(frame)
+        elif frame in consolidated_frame_inds["non_cond_frame_outputs"]:
+            storage_key = "non_cond_frame_outputs"
+            current_out = output_dict[storage_key][frame]
+            pred_masks = current_out["pred_masks"]
+        else:
+            storage_key = "non_cond_frame_outputs"
+            current_out, pred_masks = self._run_single_frame_inference(
+                output_dict=output_dict,
+                frame_idx=frame,
+                batch_size=batch_size,
+                is_init_cond_frame=False,
+                point_inputs=None,
+                mask_inputs=None,
+                reverse=False,
+                run_mem_encoder=True,
+            )
+            output_dict[storage_key][frame] = current_out
+        # Create slices of per-object outputs for subsequent interaction with each
+        # individual object after tracking.
+        self._add_output_per_object(frame, current_out, storage_key)
+        self.inference_state["frames_already_tracked"][frame] = {"reverse": reverse}
+
+        # Resize the output mask to the original video resolution (we directly use
+        # the mask scores on GPU for output to avoid any CPU conversion in between)
+        _, video_res_masks = self._get_orig_video_res_output(pred_masks)
+        yield frame, obj_ids, video_res_masks
 
     @smart_inference_mode()
     def add_new_points(
@@ -898,7 +943,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 obj_out["maskmem_pos_enc"] = [x[obj_slice] for x in maskmem_pos_enc]
             obj_output_dict[storage_key][frame_idx] = obj_out
 
-    def _clear_non_cond_mem_around_input(self, inference_state, frame_idx):
+    def _clear_non_cond_mem_around_input(self, frame_idx):
         """
         Remove the non-conditioning memory around the input frame. When users provide
         correction clicks, the surrounding frames' non-conditioning memories can still
@@ -910,9 +955,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         r = self.model.memory_temporal_stride_for_eval
         frame_idx_begin = frame_idx - r * self.model.num_maskmem
         frame_idx_end = frame_idx + r * self.model.num_maskmem
-        output_dict = inference_state["output_dict"]
+        output_dict = self.inference_state["output_dict"]
         non_cond_frame_outputs = output_dict["non_cond_frame_outputs"]
         for t in range(frame_idx_begin, frame_idx_end + 1):
             non_cond_frame_outputs.pop(t, None)
-            for obj_output_dict in inference_state["output_dict_per_obj"].values():
+            for obj_output_dict in self.inference_state["output_dict_per_obj"].values():
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)

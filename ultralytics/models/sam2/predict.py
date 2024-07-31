@@ -490,3 +490,25 @@ class SAM2VideoPredictor(SAM2Predictor):
         else:
             expanded_maskmem_pos_enc = None
         return expanded_maskmem_pos_enc
+
+    def _get_orig_video_res_output(self, inference_state, any_res_masks):
+        """
+        Resize the object scores to the original video resolution (video_res_masks)
+        and apply non-overlapping constraints for final output.
+        """
+        device = inference_state["device"]
+        video_H = inference_state["video_height"]
+        video_W = inference_state["video_width"]
+        any_res_masks = any_res_masks.to(device, non_blocking=True)
+        if any_res_masks.shape[-2:] == (video_H, video_W):
+            video_res_masks = any_res_masks
+        else:
+            video_res_masks = torch.nn.functional.interpolate(
+                any_res_masks,
+                size=(video_H, video_W),
+                mode="bilinear",
+                align_corners=False,
+            )
+        if self.model.non_overlap_masks:
+            video_res_masks = self.model._apply_non_overlapping_constraints(video_res_masks)
+        return any_res_masks, video_res_masks

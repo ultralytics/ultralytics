@@ -242,6 +242,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
+        self.inference_state["im"] = im
+        self.inference_state["ratio"] = r
         if points is not None:
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
             points = points[None] if points.ndim == 1 else points
@@ -258,13 +260,12 @@ class SAM2VideoPredictor(SAM2Predictor):
             bboxes *= r
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
-        if self.dataset.frame - 1 == 0:   # `self.dataset.frame` starts from 1.
-            self.add_new_points(im, obj_id=0, points=points, labels=labels)
+        if self.dataset.frame - 1 == 0:  # `self.dataset.frame` starts from 1.
+            self.add_new_points(obj_id=0, points=points, labels=labels)
 
     @smart_inference_mode()
     def add_new_points(
         self,
-        im,
         obj_id,
         points,
         labels,
@@ -314,7 +315,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
             prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
         current_out, _ = self._run_single_frame_inference(
-            im=im,
             output_dict=obj_output_dict,  # run on the slice of a single object
             frame_idx=frame_idx,
             batch_size=1,  # run on the slice of a single object
@@ -601,7 +601,6 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _run_single_frame_inference(
         self,
-        im,
         output_dict,
         frame_idx,
         batch_size,
@@ -614,7 +613,9 @@ class SAM2VideoPredictor(SAM2Predictor):
     ):
         """Run tracking on a single frame based on current inputs and previous memory."""
         # Retrieve correct image features
-        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(im, batch_size)
+        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
+            self.inference_state["im"], batch_size
+        )
 
         # point and mask should not appear as input simultaneously on the same frame
         assert point_inputs is None or mask_inputs is None
@@ -774,7 +775,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # i.e. when we need to build the memory for tracking).
                 if run_mem_encoder:
                     if empty_mask_ptr is None:
-                        empty_mask_ptr = self._get_empty_mask_ptr(self.inference_state, frame_idx)
+                        empty_mask_ptr = self._get_empty_mask_ptr(frame_idx)
                     # fill object pointer with a dummy pointer (based on an empty mask)
                     consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = empty_mask_ptr
                 continue
@@ -807,8 +808,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             if self.model.non_overlap_masks_for_mem_enc:
                 high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
             maskmem_features, maskmem_pos_enc = self._run_memory_encoder(
-                inference_state=self.inference_state,
-                frame_idx=frame_idx,
                 batch_size=batch_size,
                 high_res_masks=high_res_masks,
                 is_mask_from_pts=True,  # these frames are what the user interacted with
@@ -848,14 +847,14 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
         return current_out["obj_ptr"]
 
-    def _run_memory_encoder(self, frame_idx, batch_size, high_res_masks, is_mask_from_pts):
+    def _run_memory_encoder(self, batch_size, high_res_masks, is_mask_from_pts):
         """
         Run the memory encoder on `high_res_masks`. This is usually after applying
         non-overlapping constraints to object scores. Since their scores changed, their
         memory also need to be computed again with the memory encoder.
         """
         # Retrieve correct image features
-        current_vision_feats, _, feat_sizes = self._get_image_feature(frame_idx, batch_size)
+        current_vision_feats, _, feat_sizes = self.get_im_features(self.inference_state["im"], batch_size)
         maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
             current_vision_feats=current_vision_feats,
             feat_sizes=feat_sizes,

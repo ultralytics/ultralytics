@@ -309,7 +309,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             consolidate_at_video_res=True,
         )
         _, video_res_masks = self._get_orig_video_res_output(
-            self.inference_state, consolidated_out["pred_masks_video_res"]
+            consolidated_out["pred_masks_video_res"]
         )
         return frame_idx, obj_ids, video_res_masks
 
@@ -506,14 +506,14 @@ class SAM2VideoPredictor(SAM2Predictor):
             expanded_maskmem_pos_enc = None
         return expanded_maskmem_pos_enc
 
-    def _get_orig_video_res_output(self, inference_state, any_res_masks):
+    def _get_orig_video_res_output(self, any_res_masks):
         """
         Resize the object scores to the original video resolution (video_res_masks)
         and apply non-overlapping constraints for final output.
         """
-        device = inference_state["device"]
-        video_H = inference_state["video_height"]
-        video_W = inference_state["video_width"]
+        device = self.inference_state["device"]
+        video_H = self.inference_state["video_height"]
+        video_W = self.inference_state["video_width"]
         any_res_masks = any_res_masks.to(device, non_blocking=True)
         if any_res_masks.shape[-2:] == (video_H, video_W):
             video_res_masks = any_res_masks

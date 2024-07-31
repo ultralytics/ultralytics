@@ -291,10 +291,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # the input points will be used to correct the already tracked masks.
         is_init_cond_frame = frame_idx not in self.inference_state["frames_already_tracked"]
         # whether to track in reverse time order
-        if is_init_cond_frame:
-            reverse = False
-        else:
-            reverse = self.inference_state["frames_already_tracked"][frame_idx]["reverse"]
+        reverse = False if is_init_cond_frame else self.inference_state["frames_already_tracked"][frame_idx]["reverse"]
         obj_output_dict = self.inference_state["output_dict_per_obj"][obj_idx]
         obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
         # Add a frame to conditioning output if it's an initial conditioning frame or

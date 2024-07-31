@@ -473,7 +473,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         #     pred_masks_gpu = fill_holes_in_mask_scores(pred_masks_gpu, self.fill_hole_area)
         pred_masks = pred_masks_gpu.to(storage_device, non_blocking=True)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
-        maskmem_pos_enc = self._get_maskmem_pos_enc(inference_state, current_out)
+        maskmem_pos_enc = self._get_maskmem_pos_enc(current_out)
         # object pointer is a small tensor, so we always keep it on GPU memory for fast access
         obj_ptr = current_out["obj_ptr"]
         # make a compact version of this frame's output to reduce the state size
@@ -485,12 +485,12 @@ class SAM2VideoPredictor(SAM2Predictor):
         }
         return compact_current_out, pred_masks_gpu
 
-    def _get_maskmem_pos_enc(self, inference_state, current_out):
+    def _get_maskmem_pos_enc(self, current_out):
         """
         `maskmem_pos_enc` is the same across frames and objects, so we cache it as
         a constant in the inference session to reduce session storage size.
         """
-        model_constants = inference_state["constants"]
+        model_constants = self.inference_state["constants"]
         # "out_maskmem_pos_enc" should be either a list of tensors or None
         out_maskmem_pos_enc = current_out["maskmem_pos_enc"]
         if out_maskmem_pos_enc is not None:

@@ -243,7 +243,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         self.inference_state["im"] = im
-        self.inference_state["ratio"] = r
         if points is not None:
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
             points = points[None] if points.ndim == 1 else points
@@ -264,6 +263,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         frame = self.dataset.frame - 1
         if frame == 0:  # `self.dataset.frame` starts from 1.
             self.add_new_points(obj_id=0, points=points, labels=labels)
+            self.inference_state["ratio"] = r
         self.propagate_in_video_preflight()
 
         output_dict = self.inference_state["output_dict"]
@@ -307,8 +307,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         # Resize the output mask to the original video resolution (we directly use
         # the mask scores on GPU for output to avoid any CPU conversion in between)
-        _, video_res_masks = self._get_orig_video_res_output(pred_masks)
-        return frame, obj_ids, video_res_masks
+        # _, video_res_masks = self._get_orig_video_res_output(pred_masks)
+        # return frame, obj_ids, video_res_masks  # original return
+        return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
     @smart_inference_mode()
     def add_new_points(

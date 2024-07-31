@@ -1,10 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from collections import OrderedDict
+
 import torch
 
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.torch_utils import smart_inference_mode
-from collections import OrderedDict
+
 from ..sam.predict import Predictor
 from .build import build_sam2
 
@@ -249,7 +251,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
-        frame = self.seen   # NOTE: fix this
+        frame = self.seen  # NOTE: fix this
         if frame == 0:
             self.add_new_points(obj_id=0, points=points, labels=labels)
             self.inference_state["video_height"] = src_shape[0]
@@ -594,9 +596,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         return compact_current_out, pred_masks_gpu
 
     def _get_maskmem_pos_enc(self, current_out):
-        """
-        `maskmem_pos_enc` is the same across frames and objects, so we cache it as
-        a constant in the inference session to reduce session storage size.
+        """`maskmem_pos_enc` is the same across frames and objects, so we cache it as a constant in the inference
+        session to reduce session storage size.
         """
         model_constants = self.inference_state["constants"]
         # "out_maskmem_pos_enc" should be either a list of tensors or None
@@ -623,14 +624,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         run_mem_encoder,
         consolidate_at_video_res=False,
     ):
-        """
-        Consolidate the per-object temporary outputs in `temp_output_dict_per_obj` on
-        a frame into a single output for all objects, including
-        1) fill any missing objects either from `output_dict_per_obj` (if they exist in
-           `output_dict_per_obj` for this frame) or leave them as placeholder values
-           (if they don't exist in `output_dict_per_obj` for this frame);
-        2) if specified, rerun memory encoder after apply non-overlapping constraints
-           on the object scores.
+        """Consolidate the per-object temporary outputs in `temp_output_dict_per_obj` on a frame into a single output
+        for all objects, including 1) fill any missing objects either from `output_dict_per_obj` (if they exist in
+        `output_dict_per_obj` for this frame) or leave them as placeholder values (if they don't exist in
+        `output_dict_per_obj` for this frame); 2) if specified, rerun memory encoder after apply non-overlapping
+        constraints on the object scores.
         """
         batch_size = len(self.inference_state["obj_idx_to_id"])
         storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
@@ -761,8 +759,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _run_memory_encoder(self, batch_size, high_res_masks, is_mask_from_pts):
         """
-        Run the memory encoder on `high_res_masks`. This is usually after applying
-        non-overlapping constraints to object scores. Since their scores changed, their
+        Run the memory encoder on `high_res_masks`.
+
+        This is usually after applying non-overlapping constraints to object scores. Since their scores changed, their
         memory also need to be computed again with the memory encoder.
         """
         # Retrieve correct image features
@@ -782,8 +781,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
-        Split a multi-object output into per-object output slices and add them into
-        `output_dict_per_obj`. The resulting slices share the same tensor storage.
+        Split a multi-object output into per-object output slices and add them into `output_dict_per_obj`.
+
+        The resulting slices share the same tensor storage.
         """
         maskmem_features = current_out["maskmem_features"]
         assert maskmem_features is None or isinstance(maskmem_features, torch.Tensor)
@@ -808,12 +808,12 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _clear_non_cond_mem_around_input(self, frame_idx):
         """
-        Remove the non-conditioning memory around the input frame. When users provide
-        correction clicks, the surrounding frames' non-conditioning memories can still
-        contain outdated object appearance information and could confuse the model.
+        Remove the non-conditioning memory around the input frame. When users provide correction clicks, the surrounding
+        frames' non-conditioning memories can still contain outdated object appearance information and could confuse the
+        model.
 
-        This method clears those non-conditioning memories surrounding the interacted
-        frame to avoid giving the model both old and new information about the object.
+        This method clears those non-conditioning memories surrounding the interacted frame to avoid giving the model
+        both old and new information about the object.
         """
         r = self.model.memory_temporal_stride_for_eval
         frame_idx_begin = frame_idx - r * self.model.num_maskmem

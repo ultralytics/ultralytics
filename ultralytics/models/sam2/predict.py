@@ -196,11 +196,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     def add_new_points(self):
         pass
 
-    def init_state(
-        self,
-        offload_video_to_cpu=False,
-        offload_state_to_cpu=False,
-    ):
+    def init_state(self, offload_video_to_cpu=False, offload_state_to_cpu=False):
         """Initialize a inference state."""
         assert self.dataset is not None
         assert self.dataset.mode == "video"

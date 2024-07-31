@@ -439,9 +439,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     ):
         """Run tracking on a single frame based on current inputs and previous memory."""
         # Retrieve correct image features
-        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
-            frame_idx, batch_size
-        )
+        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(frame_idx, batch_size)
 
         # point and mask should not appear as input simultaneously on the same frame
         assert point_inputs is None or mask_inputs is None
@@ -656,9 +654,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
 
         # Retrieve correct image features
-        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
-            frame_idx, batch_size
-        )
+        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(frame_idx, batch_size)
 
         # Feed the empty mask and image feature above to get a dummy object pointer
         current_out = self.model.track_step(
@@ -676,3 +672,26 @@ class SAM2VideoPredictor(SAM2Predictor):
             prev_sam_mask_logits=None,
         )
         return current_out["obj_ptr"]
+
+    def _run_memory_encoder(self, frame_idx, batch_size, high_res_masks, is_mask_from_pts):
+        """
+        Run the memory encoder on `high_res_masks`. This is usually after applying
+        non-overlapping constraints to object scores. Since their scores changed, their
+        memory also need to be computed again with the memory encoder.
+        """
+        # Retrieve correct image features
+        current_vision_feats, _, feat_sizes = self._get_image_feature(frame_idx, batch_size)
+        maskmem_features, maskmem_pos_enc = self._encode_new_memory(
+            current_vision_feats=current_vision_feats,
+            feat_sizes=feat_sizes,
+            pred_masks_high_res=high_res_masks,
+            is_mask_from_pts=is_mask_from_pts,
+        )
+
+        # optionally offload the output to CPU memory to save GPU space
+        storage_device = self.inference_state["storage_device"]
+        maskmem_features = maskmem_features.to(torch.bfloat16)
+        maskmem_features = maskmem_features.to(storage_device, non_blocking=True)
+        # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
+        maskmem_pos_enc = self._get_maskmem_pos_enc(self.inference_state, {"maskmem_pos_enc": maskmem_pos_enc})
+        return maskmem_features, maskmem_pos_enc

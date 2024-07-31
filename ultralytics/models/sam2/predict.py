@@ -217,10 +217,10 @@ class SAM2VideoPredictor(SAM2Predictor):
     @smart_inference_mode()
     def add_new_points(
         self,
-        frame_idx,
         obj_id,
         points,
         labels,
+        frame_idx=0,
         clear_old_points=True,
         normalize_coords=True,
     ):

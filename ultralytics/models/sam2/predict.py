@@ -361,14 +361,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Warm up the visual backbone and cache the image feature on frame 0
         self.inference_state = inference_state
 
-    def _set_first_frame(self):
-        """Extracts and processes the first frame from the video."""
-        assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
-        for batch in self.dataset:
-            im = self.preprocess(batch[1])
-            break
-        return self.get_im_features(im)
-
     def get_im_features(self, im):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
         backbone_out = self.model.forward_image(im)

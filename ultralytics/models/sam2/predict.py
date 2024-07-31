@@ -420,13 +420,9 @@ class SAM2VideoPredictor(SAM2Predictor):
     ):
         """Run tracking on a single frame based on current inputs and previous memory."""
         # Retrieve correct image features
-        (
-            _,
-            _,
-            current_vision_feats,
-            current_vision_pos_embeds,
-            feat_sizes,
-        ) = self._get_image_feature(inference_state, frame_idx, batch_size)
+        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
+            inference_state, frame_idx, batch_size
+        )
 
         # point and mask should not appear as input simultaneously on the same frame
         assert point_inputs is None or mask_inputs is None
@@ -469,3 +465,26 @@ class SAM2VideoPredictor(SAM2Predictor):
             "obj_ptr": obj_ptr,
         }
         return compact_current_out, pred_masks_gpu
+
+    def _get_maskmem_pos_enc(self, inference_state, current_out):
+        """
+        `maskmem_pos_enc` is the same across frames and objects, so we cache it as
+        a constant in the inference session to reduce session storage size.
+        """
+        model_constants = inference_state["constants"]
+        # "out_maskmem_pos_enc" should be either a list of tensors or None
+        out_maskmem_pos_enc = current_out["maskmem_pos_enc"]
+        if out_maskmem_pos_enc is not None:
+            if "maskmem_pos_enc" not in model_constants:
+                assert isinstance(out_maskmem_pos_enc, list)
+                # only take the slice for one object, since it's same across objects
+                maskmem_pos_enc = [x[0:1].clone() for x in out_maskmem_pos_enc]
+                model_constants["maskmem_pos_enc"] = maskmem_pos_enc
+            else:
+                maskmem_pos_enc = model_constants["maskmem_pos_enc"]
+            # expand the cached maskmem_pos_enc to the actual batch size
+            batch_size = out_maskmem_pos_enc[0].size(0)
+            expanded_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
+        else:
+            expanded_maskmem_pos_enc = None
+        return expanded_maskmem_pos_enc

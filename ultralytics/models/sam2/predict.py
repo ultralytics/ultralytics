@@ -924,7 +924,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_pos_enc = self._get_maskmem_pos_enc({"maskmem_pos_enc": maskmem_pos_enc})
         return maskmem_features, maskmem_pos_enc
 
-    def _add_output_per_object(self, inference_state, frame_idx, current_out, storage_key):
+    def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
         Split a multi-object output into per-object output slices and add them into
         `output_dict_per_obj`. The resulting slices share the same tensor storage.
@@ -935,7 +935,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_pos_enc = current_out["maskmem_pos_enc"]
         assert maskmem_pos_enc is None or isinstance(maskmem_pos_enc, list)
 
-        output_dict_per_obj = inference_state["output_dict_per_obj"]
+        output_dict_per_obj = self.inference_state["output_dict_per_obj"]
         for obj_idx, obj_output_dict in output_dict_per_obj.items():
             obj_slice = slice(obj_idx, obj_idx + 1)
             obj_out = {

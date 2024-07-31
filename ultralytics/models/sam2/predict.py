@@ -261,8 +261,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
-        frame = self.dataset.frame - 1
-        if frame == 0:  # `self.dataset.frame` starts from 1.
+        frame = self.seen
+        if frame == 0:
             self.add_new_points(obj_id=0, points=points, labels=labels)
             self.inference_state["ratio"] = r
         self.propagate_in_video_preflight()
@@ -594,7 +594,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = {}
         # Warm up the visual backbone and cache the image feature on frame 0
-        h, w = next(iter(self.dataset)).shape[:2]
+        h, w = next(iter(self.dataset))[1][0].shape[:2]
         inference_state["video_height"] = h
         inference_state["video_width"] = w
         self.inference_state = inference_state
@@ -783,7 +783,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             consolidated_W = self.inference_state["video_width"]
             consolidated_mask_key = "pred_masks_video_res"
         else:
-            consolidated_H = consolidated_W = self.image_size // 4
+            consolidated_H = self.imgsz[0] // 4
+            consolidated_W = self.imgsz[1] // 4
             consolidated_mask_key = "pred_masks"
 
         # Initialize `consolidated_out`. Its "maskmem_features" and "maskmem_pos_enc"
@@ -800,7 +801,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 device=self.inference_state["storage_device"],
             ),
             "obj_ptr": torch.full(
-                size=(batch_size, self.hidden_dim),
+                size=(batch_size, self.model.hidden_dim),
                 fill_value=-1024.0,
                 dtype=torch.float32,
                 device=self.inference_state["device"],
@@ -854,7 +855,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             device = self.inference_state["device"]
             high_res_masks = torch.nn.functional.interpolate(
                 consolidated_out["pred_masks"].to(device, non_blocking=True),
-                size=(self.image_size, self.image_size),
+                size=self.imgsz,
                 mode="bilinear",
                 align_corners=False,
             )
@@ -875,7 +876,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # A dummy (empty) mask with a single object
         batch_size = 1
         mask_inputs = torch.zeros(
-            (batch_size, 1, self.image_size, self.image_size),
+            (batch_size, 1, *self.imgsz),
             dtype=torch.float32,
             device=self.device,
         )
@@ -920,7 +921,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_features = maskmem_features.to(torch.bfloat16)
         maskmem_features = maskmem_features.to(storage_device, non_blocking=True)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
-        maskmem_pos_enc = self._get_maskmem_pos_enc(self.inference_state, {"maskmem_pos_enc": maskmem_pos_enc})
+        maskmem_pos_enc = self._get_maskmem_pos_enc({"maskmem_pos_enc": maskmem_pos_enc})
         return maskmem_features, maskmem_pos_enc
 
     def _add_output_per_object(self, inference_state, frame_idx, current_out, storage_key):

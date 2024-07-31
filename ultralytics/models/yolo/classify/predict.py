@@ -54,8 +54,6 @@ class ClassificationPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i]
-            img_path = self.batch[0][i]
+        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results

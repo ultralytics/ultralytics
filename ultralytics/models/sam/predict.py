@@ -168,7 +168,7 @@ class Predictor(BasePredictor):
                 - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
                 - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
         """
-        features = self.model.image_encoder(im) if self.features is None else self.features
+        features = self.get_im_features(im) if self.features is None else self.features
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
@@ -334,7 +334,7 @@ class Predictor(BasePredictor):
         """
         device = select_device(self.args.device, verbose=verbose)
         if model is None:
-            model = build_sam(self.args.model)
+            model = self.get_model()
         model.eval()
         self.model = model.to(device)
         self.device = device
@@ -347,6 +347,10 @@ class Predictor(BasePredictor):
         self.model.stride = 32
         self.model.fp16 = False
         self.done_warmup = True
+
+    def get_model(self):
+        """Built Segment Anything Model (SAM) model."""
+        return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
         """
@@ -372,8 +376,7 @@ class Predictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, masks in enumerate([pred_masks]):
-            orig_img = orig_imgs[i]
+        for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
             if pred_bboxes is not None:
                 pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
@@ -381,7 +384,6 @@ class Predictor(BasePredictor):
 
             masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
-            img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
@@ -414,15 +416,17 @@ class Predictor(BasePredictor):
             AssertionError: If more than one image is set.
         """
         if self.model is None:
-            model = build_sam(self.args.model)
-            self.setup_model(model)
+            self.setup_model(model=None)
         self.setup_source(image)
         assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
         for batch in self.dataset:
             im = self.preprocess(batch[1])
-            self.features = self.model.image_encoder(im)
-            self.im = im
+            self.features = self.get_im_features(im)
             break
+
+    def get_im_features(self, im):
+        """Get image features from the SAM image encoder."""
+        return self.model.image_encoder(im)
 
     def set_prompts(self, prompts):
         """Set prompts in advance."""

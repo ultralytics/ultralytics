@@ -363,7 +363,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         ratio_pad (tuple): the ratio of the padding to the original image.
 
     Returns:
-        masks (torch.Tensor): The masks that are being returned.
+        masks (np.ndarray): The masks that are being returned with shape [h, w, num].
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
     im1_shape = masks.shape

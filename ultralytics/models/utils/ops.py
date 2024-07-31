@@ -133,7 +133,7 @@ class HungarianMatcher(nn.Module):
     #     sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
     #     tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
     #
-    #     with torch.cuda.amp.autocast(False):
+    #     with torch.amp.autocast("cuda", enabled=False):
     #         # binary cross entropy cost
     #         pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.ones_like(out_mask), reduction='none')
     #         neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.zeros_like(out_mask), reduction='none')

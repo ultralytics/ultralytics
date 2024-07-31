@@ -68,7 +68,6 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
     run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")
 
     from ultralytics import FastSAM
-    from ultralytics.models.fastsam import FastSAMPrompt
     from ultralytics.models.sam import Predictor
 
     # Create a FastSAM model
@@ -81,21 +80,10 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
         # Remove small regions
         new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
-        # Everything prompt
-        prompt_process = FastSAMPrompt(s, everything_results, device="cpu")
-        ann = prompt_process.everything_prompt()
-
-        # Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
-        ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
-
-        # Text prompt
-        ann = prompt_process.text_prompt(text="a photo of a dog")
-
-        # Point prompt
-        # Points default [[0,0]] [[x1,y1],[x2,y2]]
-        # Point_label default [0] [1,0] 0:background, 1:foreground
-        ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output="./")
+        # Run inference with bboxes and points and texts prompt at the same time
+        results = sam_model(
+            source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog"
+        )
 
 
 def test_mobilesam():

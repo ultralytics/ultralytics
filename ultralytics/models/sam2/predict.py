@@ -218,6 +218,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         points,
         labels,
         clear_old_points=True,
+        normalize_coords=True,
     ):
         """Add new points to a frame."""
         obj_idx = self._obj_id_to_idx(self.inference_state, obj_id)
@@ -232,6 +233,12 @@ class SAM2VideoPredictor(SAM2Predictor):
             points = points.unsqueeze(0)  # add batch dimension
         if labels.dim() == 1:
             labels = labels.unsqueeze(0)  # add batch dimension
+        if normalize_coords:
+            video_H = self.inference_state["video_height"]
+            video_W = self.inference_state["video_width"]
+            points = points / torch.tensor([video_W, video_H]).to(points.device)
+        # scale the (normalized) coordinates by the model's internal image size
+        points = points * self.image_size
         points = points.to(self.inference_state["device"])
         labels = labels.to(self.inference_state["device"])
 
@@ -296,7 +303,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Resize the output mask to the original video resolution
         obj_ids = self.inference_state["obj_ids"]
         consolidated_out = self._consolidate_temp_output_across_obj(
-            self.inference_state,
             frame_idx,
             is_cond=is_cond,
             run_mem_encoder=False,
@@ -361,11 +367,23 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = {}
         # Warm up the visual backbone and cache the image feature on frame 0
+        h, w = next(iter(self.dataset)).shape[:2]
+        inference_state["video_height"] = h
+        inference_state["video_width"] = w
         self.inference_state = inference_state
 
-    def get_im_features(self, im):
+    def get_im_features(self, im, batch=1):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
         backbone_out = self.model.forward_image(im)
+        expanded_backbone_out = {
+            "backbone_fpn": backbone_out["backbone_fpn"].copy(),
+            "vision_pos_enc": backbone_out["vision_pos_enc"].copy(),
+        }
+        for i, feat in enumerate(expanded_backbone_out["backbone_fpn"]):
+            expanded_backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
+        for i, pos in enumerate(expanded_backbone_out["vision_pos_enc"]):
+            pos = pos.expand(batch, -1, -1, -1)
+            expanded_backbone_out["vision_pos_enc"][i] = pos
         _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
         return vis_feats, vis_pos_embed, feat_sizes
 
@@ -512,3 +530,118 @@ class SAM2VideoPredictor(SAM2Predictor):
         if self.model.non_overlap_masks:
             video_res_masks = self.model._apply_non_overlapping_constraints(video_res_masks)
         return any_res_masks, video_res_masks
+
+    def _consolidate_temp_output_across_obj(
+        self,
+        frame_idx,
+        is_cond,
+        run_mem_encoder,
+        consolidate_at_video_res=False,
+    ):
+        """
+        Consolidate the per-object temporary outputs in `temp_output_dict_per_obj` on
+        a frame into a single output for all objects, including
+        1) fill any missing objects either from `output_dict_per_obj` (if they exist in
+           `output_dict_per_obj` for this frame) or leave them as placeholder values
+           (if they don't exist in `output_dict_per_obj` for this frame);
+        2) if specified, rerun memory encoder after apply non-overlapping constraints
+           on the object scores.
+        """
+        batch_size = len(self.inference_state["obj_idx_to_id"])
+        storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
+        # Optionally, we allow consolidating the temporary outputs at the original
+        # video resolution (to provide a better editing experience for mask prompts).
+        if consolidate_at_video_res:
+            assert not run_mem_encoder, "memory encoder cannot run at video resolution"
+            consolidated_H = self.inference_state["video_height"]
+            consolidated_W = self.inference_state["video_width"]
+            consolidated_mask_key = "pred_masks_video_res"
+        else:
+            consolidated_H = consolidated_W = self.image_size // 4
+            consolidated_mask_key = "pred_masks"
+
+        # Initialize `consolidated_out`. Its "maskmem_features" and "maskmem_pos_enc"
+        # will be added when rerunning the memory encoder after applying non-overlapping
+        # constraints to object scores. Its "pred_masks" are prefilled with a large
+        # negative value (NO_OBJ_SCORE) to represent missing objects.
+        consolidated_out = {
+            "maskmem_features": None,
+            "maskmem_pos_enc": None,
+            consolidated_mask_key: torch.full(
+                size=(batch_size, 1, consolidated_H, consolidated_W),
+                fill_value=-1024.0,
+                dtype=torch.float32,
+                device=self.inference_state["storage_device"],
+            ),
+            "obj_ptr": torch.full(
+                size=(batch_size, self.hidden_dim),
+                fill_value=-1024.0,
+                dtype=torch.float32,
+                device=self.inference_state["device"],
+            ),
+        }
+        empty_mask_ptr = None
+        for obj_idx in range(batch_size):
+            obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
+            obj_output_dict = self.inference_state["output_dict_per_obj"][obj_idx]
+            out = obj_temp_output_dict[storage_key].get(frame_idx, None)
+            # If the object doesn't appear in "temp_output_dict_per_obj" on this frame,
+            # we fall back and look up its previous output in "output_dict_per_obj".
+            # We look up both "cond_frame_outputs" and "non_cond_frame_outputs" in
+            # "output_dict_per_obj" to find a previous output for this object.
+            if out is None:
+                out = obj_output_dict["cond_frame_outputs"].get(frame_idx, None)
+            if out is None:
+                out = obj_output_dict["non_cond_frame_outputs"].get(frame_idx, None)
+            # If the object doesn't appear in "output_dict_per_obj" either, we skip it
+            # and leave its mask scores to the default scores (i.e. the NO_OBJ_SCORE
+            # placeholder above) and set its object pointer to be a dummy pointer.
+            if out is None:
+                # Fill in dummy object pointers for those objects without any inputs or
+                # tracking outcomes on this frame (only do it under `run_mem_encoder=True`,
+                # i.e. when we need to build the memory for tracking).
+                if run_mem_encoder:
+                    if empty_mask_ptr is None:
+                        empty_mask_ptr = self._get_empty_mask_ptr(self.inference_state, frame_idx)
+                    # fill object pointer with a dummy pointer (based on an empty mask)
+                    consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = empty_mask_ptr
+                continue
+            # Add the temporary object output mask to consolidated output mask
+            obj_mask = out["pred_masks"]
+            consolidated_pred_masks = consolidated_out[consolidated_mask_key]
+            if obj_mask.shape[-2:] == consolidated_pred_masks.shape[-2:]:
+                consolidated_pred_masks[obj_idx : obj_idx + 1] = obj_mask
+            else:
+                # Resize first if temporary object mask has a different resolution
+                resized_obj_mask = torch.nn.functional.interpolate(
+                    obj_mask,
+                    size=consolidated_pred_masks.shape[-2:],
+                    mode="bilinear",
+                    align_corners=False,
+                )
+                consolidated_pred_masks[obj_idx : obj_idx + 1] = resized_obj_mask
+            consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
+
+        # Optionally, apply non-overlapping constraints on the consolidated scores
+        # and rerun the memory encoder
+        if run_mem_encoder:
+            device = self.inference_state["device"]
+            high_res_masks = torch.nn.functional.interpolate(
+                consolidated_out["pred_masks"].to(device, non_blocking=True),
+                size=(self.image_size, self.image_size),
+                mode="bilinear",
+                align_corners=False,
+            )
+            if self.model.non_overlap_masks_for_mem_enc:
+                high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
+            maskmem_features, maskmem_pos_enc = self._run_memory_encoder(
+                inference_state=self.inference_state,
+                frame_idx=frame_idx,
+                batch_size=batch_size,
+                high_res_masks=high_res_masks,
+                is_mask_from_pts=True,  # these frames are what the user interacted with
+            )
+            consolidated_out["maskmem_features"] = maskmem_features
+            consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
+
+        return consolidated_out

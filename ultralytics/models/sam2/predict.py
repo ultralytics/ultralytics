@@ -208,6 +208,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.non_overlap_masks = False
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
+        self.callbacks["on_predict_start"].append(self.init_state)
 
     def get_model(self):
         model = super().get_model()

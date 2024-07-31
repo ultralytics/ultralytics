@@ -214,6 +214,35 @@ class SAM2VideoPredictor(SAM2Predictor):
         model.set_binarize(True)
         return model
 
+    def inference(self, im, bboxes=None, points=None, labels=None, masks=None):
+        """
+        Perform image segmentation inference based on the given input cues, using the currently loaded image. This
+        method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder, and
+        mask decoder for real-time and promptable segmentation tasks.
+
+        Args:
+            im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
+            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
+            multimask_output (bool, optional): Flag to return multiple masks. Helpful for ambiguous prompts.
+
+        Returns:
+            (tuple): Contains the following three elements.
+                - np.ndarray: The output masks in shape CxHxW, where C is the number of generated masks.
+                - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
+                - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
+        """
+        # Override prompts if any stored in self.prompts
+        bboxes = self.prompts.pop("bboxes", bboxes)
+        points = self.prompts.pop("points", points)
+        masks = self.prompts.pop("masks", masks)
+        assert bboxes is None and masks is None, "Bounding boxes and masks as prompts has not been supported yet."
+
+        if self.dataset.frame == 1:
+            self.add_new_points(obj_id=0, points=points, labels=labels)
+
     @smart_inference_mode()
     def add_new_points(
         self,
@@ -225,7 +254,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         normalize_coords=True,
     ):
         """Add new points to a frame."""
-        obj_idx = self._obj_id_to_idx(self.inference_state, obj_id)
+        obj_idx = self._obj_id_to_idx(obj_id)
         point_inputs_per_frame = self.inference_state["point_inputs_per_obj"][obj_idx]
         mask_inputs_per_frame = self.inference_state["mask_inputs_per_obj"][obj_idx]
 

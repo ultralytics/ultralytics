@@ -427,7 +427,6 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _run_single_frame_inference(
         self,
-        inference_state,
         output_dict,
         frame_idx,
         batch_size,
@@ -441,7 +440,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         """Run tracking on a single frame based on current inputs and previous memory."""
         # Retrieve correct image features
         current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
-            inference_state, frame_idx, batch_size
+            frame_idx, batch_size
         )
 
         # point and mask should not appear as input simultaneously on the same frame
@@ -455,7 +454,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             point_inputs=point_inputs,
             mask_inputs=mask_inputs,
             output_dict=output_dict,
-            num_frames=inference_state["num_frames"],
+            num_frames=self.inference_state["num_frames"],
             track_in_reverse=reverse,
             run_mem_encoder=run_mem_encoder,
             prev_sam_mask_logits=prev_sam_mask_logits,

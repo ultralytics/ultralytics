@@ -9,17 +9,6 @@ from ..sam.predict import Predictor
 from .build import build_sam2
 
 
-def concat_points(old_point_inputs, new_points, new_labels):
-    """Add new points and labels to previous point inputs (add at the end)."""
-    if old_point_inputs is None:
-        points, labels = new_points, new_labels
-    else:
-        points = torch.cat([old_point_inputs["point_coords"], new_points], dim=1)
-        labels = torch.cat([old_point_inputs["point_labels"], new_labels], dim=1)
-
-    return {"point_coords": points, "point_labels": labels}
-
-
 class SAM2Predictor(Predictor):
     """
     A predictor class for the Segment Anything Model 2 (SAM2), extending the base Predictor class.
@@ -320,18 +309,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         points,
         labels,
         frame_idx=0,
-        clear_old_points=True,
     ):
         """Add new points to a frame."""
         obj_idx = self._obj_id_to_idx(obj_id)
         point_inputs_per_frame = self.inference_state["point_inputs_per_obj"][obj_idx]
         mask_inputs_per_frame = self.inference_state["mask_inputs_per_obj"][obj_idx]
 
-        if not clear_old_points:
-            point_inputs = point_inputs_per_frame.get(frame_idx, None)
-        else:
-            point_inputs = None
-        point_inputs = concat_points(point_inputs, points, labels)
+        point_inputs = {"point_coords": points, "point_labels": labels}
 
         point_inputs_per_frame[frame_idx] = point_inputs
         mask_inputs_per_frame.pop(frame_idx, None)

@@ -2,7 +2,6 @@
 
 import torch
 
-from tqdm import tqdm
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.torch_utils import smart_inference_mode
 from collections import OrderedDict
@@ -269,7 +268,6 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         output_dict = self.inference_state["output_dict"]
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
-        obj_ids = self.inference_state["obj_ids"]
         batch_size = len(self.inference_state["obj_idx_to_id"])
         if len(output_dict["cond_frame_outputs"]) == 0:
             raise RuntimeError("No points are provided; please add points first")
@@ -385,7 +383,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_temp_output_dict[storage_key][frame_idx] = current_out
 
         # Resize the output mask to the original video resolution
-        obj_ids = self.inference_state["obj_ids"]
         consolidated_out = self._consolidate_temp_output_across_obj(
             frame_idx,
             is_cond=is_cond,

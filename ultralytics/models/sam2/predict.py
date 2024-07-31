@@ -681,7 +681,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         """
         # Retrieve correct image features
         current_vision_feats, _, feat_sizes = self._get_image_feature(frame_idx, batch_size)
-        maskmem_features, maskmem_pos_enc = self._encode_new_memory(
+        maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
             current_vision_feats=current_vision_feats,
             feat_sizes=feat_sizes,
             pred_masks_high_res=high_res_masks,

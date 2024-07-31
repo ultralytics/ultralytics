@@ -249,10 +249,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
-        frame = self.seen
+        frame = self.seen   # NOTE: fix this
         if frame == 0:
             self.add_new_points(obj_id=0, points=points, labels=labels)
-            self.inference_state["ratio"] = r
+            self.inference_state["video_height"] = src_shape[0]
+            self.inference_state["video_width"] = src_shape[1]
         self.propagate_in_video_preflight()
 
         output_dict = self.inference_state["output_dict"]
@@ -480,10 +481,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # metadata for each tracking frame (e.g. which direction it's tracked)
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = {}
-        # Warm up the visual backbone and cache the image feature on frame 0
-        h, w = next(iter(predictor.dataset))[1][0].shape[:2]
-        inference_state["video_height"] = h
-        inference_state["video_width"] = w
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):

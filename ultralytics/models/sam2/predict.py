@@ -7,6 +7,17 @@ from ..sam.predict import Predictor
 from .build import build_sam2
 
 
+def concat_points(old_point_inputs, new_points, new_labels):
+    """Add new points and labels to previous point inputs (add at the end)."""
+    if old_point_inputs is None:
+        points, labels = new_points, new_labels
+    else:
+        points = torch.cat([old_point_inputs["point_coords"], new_points], dim=1)
+        labels = torch.cat([old_point_inputs["point_labels"], new_labels], dim=1)
+
+    return {"point_coords": points, "point_labels": labels}
+
+
 class SAM2Predictor(Predictor):
     """
     A predictor class for the Segment Anything Model 2 (SAM2), extending the base Predictor class.
@@ -193,8 +204,101 @@ class SAM2VideoPredictor(SAM2Predictor):
         model.set_binarize(True)
         return model
 
-    def add_new_points(self):
-        pass
+    def add_new_points(
+        self,
+        frame_idx,
+        obj_id,
+        points,
+        labels,
+        clear_old_points=True,
+    ):
+        """Add new points to a frame."""
+        obj_idx = self._obj_id_to_idx(self.inference_state, obj_id)
+        point_inputs_per_frame = self.inference_state["point_inputs_per_obj"][obj_idx]
+        mask_inputs_per_frame = self.inference_state["mask_inputs_per_obj"][obj_idx]
+
+        if not isinstance(points, torch.Tensor):
+            points = torch.tensor(points, dtype=torch.float32)
+        if not isinstance(labels, torch.Tensor):
+            labels = torch.tensor(labels, dtype=torch.int32)
+        if points.dim() == 2:
+            points = points.unsqueeze(0)  # add batch dimension
+        if labels.dim() == 1:
+            labels = labels.unsqueeze(0)  # add batch dimension
+        points = points.to(self.inference_state["device"])
+        labels = labels.to(self.inference_state["device"])
+
+        if not clear_old_points:
+            point_inputs = point_inputs_per_frame.get(frame_idx, None)
+        else:
+            point_inputs = None
+        point_inputs = concat_points(point_inputs, points, labels)
+
+        point_inputs_per_frame[frame_idx] = point_inputs
+        mask_inputs_per_frame.pop(frame_idx, None)
+        # If this frame hasn't been tracked before, we treat it as an initial conditioning
+        # frame, meaning that the inputs points are to generate segments on this frame without
+        # using any memory from other frames, like in SAM. Otherwise (if it has been tracked),
+        # the input points will be used to correct the already tracked masks.
+        is_init_cond_frame = frame_idx not in self.inference_state["frames_already_tracked"]
+        # whether to track in reverse time order
+        if is_init_cond_frame:
+            reverse = False
+        else:
+            reverse = self.inference_state["frames_already_tracked"][frame_idx]["reverse"]
+        obj_output_dict = self.inference_state["output_dict_per_obj"][obj_idx]
+        obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
+        # Add a frame to conditioning output if it's an initial conditioning frame or
+        # if the model sees all frames receiving clicks/mask as conditioning frames.
+        is_cond = is_init_cond_frame or self.add_all_frames_to_correct_as_cond
+        storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
+
+        # Get any previously predicted mask logits on this object and feed it along with
+        # the new clicks into the SAM mask decoder.
+        prev_sam_mask_logits = None
+        # lookup temporary output dict first, which contains the most recent output
+        # (if not found, then lookup conditioning and non-conditioning frame output)
+        prev_out = obj_temp_output_dict[storage_key].get(frame_idx)
+        if prev_out is None:
+            prev_out = obj_output_dict["cond_frame_outputs"].get(frame_idx)
+            if prev_out is None:
+                prev_out = obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
+
+        if prev_out is not None and prev_out["pred_masks"] is not None:
+            prev_sam_mask_logits = prev_out["pred_masks"].cuda(non_blocking=True)
+            # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
+            prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
+        current_out, _ = self._run_single_frame_inference(
+            output_dict=obj_output_dict,  # run on the slice of a single object
+            frame_idx=frame_idx,
+            batch_size=1,  # run on the slice of a single object
+            is_init_cond_frame=is_init_cond_frame,
+            point_inputs=point_inputs,
+            mask_inputs=None,
+            reverse=reverse,
+            # Skip the memory encoder when adding clicks or mask. We execute the memory encoder
+            # at the beginning of `propagate_in_video` (after user finalize their clicks). This
+            # allows us to enforce non-overlapping constraints on all objects before encoding
+            # them into memory.
+            run_mem_encoder=False,
+            prev_sam_mask_logits=prev_sam_mask_logits,
+        )
+        # Add the output to the output dict (to be used as future memory)
+        obj_temp_output_dict[storage_key][frame_idx] = current_out
+
+        # Resize the output mask to the original video resolution
+        obj_ids = self.inference_state["obj_ids"]
+        consolidated_out = self._consolidate_temp_output_across_obj(
+            self.inference_state,
+            frame_idx,
+            is_cond=is_cond,
+            run_mem_encoder=False,
+            consolidate_at_video_res=True,
+        )
+        _, video_res_masks = self._get_orig_video_res_output(
+            self.inference_state, consolidated_out["pred_masks_video_res"]
+        )
+        return frame_idx, obj_ids, video_res_masks
 
     def init_state(self, offload_video_to_cpu=False, offload_state_to_cpu=False):
         """Initialize a inference state."""
@@ -269,3 +373,41 @@ class SAM2VideoPredictor(SAM2Predictor):
         backbone_out = self.model.forward_image(im)
         features = self.model._prepare_backbone_features(backbone_out)
         return features
+
+    def _obj_id_to_idx(self, obj_id):
+        """Map client-side object id to model-side object index."""
+        obj_idx = self.inference_state["obj_id_to_idx"].get(obj_id, None)
+        if obj_idx is not None:
+            return obj_idx
+
+        # This is a new object id not sent to the server before. We only allow adding
+        # new objects *before* the tracking starts.
+        allow_new_object = not self.inference_state["tracking_has_started"]
+        if allow_new_object:
+            # get the next object slot
+            obj_idx = len(self.inference_state["obj_id_to_idx"])
+            self.inference_state["obj_id_to_idx"][obj_id] = obj_idx
+            self.inference_state["obj_idx_to_id"][obj_idx] = obj_id
+            self.inference_state["obj_ids"] = list(self.inference_state["obj_id_to_idx"])
+            # set up input and output structures for this object
+            self.inference_state["point_inputs_per_obj"][obj_idx] = {}
+            self.inference_state["mask_inputs_per_obj"][obj_idx] = {}
+            self.inference_state["output_dict_per_obj"][obj_idx] = {
+                "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+                "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+            }
+            self.inference_state["temp_output_dict_per_obj"][obj_idx] = {
+                "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+                "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+            }
+            return obj_idx
+        else:
+            raise RuntimeError(
+                f"Cannot add new object id {obj_id} after tracking starts. "
+                f"All existing object ids: {self.inference_state['obj_ids']}. "
+                f"Please call 'reset_state' to restart from scratch."
+            )
+
+    def _obj_idx_to_id(self, inference_state, obj_idx):
+        """Map model-side object index to client-side object id."""
+        return inference_state["obj_idx_to_id"][obj_idx]

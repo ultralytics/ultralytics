@@ -200,7 +200,7 @@ class SAM2Predictor(Predictor):
 class SAM2VideoPredictor(SAM2Predictor):
     """The predictor class to handle user interactions with videos and manage inference states."""
 
-    fill_hole_area = 8  # not used
+    # fill_hole_area = 8  # not used
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)

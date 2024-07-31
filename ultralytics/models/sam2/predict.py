@@ -461,7 +461,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
 
         # optionally offload the output to CPU memory to save GPU space
-        storage_device = inference_state["storage_device"]
+        storage_device = self.inference_state["storage_device"]
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
             maskmem_features = maskmem_features.to(torch.bfloat16)

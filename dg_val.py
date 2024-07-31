@@ -10,7 +10,7 @@ def parser_arguments():
     parser.add_argument('--annotations', type=str, default=None, help='ground truth annotation json file path')
     parser.add_argument('--device', type=str, default='cpu', help='device to use')
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='train, val image size (pixels)')
-    parser.add_argument('-no-separate-outputs', action='store_true', help='exported file without separate outputs')
+    parser.add_argument('--no-separate-outputs', action='store_true', help='exported file without separate outputs')
 
     return parser.parse_args()
 

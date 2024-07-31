@@ -205,6 +205,9 @@ class SAM2VideoPredictor(SAM2Predictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
+        self.non_overlap_masks = False
+        self.clear_non_cond_mem_around_input = False
+        self.clear_non_cond_mem_for_multi_obj = False
 
     def get_model(self):
         model = super().get_model()
@@ -667,7 +670,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 mode="bilinear",
                 align_corners=False,
             )
-        if self.model.non_overlap_masks:
+        if self.non_overlap_masks:
             video_res_masks = self.model._apply_non_overlapping_constraints(video_res_masks)
         return any_res_masks, video_res_masks
 
@@ -838,3 +841,48 @@ class SAM2VideoPredictor(SAM2Predictor):
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(self.inference_state, {"maskmem_pos_enc": maskmem_pos_enc})
         return maskmem_features, maskmem_pos_enc
+
+    def _add_output_per_object(self, inference_state, frame_idx, current_out, storage_key):
+        """
+        Split a multi-object output into per-object output slices and add them into
+        `output_dict_per_obj`. The resulting slices share the same tensor storage.
+        """
+        maskmem_features = current_out["maskmem_features"]
+        assert maskmem_features is None or isinstance(maskmem_features, torch.Tensor)
+
+        maskmem_pos_enc = current_out["maskmem_pos_enc"]
+        assert maskmem_pos_enc is None or isinstance(maskmem_pos_enc, list)
+
+        output_dict_per_obj = inference_state["output_dict_per_obj"]
+        for obj_idx, obj_output_dict in output_dict_per_obj.items():
+            obj_slice = slice(obj_idx, obj_idx + 1)
+            obj_out = {
+                "maskmem_features": None,
+                "maskmem_pos_enc": None,
+                "pred_masks": current_out["pred_masks"][obj_slice],
+                "obj_ptr": current_out["obj_ptr"][obj_slice],
+            }
+            if maskmem_features is not None:
+                obj_out["maskmem_features"] = maskmem_features[obj_slice]
+            if maskmem_pos_enc is not None:
+                obj_out["maskmem_pos_enc"] = [x[obj_slice] for x in maskmem_pos_enc]
+            obj_output_dict[storage_key][frame_idx] = obj_out
+
+    def _clear_non_cond_mem_around_input(self, inference_state, frame_idx):
+        """
+        Remove the non-conditioning memory around the input frame. When users provide
+        correction clicks, the surrounding frames' non-conditioning memories can still
+        contain outdated object appearance information and could confuse the model.
+
+        This method clears those non-conditioning memories surrounding the interacted
+        frame to avoid giving the model both old and new information about the object.
+        """
+        r = self.model.memory_temporal_stride_for_eval
+        frame_idx_begin = frame_idx - r * self.model.num_maskmem
+        frame_idx_end = frame_idx + r * self.model.num_maskmem
+        output_dict = inference_state["output_dict"]
+        non_cond_frame_outputs = output_dict["non_cond_frame_outputs"]
+        for t in range(frame_idx_begin, frame_idx_end + 1):
+            non_cond_frame_outputs.pop(t, None)
+            for obj_output_dict in inference_state["output_dict_per_obj"].values():
+                obj_output_dict["non_cond_frame_outputs"].pop(t, None)

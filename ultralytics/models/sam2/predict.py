@@ -372,8 +372,8 @@ class SAM2VideoPredictor(SAM2Predictor):
     def get_im_features(self, im):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
         backbone_out = self.model.forward_image(im)
-        features = self.model._prepare_backbone_features(backbone_out)
-        return features
+        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
+        return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id):
         """Map client-side object id to model-side object index."""

@@ -2,6 +2,7 @@
 
 import torch
 
+from ultralytics.utils import DEFAULT_CFG
 from collections import OrderedDict
 from ..sam.predict import Predictor
 from .build import build_sam2
@@ -199,6 +200,10 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     fill_hole_area = 8  # not used
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.inference_state = {}
+
     def get_model(self):
         model = super().get_model()
         model.set_binarize(True)
@@ -328,8 +333,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # inputs on each frame
         inference_state["point_inputs_per_obj"] = {}
         inference_state["mask_inputs_per_obj"] = {}
-        # visual features on a small number of recently visited frames for quick interactions
-        inference_state["cached_features"] = {}
         # values that don't change across frames (so we only need to hold one copy of them)
         inference_state["constants"] = {}
         # mapping between client-side object id and model-side object index
@@ -356,8 +359,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = {}
         # Warm up the visual backbone and cache the image feature on frame 0
-        if len(inference_state["cached_features"]) == 0:
-            inference_state["cached_features"] = {0: self._set_first_frame()}
         self.inference_state = inference_state
 
     def _set_first_frame(self):
@@ -411,3 +412,68 @@ class SAM2VideoPredictor(SAM2Predictor):
     def _obj_idx_to_id(self, inference_state, obj_idx):
         """Map model-side object index to client-side object id."""
         return inference_state["obj_idx_to_id"][obj_idx]
+
+    def _run_single_frame_inference(
+        self,
+        inference_state,
+        output_dict,
+        frame_idx,
+        batch_size,
+        is_init_cond_frame,
+        point_inputs,
+        mask_inputs,
+        reverse,
+        run_mem_encoder,
+        prev_sam_mask_logits=None,
+    ):
+        """Run tracking on a single frame based on current inputs and previous memory."""
+        # Retrieve correct image features
+        (
+            _,
+            _,
+            current_vision_feats,
+            current_vision_pos_embeds,
+            feat_sizes,
+        ) = self._get_image_feature(inference_state, frame_idx, batch_size)
+
+        # point and mask should not appear as input simultaneously on the same frame
+        assert point_inputs is None or mask_inputs is None
+        current_out = self.model.track_step(
+            frame_idx=frame_idx,
+            is_init_cond_frame=is_init_cond_frame,
+            current_vision_feats=current_vision_feats,
+            current_vision_pos_embeds=current_vision_pos_embeds,
+            feat_sizes=feat_sizes,
+            point_inputs=point_inputs,
+            mask_inputs=mask_inputs,
+            output_dict=output_dict,
+            num_frames=inference_state["num_frames"],
+            track_in_reverse=reverse,
+            run_mem_encoder=run_mem_encoder,
+            prev_sam_mask_logits=prev_sam_mask_logits,
+        )
+
+        # optionally offload the output to CPU memory to save GPU space
+        storage_device = inference_state["storage_device"]
+        maskmem_features = current_out["maskmem_features"]
+        if maskmem_features is not None:
+            maskmem_features = maskmem_features.to(torch.bfloat16)
+            maskmem_features = maskmem_features.to(storage_device, non_blocking=True)
+        pred_masks_gpu = current_out["pred_masks"]
+        # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
+        # potentially fill holes in the predicted masks
+        # if self.fill_hole_area > 0:
+        #     pred_masks_gpu = fill_holes_in_mask_scores(pred_masks_gpu, self.fill_hole_area)
+        pred_masks = pred_masks_gpu.to(storage_device, non_blocking=True)
+        # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
+        maskmem_pos_enc = self._get_maskmem_pos_enc(inference_state, current_out)
+        # object pointer is a small tensor, so we always keep it on GPU memory for fast access
+        obj_ptr = current_out["obj_ptr"]
+        # make a compact version of this frame's output to reduce the state size
+        compact_current_out = {
+            "maskmem_features": maskmem_features,
+            "maskmem_pos_enc": maskmem_pos_enc,
+            "pred_masks": pred_masks,
+            "obj_ptr": obj_ptr,
+        }
+        return compact_current_out, pred_masks_gpu

@@ -312,6 +312,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         # return frame, obj_ids, video_res_masks  # original return
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
+    def postprocess(self, preds, img, orig_imgs):
+        results = super().postprocess(preds, img, orig_imgs)
+        if self.non_overlap_masks:
+            for result in results:
+                result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
+        return results
+
     @smart_inference_mode()
     def add_new_points(
         self,

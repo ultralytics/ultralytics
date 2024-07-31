@@ -205,7 +205,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
-        self.non_overlap_masks = False
+        self.non_overlap_masks = True
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
@@ -252,8 +252,8 @@ class SAM2VideoPredictor(SAM2Predictor):
                 labels = torch.ones(points.shape[0])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
             points *= r
-            # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-            points, labels = points[:, None], labels[:, None]
+            # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
+            points, labels = points[None], labels[None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
@@ -306,11 +306,14 @@ class SAM2VideoPredictor(SAM2Predictor):
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"][frame] = {"reverse": False}
 
-        # Resize the output mask to the original video resolution (we directly use
-        # the mask scores on GPU for output to avoid any CPU conversion in between)
-        # _, video_res_masks = self._get_orig_video_res_output(pred_masks)
-        # return frame, obj_ids, video_res_masks  # original return
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
+
+    def postprocess(self, preds, img, orig_imgs):
+        results = super().postprocess(preds, img, orig_imgs)
+        if self.non_overlap_masks:
+            for result in results:
+                result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
+        return results
 
     @smart_inference_mode()
     def add_new_points(
@@ -390,9 +393,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             # consolidate_at_video_res=True,
             consolidate_at_video_res=False,
         )
-        # _, video_res_masks = self._get_orig_video_res_output(consolidated_out["pred_masks_video_res"])
-        # _, video_res_masks = self._get_orig_video_res_output(consolidated_out["pred_masks"])
-        # return frame_idx, obj_ids, video_res_masks  # original return
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
@@ -463,13 +463,14 @@ class SAM2VideoPredictor(SAM2Predictor):
             input_frames_inds.update(mask_inputs_per_frame.keys())
         assert all_consolidated_frame_inds == input_frames_inds
 
-    def init_state(self, offload_video_to_cpu=False, offload_state_to_cpu=False):
+    @staticmethod
+    def init_state(predictor):
         """Initialize a inference state."""
-        assert self.dataset is not None
-        assert self.dataset.mode == "video"
+        assert predictor.dataset is not None
+        assert predictor.dataset.mode == "video"
 
         inference_state = {}
-        inference_state["num_frames"] = self.dataset.frames
+        inference_state["num_frames"] = predictor.dataset.frames
         # inputs on each frame
         inference_state["point_inputs_per_obj"] = {}
         inference_state["mask_inputs_per_obj"] = {}
@@ -499,10 +500,10 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = {}
         # Warm up the visual backbone and cache the image feature on frame 0
-        h, w = next(iter(self.dataset))[1][0].shape[:2]
+        h, w = next(iter(predictor.dataset))[1][0].shape[:2]
         inference_state["video_height"] = h
         inference_state["video_width"] = w
-        self.inference_state = inference_state
+        predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
@@ -636,27 +637,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         else:
             expanded_maskmem_pos_enc = None
         return expanded_maskmem_pos_enc
-
-    def _get_orig_video_res_output(self, any_res_masks):
-        """
-        Resize the object scores to the original video resolution (video_res_masks)
-        and apply non-overlapping constraints for final output.
-        """
-        video_H = self.inference_state["video_height"]
-        video_W = self.inference_state["video_width"]
-        any_res_masks = any_res_masks.to(self.device, non_blocking=True)
-        if any_res_masks.shape[-2:] == (video_H, video_W):
-            video_res_masks = any_res_masks
-        else:
-            video_res_masks = torch.nn.functional.interpolate(
-                any_res_masks,
-                size=(video_H, video_W),
-                mode="bilinear",
-                align_corners=False,
-            )
-        if self.non_overlap_masks:
-            video_res_masks = self.model._apply_non_overlapping_constraints(video_res_masks)
-        return any_res_masks, video_res_masks
 
     def _consolidate_temp_output_across_obj(
         self,

@@ -303,12 +303,12 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
-        self.inference_state["frames_already_tracked"][frame] = {"reverse": reverse}
+        self.inference_state["frames_already_tracked"][frame] = {"reverse": False}
 
         # Resize the output mask to the original video resolution (we directly use
         # the mask scores on GPU for output to avoid any CPU conversion in between)
         _, video_res_masks = self._get_orig_video_res_output(pred_masks)
-        yield frame, obj_ids, video_res_masks
+        return frame, obj_ids, video_res_masks
 
     @smart_inference_mode()
     def add_new_points(

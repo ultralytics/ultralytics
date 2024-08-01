@@ -73,8 +73,8 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify]
-                    MODE (required) is one of [train, val, predict, export]
+            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                    MODE (required) is one of [train, val, predict, export, benchmark]
                     ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 

@@ -13,4 +13,8 @@ keywords: Ultralytics, SAM, Segment Anything Model, image segmentation, real-tim
 
 ## ::: ultralytics.models.sam.predict.Predictor
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.predict.SAM2Predictor
+
 <br><br>

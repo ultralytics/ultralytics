@@ -13,4 +13,8 @@ keywords: Ultralytics, SAM Module, object segmentation, image encoder, mask deco
 
 ## ::: ultralytics.models.sam.modules.sam.SAMModel
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.modules.sam.SAM2Model
+
 <br><br>

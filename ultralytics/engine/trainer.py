@@ -26,9 +26,9 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
+    LOCAL_RANK,
     LOGGER,
     RANK,
-    LOCAL_RANK,
     TQDM,
     __version__,
     callbacks,

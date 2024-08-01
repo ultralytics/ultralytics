@@ -93,8 +93,10 @@ class Detect(nn.Module):
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.export and self.format == "sony":
             self.anchors, self.strides = (
-                x.transpose(0, 1) for x in make_anchors(torch.Tensor([80, 40, 20]).cuda(), self.stride, 0.5)
+                x.transpose(0, 1)
+                for x in make_anchors(getattr(self, "feat_sizes", torch.Tensor([80, 40, 20])), self.stride, 0.5)
             )
+            self.anchors, self.strides = self.anchors.to(x[0].device), self.strides.to(x[0].device)
             self.strides /= 640  # NOTE: this part could be removed in the future.
         elif self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
@@ -115,7 +117,9 @@ class Detect(nn.Module):
             norm = self.strides / (self.stride[0] * grid_size)
             dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
         elif self.export and self.format == "sony":
-            dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False)
+            dbox = self.decode_bboxes(
+                self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False
+            )
             # NOTE: the relu could be removed in the future.
             y1 = self.relu(dbox[:, 0, :])
             x1 = self.relu(dbox[:, 1, :])

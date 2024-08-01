@@ -94,7 +94,7 @@ class Detect(nn.Module):
         if self.export and self.format == "sony":
             self.anchors, self.strides = (
                 x.transpose(0, 1)
-                for x in make_anchors(getattr(self, "feat_sizes", torch.Tensor([80, 40, 20])), self.stride, 0.5)
+                for x in make_anchors(getattr(self, "feats_size", torch.Tensor([80, 40, 20])), self.stride, 0.5)
             )
             self.anchors, self.strides = self.anchors.to(x[0].device), self.strides.to(x[0].device)
             self.strides /= 640  # NOTE: this part could be removed in the future.

@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from typing import Tuple
 import torch
 import torch.nn.functional as F
 

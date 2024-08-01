@@ -390,7 +390,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         self.layers = nn.ModuleList()
         for i in range(depth):
             self.layers.append(
-                TwoWayAttentionBlock(
+                SAM2TwoWayAttentionBlock(
                     embedding_dim=embedding_dim,
                     num_heads=num_heads,
                     mlp_dim=mlp_dim,

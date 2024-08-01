@@ -334,7 +334,7 @@ def convert_coco(
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
-def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
+def segmentation_masks_to_yolo(masks_dir, output_dir, total_classes=80):
     """
     Converts a dataset of segmentation mask images to the YOLO segmentation format.
 
@@ -370,7 +370,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
                 └─ mask_yolo_04.txt
     """
     import os
-    pixel_to_class_mapping = {i + 1: i for i in range(classes)}
+    pixel_to_class_mapping = {i + 1: i for i in range(80)}
     for mask_filename in os.listdir(masks_dir):
         if mask_filename.endswith(".png"):
             mask_path = os.path.join(masks_dir, mask_filename)

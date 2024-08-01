@@ -16,7 +16,7 @@ from .transformer import TwoWayAttentionBlock as SAMTwoWayAttentionBlock
 from .transformer import TwoWayTransformer as SAMTwoWayTransformer
 from ultralytics.nn.modules import MLP, LayerNorm2d
 
-from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
+from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition, add_decomposed_rel_pos
 
 
 class DropPath(nn.Module):

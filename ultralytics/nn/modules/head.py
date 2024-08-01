@@ -95,7 +95,7 @@ class Detect(nn.Module):
             self.anchors, self.strides = (
                 x.transpose(0, 1) for x in make_anchors(torch.Tensor([80, 40, 20]).cuda(), self.stride, 0.5)
             )
-            self.strides /= 640  # NOTE: the relu could be removed in the future.
+            self.strides /= 640  # NOTE: this part could be removed in the future.
         elif self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape

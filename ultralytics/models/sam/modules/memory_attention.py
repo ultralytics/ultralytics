@@ -6,7 +6,7 @@ from typing import Optional
 import torch
 from torch import Tensor, nn
 
-from .sam2_blocks import RoPEAttention
+from .blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):

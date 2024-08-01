@@ -113,11 +113,11 @@ def example_small_function(arg1: int, arg2: int = 4) -> bool:
 
 ### GitHub Actions CI Tests
 
-Before your pull request can be merged, all GitHub Actions [Continuous Integration](docs\en\help\CI.md) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure your changes meet the project's quality standards. Review the output of the GitHub Actions and fix any issues.
+Before your pull request can be merged, all GitHub Actions [Continuous Integration](docs/en/help/CI.md) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure your changes meet the project's quality standards. Review the output of the GitHub Actions and fix any issues.
 
 ## Reporting Bugs
 
-We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs, it is important to provide a [Minimum Reproducible Example](docs\en\help\minimum_reproducible_example.md): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
+We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs, it is important to provide a [Minimum Reproducible Example](docs/en/help/minimum_reproducible_example.md): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
 
 ## License
 

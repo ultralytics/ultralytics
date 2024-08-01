@@ -8,7 +8,7 @@ from torch.nn.init import trunc_normal_
 from ultralytics.models.sam.modules.encoders import PromptEncoder
 from ultralytics.nn.modules import MLP
 
-from .decoders import MaskDecoder
+from .decoders import SAM2MaskDecoder
 from .blocks import TwoWayTransformer
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 
@@ -212,7 +212,7 @@ class SAM2Model(torch.nn.Module):
             input_image_size=(self.image_size, self.image_size),
             mask_in_chans=16,
         )
-        self.sam_mask_decoder = MaskDecoder(
+        self.sam_mask_decoder = SAM2MaskDecoder(
             num_multimask_outputs=3,
             transformer=TwoWayTransformer(
                 depth=2,

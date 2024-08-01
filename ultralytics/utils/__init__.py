@@ -984,7 +984,7 @@ class SettingsManager(dict):
 
         super().__init__(copy.deepcopy(self.defaults))
 
-        with torch_distributed_zero_first(RANK):
+        with torch_distributed_zero_first(LOCAL_RANK):
             if not self.file.exists():
                 self.save()
 

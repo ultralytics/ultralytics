@@ -18,6 +18,7 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 
 from ultralytics.utils.instance import to_2tuple
+from ultralytics.nn.modules import LayerNorm2d
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -513,24 +514,6 @@ class BasicLayer(nn.Module):
     def extra_repr(self) -> str:
         """Returns a string representation of the extra_repr function with the layer's parameters."""
         return f"dim={self.dim}, input_resolution={self.input_resolution}, depth={self.depth}"
-
-
-class LayerNorm2d(nn.Module):
-    """A PyTorch implementation of Layer Normalization in 2D."""
-
-    def __init__(self, num_channels: int, eps: float = 1e-6) -> None:
-        """Initialize LayerNorm2d with the number of channels and an optional epsilon."""
-        super().__init__()
-        self.weight = nn.Parameter(torch.ones(num_channels))
-        self.bias = nn.Parameter(torch.zeros(num_channels))
-        self.eps = eps
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass, normalizing the input tensor."""
-        u = x.mean(1, keepdim=True)
-        s = (x - u).pow(2).mean(1, keepdim=True)
-        x = (x - u) / torch.sqrt(s + self.eps)
-        return self.weight[:, None, None] * x + self.bias[:, None, None]
 
 
 class TinyViT(nn.Module):

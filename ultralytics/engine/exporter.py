@@ -428,7 +428,7 @@ class Exporter:
 
                 LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
                 model_onnx = onnxslim.slim(model_onnx)
-                
+
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
@@ -780,7 +780,7 @@ class Exporter:
             # Load dataset w/ builder (for batching) and calibrate
             config.int8_calibrator = EngineCalibrator(
                 dataset=self.get_int8_calibration_dataloader(prefix),
-                batch=2 * self.args.batch, # TensorRT INT8 calibration should use 2x batch size
+                batch=2 * self.args.batch,  # TensorRT INT8 calibration should use 2x batch size
                 cache=str(self.file.with_suffix(".cache")),
             )
 

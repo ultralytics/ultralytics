@@ -11,9 +11,7 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor, nn
 
-from .transformer import Attention
-from .transformer import TwoWayAttentionBlock
-from .transformer import TwoWayTransformer
+from .transformer import Attention, TwoWayAttentionBlock, TwoWayTransformer
 from ultralytics.nn.modules import MLP, LayerNorm2d
 
 from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition, add_decomposed_rel_pos

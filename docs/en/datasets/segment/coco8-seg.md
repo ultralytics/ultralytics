@@ -44,7 +44,7 @@ To train a YOLOv8n-seg model on the COCO8-Seg dataset for 100 epochs with an ima
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -106,7 +106,7 @@ To train a **YOLOv8n-seg** model on the COCO8-Seg dataset for 100 epochs with an
     
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
 For a thorough explanation of available arguments and configuration options, you can check the [Training](../../modes/train.md) documentation.

@@ -21,7 +21,7 @@ Thank you for your interest in contributing to Ultralytics open-source YOLO repo
 
 ## Code of Conduct
 
-All contributors must adhere to the [Code of Conduct](code_of_conduct.md) to ensure a welcoming and inclusive environment for everyone.
+All contributors must adhere to the [Code of Conduct](docs\en\help\code_of_conduct.md) to ensure a welcoming and inclusive environment for everyone.
 
 ## Contributing via Pull Requests
 
@@ -55,13 +55,12 @@ When adding new functions or classes, include a [Google-style docstring](https:/
 
 #### Google-style
 
-This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e. `(bool)`.
+This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
 
 ```python
 def example_function(arg1, arg2=4):
     """
-    This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by
-    parentheses, i.e., `(bool)`.
+    Example function that demonstrates Google-style docstrings.
 
     Args:
         arg1 (int): The first argument.
@@ -80,13 +79,12 @@ def example_function(arg1, arg2=4):
 
 #### Google-style with type hints
 
-This example shows both a Google-style docstring and argument and return type hints, though both are not required, one can be used without the other.
+This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
 
 ```python
 def example_function(arg1: int, arg2: int = 4) -> bool:
     """
-    This example shows both a Google-style docstring and argument and return type hints, though both are not required;
-    one can be used without the other.
+    Example function that demonstrates Google-style docstrings.
 
     Args:
         arg1: The first argument.
@@ -105,7 +103,7 @@ def example_function(arg1: int, arg2: int = 4) -> bool:
 
 #### Single-line
 
-Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes, and be a complete sentence starting with a capital letter and ending with a period.
+Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes and be a complete sentence starting with a capital letter and ending with a period.
 
 ```python
 def example_small_function(arg1: int, arg2: int = 4) -> bool:
@@ -115,11 +113,11 @@ def example_small_function(arg1: int, arg2: int = 4) -> bool:
 
 ### GitHub Actions CI Tests
 
-Before your pull request can be merged, all GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues
+Before your pull request can be merged, all GitHub Actions [Continuous Integration](docs\en\help\CI.md) (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure your changes meet the project's quality standards. Review the output of the GitHub Actions and fix any issues.
 
 ## Reporting Bugs
 
-We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs it is important to provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum_reproducible_example/): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
+We appreciate bug reports as they play a crucial role in maintaining the project's quality. When reporting bugs, it is important to provide a [Minimum Reproducible Example](docs\en\help\minimum_reproducible_example.md): a clear, concise code example that replicates the issue. This helps in quick identification and resolution of the bug.
 
 ## License
 

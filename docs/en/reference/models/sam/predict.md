@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics SAM Predictor for advanced, real-time image segmentation using the Segment Anything Model (SAM). Complete implementation details and auxiliary utilities.
-keywords: Ultralytics, SAM, Segment Anything Model, image segmentation, real-time, prediction, AI, machine learning, Python, torch, inference
+description: Explore Ultralytics SAM and SAM 2 Predictor for advanced, real-time image segmentation using the Segment Anything Model (SAM). Complete implementation details and auxiliary utilities.
+keywords: Ultralytics, SAM, Segment Anything Model, SAM 2, Segment Anything Model 2, image segmentation, real-time, prediction, AI, machine learning, Python, torch, inference
 ---
 
 # Reference for `ultralytics/models/sam/predict.py`

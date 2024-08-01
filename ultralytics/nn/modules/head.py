@@ -96,7 +96,8 @@ class Detect(nn.Module):
             x.transpose(0, 1) for x in make_anchors(torch.Tensor([80, 40, 20]).cuda(), self.stride, 0.5)
         )
         self.shape = shape
-        self.strides /= 640
+        if self.export and self.format == "sony":
+            self.strides /= 640  # NOTE: the relu could be removed in the future.
 
         if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
             box = x_cat[:, : self.reg_max * 4]
@@ -112,17 +113,19 @@ class Detect(nn.Module):
             grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
             norm = self.strides / (self.stride[0] * grid_size)
             dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        else:
+        elif self.export and self.format == "sony":
             dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides)
+            # NOTE: the relu could be removed in the future.
+            y1 = self.relu(dbox[:, 0, :])
+            x1 = self.relu(dbox[:, 1, :])
+            y2 = self.relu(dbox[:, 2, :])
+            x2 = self.relu(dbox[:, 3, :])
+            y_bb = torch.stack((x1, y1, x2, y2), 1).transpose(1, 2)
+            return y_bb, cls.sigmoid().permute(0, 2, 1)
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
-        y1 = self.relu(dbox[:, 0, :])
-        x1 = self.relu(dbox[:, 1, :])
-        y2 = self.relu(dbox[:, 2, :])
-        x2 = self.relu(dbox[:, 3, :])
-        y_bb = torch.stack((x1, y1, x2, y2), 1).transpose(1, 2)
-
-        # return torch.cat((dbox, cls.sigmoid()), 1)
-        return y_bb, cls.sigmoid().permute(0, 2, 1)
+        return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

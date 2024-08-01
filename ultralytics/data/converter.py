@@ -392,7 +392,9 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
                     continue
 
                 # Create a binary mask for the current class and find contours
-                contours, _ = cv2.findContours((mask == value).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # Find contours
+                contours, _ = cv2.findContours(
+                    (mask == value).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+                )  # Find contours
 
                 for contour in contours:
                     if len(contour) >= 3:  # YOLO requires at least 3 points for a valid segmentation

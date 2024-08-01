@@ -53,7 +53,7 @@ Then, you can initialize your Comet project. Comet will automatically detect the
 ```python
 import comet_ml
 
-comet_ml.init(project_name="comet-example-yolov8-coco128")
+comet_ml.login(project_name="comet-example-yolov8-coco128")
 ```
 
 If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
@@ -72,7 +72,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         # Load a model
         model = YOLO("yolov8n.pt")
 
-        # train the model
+        # Train the model
         results = model.train(
             data="coco8.yaml",
             project="comet-example-yolov8-coco128",
@@ -200,7 +200,7 @@ To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
     ```python
     import comet_ml
 
-    comet_ml.init(project_name="comet-example-yolov8-coco128")
+    comet_ml.login(project_name="comet-example-yolov8-coco128")
     ```
 
 4. **Train your YOLOv8 model and log metrics**:
@@ -210,7 +210,12 @@ To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
 
     model = YOLO("yolov8n.pt")
     results = model.train(
-        data="coco8.yaml", project="comet-example-yolov8-coco128", batch=32, save_period=1, save_json=True, epochs=3
+        data="coco8.yaml",
+        project="comet-example-yolov8-coco128",
+        batch=32,
+        save_period=1,
+        save_json=True,
+        epochs=3,
     )
     ```
 
@@ -255,7 +260,7 @@ Comet ML allows for extensive customization of its logging behavior using enviro
     os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
     ```
 
-For more customization options, refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section.
+Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section for more customization options.
 
 ### How do I view detailed metrics and visualizations of my YOLOv8 training on Comet ML?
 

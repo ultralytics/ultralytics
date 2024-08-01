@@ -9,11 +9,11 @@ keywords: Ultralytics, YOLO, parking management, computer vision, parking monito
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/parking_management.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/parking_management.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/parking_management.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.solutions.parking_management.ParkingPtsSelection
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.solutions.parking_management.ParkingManagement
 

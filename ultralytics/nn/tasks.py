@@ -527,7 +527,7 @@ class RTDETRDetectionModel(DetectionModel):
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
 
-        img = batch["img"]
+        img = batch["img"][:,:1,:,:]
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
         batch_idx = batch["batch_idx"]

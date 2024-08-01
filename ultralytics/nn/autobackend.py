@@ -76,6 +76,7 @@ class AutoBackend(nn.Module):
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
+    def warmup(self, imgsz=(1, 1, 640, 640)):
     """
 
     @torch.no_grad()
@@ -623,7 +624,8 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz=(1, 3, 640, 640)):
+    def warmup(self, imgsz=(1, 1, 640, 640)):
+    # def warmup(self, imgsz=(1, 3, 640, 640)):
         """
         Warm up the model by running one forward pass with a dummy input.
 

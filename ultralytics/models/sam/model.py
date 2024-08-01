@@ -20,7 +20,7 @@ from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 
 from .build import build_sam
-from .predict import Predictor
+from .predict import Predictor, SAM2Predictor
 
 
 class SAM(Model):
@@ -55,12 +55,7 @@ class SAM(Model):
             weights (str): Path to the weights file.
             task (str, optional): Task name. Defaults to None.
         """
-        if self.is_sam2:
-            from ..sam2.build import build_sam2
-
-            self.model = build_sam2(weights)
-        else:
-            self.model = build_sam(weights)
+        self.model = build_sam(weights)
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """
@@ -118,6 +113,4 @@ class SAM(Model):
         Returns:
             (dict): A dictionary mapping the 'segment' task to its corresponding 'Predictor'.
         """
-        from ..sam2.predict import SAM2Predictor
-
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}

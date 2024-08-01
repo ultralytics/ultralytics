@@ -524,7 +524,7 @@ class SAM2Predictor(Predictor):
 
     def get_model(self):
         """Retrieves and initializes the Segment Anything Model (SAM) for image segmentation tasks."""
-        return build_sam2(self.args.model)
+        return build_sam(self.args.model)
 
     def prompt_inference(
         self,

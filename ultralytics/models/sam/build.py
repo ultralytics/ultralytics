@@ -14,13 +14,12 @@ from ultralytics.utils.downloads import attempt_download_asset
 
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
-from .modules.sam import SAMModel
+from .modules.sam import SAMModel, SAM2Model
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
 
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, MemoryEncoder
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
-from .modules.sam2 import SAM2Model
 
 
 def build_sam_vit_h(checkpoint=None):

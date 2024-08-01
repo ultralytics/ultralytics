@@ -334,7 +334,7 @@ def convert_coco(
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
-def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
+def segmentation_masks_to_yolo(masks_dir, output_dir, classes):
     """
     Converts a dataset of segmentation mask images to the YOLO segmentation format.
 
@@ -350,7 +350,8 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
         ```python
         from ultralytics.data.converter import segmentation_masks_to_yolo
 
-        segmentation_masks_to_yolo('path/to/masks_directory', 'path/to/output/directory')
+        # for coco dataset, we have 80 classes
+        segmentation_masks_to_yolo('path/to/masks_directory', 'path/to/output/directory', classes=80)
         ```
 
     Notes:

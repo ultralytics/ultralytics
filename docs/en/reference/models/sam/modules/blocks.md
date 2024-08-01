@@ -27,11 +27,11 @@ keywords: TODO ADD KEYWORDS
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.blocks.TwoWayAttentionBlock
+## ::: ultralytics.models.sam.modules.blocks.SAM2TwoWayAttentionBlock
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.blocks.TwoWayTransformer
+## ::: ultralytics.models.sam.modules.blocks.SAM2TwoWayTransformer
 
 <br><br><hr><br>
 

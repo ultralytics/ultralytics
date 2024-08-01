@@ -370,6 +370,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
                 └─ mask_yolo_04.txt
     """
     import os
+
     pixel_to_class_mapping = {i + 1: i for i in range(80)}
     for mask_filename in os.listdir(masks_dir):
         if mask_filename.endswith(".png"):
@@ -378,7 +379,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
-            unique_values = np.unique(mask) # Get unique pixel values representing different classes
+            unique_values = np.unique(mask)  # Get unique pixel values representing different classes
             yolo_format_data = []
 
             for value in unique_values:
@@ -389,7 +390,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir):
                     LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_filename}, skipping.")
                     continue
 
-                class_mask = (mask == value).astype(np.uint8)   # Create a binary mask for the current class
+                class_mask = (mask == value).astype(np.uint8)  # Create a binary mask for the current class
                 contours, _ = cv2.findContours(class_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # Find contours
 
                 for contour in contours:

@@ -61,10 +61,10 @@ This function takes the directory containing the binary format mask images and c
 The converted masks will be saved in the specified output directory.
 
 ```{ .py .annotate }
-from ultralytics.data.converter import segmentation_masks_to_yolo
+from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
 # for coco dataset we have 80 classes
-segmentation_masks_to_yolo(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
+convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 
 ### Convert COCO into YOLO Format

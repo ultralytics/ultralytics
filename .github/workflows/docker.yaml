@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 10
       matrix:
         include:
           - dockerfile: "Dockerfile"
@@ -133,7 +133,7 @@ jobs:
         uses: nick-invision/retry@v3
         with:
           timeout_minutes: 120
-          retry_wait_seconds: 30
+          retry_wait_seconds: 60
           max_attempts: 2 # retry once
           command: |
             docker build \

@@ -17,8 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 
-from ultralytics.utils.instance import to_2tuple
 from ultralytics.nn.modules import LayerNorm2d
+from ultralytics.utils.instance import to_2tuple
 
 
 class Conv2d_BN(torch.nn.Sequential):

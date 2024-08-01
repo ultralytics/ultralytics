@@ -12,8 +12,8 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 
 from .transformer import Attention
-from .transformer import TwoWayAttentionBlock as SAMTwoWayAttentionBlock
-from .transformer import TwoWayTransformer as SAMTwoWayTransformer
+from .transformer import TwoWayAttentionBlock
+from .transformer import TwoWayTransformer
 from ultralytics.nn.modules import MLP, LayerNorm2d
 
 from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition, add_decomposed_rel_pos
@@ -243,7 +243,7 @@ class Fuser(nn.Module):
         return x
 
 
-class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
+class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
     """
     A two-way attention block for performing self-attention and cross-attention in both directions.
 
@@ -266,7 +266,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
         forward: Processes input through the attention blocks and MLP.
 
     Examples:
-        >>> block = TwoWayAttentionBlock(embedding_dim=256, num_heads=8)
+        >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8)
         >>> sparse_input = torch.randn(1, 100, 256)
         >>> dense_input = torch.randn(1, 256, 16, 16)
         >>> sparse_output, dense_output = block(sparse_input, dense_input)
@@ -282,7 +282,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
         skip_first_layer_pe: bool = False,
     ) -> None:
         """
-        Initializes a TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
+        Initializes a SAM2TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
 
         This block consists of four main layers: self-attention on sparse inputs, cross-attention of sparse inputs
         to dense inputs, an MLP block on sparse inputs, and cross-attention of dense inputs to sparse inputs.
@@ -307,7 +307,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
 
         Examples:
-            >>> block = TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
+            >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
             >>> sparse_inputs = torch.randn(1, 100, 256)
             >>> dense_inputs = torch.randn(1, 256, 32, 32)
             >>> sparse_outputs, dense_outputs = block(sparse_inputs, dense_inputs)
@@ -316,7 +316,7 @@ class TwoWayAttentionBlock(SAMTwoWayAttentionBlock):
         self.mlp = MLP(embedding_dim, mlp_dim, embedding_dim, num_layers=2, act=activation)
 
 
-class TwoWayTransformer(SAMTwoWayTransformer):
+class SAM2TwoWayTransformer(TwoWayTransformer):
     """
     A Two-Way Transformer module for simultaneous attention to image and query points.
 
@@ -329,7 +329,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
         embedding_dim (int): Channel dimension for input embeddings.
         num_heads (int): Number of heads for multihead attention.
         mlp_dim (int): Internal channel dimension for the MLP block.
-        layers (nn.ModuleList): List of TwoWayAttentionBlock layers comprising the transformer.
+        layers (nn.ModuleList): List of SAM2TwoWayAttentionBlock layers comprising the transformer.
         final_attn_token_to_image (Attention): Final attention layer from queries to image.
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
 
@@ -371,7 +371,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
             embedding_dim (int): Channel dimension for the input embeddings.
             num_heads (int): Number of heads for multihead attention.
             mlp_dim (int): Internal channel dimension for the MLP block.
-            layers (nn.ModuleList): List of TwoWayAttentionBlock layers comprising the transformer.
+            layers (nn.ModuleList): List of SAM2TwoWayAttentionBlock layers comprising the transformer.
             final_attn_token_to_image (Attention): Final attention layer from queries to image.
             norm_final_attn (nn.LayerNorm): Layer normalization applied to the final queries.
 
@@ -380,7 +380,7 @@ class TwoWayTransformer(SAMTwoWayTransformer):
             >>> transformer
             TwoWayTransformer(
               (layers): ModuleList(
-                (0-4): 5 x TwoWayAttentionBlock(...)
+                (0-4): 5 x SAM2TwoWayAttentionBlock(...)
               )
               (final_attn_token_to_image): Attention(...)
               (norm_final_attn): LayerNorm(...)

@@ -391,20 +391,17 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
                     LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_filename}, skipping.")
                     continue
 
-                class_mask = (mask == value).astype(np.uint8)  # Create a binary mask for the current class
-                contours, _ = cv2.findContours(class_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # Find contours
+                # Create a binary mask for the current class and find contours
+                contours, _ = cv2.findContours((mask == value).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # Find contours
 
                 for contour in contours:
                     if len(contour) >= 3:  # YOLO requires at least 3 points for a valid segmentation
                         contour = contour.squeeze()  # Remove single-dimensional entries
                         yolo_format = [class_index]
                         for point in contour:
-                            x, y = point
                             # Normalize the coordinates
-                            x_normalized = x / img_width
-                            y_normalized = y / img_height
-                            yolo_format.append(round(x_normalized, 6))  # Rounding to 6 decimal places
-                            yolo_format.append(round(y_normalized, 6))
+                            yolo_format.append(round(point[0] / img_width, 6))  # Rounding to 6 decimal places
+                            yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
             output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")

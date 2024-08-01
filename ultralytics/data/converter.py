@@ -407,8 +407,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
                             yolo_format.append(round(y_normalized, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_filename = os.path.splitext(mask_filename)[0] + ".txt"
-            output_path = os.path.join(output_dir, output_filename)
+            output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")
             with open(output_path, "w") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))

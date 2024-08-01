@@ -82,6 +82,8 @@ jobs:
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: Checkout repo
         uses: actions/checkout@v4
         with:

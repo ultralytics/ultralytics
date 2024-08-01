@@ -334,7 +334,7 @@ def convert_coco(
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
-def segmentation_masks_to_yolo(masks_dir, output_dir, total_classes=80):
+def segmentation_masks_to_yolo(masks_dir, output_dir, classes=80):
     """
     Converts a dataset of segmentation mask images to the YOLO segmentation format.
 
@@ -344,6 +344,7 @@ def segmentation_masks_to_yolo(masks_dir, output_dir, total_classes=80):
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
+        classes (int): Total classes in the dataset i.e for COCO classes=80
 
     Example:
         ```python

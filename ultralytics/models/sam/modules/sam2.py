@@ -9,7 +9,7 @@ from ultralytics.models.sam.modules.encoders import PromptEncoder
 from ultralytics.nn.modules import MLP
 
 from .decoders import MaskDecoder
-from .sam2_blocks import TwoWayTransformer
+from .blocks import TwoWayTransformer
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 
 # a large negative value as a placeholder score for missing objects

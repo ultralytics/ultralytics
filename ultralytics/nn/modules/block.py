@@ -240,7 +240,7 @@ class C2f(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
     def forward_fx(self, x):
-        """Forward pass creating list explictly instead of using list()."""
+        """Forward pass creating list explicitly instead of using list()."""
         y1 = self.cv1(x).chunk(2, 1)
         y = [y1[0], y1[1]]
         y.extend(m(y[-1]) for m in self.m)

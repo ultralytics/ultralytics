@@ -83,7 +83,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 | `Name`             | `Type`  | `Default`       | Description                                               |
 | ------------------ | ------- | --------------- | --------------------------------------------------------- |
-| `names`            | `dict`  | `None`          | Dictionary mapping class indices to class names.          |
+| `names`            | `dict`  | `None`          | Dictionary of classes names.                              |
 | `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
 | `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
 | `line_thickness`   | `int`   | `2`             | Thickness of the lines drawn on the image.                |

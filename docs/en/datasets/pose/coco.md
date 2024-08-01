@@ -71,7 +71,7 @@ To train a YOLOv8n-pose model on the COCO-Pose dataset for 100 epochs with an im
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -133,7 +133,7 @@ Training a YOLOv8 model on the COCO-Pose dataset can be accomplished using eithe
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 For more details on the training process and available arguments, check the [training page](../../modes/train.md).

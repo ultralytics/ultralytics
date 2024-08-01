@@ -9,7 +9,7 @@ from ultralytics.models.sam.modules.encoders import PromptEncoder
 from ultralytics.nn.modules import MLP
 
 from .decoders import SAM2MaskDecoder
-from .blocks import TwoWayTransformer
+from .blocks import SAM2TwoWayTransformer
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 
 # a large negative value as a placeholder score for missing objects
@@ -214,7 +214,7 @@ class SAM2Model(torch.nn.Module):
         )
         self.sam_mask_decoder = SAM2MaskDecoder(
             num_multimask_outputs=3,
-            transformer=TwoWayTransformer(
+            transformer=SAM2TwoWayTransformer(
                 depth=2,
                 embedding_dim=self.sam_prompt_embed_dim,
                 mlp_dim=2048,

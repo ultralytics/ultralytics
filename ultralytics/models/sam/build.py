@@ -13,13 +13,11 @@ import torch
 from ultralytics.utils.downloads import attempt_download_asset
 
 from .modules.decoders import MaskDecoder
-from .modules.encoders import ImageEncoderViT, PromptEncoder
-from .modules.sam import SAMModel, SAM2Model
+from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
+from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
+from .modules.sam import SAM2Model, SAMModel
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
-
-from .modules.encoders import FpnNeck, Hiera, ImageEncoder, MemoryEncoder
-from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 
 
 def build_sam_vit_h(checkpoint=None):

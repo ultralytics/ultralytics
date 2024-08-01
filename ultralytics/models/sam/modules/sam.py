@@ -9,16 +9,15 @@
 from typing import List
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn.init import trunc_normal_
 
 from ultralytics.nn.modules import MLP
-from .decoders import MaskDecoder
-from .encoders import ImageEncoderViT, PromptEncoder
 
-from .decoders import SAM2MaskDecoder
 from .blocks import SAM2TwoWayTransformer
+from .decoders import MaskDecoder, SAM2MaskDecoder
+from .encoders import ImageEncoderViT, PromptEncoder
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 
 # a large negative value as a placeholder score for missing objects

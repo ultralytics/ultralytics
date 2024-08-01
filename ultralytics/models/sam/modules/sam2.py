@@ -8,8 +8,8 @@ from torch.nn.init import trunc_normal_
 from ultralytics.models.sam.modules.encoders import PromptEncoder
 from ultralytics.nn.modules import MLP
 
-from .decoders import SAM2MaskDecoder
 from .blocks import SAM2TwoWayTransformer
+from .decoders import SAM2MaskDecoder
 from .utils import get_1d_sine_pe, select_closest_cond_frames
 
 # a large negative value as a placeholder score for missing objects

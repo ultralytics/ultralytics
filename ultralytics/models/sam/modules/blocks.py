@@ -3,18 +3,17 @@
 import copy
 import math
 from functools import partial
-import numpy as np
-from typing import Optional, Tuple, Type, Union, Any
+from typing import Any, Optional, Tuple, Type, Union
 
-from ultralytics.nn.modules import LayerNorm2d, MLPBlock
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import Tensor, nn
 
-from .transformer import Attention, TwoWayAttentionBlock, TwoWayTransformer
-from ultralytics.nn.modules import MLP, LayerNorm2d
+from ultralytics.nn.modules import MLP, LayerNorm2d, MLPBlock
 
-from .utils import apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition, add_decomposed_rel_pos
+from .transformer import Attention, TwoWayAttentionBlock, TwoWayTransformer
+from .utils import add_decomposed_rel_pos, apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
 
 
 class DropPath(nn.Module):

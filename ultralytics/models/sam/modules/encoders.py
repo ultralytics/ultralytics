@@ -1,21 +1,23 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from typing import Optional, Tuple, Type, List
+from typing import List, Optional, Tuple, Type
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from ultralytics.nn.modules import LayerNorm2d
+
 from .blocks import (
     Block,
-    PositionEmbeddingRandom,
     CXBlock,
     Fuser,
     MaskDownSampler,
     MultiScaleBlock,
-    PositionEmbeddingSine,
     PatchEmbed,
+    PositionEmbeddingRandom,
+    PositionEmbeddingSine,
 )
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 
 class ImageEncoderViT(nn.Module):

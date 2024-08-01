@@ -508,6 +508,9 @@ nav:
                   - sam: reference/models/sam/modules/sam.md
                   - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
                   - transformer: reference/models/sam/modules/transformer.md
+                  - blocks: reference/models/sam/modules/blocks.md
+                  - memory_attention: reference/models/sam/modules/memory_attention.md
+                  - utils: reference/models/sam/modules/utils.md
               - predict: reference/models/sam/predict.md
           - sam2:
               - build: reference/models/sam2/build.md

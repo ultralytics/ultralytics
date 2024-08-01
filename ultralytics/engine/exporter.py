@@ -357,7 +357,6 @@ class Exporter:
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
-            task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
             batch_size=self.args.batch,

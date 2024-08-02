@@ -7,12 +7,9 @@ from time import time
 import cv2
 import numpy as np
 
-from ultralytics.cfg import get_cfg
-from ultralytics.solutions.cfg import extract_cfg_data
+from ultralytics.cfg import cfg2dict, check_dict_alignment
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
-
-FILE = Path(__file__).resolve()  # get path of file
 
 
 class SpeedEstimator:
@@ -20,14 +17,10 @@ class SpeedEstimator:
 
     def __init__(self, **kwargs):
         """Initializes the SpeedEstimator with the kwargs arguments."""
-        self.args = get_cfg(extract_cfg_data(FILE))
-        if "names" not in kwargs:
-            raise ValueError("Error: Classes names 'names' argument is required")
-        for key, value in kwargs.items():
-            if hasattr(self.args, key):
-                setattr(self.args, key, value)
-            else:
-                print(f"Warning: Unknown argument Skipping!!! {key}")
+
+        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
+        check_dict_alignment(self.args, kwargs)
+        self.args.update(kwargs)
 
         self.im0 = None
         self.annotator = None
@@ -44,6 +37,7 @@ class SpeedEstimator:
         self.trk_previous_times = {}
         self.trk_previous_points = {}
         self.env_check = check_imshow(warn=True)  # Check if the environment supports imshow
+        print(f"Ultralytics Solutions ✅ {self.args}")
 
     def extract_tracks(self, tracks):
         """
@@ -68,8 +62,7 @@ class SpeedEstimator:
             (list): Updated tracking history for the given track_id.
         """
         track = self.trk_history[track_id]
-        bbox_center = (float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2))
-        track.append(bbox_center)
+        track.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
 
         if len(track) > 30:
             track.pop(0)
@@ -88,7 +81,7 @@ class SpeedEstimator:
             track (list): Tracking history for drawing tracks path.
         """
         speed_label = (
-            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args.names[int(cls)]
+            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args['names'][int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -104,18 +97,18 @@ class SpeedEstimator:
             trk_id (int): Object track id.
             track (list): Tracking history for drawing tracks path.
         """
-        if not self.args.reg_pts[0][0] < track[-1][0] < self.args.reg_pts[1][0]:
+        if not self.args['reg_pts'][0][0] < track[-1][0] < self.args['reg_pts'][1][0]:
             return
         if (
-            self.args.reg_pts[1][1] - self.args.spdl_dist_thresh
+            self.args['reg_pts'][1][1] - self.args['spdl_dist_thresh']
             < track[-1][1]
-            < self.args.reg_pts[1][1] + self.args.spdl_dist_thresh
+            < self.args['reg_pts'][1][1] + self.args['spdl_dist_thresh']
         ):
             direction = "known"
         elif (
-            self.args.reg_pts[0][1] - self.args.spdl_dist_thresh
+            self.args['reg_pts'][0][1] - self.args['spdl_dist_thresh']
             < track[-1][1]
-            < self.args.reg_pts[0][1] + self.args.spdl_dist_thresh
+            < self.args['reg_pts'][0][1] + self.args['spdl_dist_thresh']
         ):
             direction = "known"
         else:
@@ -133,14 +126,13 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks, region_color=(255, 0, 0)):
+    def estimate_speed(self, im0, tracks):
         """
         Estimates the speed of objects based on tracking data.
 
         Args:
             im0 (ndarray): Image.
             tracks (list): List of tracks obtained from the object tracking process.
-            region_color (tuple, optional): Color to use when drawing regions. Defaults to (255, 0, 0).
 
         Returns:
             (ndarray): The image with annotated boxes and tracks.
@@ -152,8 +144,8 @@ class SpeedEstimator:
             return im0
 
         self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.args.line_thickness)
-        self.annotator.draw_region(reg_pts=self.args.reg_pts, color=region_color, thickness=self.args.region_thickness)
+        self.annotator = Annotator(self.im0, line_width=self.args['line_thickness'])
+        self.annotator.draw_region(reg_pts=self.args['reg_pts'], color=(104, 31, 17), thickness=self.args['region_thickness'])
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)
@@ -164,7 +156,7 @@ class SpeedEstimator:
             self.plot_box_and_track(trk_id, box, cls, track)
             self.calculate_speed(trk_id, track)
 
-        if self.args.view_img and self.env_check:
+        if self.args['view_img'] and self.env_check:
             self.display_frames()
 
         return im0

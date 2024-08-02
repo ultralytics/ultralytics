@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import logging
 import math
 from pathlib import Path
 
@@ -36,7 +35,7 @@ class DistanceCalculation:
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         self.args["line_color"] = ast.literal_eval(self.args["line_color"])
         self.args["centroid_color"] = ast.literal_eval(self.args["centroid_color"])
-        logging.info("Ultralytics Solutions ✅ ", self.args)
+        print(f"Ultralytics Solutions ✅ {self.args}")
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """

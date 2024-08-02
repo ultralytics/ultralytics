@@ -81,7 +81,7 @@ class SpeedEstimator:
             track (list): Tracking history for drawing tracks path.
         """
         speed_label = (
-            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args['names'][int(cls)]
+            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args["names"][int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -97,18 +97,18 @@ class SpeedEstimator:
             trk_id (int): Object track id.
             track (list): Tracking history for drawing tracks path.
         """
-        if not self.args['reg_pts'][0][0] < track[-1][0] < self.args['reg_pts'][1][0]:
+        if not self.args["reg_pts"][0][0] < track[-1][0] < self.args["reg_pts"][1][0]:
             return
         if (
-            self.args['reg_pts'][1][1] - self.args['spdl_dist_thresh']
+            self.args["reg_pts"][1][1] - self.args["spdl_dist_thresh"]
             < track[-1][1]
-            < self.args['reg_pts'][1][1] + self.args['spdl_dist_thresh']
+            < self.args["reg_pts"][1][1] + self.args["spdl_dist_thresh"]
         ):
             direction = "known"
         elif (
-            self.args['reg_pts'][0][1] - self.args['spdl_dist_thresh']
+            self.args["reg_pts"][0][1] - self.args["spdl_dist_thresh"]
             < track[-1][1]
-            < self.args['reg_pts'][0][1] + self.args['spdl_dist_thresh']
+            < self.args["reg_pts"][0][1] + self.args["spdl_dist_thresh"]
         ):
             direction = "known"
         else:
@@ -144,8 +144,10 @@ class SpeedEstimator:
             return im0
 
         self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.args['line_thickness'])
-        self.annotator.draw_region(reg_pts=self.args['reg_pts'], color=(104, 31, 17), thickness=self.args['region_thickness'])
+        self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
+        self.annotator.draw_region(
+            reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]
+        )
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)
@@ -156,7 +158,7 @@ class SpeedEstimator:
             self.plot_box_and_track(trk_id, box, cls, track)
             self.calculate_speed(trk_id, track)
 
-        if self.args['view_img'] and self.env_check:
+        if self.args["view_img"] and self.env_check:
             self.display_frames()
 
         return im0

@@ -64,7 +64,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.cfg import TASK2DATA, get_cfg
+from ultralytics.cfg import RKNN_CHIPS, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -112,6 +112,7 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
+        ["RKNN", "rknn", "rknn_model", True, True],
     ]
     return pandas.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
 
@@ -183,7 +184,9 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, rknn = (
+            flags  # export booleans
+        )
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -209,6 +212,11 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+        if rknn:
+            self.args.name = "rk3588" if not self.args.name else self.args.name.lower()  # default is Rock 5B processor
+            assert (
+                self.args.name in RKNN_CHIPS
+            ), f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -323,6 +331,8 @@ class Exporter:
             f[10], _ = self.export_paddle()
         if ncnn:  # NCNN
             f[11], _ = self.export_ncnn()
+        if rknn:
+            f[12], _ = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1013,6 +1023,28 @@ class Exporter:
         #     )
         #     j.write(subst)
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f, None
+
+    @try_export
+    def export_rknn(self, prefix=colorstr("RKNN:")) -> tuple[str, None]:
+        """YOLOv8 RKNN model export."""
+        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+
+        check_requirements("rknn-toolkit>=1.4.0")
+        from rknn.api import RKNN  # type: ignore
+
+        f, _ = self.export_onnx()
+
+        # Adapted from https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov8/python
+        platform = self.args.name
+        rknn = RKNN(verbose=False)
+        rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=platform)
+
+        _ = rknn.load_onnx(model=f)
+        _ = rknn.build(do_quantization=False)  # requires quantization: {'rv1103', 'rv1106','rv1103b'} # TODO
+        f = rknn.export_rknn(f.replace(".onnx", f"-{platform}.rknn"))
+
+        LOGGER.info(f"\n{prefix} model exported as {f}.\n")
         return f, None
 
     def _add_tflite_metadata(self, file):

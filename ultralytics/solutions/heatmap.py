@@ -120,7 +120,7 @@ class Heatmap:
                     dist_sq = (x_indices - center_x) ** 2 + (
                         y_indices - center_y
                     ) ** 2  # Calculate squared distances from the center
-                    mask = dist_sq <= (min(x1 - x0, y1 - y0) // 2)**2  # Create a mask for the circle
+                    mask = dist_sq <= (min(x1 - x0, y1 - y0) // 2) ** 2  # Create a mask for the circle
                     self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
 
                 else:
@@ -175,7 +175,7 @@ class Heatmap:
                         y_indices - center_y
                     ) ** 2  # Calculate squared distances from the center
                     # Create a mask for the circle and update the heatmap
-                    self.heatmap[y0:y1, x0:x1] += 2 * dist_sq <= (min(x1 - x0, y1 - y0) // 2)**2
+                    self.heatmap[y0:y1, x0:x1] += 2 * dist_sq <= (min(x1 - x0, y1 - y0) // 2) ** 2
                 else:
                     self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 

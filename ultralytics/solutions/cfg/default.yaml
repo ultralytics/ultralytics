@@ -48,7 +48,7 @@ im0_shape: None # (None or tuple) shape of the input image
 title: "ultralytics" # (str) title of the plot
 x_label: "x" # (str) label for the x-axis
 y_label: "y" # (str) label for the y-axis
-line_width: *line_thickness    # Use the alias again to reference the same value
+line_width: *line_thickness # Use the alias again to reference the same value
 bg_color: "white" # (str) background color of the plot
 fg_color: "black" # (str) foreground color of the plot
 points_width: 10 # (int) width of points in the plot

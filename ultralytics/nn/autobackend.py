@@ -192,7 +192,7 @@ class AutoBackend(nn.Module):
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             session = onnxruntime.InferenceSession(w, providers=providers)
-            output_names = [x.name for x in session.get_outputs()]
+            self.output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
 
         # OpenVINO
@@ -246,48 +246,48 @@ class AutoBackend(nn.Module):
 
             # Model context
             try:
-                context = model.create_execution_context()
+                self.context = model.create_execution_context()
             except Exception as e:  # model is None
                 LOGGER.error(f"ERROR: TensorRT model exported with a different version than {trt.__version__}\n")
                 raise e
 
-            bindings = OrderedDict()
-            output_names = []
+            self.bindings = OrderedDict()
+            self.output_names = []
             self.fp16 = False  # default updated below
-            dynamic = False
-            is_trt10 = not hasattr(model, "num_bindings")
-            num = range(model.num_io_tensors) if is_trt10 else range(model.num_bindings)
+            self.dynamic = False
+            self.is_trt10 = not hasattr(model, "num_bindings")
+            num = range(model.num_io_tensors) if self.is_trt10 else range(model.num_bindings)
             for i in num:
-                if is_trt10:
+                if self.is_trt10:
                     name = model.get_tensor_name(i)
                     dtype = trt.nptype(model.get_tensor_dtype(name))
                     is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
                     if is_input:
                         if -1 in tuple(model.get_tensor_shape(name)):
-                            dynamic = True
-                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
+                            self.dynamic = True
+                            self.context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
                             if dtype == np.float16:
                                 self.fp16 = True
                     else:
-                        output_names.append(name)
-                    shape = tuple(context.get_tensor_shape(name))
+                        self.output_names.append(name)
+                    shape = tuple(self.context.get_tensor_shape(name))
                 else:  # TensorRT < 10.0
                     name = model.get_binding_name(i)
                     dtype = trt.nptype(model.get_binding_dtype(i))
                     is_input = model.binding_is_input(i)
                     if model.binding_is_input(i):
                         if -1 in tuple(model.get_binding_shape(i)):  # dynamic
-                            dynamic = True
-                            context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[1]))
+                            self.dynamic = True
+                            self.context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[1]))
                         if dtype == np.float16:
                             self.fp16 = True
                     else:
-                        output_names.append(name)
-                    shape = tuple(context.get_binding_shape(i))
+                        self.output_names.append(name)
+                    shape = tuple(self.context.get_binding_shape(i))
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
-                bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
-            binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
-            batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
+                self.bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
+            self.binding_addrs = OrderedDict((n, d.ptr) for n, d in self.bindings.items())
+            batch_size = self.bindings["images"].shape[0]  # if dynamic, this is instead max batch size
 
         # CoreML
         elif coreml:
@@ -370,7 +370,7 @@ class AutoBackend(nn.Module):
                 config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=0)
             predictor = pdi.create_predictor(config)
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
-            output_names = predictor.get_output_names()
+            self.output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
 
         # NCNN
@@ -424,8 +424,8 @@ class AutoBackend(nn.Module):
 
         # Check names
         if "names" not in locals():  # names missing
-            names = default_class_names(data) # todo: check this 
-        names = check_class_names(names)
+            self.names = default_class_names(data) # todo: check this 
+        self.names = check_class_names(self.names)
 
         # Disable gradients
         if self.pt:

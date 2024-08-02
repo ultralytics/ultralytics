@@ -23,7 +23,7 @@ class DetectionPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions and returns a list of Results objects."""
         # ⚒️FIXME by SH for using NMM
-        # preds = ops.non_max_merging(
+        # preds = ops.non_max_suppression(
         preds = ops.non_max_merging(
             preds,
             self.args.conf,

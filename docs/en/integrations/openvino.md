@@ -66,6 +66,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `half`   | `False`      | FP16 quantization                                    |
 | `int8`   | `False`      | INT8 quantization                                    |
 | `batch`  | `1`          | batch size for inference                             |
+| `dynamic`| `False`      | allows dynamic input sizes                                |
 
 ## Benefits of OpenVINO
 

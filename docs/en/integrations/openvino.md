@@ -250,6 +250,12 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 | YOLOv8x | ONNX        | ✅     | 260.4     | 0.6650              | 526.66                 |
 | YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.6619              | 158.73                 |
 
+### Intel Ultra CPU
+
+The Intel® Core™ Ultra series is a line of advanced processors that emphasize AI-powered performance. These chips integrate a neural processing unit (NPU) alongside traditional CPU and GPU components, enhancing AI tasks like adaptive features in video calls and content creation. The hybrid architecture includes Performance-cores and Efficient-cores, optimized for both heavy-duty and everyday tasks. AI capabilities help streamline operations and minimize waste, contributing to efficient power consumption and improved multitasking. The series supports advanced connectivity options, making it ideal for AI-intensive applications and immersive gaming experiences.
+
+
+
 ## Reproduce Our Results
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:

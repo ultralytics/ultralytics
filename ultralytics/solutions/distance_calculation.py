@@ -1,8 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import logging
 import math
 from pathlib import Path
-import logging
+
 import cv2
 
 from ultralytics.cfg import cfg2dict, check_dict_alignment
@@ -16,6 +17,7 @@ class DistanceCalculation:
     def __init__(self, **kwargs):
         """Initializes the DistanceCalculation class with the kwargs arguments."""
         import ast
+
         self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
         check_dict_alignment(self.args, kwargs)
         self.args.update(kwargs)
@@ -32,8 +34,8 @@ class DistanceCalculation:
         self.selected_boxes = {}
 
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        self.args['line_color'] = ast.literal_eval(self.args['line_color'])
-        self.args['centroid_color'] = ast.literal_eval(self.args['centroid_color'])
+        self.args["line_color"] = ast.literal_eval(self.args["line_color"])
+        self.args["centroid_color"] = ast.literal_eval(self.args["centroid_color"])
         logging.info("Ultralytics Solutions ✅ ", self.args)
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
@@ -94,7 +96,7 @@ class DistanceCalculation:
             (tuple): Distance in meters and millimeters.
         """
         pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
-        distance_m = pixel_distance / self.args['pixels_per_meter']
+        distance_m = pixel_distance / self.args["pixels_per_meter"]
         return distance_m, distance_m * 1000
 
     def start_process(self, im0, tracks):
@@ -110,10 +112,10 @@ class DistanceCalculation:
         """
         if tracks[0].boxes.id is not None:
             self.extract_tracks(tracks)
-            self.annotator = Annotator(im0, line_width=self.args['line_thickness'])
+            self.annotator = Annotator(im0, line_width=self.args["line_thickness"])
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
-                self.annotator.box_label(box, color=colors(int(cls), True), label=self.args['names'][int(cls)])
+                self.annotator.box_label(box, color=colors(int(cls), True), label=self.args["names"][int(cls)])
 
                 if len(self.selected_boxes) == 2:
                     for trk_id in self.selected_boxes.keys():
@@ -127,16 +129,16 @@ class DistanceCalculation:
 
                 distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
                 self.annotator.plot_distance_and_line(
-                    distance_m, distance_mm, self.centroids, self.args['line_color'], self.args['centroid_color']
+                    distance_m, distance_mm, self.centroids, self.args["line_color"], self.args["centroid_color"]
                 )
 
             self.centroids = []
 
         # Displays the current frame with annotations
-        if self.args['view_img'] and self.env_check:
-            cv2.namedWindow(self.args['window_name'])
-            cv2.setMouseCallback(self.args['window_name'], self.mouse_event_for_distance)
-            cv2.imshow(self.args['window_name'], im0)
+        if self.args["view_img"] and self.env_check:
+            cv2.namedWindow(self.args["window_name"])
+            cv2.setMouseCallback(self.args["window_name"], self.mouse_event_for_distance)
+            cv2.imshow(self.args["window_name"], im0)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

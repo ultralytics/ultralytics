@@ -22,7 +22,7 @@ RUN apt update \
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-RUN apt upgrade --no-install-recommends -y openssl tar
+RUN apt upgrade --no-install-recommends -y openssl tar && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
 WORKDIR /ultralytics

@@ -60,7 +60,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -114,7 +114,7 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 For more details, refer to the model [Training](../../modes/train.md) page.

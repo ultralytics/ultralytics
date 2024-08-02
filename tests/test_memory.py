@@ -1,7 +1,9 @@
 import os
 import sys
+
 import psutil
 import pytest
+
 from ultralytics import YOLO
 
 

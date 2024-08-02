@@ -20,6 +20,7 @@ class ObjectCounter:
     def __init__(self, **kwargs):
         """Initialize the object counter class with kwargs arguments."""
         import ast
+
         self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
         check_dict_alignment(self.args, kwargs)
         self.args.update(kwargs)
@@ -30,35 +31,35 @@ class ObjectCounter:
         self.count_ids = []
         self.class_wise_count = {}
         self.track_history = defaultdict(list)  # Tracks info
-        self.env_check = check_imshow(warn=True)     # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         print("Ultralytics Solutions ✅ ", self.args)
-        self.args['count_reg_color'] = ast.literal_eval(self.args['count_reg_color'])
-        self.args['count_txt_color'] = ast.literal_eval(self.args['count_txt_color'])
-        self.args['count_bg_color'] = ast.literal_eval(self.args['count_bg_color'])
+        self.args["count_reg_color"] = ast.literal_eval(self.args["count_reg_color"])
+        self.args["count_txt_color"] = ast.literal_eval(self.args["count_txt_color"])
+        self.args["count_bg_color"] = ast.literal_eval(self.args["count_bg_color"])
 
-        if self.args['track_color'] is not None:
-            self.args['track_color'] = ast.literal_eval(self.args['track_color'])
+        if self.args["track_color"] is not None:
+            self.args["track_color"] = ast.literal_eval(self.args["track_color"])
 
         # Initialize counting region
-        if len(self.args['reg_pts']) == 2:
+        if len(self.args["reg_pts"]) == 2:
             print("Line Counter Initiated.")
-            self.counting_region = LineString(self.args['reg_pts'])
-        elif len(self.args['reg_pts']) >= 3:
+            self.counting_region = LineString(self.args["reg_pts"])
+        elif len(self.args["reg_pts"]) >= 3:
             print("Polygon Counter Initiated.")
-            self.counting_region = Polygon(self.args['reg_pts'])
+            self.counting_region = Polygon(self.args["reg_pts"])
         else:
             print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons.")
             print("Using Line Counter Now")
-            self.counting_region = LineString(self.args['reg_pts'])
+            self.counting_region = LineString(self.args["reg_pts"])
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
 
         # Annotator Init and region drawing
-        self.annotator = Annotator(self.im0, self.args['line_thickness'], self.args['names'])
+        self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
         # Draw region or line
         self.annotator.draw_region(
-            reg_pts=self.args['reg_pts'], color=self.args['count_reg_color'], thickness=self.args['region_thickness']
+            reg_pts=self.args["reg_pts"], color=self.args["count_reg_color"], thickness=self.args["region_thickness"]
         )
 
         if tracks[0].boxes.id is not None:
@@ -74,8 +75,8 @@ class ObjectCounter:
                 )
 
                 # Store class info
-                if self.args['names'][cls] not in self.class_wise_count:
-                    self.class_wise_count[self.args['names'][cls]] = {"IN": 0, "OUT": 0}
+                if self.args["names"][cls] not in self.class_wise_count:
+                    self.class_wise_count[self.args["names"][cls]] = {"IN": 0, "OUT": 0}
 
                 # Draw Tracks
                 track_line = self.track_history[track_id]
@@ -84,17 +85,19 @@ class ObjectCounter:
                     track_line.pop(0)
 
                 # Draw track trails
-                if self.args['draw_tracks']:
+                if self.args["draw_tracks"]:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=colors(int(track_id), True) if self.args['track_color'] is None else self.args['track_color'],
-                        track_thickness=self.args['track_thickness'],
+                        color=colors(int(track_id), True)
+                        if self.args["track_color"] is None
+                        else self.args["track_color"],
+                        track_thickness=self.args["track_thickness"],
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
                 # Count objects in any polygon
-                if len(self.args['reg_pts']) >= 3:
+                if len(self.args["reg_pts"]) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
 
                     if prev_position is not None and is_inside and track_id not in self.count_ids:
@@ -102,13 +105,13 @@ class ObjectCounter:
 
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                             self.in_counts += 1
-                            self.class_wise_count[self.args['names'][cls]]["IN"] += 1
+                            self.class_wise_count[self.args["names"][cls]]["IN"] += 1
                         else:
                             self.out_counts += 1
-                            self.class_wise_count[self.args['names'][cls]]["OUT"] += 1
+                            self.class_wise_count[self.args["names"][cls]]["OUT"] += 1
 
                 # Count objects using line
-                elif len(self.args['reg_pts']) == 2:
+                elif len(self.args["reg_pts"]) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
                         if distance < self.args.line_dist_thresh and track_id not in self.count_ids:
@@ -125,25 +128,25 @@ class ObjectCounter:
 
         for key, value in self.class_wise_count.items():
             if value["IN"] != 0 or value["OUT"] != 0:
-                if not self.args['view_in_counts'] and not self.args['view_out_counts']:
+                if not self.args["view_in_counts"] and not self.args["view_out_counts"]:
                     continue
-                elif not self.args['view_in_counts']:
+                elif not self.args["view_in_counts"]:
                     labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
-                elif not self.args['view_out_counts']:
+                elif not self.args["view_out_counts"]:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
                 else:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
             self.annotator.display_analytics(
-                self.im0, labels_dict, (self.args['count_txt_color']), (self.args['count_bg_color']), 10
+                self.im0, labels_dict, (self.args["count_txt_color"]), (self.args["count_bg_color"]), 10
             )
 
     def display_frames(self):
         """Displays the current frame with annotations and regions in a window."""
         if self.env_check:
-            cv2.namedWindow(self.args['window_name'])
-            cv2.imshow(self.args['window_name'], self.im0)
+            cv2.namedWindow(self.args["window_name"])
+            cv2.imshow(self.args["window_name"], self.im0)
             # Break Window
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
@@ -159,7 +162,7 @@ class ObjectCounter:
         self.im0 = im0  # store image
         self.extract_and_process_tracks(tracks)  # draw region even if no objects
 
-        if self.args['view_img']:
+        if self.args["view_img"]:
             self.display_frames()
         return self.im0
 

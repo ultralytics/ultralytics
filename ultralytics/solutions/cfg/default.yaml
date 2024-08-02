@@ -7,7 +7,7 @@ window_name: "Ultralytics Solutions" # (str) name of the window displaying the o
 line_thickness: &line_thickness 2 # (int) thickness of lines drawn on the image
 track_thickness: 2 # (int) thickness of tracking lines
 draw_tracks: False # (bool) enable or disable drawing of tracks
-track_color: None # (None or tuple) color of tracking lines
+track_color: None # (None or list) color of tracking lines
 
 # Object counter settings -----------------------------------------------------------------
 reg_pts: &reg_pts "[(20, 400), (1260, 400)]" # (list) points defining a counting region

@@ -77,6 +77,7 @@ class AutoBackend(nn.Module):
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
     """
+
     @torch.no_grad()
     def __init__(
         self,
@@ -123,7 +124,9 @@ class AutoBackend(nn.Module):
             ncnn,
             self.triton,
         ) = self._model_type(w)
-        self.fp16 &= self.pt or self.jit or self.onnx or self.xml or self.engine or self.nn_module or self.triton  # FP16
+        self.fp16 &= (
+            self.pt or self.jit or self.onnx or self.xml or self.engine or self.nn_module or self.triton
+        )  # FP16
         self.nhwc = coreml or self.saved_model or self.pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         self.stride = 32  # default stride
         model, metadata = None, None
@@ -424,7 +427,7 @@ class AutoBackend(nn.Module):
 
         # Check names
         if "names" not in locals():  # names missing
-            self.names = default_class_names(data) # todo: check this 
+            self.names = default_class_names(data)  # todo: check this
         self.names = check_class_names(self.names)
 
         # Disable gradients

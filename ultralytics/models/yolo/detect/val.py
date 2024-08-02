@@ -49,15 +49,15 @@ class DetectionValidator(BaseValidator):
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        batch['img'] = batch['img'][:, :1, :, :] # 避免val报错
+        batch["images"] = batch["images"].to(self.device, non_blocking=True)
+        batch["images"] = (batch["images"].half() if self.args.half else batch["images"].float()) / 255
+        batch['images'] = batch['images'][:, :1, :, :] # 避免val报错
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
         if self.args.save_hybrid:
-            height, width = batch["img"].shape[2:]
-            nb = len(batch["img"])
+            height, width = batch["images"].shape[2:]
+            nb = len(batch["images"])
             bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
             self.lb = [
                 torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
@@ -108,7 +108,7 @@ class DetectionValidator(BaseValidator):
         cls = batch["cls"][idx].squeeze(-1)
         bbox = batch["bboxes"][idx]
         ori_shape = batch["ori_shape"][si]
-        imgsz = batch["img"].shape[2:]
+        imgsz = batch["images"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
@@ -247,7 +247,7 @@ class DetectionValidator(BaseValidator):
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
         plot_images(
-            batch["img"],
+            batch["images"],
             batch["batch_idx"],
             batch["cls"].squeeze(-1),
             batch["bboxes"],
@@ -260,7 +260,7 @@ class DetectionValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
         plot_images(
-            batch["img"],
+            batch["images"],
             *output_to_target(preds, max_det=self.args.max_det),
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

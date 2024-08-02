@@ -48,8 +48,8 @@ class ClassificationValidator(BaseValidator):
 
     def preprocess(self, batch):
         """Preprocesses input batch and returns it."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["images"] = batch["images"].to(self.device, non_blocking=True)
+        batch["images"] = batch["images"].half() if self.args.half else batch["images"].float()
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
@@ -93,8 +93,8 @@ class ClassificationValidator(BaseValidator):
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
         plot_images(
-            images=batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
+            images=batch["images"],
+            batch_idx=torch.arange(len(batch["images"])),
             cls=batch["cls"].view(-1),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
@@ -104,8 +104,8 @@ class ClassificationValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
         plot_images(
-            batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
+            batch["images"],
+            batch_idx=torch.arange(len(batch["images"])),
             cls=torch.argmax(preds, dim=1),
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,

@@ -4,7 +4,7 @@ Run prediction on images, videos, directories, globs, YouTube, webcam, streams, 
 
 Usage - sources:
     $ yolo mode=predict model=yolov8n.pt source=0                               # webcam
-                                                img.jpg                         # image
+                                                images.jpg                         # image
                                                 vid.mp4                         # video
                                                 screen                          # screenshot
                                                 path/                           # directory

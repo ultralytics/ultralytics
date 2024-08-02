@@ -53,7 +53,7 @@ yolo export model=yolov8n.pt imgsz=640 format=tflite int8
 Locate the Int8 TFLite model in `yolov8n_saved_model`. Choose `best_full_integer_quant` or verify quantization at [Netron](https://netron.app/). Then, execute the following in your terminal:
 
 ```bash
-python main.py --model yolov8n_full_integer_quant.tflite --img image.jpg --conf-thres 0.5 --iou-thres 0.5
+python main.py --model yolov8n_full_integer_quant.tflite --images image.jpg --conf-thres 0.5 --iou-thres 0.5
 ```
 
 Replace `best_full_integer_quant.tflite` with your model file's path, `image.jpg` with your input image, and adjust the confidence (conf-thres) and IoU thresholds (iou-thres) as necessary.

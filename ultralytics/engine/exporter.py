@@ -481,7 +481,7 @@ class Exporter:
 
             def transform_fn(data_item) -> np.ndarray:
                 """Quantization transform function."""
-                data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+                data_item: torch.Tensor = data_item["images"] if isinstance(data_item, dict) else data_item
                 assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
@@ -767,7 +767,7 @@ class Exporter:
                 def get_batch(self, names) -> list:
                     """Get the next batch to use for calibration, as a list of device memory pointers."""
                     try:
-                        im0s = next(self.data_iter)["img"] / 255.0
+                        im0s = next(self.data_iter)["images"] / 255.0
                         im0s = im0s.to("cuda") if im0s.device.type == "cpu" else im0s
                         return [int(im0s.data_ptr())]
                     except StopIteration:
@@ -867,7 +867,7 @@ class Exporter:
             verbosity = "info"
             if self.args.data:
                 f.mkdir()
-                images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
+                images = [batch["images"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
                 images = torch.cat(images, 0).float()
                 # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
                 # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]

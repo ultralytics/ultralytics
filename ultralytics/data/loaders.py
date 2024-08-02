@@ -245,7 +245,7 @@ class LoadScreenshots:
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
         self.frame += 1
-        return [str(self.screen)], [im0], [s]  # screen, img, string
+        return [str(self.screen)], [im0], [s]  # screen, images, string
 
 
 class LoadImagesAndVideos:
@@ -274,7 +274,7 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with images/vid/dir on each line
             parent = Path(path).parent
             path = Path(path).read_text().splitlines()  # list of sources
         files = []

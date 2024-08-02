@@ -281,7 +281,9 @@ class BaseModel(nn.Module):
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
-        preds = self.forward(batch["img"]) if preds is None else preds
+        # import ipdb;ipdb.set_trace()
+        batch['images'] = batch['images'][:, :1, :, :]
+        preds = self.forward(batch["images"]) if preds is None else preds
         return self.criterion(preds, batch)
 
     def init_criterion(self):
@@ -527,7 +529,7 @@ class RTDETRDetectionModel(DetectionModel):
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
 
-        img = batch["img"][:,:1,:,:]
+        img = batch["images"]
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
         batch_idx = batch["batch_idx"]
@@ -677,7 +679,7 @@ class WorldModel(DetectionModel):
             self.criterion = self.init_criterion()
 
         if preds is None:
-            preds = self.forward(batch["img"], txt_feats=batch["txt_feats"])
+            preds = self.forward(batch["images"], txt_feats=batch["txt_feats"])
         return self.criterion(preds, batch)
 
 

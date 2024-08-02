@@ -57,7 +57,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
-        images = batch["img"]
+        images = batch["images"]
         kpts = batch["keypoints"]
         cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]

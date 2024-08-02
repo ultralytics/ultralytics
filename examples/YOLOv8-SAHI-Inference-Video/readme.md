@@ -30,10 +30,10 @@ Here are the basic commands for running the inference:
 
 ```bash
 #if you want to save results
-python yolov8_sahi.py --source "path/to/video.mp4" --save-img
+python yolov8_sahi.py --source "path/to/video.mp4" --save-images
 
 #if you want to change model file
-python yolov8_sahi.py --source "path/to/video.mp4" --save-img --weights "yolov8n.pt"
+python yolov8_sahi.py --source "path/to/video.mp4" --save-images --weights "yolov8n.pt"
 ```
 
 ## Usage Options

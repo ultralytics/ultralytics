@@ -135,13 +135,13 @@ class BOTSORT(BYTETracker):
 
     Methods:
         get_kalmanfilter(): Returns an instance of KalmanFilterXYWH for object tracking.
-        init_track(dets, scores, cls, img): Initialize track with detections, scores, and classes.
+        init_track(dets, scores, cls, images): Initialize track with detections, scores, and classes.
         get_dists(tracks, detections): Get distances between tracks and detections using IoU and (optionally) ReID.
         multi_predict(tracks): Predict and track multiple objects with YOLOv8 model.
 
     Usage:
         bot_sort = BOTSORT(args, frame_rate)
-        bot_sort.init_track(dets, scores, cls, img)
+        bot_sort.init_track(dets, scores, cls, images)
         bot_sort.multi_predict(tracks)
 
     Note:

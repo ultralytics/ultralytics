@@ -116,7 +116,7 @@ python train.py --freeze 24
 We train YOLOv5m on VOC on both of the above scenarios, along with a default model (no freezing), starting from the official COCO pretrained `--weights yolov5m.pt`:
 
 ```bash
-train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml
+train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --images 512 --hyp hyp.finetune.yaml
 ```
 
 ### Accuracy Comparison

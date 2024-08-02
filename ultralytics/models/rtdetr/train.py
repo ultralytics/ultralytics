@@ -93,7 +93,7 @@ class RTDETRTrainer(DetectionTrainer):
             (dict): Preprocessed batch.
         """
         batch = super().preprocess_batch(batch)
-        bs = len(batch["img"])
+        bs = len(batch["images"])
         batch_idx = batch["batch_idx"]
         gt_bbox, gt_class = [], []
         for i in range(bs):

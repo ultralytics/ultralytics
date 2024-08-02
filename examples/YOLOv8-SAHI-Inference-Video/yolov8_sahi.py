@@ -95,8 +95,8 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolov8n.pt", help="initial weights path")
     parser.add_argument("--source", type=str, required=True, help="video file path")
-    parser.add_argument("--view-img", action="store_true", help="show results")
-    parser.add_argument("--save-img", action="store_true", help="save results")
+    parser.add_argument("--view-images", action="store_true", help="show results")
+    parser.add_argument("--save-images", action="store_true", help="save results")
     parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
     return parser.parse_args()
 

@@ -90,7 +90,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images and classes."""
-        batch["img"] = batch["img"].to(self.device)
+        batch["images"] = batch["images"].to(self.device)
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
@@ -142,8 +142,8 @@ class ClassificationTrainer(BaseTrainer):
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""
         plot_images(
-            images=batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
+            images=batch["images"],
+            batch_idx=torch.arange(len(batch["images"])),
             cls=batch["cls"].view(-1),  # warning: use .view(), not .squeeze() for Classify models
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,

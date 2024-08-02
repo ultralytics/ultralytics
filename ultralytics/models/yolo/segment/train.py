@@ -47,7 +47,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     def plot_training_samples(self, batch, ni):
         """Creates a plot of training sample images with labels and box coordinates."""
         plot_images(
-            batch["img"],
+            batch["images"],
             batch["batch_idx"],
             batch["cls"].squeeze(-1),
             batch["bboxes"],

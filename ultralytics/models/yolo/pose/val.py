@@ -199,7 +199,7 @@ class PoseValidator(DetectionValidator):
     def plot_val_samples(self, batch, ni):
         """Plots and saves validation set samples with predicted bounding boxes and keypoints."""
         plot_images(
-            batch["img"],
+            batch["images"],
             batch["batch_idx"],
             batch["cls"].squeeze(-1),
             batch["bboxes"],
@@ -214,7 +214,7 @@ class PoseValidator(DetectionValidator):
         """Plots predictions for YOLO model."""
         pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
         plot_images(
-            batch["img"],
+            batch["images"],
             *output_to_target(preds, max_det=self.args.max_det),
             kpts=pred_kpts,
             paths=batch["im_file"],

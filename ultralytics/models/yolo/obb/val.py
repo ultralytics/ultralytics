@@ -85,7 +85,7 @@ class OBBValidator(DetectionValidator):
         cls = batch["cls"][idx].squeeze(-1)
         bbox = batch["bboxes"][idx]
         ori_shape = batch["ori_shape"][si]
-        imgsz = batch["img"].shape[2:]
+        imgsz = batch["images"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
@@ -103,7 +103,7 @@ class OBBValidator(DetectionValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
         plot_images(
-            batch["img"],
+            batch["images"],
             *output_to_rotated_target(preds, max_det=self.args.max_det),
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

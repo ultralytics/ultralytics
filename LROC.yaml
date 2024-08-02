@@ -1,6 +1,6 @@
 path: C:\Users\Administrator\Desktop\yolo\ultralytics\datasets\LROC
-train: img
-val: txt
+train: images
+val: images
 test:
 
 # Classes

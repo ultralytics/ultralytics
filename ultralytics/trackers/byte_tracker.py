@@ -227,9 +227,9 @@ class BYTETracker:
         kalman_filter (object): Kalman Filter object.
 
     Methods:
-        update(results, img=None): Updates object tracker with new detections.
+        update(results, images=None): Updates object tracker with new detections.
         get_kalmanfilter(): Returns a Kalman filter object for tracking bounding boxes.
-        init_track(dets, scores, cls, img=None): Initialize object tracking with detections.
+        init_track(dets, scores, cls, images=None): Initialize object tracking with detections.
         get_dists(tracks, detections): Calculates the distance between tracks and detections.
         multi_predict(tracks): Predicts the location of tracks.
         reset_id(): Resets the ID counter of STrack.

@@ -85,8 +85,8 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
 
         # NOTE: add text features
         texts = list(itertools.chain(*batch["texts"]))
-        text_token = self.clip.tokenize(texts).to(batch["img"].device)
-        txt_feats = self.text_model.encode_text(text_token).to(dtype=batch["img"].dtype)  # torch.float32
+        text_token = self.clip.tokenize(texts).to(batch["images"].device)
+        txt_feats = self.text_model.encode_text(text_token).to(dtype=batch["images"].dtype)  # torch.float32
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

@@ -24,8 +24,8 @@ class NASPredictor(BasePredictor):
 
         model = NAS('yolo_nas_s')
         predictor = model.predictor
-        # Assumes that raw_preds, img, orig_imgs are available
-        results = predictor.postprocess(raw_preds, img, orig_imgs)
+        # Assumes that raw_preds, images, orig_imgs are available
+        results = predictor.postprocess(raw_preds, images, orig_imgs)
         ```
 
     Note:

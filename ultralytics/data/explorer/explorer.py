@@ -127,7 +127,7 @@ class Explorer:
                 dataset,
                 data_info,
                 self.model,
-                exclude_keys=["img", "ratio_pad", "resized_shape", "ori_shape", "batch_idx"],
+                exclude_keys=["images", "ratio_pad", "resized_shape", "ori_shape", "batch_idx"],
             )
         )
 
@@ -163,14 +163,14 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.query(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.query(images='https://ultralytics.com/images/zidane.jpg')
             ```
         """
         if self.table is None:
             raise ValueError("Table is not created. Please create the table first.")
         if isinstance(imgs, str):
             imgs = [imgs]
-        assert isinstance(imgs, list), f"img must be a string or a list of strings. Got {type(imgs)}"
+        assert isinstance(imgs, list), f"images must be a string or a list of strings. Got {type(imgs)}"
         embeds = self.model.embed(imgs)
         # Get avg if multiple images are passed (len > 1)
         embeds = torch.mean(torch.stack(embeds), 0).cpu().numpy() if len(embeds) > 1 else embeds[0].cpu().numpy()
@@ -271,7 +271,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.get_similar(images='https://ultralytics.com/images/zidane.jpg')
             ```
         """
         assert return_type in {"pandas", "arrow"}, f"Return type should be `pandas` or `arrow`, but got {return_type}"
@@ -306,7 +306,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.plot_similar(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.plot_similar(images='https://ultralytics.com/images/zidane.jpg')
             ```
         """
         similar = self.get_similar(img, idx, limit, return_type="arrow")
@@ -424,9 +424,9 @@ class Explorer:
     ) -> List[np.ndarray]:
         """Determines whether to fetch images or indexes based on provided arguments and returns image paths."""
         if img is None and idx is None:
-            raise ValueError("Either img or idx must be provided.")
+            raise ValueError("Either images or idx must be provided.")
         if img is not None and idx is not None:
-            raise ValueError("Only one of img or idx must be provided.")
+            raise ValueError("Only one of images or idx must be provided.")
         if idx is not None:
             idx = idx if isinstance(idx, list) else [idx]
             img = self.table.to_lance().take(idx, columns=["im_file"]).to_pydict()["im_file"]

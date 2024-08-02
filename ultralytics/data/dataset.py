@@ -235,7 +235,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img":
+            if k == "images":
                 value = torch.stack(value, 0)
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                 value = torch.cat(value, 0)
@@ -466,7 +466,7 @@ class ClassificationDataset:
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+        return {"images": sample, "cls": j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

@@ -134,7 +134,7 @@ Select a pretrained model to start training from. Here we select [YOLOv5s](https
 Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size and either pretrained `--weights yolov5s.pt` (recommended), or randomly initialized `--weights '' --cfg yolov5s.yaml` (not recommended). Pretrained weights are auto-downloaded from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
+python train.py --images 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
 !!! Tip "Tip"
@@ -158,7 +158,7 @@ Getting started is easy:
 ```shell
 pip install comet_ml  # 1. install
 export COMET_API_KEY=<Your API Key>  # 2. paste API key
-python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt  # 3. train
+python train.py --images 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt  # 3. train
 ```
 
 To learn more about all the supported Comet features for this integration, check out the [Comet Tutorial](./comet_logging_integration.md). If you'd like to learn more about Comet, head over to our [documentation](https://bit.ly/yolov5-colab-comet-docs). Get started by trying out the Comet Colab Notebook: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
@@ -239,7 +239,7 @@ Training YOLOv5 on a custom dataset involves several steps:
 3. **Create Dataset Configuration**: Write a `dataset.yaml` file defining train/val paths and class names.
 4. **Train the Model**:
     ```bash
-    python train.py --img 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
+    python train.py --images 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
     ```
 
 ### What tools can I use to annotate my YOLOv5 dataset?

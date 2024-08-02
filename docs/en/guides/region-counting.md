@@ -58,7 +58,7 @@ Execute the following basic commands for inference.
 
 ```bash
 # Save results
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
+python yolov8_region_counter.py --source "path/to/video.mp4" --save-images
 
 # Run model on CPU
 python yolov8_region_counter.py --source "path/to/video.mp4" --device cpu
@@ -70,7 +70,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --weights "path/to/
 python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2
 
 # View results without saving
-python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
+python yolov8_region_counter.py --source "path/to/video.mp4" --view-images
 ```
 
 ### Optional Arguments
@@ -104,7 +104,7 @@ Follow these steps to run object counting in Ultralytics YOLOv8:
 
 2. Execute the region counting script:
     ```bash
-    python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
+    python yolov8_region_counter.py --source "path/to/video.mp4" --save-images
     ```
 
 For more options, visit the [Run Region Counting](#steps-to-run) section.

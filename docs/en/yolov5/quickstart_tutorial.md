@@ -44,7 +44,7 @@ Harness `detect.py` for versatile inference on various sources. It automatically
 
 ```bash
 python detect.py --weights yolov5s.pt --source 0                               # webcam
-                                               img.jpg                         # image
+                                               images.jpg                         # image
                                                vid.mp4                         # video
                                                screen                          # screenshot
                                                path/                           # directory

@@ -25,7 +25,7 @@ YOLOv5 has about 30 hyperparameters used for various training settings. These ar
 ```yaml
 # YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
 # Hyperparameters for low-augmentation COCO training from scratch
-# python train.py --batch 64 --cfg yolov5n6.yaml --weights '' --data coco.yaml --img 640 --epochs 300 --linear
+# python train.py --batch 64 --cfg yolov5n6.yaml --weights '' --data coco.yaml --images 640 --epochs 300 --linear
 # See tutorials for hyperparameter evolution https://github.com/ultralytics/yolov5#tutorials
 
 lr0: 0.01 # initial learning rate (SGD=1E-2, Adam=1E-3)

@@ -25,7 +25,7 @@ pip install -r requirements.txt  # install
 Before ensembling we want to establish the baseline performance of a single model. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or you own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```bash
-python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
+python val.py --weights yolov5x.pt --data coco.yaml --images 640 --half
 ```
 
 Output:
@@ -67,7 +67,7 @@ Multiple pretrained models may be ensembled together at test and inference time 
 - YOLOv5l6
 
 ```bash
-python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
+python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --images 640 --half
 ```
 
 Output:
@@ -108,7 +108,7 @@ Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
 Append extra models to the `--weights` argument to run ensemble inference:
 
 ```bash
-python detect.py --weights yolov5x.pt yolov5l6.pt --img 640 --source data/images
+python detect.py --weights yolov5x.pt yolov5l6.pt --images 640 --source data/images
 ```
 
 Output:

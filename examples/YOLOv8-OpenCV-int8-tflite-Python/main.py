@@ -33,7 +33,7 @@ class LetterBox:
 
         if labels is None:
             labels = {}
-        img = labels.get("img") if image is None else image
+        img = labels.get("images") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -71,7 +71,7 @@ class LetterBox:
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
-            labels["img"] = img
+            labels["images"] = img
             labels["resized_shape"] = new_shape
             return labels
         else:
@@ -81,7 +81,7 @@ class LetterBox:
         """Update labels."""
 
         labels["instances"].convert_bbox(format="xyxy")
-        labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
+        labels["instances"].denormalize(*labels["images"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
         labels["instances"].add_padding(padw, padh)
         return labels
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", type=str, default="yolov8n_full_integer_quant.tflite", help="Input your TFLite model."
     )
-    parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image.")
+    parser.add_argument("--images", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image.")
     parser.add_argument("--conf-thres", type=float, default=0.5, help="Confidence threshold")
     parser.add_argument("--iou-thres", type=float, default=0.5, help="NMS IoU threshold")
     args = parser.parse_args()

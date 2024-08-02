@@ -39,19 +39,19 @@ After the video begins playing, you can freely move the region anywhere within t
 
 ```bash
 # If you want to save results
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img
+python yolov8_region_counter.py --source "path/to/video.mp4" --save-images --view-images
 
 # If you want to run model on CPU
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img --device cpu
+python yolov8_region_counter.py --source "path/to/video.mp4" --save-images --view-images --device cpu
 
 # If you want to change model file
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/model.pt"
+python yolov8_region_counter.py --source "path/to/video.mp4" --save-images --weights "path/to/model.pt"
 
 # If you want to detect specific class (first class and third class)
 python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/model.pt"
 
 # If you don't want to save results
-python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
+python yolov8_region_counter.py --source "path/to/video.mp4" --view-images
 ```
 
 ## Usage Options

@@ -960,6 +960,24 @@ class Attention(nn.Module):
         return x
 
 
+class PSABlock(nn.Module):
+    """PSABlock module."""
+
+    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True) -> None:
+        """Initialization."""
+        super().__init__()
+
+        self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
+        self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
+        self.add = shortcut
+
+    def forward(self, x):
+        """'forward()' applies the PSABlock to input data."""
+        x = x + self.attn(x) if self.add else self.attn(x)
+        x = x + self.ffn(x) if self.add else self.ffn(x)
+        return x
+
+
 class PSA(nn.Module):
     """
     Position-wise Spatial Attention module.
@@ -977,15 +995,14 @@ class PSA(nn.Module):
         ffn (nn.Sequential): Feed-forward network module.
     """
 
-    def __init__(self, c1, c2, e=0.5):
+    def __init__(self, c1, c2, n=1, e=0.5):
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
-        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
 
     def forward(self, x):
         """
@@ -998,6 +1015,6 @@ class PSA(nn.Module):
             (torch.Tensor): Output tensor.
         """
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
-        b = b + self.attn(b)
-        b = b + self.ffn(b)
+        for m in self.m:
+            b = m(b)
         return self.cv2(torch.cat((a, b), 1))

@@ -44,7 +44,7 @@ To train a CNN model on the ImageWoof dataset for 100 epochs with an image size 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Dataset Variants
@@ -113,7 +113,7 @@ To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset usi
     === "CLI"
     
         ```bash
-        yolo detect train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details on available training arguments, refer to the [Training](../../modes/train.md) page.

@@ -18,6 +18,7 @@ from ultralytics.nn.modules import (
     SPPELAN,
     SPPF,
     PSA,
+    C2PSA,
     ADown,
     SCDown,
     Bottleneck,
@@ -881,6 +882,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SPP,
             SPPF,
             PSA,
+            C2PSA,
             DWConv,
             Focus,
             BottleneckCSP,
@@ -920,7 +922,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3f2, C3F2, C2k2, C3s2, C3n2, C3k2, C3K2, C3m1, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3):
+            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3f2, C3F2, C2k2, C3s2, C3n2, C3k2, C3K2, C3m1, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, PSA, C2PSA):
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is AIFI:

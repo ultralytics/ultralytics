@@ -49,6 +49,7 @@ __all__ = (
     "C3m1",
     "SCDown",
     "PSA",
+    "C2PSA",
 )
 
 
@@ -1018,3 +1019,26 @@ class PSA(nn.Module):
         for m in self.m:
             b = m(b)
         return self.cv2(torch.cat((a, b), 1))
+
+
+class C2PSA(C2f):
+    """
+    Position-wise Spatial Attention module.
+
+    Args:
+        c1 (int): Number of input channels.
+        c2 (int): Number of output channels.
+        e (float): Expansion factor for the intermediate channels. Default is 0.5.
+
+    Attributes:
+        c (int): Number of intermediate channels.
+        cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        attn (Attention): Attention module for spatial attention.
+        ffn (nn.Sequential): Feed-forward network module.
+    """
+
+    def __init__(self, c1, c2, n=1, e=0.5):
+        assert c1 == c2
+        super().__init__(c1, c2, e=e)
+        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))

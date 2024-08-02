@@ -77,7 +77,6 @@ class AutoBackend(nn.Module):
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
     """
-
     @torch.no_grad()
     def __init__(
         self,
@@ -104,54 +103,57 @@ class AutoBackend(nn.Module):
             verbose (bool): Enable verbose logging. Defaults to True.
         """
         super().__init__()
+        self.fp16 = fp16
+        self.dnn = dnn
         w = str(weights[0] if isinstance(weights, list) else weights)
-        nn_module = isinstance(weights, torch.nn.Module)
+        self.nn_module = isinstance(weights, torch.nn.Module)
         (
-            pt,
-            jit,
-            onnx,
-            xml,
-            engine,
+            self.pt,
+            self.jit,
+            self.onnx,
+            self.xml,
+            self.engine,
             coreml,
-            saved_model,
-            pb,
+            self.saved_model,
+            self.pb,
             tflite,
             edgetpu,
             tfjs,
             paddle,
             ncnn,
-            triton,
+            self.triton,
         ) = self._model_type(w)
-        fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
-        stride = 32  # default stride
+        self.fp16 &= self.pt or self.jit or self.onnx or self.xml or self.engine or self.nn_module or self.triton  # FP16
+        self.nhwc = coreml or self.saved_model or self.pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
+        self.stride = 32  # default stride
         model, metadata = None, None
 
         # Set device
+        self.device = device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
-        if cuda and not any([nn_module, pt, jit, engine, onnx]):  # GPU dataloader formats
-            device = torch.device("cpu")
+        if cuda and not any([self.nn_module, self.pt, self.jit, self.engine, self.onnx]):  # GPU dataloader formats
+            self.device = torch.device("cpu")
             cuda = False
 
         # Download if not local
-        if not (pt or triton or nn_module):
+        if not (self.pt or self.triton or self.nn_module):
             w = attempt_download_asset(w)
 
         # In-memory PyTorch model
-        if nn_module:
+        if self.nn_module:
             model = weights.to(device)
             if fuse:
                 model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
-            stride = max(int(model.stride.max()), 32)  # model stride
-            names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            model.half() if fp16 else model.float()
+            self.stride = max(int(model.stride.max()), 32)  # model stride
+            self.names = model.module.names if hasattr(model, "module") else model.names  # get class names
+            model.half() if self.fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
-            pt = True
+            self.pt = True
 
         # PyTorch
-        elif pt:
+        elif self.pt:
             from ultralytics.nn.tasks import attempt_load_weights
 
             model = attempt_load_weights(
@@ -159,28 +161,28 @@ class AutoBackend(nn.Module):
             )
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
-            stride = max(int(model.stride.max()), 32)  # model stride
-            names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            model.half() if fp16 else model.float()
+            self.stride = max(int(model.stride.max()), 32)  # model stride
+            self.names = model.module.names if hasattr(model, "module") else model.names  # get class names
+            model.half() if self.fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
 
         # TorchScript
-        elif jit:
+        elif self.jit:
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
-            model.half() if fp16 else model.float()
+            model.half() if self.fp16 else model.float()
             if extra_files["config.txt"]:  # load metadata dict
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
 
         # ONNX OpenCV DNN
-        elif dnn:
+        elif self.dnn:
             LOGGER.info(f"Loading {w} for ONNX OpenCV DNN inference...")
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
         # ONNX Runtime
-        elif onnx:
+        elif self.onnx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -194,7 +196,7 @@ class AutoBackend(nn.Module):
             metadata = session.get_modelmeta().custom_metadata_map
 
         # OpenVINO
-        elif xml:
+        elif self.xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
             check_requirements("openvino>=2024.0.0")
             import openvino as ov
@@ -208,18 +210,18 @@ class AutoBackend(nn.Module):
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
-            ov_compiled_model = core.compile_model(
+            self.inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
+            LOGGER.info(f"Using OpenVINO {self.inference_mode} mode for batch={batch} inference...")
+            self.ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name="AUTO",  # AUTO selects best available device, do not modify
-                config={"PERFORMANCE_HINT": inference_mode},
+                config={"PERFORMANCE_HINT": self.inference_mode},
             )
-            input_name = ov_compiled_model.input().get_any_name()
+            input_name = self.ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
 
         # TensorRT
-        elif engine:
+        elif self.engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
             try:
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
@@ -230,7 +232,7 @@ class AutoBackend(nn.Module):
             check_version(trt.__version__, ">=7.0.0", hard=True)
             check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
-                device = torch.device("cuda:0")
+                self.device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
             logger = trt.Logger(trt.Logger.INFO)
             # Read file
@@ -251,7 +253,7 @@ class AutoBackend(nn.Module):
 
             bindings = OrderedDict()
             output_names = []
-            fp16 = False  # default updated below
+            self.fp16 = False  # default updated below
             dynamic = False
             is_trt10 = not hasattr(model, "num_bindings")
             num = range(model.num_io_tensors) if is_trt10 else range(model.num_bindings)
@@ -265,7 +267,7 @@ class AutoBackend(nn.Module):
                             dynamic = True
                             context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
                             if dtype == np.float16:
-                                fp16 = True
+                                self.fp16 = True
                     else:
                         output_names.append(name)
                     shape = tuple(context.get_tensor_shape(name))
@@ -278,7 +280,7 @@ class AutoBackend(nn.Module):
                             dynamic = True
                             context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[1]))
                         if dtype == np.float16:
-                            fp16 = True
+                            self.fp16 = True
                     else:
                         output_names.append(name)
                     shape = tuple(context.get_binding_shape(i))
@@ -296,7 +298,7 @@ class AutoBackend(nn.Module):
             metadata = dict(model.user_defined_metadata)
 
         # TF SavedModel
-        elif saved_model:
+        elif self.saved_model:
             LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
             import tensorflow as tf
 
@@ -305,7 +307,7 @@ class AutoBackend(nn.Module):
             metadata = Path(w) / "metadata.yaml"
 
         # TF GraphDef
-        elif pb:  # https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
+        elif self.pb:  # https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f"Loading {w} for TensorFlow GraphDef inference...")
             import tensorflow as tf
 
@@ -387,7 +389,7 @@ class AutoBackend(nn.Module):
             metadata = w.parent / "metadata.yaml"
 
         # NVIDIA Triton Inference Server
-        elif triton:
+        elif self.triton:
             check_requirements("tritonclient[all]")
             from ultralytics.utils.triton import TritonRemoteModel
 
@@ -411,26 +413,26 @@ class AutoBackend(nn.Module):
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
                     metadata[k] = eval(v)
-            stride = metadata["stride"]
+            self.stride = metadata["stride"]
             task = metadata["task"]
             batch = metadata["batch"]
             imgsz = metadata["imgsz"]
-            names = metadata["names"]
+            self.names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
-        elif not (pt or triton or nn_module):
+        elif not (self.pt or self.triton or self.nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
         # Check names
         if "names" not in locals():  # names missing
-            names = default_class_names(data)
+            names = default_class_names(data) # todo: check this 
         names = check_class_names(names)
 
         # Disable gradients
-        if pt:
+        if self.pt:
             for p in model.parameters():
                 p.requires_grad = False
 
-        self.__dict__.update(locals())  # assign all variables to self
+        # self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, augment=False, visualize=False, embed=None):
         """

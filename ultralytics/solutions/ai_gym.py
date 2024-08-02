@@ -24,7 +24,7 @@ class AIGym:
         self.angle = []
         self.stage = []
         self.annotator = None
-        self.env_check = check_imshow(warn=True)    # Check if environment supports imshow
+        self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         print("Ultralytics Solutions ✅ ", self.args)
 
     def start_counting(self, im0, results):

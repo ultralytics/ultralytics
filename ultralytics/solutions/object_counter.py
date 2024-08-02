@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import logging
 from collections import defaultdict
 from pathlib import Path
 
@@ -31,7 +32,7 @@ class ObjectCounter:
         self.class_wise_count = {}
         self.track_history = defaultdict(list)  # Tracks info
         self.env_check = check_imshow(warn=True)     # Check if environment supports imshow
-        print("Ultralytics Solutions ✅ ", self.args)
+        logging.info("Ultralytics Solutions ✅ ", self.args)
         self.args['count_reg_color'] = ast.literal_eval(self.args['count_reg_color'])
         self.args['count_txt_color'] = ast.literal_eval(self.args['count_txt_color'])
         self.args['count_bg_color'] = ast.literal_eval(self.args['count_bg_color'])

@@ -27,8 +27,8 @@ class QueueManager:
 
         # Region & Line Information
         self.counting_region = (
-            Polygon(self.args['reg_pts'])
-            if len(self.args['reg_pts']) >= 3
+            Polygon(self.args["reg_pts"])
+            if len(self.args["reg_pts"]) >= 3
             else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
         self.im0 = None
@@ -36,15 +36,15 @@ class QueueManager:
         self.counts = 0
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        self.args['count_txt_color'] = ast.literal_eval(self.args['count_txt_color'])
-        self.args['count_reg_color'] = ast.literal_eval(self.args['count_reg_color'])
+        self.args["count_txt_color"] = ast.literal_eval(self.args["count_txt_color"])
+        self.args["count_reg_color"] = ast.literal_eval(self.args["count_reg_color"])
         print(f"Ultralytics Solutions ✅ {self.args}")
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
 
         # Initialize annotator and draw the queue region
-        self.annotator = Annotator(self.im0, self.args['line_thickness'], self.args['names'])
+        self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
@@ -65,7 +65,7 @@ class QueueManager:
                     track_line.pop(0)
 
                 # Draw track trails if enabled
-                if self.args['draw_tracks']:
+                if self.args["draw_tracks"]:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True)
@@ -77,7 +77,7 @@ class QueueManager:
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
                 # Check if the object is inside the counting region
-                if len(self.args['reg_pts']) >= 3:
+                if len(self.args["reg_pts"]) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
                     if prev_position is not None and is_inside:
                         self.counts += 1
@@ -87,9 +87,9 @@ class QueueManager:
         if label is not None:
             self.annotator.queue_counts_display(
                 label,
-                points=self.args['reg_pts'],
-                region_color=self.args['count_reg_color'],
-                txt_color=self.args['count_txt_color'],
+                points=self.args["reg_pts"],
+                region_color=self.args["count_reg_color"],
+                txt_color=self.args["count_txt_color"],
             )
 
         self.counts = 0  # Reset counts after displaying
@@ -97,12 +97,14 @@ class QueueManager:
 
     def display_frames(self):
         """Displays the current frame with annotations."""
-        if self.env_check and self.args['view_img']:
+        if self.env_check and self.args["view_img"]:
             self.annotator.draw_region(
-                reg_pts=self.args['reg_pts'], thickness=self.args['region_thickness'], color=self.args['count_reg_color']
+                reg_pts=self.args["reg_pts"],
+                thickness=self.args["region_thickness"],
+                color=self.args["count_reg_color"],
             )
-            cv2.namedWindow(self.args['window_name'])
-            cv2.imshow(self.args['window_name'], self.im0)
+            cv2.namedWindow(self.args["window_name"])
+            cv2.imshow(self.args["window_name"], self.im0)
             # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
@@ -118,7 +120,7 @@ class QueueManager:
         self.im0 = im0  # Store the current frame
         self.extract_and_process_tracks(tracks)  # Extract and process tracks
 
-        if self.args['view_img']:
+        if self.args["view_img"]:
             self.display_frames()  # Display the frame if enabled
         return self.im0
 

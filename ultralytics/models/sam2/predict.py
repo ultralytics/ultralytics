@@ -106,11 +106,8 @@ class SAM2Predictor(Predictor):
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
             # NOTE: merge "boxes" and "points" into a single "points" input
             # (where boxes are added at the beginning) to model.sam_prompt_encoder
-            if points is not None:
-                points = torch.cat([bboxes, points], dim=1)
-                labels = torch.cat([bbox_labels, labels], dim=1)
-            else:
-                points, labels = bboxes, bbox_labels
+            points = torch.cat([bboxes, points], dim=1) if points is not None else bboxes
+            labels = torch.cat([bbox_labels, labels], dim=1) if points is not None else bbox_labels
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 

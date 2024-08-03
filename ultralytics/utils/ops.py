@@ -551,7 +551,7 @@ def xyxyxyxy2xywhr(x):
 def xywhr2xyxyxyxy(x):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
-    be in degrees from 0 to 90.
+    be in radians from 0 to pi/4.
 
     Args:
         x (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).

@@ -54,7 +54,7 @@ I have read the CLA Document and I sign the CLA
 
 When adding new functions or classes, include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This helps ensure your contributions are easy to understand and maintain.
 
-#### "Google-style"
+#### Google-style
 
 This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
 
@@ -78,7 +78,7 @@ def example_function(arg1, arg2=4):
     return False
 ```
 
-#### "Google-style with type hints"
+#### Google-style with type hints
 
 This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
 
@@ -102,7 +102,7 @@ def example_function(arg1: int, arg2: int = 4) -> bool:
     return False
 ```
 
-#### "Single-line"
+#### Single-line
 
 Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes and be a complete sentence starting with a capital letter and ending with a period.
 

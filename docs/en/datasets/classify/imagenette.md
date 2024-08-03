@@ -47,7 +47,7 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -82,7 +82,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
+        yolo classify train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
         ```
 
 !!! Example "Train Example with ImageNette320"
@@ -103,7 +103,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette320
-        yolo detect train data=imagenette320 model=yolov8n-cls.pt epochs=100 imgsz=320
+        yolo classify train data=imagenette320 model=yolov8n-cls.pt epochs=100 imgsz=320
         ```
 
 These smaller versions of the dataset allow for rapid iterations during the development process while still providing valuable and realistic image classification tasks.
@@ -140,7 +140,7 @@ To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details, see the [Training](../../modes/train.md) documentation page.

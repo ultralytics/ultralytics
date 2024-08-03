@@ -11,7 +11,6 @@ from functools import partial
 import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
-
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
@@ -126,6 +125,24 @@ def _build_sam(
     checkpoint=None,
     mobile_sam=False,
 ):
+    """
+    Builds a Segment Anything Model (SAM) with specified encoder parameters.
+
+    Args:
+        encoder_embed_dim (int | List[int]): Embedding dimension for the encoder.
+        encoder_depth (int | List[int]): Depth of the encoder.
+        encoder_num_heads (int | List[int]): Number of attention heads in the encoder.
+        encoder_global_attn_indexes (List[int] | None): Indexes for global attention in the encoder.
+        checkpoint (str | None): Path to the model checkpoint file.
+        mobile_sam (bool): Whether to build a Mobile-SAM model.
+
+    Returns:
+        (SAMModel): A Segment Anything Model instance with the specified architecture.
+
+    Examples:
+        >>> sam = _build_sam(768, 12, 12, [2, 5, 8, 11])
+        >>> sam = _build_sam([64, 128, 160, 320], [2, 2, 6, 2], [2, 4, 5, 10], None, mobile_sam=True)
+    """
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
@@ -207,6 +224,26 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
+    """
+    Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
+
+    Args:
+        encoder_embed_dim (int): Embedding dimension for the encoder.
+        encoder_stages (List[int]): Number of blocks in each stage of the encoder.
+        encoder_num_heads (int): Number of attention heads in the encoder.
+        encoder_global_att_blocks (List[int]): Indices of global attention blocks in the encoder.
+        encoder_backbone_channel_list (List[int]): Channel dimensions for each level of the encoder backbone.
+        encoder_window_spatial_size (List[int]): Spatial size of the window for position embeddings.
+        encoder_window_spec (List[int]): Window specifications for each stage of the encoder.
+        checkpoint (str | None): Path to the checkpoint file for loading pre-trained weights.
+
+    Returns:
+        (SAM2Model): A configured and initialized SAM2 model.
+
+    Examples:
+        >>> sam2_model = _build_sam2(encoder_embed_dim=96, encoder_stages=[1, 2, 7, 2])
+        >>> sam2_model.eval()
+    """
     image_encoder = ImageEncoder(
         trunk=Hiera(
             embed_dim=encoder_embed_dim,

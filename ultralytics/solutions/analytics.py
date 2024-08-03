@@ -127,10 +127,8 @@ class Analytics:
         """
 
         # Update line graph data
-        x_data = self.line.get_xdata()
-        y_data = self.line.get_ydata()
-        x_data = np.append(x_data, float(frame_number))
-        y_data = np.append(y_data, float(total_counts))
+        x_data = np.append(self.line.get_xdata(), float(frame_number))
+        y_data = np.append(self.line.get_ydata(), float(total_counts))
         self.line.set_data(x_data, y_data)
         self.ax.relim()
         self.ax.autoscale_view()

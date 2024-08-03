@@ -11,6 +11,7 @@ from functools import partial
 import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
+
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer

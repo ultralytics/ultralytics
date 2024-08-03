@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules import LayerNorm2d
+
 from .blocks import (
     Block,
     CXBlock,

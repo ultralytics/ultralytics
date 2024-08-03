@@ -84,10 +84,30 @@ except ImportError:
     thop = None
 
 
+def torchfx():
+    from torch.fx._symbolic_trace import is_fx_tracing
+
+    def decorator(func):
+        """Decorator to apply temporary rc parameters and backend to a function."""
+
+        def wrapper(self, x, *args, **kwargs):
+            """Sets rc parameters and backend, calls the original function, and restores the settings."""
+            if is_fx_tracing():
+                result = func(self, x=x)  # torch.fx does not work with `*args` and `**kwargs` function argument
+            else:
+                result = func(self, x=x, *args, **kwargs)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
-    def forward(self, x):
+    @torchfx()
+    def forward(self, x, *args, **kwargs):
         """
         Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
 
@@ -98,8 +118,8 @@ class BaseModel(nn.Module):
             (torch.Tensor): The output of the network.
         """
         if isinstance(x, dict):  # for cases of training and validating while training.
-            return self.loss(x)
-        return self.predict(x)
+            return self.loss(x, *args, **kwargs)
+        return self.predict(x, *args, **kwargs)
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
         """

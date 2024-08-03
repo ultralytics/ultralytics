@@ -27,8 +27,8 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
         ```bash
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of [detect, segment, classify]
-                MODE (required) is one of [train, val, predict, export, track]
+        Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                MODE (required) is one of [train, val, predict, export, track, benchmark]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
         See all ARGS in the full [Configuration Guide](cfg.md) or with `yolo cfg`
@@ -75,8 +75,8 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
-- `MODE` (required) is one of `[train, val, predict, export, track]`
+- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
+- `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
 
 !!! Warning "Warning"

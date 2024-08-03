@@ -69,7 +69,7 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -131,7 +131,7 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
     
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco-seg.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo segment train data=coco-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
 ### What are the key features of the COCO-Seg dataset?

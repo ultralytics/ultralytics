@@ -51,6 +51,22 @@ auto_annotate(  # (1)!
 
 - Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
 
+### Convert Segmentation Masks into YOLO Format
+
+![Segmentation Masks to YOLO Format](https://github.com/user-attachments/assets/1a823fc1-f3a1-4dd5-83e7-0b209df06fc3)
+
+Use to convert a dataset of segmentation mask images to the `YOLO` segmentation format.
+This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+
+The converted masks will be saved in the specified output directory.
+
+```python
+from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+# For COCO dataset we have 80 classes
+convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
+```
+
 ### Convert COCO into YOLO Format
 
 Use to convert COCO JSON annotations into proper YOLO format. For object detection (bounding box) datasets, `use_segments` and `use_keypoints` should both be `False`

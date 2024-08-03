@@ -1077,17 +1077,17 @@ class REAttention(nn.Module):
 class PatchEmbed(nn.Module):
     """
     Image to Patch Embedding module.
-    
+
     This module converts an input image into a sequence of patch embeddings using a convolutional layer.
     It is commonly used as the first layer in vision transformer architectures to transform image data
     into a suitable format for subsequent transformer blocks.
-    
+
     Attributes:
         proj (nn.Conv2d): Convolutional layer for projecting image patches to embeddings.
-    
+
     Methods:
         forward: Applies patch embedding to the input tensor.
-    
+
     Examples:
         >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
         >>> x = torch.randn(1, 3, 224, 224)

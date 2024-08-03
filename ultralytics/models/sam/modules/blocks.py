@@ -11,13 +11,26 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 
 from ultralytics.nn.modules import MLP, LayerNorm2d, MLPBlock
-
 from .transformer import Attention, TwoWayAttentionBlock, TwoWayTransformer
 from .utils import add_decomposed_rel_pos, apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
 
 
 class DropPath(nn.Module):
-    """Implements stochastic depth regularization for neural networks during training."""
+    """
+    Implements stochastic depth regularization for neural networks during training.
+
+    Attributes:
+        drop_prob (float): Probability of dropping a path during training.
+        scale_by_keep (bool): Whether to scale the output by the keep probability.
+
+    Methods:
+        forward: Applies stochastic depth to input tensor during training, with optional scaling.
+
+    Examples:
+        >>> drop_path = DropPath(drop_prob=0.2, scale_by_keep=True)
+        >>> x = torch.randn(32, 64, 224, 224)
+        >>> output = drop_path(x)
+    """
 
     def __init__(self, drop_prob=0.0, scale_by_keep=True):
         """Initialize DropPath module with specified drop probability and scaling option."""
@@ -38,7 +51,26 @@ class DropPath(nn.Module):
 
 
 class MaskDownSampler(nn.Module):
-    """Downsamples and embeds masks using convolutional layers and layer normalization for efficient processing."""
+    """
+    Downsamples and embeds masks using convolutional layers and layer normalization for efficient processing.
+
+    This class implements a mask downsampler module that progressively downsamples input masks and expands their
+    channel dimensions using convolutional layers, layer normalization, and activation functions.
+
+    Attributes:
+        encoder (nn.Sequential): A sequential container of convolutional layers, layer normalization, and
+            activation functions for downsampling and embedding masks.
+
+    Methods:
+        forward: Downsamples and encodes input mask to embed_dim channels.
+
+    Examples:
+        >>> mask_downsampler = MaskDownSampler(embed_dim=256, kernel_size=4, stride=4, padding=0, total_stride=16)
+        >>> input_mask = torch.randn(1, 1, 256, 256)
+        >>> output = mask_downsampler(input_mask)
+        >>> print(output.shape)
+        torch.Size([1, 256, 16, 16])
+    """
 
     def __init__(
         self,
@@ -82,11 +114,11 @@ class CXBlock(nn.Module):
     """
     ConvNeXt Block for efficient feature extraction in convolutional neural networks.
 
-    This block implements a modified version of the ConvNeXt architecture, offering two equivalent
-    implementations for improved performance and flexibility.
+    This block implements a modified version of the ConvNeXt architecture, offering improved performance and
+    flexibility in feature extraction.
 
     Attributes:
-        dwconv (nn.Conv2d): Depthwise convolution layer.
+        dwconv (nn.Conv2d): Depthwise or standard 2D convolution layer.
         norm (LayerNorm2d): Layer normalization applied to channels.
         pwconv1 (nn.Linear): First pointwise convolution implemented as a linear layer.
         act (nn.GELU): GELU activation function.
@@ -244,7 +276,7 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
     """
     A two-way attention block for performing self-attention and cross-attention in both directions.
 
-    This block extends the SAMTwoWayAttentionBlock and consists of four main components: self-attention on
+    This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on
     sparse inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and
     cross-attention from dense to sparse inputs.
 
@@ -317,9 +349,9 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
     """
     A Two-Way Transformer module for simultaneous attention to image and query points.
 
-    This class implements a specialized transformer decoder that attends to an input image using queries with
-    supplied positional embeddings. It is particularly useful for tasks like object detection, image
-    segmentation, and point cloud processing.
+    This class extends the TwoWayTransformer, implementing a specialized transformer decoder that attends to an
+    input image using queries with supplied positional embeddings. It is particularly useful for tasks like
+    object detection, image segmentation, and point cloud processing.
 
     Attributes:
         depth (int): Number of layers in the transformer.
@@ -334,10 +366,12 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         forward: Processes input image embeddings and query embeddings through the transformer.
 
     Examples:
-        >>> transformer = TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
+        >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
         >>> image_embedding = torch.randn(1, 256, 64, 64)
         >>> query_embedding = torch.randn(1, 100, 256)
         >>> output = transformer(image_embedding, query_embedding)
+        >>> print(output[0].shape, output[1].shape)
+        torch.Size([1, 100, 256]) torch.Size([1, 256, 64, 64])
     """
 
     def __init__(
@@ -405,8 +439,6 @@ class RoPEAttention(Attention):
         self,
         *args,
         rope_theta=10000.0,
-        # whether to repeat q rope to match k length
-        # this is needed for cross-attention to memories
         rope_k_repeat=False,
         feat_sizes=(32, 32),  # [w, h] for stride 16 feats at 512 resolution
         **kwargs,
@@ -417,7 +449,7 @@ class RoPEAttention(Attention):
         self.compute_cis = partial(compute_axial_cis, dim=self.internal_dim // self.num_heads, theta=rope_theta)
         freqs_cis = self.compute_cis(end_x=feat_sizes[0], end_y=feat_sizes[1])
         self.freqs_cis = freqs_cis
-        self.rope_k_repeat = rope_k_repeat
+        self.rope_k_repeat = rope_k_repeat  # repeat q rope to match k length, needed for cross-attention to memories
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor, num_k_exclude_rope: int = 0) -> Tensor:
         """Applies rotary position encoding and computes attention between query, key, and value tensors."""
@@ -477,7 +509,34 @@ def do_pool(x: torch.Tensor, pool: nn.Module, norm: nn.Module = None) -> torch.T
 
 
 class MultiScaleAttention(nn.Module):
-    """Implements multi-scale self-attention with optional query pooling for efficient feature extraction."""
+    """
+    Implements multi-scale self-attention with optional query pooling for efficient feature extraction.
+
+    This class provides a flexible implementation of multi-scale attention, allowing for optional
+    downsampling of query features through pooling. It's designed to enhance the model's ability to
+    capture multi-scale information in visual tasks.
+
+    Attributes:
+        dim (int): Input dimension of the feature map.
+        dim_out (int): Output dimension of the attention module.
+        num_heads (int): Number of attention heads.
+        scale (float): Scaling factor for dot-product attention.
+        q_pool (nn.Module | None): Optional pooling module for query features.
+        qkv (nn.Linear): Linear projection for query, key, and value.
+        proj (nn.Linear): Output projection.
+
+    Methods:
+        forward: Applies multi-scale attention to the input tensor.
+
+    Examples:
+        >>> import torch
+        >>> from torch import nn
+        >>> x = torch.randn(1, 64, 64, 256)
+        >>> msa = MultiScaleAttention(dim=256, dim_out=256, num_heads=8)
+        >>> output = msa(x)
+        >>> print(output.shape)
+        torch.Size([1, 64, 64, 256])
+    """
 
     def __init__(
         self,
@@ -530,7 +589,35 @@ class MultiScaleAttention(nn.Module):
 
 
 class MultiScaleBlock(nn.Module):
-    """Multiscale attention block with window partitioning and query pooling for efficient vision transformers."""
+    """
+    A multi-scale attention block with window partitioning and query pooling for efficient vision transformers.
+
+    This class implements a multi-scale attention mechanism with optional window partitioning and downsampling,
+    designed for use in vision transformer architectures.
+
+    Attributes:
+        dim (int): Input dimension of the block.
+        dim_out (int): Output dimension of the block.
+        norm1 (nn.Module): First normalization layer.
+        window_size (int): Size of the window for partitioning.
+        pool (nn.Module | None): Pooling layer for query downsampling.
+        q_stride (Tuple[int, int] | None): Stride for query pooling.
+        attn (MultiScaleAttention): Multi-scale attention module.
+        drop_path (nn.Module): Drop path layer for regularization.
+        norm2 (nn.Module): Second normalization layer.
+        mlp (MLP): Multi-layer perceptron module.
+        proj (nn.Linear | None): Projection layer for dimension mismatch.
+
+    Methods:
+        forward: Processes input tensor through the multi-scale block.
+
+    Examples:
+        >>> block = MultiScaleBlock(dim=256, dim_out=512, num_heads=8, window_size=7)
+        >>> x = torch.randn(1, 56, 56, 256)
+        >>> output = block(x)
+        >>> print(output.shape)
+        torch.Size([1, 28, 28, 512])
+    """
 
     def __init__(
         self,
@@ -617,7 +704,32 @@ class MultiScaleBlock(nn.Module):
 
 
 class PositionEmbeddingSine(nn.Module):
-    """Generates sinusoidal positional embeddings for 2D inputs like images."""
+    """
+    A module for generating sinusoidal positional embeddings for 2D inputs like images.
+
+    This class implements sinusoidal position encoding for 2D spatial positions, which can be used in
+    transformer-based models for computer vision tasks.
+
+    Attributes:
+        num_pos_feats (int): Number of positional features (half of the embedding dimension).
+        temperature (int): Temperature parameter for the sinusoidal functions.
+        normalize (bool): Whether to normalize the positional embeddings.
+        scale (float): Scaling factor for the embeddings when normalize is True.
+        cache (Dict): Cache for storing precomputed embeddings.
+
+    Methods:
+        _encode_xy: Encodes 2D positions using sine and cosine functions.
+        encode_boxes: Encodes box coordinates and dimensions into positional embeddings.
+        encode_points: Encodes 2D point coordinates with sinusoidal positional embeddings.
+        forward: Generates sinusoidal position embeddings for 2D inputs.
+
+    Examples:
+        >>> pos_emb = PositionEmbeddingSine(num_pos_feats=128)
+        >>> x = torch.randn(1, 3, 224, 224)
+        >>> embeddings = pos_emb(x)
+        >>> print(embeddings.shape)
+        torch.Size([1, 256, 224, 224])
+    """
 
     def __init__(
         self,
@@ -709,7 +821,27 @@ class PositionEmbeddingSine(nn.Module):
 
 
 class PositionEmbeddingRandom(nn.Module):
-    """Positional encoding using random spatial frequencies."""
+    """
+    Positional encoding using random spatial frequencies.
+
+    This class generates positional embeddings for input coordinates using random spatial frequencies. It is
+    particularly useful for transformer-based models that require position information.
+
+    Attributes:
+        positional_encoding_gaussian_matrix (torch.Tensor): A buffer containing random values for encoding.
+
+    Methods:
+        _pe_encoding: Positionally encodes points that are normalized to [0,1].
+        forward: Generates positional encoding for a grid of the specified size.
+        forward_with_coords: Positionally encodes points that are not normalized to [0,1].
+
+    Examples:
+        >>> pe = PositionEmbeddingRandom(num_pos_feats=64)
+        >>> size = (32, 32)
+        >>> encoding = pe(size)
+        >>> print(encoding.shape)
+        torch.Size([128, 32, 32])
+    """
 
     def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
         """Initializes a position embedding using random spatial frequencies."""
@@ -753,7 +885,31 @@ class PositionEmbeddingRandom(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer blocks with support of window attention and residual propagation blocks."""
+    """
+    Transformer block with support for window attention and residual propagation.
+
+    This class implements a transformer block that can use either global or windowed self-attention,
+    followed by a feed-forward network. It supports relative positional embeddings and is designed
+    for use in vision transformer architectures.
+
+    Attributes:
+        norm1 (nn.Module): First normalization layer.
+        attn (REAttention): Self-attention layer with optional relative positional encoding.
+        norm2 (nn.Module): Second normalization layer.
+        mlp (MLPBlock): Multi-layer perceptron block.
+        window_size (int): Size of attention window. If 0, global attention is used.
+
+    Methods:
+        forward: Processes input through the transformer block.
+
+    Examples:
+        >>> import torch
+        >>> block = Block(dim=256, num_heads=8, window_size=7)
+        >>> x = torch.randn(1, 56, 56, 256)
+        >>> output = block(x)
+        >>> print(output.shape)
+        torch.Size([1, 56, 56, 256])
+    """
 
     def __init__(
         self,
@@ -778,10 +934,8 @@ class Block(nn.Module):
             act_layer (nn.Module): Activation layer.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            window_size (int): Window size for window attention blocks. If it equals 0, then
-                use global attention.
-            input_size (tuple(int, int), None): Input resolution for calculating the relative
-                positional parameter size.
+            window_size (int): Window size for window attention blocks. If it equals 0, then use global attention.
+            input_size (tuple(int, int), None): Input resolution for calculating the relative positional parameter size.
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -818,7 +972,32 @@ class Block(nn.Module):
 
 
 class REAttention(nn.Module):
-    """Multi-head Attention block with relative position embeddings."""
+    """
+    Multi-head Attention block with relative position embeddings.
+
+    This class implements a multi-head attention mechanism with optional relative positional encodings.
+    It is designed for use in transformer-based architectures, particularly for vision tasks.
+
+    Attributes:
+        num_heads (int): Number of attention heads.
+        scale (float): Scaling factor for attention scores.
+        qkv (nn.Linear): Linear layer for computing query, key, and value projections.
+        proj (nn.Linear): Linear layer for final projection of attention output.
+        use_rel_pos (bool): Flag to enable relative positional encodings.
+        rel_pos_h (nn.Parameter): Relative positional encoding parameter for height dimension.
+        rel_pos_w (nn.Parameter): Relative positional encoding parameter for width dimension.
+
+    Methods:
+        forward: Computes the attention mechanism on the input tensor.
+
+    Examples:
+        >>> import torch
+        >>> x = torch.randn(1, 32, 32, 256)
+        >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
+        >>> output = attention(x)
+        >>> print(output.shape)
+        torch.Size([1, 32, 32, 256])
+    """
 
     def __init__(
         self,
@@ -837,8 +1016,7 @@ class REAttention(nn.Module):
             num_heads (int): Number of attention heads.
             qkv_bias (bool):  If True, add a learnable bias to query, key, value.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple(int, int), None): Input resolution for calculating the relative
-                positional parameter size.
+            input_size (tuple(int, int), None): Input resolution for calculating the relative positional parameter size.
         """
         super().__init__()
         self.num_heads = num_heads
@@ -874,7 +1052,25 @@ class REAttention(nn.Module):
 
 
 class PatchEmbed(nn.Module):
-    """Image to Patch Embedding."""
+    """
+    Image to Patch Embedding module.
+
+    This module converts an input image into a sequence of patch embeddings using a convolutional layer.
+
+    Attributes:
+        proj (nn.Conv2d): Convolutional layer for projecting image patches to embeddings.
+
+    Methods:
+        forward: Applies patch embedding to the input tensor.
+
+    Examples:
+        >>> import torch
+        >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
+        >>> x = torch.randn(1, 3, 224, 224)
+        >>> output = patch_embed(x)
+        >>> print(output.shape)
+        torch.Size([1, 768, 14, 14])
+    """
 
     def __init__(
         self,

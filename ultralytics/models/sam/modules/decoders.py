@@ -10,12 +10,14 @@ from ultralytics.nn.modules import MLP, LayerNorm2d
 
 class MaskDecoder(nn.Module):
     """
-    Decoder module for generating masks and their associated quality scores, using a transformer architecture to predict
-    masks given image and prompt embeddings.
-
+    Decoder module for generating masks and their associated quality scores using a transformer architecture.
+    
+    This class predicts masks given image and prompt embeddings, utilizing a transformer to process the inputs and
+    generate mask predictions along with their quality scores.
+    
     Attributes:
         transformer_dim (int): Channel dimension for the transformer module.
-        transformer (nn.Module): The transformer module used for mask prediction.
+        transformer (nn.Module): Transformer module used for mask prediction.
         num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
         iou_token (nn.Embedding): Embedding for the IoU token.
         num_mask_tokens (int): Number of mask tokens.
@@ -23,6 +25,16 @@ class MaskDecoder(nn.Module):
         output_upscaling (nn.Sequential): Neural network sequence for upscaling the output.
         output_hypernetworks_mlps (nn.ModuleList): Hypernetwork MLPs for generating masks.
         iou_prediction_head (nn.Module): MLP for predicting mask quality.
+    
+    Methods:
+        forward: Predicts masks given image and prompt embeddings.
+        predict_masks: Internal method for mask prediction.
+    
+    Examples:
+        >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer_module)
+        >>> masks, iou_pred = decoder(image_embeddings, image_pe, sparse_prompt_embeddings,
+        ...                           dense_prompt_embeddings, multimask_output=True)
+        >>> print(f"Predicted masks shape: {masks.shape}, IoU predictions shape: {iou_pred.shape}")
     """
 
     def __init__(
@@ -150,7 +162,48 @@ class MaskDecoder(nn.Module):
 
 
 class SAM2MaskDecoder(nn.Module):
-    """Transformer-based decoder predicting instance segmentation masks from image and prompt embeddings."""
+    """
+    Transformer-based decoder for predicting instance segmentation masks from image and prompt embeddings.
+    
+    This class extends the functionality of the MaskDecoder, incorporating additional features such as
+    high-resolution feature processing, dynamic multimask output, and object score prediction.
+    
+    Attributes:
+        transformer_dim (int): Channel dimension of the transformer.
+        transformer (nn.Module): Transformer used to predict masks.
+        num_multimask_outputs (int): Number of masks to predict when disambiguating masks.
+        iou_token (nn.Embedding): Embedding for IOU token.
+        num_mask_tokens (int): Total number of mask tokens.
+        mask_tokens (nn.Embedding): Embedding for mask tokens.
+        pred_obj_scores (bool): Whether to predict object scores.
+        obj_score_token (nn.Embedding): Embedding for object score token.
+        use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
+        output_upscaling (nn.Sequential): Upscaling layers for output.
+        use_high_res_features (bool): Whether to use high-resolution features.
+        conv_s0 (nn.Conv2d): Convolutional layer for high-resolution features (s0).
+        conv_s1 (nn.Conv2d): Convolutional layer for high-resolution features (s1).
+        output_hypernetworks_mlps (nn.ModuleList): List of MLPs for output hypernetworks.
+        iou_prediction_head (MLP): MLP for IOU prediction.
+        pred_obj_score_head (nn.Linear | MLP): Linear layer or MLP for object score prediction.
+        dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
+        dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
+        dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
+    
+    Methods:
+        forward: Predicts masks given image and prompt embeddings.
+        predict_masks: Predicts instance segmentation masks from image and prompt embeddings.
+        _get_stability_scores: Computes mask stability scores based on IoU between thresholds.
+        _dynamic_multimask_via_stability: Dynamically selects the most stable mask output.
+    
+    Examples:
+        >>> image_embeddings = torch.rand(1, 256, 64, 64)
+        >>> image_pe = torch.rand(1, 256, 64, 64)
+        >>> sparse_prompt_embeddings = torch.rand(1, 2, 256)
+        >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
+        >>> decoder = SAM2MaskDecoder(256, transformer)
+        >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
+        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+    """
 
     def __init__(
         self,

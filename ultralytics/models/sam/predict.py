@@ -34,22 +34,39 @@ from .build import build_sam
 
 class Predictor(BasePredictor):
     """
-    Predictor class for the Segment Anything Model (SAM), extending BasePredictor.
-
-    The class provides an interface for model inference tailored to image segmentation tasks.
-    With advanced architecture and promptable segmentation capabilities, it facilitates flexible and real-time
-    mask generation. The class is capable of working with various types of prompts such as bounding boxes,
-    points, and low-resolution masks.
-
+    Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
+    
+    This class extends BasePredictor and implements the Segment Anything Model (SAM) for advanced image 
+    segmentation tasks. It supports various input prompts like points, bounding boxes, and masks for 
+    fine-grained control over segmentation results.
+    
     Attributes:
-        cfg (dict): Configuration dictionary specifying model and task-related parameters.
-        overrides (dict): Dictionary containing values that override the default configuration.
-        _callbacks (dict): Dictionary of user-defined callback functions to augment behavior.
-        args (namespace): Namespace to hold command-line arguments or other operational variables.
-        im (torch.Tensor): Preprocessed input image tensor.
-        features (torch.Tensor): Extracted image features used for inference.
-        prompts (dict): Collection of various prompt types, such as bounding boxes and points.
-        segment_all (bool): Flag to control whether to segment all objects in the image or only specified ones.
+        args (SimpleNamespace): Configuration arguments for the predictor.
+        model (torch.nn.Module): The loaded SAM model.
+        device (torch.device): The device (CPU or GPU) on which the model is loaded.
+        im (torch.Tensor): The preprocessed input image.
+        features (torch.Tensor): Extracted image features.
+        prompts (Dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
+        segment_all (bool): Flag to indicate if full image segmentation should be performed.
+        mean (torch.Tensor): Mean values for image normalization.
+        std (torch.Tensor): Standard deviation values for image normalization.
+    
+    Methods:
+        preprocess: Prepares input images for model inference.
+        inference: Performs segmentation inference based on input prompts.
+        generate: Generates segmentation masks for an entire image.
+        setup_model: Initializes the SAM model for inference.
+        postprocess: Post-processes model outputs to generate final results.
+        set_image: Sets and preprocesses a single image for inference.
+        set_prompts: Sets prompts for subsequent inference.
+        reset_image: Resets the current image and its features.
+    
+    Examples:
+        >>> predictor = Predictor()
+        >>> predictor.setup_model(model_path='sam_model.pt')
+        >>> predictor.set_image('image.jpg')
+        >>> masks, scores, boxes = predictor.generate()
+        >>> results = predictor.postprocess((masks, scores, boxes), im, orig_img)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -484,36 +501,32 @@ class Predictor(BasePredictor):
 
 class SAM2Predictor(Predictor):
     """
-    A predictor class for the Segment Anything Model 2 (SAM2), extending the base Predictor class.
-
-    This class provides an interface for model inference tailored to image segmentation tasks, leveraging SAM2's
-    advanced architecture and promptable segmentation capabilities. It facilitates flexible and real-time mask
-    generation, working with various types of prompts such as bounding boxes, points, and low-resolution masks.
-
+    SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
+    
+    This class extends the base Predictor class to implement SAM2-specific functionality for image
+    segmentation tasks. It provides methods for model initialization, feature extraction, and
+    prompt-based inference.
+    
     Attributes:
-        cfg (Dict): Configuration dictionary specifying model and task-related parameters.
-        overrides (Dict): Dictionary containing values that override the default configuration.
-        _callbacks (Dict): Dictionary of user-defined callback functions to augment behavior.
-        args (namespace): Namespace to hold command-line arguments or other operational variables.
-        im (torch.Tensor): Preprocessed input image tensor.
-        features (torch.Tensor): Extracted image features used for inference.
-        prompts (Dict): Collection of various prompt types, such as bounding boxes and points.
-        segment_all (bool): Flag to control whether to segment all objects in the image or only specified ones.
+        _bb_feat_sizes (List[Tuple[int, int]]): Feature sizes for different backbone levels.
         model (torch.nn.Module): The loaded SAM2 model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
-        _bb_feat_sizes (List[Tuple[int, int]]): List of feature sizes for different backbone levels.
-
+        features (Dict[str, torch.Tensor]): Cached image features for efficient inference.
+        segment_all (bool): Flag to indicate if all segments should be predicted.
+        prompts (Dict): Dictionary to store various types of prompts for inference.
+    
     Methods:
-        get_model: Builds and returns the SAM2 model.
+        get_model: Retrieves and initializes the SAM2 model.
         prompt_inference: Performs image segmentation inference based on various prompts.
         set_image: Preprocesses and sets a single image for inference.
-        get_im_features: Extracts image features from the SAM2 image encoder.
-
+        get_im_features: Extracts and processes image features using SAM2's image encoder.
+    
     Examples:
-        >>> predictor = SAM2Predictor(model='sam2_l.pt')
-        >>> predictor.set_image('path/to/image.jpg')
-        >>> masks, scores = predictor.prompt_inference(im=predictor.im, points=[[500, 375]], labels=[1])
-        >>> print(f"Generated {len(masks)} mask(s) with scores: {scores}")
+        >>> predictor = SAM2Predictor(cfg)
+        >>> predictor.set_image("path/to/image.jpg")
+        >>> bboxes = [[100, 100, 200, 200]]
+        >>> masks, scores, _ = predictor.prompt_inference(predictor.im, bboxes=bboxes)
+        >>> print(f"Predicted {len(masks)} masks with average score {scores.mean():.2f}")
     """
 
     _bb_feat_sizes = [

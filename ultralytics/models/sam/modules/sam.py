@@ -26,17 +26,28 @@ NO_OBJ_SCORE = -1024.0
 
 class SAMModel(nn.Module):
     """
-    SAMModel (Segment Anything Model) is designed for object segmentation tasks. It uses image encoders to generate
-    image embeddings, and prompt encoders to encode various types of input prompts. These embeddings are then used by
-    the mask decoder to predict object masks.
-
+    Segment Anything Model (SAM) for object segmentation tasks.
+    
+    This class combines image encoders, prompt encoders, and mask decoders to predict object masks from images
+    and input prompts.
+    
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
-        image_encoder (ImageEncoderViT): The backbone used to encode the image into embeddings.
-        prompt_encoder (PromptEncoder): Encodes various types of input prompts.
-        mask_decoder (MaskDecoder): Predicts object masks from the image and prompt embeddings.
-        pixel_mean (List[float]): Mean pixel values for image normalization.
-        pixel_std (List[float]): Standard deviation values for image normalization.
+        image_encoder (ImageEncoderViT): Backbone for encoding images into embeddings.
+        prompt_encoder (PromptEncoder): Encoder for various types of input prompts.
+        mask_decoder (MaskDecoder): Predicts object masks from image and prompt embeddings.
+        pixel_mean (torch.Tensor): Mean pixel values for image normalization, shape (3, 1, 1).
+        pixel_std (torch.Tensor): Standard deviation values for image normalization, shape (3, 1, 1).
+    
+    Methods:
+        __init__: Initializes the SAMModel with encoders, decoder, and normalization parameters.
+    
+    Examples:
+        >>> image_encoder = ImageEncoderViT(...)
+        >>> prompt_encoder = PromptEncoder(...)
+        >>> mask_decoder = MaskDecoder(...)
+        >>> sam_model = SAMModel(image_encoder, prompt_encoder, mask_decoder)
+        >>> # Further usage depends on SAMPredictor class
     """
 
     mask_threshold: float = 0.0
@@ -73,7 +84,37 @@ class SAMModel(nn.Module):
 
 
 class SAM2Model(torch.nn.Module):
-    """SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities."""
+    """
+    SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities.
+    
+    This class extends the functionality of SAM to handle video sequences, incorporating memory mechanisms
+    for temporal consistency and efficient tracking of objects across frames.
+    
+    Attributes:
+        mask_threshold (float): Threshold value for mask prediction.
+        image_encoder (ImageEncoderViT): Visual encoder for extracting image features.
+        memory_attention (nn.Module): Module for attending to memory features.
+        memory_encoder (nn.Module): Encoder for generating memory representations.
+        num_maskmem (int): Number of accessible memory frames.
+        image_size (int): Size of input images.
+        backbone_stride (int): Stride of the backbone network output.
+        sam_prompt_embed_dim (int): Dimension of SAM prompt embeddings.
+        sam_image_embedding_size (int): Size of SAM image embeddings.
+        sam_prompt_encoder (PromptEncoder): Encoder for processing input prompts.
+        sam_mask_decoder (SAM2MaskDecoder): Decoder for generating object masks.
+        obj_ptr_proj (nn.Module): Projection layer for object pointers.
+        obj_ptr_tpos_proj (nn.Module): Projection for temporal positional encoding in object pointers.
+    
+    Methods:
+        forward_image: Processes image batch through encoder to extract multi-level features.
+        track_step: Performs a single tracking step, updating object masks and memory features.
+    
+    Examples:
+        >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
+        >>> image_batch = torch.rand(1, 3, 512, 512)
+        >>> features = model.forward_image(image_batch)
+        >>> track_results = model.track_step(0, True, features, None, None, None, {})
+    """
 
     mask_threshold: float = 0.0
 

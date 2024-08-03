@@ -11,19 +11,31 @@ from ultralytics.nn.modules import MLPBlock
 
 class TwoWayTransformer(nn.Module):
     """
-    A Two-Way Transformer module that enables the simultaneous attention to both image and query points. This class
-    serves as a specialized transformer decoder that attends to an input image using queries whose positional embedding
-    is supplied. This is particularly useful for tasks like object detection, image segmentation, and point cloud
-    processing.
-
+    A Two-Way Transformer module for simultaneous attention to image and query points.
+    
+    This class implements a specialized transformer decoder that attends to an input image using queries with
+    supplied positional embeddings. It's useful for tasks like object detection, image segmentation, and point
+    cloud processing.
+    
     Attributes:
-        depth (int): The number of layers in the transformer.
-        embedding_dim (int): The channel dimension for the input embeddings.
-        num_heads (int): The number of heads for multihead attention.
-        mlp_dim (int): The internal channel dimension for the MLP block.
-        layers (nn.ModuleList): The list of TwoWayAttentionBlock layers that make up the transformer.
-        final_attn_token_to_image (Attention): The final attention layer applied from the queries to the image.
-        norm_final_attn (nn.LayerNorm): The layer normalization applied to the final queries.
+        depth (int): Number of layers in the transformer.
+        embedding_dim (int): Channel dimension for input embeddings.
+        num_heads (int): Number of heads for multihead attention.
+        mlp_dim (int): Internal channel dimension for the MLP block.
+        layers (nn.ModuleList): List of TwoWayAttentionBlock layers composing the transformer.
+        final_attn_token_to_image (Attention): Final attention layer from queries to image.
+        norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
+    
+    Methods:
+        forward: Processes image and point embeddings through the transformer.
+    
+    Examples:
+        >>> transformer = TwoWayTransformer(depth=6, embedding_dim=256, num_heads=8, mlp_dim=2048)
+        >>> image_embedding = torch.randn(1, 256, 32, 32)
+        >>> image_pe = torch.randn(1, 256, 32, 32)
+        >>> point_embedding = torch.randn(1, 100, 256)
+        >>> output_queries, output_image = transformer(image_embedding, image_pe, point_embedding)
+        >>> print(output_queries.shape, output_image.shape)
     """
 
     def __init__(
@@ -114,21 +126,34 @@ class TwoWayTransformer(nn.Module):
 
 class TwoWayAttentionBlock(nn.Module):
     """
-    An attention block that performs both self-attention and cross-attention in two directions: queries to keys and
-    keys to queries. This block consists of four main layers: (1) self-attention on sparse inputs, (2) cross-attention
-    of sparse inputs to dense inputs, (3) an MLP block on sparse inputs, and (4) cross-attention of dense inputs to
-    sparse inputs.
-
+    A two-way attention block for simultaneous attention to image and query points.
+    
+    This class implements a specialized transformer block with four main layers: self-attention on sparse inputs,
+    cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of dense
+    inputs to sparse inputs.
+    
     Attributes:
-        self_attn (Attention): The self-attention layer for the queries.
-        norm1 (nn.LayerNorm): Layer normalization following the first attention block.
+        self_attn (Attention): Self-attention layer for queries.
+        norm1 (nn.LayerNorm): Layer normalization after self-attention.
         cross_attn_token_to_image (Attention): Cross-attention layer from queries to keys.
-        norm2 (nn.LayerNorm): Layer normalization following the second attention block.
-        mlp (MLPBlock): MLP block that transforms the query embeddings.
-        norm3 (nn.LayerNorm): Layer normalization following the MLP block.
-        norm4 (nn.LayerNorm): Layer normalization following the third attention block.
+        norm2 (nn.LayerNorm): Layer normalization after token-to-image attention.
+        mlp (MLPBlock): MLP block for transforming query embeddings.
+        norm3 (nn.LayerNorm): Layer normalization after MLP block.
+        norm4 (nn.LayerNorm): Layer normalization after image-to-token attention.
         cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
-        skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
+        skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
+    
+    Methods:
+        forward: Applies self-attention and cross-attention to queries and keys.
+    
+    Examples:
+        >>> embedding_dim, num_heads = 256, 8
+        >>> block = TwoWayAttentionBlock(embedding_dim, num_heads)
+        >>> queries = torch.randn(1, 100, embedding_dim)
+        >>> keys = torch.randn(1, 1000, embedding_dim)
+        >>> query_pe = torch.randn(1, 100, embedding_dim)
+        >>> key_pe = torch.randn(1, 1000, embedding_dim)
+        >>> processed_queries, processed_keys = block(queries, keys, query_pe, key_pe)
     """
 
     def __init__(
@@ -202,8 +227,34 @@ class TwoWayAttentionBlock(nn.Module):
 
 
 class Attention(nn.Module):
-    """An attention layer that allows for downscaling the size of the embedding after projection to queries, keys, and
-    values.
+    """
+    An attention layer with downscaling capability for embedding size after projection.
+    
+    This class implements a multi-head attention mechanism with the option to downsample the internal
+    dimension of queries, keys, and values.
+    
+    Attributes:
+        embedding_dim (int): Dimensionality of input embeddings.
+        kv_in_dim (int): Dimensionality of key and value inputs.
+        internal_dim (int): Internal dimension after downsampling.
+        num_heads (int): Number of attention heads.
+        q_proj (nn.Linear): Linear projection for queries.
+        k_proj (nn.Linear): Linear projection for keys.
+        v_proj (nn.Linear): Linear projection for values.
+        out_proj (nn.Linear): Linear projection for output.
+    
+    Methods:
+        _separate_heads: Separates input tensor into attention heads.
+        _recombine_heads: Recombines separated attention heads.
+        forward: Computes attention output for given query, key, and value tensors.
+    
+    Examples:
+        >>> attn = Attention(embedding_dim=256, num_heads=8, downsample_rate=2)
+        >>> q = torch.randn(1, 100, 256)
+        >>> k = v = torch.randn(1, 50, 256)
+        >>> output = attn(q, k, v)
+        >>> print(output.shape)
+        torch.Size([1, 100, 256])
     """
 
     def __init__(

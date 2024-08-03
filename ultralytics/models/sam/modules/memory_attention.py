@@ -10,7 +10,46 @@ from .blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):
-    """Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks."""
+    """
+    Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
+    
+    This class combines self-attention, cross-attention, and feedforward components to process input tensors and
+    generate memory-based attention outputs.
+    
+    Attributes:
+        d_model (int): Dimensionality of the model.
+        dim_feedforward (int): Dimensionality of the feedforward network.
+        dropout_value (float): Dropout rate for regularization.
+        self_attn (RoPEAttention): Self-attention mechanism using RoPE (Rotary Position Embedding).
+        cross_attn_image (RoPEAttention): Cross-attention mechanism for image processing.
+        linear1 (nn.Linear): First linear layer of the feedforward network.
+        linear2 (nn.Linear): Second linear layer of the feedforward network.
+        norm1 (nn.LayerNorm): Layer normalization for self-attention output.
+        norm2 (nn.LayerNorm): Layer normalization for cross-attention output.
+        norm3 (nn.LayerNorm): Layer normalization for feedforward network output.
+        dropout1 (nn.Dropout): Dropout layer after self-attention.
+        dropout2 (nn.Dropout): Dropout layer after cross-attention.
+        dropout3 (nn.Dropout): Dropout layer after feedforward network.
+        activation (nn.ReLU): Activation function for the feedforward network.
+        pos_enc_at_attn (bool): Flag to add positional encoding at attention.
+        pos_enc_at_cross_attn_queries (bool): Flag to add positional encoding to cross-attention queries.
+        pos_enc_at_cross_attn_keys (bool): Flag to add positional encoding to cross-attention keys.
+    
+    Methods:
+        forward: Performs the full memory attention operation on input tensors.
+        _forward_sa: Performs self-attention on input tensor.
+        _forward_ca: Performs cross-attention between target and memory tensors.
+    
+    Examples:
+        >>> layer = MemoryAttentionLayer(d_model=256, dim_feedforward=2048, dropout=0.1)
+        >>> tgt = torch.randn(1, 100, 256)
+        >>> memory = torch.randn(1, 100, 64)
+        >>> pos = torch.randn(1, 100, 256)
+        >>> query_pos = torch.randn(1, 100, 256)
+        >>> output = layer(tgt, memory, pos, query_pos)
+        >>> print(output.shape)
+        torch.Size([1, 100, 256])
+    """
 
     def __init__(
         self,
@@ -99,7 +138,35 @@ class MemoryAttentionLayer(nn.Module):
 
 
 class MemoryAttention(nn.Module):
-    """Memory attention module for processing sequential data with self and cross-attention mechanisms."""
+    """
+    Memory attention module for processing sequential data with self and cross-attention mechanisms.
+    
+    This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
+    for processing sequential data, particularly useful in transformer-like architectures.
+    
+    Attributes:
+        d_model (int): The dimension of the model's hidden state.
+        layers (nn.ModuleList): A list of MemoryAttentionLayer modules.
+        num_layers (int): The number of attention layers.
+        norm (nn.LayerNorm): Layer normalization applied to the output.
+        pos_enc_at_input (bool): Whether to apply positional encoding at the input.
+        batch_first (bool): Whether the input tensors are in batch-first format.
+    
+    Methods:
+        forward: Processes input tensors through the attention layers.
+    
+    Examples:
+        >>> d_model = 256
+        >>> layer = MemoryAttentionLayer(d_model)
+        >>> attention = MemoryAttention(d_model, pos_enc_at_input=True, layer=layer, num_layers=3)
+        >>> curr = torch.randn(10, 32, d_model)  # (seq_len, batch_size, d_model)
+        >>> memory = torch.randn(20, 32, d_model)  # (mem_len, batch_size, d_model)
+        >>> curr_pos = torch.randn(10, 32, d_model)
+        >>> memory_pos = torch.randn(20, 32, d_model)
+        >>> output = attention(curr, memory, curr_pos, memory_pos)
+        >>> print(output.shape)
+        torch.Size([10, 32, 256])
+    """
 
     def __init__(
         self,

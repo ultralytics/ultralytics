@@ -85,14 +85,17 @@ except ImportError:
 
 
 def torchfx():
-    from torch.fx._symbolic_trace import is_fx_tracing
+    try:
+        from torch.fx._symbolic_trace import is_fx_tracing
+    except ModuleNotFoundError:    # 1.x torch versions does not have this module.
+        is_fx_tracing = None
 
     def decorator(func):
         """Decorator to apply temporary rc parameters and backend to a function."""
 
         def wrapper(self, x, *args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
-            if is_fx_tracing():
+            if is_fx_tracing is not None and is_fx_tracing():
                 result = func(self, x=x)  # torch.fx does not work with `*args` and `**kwargs` function argument
             else:
                 result = func(self, x=x, *args, **kwargs)

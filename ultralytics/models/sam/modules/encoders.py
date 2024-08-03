@@ -23,20 +23,20 @@ from .blocks import (
 class ImageEncoderViT(nn.Module):
     """
     An image encoder using Vision Transformer (ViT) architecture for encoding images into a compact latent space.
-    
+
     This class processes images by splitting them into patches, applying transformer blocks, and generating a final
     encoded representation through a neck module.
-    
+
     Attributes:
         img_size (int): Dimension of input images, assumed to be square.
         patch_embed (PatchEmbed): Module for patch embedding.
         pos_embed (nn.Parameter | None): Absolute positional embedding for patches.
         blocks (nn.ModuleList): List of transformer blocks for processing patch embeddings.
         neck (nn.Sequential): Neck module to further process the output.
-    
+
     Methods:
         forward: Processes input through patch embedding, positional embedding, blocks, and neck.
-    
+
     Examples:
         >>> import torch
         >>> encoder = ImageEncoderViT(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12)
@@ -146,7 +146,7 @@ class ImageEncoderViT(nn.Module):
 class PromptEncoder(nn.Module):
     """
     Encodes different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
-    
+
     Attributes:
         embed_dim (int): Dimension of the embeddings.
         input_image_size (Tuple[int, int]): Size of the input image as (H, W).
@@ -158,11 +158,11 @@ class PromptEncoder(nn.Module):
         mask_input_size (Tuple[int, int]): Size of the input mask.
         mask_downscaling (nn.Sequential): Neural network for downscaling the mask.
         no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
-    
+
     Methods:
         get_dense_pe: Returns the positional encoding used to encode point prompts.
         forward: Embeds different types of prompts, returning both sparse and dense embeddings.
-    
+
     Examples:
         >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
         >>> points = (torch.rand(1, 5, 2), torch.randint(0, 4, (1, 5)))
@@ -320,20 +320,20 @@ class PromptEncoder(nn.Module):
 class MemoryEncoder(nn.Module):
     """
     Encodes pixel features and masks into a memory representation for efficient image segmentation.
-    
+
     This class processes pixel-level features and masks, fusing them to generate encoded memory representations
     suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
-    
+
     Attributes:
         mask_downsampler (MaskDownSampler): Module for downsampling input masks.
         pix_feat_proj (nn.Conv2d): Convolutional layer for projecting pixel features.
         fuser (Fuser): Module for fusing pixel features and masks.
         position_encoding (PositionEmbeddingSine): Module for adding positional encoding to features.
         out_proj (nn.Module): Output projection layer, either nn.Identity or nn.Conv2d.
-    
+
     Methods:
         forward: Processes input pixel features and masks to generate encoded memory representations.
-    
+
     Examples:
         >>> import torch
         >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
@@ -388,18 +388,18 @@ class MemoryEncoder(nn.Module):
 class ImageEncoder(nn.Module):
     """
     Encodes images using a trunk-neck architecture, producing multiscale features and positional encodings.
-    
+
     This class combines a trunk network for feature extraction with a neck network for feature refinement
     and positional encoding generation. It can optionally discard the lowest resolution features.
-    
+
     Attributes:
         trunk (nn.Module): The trunk network for initial feature extraction.
         neck (nn.Module): The neck network for feature refinement and positional encoding generation.
         scalp (int): Number of lowest resolution feature levels to discard.
-    
+
     Methods:
         forward: Processes the input image through the trunk and neck networks.
-    
+
     Examples:
         >>> trunk = SomeTrunkNetwork()
         >>> neck = SomeNeckNetwork()
@@ -444,10 +444,10 @@ class ImageEncoder(nn.Module):
 class FpnNeck(nn.Module):
     """
     A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
-    
+
     This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
     similar to ViT positional embedding interpolation.
-    
+
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
         convs (nn.ModuleList): List of convolutional layers for each backbone level.
@@ -455,10 +455,10 @@ class FpnNeck(nn.Module):
         fpn_interp_model (str): Interpolation mode for FPN feature resizing.
         fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
         fpn_top_down_levels (List[int]): Levels to have top-down features in outputs.
-    
+
     Methods:
         forward: Performs forward pass through the FPN neck.
-    
+
     Examples:
         >>> backbone_channels = [64, 128, 256, 512]
         >>> fpn_neck = FpnNeck(256, backbone_channels)
@@ -590,11 +590,11 @@ class FpnNeck(nn.Module):
 class Hiera(nn.Module):
     """
     Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
-    
+
     This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for
     efficient multiscale feature extraction. It uses a series of transformer blocks organized into stages,
     with optional pooling and global attention mechanisms.
-    
+
     Attributes:
         window_spec (Tuple[int, ...]): Window sizes for each stage.
         q_stride (Tuple[int, int]): Downsampling stride between stages.
@@ -608,11 +608,11 @@ class Hiera(nn.Module):
         pos_embed_window (nn.Parameter): Positional embedding for the window.
         blocks (nn.ModuleList): List of MultiScaleBlock modules.
         channel_list (List[int]): List of output channel dimensions for each stage.
-    
+
     Methods:
         _get_pos_embed: Generates positional embeddings by interpolating and combining window and background embeddings.
         forward: Performs the forward pass through the Hiera model.
-    
+
     Examples:
         >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
         >>> input_tensor = torch.randn(1, 3, 224, 224)

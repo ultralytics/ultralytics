@@ -35,11 +35,11 @@ from .build import build_sam
 class Predictor(BasePredictor):
     """
     Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
-    
-    This class extends BasePredictor and implements the Segment Anything Model (SAM) for advanced image 
-    segmentation tasks. It supports various input prompts like points, bounding boxes, and masks for 
+
+    This class extends BasePredictor and implements the Segment Anything Model (SAM) for advanced image
+    segmentation tasks. It supports various input prompts like points, bounding boxes, and masks for
     fine-grained control over segmentation results.
-    
+
     Attributes:
         args (SimpleNamespace): Configuration arguments for the predictor.
         model (torch.nn.Module): The loaded SAM model.
@@ -50,7 +50,7 @@ class Predictor(BasePredictor):
         segment_all (bool): Flag to indicate if full image segmentation should be performed.
         mean (torch.Tensor): Mean values for image normalization.
         std (torch.Tensor): Standard deviation values for image normalization.
-    
+
     Methods:
         preprocess: Prepares input images for model inference.
         inference: Performs segmentation inference based on input prompts.
@@ -60,7 +60,7 @@ class Predictor(BasePredictor):
         set_image: Sets and preprocesses a single image for inference.
         set_prompts: Sets prompts for subsequent inference.
         reset_image: Resets the current image and its features.
-    
+
     Examples:
         >>> predictor = Predictor()
         >>> predictor.setup_model(model_path='sam_model.pt')
@@ -502,11 +502,11 @@ class Predictor(BasePredictor):
 class SAM2Predictor(Predictor):
     """
     SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
-    
+
     This class extends the base Predictor class to implement SAM2-specific functionality for image
     segmentation tasks. It provides methods for model initialization, feature extraction, and
     prompt-based inference.
-    
+
     Attributes:
         _bb_feat_sizes (List[Tuple[int, int]]): Feature sizes for different backbone levels.
         model (torch.nn.Module): The loaded SAM2 model.
@@ -514,13 +514,13 @@ class SAM2Predictor(Predictor):
         features (Dict[str, torch.Tensor]): Cached image features for efficient inference.
         segment_all (bool): Flag to indicate if all segments should be predicted.
         prompts (Dict): Dictionary to store various types of prompts for inference.
-    
+
     Methods:
         get_model: Retrieves and initializes the SAM2 model.
         prompt_inference: Performs image segmentation inference based on various prompts.
         set_image: Preprocesses and sets a single image for inference.
         get_im_features: Extracts and processes image features using SAM2's image encoder.
-    
+
     Examples:
         >>> predictor = SAM2Predictor(cfg)
         >>> predictor.set_image("path/to/image.jpg")

@@ -12,10 +12,10 @@ from .blocks import RoPEAttention
 class MemoryAttentionLayer(nn.Module):
     """
     Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
-    
+
     This class combines self-attention, cross-attention, and feedforward components to process input tensors and
     generate memory-based attention outputs.
-    
+
     Attributes:
         d_model (int): Dimensionality of the model.
         dim_feedforward (int): Dimensionality of the feedforward network.
@@ -34,12 +34,12 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_attn (bool): Flag to add positional encoding at attention.
         pos_enc_at_cross_attn_queries (bool): Flag to add positional encoding to cross-attention queries.
         pos_enc_at_cross_attn_keys (bool): Flag to add positional encoding to cross-attention keys.
-    
+
     Methods:
         forward: Performs the full memory attention operation on input tensors.
         _forward_sa: Performs self-attention on input tensor.
         _forward_ca: Performs cross-attention between target and memory tensors.
-    
+
     Examples:
         >>> layer = MemoryAttentionLayer(d_model=256, dim_feedforward=2048, dropout=0.1)
         >>> tgt = torch.randn(1, 100, 256)
@@ -140,10 +140,10 @@ class MemoryAttentionLayer(nn.Module):
 class MemoryAttention(nn.Module):
     """
     Memory attention module for processing sequential data with self and cross-attention mechanisms.
-    
+
     This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
     for processing sequential data, particularly useful in transformer-like architectures.
-    
+
     Attributes:
         d_model (int): The dimension of the model's hidden state.
         layers (nn.ModuleList): A list of MemoryAttentionLayer modules.
@@ -151,10 +151,10 @@ class MemoryAttention(nn.Module):
         norm (nn.LayerNorm): Layer normalization applied to the output.
         pos_enc_at_input (bool): Whether to apply positional encoding at the input.
         batch_first (bool): Whether the input tensors are in batch-first format.
-    
+
     Methods:
         forward: Processes input tensors through the attention layers.
-    
+
     Examples:
         >>> d_model = 256
         >>> layer = MemoryAttentionLayer(d_model)

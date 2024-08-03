@@ -27,10 +27,10 @@ NO_OBJ_SCORE = -1024.0
 class SAMModel(nn.Module):
     """
     Segment Anything Model (SAM) for object segmentation tasks.
-    
+
     This class combines image encoders, prompt encoders, and mask decoders to predict object masks from images
     and input prompts.
-    
+
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
         image_encoder (ImageEncoderViT): Backbone for encoding images into embeddings.
@@ -38,10 +38,10 @@ class SAMModel(nn.Module):
         mask_decoder (MaskDecoder): Predicts object masks from image and prompt embeddings.
         pixel_mean (torch.Tensor): Mean pixel values for image normalization, shape (3, 1, 1).
         pixel_std (torch.Tensor): Standard deviation values for image normalization, shape (3, 1, 1).
-    
+
     Methods:
         __init__: Initializes the SAMModel with encoders, decoder, and normalization parameters.
-    
+
     Examples:
         >>> image_encoder = ImageEncoderViT(...)
         >>> prompt_encoder = PromptEncoder(...)
@@ -86,10 +86,10 @@ class SAMModel(nn.Module):
 class SAM2Model(torch.nn.Module):
     """
     SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities.
-    
+
     This class extends the functionality of SAM to handle video sequences, incorporating memory mechanisms
     for temporal consistency and efficient tracking of objects across frames.
-    
+
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
         image_encoder (ImageEncoderViT): Visual encoder for extracting image features.
@@ -104,11 +104,11 @@ class SAM2Model(torch.nn.Module):
         sam_mask_decoder (SAM2MaskDecoder): Decoder for generating object masks.
         obj_ptr_proj (nn.Module): Projection layer for object pointers.
         obj_ptr_tpos_proj (nn.Module): Projection for temporal positional encoding in object pointers.
-    
+
     Methods:
         forward_image: Processes image batch through encoder to extract multi-level features.
         track_step: Performs a single tracking step, updating object masks and memory features.
-    
+
     Examples:
         >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
         >>> image_batch = torch.rand(1, 3, 512, 512)

@@ -26,20 +26,20 @@ from .predict import Predictor, SAM2Predictor
 class SAM(Model):
     """
     SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
-    
+
     This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for
     promptable segmentation with versatility in image analysis. It supports various prompts such as bounding
     boxes, points, or labels, and features zero-shot performance capabilities.
-    
+
     Attributes:
         model (torch.nn.Module): The loaded SAM model.
         is_sam2 (bool): Indicates whether the model is SAM2 variant.
         task (str): The task type, set to "segment" for SAM models.
-    
+
     Methods:
         predict: Performs segmentation prediction on the given image or video source.
         info: Logs information about the SAM model.
-    
+
     Examples:
         >>> sam = SAM('sam_b.pt')
         >>> results = sam.predict('image.jpg', points=[[500, 375]])

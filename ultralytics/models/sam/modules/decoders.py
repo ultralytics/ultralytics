@@ -11,10 +11,10 @@ from ultralytics.nn.modules import MLP, LayerNorm2d
 class MaskDecoder(nn.Module):
     """
     Decoder module for generating masks and their associated quality scores using a transformer architecture.
-    
+
     This class predicts masks given image and prompt embeddings, utilizing a transformer to process the inputs and
     generate mask predictions along with their quality scores.
-    
+
     Attributes:
         transformer_dim (int): Channel dimension for the transformer module.
         transformer (nn.Module): Transformer module used for mask prediction.
@@ -25,11 +25,11 @@ class MaskDecoder(nn.Module):
         output_upscaling (nn.Sequential): Neural network sequence for upscaling the output.
         output_hypernetworks_mlps (nn.ModuleList): Hypernetwork MLPs for generating masks.
         iou_prediction_head (nn.Module): MLP for predicting mask quality.
-    
+
     Methods:
         forward: Predicts masks given image and prompt embeddings.
         predict_masks: Internal method for mask prediction.
-    
+
     Examples:
         >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer_module)
         >>> masks, iou_pred = decoder(image_embeddings, image_pe, sparse_prompt_embeddings,
@@ -164,10 +164,10 @@ class MaskDecoder(nn.Module):
 class SAM2MaskDecoder(nn.Module):
     """
     Transformer-based decoder for predicting instance segmentation masks from image and prompt embeddings.
-    
+
     This class extends the functionality of the MaskDecoder, incorporating additional features such as
     high-resolution feature processing, dynamic multimask output, and object score prediction.
-    
+
     Attributes:
         transformer_dim (int): Channel dimension of the transformer.
         transformer (nn.Module): Transformer used to predict masks.
@@ -188,13 +188,13 @@ class SAM2MaskDecoder(nn.Module):
         dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
         dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
         dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
-    
+
     Methods:
         forward: Predicts masks given image and prompt embeddings.
         predict_masks: Predicts instance segmentation masks from image and prompt embeddings.
         _get_stability_scores: Computes mask stability scores based on IoU between thresholds.
         _dynamic_multimask_via_stability: Dynamically selects the most stable mask output.
-    
+
     Examples:
         >>> image_embeddings = torch.rand(1, 256, 64, 64)
         >>> image_pe = torch.rand(1, 256, 64, 64)

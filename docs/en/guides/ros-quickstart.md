@@ -1,6 +1,6 @@
 ---
 comments: true
-description: todo
+description: Learn to integrate Ultralytics YOLO with your robot running ROS Noetic, utilizing RGB images, depth images, and point clouds for efficient object detection, segmentation, and enhanced robotic perception.
 keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
 ---
 

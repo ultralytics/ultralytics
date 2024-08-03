@@ -11,7 +11,6 @@ from functools import partial
 import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
-
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
@@ -21,7 +20,7 @@ from .modules.transformer import TwoWayTransformer
 
 
 def build_sam_vit_h(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM) h-size model."""
+    """Builds and returns a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=1280,
         encoder_depth=32,
@@ -32,7 +31,7 @@ def build_sam_vit_h(checkpoint=None):
 
 
 def build_sam_vit_l(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM) l-size model."""
+    """Builds and returns a Segment Anything Model (SAM) l-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=1024,
         encoder_depth=24,
@@ -43,7 +42,7 @@ def build_sam_vit_l(checkpoint=None):
 
 
 def build_sam_vit_b(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM) b-size model."""
+    """Constructs and returns a Segment Anything Model (SAM) with b-size architecture and optional checkpoint."""
     return _build_sam(
         encoder_embed_dim=768,
         encoder_depth=12,
@@ -54,7 +53,7 @@ def build_sam_vit_b(checkpoint=None):
 
 
 def build_mobile_sam(checkpoint=None):
-    """Build and return Mobile Segment Anything Model (Mobile-SAM)."""
+    """Builds and returns a Mobile Segment Anything Model (Mobile-SAM) for efficient image segmentation."""
     return _build_sam(
         encoder_embed_dim=[64, 128, 160, 320],
         encoder_depth=[2, 2, 6, 2],
@@ -66,7 +65,7 @@ def build_mobile_sam(checkpoint=None):
 
 
 def build_sam2_t(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) tiny-size model with specified architecture parameters."""
+    """Builds and returns a Segment Anything Model 2 (SAM2) tiny-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 7, 2],
@@ -92,7 +91,7 @@ def build_sam2_s(checkpoint=None):
 
 
 def build_sam2_b(checkpoint=None):
-    """Builds and returns a Segment Anything Model (SAM2) base-size model with specified architecture parameters."""
+    """Builds and returns a SAM2 base-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=112,
         encoder_stages=[2, 3, 16, 3],
@@ -106,7 +105,7 @@ def build_sam2_b(checkpoint=None):
 
 
 def build_sam2_l(checkpoint=None):
-    """Build and return a Segment Anything Model (SAM2) large-size model with specified architecture parameters."""
+    """Builds and returns a large-size Segment Anything Model (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],
@@ -121,7 +120,7 @@ def build_sam2_l(checkpoint=None):
 def _build_sam(
     encoder_embed_dim, encoder_depth, encoder_num_heads, encoder_global_attn_indexes, checkpoint=None, mobile_sam=False
 ):
-    """Builds the selected SAM model architecture."""
+    """Constructs a Segment Anything Model (SAM) with specified architecture parameters and optional checkpoint."""
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
@@ -278,7 +277,7 @@ sam_model_map = {
 
 
 def build_sam(ckpt="sam_b.pt"):
-    """Build a SAM model specified by ckpt."""
+    """Constructs a Segment Anything Model (SAM) based on the specified checkpoint, supporting various architectures."""
     model_builder = None
     ckpt = str(ckpt)  # to allow Path ckpt types
     for k in sam_model_map.keys():

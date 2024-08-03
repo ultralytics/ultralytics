@@ -60,7 +60,7 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool = True,
         pos_enc_at_cross_attn_queries: bool = False,
     ):
-        """Initializes a MemoryAttentionLayer with self-attention, cross-attention, and feedforward components."""
+        """Initializes a memory attention layer with self-attention, cross-attention, and feedforward components."""
         super().__init__()
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
@@ -127,7 +127,7 @@ class MemoryAttentionLayer(nn.Module):
         query_pos: Optional[Tensor] = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
-        """Performs self-attention, cross-attention, and MLP operations on input tensors for memory-based attention."""
+        """Processes input tensors using self-attention, cross-attention, and MLP for memory-based attention."""
         tgt = self._forward_sa(tgt, query_pos)
         tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
         # MLP
@@ -193,7 +193,7 @@ class MemoryAttention(nn.Module):
         memory_pos: Optional[Tensor] = None,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ):
-        """Applies self-attention and cross-attention to input tensors, processing through multiple layers."""
+        """Processes input tensors through multiple attention layers, applying self and cross-attention mechanisms."""
         if isinstance(curr, list):
             assert isinstance(curr_pos, list)
             assert len(curr) == len(curr_pos) == 1

@@ -14,7 +14,6 @@ from torch import nn
 from torch.nn.init import trunc_normal_
 
 from ultralytics.nn.modules import MLP
-
 from .blocks import SAM2TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
 from .encoders import ImageEncoderViT, PromptEncoder
@@ -48,6 +47,9 @@ class SAMModel(nn.Module):
         >>> mask_decoder = MaskDecoder(...)
         >>> sam_model = SAMModel(image_encoder, prompt_encoder, mask_decoder)
         >>> # Further usage depends on SAMPredictor class
+
+    Notes:
+        All forward() operations are implemented in the SAMPredictor class.
     """
 
     mask_threshold: float = 0.0
@@ -63,17 +65,30 @@ class SAMModel(nn.Module):
         """
         Initialize the SAMModel class to predict object masks from an image and input prompts.
 
-        Note:
-            All forward() operations moved to SAMPredictor.
-
         Args:
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
-            pixel_mean (List[float], optional): Mean values for normalizing pixels in the input image. Defaults to
-                (123.675, 116.28, 103.53).
-            pixel_std (List[float], optional): Std values for normalizing pixels in the input image. Defaults to
-                (58.395, 57.12, 57.375).
+            pixel_mean (List[float]): Mean values for normalizing pixels in the input image.
+            pixel_std (List[float]): Std values for normalizing pixels in the input image.
+
+        Attributes:
+            mask_threshold (float): Threshold value for mask prediction.
+            image_encoder (ImageEncoderViT): Backbone for encoding images into embeddings.
+            prompt_encoder (PromptEncoder): Encoder for various types of input prompts.
+            mask_decoder (MaskDecoder): Predicts object masks from image and prompt embeddings.
+            pixel_mean (torch.Tensor): Mean pixel values for image normalization, shape (3, 1, 1).
+            pixel_std (torch.Tensor): Standard deviation values for image normalization, shape (3, 1, 1).
+
+        Examples:
+            >>> image_encoder = ImageEncoderViT(...)
+            >>> prompt_encoder = PromptEncoder(...)
+            >>> mask_decoder = MaskDecoder(...)
+            >>> sam_model = SAMModel(image_encoder, prompt_encoder, mask_decoder)
+            >>> # Further usage depends on SAMPredictor class
+
+        Notes:
+            All forward() operations moved to SAMPredictor.
         """
         super().__init__()
         self.image_encoder = image_encoder
@@ -190,7 +205,7 @@ class SAM2Model(torch.nn.Module):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """Initializes SAM2Model model with image encoder, memory attention, and memory encoder components."""
+        """Initializes SAM2Model for video object segmentation with memory mechanisms and temporal consistency."""
         super().__init__()
 
         # Part 1: the image backbone
@@ -287,7 +302,7 @@ class SAM2Model(torch.nn.Module):
         return next(self.parameters()).device
 
     def forward(self, *args, **kwargs):
-        """Processes input frames and prompts to generate object masks and scores in video sequences."""
+        """Processes image and prompt inputs to generate object masks and scores in video sequences."""
         raise NotImplementedError(
             "Please use the corresponding methods in SAM2VideoPredictor for inference."
             "See notebooks/video_predictor_example.ipynb for an example."
@@ -350,7 +365,9 @@ class SAM2Model(torch.nn.Module):
         multimask_output=False,
     ):
         """
-        Forward SAM prompt encoders and mask heads.
+        Forward pass through SAM prompt encoders and mask heads.
+
+        This method processes image features and optional point/mask inputs to generate object masks and scores.
 
         Args:
             backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
@@ -500,7 +517,7 @@ class SAM2Model(torch.nn.Module):
         )
 
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
-        """Processes mask inputs to generate output mask logits and object pointers without using SAM."""
+        """Processes mask inputs directly as output, bypassing SAM encoder/decoder."""
         # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).
         out_scale, out_bias = 20.0, -10.0  # sigmoid(-10.0)=4.5398e-05
         mask_inputs_float = mask_inputs.float()
@@ -547,7 +564,7 @@ class SAM2Model(torch.nn.Module):
         )
 
     def forward_image(self, img_batch: torch.Tensor):
-        """Process image batch through encoder to extract multi-level features for SAM model."""
+        """Processes image batch through encoder to extract multi-level features for SAM model."""
         backbone_out = self.image_encoder(img_batch)
         if self.use_high_res_features_in_sam:
             # precompute projected level 0 and level 1 features in SAM decoder
@@ -557,7 +574,7 @@ class SAM2Model(torch.nn.Module):
         return backbone_out
 
     def _prepare_backbone_features(self, backbone_out):
-        """Prepare and flatten visual features from the image backbone output."""
+        """Prepares and flattens visual features from the image backbone output for further processing."""
         backbone_out = backbone_out.copy()
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
@@ -744,7 +761,7 @@ class SAM2Model(torch.nn.Module):
         pred_masks_high_res,
         is_mask_from_pts,
     ):
-        """Encodes the current frame's features and predicted masks into a new memory representation."""
+        """Encodes frame features and masks into a new memory representation for video segmentation."""
         B = current_vision_feats[-1].size(1)  # batch size on this frame
         C = self.hidden_dim
         H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
@@ -884,7 +901,7 @@ class SAM2Model(torch.nn.Module):
         return multimask_output
 
     def _apply_non_overlapping_constraints(self, pred_masks):
-        """Applies non-overlapping constraints to object masks, keeping highest scoring object at each location."""
+        """Applies non-overlapping constraints to masks, keeping highest scoring object per location."""
         batch_size = pred_masks.size(0)
         if batch_size == 1:
             return pred_masks

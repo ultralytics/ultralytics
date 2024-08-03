@@ -47,15 +47,31 @@ class MaskDecoder(nn.Module):
         iou_head_hidden_dim: int = 256,
     ) -> None:
         """
-        Predicts masks given an image and prompt embeddings, using a transformer architecture.
+        Initializes the MaskDecoder module for generating masks and their quality scores.
 
         Args:
-            transformer_dim (int): the channel dimension of the transformer module
-            transformer (nn.Module): the transformer used to predict masks
-            num_multimask_outputs (int): the number of masks to predict when disambiguating masks
-            activation (nn.Module): the type of activation to use when upscaling masks
-            iou_head_depth (int): the depth of the MLP used to predict mask quality
-            iou_head_hidden_dim (int): the hidden dimension of the MLP used to predict mask quality
+            transformer_dim (int): Channel dimension for the transformer module.
+            transformer (nn.Module): Transformer module used for mask prediction.
+            num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
+            activation (Type[nn.Module]): Type of activation to use when upscaling masks.
+            iou_head_depth (int): Depth of the MLP used to predict mask quality.
+            iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
+
+        Attributes:
+            transformer_dim (int): Channel dimension for the transformer module.
+            transformer (nn.Module): Transformer module used for mask prediction.
+            num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
+            iou_token (nn.Embedding): Embedding for the IoU token.
+            num_mask_tokens (int): Number of mask tokens.
+            mask_tokens (nn.Embedding): Embedding for the mask tokens.
+            output_upscaling (nn.Sequential): Neural network sequence for upscaling the output.
+            output_hypernetworks_mlps (nn.ModuleList): Hypernetwork MLPs for generating masks.
+            iou_prediction_head (nn.Module): MLP for predicting mask quality.
+
+        Examples:
+            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
+            >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer)
+            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -89,18 +105,28 @@ class MaskDecoder(nn.Module):
         multimask_output: bool,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Predict masks given image and prompt embeddings.
+        Predicts masks given image and prompt embeddings.
 
         Args:
-            image_embeddings (torch.Tensor): the embeddings from the image encoder
-            image_pe (torch.Tensor): positional encoding with the shape of image_embeddings
-            sparse_prompt_embeddings (torch.Tensor): the embeddings of the points and boxes
-            dense_prompt_embeddings (torch.Tensor): the embeddings of the mask inputs
+            image_embeddings (torch.Tensor): Embeddings from the image encoder.
+            image_pe (torch.Tensor): Positional encoding with the shape of image_embeddings.
+            sparse_prompt_embeddings (torch.Tensor): Embeddings of the points and boxes.
+            dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs.
             multimask_output (bool): Whether to return multiple masks or a single mask.
 
         Returns:
-            torch.Tensor: batched predicted masks
-            torch.Tensor: batched predictions of mask quality
+            (Tuple[torch.Tensor, torch.Tensor]): A tuple containing:
+                - masks (torch.Tensor): Batched predicted masks.
+                - iou_pred (torch.Tensor): Batched predictions of mask quality.
+
+        Examples:
+            >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer_module)
+            >>> image_emb = torch.rand(1, 256, 64, 64)
+            >>> image_pe = torch.rand(1, 256, 64, 64)
+            >>> sparse_emb = torch.rand(1, 2, 256)
+            >>> dense_emb = torch.rand(1, 256, 64, 64)
+            >>> masks, iou_pred = decoder(image_emb, image_pe, sparse_emb, dense_emb, multimask_output=True)
+            >>> print(f"Masks shape: {masks.shape}, IoU predictions shape: {iou_pred.shape}")
         """
         masks, iou_pred = self.predict_masks(
             image_embeddings=image_embeddings,
@@ -124,11 +150,7 @@ class MaskDecoder(nn.Module):
         sparse_prompt_embeddings: torch.Tensor,
         dense_prompt_embeddings: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Predicts masks.
-
-        See 'forward' for more details.
-        """
+        """Predicts masks and quality scores using image and prompt embeddings via transformer architecture."""
         # Concatenate output tokens
         output_tokens = torch.cat([self.iou_token.weight, self.mask_tokens.weight], dim=0)
         output_tokens = output_tokens.unsqueeze(0).expand(sparse_prompt_embeddings.shape[0], -1, -1)
@@ -223,7 +245,10 @@ class SAM2MaskDecoder(nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
     ) -> None:
         """
-        Initializes the MaskDecoder module for predicting instance segmentation masks.
+        Initializes the SAM2MaskDecoder module for predicting instance segmentation masks.
+
+        This decoder extends the functionality of MaskDecoder, incorporating additional features such as
+        high-resolution feature processing, dynamic multimask output, and object score prediction.
 
         Args:
             transformer_dim (int): Channel dimension of the transformer.
@@ -260,6 +285,12 @@ class SAM2MaskDecoder(nn.Module):
             pred_obj_score_head (nn.Linear | MLP): Linear layer or MLP for object score prediction.
             dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
             dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
+            dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
+
+        Examples:
+            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
+            >>> decoder = SAM2MaskDecoder(transformer_dim=256, transformer=transformer)
+            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -324,28 +355,29 @@ class SAM2MaskDecoder(nn.Module):
         Predicts masks given image and prompt embeddings.
 
         Args:
-            image_embeddings (torch.Tensor): Embeddings from the image encoder.
-            image_pe (torch.Tensor): Positional encoding with the shape of image_embeddings.
-            sparse_prompt_embeddings (torch.Tensor): Embeddings of the points and boxes.
-            dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs.
+            image_embeddings (torch.Tensor): Embeddings from the image encoder with shape (B, C, H, W).
+            image_pe (torch.Tensor): Positional encoding with the shape of image_embeddings (B, C, H, W).
+            sparse_prompt_embeddings (torch.Tensor): Embeddings of the points and boxes with shape (B, N, C).
+            dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs with shape (B, C, H, W).
             multimask_output (bool): Whether to return multiple masks or a single mask.
             repeat_image (bool): Flag to repeat the image embeddings.
             high_res_features (List[torch.Tensor] | None): Optional high-resolution features.
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): A tuple containing:
-                - masks (torch.Tensor): Batched predicted masks.
-                - iou_pred (torch.Tensor): Batched predictions of mask quality.
-                - sam_tokens_out (torch.Tensor): Batched SAM token for mask output.
+            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]): A tuple containing:
+                - masks (torch.Tensor): Batched predicted masks with shape (B, N, H, W).
+                - iou_pred (torch.Tensor): Batched predictions of mask quality with shape (B, N).
+                - sam_tokens_out (torch.Tensor): Batched SAM token for mask output with shape (B, N, C).
+                - object_score_logits (torch.Tensor): Batched object score logits with shape (B, 1).
 
         Examples:
             >>> image_embeddings = torch.rand(1, 256, 64, 64)
             >>> image_pe = torch.rand(1, 256, 64, 64)
             >>> sparse_prompt_embeddings = torch.rand(1, 2, 256)
             >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
-            >>> decoder = MaskDecoder(256, transformer)
-            >>> masks, iou_pred, sam_tokens_out = decoder.forward(image_embeddings, image_pe,
-            ...     sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+            >>> decoder = SAM2MaskDecoder(256, transformer)
+            >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
+            ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
         """
         masks, iou_pred, mask_tokens_out, object_score_logits = self.predict_masks(
             image_embeddings=image_embeddings,
@@ -388,7 +420,7 @@ class SAM2MaskDecoder(nn.Module):
         repeat_image: bool,
         high_res_features: Optional[List[torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Predicts instance segmentation masks from image and prompt embeddings using a transformer architecture."""
+        """Predicts instance segmentation masks from image and prompt embeddings using a transformer."""
         # Concatenate output tokens
         s = 0
         if self.pred_obj_scores:
@@ -463,11 +495,28 @@ class SAM2MaskDecoder(nn.Module):
         """
         Dynamically selects the most stable mask output based on stability scores and IoU predictions.
 
-        When outputting a single mask, if the stability score from the current single-mask output (based on output token
-        0) falls below a threshold, we instead select from multi-mask outputs (based on output token 1~3) the mask with
-        the highest predicted IoU score.
+        This method is used when outputting a single mask. If the stability score from the current single-mask
+        output (based on output token 0) falls below a threshold, it instead selects from multi-mask outputs
+        (based on output tokens 1-3) the mask with the highest predicted IoU score. This ensures a valid mask
+        for both clicking and tracking scenarios.
 
-        This is intended to ensure a valid mask for both clicking and tracking.
+        Args:
+            all_mask_logits (torch.Tensor): Logits for all predicted masks, shape (B, N, H, W) where B is
+                batch size, N is number of masks (typically 4), and H, W are mask dimensions.
+            all_iou_scores (torch.Tensor): Predicted IoU scores for all masks, shape (B, N).
+
+        Returns:
+            (Tuple[torch.Tensor, torch.Tensor]):
+                - mask_logits_out (torch.Tensor): Selected mask logits, shape (B, 1, H, W).
+                - iou_scores_out (torch.Tensor): Selected IoU scores, shape (B, 1).
+
+        Examples:
+            >>> decoder = SAM2MaskDecoder(...)
+            >>> all_mask_logits = torch.rand(2, 4, 256, 256)  # 2 images, 4 masks each
+            >>> all_iou_scores = torch.rand(2, 4)
+            >>> mask_logits, iou_scores = decoder._dynamic_multimask_via_stability(all_mask_logits, all_iou_scores)
+            >>> print(mask_logits.shape, iou_scores.shape)
+            torch.Size([2, 1, 256, 256]) torch.Size([2, 1])
         """
         # The best mask from multimask output tokens (1~3)
         multimask_logits = all_mask_logits[:, 1:, :, :]

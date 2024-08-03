@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 
 from ultralytics.nn.modules import MLP, LayerNorm2d, MLPBlock
-
 from .transformer import Attention, TwoWayAttentionBlock, TwoWayTransformer
 from .utils import add_decomposed_rel_pos, apply_rotary_enc, compute_axial_cis, window_partition, window_unpartition
 
@@ -34,7 +33,7 @@ class DropPath(nn.Module):
     """
 
     def __init__(self, drop_prob=0.0, scale_by_keep=True):
-        """Initialize DropPath module with specified drop probability and scaling option."""
+        """Initialize DropPath module for stochastic depth regularization during training."""
         super(DropPath, self).__init__()
         self.drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
@@ -53,10 +52,11 @@ class DropPath(nn.Module):
 
 class MaskDownSampler(nn.Module):
     """
-    Downsamples and embeds masks using convolutional layers and layer normalization for efficient processing.
+    A mask downsampling and embedding module for efficient processing of input masks.
 
-    This class implements a mask downsampler module that progressively downsamples input masks and expands their
-    channel dimensions using convolutional layers, layer normalization, and activation functions.
+    This class implements a mask downsampler that progressively reduces the spatial dimensions of input masks
+    while expanding their channel dimensions using convolutional layers, layer normalization, and activation
+    functions.
 
     Attributes:
         encoder (nn.Sequential): A sequential container of convolutional layers, layer normalization, and
@@ -149,26 +149,27 @@ class CXBlock(nn.Module):
         use_dwconv=True,
     ):
         """
-        Initialize a ConvNeXt Block.
+        Initialize a ConvNeXt Block for efficient feature extraction in convolutional neural networks.
 
-        This block implements a ConvNeXt architecture with optional depthwise convolution, layer normalization,
-        pointwise convolutions, and GELU activation.
+        This block implements a modified version of the ConvNeXt architecture, offering improved performance and
+        flexibility in feature extraction.
 
         Args:
             dim (int): Number of input channels.
-            kernel_size (int): Size of the convolutional kernel. Default is 7.
-            padding (int): Padding size for the convolution. Default is 3.
-            drop_path (float): Stochastic depth rate. Default is 0.0.
-            layer_scale_init_value (float): Initial value for Layer Scale. Default is 1e-6.
-            use_dwconv (bool): Whether to use depthwise convolution. Default is True.
+            kernel_size (int): Size of the convolutional kernel.
+            padding (int): Padding size for the convolution.
+            drop_path (float): Stochastic depth rate.
+            layer_scale_init_value (float): Initial value for Layer Scale.
+            use_dwconv (bool): Whether to use depthwise convolution.
 
         Attributes:
             dwconv (nn.Conv2d): Depthwise or standard 2D convolution layer.
-            norm (LayerNorm2d): Layer normalization applied to the output of dwconv.
+            norm (LayerNorm2d): Layer normalization applied to channels.
             pwconv1 (nn.Linear): First pointwise convolution implemented as a linear layer.
             act (nn.GELU): GELU activation function.
             pwconv2 (nn.Linear): Second pointwise convolution implemented as a linear layer.
-            gamma (nn.Parameter | None): Learnable scale parameter for the residual path.
+            gamma (nn.Parameter | None): Learnable scale parameter for layer scaling.
+            drop_path (DropPath): DropPath layer for stochastic depth regularization.
 
         Examples:
             >>> block = CXBlock(dim=64, kernel_size=7, padding=3)
@@ -237,7 +238,7 @@ class Fuser(nn.Module):
 
     def __init__(self, layer, num_layers, dim=None, input_projection=False):
         """
-        Initializes the Fuser module.
+        Initializes the Fuser module for feature fusion through multiple layers.
 
         This module creates a sequence of identical layers and optionally applies an input projection.
 
@@ -314,8 +315,9 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         """
         Initializes a SAM2TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
 
-        This block consists of four main layers: self-attention on sparse inputs, cross-attention of sparse inputs
-        to dense inputs, an MLP block on sparse inputs, and cross-attention of dense inputs to sparse inputs.
+        This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on sparse
+        inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention
+        from dense to sparse inputs.
 
         Args:
             embedding_dim (int): The channel dimension of the embeddings.
@@ -385,7 +387,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         attention_downsample_rate: int = 2,
     ) -> None:
         """
-        Initializes a TwoWayTransformer instance.
+        Initializes a SAM2TwoWayTransformer instance.
 
         This transformer decoder attends to an input image using queries with supplied positional embeddings.
         It is designed for tasks like object detection, image segmentation, and point cloud processing.
@@ -408,9 +410,9 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             norm_final_attn (nn.LayerNorm): Layer normalization applied to the final queries.
 
         Examples:
-            >>> transformer = TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
+            >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
             >>> transformer
-            TwoWayTransformer(
+            SAM2TwoWayTransformer(
               (layers): ModuleList(
                 (0-4): 5 x SAM2TwoWayAttentionBlock(...)
               )
@@ -466,7 +468,7 @@ class RoPEAttention(Attention):
         feat_sizes=(32, 32),  # [w, h] for stride 16 feats at 512 resolution
         **kwargs,
     ):
-        """Initializes RoPEAttention with rotary position encoding for attention mechanisms."""
+        """Initializes RoPEAttention with rotary position encoding for enhanced positional awareness."""
         super().__init__(*args, **kwargs)
 
         self.compute_cis = partial(compute_axial_cis, dim=self.internal_dim // self.num_heads, theta=rope_theta)
@@ -517,7 +519,7 @@ class RoPEAttention(Attention):
 
 
 def do_pool(x: torch.Tensor, pool: nn.Module, norm: nn.Module = None) -> torch.Tensor:
-    """Applies pooling and optional normalization to a tensor, handling permutations for spatial operations."""
+    """Applies pooling and optional normalization to a tensor, handling spatial dimension permutations."""
     if pool is None:
         return x
     # (B, H, W, C) -> (B, C, H, W)
@@ -568,7 +570,7 @@ class MultiScaleAttention(nn.Module):
         num_heads: int,
         q_pool: nn.Module = None,
     ):
-        """Initializes a multi-scale attention module with configurable query pooling and linear projections."""
+        """Initializes multi-scale attention with optional query pooling for efficient feature extraction."""
         super().__init__()
 
         self.dim = dim
@@ -583,7 +585,7 @@ class MultiScaleAttention(nn.Module):
         self.proj = nn.Linear(dim_out, dim_out)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies multi-scale attention to input tensor, optionally downsampling query features."""
+        """Applies multi-scale attention with optional query pooling to extract multi-scale features."""
         B, H, W, _ = x.shape
         # qkv with shape (B, H * W, 3, nHead, C)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1)
@@ -654,7 +656,7 @@ class MultiScaleBlock(nn.Module):
         act_layer: nn.Module = nn.GELU,
         window_size: int = 0,
     ):
-        """Initializes a multi-scale attention block with optional window partitioning and downsampling."""
+        """Initializes a multi-scale attention block with window partitioning and optional query pooling."""
         super().__init__()
 
         if isinstance(norm_layer, str):
@@ -691,7 +693,7 @@ class MultiScaleBlock(nn.Module):
             self.proj = nn.Linear(dim, dim_out)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies multi-scale attention and MLP processing to input tensor, with optional windowing."""
+        """Processes input through multi-scale attention and MLP, with optional windowing and downsampling."""
         shortcut = x  # B, H, W, C
         x = self.norm1(x)
 
@@ -776,7 +778,7 @@ class PositionEmbeddingSine(nn.Module):
         self.cache = {}
 
     def _encode_xy(self, x, y):
-        """Encodes 2D positions using sine and cosine functions for positional embeddings."""
+        """Encodes 2D positions using sine/cosine functions for transformer positional embeddings."""
         assert len(x) == len(y) and x.ndim == y.ndim == 1
         x_embed = x * self.scale
         y_embed = y * self.scale
@@ -792,7 +794,7 @@ class PositionEmbeddingSine(nn.Module):
 
     @torch.no_grad()
     def encode_boxes(self, x, y, w, h):
-        """Encodes box coordinates and dimensions into positional embeddings for object detection tasks."""
+        """Encodes box coordinates and dimensions into positional embeddings for detection."""
         pos_x, pos_y = self._encode_xy(x, y)
         pos = torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
         return pos
@@ -801,7 +803,7 @@ class PositionEmbeddingSine(nn.Module):
 
     @torch.no_grad()
     def encode_points(self, x, y, labels):
-        """Encodes 2D point coordinates with sinusoidal positional embeddings and appends labels."""
+        """Encodes 2D points with sinusoidal embeddings and appends labels."""
         (bx, nx), (by, ny), (bl, nl) = x.shape, y.shape, labels.shape
         assert bx == by and nx == ny and bx == bl and nx == nl
         pos_x, pos_y = self._encode_xy(x.flatten(), y.flatten())
@@ -811,7 +813,7 @@ class PositionEmbeddingSine(nn.Module):
 
     @torch.no_grad()
     def forward(self, x: torch.Tensor):
-        """Generate sinusoidal position embeddings for 2D inputs."""
+        """Generates sinusoidal position embeddings for 2D inputs like images."""
         cache_key = (x.shape[-2], x.shape[-1])
         if cache_key in self.cache:
             return self.cache[cache_key][None].repeat(x.shape[0], 1, 1, 1)
@@ -867,7 +869,7 @@ class PositionEmbeddingRandom(nn.Module):
     """
 
     def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
-        """Initializes a position embedding using random spatial frequencies."""
+        """Initializes random spatial frequency position embedding for transformers."""
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
@@ -878,7 +880,7 @@ class PositionEmbeddingRandom(nn.Module):
         torch.backends.cudnn.deterministic = False
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
-        """Positionally encode points that are normalized to [0,1]."""
+        """Encodes normalized [0,1] coordinates using random spatial frequencies."""
         # Assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
         coords = 2 * coords - 1
         coords = coords @ self.positional_encoding_gaussian_matrix
@@ -887,7 +889,7 @@ class PositionEmbeddingRandom(nn.Module):
         return torch.cat([torch.sin(coords), torch.cos(coords)], dim=-1)
 
     def forward(self, size: Tuple[int, int]) -> torch.Tensor:
-        """Generate positional encoding for a grid of the specified size."""
+        """Generates positional encoding for a grid using random spatial frequencies."""
         h, w = size
         device: Any = self.positional_encoding_gaussian_matrix.device
         grid = torch.ones((h, w), device=device, dtype=torch.float32)
@@ -900,7 +902,7 @@ class PositionEmbeddingRandom(nn.Module):
         return pe.permute(2, 0, 1)  # C x H x W
 
     def forward_with_coords(self, coords_input: torch.Tensor, image_size: Tuple[int, int]) -> torch.Tensor:
-        """Positionally encode points that are not normalized to [0,1]."""
+        """Positionally encodes input coordinates, normalizing them to [0,1] based on the given image size."""
         coords = coords_input.clone()
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]
@@ -948,17 +950,38 @@ class Block(nn.Module):
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
+        Initializes a transformer block with optional window attention and relative positional embeddings.
+
+        This constructor sets up a transformer block that can use either global or windowed self-attention,
+        followed by a feed-forward network. It supports relative positional embeddings and is designed
+        for use in vision transformer architectures.
+
         Args:
             dim (int): Number of input channels.
-            num_heads (int): Number of attention heads in each ViT block.
-            mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
-            qkv_bias (bool): If True, add a learnable bias to query, key, value.
-            norm_layer (nn.Module): Normalization layer.
-            act_layer (nn.Module): Activation layer.
-            use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
-            rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            window_size (int): Window size for window attention blocks. If it equals 0, then use global attention.
-            input_size (tuple(int, int), None): Input resolution for calculating the relative positional parameter size.
+            num_heads (int): Number of attention heads in the self-attention layer.
+            mlp_ratio (float): Ratio of mlp hidden dimension to embedding dimension.
+            qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
+            norm_layer (Type[nn.Module]): Type of normalization layer to use.
+            act_layer (Type[nn.Module]): Type of activation function to use in the MLP block.
+            use_rel_pos (bool): If True, uses relative positional embeddings in attention.
+            rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
+            window_size (int): Size of attention window. If 0, uses global attention.
+            input_size (Optional[Tuple[int, int]]): Input resolution for calculating relative positional
+                parameter size.
+
+        Attributes:
+            norm1 (nn.Module): First normalization layer.
+            attn (REAttention): Self-attention layer with optional relative positional encoding.
+            norm2 (nn.Module): Second normalization layer.
+            mlp (MLPBlock): Multi-layer perceptron block.
+            window_size (int): Size of attention window. If 0, global attention is used.
+
+        Examples:
+            >>> block = Block(dim=256, num_heads=8, window_size=7)
+            >>> x = torch.randn(1, 56, 56, 256)
+            >>> output = block(x)
+            >>> print(output.shape)
+            torch.Size([1, 56, 56, 256])
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -977,7 +1000,7 @@ class Block(nn.Module):
         self.window_size = window_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Executes a forward pass through the transformer block with window attention and non-overlapping windows."""
+        """Processes input through transformer block with optional windowed self-attention and residual connection."""
         shortcut = x
         x = self.norm1(x)
         # Window partition
@@ -996,30 +1019,34 @@ class Block(nn.Module):
 
 class REAttention(nn.Module):
     """
-    Multi-head Attention block with relative position embeddings.
+    Rotary Embedding Attention module for efficient self-attention in transformer architectures.
 
-    This class implements a multi-head attention mechanism with optional relative positional encodings.
-    It is designed for use in transformer-based architectures, particularly for vision tasks.
+    This class implements a multi-head attention mechanism with rotary positional embeddings, designed
+    for use in vision transformer models. It supports optional query pooling and window partitioning
+    for efficient processing of large inputs.
 
     Attributes:
+        compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
+        freqs_cis (Tensor): Precomputed frequency tensor for rotary encoding.
+        rope_k_repeat (bool): Flag to repeat query RoPE to match key length for cross-attention to memories.
+        q_proj (nn.Linear): Linear projection for query.
+        k_proj (nn.Linear): Linear projection for key.
+        v_proj (nn.Linear): Linear projection for value.
+        out_proj (nn.Linear): Output projection.
         num_heads (int): Number of attention heads.
-        scale (float): Scaling factor for attention scores.
-        qkv (nn.Linear): Linear layer for computing query, key, and value projections.
-        proj (nn.Linear): Linear layer for final projection of attention output.
-        use_rel_pos (bool): Flag to enable relative positional encodings.
-        rel_pos_h (nn.Parameter): Relative positional encoding parameter for height dimension.
-        rel_pos_w (nn.Parameter): Relative positional encoding parameter for width dimension.
+        internal_dim (int): Internal dimension for attention computation.
 
     Methods:
-        forward: Computes the attention mechanism on the input tensor.
+        forward: Applies rotary position encoding and computes attention between query, key, and value tensors.
 
     Examples:
-        >>> import torch
-        >>> x = torch.randn(1, 32, 32, 256)
-        >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
-        >>> output = attention(x)
+        >>> rope_attn = REAttention(embedding_dim=256, num_heads=8, rope_theta=10000.0, feat_sizes=(32, 32))
+        >>> q = torch.randn(1, 1024, 256)
+        >>> k = torch.randn(1, 1024, 256)
+        >>> v = torch.randn(1, 1024, 256)
+        >>> output = rope_attn(q, k, v)
         >>> print(output.shape)
-        torch.Size([1, 32, 32, 256])
+        torch.Size([1, 1024, 256])
     """
 
     def __init__(
@@ -1032,14 +1059,35 @@ class REAttention(nn.Module):
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
-        Initialize Attention module.
+        Initializes a Relative Position Attention module for transformer-based architectures.
+
+        This module implements multi-head attention with optional relative positional encodings, designed
+        specifically for vision tasks in transformer models.
 
         Args:
             dim (int): Number of input channels.
+            num_heads (int): Number of attention heads. Default is 8.
+            qkv_bias (bool): If True, adds a learnable bias to query, key, value projections. Default is True.
+            use_rel_pos (bool): If True, uses relative positional encodings. Default is False.
+            rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero. Default is True.
+            input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
+                Required if use_rel_pos is True. Default is None.
+
+        Attributes:
             num_heads (int): Number of attention heads.
-            qkv_bias (bool):  If True, add a learnable bias to query, key, value.
-            rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple(int, int), None): Input resolution for calculating the relative positional parameter size.
+            scale (float): Scaling factor for attention scores.
+            qkv (nn.Linear): Linear layer for computing query, key, and value projections.
+            proj (nn.Linear): Linear layer for final projection of attention output.
+            use_rel_pos (bool): Flag indicating whether relative positional encodings are used.
+            rel_pos_h (nn.Parameter): Relative positional encoding parameter for height dimension.
+            rel_pos_w (nn.Parameter): Relative positional encoding parameter for width dimension.
+
+        Examples:
+            >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
+            >>> x = torch.randn(1, 32, 32, 256)
+            >>> output = attention(x)
+            >>> print(output.shape)
+            torch.Size([1, 32, 32, 256])
         """
         super().__init__()
         self.num_heads = num_heads
@@ -1057,7 +1105,7 @@ class REAttention(nn.Module):
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies the forward operation including attention, normalization, MLP, and indexing within window limits."""
+        """Applies multi-head attention with optional relative positional encoding to input tensor."""
         B, H, W, _ = x.shape
         # qkv with shape (3, B, nHead, H * W, C)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
@@ -1076,7 +1124,7 @@ class REAttention(nn.Module):
 
 class PatchEmbed(nn.Module):
     """
-    Image to Patch Embedding module.
+    Image to Patch Embedding module for vision transformer architectures.
 
     This module converts an input image into a sequence of patch embeddings using a convolutional layer.
     It is commonly used as the first layer in vision transformer architectures to transform image data
@@ -1105,14 +1153,27 @@ class PatchEmbed(nn.Module):
         embed_dim: int = 768,
     ) -> None:
         """
-        Initialize PatchEmbed module.
+        Initializes the PatchEmbed module for converting image patches to embeddings.
+
+        This module is typically used as the first layer in vision transformer architectures to transform
+        image data into a suitable format for subsequent transformer blocks.
 
         Args:
-            kernel_size (Tuple): kernel size of the projection layer.
-            stride (Tuple): stride of the projection layer.
-            padding (Tuple): padding size of the projection layer.
+            kernel_size (Tuple[int, int]): Size of the convolutional kernel for patch extraction.
+            stride (Tuple[int, int]): Stride of the convolutional operation.
+            padding (Tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
-            embed_dim (int): Patch embedding dimension.
+            embed_dim (int): Dimensionality of the output patch embeddings.
+
+        Attributes:
+            proj (nn.Conv2d): Convolutional layer for projecting image patches to embeddings.
+
+        Examples:
+            >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
+            >>> x = torch.randn(1, 3, 224, 224)
+            >>> output = patch_embed(x)
+            >>> print(output.shape)
+            torch.Size([1, 768, 14, 14])
         """
         super().__init__()
 

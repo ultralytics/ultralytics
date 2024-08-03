@@ -195,12 +195,12 @@ class Annotator:
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
         """
-        Draws a label with a background rectangle centered within a given bounding box.
+        Draws a label with a background circle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
@@ -242,7 +242,7 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
@@ -280,7 +280,7 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
         """

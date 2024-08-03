@@ -61,6 +61,7 @@ class TwoWayTransformer(nn.Module):
         Attributes:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for input embeddings.
+            embedding_dim (int): Channel dimension for input embeddings.
             num_heads (int): Number of heads for multihead attention.
             mlp_dim (int): Internal channel dimension for the MLP block.
             layers (nn.ModuleList): List of TwoWayAttentionBlock layers.
@@ -205,16 +206,6 @@ class TwoWayAttentionBlock(nn.Module):
             attention_downsample_rate (int): Downsampling rate for the attention mechanism.
             skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
 
-        Attributes:
-            self_attn (Attention): Self-attention layer for queries.
-            norm1 (nn.LayerNorm): Layer normalization after self-attention.
-            cross_attn_token_to_image (Attention): Cross-attention layer from queries to keys.
-            norm2 (nn.LayerNorm): Layer normalization after token-to-image attention.
-            mlp (MLPBlock): MLP block for transforming query embeddings.
-            norm3 (nn.LayerNorm): Layer normalization after MLP block.
-            norm4 (nn.LayerNorm): Layer normalization after image-to-token attention.
-            cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
-
         Examples:
             >>> embedding_dim, num_heads = 256, 8
             >>> block = TwoWayAttentionBlock(embedding_dim, num_heads)
@@ -325,16 +316,6 @@ class Attention(nn.Module):
 
         Raises:
             AssertionError: If num_heads does not evenly divide the internal dim (embedding_dim / downsample_rate).
-
-        Attributes:
-            embedding_dim (int): Dimensionality of input embeddings.
-            kv_in_dim (int): Dimensionality of key and value inputs.
-            internal_dim (int): Internal dimension after downsampling.
-            num_heads (int): Number of attention heads.
-            q_proj (nn.Linear): Linear projection for queries.
-            k_proj (nn.Linear): Linear projection for keys.
-            v_proj (nn.Linear): Linear projection for values.
-            out_proj (nn.Linear): Linear projection for output.
 
         Examples:
             >>> attn = Attention(embedding_dim=256, num_heads=8, downsample_rate=2)

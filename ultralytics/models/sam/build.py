@@ -118,9 +118,13 @@ def build_sam2_l(checkpoint=None):
 
 
 def _build_sam(
-    encoder_embed_dim, encoder_depth, encoder_num_heads, encoder_global_attn_indexes, checkpoint=None, mobile_sam=False
+    encoder_embed_dim,
+    encoder_depth,
+    encoder_num_heads,
+    encoder_global_attn_indexes,
+    checkpoint=None,
+    mobile_sam=False,
 ):
-    """Constructs a Segment Anything Model (SAM) with specified architecture parameters and optional checkpoint."""
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
@@ -202,7 +206,6 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
-    """Builds a SAM2 model with specified architecture parameters and optional checkpoint loading."""
     image_encoder = ImageEncoder(
         trunk=Hiera(
             embed_dim=encoder_embed_dim,

@@ -547,14 +547,6 @@ class FpnNeck(nn.Module):
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
             fpn_top_down_levels (Optional[List[int]]): Levels to have top-down features in outputs.
 
-        Attributes:
-            position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
-            convs (nn.ModuleList): List of convolutional layers for each backbone level.
-            backbone_channel_list (List[int]): List of channel dimensions from the backbone.
-            fpn_interp_model (str): Interpolation mode for FPN feature resizing.
-            fuse_type (str): Type of feature fusion.
-            fpn_top_down_levels (List[int]): Levels with top-down feature propagation.
-
         Examples:
             >>> backbone_channels = [64, 128, 256, 512]
             >>> fpn_neck = FpnNeck(256, backbone_channels)

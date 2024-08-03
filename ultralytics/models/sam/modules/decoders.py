@@ -57,17 +57,6 @@ class MaskDecoder(nn.Module):
             iou_head_depth (int): Depth of the MLP used to predict mask quality.
             iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
 
-        Attributes:
-            transformer_dim (int): Channel dimension for the transformer module.
-            transformer (nn.Module): Transformer module used for mask prediction.
-            num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
-            iou_token (nn.Embedding): Embedding for the IoU token.
-            num_mask_tokens (int): Number of mask tokens.
-            mask_tokens (nn.Embedding): Embedding for the mask tokens.
-            output_upscaling (nn.Sequential): Neural network sequence for upscaling the output.
-            output_hypernetworks_mlps (nn.ModuleList): Hypernetwork MLPs for generating masks.
-            iou_prediction_head (nn.Module): MLP for predicting mask quality.
-
         Examples:
             >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
             >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer)
@@ -265,27 +254,6 @@ class SAM2MaskDecoder(nn.Module):
             pred_obj_scores (bool): Whether to predict object scores.
             pred_obj_scores_mlp (bool): Whether to use MLP for object score prediction.
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
-
-        Attributes:
-            transformer_dim (int): Channel dimension of the transformer.
-            transformer (nn.Module): Transformer used to predict masks.
-            num_multimask_outputs (int): Number of masks to predict when disambiguating masks.
-            iou_token (nn.Embedding): Embedding for IOU token.
-            num_mask_tokens (int): Total number of mask tokens.
-            mask_tokens (nn.Embedding): Embedding for mask tokens.
-            pred_obj_scores (bool): Whether to predict object scores.
-            obj_score_token (nn.Embedding): Embedding for object score token.
-            use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
-            output_upscaling (nn.Sequential): Upscaling layers for output.
-            use_high_res_features (bool): Whether to use high-resolution features.
-            conv_s0 (nn.Conv2d): Convolutional layer for high-resolution features (s0).
-            conv_s1 (nn.Conv2d): Convolutional layer for high-resolution features (s1).
-            output_hypernetworks_mlps (nn.ModuleList): List of MLPs for output hypernetworks.
-            iou_prediction_head (MLP): MLP for IOU prediction.
-            pred_obj_score_head (nn.Linear | MLP): Linear layer or MLP for object score prediction.
-            dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
-            dynamic_multimask_stability_delta (float): Delta value for dynamic multimask stability.
-            dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
 
         Examples:
             >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)

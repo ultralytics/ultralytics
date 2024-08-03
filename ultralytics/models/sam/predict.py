@@ -87,12 +87,6 @@ class Predictor(BasePredictor):
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
-        Attributes:
-            args (SimpleNamespace): Configuration arguments for the predictor.
-            im (torch.Tensor | None): The preprocessed input image.
-            features (torch.Tensor | None): Extracted image features.
-            prompts (Dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
-
         Examples:
             >>> predictor = Predictor(cfg=DEFAULT_CFG)
             >>> predictor = Predictor(overrides={'imgsz': 640})
@@ -396,12 +390,6 @@ class Predictor(BasePredictor):
         Args:
             model (torch.nn.Module): A pre-trained SAM model. If None, a model will be built based on configuration.
             verbose (bool): If True, prints selected device information.
-
-        Attributes:
-            model (torch.nn.Module): The SAM model allocated to the chosen device for inference.
-            device (torch.device): The device to which the model and tensors are allocated.
-            mean (torch.Tensor): The mean values for image normalization.
-            std (torch.Tensor): The standard deviation values for image normalization.
 
         Examples:
             >>> predictor = Predictor()

@@ -72,14 +72,6 @@ class SAMModel(nn.Module):
             pixel_mean (List[float]): Mean values for normalizing pixels in the input image.
             pixel_std (List[float]): Std values for normalizing pixels in the input image.
 
-        Attributes:
-            mask_threshold (float): Threshold value for mask prediction.
-            image_encoder (ImageEncoderViT): Backbone for encoding images into embeddings.
-            prompt_encoder (PromptEncoder): Encoder for various types of input prompts.
-            mask_decoder (MaskDecoder): Predicts object masks from image and prompt embeddings.
-            pixel_mean (torch.Tensor): Mean pixel values for image normalization, shape (3, 1, 1).
-            pixel_std (torch.Tensor): Standard deviation values for image normalization, shape (3, 1, 1).
-
         Examples:
             >>> image_encoder = ImageEncoderViT(...)
             >>> prompt_encoder = PromptEncoder(...)

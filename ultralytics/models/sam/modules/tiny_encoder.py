@@ -272,14 +272,6 @@ class ConvLayer(nn.Module):
             out_dim (Optional[int]): The dimensionality of the output. None means it will be the same as `dim`.
             conv_expand_ratio (float): Expansion ratio for the MBConv layers.
 
-        Attributes:
-            dim (int): The dimensionality of the input and output.
-            input_resolution (Tuple[int, int]): The resolution of the input image.
-            depth (int): The number of MBConv layers in the block.
-            use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
-            blocks (nn.ModuleList): List of MBConv layers.
-            downsample (Optional[Callable]): Function for downsampling the output.
-
         Examples:
             >>> input_tensor = torch.randn(1, 64, 56, 56)
             >>> conv_layer = ConvLayer(64, (56, 56), depth=3, activation=nn.ReLU)
@@ -428,20 +420,6 @@ class Attention(torch.nn.Module):
         Raises:
             AssertionError: If 'resolution' is not a tuple of length 2.
 
-        Attributes:
-            num_heads (int): Number of attention heads.
-            scale (float): Scaling factor for attention scores.
-            key_dim (int): Dimensionality of the keys and queries.
-            nh_kd (int): Product of num_heads and key_dim.
-            d (int): Dimensionality of the value vectors.
-            dh (int): Product of d and num_heads.
-            attn_ratio (float): Attention ratio affecting the dimensions of the value vectors.
-            norm (nn.LayerNorm): Layer normalization applied to input.
-            qkv (nn.Linear): Linear layer for computing query, key, and value projections.
-            proj (nn.Linear): Linear layer for final projection.
-            attention_biases (nn.Parameter): Learnable attention biases.
-            attention_bias_idxs (Tensor): Indices for attention biases.
-
         Examples:
             >>> attn = Attention(dim=256, key_dim=64, num_heads=8, resolution=(14, 14))
             >>> x = torch.randn(1, 196, 256)
@@ -573,17 +551,6 @@ class TinyViTBlock(nn.Module):
         Raises:
             AssertionError: If window_size is not greater than 0.
             AssertionError: If dim is not divisible by num_heads.
-
-        Attributes:
-            dim (int): Dimensionality of the input and output.
-            input_resolution (Tuple[int, int]): Spatial resolution of the input feature map.
-            num_heads (int): Number of attention heads.
-            window_size (int): Size of the attention window.
-            mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
-            drop_path (nn.Module): Stochastic depth layer, identity function during inference.
-            attn (Attention): Self-attention module.
-            mlp (Mlp): Multi-layer perceptron module.
-            local_conv (Conv2d_BN): Depth-wise local convolution layer.
 
         Examples:
             >>> block = TinyViTBlock(dim=192, input_resolution=(14, 14), num_heads=3)
@@ -744,14 +711,6 @@ class BasicLayer(nn.Module):
             activation (nn.Module): Activation function used in the MLP.
             out_dim (int | None): Output dimension after downsampling. None means it will be the same as `dim`.
 
-        Attributes:
-            dim (int): Dimensionality of the input and output features.
-            input_resolution (Tuple[int, int]): Spatial resolution of the input feature map.
-            depth (int): Number of TinyViT blocks in this layer.
-            use_checkpoint (bool): Whether gradient checkpointing is used.
-            blocks (nn.ModuleList): List of TinyViT blocks.
-            downsample (nn.Module | None): Downsampling layer, if specified.
-
         Raises:
             ValueError: If `drop_path` is a list and its length doesn't match `depth`.
 
@@ -878,19 +837,6 @@ class TinyViT(nn.Module):
             mbconv_expand_ratio (float): Expansion ratio for MBConv layer. Default is 4.0.
             local_conv_size (int): Kernel size for local convolutions. Default is 3.
             layer_lr_decay (float): Layer-wise learning rate decay factor. Default is 1.0.
-
-        Attributes:
-            img_size (int): Size of the input image.
-            num_classes (int): Number of classification classes.
-            depths (Tuple[int, int, int, int]): Number of blocks in each stage.
-            num_layers (int): Total number of layers in the network.
-            mlp_ratio (float): Ratio of MLP hidden dim to embedding dim.
-            patch_embed (PatchEmbed): Patch embedding layer.
-            patches_resolution (Tuple[int, int]): Resolution of patches after embedding.
-            layers (nn.ModuleList): List of network layers.
-            norm_head (nn.LayerNorm): Layer normalization for the classifier head.
-            head (nn.Linear): Linear layer for final classification.
-            neck (nn.Sequential): Neck module for feature refinement.
 
         Examples:
             >>> model = TinyViT(img_size=224, num_classes=1000)

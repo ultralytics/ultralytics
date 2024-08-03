@@ -110,7 +110,6 @@ class MaskDownSampler(nn.Module):
         return self.encoder(x)
 
 
-# Lightly adapted from ConvNext (https://github.com/facebookresearch/ConvNeXt)
 class CXBlock(nn.Module):
     """
     ConvNeXt Block for efficient feature extraction in convolutional neural networks.
@@ -161,15 +160,6 @@ class CXBlock(nn.Module):
             drop_path (float): Stochastic depth rate.
             layer_scale_init_value (float): Initial value for Layer Scale.
             use_dwconv (bool): Whether to use depthwise convolution.
-
-        Attributes:
-            dwconv (nn.Conv2d): Depthwise or standard 2D convolution layer.
-            norm (LayerNorm2d): Layer normalization applied to channels.
-            pwconv1 (nn.Linear): First pointwise convolution implemented as a linear layer.
-            act (nn.GELU): GELU activation function.
-            pwconv2 (nn.Linear): Second pointwise convolution implemented as a linear layer.
-            gamma (nn.Parameter | None): Learnable scale parameter for layer scaling.
-            drop_path (DropPath): DropPath layer for stochastic depth regularization.
 
         Examples:
             >>> block = CXBlock(dim=64, kernel_size=7, padding=3)
@@ -248,10 +238,6 @@ class Fuser(nn.Module):
             dim (int | None): The dimension for input projection, if used.
             input_projection (bool): Whether to use input projection.
 
-        Attributes:
-            proj (nn.Module): The input projection layer, or nn.Identity if not used.
-            layers (nn.ModuleList): A list of replicated layers.
-
         Examples:
             >>> layer = nn.Linear(64, 64)
             >>> fuser = Fuser(layer, num_layers=3, dim=64, input_projection=True)
@@ -327,17 +313,6 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
 
-        Attributes:
-            self_attn (Attention): The self-attention layer for the queries.
-            norm1 (nn.LayerNorm): Layer normalization following the first attention block.
-            cross_attn_token_to_image (Attention): Cross-attention layer from queries to keys.
-            norm2 (nn.LayerNorm): Layer normalization following the second attention block.
-            mlp (MLP): MLP block that transforms the query embeddings.
-            norm3 (nn.LayerNorm): Layer normalization following the MLP block.
-            norm4 (nn.LayerNorm): Layer normalization following the third attention block.
-            cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
-            skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
-
         Examples:
             >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
             >>> sparse_inputs = torch.randn(1, 100, 256)
@@ -399,15 +374,6 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             mlp_dim (int): Channel dimension internal to the MLP block.
             activation (Type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
-
-        Attributes:
-            depth (int): Number of layers in the transformer.
-            embedding_dim (int): Channel dimension for the input embeddings.
-            num_heads (int): Number of heads for multihead attention.
-            mlp_dim (int): Internal channel dimension for the MLP block.
-            layers (nn.ModuleList): List of SAM2TwoWayAttentionBlock layers comprising the transformer.
-            final_attn_token_to_image (Attention): Final attention layer from queries to image.
-            norm_final_attn (nn.LayerNorm): Layer normalization applied to the final queries.
 
         Examples:
             >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
@@ -966,15 +932,7 @@ class Block(nn.Module):
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
-            input_size (Optional[Tuple[int, int]]): Input resolution for calculating relative positional
-                parameter size.
-
-        Attributes:
-            norm1 (nn.Module): First normalization layer.
-            attn (REAttention): Self-attention layer with optional relative positional encoding.
-            norm2 (nn.Module): Second normalization layer.
-            mlp (MLPBlock): Multi-layer perceptron block.
-            window_size (int): Size of attention window. If 0, global attention is used.
+            input_size (Optional[Tuple[int, int]]): Input resolution for calculating relative positional parameter size.
 
         Examples:
             >>> block = Block(dim=256, num_heads=8, window_size=7)
@@ -1073,15 +1031,6 @@ class REAttention(nn.Module):
             input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True. Default is None.
 
-        Attributes:
-            num_heads (int): Number of attention heads.
-            scale (float): Scaling factor for attention scores.
-            qkv (nn.Linear): Linear layer for computing query, key, and value projections.
-            proj (nn.Linear): Linear layer for final projection of attention output.
-            use_rel_pos (bool): Flag indicating whether relative positional encodings are used.
-            rel_pos_h (nn.Parameter): Relative positional encoding parameter for height dimension.
-            rel_pos_w (nn.Parameter): Relative positional encoding parameter for width dimension.
-
         Examples:
             >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
             >>> x = torch.randn(1, 32, 32, 256)
@@ -1164,9 +1113,6 @@ class PatchEmbed(nn.Module):
             padding (Tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
-
-        Attributes:
-            proj (nn.Conv2d): Convolutional layer for projecting image patches to embeddings.
 
         Examples:
             >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)

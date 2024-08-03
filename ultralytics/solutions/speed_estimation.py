@@ -137,7 +137,6 @@ class SpeedEstimator:
         """
         self.im0 = im0
         if tracks[0].boxes.id is not None:
-
             self.extract_tracks(tracks)
             self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
             self.annotator.draw_region(

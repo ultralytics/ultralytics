@@ -136,36 +136,29 @@ class SpeedEstimator:
             (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
-        if tracks[0].boxes.id is None:
-            if self.args.view_img and self.env_check:
-                self.display_frames()
-            return im0
+        if tracks[0].boxes.id is not None:
 
-        self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
-        self.annotator.draw_region(
-            reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]
-        )
+            self.extract_tracks(tracks)
+            self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
+            self.annotator.draw_region(
+                reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]
+            )
 
-        for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
-            track = self.store_track_info(trk_id, box)
+            for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
+                track = self.store_track_info(trk_id, box)
 
-            if trk_id not in self.trk_previous_times:
-                self.trk_previous_times[trk_id] = 0
+                if trk_id not in self.trk_previous_times:
+                    self.trk_previous_times[trk_id] = 0
 
-            self.plot_box_and_track(trk_id, box, cls, track)
-            self.calculate_speed(trk_id, track)
+                self.plot_box_and_track(trk_id, box, cls, track)
+                self.calculate_speed(trk_id, track)
 
         if self.args["view_img"] and self.env_check:
-            self.display_frames()
+            cv2.imshow("Ultralytics Speed Estimation", self.im0)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
 
-        return im0
-
-    def display_frames(self):
-        """Displays the current frame."""
-        cv2.imshow("Ultralytics Speed Estimation", self.im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
+        return self.im0
 
 
 if __name__ == "__main__":

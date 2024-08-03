@@ -434,7 +434,29 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
 
 
 class RoPEAttention(Attention):
-    """Implements rotary position encoding for attention mechanisms in transformer architectures."""
+    """
+    Implements rotary position encoding for attention mechanisms in transformer architectures.
+    
+    This class extends the base Attention class by incorporating Rotary Position Encoding (RoPE) to enhance
+    the positional awareness of the attention mechanism.
+    
+    Attributes:
+        compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
+        freqs_cis (Tensor): Precomputed frequency tensor for rotary encoding.
+        rope_k_repeat (bool): Flag to repeat query RoPE to match key length for cross-attention to memories.
+    
+    Methods:
+        forward: Applies rotary position encoding and computes attention between query, key, and value tensors.
+    
+    Examples:
+        >>> rope_attn = RoPEAttention(embedding_dim=256, num_heads=8, rope_theta=10000.0, feat_sizes=(32, 32))
+        >>> q = torch.randn(1, 1024, 256)
+        >>> k = torch.randn(1, 1024, 256)
+        >>> v = torch.randn(1, 1024, 256)
+        >>> output = rope_attn(q, k, v)
+        >>> print(output.shape)
+        torch.Size([1, 1024, 256])
+    """
 
     def __init__(
         self,

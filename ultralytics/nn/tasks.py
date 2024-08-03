@@ -87,7 +87,7 @@ except ImportError:
 def torchfx():
     try:
         from torch.fx._symbolic_trace import is_fx_tracing
-    except ModuleNotFoundError:    # 1.x torch versions does not have this module.
+    except ModuleNotFoundError:  # 1.x torch versions does not have this module.
         is_fx_tracing = None
 
     def decorator(func):

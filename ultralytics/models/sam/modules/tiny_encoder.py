@@ -54,17 +54,17 @@ class Conv2d_BN(torch.nn.Sequential):
 class PatchEmbed(nn.Module):
     """
     Embeds images into patches and projects them into a specified embedding dimension.
-
+    
     Attributes:
         patches_resolution (Tuple[int, int]): Resolution of the patches after embedding.
         num_patches (int): Total number of patches.
         in_chans (int): Number of input channels.
         embed_dim (int): Dimension of the embedding.
         seq (nn.Sequential): Sequence of convolutional and activation layers for patch embedding.
-
+    
     Methods:
         forward: Processes the input tensor through the patch embedding sequence.
-
+    
     Examples:
         >>> import torch
         >>> patch_embed = PatchEmbed(in_chans=3, embed_dim=96, resolution=224, activation=nn.GELU)

@@ -57,7 +57,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
         ```
 
 ## Sample Images and Annotations
@@ -116,7 +116,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
         ```
 
 ### What are the most common use cases for the Caltech-256 dataset?

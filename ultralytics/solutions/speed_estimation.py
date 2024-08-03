@@ -31,7 +31,6 @@ class SpeedEstimator:
         self.trk_history = defaultdict(list)
 
         # Speed estimation information
-        self.current_time = 0
         self.dist_data = {}
         self.trk_idslist = []
         self.trk_previous_times = {}

@@ -318,7 +318,27 @@ sam_model_map = {
 
 
 def build_sam(ckpt="sam_b.pt"):
-    """Constructs a Segment Anything Model (SAM) based on the specified checkpoint, supporting various architectures."""
+    """
+    Builds and returns a Segment Anything Model (SAM) based on the provided checkpoint.
+    
+    Args:
+        ckpt (str | Path): Path to the checkpoint file or name of a pre-defined SAM model.
+    
+    Returns:
+        (SAMModel | SAM2Model): A configured and initialized SAM or SAM2 model instance.
+    
+    Raises:
+        FileNotFoundError: If the provided checkpoint is not a supported SAM model.
+    
+    Examples:
+        >>> sam_model = build_sam("sam_b.pt")
+        >>> sam_model = build_sam("path/to/custom_checkpoint.pt")
+    
+    Notes:
+        Supported pre-defined models include:
+        - SAM: 'sam_h.pt', 'sam_l.pt', 'sam_b.pt', 'mobile_sam.pt'
+        - SAM2: 'sam2_t.pt', 'sam2_s.pt', 'sam2_b.pt', 'sam2_l.pt'
+    """
     model_builder = None
     ckpt = str(ckpt)  # to allow Path ckpt types
     for k in sam_model_map.keys():

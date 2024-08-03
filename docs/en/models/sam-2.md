@@ -6,10 +6,6 @@ keywords: SAM 2, Segment Anything, video segmentation, image segmentation, promp
 
 # SAM 2: Segment Anything Model 2
 
-!!! Note "🚧 SAM 2 Integration In Progress 🚧"
-
-    The SAM 2 features described in this documentation are currently not enabled in the `ultralytics` package. The Ultralytics team is actively working on integrating SAM 2, and these capabilities should be available soon. We appreciate your patience as we work to implement this exciting new model.
-
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
 ![SAM 2 Example Results](https://github.com/facebookresearch/segment-anything-2/raw/main/assets/sa_v_dataset.jpg?raw=true)
@@ -104,10 +100,6 @@ pip install ultralytics
 ```
 
 ## How to Use SAM 2: Versatility in Image and Video Segmentation
-
-!!! Note "🚧 SAM 2 Integration In Progress 🚧"
-
-    The SAM 2 features described in this documentation are currently not enabled in the `ultralytics` package. The Ultralytics team is actively working on integrating SAM 2, and these capabilities should be available soon. We appreciate your patience as we work to implement this exciting new model.
 
 The following table details the available SAM 2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 

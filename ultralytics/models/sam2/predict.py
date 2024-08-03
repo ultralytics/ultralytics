@@ -107,23 +107,22 @@ class SAM2Predictor(Predictor):
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
         points = (points, labels) if points is not None else None
-        # TODO: Embed prompts
-        # if bboxes is not None:
-        #     box_coords = bboxes.reshape(-1, 2, 2)
-        #     box_labels = torch.tensor([[2, 3]], dtype=torch.int, device=bboxes.device)
-        #     box_labels = box_labels.repeat(bboxes.size(0), 1)
-        #     # we merge "boxes" and "points" into a single "concat_points" input (where
-        #     # boxes are added at the beginning) to sam_prompt_encoder
-        #     if concat_points is not None:
-        #         concat_coords = torch.cat([box_coords, concat_points[0]], dim=1)
-        #         concat_labels = torch.cat([box_labels, concat_points[1]], dim=1)
-        #         concat_points = (concat_coords, concat_labels)
-        #     else:
-        #         concat_points = (box_coords, box_labels)
+        if bboxes is not None:
+            box_coords = bboxes.reshape(-1, 2, 2)
+            box_labels = torch.tensor([[2, 3]], dtype=torch.int, device=bboxes.device)
+            box_labels = box_labels.repeat(bboxes.size(0), 1)
+            # NOTE: merge "boxes" and "points" into a single "points" input 
+            # (where boxes are added at the beginning) to model.sam_prompt_encoder
+            if points is not None:
+                concat_coords = torch.cat([box_coords, points[0]], dim=1)
+                concat_labels = torch.cat([box_labels, points[1]], dim=1)
+                points = (concat_coords, concat_labels)
+            else:
+                points = (box_coords, box_labels)
 
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
             points=points,
-            boxes=bboxes,
+            boxes=None,
             masks=masks,
         )
         # Predict masks

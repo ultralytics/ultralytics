@@ -59,6 +59,7 @@ When adding new functions or classes, include a [Google-style docstring](https:/
     === "Google-style"
 
          This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
+
          ```python
          def example_function(arg1, arg2=4):
              """
@@ -82,6 +83,7 @@ When adding new functions or classes, include a [Google-style docstring](https:/
     === "Google-style with type hints"
 
          This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
+
          ```python
          def example_function(arg1: int, arg2: int = 4) -> bool:
              """
@@ -105,6 +107,7 @@ When adding new functions or classes, include a [Google-style docstring](https:/
     === "Single-line"
 
          Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes and be a complete sentence starting with a capital letter and ending with a period.
+
          ```python
          def example_small_function(arg1: int, arg2: int = 4) -> bool:
              """Example function that demonstrates a single-line docstring."""

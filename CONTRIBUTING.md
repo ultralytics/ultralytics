@@ -12,9 +12,9 @@ Thank you for your interest in contributing to Ultralytics open-source YOLO repo
 
 1. [Code of Conduct](#code-of-conduct)
 2. [Contributing via Pull Requests](#contributing-via-pull-requests)
-   - [CLA Signing](#cla-signing)
-   - [Google-Style Docstrings](#google-style-docstrings)
-   - [GitHub Actions CI Tests](#github-actions-ci-tests)
+    - [CLA Signing](#cla-signing)
+    - [Google-Style Docstrings](#google-style-docstrings)
+    - [GitHub Actions CI Tests](#github-actions-ci-tests)
 3. [Reporting Bugs](#reporting-bugs)
 4. [License](#license)
 5. [Conclusion](#conclusion)
@@ -54,62 +54,63 @@ I have read the CLA Document and I sign the CLA
 
 When adding new functions or classes, include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This helps ensure your contributions are easy to understand and maintain.
 
-!!! Example "Example Docstrings"
+#### "Google-style"
 
-    === "Google-style"
+This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
 
-         This example shows a Google-style docstring. Note that both input and output `types` must always be enclosed by parentheses, i.e., `(bool)`.
-         ```python
-         def example_function(arg1, arg2=4):
-             """
-             Example function that demonstrates Google-style docstrings.
+```python
+def example_function(arg1, arg2=4):
+    """
+    Example function that demonstrates Google-style docstrings.
 
-             Args:
-                 arg1 (int): The first argument.
-                 arg2 (int): The second argument. Default value is 4.
+    Args:
+        arg1 (int): The first argument.
+        arg2 (int): The second argument. Default value is 4.
 
-             Returns:
-                 (bool): True if successful, False otherwise.
+    Returns:
+        (bool): True if successful, False otherwise.
 
-             Examples:
-                 >>> result = example_function(1, 2)  # returns False
-             """
-             if arg1 == arg2:
-                 return True
-             return False
-         ```
+    Examples:
+        >>> result = example_function(1, 2)  # returns False
+    """
+    if arg1 == arg2:
+        return True
+    return False
+```
 
-    === "Google-style with type hints"
+#### "Google-style with type hints"
 
-         This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
-         ```python
-         def example_function(arg1: int, arg2: int = 4) -> bool:
-             """
-             Example function that demonstrates Google-style docstrings.
+This example shows both a Google-style docstring and argument and return type hints, though both are not required; one can be used without the other.
 
-             Args:
-                 arg1: The first argument.
-                 arg2: The second argument. Default value is 4.
+```python
+def example_function(arg1: int, arg2: int = 4) -> bool:
+    """
+    Example function that demonstrates Google-style docstrings.
 
-             Returns:
-                 True if successful, False otherwise.
+    Args:
+        arg1: The first argument.
+        arg2: The second argument. Default value is 4.
 
-             Examples:
-                 >>> result = example_function(1, 2)  # returns False
-             """
-             if arg1 == arg2:
-                 return True
-             return False
-         ```
+    Returns:
+        True if successful, False otherwise.
 
-    === "Single-line"
+    Examples:
+        >>> result = example_function(1, 2)  # returns False
+    """
+    if arg1 == arg2:
+        return True
+    return False
+```
 
-         Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes and be a complete sentence starting with a capital letter and ending with a period.
-         ```python
-         def example_small_function(arg1: int, arg2: int = 4) -> bool:
-             """Example function that demonstrates a single-line docstring."""
-             return arg1 == arg2
-         ```
+#### "Single-line"
+
+Smaller or simpler functions can utilize a single-line docstring. Note the docstring must use 3 double-quotes and be a complete sentence starting with a capital letter and ending with a period.
+
+```python
+def example_small_function(arg1: int, arg2: int = 4) -> bool:
+    """Example function that demonstrates a single-line docstring."""
+    return arg1 == arg2
+```
 
 ### GitHub Actions CI Tests
 

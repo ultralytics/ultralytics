@@ -117,15 +117,15 @@ class ObjectCounter:
                 elif len(self.args["reg_pts"]) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.args['line_dist_thresh'] and track_id not in self.count_ids:
+                        if distance < self.args["line_dist_thresh"] and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.args['names'][cls]]["IN"] += 1
+                                self.class_wise_count[self.args["names"][cls]]["IN"] += 1
                             else:
                                 self.out_counts += 1
-                                self.class_wise_count[self.args['names'][cls]]["OUT"] += 1
+                                self.class_wise_count[self.args["names"][cls]]["OUT"] += 1
 
         labels_dict = {}
 

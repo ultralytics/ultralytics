@@ -10,11 +10,14 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class DistanceCalculation:
-    """A class for calculating the distance between two objects in a real-time video stream using their tracking data."""
+    """A class for calculating the distance between two objects in a real-time video stream using their tracking
+    data.
+    """
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the DistanceCalculation class, setting up configurations for tracking and calculating distances between objects.
+        Initializes an instance of the DistanceCalculation class, setting up configurations for tracking and calculating
+        distances between objects.
 
         Args:
             **kwargs: Arbitrary keyword arguments for configuring the distance calculation process, such as parameters for object detection, tracking precision, and measurement units.
@@ -103,7 +106,7 @@ class DistanceCalculation:
                 self.centroids = [
                     (
                         int((self.selected_boxes[trk_id][0] + self.selected_boxes[trk_id][2]) // 2),
-                        int((self.selected_boxes[trk_id][1] + self.selected_boxes[trk_id][3]) // 2)
+                        int((self.selected_boxes[trk_id][1] + self.selected_boxes[trk_id][3]) // 2),
                     )
                     for trk_id in self.selected_boxes
                 ]

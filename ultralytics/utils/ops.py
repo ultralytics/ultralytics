@@ -363,7 +363,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         ratio_pad (tuple): the ratio of the padding to the original image.
 
     Returns:
-        masks (torch.Tensor): The masks that are being returned.
+        masks (np.ndarray): The masks that are being returned with shape [h, w, num].
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
     im1_shape = masks.shape
@@ -528,7 +528,7 @@ def ltwh2xywh(x):
 def xyxyxyxy2xywhr(x):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation]. Rotation values are
-    expected in degrees from 0 to 90.
+    returned in radians from 0 to pi/2.
 
     Args:
         x (numpy.ndarray | torch.Tensor): Input box corners [xy1, xy2, xy3, xy4] of shape (n, 8).
@@ -551,7 +551,7 @@ def xyxyxyxy2xywhr(x):
 def xywhr2xyxyxyxy(x):
     """
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
-    be in degrees from 0 to 90.
+    be in radians from 0 to pi/2.
 
     Args:
         x (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
@@ -650,27 +650,6 @@ def crop_mask(masks, boxes):
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
 
     return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
-
-
-def process_mask_upsample(protos, masks_in, bboxes, shape):
-    """
-    Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality
-    but is slower.
-
-    Args:
-        protos (torch.Tensor): [mask_dim, mask_h, mask_w]
-        masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
-        bboxes (torch.Tensor): [n, 4], n is number of masks after nms
-        shape (tuple): the size of the input image (h,w)
-
-    Returns:
-        (torch.Tensor): The upsampled masks.
-    """
-    c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0)
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):

@@ -100,9 +100,11 @@ def benchmark(
                 assert not is_end2end, "End-to-end models not supported by CoreML and TF.js yet"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
-            if i in {6, 7, 8, 9, 10}:  # All TF formats
+            if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                assert not is_end2end, "End-to-end models not supported by onnx2tf yet"
+            if i in {9, 10}:  # TF EdgeTPU and TF.js
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+                assert not is_end2end, "End-to-end models not supported by TF EdgeTPU and TF.js yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
@@ -164,6 +166,8 @@ def benchmark(
 
 
 class RF100Benchmark:
+    """Benchmark YOLO model performance across formats for speed and accuracy."""
+
     def __init__(self):
         """Function for initialization of RF100Benchmark."""
         self.ds_names = []
@@ -195,7 +199,7 @@ class RF100Benchmark:
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://ultralytics.com/assets/datasets_links.txt")
+        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
         with open(ds_link_txt, "r") as file:
             for line in file:

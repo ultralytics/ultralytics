@@ -10,7 +10,7 @@ draw_tracks: False # (bool) enable or disable drawing of tracks
 track_color: None # (None or list) color of tracking lines
 
 # Object counter settings -----------------------------------------------------------------
-reg_pts: &reg_pts [(20, 400), (1260, 400)] # (list) points defining a counting region
+reg_pts: &reg_pts "[(20, 400), (1260, 400)]" # (list) points defining a counting region
 count_reg_color: &count_reg_color "(255, 0, 255)" # (str) color of the counting region line in RGB
 count_txt_color: "(0, 0, 0)" # (str) color of the count text in RGB
 count_bg_color: "(255, 255, 255)" # (str) background color of the count text in RGB

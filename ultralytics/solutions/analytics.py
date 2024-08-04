@@ -18,7 +18,8 @@ class Analytics:
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the Analytics class, allowing for the creation and customization of various chart types.
+        Initializes an instance of the Analytics class, allowing for the creation and customization of various chart
+        types.
 
         Args:
             **kwargs: Arbitrary keyword arguments for configuring chart properties such as data sources, titles, axis labels, colors, and other visual parameters.
@@ -55,7 +56,7 @@ class Analytics:
             self.ax.axis("equal") if self.args["type"] == "pie" else None
 
     def set_common_properties(self):
-        """Set common axis properties for visual graphs i.e pie chart, line graph, area plot and bar plots"""
+        """Set common axis properties for visual graphs i.e pie chart, line graph, area plot and bar plots."""
         self.ax.set_title(self.args["title"], color=self.args["fg_color"], fontsize=self.args["fontsize"])
         self.ax.set_xlabel(self.args["x_label"], color=self.args["fg_color"], fontsize=self.args["fontsize"] - 3)
         self.ax.set_ylabel(self.args["y_label"], color=self.args["fg_color"], fontsize=self.args["fontsize"] - 3)

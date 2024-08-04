@@ -97,10 +97,9 @@ class DistanceCalculation:
         Returns:
             (ndarray): The processed image frame.
         """
-        if tracks[0].boxes.id is not None:
-            self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
+        self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
+        if self.trk_ids is not None:
             self.annotator = Annotator(im0, line_width=self.args["line_thickness"])
-
             for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
                 self.annotator.box_label(box, color=colors(int(cls), True), label=self.args["names"][int(cls)])
 

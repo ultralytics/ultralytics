@@ -124,8 +124,8 @@ class SpeedEstimator:
             (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
-        if tracks[0].boxes.id is not None:
-            self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
+        self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
+        if self.trk_ids is not None:
             self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
             self.annotator.draw_region(
                 reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]

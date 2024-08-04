@@ -50,7 +50,7 @@ class ObjectCounter:
             print("Using Line Counter Now")
             self.counting_region = LineString(self.args["reg_pts"])
 
-    def extract_and_process_tracks(self, tracks):
+    def process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
 
         # Annotator Init and region drawing
@@ -59,12 +59,8 @@ class ObjectCounter:
         self.annotator.draw_region(
             reg_pts=self.args["reg_pts"], color=self.args["count_reg_color"], thickness=self.args["region_thickness"]
         )
-
-        if tracks[0].boxes.id is not None:
-            boxes = tracks[0].boxes.xyxy.cpu()
-            clss = tracks[0].boxes.cls.cpu().tolist()
-            track_ids = tracks[0].boxes.id.int().cpu().tolist()
-
+        boxes, clss, track_ids = solutions.extract_tracks(tracks)
+        if track_ids is not None:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
@@ -158,7 +154,7 @@ class ObjectCounter:
             tracks (list): List of tracks obtained from the object tracking process.
         """
         self.im0 = im0  # store image
-        self.extract_and_process_tracks(tracks)  # draw region even if no objects
+        self.process_tracks(tracks)  # draw region even if no objects
 
         if self.args["view_img"]:
             self.display_frames()

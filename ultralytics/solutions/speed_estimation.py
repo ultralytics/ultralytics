@@ -12,11 +12,15 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class SpeedEstimator:
-    """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
+    """A class to estimate the speed of objects in a real-time video stream using tracking data."""
 
     def __init__(self, **kwargs):
-        """Initializes the SpeedEstimator with the kwargs arguments."""
+        """
+        Initializes an instance of the SpeedEstimator class, setting up configurations for analyzing object speeds in real-time video streams.
 
+        Args:
+            **kwargs: Arbitrary keyword arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.
+        """
         self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
 
@@ -38,14 +42,14 @@ class SpeedEstimator:
 
     def store_track_info(self, track_id, box):
         """
-        Stores track data.
+        Saves tracking data.
 
         Args:
-            track_id (int): Object track id.
-            box (list): Object bounding box data.
+            track_id (int): The identifier for the object's track.
+            box (list): The bounding box data for the object.
 
         Returns:
-            (list): Updated tracking history for the given track_id.
+            (list): The updated tracking history for the specified track_id.
         """
         track = self.trk_history[track_id]
         track.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
@@ -58,13 +62,13 @@ class SpeedEstimator:
 
     def plot_box_and_track(self, track_id, box, cls, track):
         """
-        Plots track and bounding box.
+        Draws the track and bounding box.
 
         Args:
-            track_id (int): Object track id.
-            box (list): Object bounding box data.
-            cls (str): Object class name.
-            track (list): Tracking history for drawing tracks path.
+            track_id (int): The identifier for the object's track.
+            box (list): The bounding box data for the object.
+            cls (str): The name of the object's class.
+            track (list): The tracking history used to draw the track path.
         """
         speed_label = (
             f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args["names"][int(cls)]
@@ -77,11 +81,11 @@ class SpeedEstimator:
 
     def calculate_speed(self, trk_id, track):
         """
-        Calculates the speed of an object.
+        Computes the speed of an object.
 
         Args:
-            trk_id (int): Object track id.
-            track (list): Tracking history for drawing tracks path.
+            trk_id (int): The identifier for the object's track.
+            track (list): The tracking history used to plot the track path.
         """
         if not self.args["reg_pts"][0][0] < track[-1][0] < self.args["reg_pts"][1][0]:
             return
@@ -113,11 +117,11 @@ class SpeedEstimator:
 
     def estimate_speed(self, im0, tracks):
         """
-        Estimates the speed of objects based on tracking data.
+        Estimates the speed of objects using tracking data.
 
         Args:
-            im0 (ndarray): Image.
-            tracks (list): List of tracks obtained from the object tracking process.
+            im0 (ndarray): The image.
+            tracks (list): A list of tracks from the object tracking process.
 
         Returns:
             (ndarray): The image with annotated boxes and tracks.
@@ -140,7 +144,7 @@ class SpeedEstimator:
                 self.calculate_speed(trk_id, track)
 
         if self.args["view_img"] and self.env_check:
-            cv2.imshow("Ultralytics Speed Estimation", self.im0)
+            cv2.imshow(self.args["window_name"], self.im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 

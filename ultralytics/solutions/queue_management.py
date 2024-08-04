@@ -14,11 +14,12 @@ from shapely.geometry import Point, Polygon
 
 
 class QueueManager:
-    """ A class to manage queues in a real-time video stream using object tracking data."""
+    """A class to manage queues in a real-time video stream using object tracking data."""
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the QueueManager class, setting up configurations for monitoring and managing queues in real-time video streams.
+        Initializes an instance of the QueueManager class, setting up configurations for monitoring and managing queues
+        in real-time video streams.
 
         Args:
             **kwargs: Arbitrary keyword arguments for configuring the queue management process, such as detection thresholds, regions of interest, and analysis logic parameters.

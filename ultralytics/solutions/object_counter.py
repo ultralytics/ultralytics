@@ -41,6 +41,8 @@ class ObjectCounter:
 
         if self.args["track_color"] is not None:
             self.args["track_color"] = ast.literal_eval(self.args["track_color"])
+        if isinstance(self.args["reg_pts"], str):
+            self.args["reg_pts"] = ast.literal_eval(self.args["reg_pts"])
         print(f"Ultralytics Solutions ✅ {self.args}")
 
         # Initialize counting region

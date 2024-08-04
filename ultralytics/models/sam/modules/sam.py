@@ -14,7 +14,6 @@ from torch import nn
 from torch.nn.init import trunc_normal_
 
 from ultralytics.nn.modules import MLP
-
 from .blocks import SAM2TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
 from .encoders import ImageEncoderViT, PromptEncoder
@@ -131,74 +130,97 @@ class SAM2Model(torch.nn.Module):
         image_encoder,
         memory_attention,
         memory_encoder,
-        num_maskmem=7,  # default 1 input frame + 6 previous frames
+        num_maskmem=7,
         image_size=512,
-        backbone_stride=16,  # stride of the image backbone output
-        sigmoid_scale_for_mem_enc=1.0,  # scale factor for mask sigmoid prob
-        sigmoid_bias_for_mem_enc=0.0,  # bias factor for mask sigmoid prob
-        # During evaluation, whether to binarize the sigmoid mask logits on interacted frames with clicks
+        backbone_stride=16,
+        sigmoid_scale_for_mem_enc=1.0,
+        sigmoid_bias_for_mem_enc=0.0,
         binarize_mask_from_pts_for_mem_enc=False,
-        use_mask_input_as_output_without_sam=False,  # on frames with mask input, whether to directly output the input mask without using a SAM prompt encoder + mask decoder
-        # The maximum number of conditioning frames to participate in the memory attention (-1 means no limit; if there are more conditioning frames than this limit,
-        # we only cross-attend to the temporally closest `max_cond_frames_in_attn` conditioning frames in the encoder when tracking each frame). This gives the model
-        # a temporal locality when handling a large number of annotated frames (since closer frames should be more important) and also avoids GPU OOM.
+        use_mask_input_as_output_without_sam=False,
         max_cond_frames_in_attn=-1,
-        # on the first frame, whether to directly add the no-memory embedding to the image feature
-        # (instead of using the transformer encoder)
         directly_add_no_mem_embed=False,
-        # whether to use high-resolution feature maps in the SAM mask decoder
         use_high_res_features_in_sam=False,
-        # whether to output multiple (3) masks for the first click on initial conditioning frames
         multimask_output_in_sam=False,
-        # the minimum and maximum number of clicks to use multimask_output_in_sam (only relevant when `multimask_output_in_sam=True`;
-        # default is 1 for both, meaning that only the first click gives multimask output; also note that a box counts as two points)
         multimask_min_pt_num=1,
         multimask_max_pt_num=1,
-        # whether to also use multimask output for tracking (not just for the first click on initial conditioning frames; only relevant when `multimask_output_in_sam=True`)
         multimask_output_for_tracking=False,
-        # Whether to use multimask tokens for obj ptr; Only relevant when both
-        # use_obj_ptrs_in_encoder=True and multimask_output_for_tracking=True
         use_multimask_token_for_obj_ptr: bool = False,
-        # whether to use sigmoid to restrict ious prediction to [0-1]
         iou_prediction_use_sigmoid=False,
-        # The memory bank's temporal stride during evaluation (i.e. the `r` parameter in XMem and Cutie; XMem and Cutie use r=5).
-        # For r>1, the (self.num_maskmem - 1) non-conditioning memory frames consist of
-        # (self.num_maskmem - 2) nearest frames from every r-th frames, plus the last frame.
         memory_temporal_stride_for_eval=1,
-        # if `add_all_frames_to_correct_as_cond` is True, we also append to the conditioning frame list any frame that receives a later correction click
-        # if `add_all_frames_to_correct_as_cond` is False, we conditioning frame list to only use those initial conditioning frames
         add_all_frames_to_correct_as_cond=False,
-        # whether to apply non-overlapping constraints on the object masks in the memory encoder during evaluation (to avoid/alleviate superposing masks)
         non_overlap_masks_for_mem_enc=False,
-        # whether to cross-attend to object pointers from other frames (based on SAM output tokens) in the encoder
         use_obj_ptrs_in_encoder=False,
-        # the maximum number of object pointers from other frames in encoder cross attention (only relevant when `use_obj_ptrs_in_encoder=True`)
         max_obj_ptrs_in_encoder=16,
-        # whether to add temporal positional encoding to the object pointers in the encoder (only relevant when `use_obj_ptrs_in_encoder=True`)
         add_tpos_enc_to_obj_ptrs=True,
-        # whether to add an extra linear projection layer for the temporal positional encoding in the object pointers to avoid potential interference
-        # with spatial positional encoding (only relevant when both `use_obj_ptrs_in_encoder=True` and `add_tpos_enc_to_obj_ptrs=True`)
         proj_tpos_enc_in_obj_ptrs=False,
-        # whether to only attend to object pointers in the past (before the current frame) in the encoder during evaluation
-        # (only relevant when `use_obj_ptrs_in_encoder=True`; this might avoid pointer information too far in the future to distract the initial tracking)
         only_obj_ptrs_in_the_past_for_eval=False,
-        # Whether to predict if there is an object in the frame
         pred_obj_scores: bool = False,
-        # Whether to use an MLP to predict object scores
         pred_obj_scores_mlp: bool = False,
-        # Only relevant if pred_obj_scores=True and use_obj_ptrs_in_encoder=True;
-        # Whether to have a fixed no obj pointer when there is no object present
-        # or to use it as an additive embedding with obj_ptr produced by decoder
         fixed_no_obj_ptr: bool = False,
-        # Soft no object, i.e. mix in no_obj_ptr softly,
-        # hope to make recovery easier if there is a mistake and mitigate accumulation of errors
         soft_no_obj_ptr: bool = False,
         use_mlp_for_obj_ptr_proj: bool = False,
-        # extra arguments used to construct the SAM mask decoder; if not None, it should be a dict of kwargs to be passed into `MaskDecoder` class.
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """Initializes SAM2Model for video object segmentation with memory mechanisms and temporal consistency."""
+        """
+        Initializes the SAM2Model for video object segmentation with memory-based tracking.
+
+        Args:
+            image_encoder (nn.Module): Visual encoder for extracting image features.
+            memory_attention (nn.Module): Module for attending to memory features.
+            memory_encoder (nn.Module): Encoder for generating memory representations.
+            num_maskmem (int): Number of accessible memory frames. Default is 7 (1 input frame + 6 previous frames).
+            image_size (int): Size of input images.
+            backbone_stride (int): Stride of the image backbone output.
+            sigmoid_scale_for_mem_enc (float): Scale factor for mask sigmoid probability.
+            sigmoid_bias_for_mem_enc (float): Bias factor for mask sigmoid probability.
+            binarize_mask_from_pts_for_mem_enc (bool): Whether to binarize sigmoid mask logits on interacted frames
+                with clicks during evaluation.
+            use_mask_input_as_output_without_sam (bool): Whether to directly output the input mask without using SAM
+                prompt encoder and mask decoder on frames with mask input.
+            max_cond_frames_in_attn (int): Maximum number of conditioning frames to participate in memory attention.
+                -1 means no limit.
+            directly_add_no_mem_embed (bool): Whether to directly add no-memory embedding to image feature on the
+                first frame.
+            use_high_res_features_in_sam (bool): Whether to use high-resolution feature maps in the SAM mask decoder.
+            multimask_output_in_sam (bool): Whether to output multiple (3) masks for the first click on initial
+                conditioning frames.
+            multimask_min_pt_num (int): Minimum number of clicks to use multimask output in SAM.
+            multimask_max_pt_num (int): Maximum number of clicks to use multimask output in SAM.
+            multimask_output_for_tracking (bool): Whether to use multimask output for tracking.
+            use_multimask_token_for_obj_ptr (bool): Whether to use multimask tokens for object pointers.
+            iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to [0-1].
+            memory_temporal_stride_for_eval (int): Memory bank's temporal stride during evaluation.
+            add_all_frames_to_correct_as_cond (bool): Whether to append frames with correction clicks to conditioning
+                frame list.
+            non_overlap_masks_for_mem_enc (bool): Whether to apply non-overlapping constraints on object masks in
+                memory encoder during evaluation.
+            use_obj_ptrs_in_encoder (bool): Whether to cross-attend to object pointers from other frames in the encoder.
+            max_obj_ptrs_in_encoder (int): Maximum number of object pointers from other frames in encoder
+                cross-attention.
+            add_tpos_enc_to_obj_ptrs (bool): Whether to add temporal positional encoding to object pointers in
+                the encoder.
+            proj_tpos_enc_in_obj_ptrs (bool): Whether to add an extra linear projection layer for temporal positional
+                encoding in object pointers.
+            only_obj_ptrs_in_the_past_for_eval (bool): Whether to only attend to object pointers in the past
+                during evaluation.
+            pred_obj_scores (bool): Whether to predict if there is an object in the frame.
+            pred_obj_scores_mlp (bool): Whether to use an MLP to predict object scores.
+            fixed_no_obj_ptr (bool): Whether to have a fixed no-object pointer when there is no object present.
+            soft_no_obj_ptr (bool): Whether to mix in no-object pointer softly for easier recovery and error mitigation.
+            use_mlp_for_obj_ptr_proj (bool): Whether to use MLP for object pointer projection.
+            sam_mask_decoder_extra_args (Dict | None): Extra arguments for constructing the SAM mask decoder.
+            compile_image_encoder (bool): Whether to compile the image encoder for faster inference.
+
+        Examples:
+            >>> image_encoder = ImageEncoderViT(...)
+            >>> memory_attention = SAM2TwoWayTransformer(...)
+            >>> memory_encoder = nn.Sequential(...)
+            >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
+            >>> image_batch = torch.rand(1, 3, 512, 512)
+            >>> features = model.forward_image(image_batch)
+            >>> track_results = model.track_step(0, True, features, None, None, None, {})
+        """
         super().__init__()
 
         # Part 1: the image backbone

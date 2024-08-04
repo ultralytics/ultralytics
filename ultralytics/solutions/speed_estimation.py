@@ -36,16 +36,6 @@ class SpeedEstimator:
         self.env_check = check_imshow(warn=True)  # Check if the environment supports imshow
         print(f"Ultralytics Solutions ✅ {self.args}")
 
-    def extract_tracks(self, tracks):
-        """
-        Extracts results from the provided tracking data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     def store_track_info(self, track_id, box):
         """
@@ -135,7 +125,7 @@ class SpeedEstimator:
         """
         self.im0 = im0
         if tracks[0].boxes.id is not None:
-            self.extract_tracks(tracks)
+            self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
             self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
             self.annotator.draw_region(
                 reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]

@@ -66,18 +66,6 @@ class Heatmap:
             print("Using Circular shape now")
             self.args.shape = "circle"
 
-    def extract_results(self, tracks):
-        """
-        Extracts results from the provided data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        if tracks[0].boxes.id is not None:
-            self.boxes = tracks[0].boxes.xyxy.cpu()
-            self.clss = tracks[0].boxes.cls.tolist()
-            self.track_ids = tracks[0].boxes.id.int().tolist()
-
     def generate_heatmap(self, im0, tracks):
         """
         Generate heatmap based on tracking data.
@@ -93,11 +81,11 @@ class Heatmap:
             self.initialized = True
 
         self.heatmap *= self.args["decay_factor"]  # decay factor
-        self.extract_results(tracks)
+        self.boxes, self.clss, self.track_ids = solutions.extract_tracks(tracks)
 
         self.annotator = Annotator(im0, self.args["line_thickness"], None)
 
-        if self.track_ids:
+        if self.track_ids is not None:
             # Draw counting region
             if self.args["count_reg_pts"] is not None:
                 self.annotator.draw_region(

@@ -57,16 +57,6 @@ class DistanceCalculation:
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    def extract_tracks(self, tracks):
-        """
-        Extracts tracking results from the provided data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     @staticmethod
     def calculate_centroid(box):
@@ -108,7 +98,7 @@ class DistanceCalculation:
             (ndarray): The processed image frame.
         """
         if tracks[0].boxes.id is not None:
-            self.extract_tracks(tracks)
+            self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
             self.annotator = Annotator(im0, line_width=self.args["line_thickness"])
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):

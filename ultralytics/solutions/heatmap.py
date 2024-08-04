@@ -111,13 +111,13 @@ class Heatmap:
                     center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
                     y_indices, x_indices = np.ogrid[y0:y1, x0:x1]  # Create a coordinate grid for the bounding box area
                     dist_sq = (x_indices - center_x) ** 2 + (
-                            y_indices - center_y
+                        y_indices - center_y
                     ) ** 2  # Calculate squared distances from the center
                     mask = dist_sq <= (min(x1 - x0, y1 - y0) // 2) ** 2  # Create a mask for the circle
                     self.heatmap[y0:y1, x0:x1] += 2 * mask  # Update the heatmap using the mask
 
                 else:
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
                 # Store tracking hist
                 track_line = self.track_history[track_id]
@@ -150,7 +150,7 @@ class Heatmap:
                                 self.count_ids.append(track_id)
 
                                 if (box[0] - prev_position[0]) * (
-                                        self.counting_region.centroid.x - prev_position[0]
+                                    self.counting_region.centroid.x - prev_position[0]
                                 ) > 0:
                                     self.in_counts += 1
                                     self.class_wise_count[self.args["names"][cls]]["IN"] += 1
@@ -165,12 +165,12 @@ class Heatmap:
                     center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
                     y_indices, x_indices = np.ogrid[y0:y1, x0:x1]  # Create a coordinate grid for the bounding box area
                     dist_sq = (x_indices - center_x) ** 2 + (
-                            y_indices - center_y
+                        y_indices - center_y
                     ) ** 2  # Calculate squared distances from the center
                     # Create a mask for the circle and update the heatmap
                     self.heatmap[y0:y1, x0:x1] += 2 * dist_sq <= (min(x1 - x0, y1 - y0) // 2) ** 2
                 else:
-                    self.heatmap[int(box[1]): int(box[3]), int(box[0]): int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
         if self.args["count_reg_pts"] is not None:
             labels_dict = {}

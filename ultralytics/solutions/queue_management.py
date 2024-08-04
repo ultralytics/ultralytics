@@ -14,10 +14,15 @@ from shapely.geometry import Point, Polygon
 
 
 class QueueManager:
-    """A class to manage the queue in a real-time video stream based on object tracks."""
+    """ A class to manage queues in a real-time video stream using object tracking data."""
 
     def __init__(self, **kwargs):
-        """Initialize the queuemanager class with kwargs arguments."""
+        """
+        Initializes an instance of the QueueManager class, setting up configurations for monitoring and managing queues in real-time video streams.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments for configuring the queue management process, such as detection thresholds, regions of interest, and analysis logic parameters.
+        """
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
@@ -39,8 +44,12 @@ class QueueManager:
         print(f"Ultralytics Solutions ✅ {self.args}")
 
     def process_tracks(self, tracks):
-        """Extracts and processes tracks for queue management in a video stream."""
+        """
+        Extracts and processes tracking data for queue management in a video stream.
 
+        Args:
+            tracks (list): A list of track objects representing detected objects in the video stream, each containing information such as position and movement.
+        """
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
 
@@ -89,21 +98,6 @@ class QueueManager:
             )
 
         self.counts = 0  # Reset counts after displaying
-        self.display_frames()
-
-    def display_frames(self):
-        """Displays the current frame with annotations."""
-        if self.env_check:
-            self.annotator.draw_region(
-                reg_pts=self.args["reg_pts"],
-                thickness=self.args["region_thickness"],
-                color=self.args["count_reg_color"],
-            )
-            cv2.namedWindow(self.args["window_name"])
-            cv2.imshow(self.args["window_name"], self.im0)
-            # Close window on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                return
 
     def process_queue(self, im0, tracks):
         """
@@ -116,8 +110,17 @@ class QueueManager:
         self.im0 = im0  # Store the current frame
         self.process_tracks(tracks)  # Extract and process tracks
 
-        if self.args["view_img"]:
-            self.display_frames()  # Display the frame if enabled
+        if self.args["view_img"] and self.env_check:
+            self.annotator.draw_region(
+                reg_pts=self.args["reg_pts"],
+                thickness=self.args["region_thickness"],
+                color=self.args["count_reg_color"],
+            )
+            cv2.imshow(self.args["window_name"], self.im0)
+            # Close window on 'q' key press
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
+
         return self.im0
 
 

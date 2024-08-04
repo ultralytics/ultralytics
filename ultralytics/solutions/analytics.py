@@ -14,10 +14,15 @@ from ultralytics.utils.plotting import colors
 
 
 class Analytics:
-    """A class to create and update various types of charts (line, bar, pie, area) for visual analytics."""
+    """A class for creating and updating different types of charts (line, bar, pie, area) for visual analytics."""
 
     def __init__(self, **kwargs):
-        """Initialize the Analytics class with various chart types."""
+        """
+        Initializes an instance of the Analytics class, allowing for the creation and customization of various chart types.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments for configuring chart properties such as data sources, titles, axis labels, colors, and other visual parameters.
+        """
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
@@ -50,7 +55,7 @@ class Analytics:
             self.ax.axis("equal") if self.args["type"] == "pie" else None
 
     def set_common_properties(self):
-        # Set common axis properties
+        """Set common axis properties for visual graphs i.e pie chart, line graph, area plot and bar plots"""
         self.ax.set_title(self.args["title"], color=self.args["fg_color"], fontsize=self.args["fontsize"])
         self.ax.set_xlabel(self.args["x_label"], color=self.args["fg_color"], fontsize=self.args["fontsize"] - 3)
         self.ax.set_ylabel(self.args["y_label"], color=self.args["fg_color"], fontsize=self.args["fontsize"] - 3)
@@ -61,10 +66,9 @@ class Analytics:
         Update the area graph with new data for multiple classes.
 
         Args:
-            frame_number (int): The current frame number.
-            counts_dict (dict): Dictionary with class names as keys and counts as values.
+            frame_number (int): The number of the current frame.
+            counts_dict (dict): A dictionary where the keys are class names and the values are their respective counts.
         """
-
         x_data = np.array([])
         y_data_dict = {key: np.array([]) for key in counts_dict.keys()}
 
@@ -120,11 +124,9 @@ class Analytics:
         Update the line graph with new data.
 
         Args:
-            frame_number (int): The current frame number.
-            total_counts (int): The total counts to plot.
+            frame_number (int): The number of the current frame.
+            total_counts (int): The total count to be plotted.
         """
-
-        # Update line graph data
         x_data = np.append(self.line.get_xdata(), float(frame_number))
         y_data = np.append(self.line.get_ydata(), float(total_counts))
         self.line.set_data(x_data, y_data)
@@ -137,12 +139,12 @@ class Analytics:
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
         """
-        Update the line graph with multiple classes.
+        Update the line graph with data for multiple classes.
 
         Args:
-            counts_dict (int): Dictionary include each class counts.
-            labels_list (int): list include each classes names.
-            frame_number (int): The current frame number.
+            counts_dict (int): A dictionary containing the counts for each class.
+            labels_list (int): A list of class names.
+            frame_number (int): The number of the current frame.
         """
         warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
@@ -174,9 +176,10 @@ class Analytics:
 
     def write_and_display(self, im0):
         """
-        Write and display the line graph
+        Generate and display the line graph.
+
         Args:
-            im0 (ndarray): Image for processing
+            im0 (ndarray): The image to be processed.
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         cv2.imshow(self.args["title"], im0) if self.args["view_img"] else None
@@ -184,13 +187,11 @@ class Analytics:
 
     def update_bar(self, count_dict):
         """
-        Update the bar graph with new data.
+        Refresh the bar graph with updated data.
 
         Args:
-            count_dict (dict): Dictionary containing the count data to plot.
+            count_dict (dict): A dictionary containing the data counts to be plotted.
         """
-
-        # Update bar graph data
         self.ax.clear()
         self.ax.set_facecolor(self.args["bg_color"])
         labels = list(count_dict.keys())
@@ -224,13 +225,11 @@ class Analytics:
 
     def update_pie(self, classes_dict):
         """
-        Update the pie chart with new data.
+        Refresh the pie chart with updated data.
 
         Args:
-            classes_dict (dict): Dictionary containing the class data to plot.
+            classes_dict (dict): A dictionary containing the data for each class to be plotted.
         """
-
-        # Update pie chart data
         labels = list(classes_dict.keys())
         sizes = list(classes_dict.values())
         total = sum(sizes)

@@ -1,11 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-from pathlib import Path
 
 import cv2
 
-from ultralytics.cfg import cfg2dict, check_dict_alignment
+from ultralytics import solutions
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -21,8 +20,7 @@ class ObjectCounter:
         """Initialize the object counter class with kwargs arguments."""
         import ast
 
-        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-        check_dict_alignment(self.args, kwargs)
+        self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
         self.im0 = None
         self.annotator = None

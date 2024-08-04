@@ -9,6 +9,8 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
+from ultralytics.cfg import cfg2dict, check_dict_alignment
+from pathlib import Path
 
 __all__ = (
     "AIGym",
@@ -21,3 +23,9 @@ __all__ = (
     "SpeedEstimator",
     "Analytics",
 )
+
+
+def solutions_yaml_load(kwargs):
+    args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
+    check_dict_alignment(args, kwargs)
+    return args

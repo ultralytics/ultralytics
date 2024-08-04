@@ -2,7 +2,6 @@
 
 import warnings
 from itertools import cycle
-from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
@@ -10,7 +9,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from ultralytics.cfg import cfg2dict, check_dict_alignment
+from ultralytics import solutions
 from ultralytics.utils.plotting import colors
 
 
@@ -21,8 +20,7 @@ class Analytics:
         """Initialize the Analytics class with various chart types."""
         import ast
 
-        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-        check_dict_alignment(self.args, kwargs)
+        self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
         print(f"Ultralytics Solutions ✅ {self.args}")
 

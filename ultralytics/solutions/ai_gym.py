@@ -1,12 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from pathlib import Path
-
 import cv2
-
-from ultralytics.cfg import cfg2dict, check_dict_alignment
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
+from ultralytics import solutions
 
 
 class AIGym:
@@ -14,8 +11,7 @@ class AIGym:
 
     def __init__(self, **kwargs):
         """Initialize the AiGYM class with kwargs arguments."""
-        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-        check_dict_alignment(self.args, kwargs)
+        self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
         self.angle = None
         self.count = None

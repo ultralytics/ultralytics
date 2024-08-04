@@ -1,13 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-from pathlib import Path
 from time import time
 
 import cv2
 import numpy as np
 
-from ultralytics.cfg import cfg2dict, check_dict_alignment
+from ultralytics import solutions
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -18,8 +17,7 @@ class SpeedEstimator:
     def __init__(self, **kwargs):
         """Initializes the SpeedEstimator with the kwargs arguments."""
 
-        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-        check_dict_alignment(self.args, kwargs)
+        self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
 
         self.im0 = None

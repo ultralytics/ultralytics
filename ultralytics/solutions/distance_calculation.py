@@ -1,11 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
-from pathlib import Path
 
 import cv2
 
-from ultralytics.cfg import cfg2dict, check_dict_alignment
+from ultralytics import solutions
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -17,8 +16,7 @@ class DistanceCalculation:
         """Initializes the DistanceCalculation class with the kwargs arguments."""
         import ast
 
-        self.args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-        check_dict_alignment(self.args, kwargs)
+        self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
         self.annotator = None
 

@@ -20,7 +20,7 @@ class DistanceCalculation:
         distances between objects.
 
         Args:
-            **kwargs: Arbitrary keyword arguments for configuring the distance calculation process, such as parameters for object detection, tracking precision, and measurement units.
+            kwargs (dict): Dictionary of arguments for configuring the distance calculation process, such as parameters for object detection, tracking precision, and measurement units.
         """
         import ast
 

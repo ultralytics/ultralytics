@@ -20,7 +20,7 @@ class SpeedEstimator:
         real-time video streams.
 
         Args:
-            **kwargs: Arbitrary keyword arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.
+            kwargs (dict): Dictionary of arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.
         """
         self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)

@@ -23,7 +23,7 @@ class Heatmap:
         real-time video streams.
 
         Args:
-            **kwargs: Arbitrary keyword arguments that allow customization of heatmap properties, such as visual settings, image dimensions, tracking configurations, and heatmap display options.
+            kwargs (dict): Dictionary of arguments that allow customization of heatmap properties, such as visual settings, image dimensions, tracking configurations, and heatmap display options.
         """
         import ast
 

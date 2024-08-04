@@ -22,7 +22,7 @@ class ObjectCounter:
         in real-time video streams.
 
         Args:
-            **kwargs: Arbitrary keyword arguments for configuring the object counting process, such as regions of interest, and counting logic parameters.
+            kwargs (dict): Dictionary of arguments for configuring the object counting process, such as regions of interest, and counting logic parameters.
         """
         import ast
 

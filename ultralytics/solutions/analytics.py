@@ -22,7 +22,7 @@ class Analytics:
         types.
 
         Args:
-            **kwargs: Arbitrary keyword arguments for configuring chart properties such as data sources, titles, axis labels, colors, and other visual parameters.
+            kwargs (dict): Dictionary of arguments for configuring chart properties such as data sources, titles, axis labels, colors, and other visual parameters.
         """
         import ast
 

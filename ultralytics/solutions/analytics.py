@@ -27,7 +27,6 @@ class Analytics:
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
         print(f"Ultralytics Solutions ✅ {self.args}")
 
         # Set figure size based on image shape

@@ -27,7 +27,6 @@ class ObjectCounter:
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
         self.im0 = None
         self.annotator = None
         self.in_counts = 0

@@ -18,7 +18,6 @@ class AIGym:
             kwargs: Arbitrary keyword arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
         """
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
         self.angle = None
         self.count = None
         self.stage = None

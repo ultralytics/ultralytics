@@ -28,8 +28,6 @@ class Heatmap:
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
-
         self.annotator = None
         self.initialized = False
         self.heatmap = None

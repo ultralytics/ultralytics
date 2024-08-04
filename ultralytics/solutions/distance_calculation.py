@@ -25,7 +25,6 @@ class DistanceCalculation:
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
         self.annotator = None
 
         # Prediction & tracking information

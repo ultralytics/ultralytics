@@ -24,11 +24,9 @@ class QueueManager:
         Args:
             kwargs (dict): Dictionary of arguments for configuring the queue management process, such as detection thresholds, regions of interest, and analysis logic parameters.
         """
-        print(type(kwargs))
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
-        self.args.update(kwargs)
 
         # Region & Line Information
         self.counting_region = (

@@ -36,6 +36,7 @@ def solutions_yaml_load(kwargs):
     """
     args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
     check_dict_alignment(args, kwargs)
+    args.update(kwargs)
     return args
 
 

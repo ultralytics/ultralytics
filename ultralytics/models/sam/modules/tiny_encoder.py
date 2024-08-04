@@ -704,7 +704,7 @@ class BasicLayer(nn.Module):
             window_size (int): Size of the local window for attention computation.
             mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
             drop (float): Dropout rate.
-            drop_path (float | List[float]): Stochastic depth rate. Can be a single float or a list of floats for each block.
+            drop_path (float | List[float]): Stochastic depth rate. Can be a float or a list of floats for each block.
             downsample (nn.Module | None): Downsampling layer at the end of the layer. None to skip downsampling.
             use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
             local_conv_size (int): Kernel size for the local convolution in each TinyViT block.

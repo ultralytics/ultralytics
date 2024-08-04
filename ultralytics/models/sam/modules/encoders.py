@@ -339,7 +339,7 @@ class PromptEncoder(nn.Module):
         Returns:
             (Tuple[torch.Tensor, torch.Tensor]): A tuple containing:
                 - sparse_embeddings (torch.Tensor): Sparse embeddings for points and boxes with shape (B, N, embed_dim).
-                - dense_embeddings (torch.Tensor): Dense embeddings for masks with shape (B, embed_dim, embed_H, embed_W).
+                - dense_embeddings (torch.Tensor): Dense embeddings for masks of shape (B, embed_dim, embed_H, embed_W).
 
         Examples:
             >>> encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)

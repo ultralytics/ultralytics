@@ -16,7 +16,8 @@ class SpeedEstimator:
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the SpeedEstimator class, setting up configurations for analyzing object speeds in real-time video streams.
+        Initializes an instance of the SpeedEstimator class, setting up configurations for analyzing object speeds in
+        real-time video streams.
 
         Args:
             **kwargs: Arbitrary keyword arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.

@@ -1,5 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from pathlib import Path
+
+from ultralytics.cfg import cfg2dict, check_dict_alignment
+
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
@@ -9,8 +13,6 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
-from ultralytics.cfg import cfg2dict, check_dict_alignment
-from pathlib import Path
 
 __all__ = (
     "AIGym",

@@ -36,7 +36,6 @@ class SpeedEstimator:
         self.env_check = check_imshow(warn=True)  # Check if the environment supports imshow
         print(f"Ultralytics Solutions ✅ {self.args}")
 
-
     def store_track_info(self, track_id, box):
         """
         Stores track data.

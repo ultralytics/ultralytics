@@ -57,7 +57,6 @@ class DistanceCalculation:
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-
     @staticmethod
     def calculate_centroid(box):
         """

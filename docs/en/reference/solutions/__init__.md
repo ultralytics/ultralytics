@@ -13,4 +13,8 @@ keywords: TODO ADD KEYWORDS
 
 ## ::: ultralytics.solutions.solutions_yaml_load
 
+<br><br><hr><br>
+
+## ::: ultralytics.solutions.extract_tracks
+
 <br><br>

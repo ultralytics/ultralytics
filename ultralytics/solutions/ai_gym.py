@@ -8,10 +8,15 @@ from ultralytics.utils.plotting import Annotator
 
 
 class AIGym:
-    """A class to manage the gym steps of people in a real-time video stream based on their poses."""
+    """A class for managing gym exercises by analyzing people's poses in a real-time video stream."""
 
     def __init__(self, **kwargs):
-        """Initialize the AiGYM class with kwargs arguments."""
+        """
+        Initializes the AIGym instance with specified parameters for analyzing gym activities in a video stream.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
+        """
         self.args = solutions.solutions_yaml_load(kwargs)
         self.args.update(kwargs)
         self.angle = None
@@ -26,11 +31,11 @@ class AIGym:
 
     def start_counting(self, im0, results):
         """
-        Function used to count the gym steps.
+        A function to count gym steps.
 
         Args:
-            im0 (ndarray): Current frame from the video stream.
-            results (list): Pose estimation data.
+            im0 (ndarray): The current frame from the video stream.
+            results (list): Data from pose estimation.
         """
         if not len(results[0]):
             return im0
@@ -79,7 +84,7 @@ class AIGym:
             # Draw keypoints
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)
 
-        # Display the image if environment supports it and view_img is True
+        # Display the image if the environment supports it and view_img is set to True
         if self.env_check and self.args["view_img"]:
             cv2.imshow(self.args["window_name"], im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):

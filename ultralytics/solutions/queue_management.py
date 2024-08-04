@@ -38,17 +38,15 @@ class QueueManager:
         self.args["count_reg_color"] = ast.literal_eval(self.args["count_reg_color"])
         print(f"Ultralytics Solutions ✅ {self.args}")
 
-    def extract_and_process_tracks(self, tracks):
+    def process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
 
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
 
-        if tracks[0].boxes.id is not None:
-            boxes = tracks[0].boxes.xyxy.cpu()
-            clss = tracks[0].boxes.cls.cpu().tolist()
-            track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        boxes, clss, track_ids = solutions.extract_tracks(tracks)
 
+        if track_ids is not None:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
@@ -95,7 +93,7 @@ class QueueManager:
 
     def display_frames(self):
         """Displays the current frame with annotations."""
-        if self.env_check and self.args["view_img"]:
+        if self.env_check:
             self.annotator.draw_region(
                 reg_pts=self.args["reg_pts"],
                 thickness=self.args["region_thickness"],
@@ -116,7 +114,7 @@ class QueueManager:
             tracks (list): List of tracks obtained from the object tracking process.
         """
         self.im0 = im0  # Store the current frame
-        self.extract_and_process_tracks(tracks)  # Extract and process tracks
+        self.process_tracks(tracks)  # Extract and process tracks
 
         if self.args["view_img"]:
             self.display_frames()  # Display the frame if enabled

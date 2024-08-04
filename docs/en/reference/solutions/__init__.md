@@ -3,7 +3,7 @@ description: This module initializes various components of the Ultralytics solut
 keywords: Ultralytics, video analytics, object tracking, speed estimation, heatmap generation, queue management, AI, computer vision, Python, configuration loading, tracking data
 ---
 
-# Reference for `ultralytics/solutions/__init__.py`
+# Reference for ultralytics/solutions/__init__.py
 
 !!! Note
 

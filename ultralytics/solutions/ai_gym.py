@@ -15,7 +15,7 @@ class AIGym:
         Initializes the AIGym instance with specified parameters for analyzing gym activities in a video stream.
 
         Args:
-            kwargs: Arbitrary keyword arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
+            kwargs (dict): Dictionary of arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
         """
         self.args = solutions.solutions_yaml_load(kwargs)
         self.angle = None

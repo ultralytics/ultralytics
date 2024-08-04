@@ -457,8 +457,15 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5):
-        """Convert inference results to a summarized dictionary with optional normalization for box coordinates."""
+    def summary(self, use_wh=False, normalize=False, decimals=5):
+        """
+        Convert inference results to a summarized dictionary with optional normalization for box coordinates.
+        
+        Args:
+            use_wh (bool): Whether to use [x, y, width, height] format for boxes. If OBBs, rotation is also included.
+            normalize (bool): Whether to normalize box coordinates to [0, 1].
+            decimals (int): Number of decimal places to round to.
+        """
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
@@ -477,11 +484,17 @@ class Results(SimpleClass):
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            if use_wh:
+                box = (row.xywhr if is_obb else row.xywh).squeeze().reshape(-1, 2).tolist()
+            else:
+                box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
             for j, b in enumerate(box):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)
                 xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            if len(xy) <= 5 and use_wh:
+                xy['width'] = xy.pop('x2')
+                xy['height'] = xy.pop('y2')
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID
@@ -518,8 +531,6 @@ class Boxes(BaseTensor):
         data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
         orig_shape (tuple): The original image size as a tuple (height, width), used for normalization.
         is_track (bool): Indicates whether tracking IDs are included in the box data.
-
-    Attributes:
         xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.

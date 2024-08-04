@@ -258,4 +258,4 @@ class Analytics:
 
 
 if __name__ == "__main__":
-    Analytics(type="line", writer=None, im0_shape=None)
+    Analytics(data={"type": "line", "writer":None, "im0_shape": None})

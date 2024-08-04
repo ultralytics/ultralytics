@@ -107,6 +107,9 @@ class QueueManager:
         Args:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.
+
+        Returns:
+            im0 (ndarray): The processed image frame.
         """
         self.im0 = im0  # Store the current frame
         self.process_tracks(tracks)  # Extract and process tracks

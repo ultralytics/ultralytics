@@ -49,7 +49,7 @@ class SpeedEstimator:
             box (list): The bounding box data for the object.
 
         Returns:
-            (list): The updated tracking history for the specified track_id.
+            track (list): The updated tracking history for the specified track_id.
         """
         track = self.trk_history[track_id]
         track.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
@@ -124,7 +124,7 @@ class SpeedEstimator:
             tracks (list): A list of tracks from the object tracking process.
 
         Returns:
-            (ndarray): The image with annotated boxes and tracks.
+            im0 (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)

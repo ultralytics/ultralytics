@@ -79,6 +79,9 @@ class Heatmap:
         Args:
             im0 (ndarray): The image.
             tracks (list): A list of tracks obtained from the object tracking process.
+
+        Returns:
+            im0 (ndarray): The processed image frame.
         """
         # Initialize heatmap only once
         if not self.initialized:

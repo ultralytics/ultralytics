@@ -89,7 +89,7 @@ class DistanceCalculation:
             tracks (list): A list of tracks obtained from the object tracking process.
 
         Returns:
-            (ndarray): The processed image frame.
+            im0 (ndarray): The processed image frame.
         """
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
         if self.trk_ids is not None:

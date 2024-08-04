@@ -36,6 +36,9 @@ class AIGym:
         Args:
             im0 (ndarray): The current frame from the video stream.
             results (list): Data from pose estimation.
+
+        Returns:
+            im0 (ndarray): The processed image frame.
         """
         if not len(results[0]):
             return im0

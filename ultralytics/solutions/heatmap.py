@@ -19,7 +19,8 @@ class Heatmap:
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the Heatmaps class with specified parameters for visualizing and tracking data in real-time video streams.
+        Initializes an instance of the Heatmaps class with specified parameters for visualizing and tracking data in
+        real-time video streams.
 
         Args:
             **kwargs: Arbitrary keyword arguments that allow customization of heatmap properties, such as visual settings, image dimensions, tracking configurations, and heatmap display options.

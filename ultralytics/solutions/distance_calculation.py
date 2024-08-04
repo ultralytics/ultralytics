@@ -10,10 +10,15 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class DistanceCalculation:
-    """A class to calculate distance between two objects in a real-time video stream based on their tracks."""
+    """A class for calculating the distance between two objects in a real-time video stream using their tracking data."""
 
     def __init__(self, **kwargs):
-        """Initializes the DistanceCalculation class with the kwargs arguments."""
+        """
+        Initializes an instance of the DistanceCalculation class, setting up configurations for tracking and calculating distances between objects.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments for configuring the distance calculation process, such as parameters for object detection, tracking precision, and measurement units.
+        """
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
@@ -37,13 +42,13 @@ class DistanceCalculation:
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
-        Handles mouse events to select regions in a real-time video stream.
+        Manages mouse events for selecting regions in a real-time video stream.
 
         Args:
-            event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
-            x (int): X-coordinate of the mouse pointer.
-            y (int): Y-coordinate of the mouse pointer.
-            flags (int): Flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY, cv2.EVENT_FLAG_SHIFTKEY, etc.).
+            event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).
+            x (int): The X-coordinate of the mouse pointer.
+            y (int): The Y-coordinate of the mouse pointer.
+            flags (int): Flags related to the event (e.g., cv2.EVENT_FLAG_CTRLKEY, cv2.EVENT_FLAG_SHIFTKEY).
             param (dict): Additional parameters passed to the function.
         """
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -57,29 +62,16 @@ class DistanceCalculation:
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    @staticmethod
-    def calculate_centroid(box):
-        """
-        Calculates the centroid of a bounding box.
-
-        Args:
-            box (list): Bounding box coordinates [x1, y1, x2, y2].
-
-        Returns:
-            (tuple): Centroid coordinates (x, y).
-        """
-        return int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-
     def calculate_distance(self, centroid1, centroid2):
         """
-        Calculates the distance between two centroids.
+        Computes the distance between two centroids.
 
         Args:
-            centroid1 (tuple): Coordinates of the first centroid (x, y).
-            centroid2 (tuple): Coordinates of the second centroid (x, y).
+            centroid1 (tuple): The (x, y) coordinates of the first centroid.
+            centroid2 (tuple): The (x, y) coordinates of the second centroid.
 
         Returns:
-            (tuple): Distance in meters and millimeters.
+            (tuple): The distance in meters and millimeters.
         """
         pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
         distance_m = pixel_distance / self.args["pixels_per_meter"]
@@ -87,11 +79,11 @@ class DistanceCalculation:
 
     def start_process(self, im0, tracks):
         """
-        Processes the video frame and calculates the distance between two bounding boxes.
+        Processes a video frame to compute the distance between two bounding boxes.
 
         Args:
             im0 (ndarray): The image frame.
-            tracks (list): List of tracks obtained from the object tracking process.
+            tracks (list): A list of tracks obtained from the object tracking process.
 
         Returns:
             (ndarray): The processed image frame.
@@ -109,7 +101,11 @@ class DistanceCalculation:
 
             if len(self.selected_boxes) == 2:
                 self.centroids = [
-                    self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes
+                    (
+                        int((self.selected_boxes[trk_id][0] + self.selected_boxes[trk_id][2]) // 2),
+                        int((self.selected_boxes[trk_id][1] + self.selected_boxes[trk_id][3]) // 2)
+                    )
+                    for trk_id in self.selected_boxes
                 ]
 
                 distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
@@ -119,7 +115,7 @@ class DistanceCalculation:
 
             self.centroids = []
 
-        # Displays the current frame with annotations
+        # Display the image if the environment supports it and view_img is set to True
         if self.args["view_img"] and self.env_check:
             cv2.namedWindow(self.args["window_name"])
             cv2.setMouseCallback(self.args["window_name"], self.mouse_event_for_distance)

@@ -18,7 +18,8 @@ class ObjectCounter:
 
     def __init__(self, **kwargs):
         """
-        Initializes an instance of the ObjectCounter class, setting up configurations for tracking and counting objects in real-time video streams.
+        Initializes an instance of the ObjectCounter class, setting up configurations for tracking and counting objects
+        in real-time video streams.
 
         Args:
             **kwargs: Arbitrary keyword arguments for configuring the object counting process, such as regions of interest, and counting logic parameters.
@@ -69,7 +70,7 @@ class ObjectCounter:
             reg_pts=self.args["reg_pts"], color=self.args["count_reg_color"], thickness=self.args["region_thickness"]
         )
 
-        boxes, clss, track_ids = solutions.extract_tracks(tracks)   # Extract tracks
+        boxes, clss, track_ids = solutions.extract_tracks(tracks)  # Extract tracks
         if track_ids is not None:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box

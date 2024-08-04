@@ -15,10 +15,15 @@ from shapely.geometry import LineString, Point, Polygon
 
 
 class Heatmap:
-    """A class to draw heatmaps in real-time video stream based on their tracks."""
+    """A class for drawing heatmaps in a real-time video stream using tracking data."""
 
     def __init__(self, **kwargs):
-        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
+        """
+        Initializes an instance of the Heatmaps class with specified parameters for visualizing and tracking data in real-time video streams.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments that allow customization of heatmap properties, such as visual settings, image dimensions, tracking configurations, and heatmap display options.
+        """
         import ast
 
         self.args = solutions.solutions_yaml_load(kwargs)
@@ -68,13 +73,12 @@ class Heatmap:
 
     def generate_heatmap(self, im0, tracks):
         """
-        Generate heatmap based on tracking data.
+        Generate a heatmap using tracking data.
 
         Args:
-            im0 (nd array): Image
-            tracks (list): List of tracks obtained from the object tracking process.
+            im0 (ndarray): The image.
+            tracks (list): A list of tracks obtained from the object tracking process.
         """
-
         # Initialize heatmap only once
         if not self.initialized:
             self.heatmap = np.zeros((int(im0.shape[0]), int(im0.shape[1])), dtype=np.float32)

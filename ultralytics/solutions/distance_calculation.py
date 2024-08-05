@@ -4,7 +4,7 @@ import math
 
 import cv2
 
-from ultralytics import solutions
+from ultralytics import solutions, YOLO
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
@@ -26,6 +26,7 @@ class DistanceCalculation:
         import ast
 
         DEFAULT_CFG_DICT.update(kwargs)
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.annotator = None
 
         # Prediction & tracking information
@@ -80,22 +81,29 @@ class DistanceCalculation:
         distance_m = pixel_distance / DEFAULT_CFG_DICT["pixels_per_meter"]
         return distance_m, distance_m * 1000
 
-    def start_process(self, im0, tracks):
+    def start_process(self, im0):
         """
         Processes a video frame to compute the distance between two bounding boxes.
 
         Args:
             im0 (ndarray): The image frame.
-            tracks (list): A list of tracks obtained from the object tracking process.
 
         Returns:
             im0 (ndarray): The processed image frame.
         """
+        tracks = self.model.track(
+            source=im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
         if self.trk_ids is not None:
             self.annotator = Annotator(im0, line_width=DEFAULT_CFG_DICT["line_width"])
             for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
-                self.annotator.box_label(box, color=colors(int(cls), True), label=DEFAULT_CFG_DICT["names"][int(cls)])
+                self.annotator.box_label(box, color=colors(int(cls), True), label=self.model.names[int(cls)])
 
                 if len(self.selected_boxes) == 2:
                     for trk_id in self.selected_boxes.keys():

@@ -44,10 +44,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolov8n.pt")
-        names = model.model.names
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -57,16 +54,14 @@ Measuring the gap between two objects is known as distance calculation within a 
         video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init distance-calculation obj
-        dist_obj = solutions.DistanceCalculation(names=names, show=True)
+        dist_obj = solutions.DistanceCalculation(model="yolov8n.pt, show=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-
-            tracks = model.track(im0, persist=True, show=False)
-            im0 = dist_obj.start_process(im0, tracks)
+            im0 = dist_obj.start_process(im0)
             video_writer.write(im0)
 
         cap.release()
@@ -82,8 +77,8 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `DistanceCalculation()`
 
 | `Name`             | `Type`  | `Default`       | Description                                               |
-| ------------------ | ------- | --------------- | --------------------------------------------------------- |
-| `names`            | `dict`  | `None`          | Dictionary of classes names.                              |
+|--------------------|---------|-----------------|-----------------------------------------------------------|
+| `model`            | `str`   | `yolov8n.pt`    | Path to YOLO model.                                       |
 | `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
 | `show`             | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
 | `line_width`       | `int`   | `2`             | Thickness of the lines drawn on the image.                |

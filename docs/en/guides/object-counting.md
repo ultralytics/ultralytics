@@ -68,11 +68,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         # Init Object Counter
         counter = solutions.ObjectCounter(
-            view_img=True,
+            show=True,
             reg_pts=region_points,
             names=model.names,
             draw_tracks=True,
-            line_thickness=2,
+            line_width=2,
         )
 
         while cap.isOpened():
@@ -110,11 +110,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         # Init Object Counter
         counter = solutions.ObjectCounter(
-            view_img=True,
+            show=True,
             reg_pts=region_points,
             names=model.names,
             draw_tracks=True,
-            line_thickness=2,
+            line_width=2,
         )
 
         while cap.isOpened():
@@ -152,11 +152,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         # Init Object Counter
         counter = solutions.ObjectCounter(
-            view_img=True,
+            show=True,
             reg_pts=line_points,
             names=model.names,
             draw_tracks=True,
-            line_thickness=2,
+            line_width=2,
         )
 
         while cap.isOpened():
@@ -194,11 +194,11 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         # Init Object Counter
         counter = solutions.ObjectCounter(
-            view_img=True,
+            show=True,
             reg_pts=line_points,
             names=model.names,
             draw_tracks=True,
-            line_thickness=2,
+            line_width=2,
         )
 
         while cap.isOpened():
@@ -225,22 +225,19 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 Here's a table with the `ObjectCounter` arguments:
 
 | Name                 | Type    | Default                    | Description                                                            |
-| -------------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
+|----------------------| ------- | -------------------------- | ---------------------------------------------------------------------- |
 | `names`              | `dict`  | `None`                     | Dictionary of classes names.                                           |
 | `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `count_reg_color`    | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
-| `count_txt_color`    | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
-| `count_bg_color`     | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
-| `line_thickness`     | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `track_thickness`    | `int`   | `2`                        | Thickness of the track lines.                                          |
-| `view_img`           | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
-| `view_in_counts`     | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `view_out_counts`    | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
+| `reg_color`          | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
+| `txt_color`          | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
+| `bg_color`           | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
+| `line_width`         | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
+| `show`               | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
+| `show_in_counts`     | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
+| `show_out_counts`    | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
 | `draw_tracks`        | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
 | `track_color`        | `tuple` | `None`                     | RGB color of the tracks.                                               |
-| `region_thickness`   | `int`   | `5`                        | Thickness of the object counting region.                               |
 | `line_dist_thresh`   | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
-| `cls_txtdisplay_gap` | `int`   | `50`                       | Display gap between each class count.                                  |
 
 ### Arguments `model.track`
 
@@ -283,7 +280,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     counter = solutions.ObjectCounter(
-        view_img=True, reg_pts=region_points, names=model.names, draw_tracks=True, line_thickness=2
+        show=True, reg_pts=region_points, names=model.names, draw_tracks=True, line_width=2
     )
 
     while cap.isOpened():
@@ -334,7 +331,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     line_points = [(20, 400), (1080, 400)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     counter = solutions.ObjectCounter(
-        view_img=True, reg_pts=line_points, names=model.names, draw_tracks=True, line_thickness=2
+        show=True, reg_pts=line_points, names=model.names, draw_tracks=True, line_width=2
     )
 
     while cap.isOpened():

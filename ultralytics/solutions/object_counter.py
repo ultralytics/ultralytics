@@ -5,6 +5,7 @@ from collections import defaultdict
 import cv2
 
 from ultralytics import solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -26,7 +27,7 @@ class ObjectCounter:
         """
         import ast
 
-        self.args = solutions.solutions_yaml_load(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
         self.im0 = None
         self.annotator = None
         self.in_counts = 0
@@ -35,27 +36,25 @@ class ObjectCounter:
         self.class_wise_count = {}
         self.track_history = defaultdict(list)  # Tracks info
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        self.args["count_reg_color"] = ast.literal_eval(self.args["count_reg_color"])
-        self.args["count_txt_color"] = ast.literal_eval(self.args["count_txt_color"])
-        self.args["count_bg_color"] = ast.literal_eval(self.args["count_bg_color"])
+        DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
+        DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
+        DEFAULT_CFG_DICT["bg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["bg_color"])
 
-        if self.args["track_color"] is not None:
-            self.args["track_color"] = ast.literal_eval(self.args["track_color"])
-        if isinstance(self.args["reg_pts"], str):
-            self.args["reg_pts"] = ast.literal_eval(self.args["reg_pts"])
-        print(f"Ultralytics Solutions ✅ {self.args}")
+        if isinstance(DEFAULT_CFG_DICT["reg_pts"], str):
+            DEFAULT_CFG_DICT["reg_pts"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_pts"])
+        print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
         # Initialize counting region
-        if len(self.args["reg_pts"]) == 2:
+        if len(DEFAULT_CFG_DICT["reg_pts"]) == 2:
             print("Line Counter Initiated.")
-            self.counting_region = LineString(self.args["reg_pts"])
-        elif len(self.args["reg_pts"]) >= 3:
+            self.counting_region = LineString(DEFAULT_CFG_DICT["reg_pts"])
+        elif len(DEFAULT_CFG_DICT["reg_pts"]) >= 3:
             print("Polygon Counter Initiated.")
-            self.counting_region = Polygon(self.args["reg_pts"])
+            self.counting_region = Polygon(DEFAULT_CFG_DICT["reg_pts"])
         else:
             print("Invalid Region points provided, region_points must be 2 for lines or >= 3 for polygons.")
             print("Using Line Counter Now")
-            self.counting_region = LineString(self.args["reg_pts"])
+            self.counting_region = LineString(DEFAULT_CFG_DICT["reg_pts"])
 
     def process_tracks(self, tracks):
         """
@@ -66,9 +65,9 @@ class ObjectCounter:
         """
 
         # Initialize annotator and draw regions
-        self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
+        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], DEFAULT_CFG_DICT["names"])
         self.annotator.draw_region(
-            reg_pts=self.args["reg_pts"], color=self.args["count_reg_color"], thickness=self.args["region_thickness"]
+            reg_pts=DEFAULT_CFG_DICT["reg_pts"], color=DEFAULT_CFG_DICT["reg_color"], thickness=int(DEFAULT_CFG_DICT["line_width"])*2
         )
 
         boxes, clss, track_ids = solutions.extract_tracks(tracks)  # Extract tracks
@@ -76,12 +75,12 @@ class ObjectCounter:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
                 self.annotator.box_label(
-                    box, label=f"{self.args['names'][cls]}#{track_id}", color=colors(int(track_id), True)
+                    box, label=f"{DEFAULT_CFG_DICT['names'][cls]}#{track_id}", color=colors(int(track_id), True)
                 )
 
                 # Store class info
-                if self.args["names"][cls] not in self.class_wise_count:
-                    self.class_wise_count[self.args["names"][cls]] = {"IN": 0, "OUT": 0}
+                if DEFAULT_CFG_DICT["names"][cls] not in self.class_wise_count:
+                    self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]] = {"IN": 0, "OUT": 0}
 
                 # Draw Tracks
                 track_line = self.track_history[track_id]
@@ -90,19 +89,17 @@ class ObjectCounter:
                     track_line.pop(0)
 
                 # Draw track trails
-                if self.args["draw_tracks"]:
+                if DEFAULT_CFG_DICT["draw_tracks"]:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=colors(int(track_id), True)
-                        if self.args["track_color"] is None
-                        else self.args["track_color"],
-                        track_thickness=self.args["track_thickness"],
+                        color=colors(int(track_id), True),
+                        track_thickness=DEFAULT_CFG_DICT["line_width"],
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
                 # Count objects in any polygon
-                if len(self.args["reg_pts"]) >= 3:
+                if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
 
                     if prev_position is not None and is_inside and track_id not in self.count_ids:
@@ -110,41 +107,41 @@ class ObjectCounter:
 
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                             self.in_counts += 1
-                            self.class_wise_count[self.args["names"][cls]]["IN"] += 1
+                            self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["IN"] += 1
                         else:
                             self.out_counts += 1
-                            self.class_wise_count[self.args["names"][cls]]["OUT"] += 1
+                            self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["OUT"] += 1
 
                 # Count objects using line
-                elif len(self.args["reg_pts"]) == 2:
+                elif len(DEFAULT_CFG_DICT["reg_pts"]) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
                         distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.args["line_dist_thresh"] and track_id not in self.count_ids:
+                        if distance < DEFAULT_CFG_DICT["line_dist_thresh"] and track_id not in self.count_ids:
                             self.count_ids.append(track_id)
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[self.args["names"][cls]]["IN"] += 1
+                                self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["IN"] += 1
                             else:
                                 self.out_counts += 1
-                                self.class_wise_count[self.args["names"][cls]]["OUT"] += 1
+                                self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["OUT"] += 1
 
         labels_dict = {}
 
         for key, value in self.class_wise_count.items():
             if value["IN"] != 0 or value["OUT"] != 0:
-                if not self.args["view_in_counts"] and not self.args["view_out_counts"]:
+                if not DEFAULT_CFG_DICT["show_in_counts"] and not DEFAULT_CFG_DICT["show_out_counts"]:
                     continue
-                elif not self.args["view_in_counts"]:
+                elif not DEFAULT_CFG_DICT["show_in_counts"]:
                     labels_dict[str.capitalize(key)] = f"OUT {value['OUT']}"
-                elif not self.args["view_out_counts"]:
+                elif not DEFAULT_CFG_DICT["show_out_counts"]:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']}"
                 else:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
             self.annotator.display_analytics(
-                self.im0, labels_dict, (self.args["count_txt_color"]), (self.args["count_bg_color"]), 10
+                self.im0, labels_dict, (DEFAULT_CFG_DICT["txt_color"]), (DEFAULT_CFG_DICT["bg_color"]), 10
             )
 
     def start_counting(self, im0, tracks):
@@ -161,8 +158,8 @@ class ObjectCounter:
         self.im0 = im0  # store image
         self.process_tracks(tracks)  # draw region even if no objects
 
-        if self.args["view_img"] and self.env_check:
-            cv2.imshow(self.args["window_name"], self.im0)
+        if DEFAULT_CFG_DICT["show"] and self.env_check:
+            cv2.imshow("Ultralytics Solutions", self.im0)
 
             # Break Window
             if cv2.waitKey(1) & 0xFF == ord("q"):

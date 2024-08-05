@@ -123,15 +123,15 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Arguments `QueueManager`
 
-| Name          | Type             | Default                    | Description                                                                         |
-|---------------| ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
-| `names`       | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
-| `reg_pts`     | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
-| `line_width`  | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
-| `show`        | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `reg_color`   | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
-| `draw_tracks` | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
-| `txt_color` | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
+| Name          | Type             | Default                    | Description                                                                      |
+| ------------- | ---------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| `names`       | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                   |
+| `reg_pts`     | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
+| `line_width`  | `int`            | `2`                        | Thickness of the annotation lines.                                               |
+| `show`        | `bool`           | `False`                    | Whether to display the image frames.                                             |
+| `reg_color`   | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                        |
+| `draw_tracks` | `bool`           | `False`                    | Whether to draw tracks of the objects.                                           |
+| `txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                   |
 
 ### Arguments `model.track`
 

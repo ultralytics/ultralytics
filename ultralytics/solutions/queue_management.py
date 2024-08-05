@@ -3,8 +3,9 @@
 from collections import defaultdict
 
 import cv2
-from ultralytics.utils import DEFAULT_CFG_DICT
+
 from ultralytics import solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -114,7 +115,7 @@ class QueueManager:
         if DEFAULT_CFG_DICT["show"] and self.env_check:
             self.annotator.draw_region(
                 reg_pts=DEFAULT_CFG_DICT["reg_pts"],
-                thickness=int(DEFAULT_CFG_DICT["line_width"])*2,
+                thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
                 color=DEFAULT_CFG_DICT["reg_color"],
             )
             cv2.imshow("Ultralytics Solutions", self.im0)

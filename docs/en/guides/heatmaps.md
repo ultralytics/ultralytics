@@ -46,7 +46,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         ```python
         import cv2
 
-        from ultralytics import  solutions
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -94,11 +94,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA,
-            show=True,
-            shape="circle",
-            reg_pts=line_points,
-            model="yolov8n.pt"
+            colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", reg_pts=line_points, model="yolov8n.pt"
         )
 
         while cap.isOpened():
@@ -133,11 +129,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA,
-            show=True,
-            shape="circle",
-            reg_pts=region_points,
-            model="yolov8n.pt"
+            colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", reg_pts=region_points, model="yolov8n.pt"
         )
 
         while cap.isOpened():
@@ -203,12 +195,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         h, w = im0.shape[:2]  # image height and width
 
         # Heatmap Init
-        heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA,
-            show=True,
-            shape="circle",
-            model="yolov8n.pt"
-        )
+        heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", model="yolov8n.pt")
 
         im0 = heatmap_obj.generate_heatmap(im0)
         cv2.imwrite("ultralytics_output.png", im0)
@@ -220,6 +207,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         import cv2
 
         from ultralytics import solutions
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -231,11 +219,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
-            colormap=cv2.COLORMAP_PARULA,
-            show=True,
-            shape="circle",
-            model="yolov8n.pt",
-            classes=classes_for_heatmap
+            colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", model="yolov8n.pt", classes=classes_for_heatmap
         )
 
         while cap.isOpened():
@@ -254,7 +238,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 ### Arguments `Heatmap()`
 
 | Name               | Type             | Default            | Description                                                       |
-|--------------------|------------------|--------------------|-------------------------------------------------------------------|
+| ------------------ | ---------------- | ------------------ | ----------------------------------------------------------------- |
 | `model`            | `str`            | `yolov8n.pt`       | Path to YOLO model.                                               |
 | `imw`              | `int`            | `0`                | Image width.                                                      |
 | `imh`              | `int`            | `0`                | Image height.                                                     |

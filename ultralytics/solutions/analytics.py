@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.plotting import colors
 
@@ -31,8 +32,8 @@ class Analytics:
         # Set figure size based on image shape
         figsize = (DEFAULT_CFG_DICT["im0_shape"][0] / 100, DEFAULT_CFG_DICT["im0_shape"][1] / 100)
 
-        self.facecolor = colors.rgb2hex(DEFAULT_CFG_DICT['bg_color'])
-        self.txt_color = colors.rgb2hex(DEFAULT_CFG_DICT['txt_color'])
+        self.facecolor = colors.rgb2hex(DEFAULT_CFG_DICT["bg_color"])
+        self.txt_color = colors.rgb2hex(DEFAULT_CFG_DICT["txt_color"])
 
         if DEFAULT_CFG_DICT["type"] in {"line", "area"}:
             # Initialize line or area plot
@@ -109,9 +110,7 @@ class Analytics:
             )
 
         self.set_common_properties()
-        legend = self.ax.legend(
-            loc="upper left", fontsize=13, facecolor=self.facecolor, edgecolor=self.txt_color
-        )
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.facecolor, edgecolor=self.txt_color)
 
         # Set legend text color
         for text in legend.get_texts():
@@ -259,13 +258,14 @@ class Analytics:
 
     def display(self, im0):
         """
-        Write and display the line graph
-        Generate and display the line graph.
+        Write and display the line graph Generate and display the line graph.
+
         Args:
             im0 (ndarray): Image for processing
             im0 (ndarray): The image to be processed.
         """
         cv2.imshow(DEFAULT_CFG_DICT["title"], im0) if DEFAULT_CFG_DICT["show"] else None
+
 
 if __name__ == "__main__":
     Analytics(data={"type": "line", "writer": None, "im0_shape": None})

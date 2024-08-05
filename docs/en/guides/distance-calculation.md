@@ -57,7 +57,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init distance-calculation obj
-        dist_obj = solutions.DistanceCalculation(names=names, view_img=True)
+        dist_obj = solutions.DistanceCalculation(names=names, show=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -82,11 +82,11 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `DistanceCalculation()`
 
 | `Name`             | `Type`  | `Default`       | Description                                               |
-| ------------------ | ------- | --------------- | --------------------------------------------------------- |
+|--------------------| ------- | --------------- | --------------------------------------------------------- |
 | `names`            | `dict`  | `None`          | Dictionary of classes names.                              |
 | `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
-| `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
-| `line_thickness`   | `int`   | `2`             | Thickness of the lines drawn on the image.                |
+| `show`             | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
+| `line_width`       | `int`   | `2`             | Thickness of the lines drawn on the image.                |
 | `line_color`       | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
 | `centroid_color`   | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
 

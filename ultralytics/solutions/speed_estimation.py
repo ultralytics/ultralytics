@@ -6,7 +6,7 @@ from time import time
 import cv2
 import numpy as np
 
-from ultralytics import solutions, YOLO
+from ultralytics import YOLO, solutions
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
@@ -72,9 +72,7 @@ class SpeedEstimator:
             track (list): The tracking history used to draw the track path.
         """
         speed_label = (
-            f"{int(self.dist_data[track_id])} km/h"
-            if track_id in self.dist_data
-            else self.model.names[int(cls)]
+            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.model.names[int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -129,9 +127,14 @@ class SpeedEstimator:
             im0 (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
-        tracks = self.model.track(source=im0, persist=True, tracker=DEFAULT_CFG_DICT["tracker"],
-                                  classes=DEFAULT_CFG_DICT["classes"],
-                                  iou=DEFAULT_CFG_DICT["iou"], conf=DEFAULT_CFG_DICT["conf"])
+        tracks = self.model.track(
+            source=im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
         if self.trk_ids is not None:
             self.annotator = Annotator(self.im0, line_width=DEFAULT_CFG_DICT["line_width"])

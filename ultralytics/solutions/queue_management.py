@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import cv2
 
-from ultralytics import solutions
+from ultralytics import solutions, YOLO
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
@@ -28,7 +28,7 @@ class QueueManager:
         import ast
 
         DEFAULT_CFG_DICT.update(kwargs)
-
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         # Region & Line Information
         self.counting_region = (
             Polygon(DEFAULT_CFG_DICT["reg_pts"])
@@ -40,19 +40,27 @@ class QueueManager:
         self.counts = 0
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
-        DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
+        if isinstance(DEFAULT_CFG_DICT["txt_color"], str):
+            DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
+        if isinstance(DEFAULT_CFG_DICT["reg_color"], str):
+            DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
-    def process_tracks(self, tracks):
+    def process_tracks(self):
         """
         Extracts and processes tracking data for queue management in a video stream.
-
-        Args:
-            tracks (list): A list of track objects representing detected objects in the video stream, each containing information such as position and movement.
         """
         # Initialize annotator and draw the queue region
-        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], DEFAULT_CFG_DICT["names"])
+        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"])
+
+        tracks = self.model.track(
+            source=self.im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
 
         boxes, clss, track_ids = solutions.extract_tracks(tracks)
 
@@ -61,7 +69,7 @@ class QueueManager:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
                 self.annotator.box_label(
-                    box, label=f"{DEFAULT_CFG_DICT['names'][cls]}#{track_id}", color=colors(int(track_id), True)
+                    box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True)
                 )
 
                 # Update track history
@@ -98,7 +106,7 @@ class QueueManager:
 
         self.counts = 0  # Reset counts after displaying
 
-    def process_queue(self, im0, tracks):
+    def process_queue(self, im0):
         """
         Main function to start the queue management process.
 
@@ -110,7 +118,7 @@ class QueueManager:
             im0 (ndarray): The processed image frame.
         """
         self.im0 = im0  # Store the current frame
-        self.process_tracks(tracks)  # Extract and process tracks
+        self.process_tracks()  # Extract and process tracks
 
         if DEFAULT_CFG_DICT["show"] and self.env_check:
             self.annotator.draw_region(

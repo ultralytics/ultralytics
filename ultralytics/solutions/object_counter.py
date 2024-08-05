@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import cv2
 
-from ultralytics import solutions, YOLO
+from ultralytics import YOLO, solutions
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors

@@ -188,7 +188,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
             names=model.names,
             draw_tracks=True,
             line_width=2,
-            classes=[0,2]   # specific classes
+            classes=[0, 2],  # specific classes
         )
 
         while cap.isOpened():
@@ -216,7 +216,7 @@ Here's a table with the `ObjectCounter` arguments:
 
 | Name               | Type    | Default                    | Description                                                            |
 | ------------------ | ------- | -------------------------- | ---------------------------------------------------------------------- |
-| `model`            | `str`  | `yolov8n.pt`               | Path to YOLO model.                                  |
+| `model`            | `str`   | `yolov8n.pt`               | Path to YOLO model.                                                    |
 | `reg_pts`          | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
 | `reg_color`        | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
 | `txt_color`        | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
@@ -258,7 +258,7 @@ Here's a simple example for counting in a region:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
 
 def count_objects_in_region(video_path, output_video_path, model_path):
@@ -307,7 +307,7 @@ To count specific classes of objects using Ultralytics YOLOv8, you need to speci
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
 
 def count_specific_classes(video_path, output_video_path, model_path, classes_to_count):
@@ -317,8 +317,9 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     line_points = [(20, 400), (1080, 400)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    counter = solutions.ObjectCounter(show=True, reg_pts=line_points, model=model_path, 
-                                      draw_tracks=True, line_width=2, classes=classes_to_count)
+    counter = solutions.ObjectCounter(
+        show=True, reg_pts=line_points, model=model_path, draw_tracks=True, line_width=2, classes=classes_to_count
+    )
 
     while cap.isOpened():
         success, im0 = cap.read()

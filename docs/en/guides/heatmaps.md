@@ -59,7 +59,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
             names=model.names,
         )
@@ -99,9 +99,9 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
-            count_reg_pts=line_points,
+            reg_pts=line_points,
             names=model.names,
         )
 
@@ -141,9 +141,9 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
-            count_reg_pts=region_points,
+            reg_pts=region_points,
             names=model.names,
         )
 
@@ -183,9 +183,9 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
-            count_reg_pts=region_points,
+            reg_pts=region_points,
             names=model.names,
         )
 
@@ -219,7 +219,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Heatmap Init
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
             names=model.names,
         )
@@ -249,7 +249,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
         # Init heatmap
         heatmap_obj = solutions.Heatmap(
             colormap=cv2.COLORMAP_PARULA,
-            view_img=True,
+            show=True,
             shape="circle",
             names=model.names,
         )
@@ -272,22 +272,21 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 ### Arguments `Heatmap()`
 
 | Name               | Type             | Default            | Description                                                       |
-| ------------------ | ---------------- | ------------------ | ----------------------------------------------------------------- |
+|--------------------| ---------------- | ------------------ | ----------------------------------------------------------------- |
 | `names`            | `list`           | `None`             | Dictionary of class names.                                        |
 | `imw`              | `int`            | `0`                | Image width.                                                      |
 | `imh`              | `int`            | `0`                | Image height.                                                     |
 | `colormap`         | `int`            | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
 | `heatmap_alpha`    | `float`          | `0.5`              | Alpha blending value for heatmap overlay.                         |
-| `view_img`         | `bool`           | `False`            | Whether to display the image with the heatmap overlay.            |
-| `view_in_counts`   | `bool`           | `True`             | Whether to display the count of objects entering the region.      |
-| `view_out_counts`  | `bool`           | `True`             | Whether to display the count of objects exiting the region.       |
-| `count_reg_pts`    | `list` or `None` | `None`             | Points defining the counting region (either a line or a polygon). |
-| `count_txt_color`  | `tuple`          | `(0, 0, 0)`        | Text color for displaying counts.                                 |
-| `count_bg_color`   | `tuple`          | `(255, 255, 255)`  | Background color for displaying counts.                           |
-| `count_reg_color`  | `tuple`          | `(255, 0, 255)`    | Color for the counting region.                                    |
-| `region_thickness` | `int`            | `5`                | Thickness of the region line.                                     |
+| `show`             | `bool`           | `False`            | Whether to display the image with the heatmap overlay.            |
+| `in_counts`        | `bool`           | `True`             | Whether to display the count of objects entering the region.      |
+| `out_counts`       | `bool`           | `True`             | Whether to display the count of objects exiting the region.       |
+| `reg_pts`          | `list` or `None` | `None`             | Points defining the counting region (either a line or a polygon). |
+| `txt_color`        | `tuple`          | `(0, 0, 0)`        | Text color for displaying counts.                                 |
+| `bg_color`         | `tuple`          | `(255, 255, 255)`  | Background color for displaying counts.                           |
+| `reg_color`        | `tuple`          | `(255, 0, 255)`    | Color for the counting region.                                    |
 | `line_dist_thresh` | `int`            | `15`               | Distance threshold for line-based counting.                       |
-| `line_thickness`   | `int`            | `2`                | Thickness of the lines used in drawing.                           |
+| `line_width`       | `int`            | `2`                | Thickness of the lines used in drawing.                           |
 | `decay_factor`     | `float`          | `0.99`             | Decay factor for the heatmap to reduce intensity over time.       |
 | `shape`            | `str`            | `"circle"`         | Shape of the heatmap blobs ('circle' or 'rect').                  |
 
@@ -348,7 +347,7 @@ from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", names=model.names)
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", names=model.names)
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -381,7 +380,7 @@ from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", names=model.names)
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, shape="circle", names=model.names)
 
 classes_for_heatmap = [0, 2]  # Classes to visualize
 while cap.isOpened():

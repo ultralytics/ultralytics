@@ -272,7 +272,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 ### Arguments `Heatmap()`
 
 | Name               | Type             | Default            | Description                                                       |
-|--------------------| ---------------- | ------------------ | ----------------------------------------------------------------- |
+| ------------------ | ---------------- | ------------------ | ----------------------------------------------------------------- |
 | `names`            | `list`           | `None`             | Dictionary of class names.                                        |
 | `imw`              | `int`            | `0`                | Image width.                                                      |
 | `imh`              | `int`            | `0`                | Image height.                                                     |

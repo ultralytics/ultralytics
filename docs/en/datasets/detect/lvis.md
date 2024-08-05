@@ -98,12 +98,14 @@ If you use the LVIS dataset in your research or development work, please cite th
     === "BibTeX"
 
         ```bibtex
+        {% raw %}
         @inproceedings{gupta2019lvis,
           title={{LVIS}: A Dataset for Large Vocabulary Instance Segmentation},
           author={Gupta, Agrim and Dollar, Piotr and Girshick, Ross},
           booktitle={Proceedings of the {IEEE} Conference on Computer Vision and Pattern Recognition},
           year={2019}
         }
+        {% endraw %}
         ```
 
 We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).

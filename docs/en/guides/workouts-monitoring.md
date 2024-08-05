@@ -113,7 +113,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ### Arguments `AIGym`
 
 | Name              | Type    | Default  | Description                                                                            |
-|-------------------|---------|----------|----------------------------------------------------------------------------------------|
+| ----------------- | ------- | -------- | -------------------------------------------------------------------------------------- |
 | `kpts_to_check`   | `list`  | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
 | `line_width`      | `int`   | `2`      | Thickness of the lines drawn.                                                          |
 | `show`            | `bool`  | `False`  | Flag to display the image.                                                             |

@@ -2,9 +2,9 @@
 
 import cv2
 
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
-from ultralytics.utils import DEFAULT_CFG_DICT
 
 
 class AIGym:
@@ -59,7 +59,9 @@ class AIGym:
                     k[int(DEFAULT_CFG_DICT["kpts_to_check"][1])].cpu(),
                     k[int(DEFAULT_CFG_DICT["kpts_to_check"][2])].cpu(),
                 )
-                im0 = self.annotator.draw_specific_points(k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=10)
+                im0 = self.annotator.draw_specific_points(
+                    k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=10
+                )
 
                 # Check and update pose stages and counts based on angle
                 if DEFAULT_CFG_DICT["pose_type"] in {"abworkout", "pullup"}:

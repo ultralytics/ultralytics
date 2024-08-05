@@ -49,8 +49,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         gym_object = solutions.AIGym(
-            line_thickness=2,
-            view_img=True,
+            line_width=2,
+            show=True,
             pose_type="pushup",
             kpts_to_check=[6, 8, 10],
         )
@@ -82,8 +82,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         gym_object = solutions.AIGym(
-            line_thickness=2,
-            view_img=True,
+            line_width=2,
+            show=True,
             pose_type="pushup",
             kpts_to_check=[6, 8, 10],
         )
@@ -113,10 +113,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ### Arguments `AIGym`
 
 | Name              | Type    | Default  | Description                                                                            |
-| ----------------- | ------- | -------- | -------------------------------------------------------------------------------------- |
+|-------------------|---------|----------|----------------------------------------------------------------------------------------|
 | `kpts_to_check`   | `list`  | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `line_thickness`  | `int`   | `2`      | Thickness of the lines drawn.                                                          |
-| `view_img`        | `bool`  | `False`  | Flag to display the image.                                                             |
+| `line_width`      | `int`   | `2`      | Thickness of the lines drawn.                                                          |
+| `show`            | `bool`  | `False`  | Flag to display the image.                                                             |
 | `pose_up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
 | `pose_down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
 | `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`, `squat`).                   |
@@ -170,8 +170,8 @@ assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
 gym_object = solutions.AIGym(
-    line_thickness=2,
-    view_img=True,
+    line_width=2,
+    show=True,
     pose_type="pushup",
     kpts_to_check=[6, 8, 10],
 )
@@ -213,8 +213,8 @@ Yes, Ultralytics YOLOv8 can be adapted for custom workout routines. The `AIGym` 
 from ultralytics import solutions
 
 gym_object = solutions.AIGym(
-    line_thickness=2,
-    view_img=True,
+    line_width=2,
+    show=True,
     pose_type="squat",
     kpts_to_check=[6, 8, 10],
 )

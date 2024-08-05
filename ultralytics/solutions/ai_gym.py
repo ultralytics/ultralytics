@@ -2,9 +2,9 @@
 
 import cv2
 
-from ultralytics import solutions
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
+from ultralytics.utils import DEFAULT_CFG_DICT
 
 
 class AIGym:
@@ -17,7 +17,7 @@ class AIGym:
         Args:
             kwargs (dict): Dictionary of arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
         """
-        self.args = solutions.solutions_yaml_load(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
         self.angle = None
         self.count = None
         self.stage = None
@@ -26,7 +26,7 @@ class AIGym:
         self.stage = []
         self.annotator = None
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        print(f"Ultralytics Solutions ✅ {self.args}")
+        print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def start_counting(self, im0, results):
         """
@@ -49,30 +49,30 @@ class AIGym:
             self.stage += ["-"] * new_human
 
         keypoints = results[0].keypoints.data
-        self.annotator = Annotator(im0, line_width=self.args["line_thickness"])
+        self.annotator = Annotator(im0, line_width=DEFAULT_CFG_DICT["line_width"])
 
         for ind, k in enumerate(reversed(keypoints)):
             # Estimate angle and draw specific points based on pose type
-            if self.args["pose_type"] in {"pushup", "pullup", "abworkout", "squat"}:
+            if DEFAULT_CFG_DICT["pose_type"] in {"pushup", "pullup", "abworkout", "squat"}:
                 self.angle[ind] = self.annotator.estimate_pose_angle(
-                    k[int(self.args["kpts_to_check"][0])].cpu(),
-                    k[int(self.args["kpts_to_check"][1])].cpu(),
-                    k[int(self.args["kpts_to_check"][2])].cpu(),
+                    k[int(DEFAULT_CFG_DICT["kpts_to_check"][0])].cpu(),
+                    k[int(DEFAULT_CFG_DICT["kpts_to_check"][1])].cpu(),
+                    k[int(DEFAULT_CFG_DICT["kpts_to_check"][2])].cpu(),
                 )
-                im0 = self.annotator.draw_specific_points(k, self.args["kpts_to_check"], shape=(640, 640), radius=10)
+                im0 = self.annotator.draw_specific_points(k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=10)
 
                 # Check and update pose stages and counts based on angle
-                if self.args["pose_type"] in {"abworkout", "pullup"}:
-                    if self.angle[ind] > self.args["pose_up_angle"]:
+                if DEFAULT_CFG_DICT["pose_type"] in {"abworkout", "pullup"}:
+                    if self.angle[ind] > DEFAULT_CFG_DICT["pose_up_angle"]:
                         self.stage[ind] = "down"
-                    if self.angle[ind] < self.args["pose_down_angle"] and self.stage[ind] == "down":
+                    if self.angle[ind] < DEFAULT_CFG_DICT["pose_down_angle"] and self.stage[ind] == "down":
                         self.stage[ind] = "up"
                         self.count[ind] += 1
 
-                elif self.args["pose_type"] in {"pushup", "squat"}:
-                    if self.angle[ind] > self.args["pose_up_angle"]:
+                elif DEFAULT_CFG_DICT["pose_type"] in {"pushup", "squat"}:
+                    if self.angle[ind] > DEFAULT_CFG_DICT["pose_up_angle"]:
                         self.stage[ind] = "up"
-                    if self.angle[ind] < self.args["pose_down_angle"] and self.stage[ind] == "up":
+                    if self.angle[ind] < DEFAULT_CFG_DICT["pose_down_angle"] and self.stage[ind] == "up":
                         self.stage[ind] = "down"
                         self.count[ind] += 1
 
@@ -80,15 +80,15 @@ class AIGym:
                     angle_text=self.angle[ind],
                     count_text=self.count[ind],
                     stage_text=self.stage[ind],
-                    center_kpt=k[int(self.args["kpts_to_check"][1])],
+                    center_kpt=k[int(DEFAULT_CFG_DICT["kpts_to_check"][1])],
                 )
 
             # Draw keypoints
             self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)
 
         # Display the image if the environment supports it and view_img is set to True
-        if self.env_check and self.args["view_img"]:
-            cv2.imshow(self.args["window_name"], im0)
+        if self.env_check and DEFAULT_CFG_DICT["show"]:
+            cv2.imshow("Ultralytics Solutions", im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 

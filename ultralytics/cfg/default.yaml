@@ -154,7 +154,6 @@ region_color: *count_reg_color # (str) color of regions used in queue management
 # Heatmaps settings -----------------------------------------------------------------------
 shape: "circle" # (str) shape of the heatmap marker
 heatmap_alpha: 0.5 # (float) transparency of the heatmap
-count_reg_pts: *reg_pts # (list) points defining a counting region for the heatmap
 decay_factor: 0.99 # (float) factor for heatmap decay over time
 colormap: cv2.COLORMAP_JET # (int) colormap used for heatmap visualization
 

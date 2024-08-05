@@ -503,13 +503,13 @@ nav:
               - build: reference/models/sam/build.md
               - model: reference/models/sam/model.md
               - modules:
+                  - blocks: reference/models/sam/modules/blocks.md
                   - decoders: reference/models/sam/modules/decoders.md
                   - encoders: reference/models/sam/modules/encoders.md
+                  - memory_attention: reference/models/sam/modules/memory_attention.md
                   - sam: reference/models/sam/modules/sam.md
                   - tiny_encoder: reference/models/sam/modules/tiny_encoder.md
                   - transformer: reference/models/sam/modules/transformer.md
-                  - blocks: reference/models/sam/modules/blocks.md
-                  - memory_attention: reference/models/sam/modules/memory_attention.md
                   - utils: reference/models/sam/modules/utils.md
               - predict: reference/models/sam/predict.md
           - utils:

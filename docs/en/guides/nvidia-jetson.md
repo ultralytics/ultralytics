@@ -65,58 +65,15 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 The below table highlights NVIDIA JetPack versions supported by different NVIDIA Jetson devices.
 
-<table><thead>
-  <tr>
-    <th></th>
-    <th>JetPack 4</th>
-    <th>JetPack 5</th>
-    <th>JetPack 6</th>
-  </tr></thead>
-<tbody>
-  <tr>
-    <td>Jetson Nano</td>
-    <td>✅</td>
-    <td>❌</td>
-    <td>❌</td>
-  </tr>
-  <tr>
-    <td>Jetson TX2</td>
-    <td>✅</td>
-    <td>❌</td>
-    <td>❌</td>
-  </tr>
-  <tr>
-    <td>Jetson Xavier NX</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>❌</td>
-  </tr>
-  <tr>
-    <td>Jetson AGX Xavier</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>❌</td>
-  </tr>
-  <tr>
-    <td>Jetson AGX Orin</td>
-    <td>❌</td>
-    <td>✅</td>
-    <td>✅</td>
-  </tr>
-  <tr>
-    <td>Jetson Orin NX</td>
-    <td>❌</td>
-    <td>✅</td>
-    <td>✅</td>
-  </tr>
-  <tr>
-    <td>Jetson Orin Nano</td>
-    <td>❌</td>
-    <td>✅</td>
-    <td>✅</td>
-  </tr>
-</tbody>
-</table>
+|                    | JetPack 4 | JetPack 5 | JetPack 6 |
+|--------------------|-----------|-----------|-----------|
+| Jetson Nano        | ✅         | ❌         | ❌         |
+| Jetson TX2         | ✅         | ❌         | ❌         |
+| Jetson Xavier NX   | ✅         | ✅         | ❌         |
+| Jetson AGX Xavier  | ✅         | ✅         | ❌         |
+| Jetson AGX Orin    | ❌         | ✅         | ✅         |
+| Jetson Orin NX     | ❌         | ✅         | ✅         |
+| Jetson Orin Nano   | ❌         | ✅         | ✅         |
 
 ## Quick Start with Docker
 

@@ -5,7 +5,7 @@ from collections import defaultdict
 import cv2
 import numpy as np
 
-from ultralytics import solutions
+from ultralytics import solutions, YOLO
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
@@ -29,6 +29,7 @@ class Heatmap:
         import ast
 
         DEFAULT_CFG_DICT.update(kwargs)
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.annotator = None
         self.initialized = False
         self.heatmap = None
@@ -72,13 +73,12 @@ class Heatmap:
             print("Using Circular shape now")
             DEFAULT_CFG_DICT["shape"] = "circle"
 
-    def generate_heatmap(self, im0, tracks):
+    def generate_heatmap(self, im0):
         """
         Generate a heatmap using tracking data.
 
         Args:
             im0 (ndarray): The image.
-            tracks (list): A list of tracks obtained from the object tracking process.
 
         Returns:
             im0 (ndarray): The processed image frame.
@@ -89,6 +89,14 @@ class Heatmap:
             self.initialized = True
 
         self.heatmap *= DEFAULT_CFG_DICT["decay_factor"]  # decay factor
+        tracks = self.model.track(
+            source=im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
         self.boxes, self.clss, self.track_ids = solutions.extract_tracks(tracks)
 
         self.annotator = Annotator(im0, DEFAULT_CFG_DICT["line_width"], None)
@@ -104,8 +112,8 @@ class Heatmap:
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
                 # Store class info
-                if DEFAULT_CFG_DICT["names"][cls] not in self.class_wise_count:
-                    self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]] = {"IN": 0, "OUT": 0}
+                if self.model.names[cls] not in self.class_wise_count:
+                    self.class_wise_count[self.model.names[cls]] = {"IN": 0, "OUT": 0}
 
                 if DEFAULT_CFG_DICT["shape"] == "circle":
                     x0, y0, x1, y1 = map(int, [box[0], box[1], box[2], box[3]])
@@ -138,10 +146,10 @@ class Heatmap:
 
                             if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
                                 self.in_counts += 1
-                                self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["IN"] += 1
+                                self.class_wise_count[self.model.names[cls]]["IN"] += 1
                             else:
                                 self.out_counts += 1
-                                self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["OUT"] += 1
+                                self.class_wise_count[self.model.names[cls]]["OUT"] += 1
 
                     # Count objects using line
                     elif len(DEFAULT_CFG_DICT["reg_pts"]) == 2:
@@ -154,10 +162,10 @@ class Heatmap:
                                     self.counting_region.centroid.x - prev_position[0]
                                 ) > 0:
                                     self.in_counts += 1
-                                    self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["IN"] += 1
+                                    self.class_wise_count[self.model.names[cls]]["IN"] += 1
                                 else:
                                     self.out_counts += 1
-                                    self.class_wise_count[DEFAULT_CFG_DICT["names"][cls]]["OUT"] += 1
+                                    self.class_wise_count[self.model.names[cls]]["OUT"] += 1
 
         else:
             for box, cls in zip(self.boxes, self.clss):

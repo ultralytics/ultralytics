@@ -147,12 +147,10 @@ pixels_per_meter: 10 # (int) conversion factor from pixels to meters
 line_color: (255, 255, 0) # (tuple) color of the distance measurement line in RGB
 centroid_color: (255, 0, 255) # (tuple) color of the centroids in RGB
 type: "line" # (str) type of plot for analytics (line, area, etc.)
-writer: None # (None or object) writer object for saving outputs
 im0_shape: None # (None or tuple) shape of the input image
 title: "ultralytics" # (str) title of the plot
 x_label: "x" # (str) label for the x-axis
 y_label: "y" # (str) label for the y-axis
-fg_color: "black" # (str) foreground color of the plot
 points_width: 10 # (int) width of points in the plot
 fontsize: 13 # (int) font size for text in the plot
 save_img: True # (bool) save the output image

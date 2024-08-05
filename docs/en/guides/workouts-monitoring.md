@@ -43,7 +43,6 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -53,6 +52,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             show=True,
             pose_type="pushup",
             kpts_to_check=[6, 8, 10],
+            model="yolov8n-pose.pt"
         )
 
         while cap.isOpened():
@@ -60,9 +60,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            results = model.track(im0, verbose=False)  # Tracking recommended
-            # results = model.predict(im0)  # Prediction also supported
-            im0 = gym_object.start_counting(im0, results)
+            im0 = gym_object.start_counting(im0)
 
         cv2.destroyAllWindows()
         ```
@@ -72,9 +70,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import solutions
 
-        model = YOLO("yolov8n-pose.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -86,6 +83,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             show=True,
             pose_type="pushup",
             kpts_to_check=[6, 8, 10],
+            model="yolov8n-pose.pt"
         )
 
         while cap.isOpened():
@@ -93,9 +91,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            results = model.track(im0, verbose=False)  # Tracking recommended
-            # results = model.predict(im0)  # Prediction also supported
-            im0 = gym_object.start_counting(im0, results)
+            im0 = gym_object.start_counting(im0)
             video_writer.write(im0)
 
         cv2.destroyAllWindows()
@@ -120,26 +116,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | `pose_up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
 | `pose_down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
 | `pose_type`       | `str`   | `pullup` | Type of pose to detect (`'pullup`', `pushup`, `abworkout`, `squat`).                   |
-
-### Arguments `model.predict`
-
-| Name            | Type           | Default                | Description                                                                |
-| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
-| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
-| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
-| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
-| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
-| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
-| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
-| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
-| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
-| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
-| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
-| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
-| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
-| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+| `model`            | `str`  | `yolov8n.pt`               | Path to YOLO model.                                  |
 
 ### Arguments `model.track`
 
@@ -162,9 +139,8 @@ To monitor your workouts using Ultralytics YOLOv8, you can utilize the pose esti
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolov8n-pose.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -174,6 +150,7 @@ gym_object = solutions.AIGym(
     show=True,
     pose_type="pushup",
     kpts_to_check=[6, 8, 10],
+    model="yolov8n-pose.pt"
 )
 
 while cap.isOpened():
@@ -181,8 +158,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    results = model.track(im0, verbose=False)
-    im0 = gym_object.start_counting(im0, results)
+    im0 = gym_object.start_counting(im0)
 
 cv2.destroyAllWindows()
 ```
@@ -217,6 +193,7 @@ gym_object = solutions.AIGym(
     show=True,
     pose_type="squat",
     kpts_to_check=[6, 8, 10],
+    model="yolov8n-pose.pt"
 )
 ```
 
@@ -229,9 +206,8 @@ To save the workout monitoring output, you can modify the code to include a vide
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolov8n-pose.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -243,6 +219,7 @@ gym_object = solutions.AIGym(
     show=True,
     pose_type="pushup",
     kpts_to_check=[6, 8, 10],
+    model="yolov8n-pose.pt"
 )
 
 while cap.isOpened():
@@ -250,8 +227,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    results = model.track(im0, verbose=False)
-    im0 = gym_object.start_counting(im0, results)
+    im0 = gym_object.start_counting(im0)
     video_writer.write(im0)
 
 cv2.destroyAllWindows()

@@ -5,6 +5,7 @@ import cv2
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
+from ultralytics import YOLO
 
 
 class AIGym:
@@ -18,6 +19,7 @@ class AIGym:
             kwargs (dict): Dictionary of arguments that allow customization of the AIGym instance. These can include various settings such as keypoints to choose, angles, and other relevant configurations.
         """
         DEFAULT_CFG_DICT.update(kwargs)
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.angle = None
         self.count = None
         self.stage = None
@@ -28,17 +30,24 @@ class AIGym:
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
-    def start_counting(self, im0, results):
+    def start_counting(self, im0):
         """
         A function to count gym steps.
 
         Args:
             im0 (ndarray): The current frame from the video stream.
-            results (list): Data from pose estimation.
 
         Returns:
             im0 (ndarray): The processed image frame.
         """
+        results = self.model.track(
+            source=im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
         if not len(results[0]):
             return im0
 

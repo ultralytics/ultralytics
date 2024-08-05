@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import cv2
 
-from ultralytics import solutions, YOLO
+from ultralytics import YOLO, solutions
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
@@ -47,9 +47,7 @@ class QueueManager:
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def process_tracks(self):
-        """
-        Extracts and processes tracking data for queue management in a video stream.
-        """
+        """Extracts and processes tracking data for queue management in a video stream."""
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"])
 

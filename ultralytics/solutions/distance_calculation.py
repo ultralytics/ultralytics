@@ -3,8 +3,9 @@
 import math
 
 import cv2
-from ultralytics.utils import DEFAULT_CFG_DICT
+
 from ultralytics import solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -112,7 +113,11 @@ class DistanceCalculation:
 
                 distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
                 self.annotator.plot_distance_and_line(
-                    distance_m, distance_mm, self.centroids, DEFAULT_CFG_DICT["line_color"], DEFAULT_CFG_DICT["centroid_color"]
+                    distance_m,
+                    distance_mm,
+                    self.centroids,
+                    DEFAULT_CFG_DICT["line_color"],
+                    DEFAULT_CFG_DICT["centroid_color"],
                 )
 
             self.centroids = []

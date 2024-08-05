@@ -289,21 +289,21 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
 Here's a table with the `Analytics` arguments:
 
-| Name           | Type              | Default       | Description                                                                      |
-|----------------| ----------------- | ------------- | -------------------------------------------------------------------------------- |
-| `type`         | `str`             | `None`        | Type of data or object.                                                          |
-| `im0_shape`    | `tuple`           | `None`        | Shape of the initial image.                                                      |
-| `title`        | `str`             | `ultralytics` | Title for the visualization.                                                     |
-| `x_label`      | `str`             | `x`           | Label for the x-axis.                                                            |
-| `y_label`      | `str`             | `y`           | Label for the y-axis.                                                            |
-| `bg_color`     | `str`             | `white`       | Background color.                                                                |
-| `fg_color`     | `str`             | `black`       | Foreground color.                                                                |
-| `line_color`   | `str`             | `yellow`      | Color of the lines.                                                              |
-| `line_width`   | `int`             | `2`           | Width of the lines.                                                              |
-| `fontsize`     | `int`             | `13`          | Font size for text.                                                              |
-| `show`         | `bool`            | `False`       | Flag to display the image or video.                                              |
-| `max_points`   | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
-| `points_width` | `int`             | `15`          | Width of line points highlighter.                                                |
+| Name           | Type    | Default       | Description                                                                      |
+| -------------- | ------- | ------------- | -------------------------------------------------------------------------------- |
+| `type`         | `str`   | `None`        | Type of data or object.                                                          |
+| `im0_shape`    | `tuple` | `None`        | Shape of the initial image.                                                      |
+| `title`        | `str`   | `ultralytics` | Title for the visualization.                                                     |
+| `x_label`      | `str`   | `x`           | Label for the x-axis.                                                            |
+| `y_label`      | `str`   | `y`           | Label for the y-axis.                                                            |
+| `bg_color`     | `str`   | `white`       | Background color.                                                                |
+| `fg_color`     | `str`   | `black`       | Foreground color.                                                                |
+| `line_color`   | `str`   | `yellow`      | Color of the lines.                                                              |
+| `line_width`   | `int`   | `2`           | Width of the lines.                                                              |
+| `fontsize`     | `int`   | `13`          | Font size for text.                                                              |
+| `show`         | `bool`  | `False`       | Flag to display the image or video.                                              |
+| `max_points`   | `int`   | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
+| `points_width` | `int`   | `15`          | Width of line points highlighter.                                                |
 
 ### Arguments `model.track`
 

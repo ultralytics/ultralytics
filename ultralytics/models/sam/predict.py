@@ -8,17 +8,17 @@ using SAM. It forms an integral part of the Ultralytics framework and is designe
 segmentation tasks.
 """
 
+from collections import OrderedDict
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from collections import OrderedDict
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.utils.torch_utils import select_device
-from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 from .amg import (
     batch_iterator,

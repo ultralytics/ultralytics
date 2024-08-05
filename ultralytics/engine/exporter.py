@@ -364,7 +364,9 @@ class Exporter:
         n = len(dataset)
         if n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=self.args.batch * 2 if self.args.format == "engine" else self.args.batch, workers=0)  # required for batch loading
+        return build_dataloader(
+            dataset, batch=self.args.batch * 2 if self.args.format == "engine" else self.args.batch, workers=0
+        )  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):

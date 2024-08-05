@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 import cv2
-
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics import solutions
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
@@ -26,12 +26,12 @@ class QueueManager:
         """
         import ast
 
-        self.args = solutions.solutions_yaml_load(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
 
         # Region & Line Information
         self.counting_region = (
-            Polygon(self.args["reg_pts"])
-            if len(self.args["reg_pts"]) >= 3
+            Polygon(DEFAULT_CFG_DICT["reg_pts"])
+            if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3
             else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
         self.im0 = None
@@ -39,9 +39,9 @@ class QueueManager:
         self.counts = 0
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        self.args["count_txt_color"] = ast.literal_eval(self.args["count_txt_color"])
-        self.args["count_reg_color"] = ast.literal_eval(self.args["count_reg_color"])
-        print(f"Ultralytics Solutions ✅ {self.args}")
+        DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
+        DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
+        print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def process_tracks(self, tracks):
         """
@@ -51,7 +51,7 @@ class QueueManager:
             tracks (list): A list of track objects representing detected objects in the video stream, each containing information such as position and movement.
         """
         # Initialize annotator and draw the queue region
-        self.annotator = Annotator(self.im0, self.args["line_thickness"], self.args["names"])
+        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], DEFAULT_CFG_DICT["names"])
 
         boxes, clss, track_ids = solutions.extract_tracks(tracks)
 
@@ -60,7 +60,7 @@ class QueueManager:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
                 self.annotator.box_label(
-                    box, label=f"{self.args['names'][cls]}#{track_id}", color=colors(int(track_id), True)
+                    box, label=f"{DEFAULT_CFG_DICT['names'][cls]}#{track_id}", color=colors(int(track_id), True)
                 )
 
                 # Update track history
@@ -70,19 +70,17 @@ class QueueManager:
                     track_line.pop(0)
 
                 # Draw track trails if enabled
-                if self.args["draw_tracks"]:
+                if DEFAULT_CFG_DICT["draw_tracks"]:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=colors(int(track_id), True)
-                        if self.args["track_color"] is None
-                        else self.args["track_color"],
-                        track_thickness=self.args["track_thickness"],
+                        color=colors(int(track_id), True),
+                        track_thickness=DEFAULT_CFG_DICT["line_width"],
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
                 # Check if the object is inside the counting region
-                if len(self.args["reg_pts"]) >= 3:
+                if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
                     if prev_position is not None and is_inside:
                         self.counts += 1
@@ -92,9 +90,9 @@ class QueueManager:
         if label is not None:
             self.annotator.queue_counts_display(
                 label,
-                points=self.args["reg_pts"],
-                region_color=self.args["count_reg_color"],
-                txt_color=self.args["count_txt_color"],
+                points=DEFAULT_CFG_DICT["reg_pts"],
+                region_color=DEFAULT_CFG_DICT["reg_color"],
+                txt_color=DEFAULT_CFG_DICT["txt_color"],
             )
 
         self.counts = 0  # Reset counts after displaying
@@ -113,13 +111,13 @@ class QueueManager:
         self.im0 = im0  # Store the current frame
         self.process_tracks(tracks)  # Extract and process tracks
 
-        if self.args["view_img"] and self.env_check:
+        if DEFAULT_CFG_DICT["show"] and self.env_check:
             self.annotator.draw_region(
-                reg_pts=self.args["reg_pts"],
-                thickness=self.args["region_thickness"],
-                color=self.args["count_reg_color"],
+                reg_pts=DEFAULT_CFG_DICT["reg_pts"],
+                thickness=int(DEFAULT_CFG_DICT["line_width"])*2,
+                color=DEFAULT_CFG_DICT["reg_color"],
             )
-            cv2.imshow(self.args["window_name"], self.im0)
+            cv2.imshow("Ultralytics Solutions", self.im0)
             # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

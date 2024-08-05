@@ -55,8 +55,8 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue = solutions.QueueManager(
             names=model.names,
             reg_pts=queue_region,
-            line_thickness=3,
-            region_color=(255, 144, 31),
+            line_width=3,
+            reg_color=(255, 144, 31),
         )
 
         while cap.isOpened():
@@ -98,8 +98,8 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue = solutions.QueueManager(
             names=model.names,
             reg_pts=queue_region,
-            line_thickness=3,
-            region_color=(255, 144, 31),
+            line_width=3,
+            reg_color=(255, 144, 31),
         )
 
         while cap.isOpened():
@@ -123,19 +123,15 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Arguments `QueueManager`
 
-| Name                | Type             | Default                    | Description                                                                         |
-| ------------------- | ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
-| `names`             | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
-| `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
-| `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
-| `track_thickness`   | `int`            | `2`                        | Thickness of the track lines.                                                       |
-| `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `region_color`      | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
-| `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
-| `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
-| `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
-| `track_color`       | `tuple`          | `None`                     | Color of the tracks. If `None`, different colors will be used for different tracks. |
-| `region_thickness`  | `int`            | `5`                        | Thickness of the counting region lines.                                             |
+| Name          | Type             | Default                    | Description                                                                         |
+|---------------| ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
+| `names`       | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
+| `reg_pts`     | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
+| `line_width`  | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
+| `show`        | `bool`           | `False`                    | Whether to display the image frames.                                                |
+| `reg_color`   | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
+| `draw_tracks` | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
+| `txt_color` | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
 
 ### Arguments `model.track`
 
@@ -174,8 +170,8 @@ queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 queue = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region,
-    line_thickness=3,
-    region_color=(255, 144, 31),
+    line_width=3,
+    reg_color=(255, 144, 31),
 )
 
 while cap.isOpened():
@@ -226,8 +222,8 @@ queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
 queue_airport = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region_airport,
-    line_thickness=3,
-    region_color=(0, 255, 0),
+    line_width=3,
+    reg_color=(0, 255, 0),
 )
 ```
 

@@ -77,7 +77,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ### Arguments `DistanceCalculation()`
 
 | `Name`             | `Type`  | `Default`       | Description                                               |
-|--------------------|---------|-----------------|-----------------------------------------------------------|
+| ------------------ | ------- | --------------- | --------------------------------------------------------- |
 | `model`            | `str`   | `yolov8n.pt`    | Path to YOLO model.                                       |
 | `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
 | `show`             | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |

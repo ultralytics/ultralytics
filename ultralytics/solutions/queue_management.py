@@ -110,7 +110,6 @@ class QueueManager:
 
         Args:
             im0 (ndarray): Current frame from the video stream.
-            tracks (list): List of tracks obtained from the object tracking process.
 
         Returns:
             im0 (ndarray): The processed image frame.

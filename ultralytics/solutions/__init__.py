@@ -27,19 +27,6 @@ __all__ = (
 )
 
 
-def solutions_yaml_load(kwargs):
-    """
-    Loads the `cfg/default.yaml` file for solutions and verifies dictionary alignment.
-
-    Args:
-        kwargs (dict): A dictionary of arguments provided by the user.
-    """
-    args = cfg2dict(Path(__file__).resolve().parents[0] / "cfg/default.yaml")
-    check_dict_alignment(args, kwargs)
-    args.update(kwargs)
-    return args
-
-
 def extract_tracks(tracks):
     """
     Retrieves tracking results from the given data.

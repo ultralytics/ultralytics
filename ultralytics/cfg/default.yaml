@@ -73,7 +73,7 @@ save_crop: False # (bool) save cropped images with results
 show_labels: True # (bool) show prediction labels, i.e. 'person'
 show_conf: True # (bool) show prediction confidence, i.e. '0.99'
 show_boxes: True # (bool) show prediction boxes
-line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.
+line_width: 2 # (int, optional) line width of the bounding boxes. Scaled to image size if None.
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript # (str) format to export to, choices at https://docs.ultralytics.com/modes/export/#export-formats
@@ -127,18 +127,16 @@ tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yam
 
 # Default solutions settings
 names: dict # (dict) solutions dictionary containing model names and their configurations
-track_thickness: 2 # (int) thickness of tracking lines
 draw_tracks: False # (bool) enable or disable drawing of tracks
 track_color: None # (None or list) color of tracking lines
 
 # Object counter settings -----------------------------------------------------------------
 reg_pts: &reg_pts "[(20, 400), (1260, 400)]" # (list) points defining a counting region
-count_reg_color: &count_reg_color "(255, 0, 255)" # (str) color of the counting region line in RGB
-count_txt_color: "(0, 0, 0)" # (str) color of the count text in RGB
-count_bg_color: "(255, 255, 255)" # (str) background color of the count text in RGB
-view_in_counts: True # (bool) display the count of objects entering the region
-view_out_counts: True # (bool) display the count of objects exiting the region
-region_thickness: 5 # (int) thickness of the counting region line
+reg_color: "(255, 0, 255)" # (str) color of the counting region line in RGB
+txt_color: "(0, 0, 0)" # (str) color of the count text in RGB
+bg_color: "(255, 255, 255)" # (str) background color of the count text in RGB
+show_in_counts: True # (bool) display the count of objects entering the region
+show_out_counts: True # (bool) display the count of objects exiting the region
 line_dist_thresh: &line_dist_thresh 15 # (int) distance threshold for counting lines
 
 # Workouts monitoring settings ------------------------------------------------------------
@@ -149,7 +147,6 @@ pose_type: "pullup" # (str) type of workout being monitored
 
 # Anchors and aliases ---------------------------------------------------------------------
 spdl_dist_thresh: *line_dist_thresh # (int) distance threshold for speed estimation
-region_color: *count_reg_color # (str) color of regions used in queue management
 
 # Heatmaps settings -----------------------------------------------------------------------
 shape: "circle" # (str) shape of the heatmap marker
@@ -169,7 +166,6 @@ im0_shape: None # (None or tuple) shape of the input image
 title: "ultralytics" # (str) title of the plot
 x_label: "x" # (str) label for the x-axis
 y_label: "y" # (str) label for the y-axis
-bg_color: "white" # (str) background color of the plot
 fg_color: "black" # (str) foreground color of the plot
 points_width: 10 # (int) width of points in the plot
 fontsize: 13 # (int) font size for text in the plot

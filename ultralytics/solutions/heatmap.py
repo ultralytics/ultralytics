@@ -5,8 +5,8 @@ from collections import defaultdict
 import cv2
 import numpy as np
 
-from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics import solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -99,7 +99,7 @@ class Heatmap:
                 self.annotator.draw_region(
                     reg_pts=DEFAULT_CFG_DICT["reg_pts"],
                     color=DEFAULT_CFG_DICT["reg_color"],
-                    thickness=int(DEFAULT_CFG_DICT["line_width"])*2,
+                    thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
                 )
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
@@ -195,7 +195,9 @@ class Heatmap:
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), DEFAULT_CFG_DICT["colormap"])
-        im0 = cv2.addWeighted(im0, 1 - DEFAULT_CFG_DICT["heatmap_alpha"], heatmap_colored, DEFAULT_CFG_DICT["heatmap_alpha"], 0)
+        im0 = cv2.addWeighted(
+            im0, 1 - DEFAULT_CFG_DICT["heatmap_alpha"], heatmap_colored, DEFAULT_CFG_DICT["heatmap_alpha"], 0
+        )
 
         if self.env_check and DEFAULT_CFG_DICT["show"]:
             cv2.imshow("Ultralytics Solutions", im0)

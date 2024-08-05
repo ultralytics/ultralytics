@@ -353,20 +353,19 @@ class Exporter:
         """Build and return a dataloader suitable for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        batch = self.args.batch * 2 if self.args.format == "engine" else self.args.batch
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=self.args.batch * 2 if self.args.format == "engine" else self.args.batch,
+            batch_size=batch,
         )
         n = len(dataset)
         if n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(
-            dataset, batch=self.args.batch * 2 if self.args.format == "engine" else self.args.batch, workers=0
-        )  # required for batch loading
+        return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -1158,9 +1157,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

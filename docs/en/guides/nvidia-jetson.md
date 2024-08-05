@@ -65,15 +65,15 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 The below table highlights NVIDIA JetPack versions supported by different NVIDIA Jetson devices.
 
-|                    | JetPack 4 | JetPack 5 | JetPack 6 |
-|--------------------|-----------|-----------|-----------|
-| Jetson Nano        | ✅         | ❌         | ❌         |
-| Jetson TX2         | ✅         | ❌         | ❌         |
-| Jetson Xavier NX   | ✅         | ✅         | ❌         |
-| Jetson AGX Xavier  | ✅         | ✅         | ❌         |
-| Jetson AGX Orin    | ❌         | ✅         | ✅         |
-| Jetson Orin NX     | ❌         | ✅         | ✅         |
-| Jetson Orin Nano   | ❌         | ✅         | ✅         |
+|                   | JetPack 4 | JetPack 5 | JetPack 6 |
+| ----------------- | --------- | --------- | --------- |
+| Jetson Nano       | ✅        | ❌        | ❌        |
+| Jetson TX2        | ✅        | ❌        | ❌        |
+| Jetson Xavier NX  | ✅        | ✅        | ❌        |
+| Jetson AGX Xavier | ✅        | ✅        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        |
 
 ## Quick Start with Docker
 

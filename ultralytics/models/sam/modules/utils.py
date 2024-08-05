@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from typing import Tuple
+
 import torch
 import torch.nn.functional as F
 
@@ -70,7 +72,7 @@ def get_1d_sine_pe(pos_inds, dim, temperature=10000):
 
 
 def init_t_xy(end_x: int, end_y: int):
-    """Initializes 1D and 2D coordinate tensors for a grid of size end_x by end_y."""
+    """Initializes 1D and 2D coordinate tensors for a grid of specified dimensions."""
     t = torch.arange(end_x * end_y, dtype=torch.float32)
     t_x = (t % end_x).float()
     t_y = torch.div(t, end_x, rounding_mode="floor").float()
@@ -78,7 +80,7 @@ def init_t_xy(end_x: int, end_y: int):
 
 
 def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
-    """Computes axial complex exponential positional encodings for 2D spatial positions."""
+    """Computes axial complex exponential positional encodings for 2D spatial positions in a grid."""
     freqs_x = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
     freqs_y = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
 
@@ -91,7 +93,7 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
 
 
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
-    """Reshapes frequency tensor for broadcasting, ensuring compatibility with input tensor dimensions."""
+    """Reshapes frequency tensor for broadcasting with input tensor, ensuring dimensional compatibility."""
     ndim = x.ndim
     assert 0 <= 1 < ndim
     assert freqs_cis.shape == (x.shape[-2], x.shape[-1])
@@ -189,3 +191,103 @@ def window_unpartition(windows, window_size, pad_hw, hw):
     if Hp > H or Wp > W:
         x = x[:, :H, :W, :].contiguous()
     return x
+
+
+def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
+    """
+    Extracts relative positional embeddings based on query and key sizes.
+
+    Args:
+        q_size (int): Size of the query.
+        k_size (int): Size of the key.
+        rel_pos (torch.Tensor): Relative position embeddings with shape (L, C), where L is the maximum relative
+            distance and C is the embedding dimension.
+
+    Returns:
+        (torch.Tensor): Extracted positional embeddings according to relative positions, with shape (q_size,
+            k_size, C).
+
+    Examples:
+        >>> q_size, k_size = 8, 16
+        >>> rel_pos = torch.randn(31, 64)  # 31 = 2 * max(8, 16) - 1
+        >>> extracted_pos = get_rel_pos(q_size, k_size, rel_pos)
+        >>> print(extracted_pos.shape)
+        torch.Size([8, 16, 64])
+    """
+    max_rel_dist = int(2 * max(q_size, k_size) - 1)
+    # Interpolate rel pos if needed.
+    if rel_pos.shape[0] != max_rel_dist:
+        # Interpolate rel pos.
+        rel_pos_resized = F.interpolate(
+            rel_pos.reshape(1, rel_pos.shape[0], -1).permute(0, 2, 1),
+            size=max_rel_dist,
+            mode="linear",
+        )
+        rel_pos_resized = rel_pos_resized.reshape(-1, max_rel_dist).permute(1, 0)
+    else:
+        rel_pos_resized = rel_pos
+
+    # Scale the coords with short length if shapes for q and k are different.
+    q_coords = torch.arange(q_size)[:, None] * max(k_size / q_size, 1.0)
+    k_coords = torch.arange(k_size)[None, :] * max(q_size / k_size, 1.0)
+    relative_coords = (q_coords - k_coords) + (k_size - 1) * max(q_size / k_size, 1.0)
+
+    return rel_pos_resized[relative_coords.long()]
+
+
+def add_decomposed_rel_pos(
+    attn: torch.Tensor,
+    q: torch.Tensor,
+    rel_pos_h: torch.Tensor,
+    rel_pos_w: torch.Tensor,
+    q_size: Tuple[int, int],
+    k_size: Tuple[int, int],
+) -> torch.Tensor:
+    """
+    Adds decomposed Relative Positional Embeddings to the attention map.
+
+    This function calculates and applies decomposed Relative Positional Embeddings as described in the MVITv2
+    paper. It enhances the attention mechanism by incorporating spatial relationships between query and key
+    positions.
+
+    Args:
+        attn (torch.Tensor): Attention map with shape (B, q_h * q_w, k_h * k_w).
+        q (torch.Tensor): Query tensor in the attention layer with shape (B, q_h * q_w, C).
+        rel_pos_h (torch.Tensor): Relative position embeddings for height axis with shape (Lh, C).
+        rel_pos_w (torch.Tensor): Relative position embeddings for width axis with shape (Lw, C).
+        q_size (Tuple[int, int]): Spatial sequence size of query q as (q_h, q_w).
+        k_size (Tuple[int, int]): Spatial sequence size of key k as (k_h, k_w).
+
+    Returns:
+        (torch.Tensor): Updated attention map with added relative positional embeddings, shape
+            (B, q_h * q_w, k_h * k_w).
+
+    Examples:
+        >>> B, C, q_h, q_w, k_h, k_w = 1, 64, 8, 8, 8, 8
+        >>> attn = torch.rand(B, q_h * q_w, k_h * k_w)
+        >>> q = torch.rand(B, q_h * q_w, C)
+        >>> rel_pos_h = torch.rand(2 * max(q_h, k_h) - 1, C)
+        >>> rel_pos_w = torch.rand(2 * max(q_w, k_w) - 1, C)
+        >>> q_size, k_size = (q_h, q_w), (k_h, k_w)
+        >>> updated_attn = add_decomposed_rel_pos(attn, q, rel_pos_h, rel_pos_w, q_size, k_size)
+        >>> print(updated_attn.shape)
+        torch.Size([1, 64, 64])
+
+    References:
+        https://github.com/facebookresearch/mvit/blob/main/mvit/models/attention.py
+    """
+    q_h, q_w = q_size
+    k_h, k_w = k_size
+    Rh = get_rel_pos(q_h, k_h, rel_pos_h)
+    Rw = get_rel_pos(q_w, k_w, rel_pos_w)
+
+    B, _, dim = q.shape
+    r_q = q.reshape(B, q_h, q_w, dim)
+    rel_h = torch.einsum("bhwc,hkc->bhwk", r_q, Rh)
+    rel_w = torch.einsum("bhwc,wkc->bhwk", r_q, Rw)
+
+    attn = (attn.view(B, q_h, q_w, k_h, k_w) + rel_h[:, :, :, :, None] + rel_w[:, :, :, None, :]).view(
+        B, q_h * q_w, k_h * k_w
+    )
+
+    return attn

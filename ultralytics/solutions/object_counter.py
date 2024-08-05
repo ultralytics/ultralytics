@@ -67,7 +67,9 @@ class ObjectCounter:
         # Initialize annotator and draw regions
         self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], DEFAULT_CFG_DICT["names"])
         self.annotator.draw_region(
-            reg_pts=DEFAULT_CFG_DICT["reg_pts"], color=DEFAULT_CFG_DICT["reg_color"], thickness=int(DEFAULT_CFG_DICT["line_width"])*2
+            reg_pts=DEFAULT_CFG_DICT["reg_pts"],
+            color=DEFAULT_CFG_DICT["reg_color"],
+            thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
         )
 
         boxes, clss, track_ids = solutions.extract_tracks(tracks)  # Extract tracks

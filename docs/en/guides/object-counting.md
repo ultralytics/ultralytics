@@ -224,20 +224,20 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name                 | Type    | Default                    | Description                                                            |
-|----------------------| ------- | -------------------------- | ---------------------------------------------------------------------- |
-| `names`              | `dict`  | `None`                     | Dictionary of classes names.                                           |
-| `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `reg_color`          | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
-| `txt_color`          | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
-| `bg_color`           | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
-| `line_width`         | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `show`               | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
-| `show_in_counts`     | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `show_out_counts`    | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
-| `draw_tracks`        | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
-| `track_color`        | `tuple` | `None`                     | RGB color of the tracks.                                               |
-| `line_dist_thresh`   | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
+| Name               | Type    | Default                    | Description                                                            |
+| ------------------ | ------- | -------------------------- | ---------------------------------------------------------------------- |
+| `names`            | `dict`  | `None`                     | Dictionary of classes names.                                           |
+| `reg_pts`          | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
+| `reg_color`        | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
+| `txt_color`        | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
+| `bg_color`         | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
+| `line_width`       | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
+| `show`             | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
+| `show_in_counts`   | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
+| `show_out_counts`  | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
+| `draw_tracks`      | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
+| `track_color`      | `tuple` | `None`                     | RGB color of the tracks.                                               |
+| `line_dist_thresh` | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
 
 ### Arguments `model.track`
 
@@ -330,9 +330,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     line_points = [(20, 400), (1080, 400)]
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    counter = solutions.ObjectCounter(
-        show=True, reg_pts=line_points, names=model.names, draw_tracks=True, line_width=2
-    )
+    counter = solutions.ObjectCounter(show=True, reg_pts=line_points, names=model.names, draw_tracks=True, line_width=2)
 
     while cap.isOpened():
         success, im0 = cap.read()

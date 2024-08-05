@@ -153,5 +153,4 @@ x_label: "x" # (str) label for the x-axis
 y_label: "y" # (str) label for the y-axis
 points_width: 10 # (int) width of points in the plot
 fontsize: 13 # (int) font size for text in the plot
-save_img: True # (bool) save the output image
 max_points: 50 # (int) maximum number of points to plot

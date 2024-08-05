@@ -72,7 +72,9 @@ class SpeedEstimator:
             track (list): The tracking history used to draw the track path.
         """
         speed_label = (
-            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else DEFAULT_CFG_DICT["names"][int(cls)]
+            f"{int(self.dist_data[track_id])} km/h"
+            if track_id in self.dist_data
+            else DEFAULT_CFG_DICT["names"][int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -132,7 +134,9 @@ class SpeedEstimator:
         if self.trk_ids is not None:
             self.annotator = Annotator(self.im0, line_width=DEFAULT_CFG_DICT["line_width"])
             self.annotator.draw_region(
-                reg_pts=DEFAULT_CFG_DICT["reg_pts"], color=(104, 31, 17), thickness=int(DEFAULT_CFG_DICT["line_width"])*2
+                reg_pts=DEFAULT_CFG_DICT["reg_pts"],
+                color=(104, 31, 17),
+                thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
             )
 
             for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):

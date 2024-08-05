@@ -6,7 +6,7 @@ from time import time
 import cv2
 import numpy as np
 
-from ultralytics import solutions
+from ultralytics import solutions, YOLO
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
@@ -24,7 +24,7 @@ class SpeedEstimator:
             kwargs (dict): Dictionary of arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.
         """
         DEFAULT_CFG_DICT.update(kwargs)
-
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.im0 = None
         self.annotator = None
         self.clss = None
@@ -74,7 +74,7 @@ class SpeedEstimator:
         speed_label = (
             f"{int(self.dist_data[track_id])} km/h"
             if track_id in self.dist_data
-            else DEFAULT_CFG_DICT["names"][int(cls)]
+            else self.model.names[int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -118,18 +118,20 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks):
+    def estimate_speed(self, im0):
         """
         Estimates the speed of objects using tracking data.
 
         Args:
             im0 (ndarray): The image.
-            tracks (list): A list of tracks from the object tracking process.
 
         Returns:
             im0 (ndarray): The image with annotated boxes and tracks.
         """
         self.im0 = im0
+        tracks = self.model.track(source=im0, persist=True, tracker=DEFAULT_CFG_DICT["tracker"],
+                                  classes=DEFAULT_CFG_DICT["classes"],
+                                  iou=DEFAULT_CFG_DICT["iou"], conf=DEFAULT_CFG_DICT["conf"])
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
         if self.trk_ids is not None:
             self.annotator = Annotator(self.im0, line_width=DEFAULT_CFG_DICT["line_width"])

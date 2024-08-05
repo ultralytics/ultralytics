@@ -11,10 +11,6 @@ keywords: Ultralytics, video analytics, object tracking, speed estimation, heatm
 
 <br>
 
-## ::: ultralytics.solutions.solutions_yaml_load
-
-<br><br><hr><br>
-
 ## ::: ultralytics.solutions.extract_tracks
 
 <br><br>

@@ -19,34 +19,18 @@ keywords: Ultralytics, SAM encoder, ImageEncoderViT, PromptEncoder, PositionEmbe
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.encoders.PositionEmbeddingRandom
+## ::: ultralytics.models.sam.modules.encoders.MemoryEncoder
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.encoders.Block
+## ::: ultralytics.models.sam.modules.encoders.ImageEncoder
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.encoders.Attention
+## ::: ultralytics.models.sam.modules.encoders.FpnNeck
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.encoders.PatchEmbed
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.sam.modules.encoders.window_partition
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.sam.modules.encoders.window_unpartition
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.sam.modules.encoders.get_rel_pos
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.sam.modules.encoders.add_decomposed_rel_pos
+## ::: ultralytics.models.sam.modules.encoders.Hiera
 
 <br><br>

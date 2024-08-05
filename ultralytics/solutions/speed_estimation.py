@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 from ultralytics import solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -22,7 +23,7 @@ class SpeedEstimator:
         Args:
             kwargs (dict): Dictionary of arguments for configuring the speed estimation process, such as frame rate, calibration data, and measurement units.
         """
-        self.args = solutions.solutions_yaml_load(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
 
         self.im0 = None
         self.annotator = None
@@ -38,7 +39,7 @@ class SpeedEstimator:
         self.trk_previous_times = {}
         self.trk_previous_points = {}
         self.env_check = check_imshow(warn=True)  # Check if the environment supports imshow
-        print(f"Ultralytics Solutions ✅ {self.args}")
+        print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def store_track_info(self, track_id, box):
         """
@@ -71,7 +72,7 @@ class SpeedEstimator:
             track (list): The tracking history used to draw the track path.
         """
         speed_label = (
-            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.args["names"][int(cls)]
+            f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else DEFAULT_CFG_DICT["names"][int(cls)]
         )
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
 
@@ -87,18 +88,18 @@ class SpeedEstimator:
             trk_id (int): The identifier for the object's track.
             track (list): The tracking history used to plot the track path.
         """
-        if not self.args["reg_pts"][0][0] < track[-1][0] < self.args["reg_pts"][1][0]:
+        if not DEFAULT_CFG_DICT["reg_pts"][0][0] < track[-1][0] < DEFAULT_CFG_DICT["reg_pts"][1][0]:
             return
         if (
-            self.args["reg_pts"][1][1] - self.args["spdl_dist_thresh"]
+            DEFAULT_CFG_DICT["reg_pts"][1][1] - DEFAULT_CFG_DICT["line_dist_thresh"]
             < track[-1][1]
-            < self.args["reg_pts"][1][1] + self.args["spdl_dist_thresh"]
+            < DEFAULT_CFG_DICT["reg_pts"][1][1] + DEFAULT_CFG_DICT["line_dist_thresh"]
         ):
             direction = "known"
         elif (
-            self.args["reg_pts"][0][1] - self.args["spdl_dist_thresh"]
+            DEFAULT_CFG_DICT["reg_pts"][0][1] - DEFAULT_CFG_DICT["line_dist_thresh"]
             < track[-1][1]
-            < self.args["reg_pts"][0][1] + self.args["spdl_dist_thresh"]
+            < DEFAULT_CFG_DICT["reg_pts"][0][1] + DEFAULT_CFG_DICT["line_dist_thresh"]
         ):
             direction = "known"
         else:
@@ -129,9 +130,9 @@ class SpeedEstimator:
         self.im0 = im0
         self.boxes, self.clss, self.trk_ids = solutions.extract_tracks(tracks)
         if self.trk_ids is not None:
-            self.annotator = Annotator(self.im0, line_width=self.args["line_thickness"])
+            self.annotator = Annotator(self.im0, line_width=DEFAULT_CFG_DICT["line_width"])
             self.annotator.draw_region(
-                reg_pts=self.args["reg_pts"], color=(104, 31, 17), thickness=self.args["region_thickness"]
+                reg_pts=DEFAULT_CFG_DICT["reg_pts"], color=(104, 31, 17), thickness=int(DEFAULT_CFG_DICT["line_width"])*2
             )
 
             for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
@@ -143,8 +144,8 @@ class SpeedEstimator:
                 self.plot_box_and_track(trk_id, box, cls, track)
                 self.calculate_speed(trk_id, track)
 
-        if self.args["view_img"] and self.env_check:
-            cv2.imshow(self.args["window_name"], self.im0)
+        if DEFAULT_CFG_DICT["show"] and self.env_check:
+            cv2.imshow("Ultralytics Solutions", self.im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 

@@ -6,9 +6,9 @@ keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image p
 
 # Ultralytics HUB Inference API
 
-The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
+After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Ultralytics Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Dedicated Inference API card and one to the Shared Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/OpWpBI35A5Y"
@@ -19,6 +19,40 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to r
   <br>
   <strong>Watch:</strong> Ultralytics HUB Inference API Walkthrough
 </p>
+
+## Dedicated Inference API
+
+In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
+
+!!! note "Note"
+
+    We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
+
+To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
+
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_1.jpg)
+
+!!! tip "Tip"
+
+    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__).
+
+To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
+
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Stop Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_2.jpg)
+
+## Shared Inference API
+
+To use the [Ultralytics HUB](https://ultralytics.com/hub) Shared Inference API, follow the guides below.
+
+Free users have the following usage limits:
+
+- 100 calls / hour
+- 1000 calls / month
+
+[Pro](./pro.md) users have the following usage limits:
+
+- 1000 calls / hour
+- 10000 calls / month
 
 ## Python
 
@@ -48,6 +82,8 @@ print(response.json())
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
+    If you are using our [Dedicated Inference API](#dedicated-inference-api), replace the `url` as well.
+
 ## cURL
 
 To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using cURL, use the following code:
@@ -64,6 +100,8 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 !!! note "Note"
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
+
+    If you are using our [Dedicated Inference API](#dedicated-inference-api), replace the `url` as well.
 
 ## Arguments
 

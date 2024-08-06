@@ -5,6 +5,12 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch
 FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_USE_PEP517=1
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -34,7 +40,7 @@ ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl on
 # Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
-RUN pip install --no-cache-dir -e ".[export]"
+RUN pip install -e ".[export]"
 RUN rm *.whl
 
 

@@ -59,6 +59,7 @@ from .block import (
     SCDown,
     PSA,
     C2PSA,
+    C3PSA,
     C4
 )
 from .conv import (
@@ -130,6 +131,7 @@ __all__ = (
     "SCDown",
     "PSA",
     "C2PSA",
+    "C3PSA",
     "C4",
     "C2fAttn",
     "C3x",

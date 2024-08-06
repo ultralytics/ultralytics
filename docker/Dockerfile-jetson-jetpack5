@@ -26,7 +26,7 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Remove opencv-python from Ultralytics dependencies as it conflicts with opencv-python installed in base image
-RUN grep -v "opencv-python" pyproject.toml > temp.toml && mv temp.toml pyproject.toml
+RUN sed -i '/opencv-python/d' pyproject.toml
 
 # Download onnxruntime-gpu 1.15.1 for Jetson Linux 35.2.1 (JetPack 5.1). Other versions can be seen in https://elinux.org/Jetson_Zoo#ONNX_Runtime
 ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl

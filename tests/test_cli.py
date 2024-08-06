@@ -8,6 +8,7 @@ from PIL import Image
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
@@ -57,6 +58,8 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     # Warning: must use imgsz=640 (note also add coma, spaces, fraction=0.25 args to test single-image training)
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
+    if TORCH_1_9:
+        run(f"yolo predict {task} model='rtdetr-l.pt' source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")

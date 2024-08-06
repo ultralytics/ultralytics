@@ -27,8 +27,8 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
         ```bash
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of [detect, segment, classify]
-                MODE (required) is one of [train, val, predict, export, track]
+        Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                MODE (required) is one of [train, val, predict, export, track, benchmark]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
         See all ARGS in the full [Configuration Guide](cfg.md) or with `yolo cfg`
@@ -75,8 +75,8 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
-- `MODE` (required) is one of `[train, val, predict, export, track]`
+- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
+- `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
 
 !!! Warning "Warning"
@@ -174,7 +174,7 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅       | -                                                                    |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`, `dynamic`                          |
 | [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
 | [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
 | [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |

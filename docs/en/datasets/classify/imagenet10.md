@@ -45,7 +45,7 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
+        yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -104,7 +104,7 @@ To test your deep learning model on the ImageNet10 dataset with an image size of
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
+        yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
         ```
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.

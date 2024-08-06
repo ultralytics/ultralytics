@@ -850,7 +850,7 @@ class Mosaic(BaseMixTransform):
             "im_file": mosaic_labels[0]["im_file"],
             "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (imgsz, imgsz),
-            "cls": np.concatenate(cls, 0),
+            "cls": np.concatenate(cls, 0).astype(np.int32),
             "instances": Instances.concatenate(instances, axis=0),
             "mosaic_border": self.border,
         }
@@ -943,7 +943,7 @@ class MixUp(BaseMixTransform):
         labels2 = labels["mix_labels"][0]
         labels["img"] = (labels["img"] * r + labels2["img"] * (1 - r)).astype(np.uint8)
         labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
-        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
+        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], axis=0, dtype=np.int32)
         return labels
 
 
@@ -2038,7 +2038,7 @@ class Format:
                 )
             labels["masks"] = masks
         labels["img"] = self._format_img(img)
-        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
+        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl, dtype=torch.int32)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels["keypoints"] = torch.from_numpy(instances.keypoints)
@@ -2055,7 +2055,7 @@ class Format:
             labels["bboxes"][:, [1, 3]] /= h
         # Then we can use collate_fn
         if self.batch_idx:
-            labels["batch_idx"] = torch.zeros(nl)
+            labels["batch_idx"] = torch.zeros(nl, dtype=torch.int32)
         return labels
 
     def _format_img(self, img):
@@ -2239,7 +2239,7 @@ class RandomLoadText:
             valid_idx[i] = True
             new_cls.append([label2ids[label]])
         labels["instances"] = labels["instances"][valid_idx]
-        labels["cls"] = np.array(new_cls)
+        labels["cls"] = np.array(new_cls, dtype=np.int32)
 
         # Randomly select one prompt when there's more than one prompts
         texts = []

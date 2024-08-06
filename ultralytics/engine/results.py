@@ -724,7 +724,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5):
+    def summary(self, use_wh=False, normalize=False, decimals=5):
         """
         Converts inference results to a summarized dictionary with optional normalization for box coordinates.
 

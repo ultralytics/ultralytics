@@ -27,9 +27,9 @@ RUN apt upgrade --no-install-recommends -y openssl tar
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and assign permissions
+# Copy contents and configure git
 COPY . .
-RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Install pip packages

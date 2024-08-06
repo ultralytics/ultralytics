@@ -50,6 +50,7 @@ __all__ = (
     "SCDown",
     "PSA",
     "C2PSA",
+    "C4",
 )
 
 

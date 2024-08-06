@@ -34,7 +34,7 @@ url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 headers = {"x-api-key": "API_KEY"}
 
 # Inference arguments (optional)
-data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
@@ -56,8 +56,8 @@ To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 	-H "x-api-key: API_KEY" \
 	-F "image=@/path/to/image.jpg" \
-	-F "size=640" \
-	-F "confidence=0.25" \
+	-F "imgsz=640" \
+	-F "conf=0.25" \
 	-F "iou=0.45"
 ```
 
@@ -69,13 +69,13 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 
 See the table below for a full list of available inference arguments.
 
-| Argument     | Default | Type    | Description                                                          |
-| ------------ | ------- | ------- | -------------------------------------------------------------------- |
-| `image`      |         | `image` | Image file to be used for inference.                                 |
-| `url`        |         | `str`   | URL of the image if not passing a file.                              |
-| `size`       | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
-| `confidence` | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |
-| `iou`        | `0.45`  | `float` | Intersection over Union (IoU) threshold, valid range `0.0` - `0.95`. |
+| Argument | Default | Type    | Description                                                          |
+| -------- | ------- | ------- | -------------------------------------------------------------------- |
+| `file`   |         | `file`  | File to be used for inference.                                       |
+| `url`    |         | `str`   | URL of the file if not passing a file.                               |
+| `imgsz`  | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
+| `conf`   | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |
+| `iou`    | `0.45`  | `float` | Intersection over Union (IoU) threshold, valid range `0.0` - `0.95`. |
 
 ## Response
 
@@ -106,8 +106,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -123,7 +123,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -137,15 +137,27 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```json
         {
-          success: true,
-          message: "Inference complete.",
-          data: [
+          "images": [
             {
-              class: 0,
-              name: "person",
-              confidence: 0.92
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
@@ -174,8 +186,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -191,7 +203,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -205,19 +217,33 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```json
         {
-          success: true,
-          message: "Inference complete.",
-          data: [
+          "images": [
             {
-              class: 0,
-              name: "person",
-              confidence: 0.92,
-              width: 0.4893378019332886,
-              height: 0.7437513470649719,
-              xcenter: 0.4434437155723572,
-              ycenter: 0.5198975801467896
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
@@ -246,8 +272,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -263,7 +289,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -277,21 +303,37 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```json
         {
-          success: true,
-          message: "Inference complete.",
-          data: [
+          "images": [
             {
-              class: 0,
-              name: "person",
-              confidence: 0.92,
-              obb: [
-                0.669310450553894,
-                0.6247171759605408,
-                0.9847468137741089,
-                ...
-              ]
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 374.85565,
+                    "x2": 392.31824,
+                    "x3": 412.81805,
+                    "x4": 395.35547,
+                    "y1": 264.40704,
+                    "y2": 267.45728,
+                    "y3": 150.0966,
+                    "y4": 147.04634
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
@@ -320,8 +362,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -337,7 +379,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -351,16 +393,47 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```json
         {
-          success: true,
-          message: "Inference complete.",
-          data: [
+          "images": [
             {
-              class: 0,
-              name: "person",
-              confidence: 0.92,
-              segment: [0.44140625, 0.15625, 0.439453125, ...]
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  },
+                  "segments": {
+                    "x": [
+                      266.015625,
+                      266.015625,
+                      258.984375,
+                      ...
+                    ],
+                    "y": [
+                      110.15625,
+                      113.67188262939453,
+                      120.70311737060547,
+                      ...
+                    ]
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
@@ -389,8 +462,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
             -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -406,7 +479,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -420,26 +493,52 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```json
         {
-          success: true,
-          message: "Inference complete.",
-          data: [
+          "images": [
             {
-              class: 0,
-              name: "person",
-              confidence: 0.92,
-              keypoints: [
-                0.5290805697441101,
-                0.20698919892311096,
-                1.0,
-                0.5263055562973022,
-                0.19584226608276367,
-                1.0,
-                0.5094948410987854,
-                0.19120082259178162,
-                1.0,
-                ...
-              ]
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  },
+                  "keypoints": {
+                    "visible": [
+                      0.9909399747848511,
+                      0.8162999749183655,
+                      0.9872099757194519,
+                      ...
+                    ],
+                    "x": [
+                      316.3871765136719,
+                      315.9374694824219,
+                      304.878173828125,
+                      ...
+                    ],
+                    "y": [
+                      156.4207763671875,
+                      148.05775451660156,
+                      144.93240356445312,
+                      ...
+                    ]
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```

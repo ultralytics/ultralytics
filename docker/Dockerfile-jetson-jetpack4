@@ -5,6 +5,10 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda
 FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -26,9 +30,9 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and assign permissions
+# Copy contents and configure git
 COPY . .
-RUN chown -R root:root .
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.8.0 and tensorrt 8.2.0.6
@@ -38,12 +42,12 @@ ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g4
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache-dir \
+RUN pip install \
     onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl \
     tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
-RUN pip install --no-cache-dir -e ".[export]"
+RUN pip install -e ".[export]"
 RUN rm *.whl
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

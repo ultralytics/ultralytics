@@ -68,7 +68,7 @@ def benchmark(
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
         verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
-          Default is False.
+            Default is False.
         formats (list | optional): List of formats to benchmark. Default is None.
 
     Returns:

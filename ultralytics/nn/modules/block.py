@@ -979,7 +979,7 @@ class PSABlock(nn.Module):
         return x
 
 
-class PSA(nn.Module):
+class PSA(C2):
     """
     Position-wise Spatial Attention module.
 
@@ -997,27 +997,9 @@ class PSA(nn.Module):
     """
 
     def __init__(self, c1, c2, n=1, e=0.5):
-        super().__init__()
         assert c1 == c2
-        self.c = int(c1 * e)
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c1, 1)
-
+        super().__init__(c1, c2, n=n, e=e)
         self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
-
-    def forward(self, x):
-        """
-        Forward pass of the PSA module.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
-        a, b = self.cv1(x).split((self.c, self.c), dim=1)
-        b = self.m(b)
-        return self.cv2(torch.cat((a, b), 1))
 
 
 class C2PSA(C2f):

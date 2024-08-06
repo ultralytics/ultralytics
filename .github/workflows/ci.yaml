@@ -206,7 +206,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, macos-14, windows-latest]
         python-version: ["3.11"]
         torch: [latest]
         include:
@@ -224,7 +224,7 @@ jobs:
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
-          slow=""
+          slow="pycocotools mlflow ray[tune]"
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
@@ -240,7 +240,7 @@ jobs:
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |
-          slow=""
+          slow="--slow"
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"
           fi

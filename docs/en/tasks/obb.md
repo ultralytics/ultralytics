@@ -193,7 +193,7 @@ Available YOLOv8-obb export formats are in the table below. You can export to an
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-obb.pt`              | ✅       | -                                                                    |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-obb.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-obb.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-obb_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-obb_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`, `dynamic`                          |
 | [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-obb.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
 | [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-obb.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
 | [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-obb_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |

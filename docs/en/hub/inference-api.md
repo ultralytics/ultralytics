@@ -109,7 +109,7 @@ See the table below for a full list of available inference arguments.
 
 | Argument | Default | Type    | Description                                                          |
 | -------- | ------- | ------- | -------------------------------------------------------------------- |
-| `file`   |         | `file`  | File to be used for inference.                                       |
+| `file`   |         | `file`  | Image or video file to be used for inference.                        |
 | `url`    |         | `str`   | URL of the file if not passing a file.                               |
 | `imgsz`  | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
 | `conf`   | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |

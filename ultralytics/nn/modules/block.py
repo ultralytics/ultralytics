@@ -1058,4 +1058,4 @@ class C3PSA(C3):
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
         c_ = int(c2 * e)  # hidden channels
-        self.m = nn.ModuleList(PSABlock(c_, attn_ratio=0.5, num_heads=c_ // 64) for _ in range(n))
+        self.m = nn.Sequential(*(PSABlock(c_, attn_ratio=0.5, num_heads=c_ // 64) for _ in range(n)))

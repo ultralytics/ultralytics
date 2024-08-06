@@ -794,7 +794,17 @@ class C3k2(C2f2):
             Bottleneck(self.c, self.c, shortcut, g) if c2 <= 256 and n == 1 else C3k(self.c, self.c, nk, shortcut, g)
             for _ in range(n)
         )
-        # self.m = nn.ModuleList(C3k(self.c, self.c, nk, shortcut, g) for _ in range(n))
+
+
+class C4(C2f2):
+    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(
+            Bottleneck(self.c, self.c, shortcut, g) if c2 <= 256 and n == 1 else C2(self.c, self.c, nk, shortcut, g)
+            for _ in range(n)
+        )
 
 
 class C3k3(C2f2):

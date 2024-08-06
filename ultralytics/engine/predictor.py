@@ -252,6 +252,13 @@ class BasePredictor:
                 # Inference
                 with profilers[1]:
                     preds = self.inference(im, *args, **kwargs)
+
+                    if self.device.type == "npu":  # Ascend NPU doesn't support torchvision ops, faster to run on cpu
+                        if isinstance(preds, torch.Tensor):
+                            preds = preds.to("cpu")
+                        elif isinstance(preds, list):
+                            preds[0] = preds[0].to("cpu")
+
                     if self.args.embed:
                         yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
                         continue

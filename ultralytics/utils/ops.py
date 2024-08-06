@@ -313,7 +313,7 @@ def non_max_suppression(
 
 ##⚒️FIXME by SH for NMM⚒️
 def calculate_bbox_iou_and_union(pred1, pred2):
-    """Returns the ratio of intersection area to the union and calculated IoU"""
+    """Returns the ratio of intersection area to the union and calculated IoU."""
     box1 = np.array(pred1[:4])
     box2 = np.array(pred2[:4])
     area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
@@ -328,11 +328,11 @@ def calculate_bbox_iou_and_union(pred1, pred2):
 def nmm(prediction, match_metric: str = "IOU", match_threshold: float = 0.5):
     keep_to_merge_list = {}
     merge_to_keep = {}
-    
+
     # Extract coordinates and confidence scores
     x1, y1, x2, y2 = prediction[:, 0], prediction[:, 1], prediction[:, 2], prediction[:, 3]
     areas = (x2 - x1) * (y2 - y1)
-    
+
     # Sort the prediction boxes by confidence scores in descending order
     order = prediction[:, 4].argsort(descending=True)
     order_list = order.tolist()  # Convert to list for efficient indexing in loops
@@ -342,24 +342,24 @@ def nmm(prediction, match_metric: str = "IOU", match_threshold: float = 0.5):
         if pred_ind in merge_to_keep:  # Skip if this box is already merged
             continue
 
-        other_pred_inds = order_list[ind + 1:]  # Remaining boxes
+        other_pred_inds = order_list[ind + 1 :]  # Remaining boxes
 
         # Select coordinates of BBoxes according to the indices in order
         xx1 = torch.max(x1[other_pred_inds], x1[pred_ind])
         yy1 = torch.max(y1[other_pred_inds], y1[pred_ind])
         xx2 = torch.min(x2[other_pred_inds], x2[pred_ind])
         yy2 = torch.min(y2[other_pred_inds], y2[pred_ind])
-        
+
         # Calculate width and height of the intersection boxes
         w = torch.clamp(xx2 - xx1, min=0.0)
         h = torch.clamp(yy2 - yy1, min=0.0)
-        
+
         # Calculate intersection area
         inter = w * h
-        
+
         # Calculate areas of remaining boxes
         rem_areas = areas[other_pred_inds]
-        
+
         # Calculate union and IoU
         if match_metric == "IOU":
             union = (rem_areas - inter) + areas[pred_ind]
@@ -367,11 +367,11 @@ def nmm(prediction, match_metric: str = "IOU", match_threshold: float = 0.5):
         elif match_metric == "IOS":
             smaller = torch.min(rem_areas, areas[pred_ind])
             match_metric_value = inter / smaller
-            
+
         # Identify matched boxes based on IoU threshold
         mask = match_metric_value >= match_threshold
         matched_box_indices = [other_pred_inds[i] for i in mask.nonzero(as_tuple=True)[0].tolist()]
-        
+
         # Create keep to merge list mapping
         if pred_ind not in merge_to_keep:
             keep_to_merge_list[pred_ind] = []
@@ -385,7 +385,7 @@ def nmm(prediction, match_metric: str = "IOU", match_threshold: float = 0.5):
                 if matched_box_ind not in merge_to_keep:
                     keep_to_merge_list[keep].append(matched_box_ind)
                     merge_to_keep[matched_box_ind] = keep
-        
+
     return keep_to_merge_list
 
 
@@ -435,7 +435,6 @@ def non_max_merging(
             shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
             (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
     """
-    import torchvision  # scope for faster 'import ultralytics'
 
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
@@ -505,13 +504,15 @@ def non_max_merging(
         if n > max_nmm:  # excess boxes
             x = x[x[:, 4].argsort(descending=True)[:max_nmm]]  # sort by confidence and remove excess boxes
 
-        category_ids = x[:, 5]#.squeeze()
+        category_ids = x[:, 5]  # .squeeze()
         keep_to_merge_list = {}
         for category_id in torch.unique(category_ids):
             curr_indices = torch.where(category_ids == category_id)[0]
-            curr_keep_to_merge_list = nmm(x[curr_indices], "IOU", iou_thres)    ##⚒️Match Metric IOU vs IOS
+            curr_keep_to_merge_list = nmm(x[curr_indices], "IOU", iou_thres)  ##⚒️Match Metric IOU vs IOS
             for curr_keep, curr_merge_list in curr_keep_to_merge_list.items():
-                keep_to_merge_list[curr_indices[curr_keep].item()] = [curr_indices[merge_ind].item() for merge_ind in curr_merge_list]
+                keep_to_merge_list[curr_indices[curr_keep].item()] = [
+                    curr_indices[merge_ind].item() for merge_ind in curr_merge_list
+                ]
 
         selected_object_predictions = []
         for keep_ind, merge_ind_list in keep_to_merge_list.items():
@@ -535,11 +536,11 @@ def non_max_merging(
                     x[keep_ind, 5] = category_tensor
             selected_object_predictions.append(x[keep_ind])
         output[xi] = torch.stack(selected_object_predictions)
-        
+
         if (time.time() - t) > time_limit:
             LOGGER.warning(f"WARNING ⚠️ NMM time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded
-    
+
     return output
 
 

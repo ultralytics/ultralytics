@@ -58,7 +58,7 @@ from .block import (
     C3m1,
     SCDown,
     PSA,
-    C2PSA
+    C2PSA,
     C4
 )
 from .conv import (

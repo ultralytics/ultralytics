@@ -16,7 +16,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Raspberry Pi 5 updates and improvements.
+  <strong>Watch:</strong> Raspberry Pi 5 updates and improvements. <a href="https://www.youtube.com/watch?v=yul4gq_LrOI" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/yul4gq_LrOI" alt="YouTube Views"></a>
 </p>
 
 !!! Note

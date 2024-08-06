@@ -16,7 +16,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics COCO Dataset Overview
+  <strong>Watch:</strong> Ultralytics COCO Dataset Overview <a href="https://www.youtube.com/watch?v=uDrn9QZJ2lk" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/uDrn9QZJ2lk" alt="YouTube Views"></a>
 </p>
 
 ## COCO Pretrained Models

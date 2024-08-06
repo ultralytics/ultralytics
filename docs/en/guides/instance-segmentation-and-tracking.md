@@ -24,7 +24,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLOv8
+  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=75G_S1Ngji8" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/75G_S1Ngji8" alt="YouTube Views"></a>
 </p>
 
 ## Samples

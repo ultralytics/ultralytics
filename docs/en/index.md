@@ -68,7 +68,7 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
+  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a> <a href="https://youtube.com/watch?v=LNwODJXcvt4"><img src="https://img.shields.io/youtube/views/LNwODJXcvt4" alt="YouTube Views"></a>.
 </p>
 
 ## YOLO: A Brief History

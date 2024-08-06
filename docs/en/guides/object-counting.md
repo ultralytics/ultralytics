@@ -19,7 +19,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         allowfullscreen>
       </iframe>
       <br>
-      <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8
+      <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=Ag2e-5_NpS0" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/Ag2e-5_NpS0" alt="YouTube Views"></a>
     </td>
     <td align="center">
       <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fj9TStNBVoY"

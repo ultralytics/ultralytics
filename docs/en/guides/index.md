@@ -18,7 +18,7 @@ Whether you're a beginner or an expert in deep learning, our tutorials offer val
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Guides Overview
+  <strong>Watch:</strong> Ultralytics YOLOv8 Guides Overview <a href="https://www.youtube.com/watch?v=96NkhsV-W1U" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/96NkhsV-W1U" alt="YouTube Views"></a>
 </p>
 
 ## Guides

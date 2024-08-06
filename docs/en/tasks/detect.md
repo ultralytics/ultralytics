@@ -20,7 +20,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
+  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model. <a href="https://www.youtube.com/watch?v=5ku7npMrW40" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/5ku7npMrW40" alt="YouTube Views"></a>
 </p>
 
 !!! Tip "Tip"

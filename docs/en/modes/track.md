@@ -27,7 +27,7 @@ The output from Ultralytics trackers is consistent with standard object detectio
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8.
+  <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8. <a href="https://www.youtube.com/watch?v=hHyHmOtmEgs" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/hHyHmOtmEgs" alt="YouTube Views"></a>
 </p>
 
 ## Real-world Applications

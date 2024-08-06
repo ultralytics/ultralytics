@@ -20,7 +20,7 @@ Validation is a critical step in the machine learning pipeline, allowing you to 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Modes Tutorial: Validation
+  <strong>Watch:</strong> Ultralytics Modes Tutorial: Validation <a href="https://www.youtube.com/watch?v=j8uQc0qB91s" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/j8uQc0qB91s" alt="YouTube Views"></a>
 </p>
 
 ## Why Validate with Ultralytics YOLO?

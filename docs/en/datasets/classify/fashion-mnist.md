@@ -16,7 +16,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to do Image Classification on Fashion MNIST Dataset using Ultralytics YOLOv8
+  <strong>Watch:</strong> How to do Image Classification on Fashion MNIST Dataset using Ultralytics YOLOv8 <a href="https://www.youtube.com/watch?v=eX5ad6udQ9Q" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/eX5ad6udQ9Q" alt="YouTube Views"></a>
 </p>
 
 ## Key Features

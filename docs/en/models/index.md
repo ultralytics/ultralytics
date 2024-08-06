@@ -36,7 +36,7 @@ Here are some of the key models supported:
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Run Ultralytics YOLO models in just a few lines of code.
+  <strong>Watch:</strong> Run Ultralytics YOLO models in just a few lines of code. <a href="https://www.youtube.com/watch?v=MWq1UxqTClU" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/MWq1UxqTClU" alt="YouTube Views"></a>
 </p>
 
 ## Getting Started: Usage Examples

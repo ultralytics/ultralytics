@@ -16,7 +16,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
+  <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide <a href="https://www.youtube.com/watch?v=_a7cVL9hqnk" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/_a7cVL9hqnk" alt="YouTube Views"></a>
 </p>
 
 !!! Example "Install"

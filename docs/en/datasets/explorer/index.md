@@ -21,7 +21,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Explorer API | Semantic Search, SQL Queries & Ask AI Features
+  <strong>Watch:</strong> Ultralytics Explorer API | Semantic Search, SQL Queries & Ask AI Features <a href="https://www.youtube.com/watch?v=3VryynorQeo" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/3VryynorQeo" alt="YouTube Views"></a>
 </p>
 
 ### Installation of optional dependencies

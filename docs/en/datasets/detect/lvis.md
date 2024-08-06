@@ -16,7 +16,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> YOLO World training workflow with LVIS dataset
+  <strong>Watch:</strong> YOLO World training workflow with LVIS dataset <a href="https://www.youtube.com/watch?v=cfTKj96TjSE" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/cfTKj96TjSE" alt="YouTube Views"></a>
 </p>
 
 <p align="center">

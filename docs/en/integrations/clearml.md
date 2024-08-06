@@ -151,7 +151,7 @@ For a visual walkthrough of what the ClearML Results Page looks like, watch the 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> YOLOv8 MLOps Integration using ClearML
+  <strong>Watch:</strong> YOLOv8 MLOps Integration using ClearML <a href="https://www.youtube.com/watch?v=iLcC7m3bCes" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/iLcC7m3bCes" alt="YouTube Views"></a>
 </p>
 
 ### Advanced Features in ClearML

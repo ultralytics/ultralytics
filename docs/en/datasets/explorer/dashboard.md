@@ -20,7 +20,7 @@ Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md)
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Explorer Dashboard Overview
+  <strong>Watch:</strong> Ultralytics Explorer Dashboard Overview <a href="https://www.youtube.com/watch?v=3VryynorQeo" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/3VryynorQeo" alt="YouTube Views"></a>
 </p>
 
 ### Installation

@@ -20,7 +20,7 @@ The ultimate goal of training a model is to deploy it for real-world application
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How To Export Custom Trained Ultralytics YOLOv8 Model and Run Live Inference on Webcam.
+  <strong>Watch:</strong> How To Export Custom Trained Ultralytics YOLOv8 Model and Run Live Inference on Webcam. <a href="https://www.youtube.com/watch?v=WbomGeoOT_k" alt="YouTube Views"><img src="https://img.shields.io/youtube/views/WbomGeoOT_k" alt="YouTube Views"></a>
 </p>
 
 ## Why Choose YOLOv8's Export Mode?

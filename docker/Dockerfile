@@ -10,7 +10,7 @@ FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_USE_PEP517=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
     MKL_THREADING_LAYER=GNU
 
 # Downloads to user config dir

@@ -61,7 +61,8 @@ def benchmark(
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
         verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
-            Default is False.
+          Default is False.
+        formats (list | optional): List of formats to benchmark. Default is None.
 
     Returns:
         df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
@@ -82,13 +83,19 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
-
+    
+    export_formats_df = export_formats()
+    export_arguments = export_formats_df["Argument"].tolist()[1:]
+    for f in formats:
+        if f not in export_arguments:
+            raise ValueError(f"Format {f} not supported. Supported formats are {export_arguments}")
+    
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+    for i, (name, format, suffix, cpu, gpu) in export_formats_df.iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
         
-        if formats is not None and format != "-":
+        if formats is not None and format != "-": # export all formats if formats=None
             if format not in formats:
                 continue
         try:

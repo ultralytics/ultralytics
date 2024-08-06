@@ -92,10 +92,11 @@ def benchmark(
     is_end2end = getattr(model.model.model[-1], "end2end", False)
 
     export_formats_df = export_formats()
-    export_arguments = export_formats_df["Argument"].tolist()[1:]
-    for f in formats:
-        if f not in export_arguments:
-            raise ValueError(f"Format {f} not supported. Supported formats are {export_arguments}")
+    if formats is not None:
+        export_arguments = export_formats_df["Argument"].tolist()[1:]
+        for f in formats:
+            if f not in export_arguments:
+                raise ValueError(f"Format {f} not supported. Supported formats are {export_arguments}")
 
     y = []
     t0 = time.time()

@@ -693,7 +693,7 @@ class Model(nn.Module):
             int8=args["int8"],
             device=args["device"],
             verbose=kwargs.get("verbose"),
-            formats=args["formats"]
+            formats=args["formats"],
         )
 
     def export(

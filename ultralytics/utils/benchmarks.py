@@ -47,7 +47,14 @@ from ultralytics.utils.torch_utils import select_device
 
 
 def benchmark(
-    model=WEIGHTS_DIR / "yolov8n.pt", data=None, imgsz=160, half=False, int8=False, device="cpu", verbose=False, formats=None 
+    model=WEIGHTS_DIR / "yolov8n.pt",
+    data=None,
+    imgsz=160,
+    half=False,
+    int8=False,
+    device="cpu",
+    verbose=False,
+    formats=None,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -83,19 +90,19 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
-    
+
     export_formats_df = export_formats()
     export_arguments = export_formats_df["Argument"].tolist()[1:]
     for f in formats:
         if f not in export_arguments:
             raise ValueError(f"Format {f} not supported. Supported formats are {export_arguments}")
-    
+
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats_df.iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
-        
-        if formats is not None and format != "-": # export all formats if formats=None
+
+        if formats is not None and format != "-":  # export all formats if formats=None
             if format not in formats:
                 continue
         try:

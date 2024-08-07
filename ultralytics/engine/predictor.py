@@ -392,7 +392,7 @@ class BasePredictor:
             cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
         cv2.imshow(p, im)
         cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
-        cv2.destroyWindow(p) # close the image window
+        cv2.destroyWindow(p)  # close the image window
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

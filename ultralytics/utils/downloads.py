@@ -41,7 +41,7 @@ def is_url(url, check=False):
     Args:
         url (str): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
-            Defaults to True.
+            Defaults to False.
 
     Returns:
         (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
@@ -201,7 +201,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
     Args:
         url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
-        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 1.5.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
     Returns:

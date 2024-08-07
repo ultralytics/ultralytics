@@ -375,9 +375,8 @@ class BYTETracker:
     def get_dists(self, tracks, detections):
         """Calculates the distance between tracks and detections using IoU and fuses scores."""
         dists = matching.iou_distance(tracks, detections)
-        # TODO: mot20
-        # if not self.args.mot20:
-        dists = matching.fuse_score(dists, detections)
+        if self.args.fuse_score:
+            dists = matching.fuse_score(dists, detections)
         return dists
 
     def multi_predict(self, tracks):

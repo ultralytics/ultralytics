@@ -1,7 +1,7 @@
 ---
-comments: true
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+comments: false
+description: Comprehensive table on using the export function for Ultralytics YOLO models with detailed argument specifications.
+keywords: machine learning, model export, ONNX, TorchScript, TensorFlow, Keras, optimization, quantization, dynamic input, TensorRT, CoreML, NMS, batch inference
 ---
 
 | Argument    | Type             | Default         | Description                                                                                                                                                      |

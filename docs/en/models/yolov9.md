@@ -189,14 +189,12 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
     === "BibTeX"
 
         ```bibtex
-        {% raw %}
         @article{wang2024yolov9,
-          title={{YOLOv9}: Learning What You Want to Learn Using Programmable Gradient Information},
+          title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
           author={Wang, Chien-Yao  and Liao, Hong-Yuan Mark},
           booktitle={arXiv preprint arXiv:2402.13616},
           year={2024}
         }
-        {% endraw %}
         ```
 
 The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

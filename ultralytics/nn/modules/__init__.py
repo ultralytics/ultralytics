@@ -54,7 +54,8 @@ from .block import (
     ResNetLayer,
     SCDown,
     GatherExcite,
-    SEAttention
+    SEAttention,
+    GAM_Attention
 )
 from .conv import (
     CBAM,
@@ -153,5 +154,6 @@ __all__ = (
     "PSA",
     "SCDown",
     "GatherExcite",
-    "SEAttention"
+    "SEAttention",
+    "GAM_Attention"
 )

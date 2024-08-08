@@ -46,7 +46,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
-IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == 'vscode'
+IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 HELP_MSG = """
     Usage examples for running Ultralytics YOLO:
 

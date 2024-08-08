@@ -28,15 +28,10 @@ In response to high demand and widespread interest, we are thrilled to unveil th
 
     We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
 
-Here are the key features highlighted:
-
-- **Region-Based Flexibility:** Offers region-based deployment ensuring optimized performance and compliance with local regulations by processing data within specified geographic locations.
-- **Real-time Performance:** Optimized for speed, allows real-time processing of frames for instantaneous inference, even on resource-constrained devices, with minimal latency.
-- **Accurate Inference:** Utilizes highly accurate YOLOv8 models for precise identification and localization of objects in images or video streams.
-- **Multi-Task Capabilities:** Supports multiple computer vision tasks including classification, object detection, segmentation, and pose estimation.
-- **Easy Integration:** Allows seamless integration with existing applications or systems to enhance computer vision workflows using standard API protocols.
-- **Customization:** Offers options to fine-tune the YOLOv8 model or swap it with other models to adapt to different use cases. Various parameters and thresholds can be configured to meet specific requirements.
-- **Streamlined Development:** Provides pre-built functionality for inference tasks, eliminating the need for infrastructure setup, thereby saving valuable development time and effort.
+- **Global Coverage:** Deployed across 38 regions worldwide, ensuring low-latency access from any location. [See the full list of Google Cloud regions](https://cloud.google.com/about/locations).
+- **Google Cloud Run-Backed:** Backed by Google Cloud Run, providing infinitely scalable and highly reliable infrastructure.
+- **High Speed:** Sub-100ms latency is possible for YOLOv8n inference at 640 resolution from nearby regions based on Ultralytics testing.
+- **Enhanced Security:** Provides robust security features to protect your data and ensure compliance with industry standards. [Learn more about Google Cloud security](https://cloud.google.com/security).
 
 To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
 

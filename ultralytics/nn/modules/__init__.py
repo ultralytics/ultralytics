@@ -58,7 +58,8 @@ from .block import (
     GAM_Attention,
     ContextAggregation,
     EffectiveSE,
-    C2f_DCN
+    C2f_DCN,
+    RepViTBlock,
 )
 from .conv import (
     CBAM,
@@ -164,4 +165,5 @@ __all__ = (
     "EffectiveSE",
     "C2f_DCN",
     "CoordAtt",
+    "RepViTBlock"
 )

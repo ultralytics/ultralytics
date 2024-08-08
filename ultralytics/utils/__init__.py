@@ -36,7 +36,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
-NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
+NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
@@ -44,9 +44,10 @@ LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
+TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
-    Usage examples for running YOLOv8:
+    Usage examples for running Ultralytics YOLO:
 
     1. Install the ultralytics package:
 
@@ -57,25 +58,25 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from scratch
+        model = YOLO("yolov8n.yaml")  # build a new model from scratch
         model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
         results = model.val()  # evaluate model performance on the validation set
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
-        success = model.export(format='onnx')  # export the model to ONNX format
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        success = model.export(format="onnx")  # export the model to ONNX format
 
     3. Use the command line interface (CLI):
 
-        YOLOv8 'yolo' CLI commands use the following syntax:
+        Ultralytics 'yolo' CLI commands use the following syntax:
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify]
-                    MODE (required) is one of [train, val, predict, export]
-                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                    MODE (required) is one of [train, val, predict, export, benchmark]
+                    ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
+                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
@@ -102,13 +103,15 @@ HELP_MSG = """
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
-# Settings
+# Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
 np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress verbose TF compiler warnings in Colab
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
+os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
 class TQDM(tqdm_original):
@@ -303,7 +306,6 @@ class ThreadingLocked:
         @ThreadingLocked()
         def my_function():
             # Your code here
-            pass
         ```
     """
 
@@ -393,7 +395,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
@@ -513,7 +515,7 @@ def is_online() -> bool:
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=1.0).close()
+            socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
     return False
 
@@ -804,8 +806,8 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
-    specified number of times with an exponentially increasing delay between retries.
+    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries.
 
     Examples:
         Example usage as a decorator:
@@ -813,11 +815,6 @@ class Retry(contextlib.ContextDecorator):
         >>> def test_func():
         >>>     # Replace with function logic that may raise exceptions
         >>>     return True
-
-        Example usage as a context manager:
-        >>> with Retry(times=3, delay=2):
-        >>>     # Replace with code block that may raise exceptions
-        >>>     pass
     """
 
     def __init__(self, times=3, delay=2):
@@ -843,20 +840,6 @@ class Retry(contextlib.ContextDecorator):
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
-
-    def __enter__(self):
-        """Enter the runtime context related to this object."""
-        self._attempts = 0
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context related to this object with exponential backoff."""
-        if exc_type is not None:
-            self._attempts += 1
-            if self._attempts < self.times:
-                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
-                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
-                return True  # Suppresses the exception and retries
-        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):
@@ -993,6 +976,11 @@ class SettingsManager(dict):
             "tensorboard": True,
             "wandb": True,
         }
+        self.help_msg = (
+            f"\nView settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
+        )
 
         super().__init__(copy.deepcopy(self.defaults))
 
@@ -1004,15 +992,10 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self["settings_version"], self.version)
-            help_msg = (
-                f"\nView settings with 'yolo settings' or at '{self.file}'"
-                "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
-                "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
-            )
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    f"with your settings or a recent ultralytics package update. {help_msg}"
+                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
                 )
                 self.reset()
 
@@ -1020,7 +1003,7 @@ class SettingsManager(dict):
                 LOGGER.warning(
                     f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
                     f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                    f"Please change one to avoid possible issues during training. {help_msg}"
+                    f"Please change one to avoid possible issues during training. {self.help_msg}"
                 )
 
     def load(self):
@@ -1033,6 +1016,12 @@ class SettingsManager(dict):
 
     def update(self, *args, **kwargs):
         """Updates a setting value in the current settings."""
+        for k, v in kwargs.items():
+            if k not in self.defaults:
+                raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
+            t = type(self.defaults[k])
+            if not isinstance(v, t):
+                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
         super().update(*args, **kwargs)
         self.save()
 
@@ -1043,13 +1032,10 @@ class SettingsManager(dict):
         self.save()
 
 
-def deprecation_warn(arg, new_arg, version=None):
+def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    if not version:
-        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(
-        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
-        f"Please use '{new_arg}' instead."
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
     )
 
 
@@ -1087,8 +1073,9 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from .patches import imread, imshow, imwrite, torch_save
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
+torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths

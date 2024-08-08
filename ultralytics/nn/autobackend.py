@@ -184,7 +184,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
-                # Fix error: module 'numpy.linalg._umath_linalg' has no attribute '_ilp64' when exporting to Tensorflow SavedModel on RPi and Jetson
+                # Fix 'numpy.linalg._umath_linalg' has no attribute '_ilp64' for TF SavedModel on RPi and Jetson
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
@@ -225,9 +225,10 @@ class AutoBackend(nn.Module):
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             except ImportError:
                 if LINUX:
-                    check_requirements("nvidia-tensorrt", cmds="-U --index-url https://pypi.ngc.nvidia.com")
+                    check_requirements("tensorrt>7.0.0,<=10.1.0")
                 import tensorrt as trt  # noqa
-            check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+            check_version(trt.__version__, ">=7.0.0", hard=True)
+            check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
                 device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
@@ -320,6 +321,8 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
+                metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -402,7 +405,7 @@ class AutoBackend(nn.Module):
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():
             metadata = yaml_load(metadata)
-        if metadata:
+        if metadata and isinstance(metadata, dict):
             for k, v in metadata.items():
                 if k in {"stride", "batch"}:
                     metadata[k] = int(v)
@@ -563,7 +566,7 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
-                if len(y) == 2 and len(self.names) == 999:  # segments and names not defined
+                if (self.task == "segment" or len(y) == 2) and len(self.names) == 999:  # segments and names not defined
                     ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
                     nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                     self.names = {i: f"class{i}" for i in range(nc)}
@@ -584,14 +587,21 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
+                        if x.shape[-1] == 6:  # end-to-end model
+                            x[:, :, [0, 2]] *= w
+                            x[:, :, [1, 3]] *= h
+                        else:
+                            x[:, [0, 2]] *= w
+                            x[:, [1, 3]] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
-                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
+                if y[1].shape[-1] == 6:  # end-to-end model
+                    y = [y[1]]
+                else:
+                    y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
 
         # for x in y:
@@ -620,6 +630,8 @@ class AutoBackend(nn.Module):
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
+        import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
+
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input

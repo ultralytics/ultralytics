@@ -23,7 +23,6 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
-    IS_DOCKER,
     IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -316,23 +315,24 @@ def check_font(font="Arial.ttf"):
         return matches[0]
 
     # Download to USER_CONFIG_DIR if missing
-    url = f"https://ultralytics.com/assets/{name}"
+    url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{name}"
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
 
 
-def check_python(minimum: str = "3.8.0") -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
+        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python ", hard=True)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
 
 
 @TryExcept()
@@ -382,6 +382,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
+    @Retry(times=2, delay=1)
+    def attempt_install(packages, commands):
+        """Attempt pip install command with retries on failure."""
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
@@ -390,8 +395,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                with Retry(times=2, delay=1):  # run up to 2 times with 1-second retry delay
-                    LOGGER.info(subprocess.check_output(f"pip install --no-cache {s} {cmds}", shell=True).decode())
+                LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
                 LOGGER.info(
                     f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
@@ -419,14 +423,20 @@ def check_torchvision():
     """
 
     # Compatibility table
-    compatibility_table = {"2.0": ["0.15"], "1.13": ["0.14"], "1.12": ["0.13"]}
+    compatibility_table = {
+        "2.3": ["0.18"],
+        "2.2": ["0.17"],
+        "2.1": ["0.16"],
+        "2.0": ["0.15"],
+        "1.13": ["0.14"],
+        "1.12": ["0.13"],
+    }
 
     # Extract only the major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
-    v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
-
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             print(
                 f"WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
@@ -474,7 +484,7 @@ def check_model_file_from_stem(model="yolov8n"):
         return model
 
 
-def check_file(file, suffix="", download=True, hard=True):
+def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
@@ -487,12 +497,12 @@ def check_file(file, suffix="", download=True, hard=True):
         return file
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
-        file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
-        if Path(file).exists():
+        file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
+        if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
-        return file
+        return str(file)
     else:  # search
         files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file
         if not files and hard:
@@ -521,14 +531,15 @@ def check_is_path_safe(basedir, path):
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
 
-    return path_resolved.is_file() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
+    return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
-            assert "DISPLAY" in os.environ and not IS_DOCKER and not IS_COLAB and not IS_KAGGLE
+            assert not IS_COLAB and not IS_KAGGLE
+            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -630,6 +641,8 @@ def check_amp(model):
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
+    from ultralytics.utils.torch_utils import autocast
+
     device = next(model.parameters()).device  # get model device
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
@@ -637,7 +650,7 @@ def check_amp(model):
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
         a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with torch.cuda.amp.autocast(True):
+        with autocast(enabled=True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
@@ -727,4 +740,5 @@ def cuda_is_available() -> bool:
 
 
 # Define constants
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

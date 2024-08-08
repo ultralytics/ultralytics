@@ -37,7 +37,7 @@ download: |
   # Download
   dir = Path(yaml['path'])  # dataset root dir
   urls = ['https://zenodo.org/record/4298502/files/global-wheat-codalab-official.zip',
-          'https://github.com/ultralytics/yolov5/releases/download/v1.0/GlobalWheat2020_labels.zip']
+          'https://github.com/ultralytics/assets/releases/download/v0.0.0/GlobalWheat2020_labels.zip']
   download(urls, dir=dir)
 
   # Make Directories

@@ -5,23 +5,23 @@ projects with multilingual content. It streamlines the workflow for generating l
 and updating HTML links to ensure they are correctly formatted.
 
 Key Features:
-- Automated building of MkDocs documentation: The script compiles both the main documentation and
-  any localized versions specified in separate MkDocs configuration files.
-- Post-processing of generated HTML files: After the documentation is built, the script updates all
-  HTML files to remove the '.md' extension from internal links. This ensures that links in the built
-  HTML documentation correctly point to other HTML pages rather than Markdown files, which is crucial
-  for proper navigation within the web-based documentation.
+    - Automated building of MkDocs documentation: The script compiles both the main documentation and
+      any localized versions specified in separate MkDocs configuration files.
+    - Post-processing of generated HTML files: After the documentation is built, the script updates all
+      HTML files to remove the '.md' extension from internal links. This ensures that links in the built
+      HTML documentation correctly point to other HTML pages rather than Markdown files, which is crucial
+      for proper navigation within the web-based documentation.
 
 Usage:
-- Run the script from the root directory of your MkDocs project.
-- Ensure that MkDocs is installed and that all MkDocs configuration files (main and localized versions)
-  are present in the project directory.
-- The script first builds the documentation using MkDocs, then scans the generated HTML files in the 'site'
-  directory to update the internal links.
-- It's ideal for projects where the documentation is written in Markdown and needs to be served as a static website.
+    - Run the script from the root directory of your MkDocs project.
+    - Ensure that MkDocs is installed and that all MkDocs configuration files (main and localized versions)
+      are present in the project directory.
+    - The script first builds the documentation using MkDocs, then scans the generated HTML files in the 'site'
+      directory to update the internal links.
+    - It's ideal for projects where the documentation is written in Markdown and needs to be served as a static website.
 
 Note:
-- This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
+    - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
 
 import os
@@ -30,13 +30,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 
 
-def build_docs(clone_repos=True):
+def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
         print(f"Removing existing {SITE}")
@@ -55,10 +57,9 @@ def build_docs(clone_repos=True):
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
         print(f"Cloned/Updated {repo} in {local_dir}")
 
-    # Build the main documentation
-    print(f"Building docs from {DOCS}")
-    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml", check=True, shell=True)
-    print(f"Site built at {SITE}")
+    # Add frontmatter
+    for file in tqdm((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
+        update_markdown_files(file)
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -96,8 +97,6 @@ def update_html_head(script=""):
 
 def update_subdir_edit_links(subdir="", docs_url=""):
     """Update the HTML head section of each file."""
-    from bs4 import BeautifulSoup
-
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
@@ -115,26 +114,111 @@ def update_subdir_edit_links(subdir="", docs_url=""):
             file.write(str(soup))
 
 
-def main():
-    """Builds docs, updates titles and edit links, and prints local server command."""
-    build_docs()
+def update_markdown_files(md_filepath: Path):
+    """Creates or updates a Markdown file, ensuring frontmatter is present."""
+    if md_filepath.exists():
+        content = md_filepath.read_text().strip()
 
-    # Update titles
+        # Replace apostrophes
+        content = content.replace("‘", "'").replace("’", "'")
+
+        # Add frontmatter if missing
+        if not content.strip().startswith("---\n"):
+            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            content = header + content
+
+        # Ensure MkDocs admonitions "=== " lines are preceded and followed by empty newlines
+        lines = content.split("\n")
+        new_lines = []
+        for i, line in enumerate(lines):
+            stripped_line = line.strip()
+            if stripped_line.startswith("=== "):
+                if i > 0 and new_lines[-1] != "":
+                    new_lines.append("")
+                new_lines.append(line)
+                if i < len(lines) - 1 and lines[i + 1].strip() != "":
+                    new_lines.append("")
+            else:
+                new_lines.append(line)
+        content = "\n".join(new_lines)
+
+        # Add EOF newline if missing
+        if not content.endswith("\n"):
+            content += "\n"
+
+        # Save page
+        md_filepath.write_text(content)
+    return
+
+
+def update_docs_html():
+    """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
     update_subdir_edit_links(
         subdir="hub/sdk/",  # do not use leading slash
-        docs_url="https://github.com/ultralytics/hub-sdk/tree/develop/docs/",
+        docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
     )
+
+    # Convert plaintext links to HTML hyperlinks
+    files_modified = 0
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links"):
+        with open(html_file, "r", encoding="utf-8") as file:
+            content = file.read()
+        updated_content = convert_plaintext_links_to_html(content)
+        if updated_content != content:
+            with open(html_file, "w", encoding="utf-8") as file:
+                file.write(updated_content)
+            files_modified += 1
+    print(f"Modified plaintext links in {files_modified} files.")
 
     # Update HTML file head section
     script = ""
     if any(script):
         update_html_head(script)
 
+
+def convert_plaintext_links_to_html(content):
+    """Convert plaintext links to HTML hyperlinks in the main content area only."""
+    soup = BeautifulSoup(content, "html.parser")
+
+    # Find the main content area (adjust this selector based on your HTML structure)
+    main_content = soup.find("main") or soup.find("div", class_="md-content")
+    if not main_content:
+        return content  # Return original content if main content area not found
+
+    modified = False
+    for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
+        for text_node in paragraph.find_all(string=True, recursive=False):
+            if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
+                new_text = re.sub(
+                    r'(https?://[^\s()<>]+(?:\.[^\s()<>]+)+)(?<![.,:;\'"])',
+                    r'<a href="\1">\1</a>',
+                    str(text_node),
+                )
+                if "<a" in new_text:
+                    new_soup = BeautifulSoup(new_text, "html.parser")
+                    text_node.replace_with(new_soup)
+                    modified = True
+
+    return str(soup) if modified else content
+
+
+def main():
+    """Builds docs, updates titles and edit links, and prints local server command."""
+    prepare_docs_markdown()
+
+    # Build the main documentation
+    print(f"Building docs from {DOCS}")
+    subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
+    print(f"Site built at {SITE}")
+
+    # Update docs HTML pages
+    update_docs_html()
+
     # Show command to serve built website
-    print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
 
 
 if __name__ == "__main__":

@@ -329,10 +329,90 @@ def convert_coco(
 
         if lvis:
             with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
-                for l in image_txt:
-                    f.write(f"{l}\n")
+                f.writelines(f"{line}\n" for line in image_txt)
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
+
+
+def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
+    """
+    Converts a dataset of segmentation mask images to the YOLO segmentation format.
+
+    This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+    The converted masks are saved in the specified output directory.
+
+    Args:
+        masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
+        output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
+        classes (int): Total classes in the dataset i.e for COCO classes=80
+
+    Example:
+        ```python
+        from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+        # for coco dataset, we have 80 classes
+        convert_segment_masks_to_yolo_seg('path/to/masks_directory', 'path/to/output/directory', classes=80)
+        ```
+
+    Notes:
+        The expected directory structure for the masks is:
+
+            - masks
+                ├─ mask_image_01.png or mask_image_01.jpg
+                ├─ mask_image_02.png or mask_image_02.jpg
+                ├─ mask_image_03.png or mask_image_03.jpg
+                └─ mask_image_04.png or mask_image_04.jpg
+
+        After execution, the labels will be organized in the following structure:
+
+            - output_dir
+                ├─ mask_yolo_01.txt
+                ├─ mask_yolo_02.txt
+                ├─ mask_yolo_03.txt
+                └─ mask_yolo_04.txt
+    """
+    import os
+
+    pixel_to_class_mapping = {i + 1: i for i in range(80)}
+    for mask_filename in os.listdir(masks_dir):
+        if mask_filename.endswith(".png"):
+            mask_path = os.path.join(masks_dir, mask_filename)
+            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+            img_height, img_width = mask.shape  # Get image dimensions
+            LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
+
+            unique_values = np.unique(mask)  # Get unique pixel values representing different classes
+            yolo_format_data = []
+
+            for value in unique_values:
+                if value == 0:
+                    continue  # Skip background
+                class_index = pixel_to_class_mapping.get(value, -1)
+                if class_index == -1:
+                    LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_filename}, skipping.")
+                    continue
+
+                # Create a binary mask for the current class and find contours
+                contours, _ = cv2.findContours(
+                    (mask == value).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+                )  # Find contours
+
+                for contour in contours:
+                    if len(contour) >= 3:  # YOLO requires at least 3 points for a valid segmentation
+                        contour = contour.squeeze()  # Remove single-dimensional entries
+                        yolo_format = [class_index]
+                        for point in contour:
+                            # Normalize the coordinates
+                            yolo_format.append(round(point[0] / img_width, 6))  # Rounding to 6 decimal places
+                            yolo_format.append(round(point[1] / img_height, 6))
+                        yolo_format_data.append(yolo_format)
+            # Save Ultralytics YOLO format data to file
+            output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")
+            with open(output_path, "w") as file:
+                for item in yolo_format_data:
+                    line = " ".join(map(str, item))
+                    file.write(line + "\n")
+            LOGGER.info(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):
@@ -534,25 +614,25 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
-    for l in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
-        h, w = l["shape"]
-        boxes = l["bboxes"]
+    for label in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+        h, w = label["shape"]
+        boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(l["im_file"])
+        im = cv2.imread(label["im_file"])
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False)
-        l["segments"] = sam_results[0].masks.xyn
+        label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)
-    for l in dataset.labels:
+    for label in dataset.labels:
         texts = []
-        lb_name = Path(l["im_file"]).with_suffix(".txt").name
+        lb_name = Path(label["im_file"]).with_suffix(".txt").name
         txt_file = save_dir / lb_name
-        cls = l["cls"]
-        for i, s in enumerate(l["segments"]):
+        cls = label["cls"]
+        for i, s in enumerate(label["segments"]):
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
         if texts:

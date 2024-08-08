@@ -460,6 +460,7 @@ class Results(SimpleClass):
         show=False,
         save=False,
         filename=None,
+        instance=False,
     ):
         """
         Plots detection results on an input RGB image.
@@ -481,6 +482,7 @@ class Results(SimpleClass):
             show (bool): Whether to display the annotated image.
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
+            instance (bool): Whether to determine the plot color by instance. Default to False.
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -519,17 +521,17 @@ class Results(SimpleClass):
                     .contiguous()
                     / 255
                 )
-            idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
+            idx = pred_boxes.cls if pred_boxes and (not instance) else range(len(pred_masks))
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
-            for d in reversed(pred_boxes):
+            for i, d in enumerate(reversed(pred_boxes)):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
+                annotator.box_label(box, label, color=colors(i if instance else c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

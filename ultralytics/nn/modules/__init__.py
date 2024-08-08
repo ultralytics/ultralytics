@@ -58,6 +58,7 @@ from .block import (
     GAM_Attention,
     ContextAggregation,
     EffectiveSE,
+    C2f_DCN
 )
 from .conv import (
     CBAM,
@@ -159,5 +160,6 @@ __all__ = (
     "SEAttention",
     "GAM_Attention",
     "ContextAggregation",
-    "EffectiveSE"
+    "EffectiveSE",
+    "C2f_DCN"
 )

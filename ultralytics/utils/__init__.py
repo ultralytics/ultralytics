@@ -1082,10 +1082,12 @@ if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
 
-if IS_VSCODE:
-    user_path = USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]
-    installed = (user_path / ".vscode/extensions/").glob("ultralytics.ultralytics-snippets*")
-    if not any(installed):
+if IS_VSCODE and not os.environ.get("VSCODE_NO_RECOMMEND", False):
+    ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = ext_path / ".obsolete"
+    ext = "ultralytics.ultralytics-snippets"
+    installed = ext_path.glob(f"{ext}*") and not (ext in (obs_file.read_text("utf-8") if obs_file.exists() else "None"))
+    if not installed:
         LOGGER.info(
             colorstr("VS Code terminal detected.\n")
             + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"

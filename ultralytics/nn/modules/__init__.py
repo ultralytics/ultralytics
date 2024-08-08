@@ -74,6 +74,7 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    CoordAtt,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (
@@ -161,5 +162,6 @@ __all__ = (
     "GAM_Attention",
     "ContextAggregation",
     "EffectiveSE",
-    "C2f_DCN"
+    "C2f_DCN",
+    "CoordAtt",
 )

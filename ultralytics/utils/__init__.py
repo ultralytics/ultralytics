@@ -1051,6 +1051,19 @@ def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
 
+def vscode_msg():
+    """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
+    if IS_VSCODE and SETTINGS.get("vscode_msg", True):
+        ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+        obs_file = ext_path / ".obsolete"
+        ext = "ultralytics.ultralytics-snippets"
+        installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
+        if not installed:
+            LOGGER.info(
+                colorstr("VS Code terminal detected.\n")
+                + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
+                "  Download from https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets"
+            )
 
 # Run below code on utils init ------------------------------------------------------------------------------------
 
@@ -1083,13 +1096,4 @@ if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
 
-if IS_VSCODE and not os.environ.get("VSCODE_NO_RECOMMEND", False):
-    ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
-    obs_file = ext_path / ".obsolete"
-    ext = "ultralytics.ultralytics-snippets"
-    installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
-    if not installed:
-        LOGGER.info(
-            colorstr("VS Code terminal detected.\n")
-            + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
-        )
+

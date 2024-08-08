@@ -1,4 +1,4 @@
-path: C:\Users\Administrator\Desktop\yolo\ultralytics\datasets\LROC
+path: /mnt/workspace/yolo/ultralytics/datasets/LROC
 train: images
 val: images
 test:

@@ -541,8 +541,14 @@ class Results(SimpleClass):
 
         # Plot Pose results
         if self.keypoints is not None:
-            for k in reversed(self.keypoints.data):
-                annotator.kpts(k, self.orig_shape, radius=kpt_radius, kpt_line=kpt_line)
+            for i, k in enumerate(reversed(self.keypoints.data)):
+                annotator.kpts(
+                    k,
+                    self.orig_shape,
+                    radius=kpt_radius,
+                    kpt_line=kpt_line,
+                    kpt_color=colors(i, True) if instance else None,
+                )
 
         # Show results
         if show:

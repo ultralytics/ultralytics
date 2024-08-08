@@ -144,7 +144,7 @@ def get_window_obj(anno, windows, iof_thr=0.7):
         return [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]  # window_anns
 
 
-def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, reserve=True):
+def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_images=True):
     """
     Crop images and save new labels.
 
@@ -154,7 +154,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, reserve=True):
         window_objs (list): A list of labels inside each window.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
-        reserve (bool): Whether reserving images without label or not.
+        allow_background_images (bool): Whether to include background images without labels.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -176,7 +176,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, reserve=True):
 
         label = window_objs[i]
         if len(label) == 0:
-            if reserve:
+            if allow_background_images:
                 cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im)
             continue
         label[:, 1::2] -= x_start

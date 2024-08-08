@@ -1051,19 +1051,17 @@ def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
 
-def vscode_msg():
+def vscode_msg() -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
-    if IS_VSCODE and SETTINGS.get("vscode_msg", True):
-        ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
-        obs_file = ext_path / ".obsolete"
-        ext = "ultralytics.ultralytics-snippets"
-        installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
-        if not installed:
-            LOGGER.info(
-                colorstr("VS Code terminal detected.\n")
-                + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
-                "  Download from https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets"
-            )
+    ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = ext_path / ".obsolete"
+    ext = "ultralytics.ultralytics-snippets"
+    installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
+    return  (
+            colorstr("VS Code terminal detected.\n")
+            + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
+            "  https://docs.ultralytics.com/integrations/vscode-snippets\n"
+        ) if not installed else ""
 
 # Run below code on utils init ------------------------------------------------------------------------------------
 

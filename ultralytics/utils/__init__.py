@@ -1051,17 +1051,23 @@ def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
 
+
 def vscode_msg() -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
     ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
     obs_file = ext_path / ".obsolete"
     ext = "ultralytics.ultralytics-snippets"
     installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
-    return  (
+    return (
+        (
             colorstr("VS Code terminal detected.\n")
             + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
             "  https://docs.ultralytics.com/integrations/vscode-snippets\n"
-        ) if not installed else ""
+        )
+        if not installed
+        else ""
+    )
+
 
 # Run below code on utils init ------------------------------------------------------------------------------------
 
@@ -1093,5 +1099,3 @@ torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
-
-

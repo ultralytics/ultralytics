@@ -1,6 +1,6 @@
 ---
 comments: true
-description: 
+description:
 keywords: Visual Studio Code, VS Code, deep learning, convolutional neural networks, computer vision, Python, code snippets, Ultralytics, developer productivity, machine learning, YOLO, developers, productivity, efficiency, learning, programming, IDE, code editor, developer utilities, programming tools
 ---
 
@@ -34,7 +34,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 ## Installing the Extension
 
 !!! Note
-    Any code environment that will allow for installing VS Code extensions _should be_ compatible with the `Ultralytics-snippets` extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section of the Readme][neovim install] in the [Ultralytics-Snippets repository][repo].
+Any code environment that will allow for installing VS Code extensions _should be_ compatible with the `Ultralytics-snippets` extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section of the Readme][neovim install] in the [Ultralytics-Snippets repository][repo].
 
 ### Installing in VS Code
 
@@ -89,7 +89,7 @@ Many snippets have "fields" with default placeholder values or names. For instan
 
 ### Code Snippet Completions
 
-It's not required to type the full name of the snippet, or even from the start of the snippet. The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that could be counterproductive if the aim is to move _faster_. VS Code let's users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows ++up++ or ++down++ to highlight the desired snippet and pressing ++enter++ or ++tab++ will insert the correct block of code. 
+It's not required to type the full name of the snippet, or even from the start of the snippet. The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that could be counterproductive if the aim is to move _faster_. VS Code let's users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows ++up++ or ++down++ to highlight the desired snippet and pressing ++enter++ or ++tab++ will insert the correct block of code.
 
 <p align="center">
   <br>
@@ -108,7 +108,7 @@ These are the current snippet categories available to the `Ultralytics-Snippets`
 | Kwargs    | Speed up development by adding snippets for [train], [track], [predict], and [val] methods with all keyword arguments and default values.     |
 | Imports   | Snippets to quickly import common Ultralytics objects.                                                                                        |
 | Models    | Insert code blocks for initializing various models, including dropdown configuration options.                                                 |
-| Results   | Code blocks for common operations when [working with inference results].                            |
+| Results   | Code blocks for common operations when [working with inference results].                                                                      |
 | Utilities | Provides quick access to common utilities that are built into the Ultralytics package, learn more about these on the [Simple Utilities page]. |
 
 ### Learning with Examples
@@ -120,7 +120,7 @@ The examples snippets are to useful for anyone looking to learn how to get start
     Just like the animation shows at the [top] of this page, you can use the snippet `ultra.example-yolo-predict` to insert the following code example. Once inserted, the only configurable option is for the model scale which can be any one of: `n`, `s`, `m`, `l`, or `x`.
 
     ```python
-    from ultralytics import YOLO, ASSETS
+    from ultralytics import ASSETS, YOLO
 
     model = YOLO("yolov8n.pt", task="detect")
     results = model(source=ASSETS / "bus.jpg")
@@ -145,7 +145,7 @@ The aim for snippets outside of the `examples` are for making development easier
         result.boxes.data  # torch.Tensor array
     ```
 
-However, since Ultralytics supports numerous [tasks], when [working with inference results] there are other `Results` attributes that you may wish to access, which is where the [snippet fields](#code-snippet-fields) are helpful. 
+However, since Ultralytics supports numerous [tasks], when [working with inference results] there are other `Results` attributes that you may wish to access, which is where the [snippet fields](#code-snippet-fields) are helpful.
 
 <p align="center">
   <br>
@@ -164,26 +164,26 @@ There are over 💯 keyword arguments for the various Ultralytics [tasks] and [m
 
     ```python
     model.predict(
-        source=src,           # (str, optional) source directory for images or videos
-        imgsz=640,            # (int | list) input images size as int or list[w,h] for predict
-        conf=0.25,            # (float) minimum confidence threshold
-        iou=0.7,              # (float) intersection over union (IoU) threshold for NMS
-        vid_stride=1,         # (int) video frame-rate stride
+        source=src,  # (str, optional) source directory for images or videos
+        imgsz=640,  # (int | list) input images size as int or list[w,h] for predict
+        conf=0.25,  # (float) minimum confidence threshold
+        iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
+        vid_stride=1,  # (int) video frame-rate stride
         stream_buffer=False,  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
-        visualize=False,      # (bool) visualize model features
-        augment=False,        # (bool) apply image augmentation to prediction sources
-        agnostic_nms=False,   # (bool) class-agnostic NMS
-        classes=None,         # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
-        retina_masks=False,   # (bool) use high-resolution segmentation masks
-        embed=None,           # (list[int], optional) return feature vectors/embeddings from given layers
-        show=False,           # (bool) show predicted images and videos if environment allows
-        save=True,            # (bool) save prediction results
-        save_frames=False,    # (bool) save predicted individual video frames
-        save_txt=False,       # (bool) save results as .txt file
-        save_conf=False,      # (bool) save results with confidence scores
-        save_crop=False,      # (bool) save cropped images with results
-        stream=False,         # (bool) for processing long videos or numerous images with reduced memory usage by returning a generator
-        verbose=True,         # (bool) enable/disable verbose inference logging in the terminal
+        visualize=False,  # (bool) visualize model features
+        augment=False,  # (bool) apply image augmentation to prediction sources
+        agnostic_nms=False,  # (bool) class-agnostic NMS
+        classes=None,  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
+        retina_masks=False,  # (bool) use high-resolution segmentation masks
+        embed=None,  # (list[int], optional) return feature vectors/embeddings from given layers
+        show=False,  # (bool) show predicted images and videos if environment allows
+        save=True,  # (bool) save prediction results
+        save_frames=False,  # (bool) save predicted individual video frames
+        save_txt=False,  # (bool) save results as .txt file
+        save_conf=False,  # (bool) save results with confidence scores
+        save_crop=False,  # (bool) save cropped images with results
+        stream=False,  # (bool) for processing long videos or numerous images with reduced memory usage by returning a generator
+        verbose=True,  # (bool) enable/disable verbose inference logging in the terminal
     )
     ```
 
@@ -193,12 +193,11 @@ There are over 💯 keyword arguments for the various Ultralytics [tasks] and [m
 
 The best way to find out what snippets are available is to download and install the extension! If you're curious and want to take a look at the list beforehand, you can visit the [repo] or [extension page on the VS Code marketplace] to view the tables for all available snippets.
 
-
 ## FAQ
 
 ### How do I request a new snippet?
 
-New snippets can be requested using the Issues on the Ultralytics-Snippets [repo]. 
+New snippets can be requested using the Issues on the Ultralytics-Snippets [repo].
 
 ### How much does the Ultralytics-Extension Cost?
 
@@ -223,7 +222,6 @@ Visit the `Ultralytics-Snippets` [repo] and open an Issue or Pull Request!
 <!-- Article Links -->
 
 [top]: #accelerate-your-computer-vision-projects-with-ultralytics-code-snippets
-
 [export]: ../modes/export.md
 [predict]: ../modes/predict.md
 [track]: ../modes/track.md
@@ -236,18 +234,15 @@ Visit the `Ultralytics-Snippets` [repo] and open an Issue or Pull Request!
 [Simple Utilities page]: ../usage/simple-utilities.md
 [Ultralytics Settings]: ../quickstart.md/#ultralytics-settings
 [quickstart]: ../quickstart.md
-
 [Discord]: https://ultralytics.com/discord
 [Discourse]: https://community.ultralytics.com
 [Reddit]: https://reddit.com/r/Ultralytics
 [GitHub]: https://github.com/ultralytics
 [community poll]: https://community.ultralytics.com/t/what-do-you-use-to-write-code/89/1
 [memes]: https://community.ultralytics.com/c/off-topic/memes-jokes/11
-
 [repo]: https://github.com/Burhan-Q/ultralytics-snippets
 [extension page on the VS Code marketplace]: https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets
 [neovim install]: https://github.com/Burhan-Q/ultralytics-snippets?tab=readme-ov-file#use-with-neovim
-
 [2021]: https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment
 [2022]: https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment
 [2023]: https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment

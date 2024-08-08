@@ -26,9 +26,9 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
+    vscode_msg,
     yaml_load,
     yaml_print,
-    vscode_msg,
 )
 
 # Define valid tasks and modes
@@ -841,6 +841,7 @@ def entrypoint(debug=""):
     # Recommend VS Code extension
     if IS_VSCODE and SETTINGS.get("vscode_msg", True):
         LOGGER.info(vscode_msg())
+
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg():

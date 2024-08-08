@@ -1,9 +1,3 @@
----
-comments: false
-description: Comprehensive table on using the export function for Ultralytics YOLO models with detailed argument specifications.
-keywords: machine learning, model export, ONNX, TorchScript, TensorFlow, Keras, optimization, quantization, dynamic input, TensorRT, CoreML, NMS, batch inference
----
-
 | Argument    | Type             | Default         | Description                                                                                                                                                      |
 | ----------- | ---------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`    | `str`            | `'torchscript'` | Target format for the exported model, such as `'onnx'`, `'torchscript'`, `'tensorflow'`, or others, defining compatibility with various deployment environments. |

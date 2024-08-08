@@ -1,9 +1,3 @@
----
-comments: false
-description: Comprehensive table of all available export formats for Ultralytics YOLO models with argument specifications.
-keywords: machine learning, model export, ONNX, TorchScript, TensorFlow, Keras, optimization, quantization, dynamic input, TensorRT, CoreML, NMS, batch inference
----
-
 | Format                                            | `format` Argument | Model                     | Metadata | Arguments                                                            |
 | ------------------------------------------------- | ----------------- | ------------------------- | -------- | -------------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n.pt`              | ✅       | -                                                                    |

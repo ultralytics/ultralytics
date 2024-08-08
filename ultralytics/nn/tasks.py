@@ -84,6 +84,7 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
+from ultralytics.nn.modules.SwinTransformer1 import SwinTransformer
 
 try:
     import thop
@@ -954,7 +955,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             ContextAggregation,
             EffectiveSE,
             C2f_DCN,
-            CoordAtt
+            CoordAtt,
+            SwinTransformer,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)

@@ -7,11 +7,11 @@ import os
 import random
 import subprocess
 import time
-from typing import Optional
 import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -50,9 +50,8 @@ def img2label_paths(img_paths, labels_base_dir: Optional[str] = None):
         sb = f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
         return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
     else:
-        paths= [os.path.join(labels_base_dir, x.rsplit(sa, 1)[1]).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+        paths = [os.path.join(labels_base_dir, x.rsplit(sa, 1)[1]).rsplit(".", 1)[0] + ".txt" for x in img_paths]
         return paths
-
 
 
 def get_hash(paths):

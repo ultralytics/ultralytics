@@ -33,7 +33,7 @@ class Colors:
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
-        hexs = (
+        self.hexs = (
             "042AFF",
             "0BDBEB",
             "F3F3F3",
@@ -55,7 +55,7 @@ class Colors:
             "FC6D2F",
             "A2FF0B",
         )
-        self.palette = [self.hex2rgb(f"#{c}") for c in hexs]
+        self.palette = [self.hex2rgb(f"#{c}") for c in self.hexs]
         self.n = len(self.palette)
         self.pose_palette = np.array(
             [
@@ -92,6 +92,13 @@ class Colors:
     def hex2rgb(h):
         """Converts hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def rgb2hex(rgb_str):
+        """Converts rgb color codes to hex values."""
+        rgb_tuple = tuple(map(int, rgb_str.strip("()").split(", ")))
+        # Convert the RGB tuple to a hex string
+        return "#{:02x}{:02x}{:02x}".format(*rgb_tuple)
 
 
 colors = Colors()  # create instance for 'from utils.plots import colors'

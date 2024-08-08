@@ -40,9 +40,8 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import solutions
 
-        model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
 
         assert cap.isOpened(), "Error reading video file"
@@ -53,20 +52,17 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            names=model.names,
+            model="yolov8n.pt",
             reg_pts=queue_region,
-            line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
+            line_width=3,
+            reg_color=(255, 144, 31),
         )
 
         while cap.isOpened():
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False)
-                out = queue.process_queue(im0, tracks)
-
+                out = queue.process_queue(im0)
                 video_writer.write(im0)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
@@ -84,11 +80,9 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import, solutions
 
-        model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
-
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -97,19 +91,18 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
         queue = solutions.QueueManager(
-            names=model.names,
+            model="yolov8n.pt"
             reg_pts=queue_region,
-            line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
+            line_width=3,
+            reg_color=(255, 144, 31),
+            classes=0,      # For specific classes
         )
 
         while cap.isOpened():
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False, classes=0)  # Only person class
-                out = queue.process_queue(im0, tracks)
+                out = queue.process_queue(im0)
 
                 video_writer.write(im0)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -125,20 +118,15 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Arguments `QueueManager`
 
-| Name                | Type             | Default                    | Description                                                                         |
-| ------------------- | ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
-| `names`             | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
-| `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
-| `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
-| `track_thickness`   | `int`            | `2`                        | Thickness of the track lines.                                                       |
-| `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `region_color`      | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
-| `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
-| `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
-| `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
-| `track_color`       | `tuple`          | `None`                     | Color of the tracks. If `None`, different colors will be used for different tracks. |
-| `region_thickness`  | `int`            | `5`                        | Thickness of the counting region lines.                                             |
-| `fontsize`          | `float`          | `0.7`                      | Font size for the text annotations.                                                 |
+| Name          | Type             | Default                    | Description                                                                      |
+| ------------- | ---------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| `model`       | `str`            | `yolov8n.pt`               | Path to YOLO model.                                                              |
+| `reg_pts`     | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
+| `line_width`  | `int`            | `2`                        | Thickness of the annotation lines.                                               |
+| `show`        | `bool`           | `False`                    | Whether to display the image frames.                                             |
+| `reg_color`   | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                        |
+| `draw_tracks` | `bool`           | `False`                    | Whether to draw tracks of the objects.                                           |
+| `txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                   |
 
 ### Arguments `model.track`
 
@@ -168,25 +156,22 @@ Here's a minimal example:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
 queue = solutions.QueueManager(
-    names=model.names,
+    model="yolov8n.pt",
     reg_pts=queue_region,
-    line_thickness=3,
-    fontsize=1.0,
-    region_color=(255, 144, 31),
+    line_width=3,
+    reg_color=(255, 144, 31),
 )
 
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
-        tracks = model.track(im0, show=False, persist=True, verbose=False)
-        out = queue.process_queue(im0, tracks)
+        out = queue.process_queue(im0)
         cv2.imshow("Queue Management", im0)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
@@ -228,11 +213,10 @@ Example for airports:
 ```python
 queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
 queue_airport = solutions.QueueManager(
-    names=model.names,
+    model="yolov8n.pt",
     reg_pts=queue_region_airport,
-    line_thickness=3,
-    fontsize=1.0,
-    region_color=(0, 255, 0),
+    line_width=3,
+    reg_color=(0, 255, 0),
 )
 ```
 

@@ -415,7 +415,9 @@ class Annotator:
                     continue
                 if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                     continue
-                cv2.line(self.im, pos1, pos2, kpt_color or self.limb_color[i].tolist(), thickness=2, lineType=cv2.LINE_AA)
+                cv2.line(
+                    self.im, pos1, pos2, kpt_color or self.limb_color[i].tolist(), thickness=2, lineType=cv2.LINE_AA
+                )
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)

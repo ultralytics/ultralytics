@@ -40,7 +40,8 @@ Want to let us know what you use for developing code? Head over to our Discourse
 ## Installing the Extension
 
 !!! Note
-Any code environment that will allow for installing VS Code extensions _should be_ compatible with the Ultralytics-snippets extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section][neovim install] of the Readme in the [Ultralytics-Snippets repository][repo].
+
+    Any code environment that will allow for installing VS Code extensions _should be_ compatible with the Ultralytics-snippets extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section][neovim install] of the Readme in the [Ultralytics-Snippets repository][repo].
 
 ### Installing in VS Code
 

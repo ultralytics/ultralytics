@@ -56,7 +56,8 @@ from .block import (
     GatherExcite,
     SEAttention,
     GAM_Attention,
-    ContextAggregation
+    ContextAggregation,
+    EffectiveSE,
 )
 from .conv import (
     CBAM,
@@ -157,5 +158,6 @@ __all__ = (
     "GatherExcite",
     "SEAttention",
     "GAM_Attention",
-    "ContextAggregation"
+    "ContextAggregation",
+    "EffectiveSE"
 )

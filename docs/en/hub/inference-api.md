@@ -28,6 +28,11 @@ In response to high demand and widespread interest, we are thrilled to unveil th
 
     We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
 
+- **Global Coverage:** Deployed across 38 regions worldwide, ensuring low-latency access from any location. [See the full list of Google Cloud regions](https://cloud.google.com/about/locations).
+- **Google Cloud Run-Backed:** Backed by Google Cloud Run, providing infinitely scalable and highly reliable infrastructure.
+- **High Speed:** Sub-100ms latency is possible for YOLOv8n inference at 640 resolution from nearby regions based on Ultralytics testing.
+- **Enhanced Security:** Provides robust security features to protect your data and ensure compliance with industry standards. [Learn more about Google Cloud security](https://cloud.google.com/security).
+
 To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_1.jpg)
@@ -72,7 +77,7 @@ data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
-    files = {"image": image_file}
+    files = {"file": image_file}
     response = requests.post(url, headers=headers, files=files, data=data)
 
 print(response.json())
@@ -91,7 +96,7 @@ To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 	-H "x-api-key: API_KEY" \
-	-F "image=@/path/to/image.jpg" \
+	-F "file=@/path/to/image.jpg" \
 	-F "imgsz=640" \
 	-F "conf=0.25" \
 	-F "iou=0.45"
@@ -142,7 +147,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
+            -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
             -F "iou=0.45"
@@ -164,7 +169,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
@@ -222,7 +227,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
+            -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
             -F "iou=0.45"
@@ -244,7 +249,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
@@ -308,7 +313,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
+            -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
             -F "iou=0.45"
@@ -330,7 +335,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
@@ -398,7 +403,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
+            -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
             -F "iou=0.45"
@@ -420,7 +425,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
@@ -498,7 +503,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
+            -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
             -F "iou=0.45"
@@ -520,7 +525,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())

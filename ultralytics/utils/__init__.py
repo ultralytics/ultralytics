@@ -943,7 +943,7 @@ class SettingsManager(dict):
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
+    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
         """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
         file.
         """
@@ -976,6 +976,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
+            "vscode_msg": True,
         }
         self.help_msg = (
             f"\nView settings with 'yolo settings' or at '{self.file}'"

@@ -153,6 +153,13 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
+    # Delete the /macros directory from the built site
+    macros_dir = SITE / "macros"
+    if macros_dir.exists():
+        print(f"Removing /macros directory from site: {macros_dir}")
+        shutil.rmtree(macros_dir)
+
+    # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
@@ -177,12 +184,6 @@ def update_docs_html():
     script = ""
     if any(script):
         update_html_head(script)
-
-    # Delete the /macros directory from the built site
-    macros_dir = SITE / "macros"
-    if macros_dir.exists():
-        print(f"Removing /macros directory from site: {macros_dir}")
-        shutil.rmtree(macros_dir)
 
 
 def convert_plaintext_links_to_html(content):

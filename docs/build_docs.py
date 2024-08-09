@@ -123,7 +123,7 @@ def update_markdown_files(md_filepath: Path):
         content = content.replace("‘", "'").replace("’", "'")
 
         # Add frontmatter if missing
-        if not content.strip().startswith("---\n"):
+        if not content.strip().startswith("---\n") and "macros" not in md_filepath.parts:  # skip macros directory
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
 
@@ -177,6 +177,12 @@ def update_docs_html():
     script = ""
     if any(script):
         update_html_head(script)
+
+    # Delete the /macros directory from the built site
+    macros_dir = SITE / "macros"
+    if macros_dir.exists():
+        print(f"Removing /macros directory from site: {macros_dir}")
+        shutil.rmtree(macros_dir)
 
 
 def convert_plaintext_links_to_html(content):

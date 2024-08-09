@@ -49,7 +49,7 @@ def on_pretrain_routine_end(trainer):
     from the trainer.
 
     Args:
-        trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
+        trainer (ultralytics_MB.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
 
     Global:
         mlflow: The imported mlflow module to use for logging.

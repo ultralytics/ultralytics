@@ -35,7 +35,7 @@ def run_ray_tune(
         ```
     """
 
-    LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
+    LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics_MB.com/integrations/ray-tune")
     if train_args is None:
         train_args = {}
 

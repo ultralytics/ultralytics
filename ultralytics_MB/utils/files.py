@@ -158,14 +158,14 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_name
 
     Example:
         ```python
-        from ultralytics.utils.files import update_models
+        from ultralytics_MB.utils.files import update_models
 
         model_names = (f"rtdetr-{size}.pt" for size in "lx")
         update_models(model_names)
         ```
     """
     from ultralytics import YOLO
-    from ultralytics.nn.autobackend import default_class_names
+    from ultralytics_MB.nn.autobackend import default_class_names
 
     target_dir = source_dir / "updated_models"
     target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists

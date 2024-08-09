@@ -191,12 +191,12 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
+def check_disk_space(url="https://ultralytics_MB.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        url (str, optional): The URL to the file. Defaults to 'https://ultralytics_MB.com/assets/coco128.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
@@ -305,7 +305,7 @@ def safe_download(
         ```python
         from ultralytics_MB.utils.downloads import safe_download
 
-        link = "https://ultralytics.com/assets/bus.jpg"
+        link = "https://ultralytics_MB.com/assets/bus.jpg"
         path = safe_download(link)
         ```
     """
@@ -473,7 +473,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
 
     Example:
         ```python
-        download('https://ultralytics.com/assets/example.zip', dir='path/to/dir', unzip=True)
+        download('https://ultralytics_MB.com/assets/example.zip', dir='path/to/dir', unzip=True)
         ```
     """
     dir = Path(dir)

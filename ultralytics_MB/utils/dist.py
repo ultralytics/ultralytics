@@ -32,7 +32,7 @@ overrides = {vars(trainer.args)}
 
 if __name__ == "__main__":
     from {module} import {name}
-    from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics_MB.utils import DEFAULT_CFG_DICT
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'

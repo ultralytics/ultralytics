@@ -28,7 +28,6 @@ import os
 import re
 import shutil
 import subprocess
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -221,23 +220,24 @@ def remove_macros():
 
     # Process sitemap.xml
     sitemap = SITE / "sitemap.xml"
-    lines = sitemap.read_text(encoding='utf-8').splitlines(keepends=True)
+    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
 
     # Find indices of '/macros/' lines
-    macros_indices = [i for i, line in enumerate(lines) if '/macros/' in line]
+    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
 
     # Create a set of indices to remove (including lines before and after)
     indices_to_remove = set()
     for i in macros_indices:
-        indices_to_remove.update(range(i-1, i+4))  # i-1, i, i+1, i+2, i+3
+        indices_to_remove.update(range(i - 1, i + 4))  # i-1, i, i+1, i+2, i+3
 
     # Create new list of lines, excluding the ones to remove
     new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
 
     # Write the cleaned content back to the file
-    sitemap.write_text(''.join(new_lines), encoding='utf-8')
+    sitemap.write_text("".join(new_lines), encoding="utf-8")
 
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
+
 
 def main():
     """Builds docs, updates titles and edit links, and prints local server command."""

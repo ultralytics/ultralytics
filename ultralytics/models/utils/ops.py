@@ -86,8 +86,8 @@ class HungarianMatcher(nn.Module):
         # Compute the classification cost
         pred_scores = pred_scores[:, gt_cls]
         if self.use_fl:
-            neg_cost_class = (1 - self.alpha) * (pred_scores**self.gamma) * (-(1 - pred_scores + 1e-8).log())
-            pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * (-(pred_scores + 1e-8).log())
+            neg_cost_class = (1 - self.alpha) * (pred_scores**self.gamma) * -(1 - pred_scores + 1e-8).log()
+            pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * -(pred_scores + 1e-8).log()
             cost_class = pos_cost_class - neg_cost_class
         else:
             cost_class = -pred_scores
@@ -193,9 +193,10 @@ def get_cdn_group(
     b_idx = batch["batch_idx"]
 
     # Each group has positive and negative queries.
-    dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
-    dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
-    dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
+    _2_num_group = 2 * num_group
+    dn_cls = gt_cls.repeat(_2_num_group)  # (2*num_group*bs*num, )
+    dn_bbox = gt_bbox.repeat(_2_num_group, 1)  # 2*num_group*bs*num, 4
+    dn_b_idx = b_idx.repeat(_2_num_group).view(-1)  # (2*num_group*bs*num, )
 
     # Positive and negative mask
     # (bs*num*num_group, ), the second total_num*num_group part as negative samples
@@ -223,7 +224,8 @@ def get_cdn_group(
         dn_bbox = xyxy2xywh(known_bbox)
         dn_bbox = torch.logit(dn_bbox, eps=1e-6)  # inverse sigmoid
 
-    num_dn = int(max_nums * 2 * num_group)  # total denoising queries
+    _2_max_nums = max_nums * 2
+    num_dn = int(_2_max_nums * num_group)  # total denoising queries
     # class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])
     dn_cls_embed = class_embed[dn_cls]  # bs*num * 2 * num_group, 256
     padding_cls = torch.zeros(bs, num_dn, dn_cls_embed.shape[-1], device=gt_cls.device)
@@ -232,7 +234,7 @@ def get_cdn_group(
     map_indices = torch.cat([torch.tensor(range(num), dtype=torch.long) for num in gt_groups])
     pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0)
 
-    map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)])
+    map_indices = torch.cat([map_indices + max_nums * i for i in range(_2_num_group)])
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
     padding_bbox[(dn_b_idx, map_indices)] = dn_bbox
 
@@ -243,12 +245,12 @@ def get_cdn_group(
     # Reconstruct cannot see each other
     for i in range(num_group):
         if i == 0:
-            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), max_nums * 2 * (i + 1) : num_dn] = True
+            attn_mask[_2_max_nums * i : _2_max_nums * (i + 1), _2_max_nums * (i + 1) : num_dn] = True
         if i == num_group - 1:
-            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), : max_nums * i * 2] = True
+            attn_mask[_2_max_nums * i : _2_max_nums * (i + 1), : _2_max_nums * i] = True
         else:
-            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), max_nums * 2 * (i + 1) : num_dn] = True
-            attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), : max_nums * 2 * i] = True
+            attn_mask[_2_max_nums * i : _2_max_nums * (i + 1), _2_max_nums * (i + 1) : num_dn] = True
+            attn_mask[_2_max_nums * i : _2_max_nums * (i + 1), : _2_max_nums * i] = True
     dn_meta = {
         "dn_pos_idx": [p.reshape(-1) for p in pos_idx.cpu().split(list(gt_groups), dim=1)],
         "dn_num_group": num_group,

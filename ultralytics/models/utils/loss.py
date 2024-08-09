@@ -75,7 +75,7 @@ class DETRLoss(nn.Module):
                 loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
             else:
                 loss_cls = self.fl(pred_scores, one_hot.float())
-            loss_cls /= max(num_gts, 1) / nq
+            loss_cls = loss_cls / (max(num_gts, 1) * nq)
         else:
             loss_cls = nn.BCEWithLogitsLoss(reduction="none")(pred_scores, gt_scores).mean(1).sum()  # YOLO CLS loss
 
@@ -95,9 +95,12 @@ class DETRLoss(nn.Module):
             loss[name_giou] = torch.tensor(0.0, device=self.device)
             return loss
 
-        loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / len(gt_bboxes)
+        gt_bboxes_len_inv = 1.0 / len(gt_bboxes)
+        loss[name_bbox] = (
+            self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") * gt_bboxes_len_inv
+        )
         loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
-        loss[name_giou] = loss[name_giou].sum() / len(gt_bboxes)
+        loss[name_giou] = loss[name_giou].sum() * gt_bboxes_len_inv
         loss[name_giou] = self.loss_gain["giou"] * loss[name_giou]
         return {k: v.squeeze() for k, v in loss.items()}
 

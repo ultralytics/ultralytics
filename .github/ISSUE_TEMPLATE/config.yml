@@ -11,3 +11,6 @@ contact_links:
   - name: 🎧 Discord
     url: https://ultralytics.com/discord
     about: Ask on Ultralytics Discord
+  - name: ⌨️ Reddit
+    url: https://reddit.com/r/ultralytics
+    about: Ask on Ultralytics Subreddit

@@ -45,9 +45,9 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 ### Installing in VS Code
 
-1. Navigate to the Extensions menu in VS Code, and search for Ultralytics-snippets.
+1. Navigate to the [Extensions menu in VS Code](https://code.visualstudio.com/docs/editor/extension-marketplace) or use the shortcut <kbd>Ctrl</kbd>+<kbd>Shift ⇑</kbd>+<kbd>x</kbd>, and search for Ultralytics-snippets.
 
-2. Click the ++"Install"++ button.
+2. Click the <kbd>Install</kbd> button.
 
 <p align="center">
   <br>
@@ -59,7 +59,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 1. Visit the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/VSCode) and search for Ultralytics-snippets or go straight to the [extension page on the VS Code marketplace].
 
-2. Click the ++"Install"++ button and allow your browser to launch a VS Code session.
+2. Click the <kbd>Install</kbd> button and allow your browser to launch a VS Code session.
 
 3. Follow any prompts to install the extension.
 
@@ -67,6 +67,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
   <br>
     <img src="https://github.com/user-attachments/assets/b40cc8e2-2353-4165-859a-c84eec070db6" alt="VS Code marketplace extension install">
   <br>
+  Visual Studio Code Extension Marketplace page for <a href="https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets">Ultralytics-Snippets</a>
 </p>
 
 ## Using the Ultralytics-Snippets Extension
@@ -81,22 +82,22 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 ### Overview
 
-The extension will only operate when the [Language Mode](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_change-language-mode) is configured for Python 🐍. This is to avoid snippets from being inserted when working on any other file type. All snippets have prefix starting with `ultra`, and simply typing `ultra` in your editor after installing the extension, will display a list of possible snippets to use. You can also open the VS Code [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) using ++ctrl+shift+p++ and running the command `Snippets: Insert Snippet`.
+The extension will only operate when the [Language Mode](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_change-language-mode) is configured for Python 🐍. This is to avoid snippets from being inserted when working on any other file type. All snippets have prefix starting with `ultra`, and simply typing `ultra` in your editor after installing the extension, will display a list of possible snippets to use. You can also open the VS Code [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) using <kbd>Ctrl</kbd>+<kbd>Shift ⇑</kbd>+<kbd>p</kbd> and running the command `Snippets: Insert Snippet`.
 
 ### Code Snippet Fields
 
-Many snippets have "fields" with default placeholder values or names. For instance, output from the [predict] method could be saved to a Python variable named `r`, `results`, `detections`, `preds` or whatever else a developer chooses, which is why snippets include "fields". Using ++tab++ on your keyboard after a snippet is inserted, your cursor will move between fields quickly. Once a field is selected, typing a new variable name will change that instance, but also every other instance in the snippet code for that variable!
+Many snippets have "fields" with default placeholder values or names. For instance, output from the [predict] method could be saved to a Python variable named `r`, `results`, `detections`, `preds` or whatever else a developer chooses, which is why snippets include "fields". Using <kbd>Tab ⇥</kbd> on your keyboard after a snippet is inserted, your cursor will move between fields quickly. Once a field is selected, typing a new variable name will change that instance, but also every other instance in the snippet code for that variable!
 
 <p align="center">
   <br>
     <img src="https://github.com/user-attachments/assets/661c1b85-39a5-48ec-9faa-89d44e49aa37" alt="Multi-update field and options">
   <br>
-  After inserting snippet, renaming <code>model</code> as <code>world_model</code> updates all instances. Pressing <kbd>Tab</kbd> moves to the next field, which opens a dropdown menu and allows for selection of a model scale, and moving to the next field provides another dropdown to choose either <code>world</code> or <code>worldv2</code> model variant.
+  After inserting snippet, renaming <code>model</code> as <code>world_model</code> updates all instances. Pressing <kbd>Tab ⇥</kbd> moves to the next field, which opens a dropdown menu and allows for selection of a model scale, and moving to the next field provides another dropdown to choose either <code>world</code> or <code>worldv2</code> model variant.
 </p>
 
 ### Code Snippet Completions
 
-It's not required to type the full prefix of the snippet, or even from the start of the snippet. The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that would be counterproductive if the aim is to move _faster_. Luckily VS Code let's users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows ++up++ or ++down++ to highlight the desired snippet and pressing ++enter++ or ++tab++ will insert the correct block of code.
+It's not required to type the full prefix of the snippet, or even from the start of the snippet. The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that would be counterproductive if the aim is to move _faster_. Luckily VS Code lets users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows <kbd>↑</kbd> or <kbd>↓</kbd> to highlight the desired snippet and pressing <kbd>Enter ↵</kbd> or <kbd>Tab ⇥</kbd> will insert the correct block of code.
 
 <p align="center">
   <br>
@@ -120,7 +121,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 
 ### Learning with Examples
 
-The `ultra.examples` snippets are to useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using ++shift+enter++.
+The `ultra.examples` snippets are to useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
 
 !!! Example
 
@@ -216,7 +217,7 @@ It's 100% free!
 
 ### Why don't I see a code snippet preview?
 
-VS Code uses the key combination ++ctrl+space++ to show more/less information in the preview window. If you're not seeing a snippet preview when you type in a code snippet prefix, using this key combination should restore the preview.
+VS Code uses the key combination <kbd>Ctrl</kbd>+<kbd>Space</kbd> to show more/less information in the preview window. If you're not seeing a snippet preview when you type in a code snippet prefix, using this key combination should restore the preview.
 
 ### How do I disable the extension recommendation in Ultralytics?
 

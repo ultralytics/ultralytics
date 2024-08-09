@@ -97,7 +97,11 @@ Many snippets have "fields" with default placeholder values or names. For instan
 
 ### Code Snippet Completions
 
-It's not required to type the full prefix of the snippet, or even from the start of the snippet. The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that would be counterproductive if the aim is to move _faster_. Luckily VS Code lets users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows <kbd>↑</kbd> or <kbd>↓</kbd> to highlight the desired snippet and pressing <kbd>Enter ↵</kbd> or <kbd>Tab ⇥</kbd> will insert the correct block of code.
+!!! tip "Even _Shorter_ Shortcuts"
+
+    It's **not** required to type the full prefix of the snippet, or even to start typing from the start of the snippet. See example in the image below.
+
+The snippets are named in the most descriptive way possible, but this means there could be a lot to type and that would be counterproductive if the aim is to move _faster_. Luckily VS Code lets users type `ultra.example-yolo-predict`, `example-yolo-predict`, `yolo-predict`, or even `ex-yolo-p` and still reach the intended snippet option! If the intended snippet was _actually_ `ultra.example-yolo-predict-kwords`, then just using your keyboard arrows <kbd>↑</kbd> or <kbd>↓</kbd> to highlight the desired snippet and pressing <kbd>Enter ↵</kbd> or <kbd>Tab ⇥</kbd> will insert the correct block of code.
 
 <p align="center">
   <br>

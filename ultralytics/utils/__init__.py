@@ -46,6 +46,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 HELP_MSG = """
     Usage examples for running Ultralytics YOLO:
 
@@ -942,7 +943,7 @@ class SettingsManager(dict):
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
+    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
         """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
         file.
         """
@@ -975,6 +976,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
+            "vscode_msg": True,
         }
         self.help_msg = (
             f"\nView settings with 'yolo settings' or at '{self.file}'"
@@ -1048,6 +1050,23 @@ def clean_url(url):
 def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
+
+
+def vscode_msg() -> str:
+    """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
+    ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = ext_path / ".obsolete"
+    ext = "ultralytics.ultralytics-snippets"
+    installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
+    return (
+        (
+            colorstr("VS Code terminal detected.\n")
+            + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
+            "  https://docs.ultralytics.com/integrations/vscode-snippets\n"
+        )
+        if not installed
+        else ""
+    )
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

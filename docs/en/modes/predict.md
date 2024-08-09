@@ -720,6 +720,7 @@ The `plot()` method supports various arguments to customize the output:
 | `show`       | `bool`          | Display the annotated image directly using the default image viewer.       | `False`       |
 | `save`       | `bool`          | Save the annotated image to a file specified by `filename`.                | `False`       |
 | `filename`   | `str`           | Path and name of the file to save the annotated image if `save` is `True`. | `None`        |
+| `instance`   | `bool`          | Determine the plot color by instance rather than by category.              | `False`       |
 
 ## Thread-Safe Inference
 

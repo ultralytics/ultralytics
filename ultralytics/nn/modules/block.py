@@ -1013,6 +1013,11 @@ class PSA(C2):
         super().__init__(c1, c2, n=n, e=e)
         self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
 
+    def forward(self, x):
+        """Forward pass through the CSP bottleneck with 2 convolutions."""
+        a, b = self.cv1(x).chunk(2, 1)
+        return self.cv2(torch.cat((a, self.m(b)), 1))
+
 
 class C2PSA(C2f):
     """

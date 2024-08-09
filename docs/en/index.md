@@ -24,7 +24,7 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learni
 <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
 <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
 <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-<a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=plastic&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
+<a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Subreddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=plastic&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
 <br>
 <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
@@ -52,7 +52,7 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://reddit.com/r/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-reddit.png" width="3%" alt="Ultralytics Reddit"></a>
+  <a href="https://reddit.com/r/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-reddit.png" width="3%" alt="Ultralytics Subreddit"></a>
 </div>
 
 ## Where to Start

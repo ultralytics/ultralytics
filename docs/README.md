@@ -145,5 +145,5 @@ For bug reports and feature requests, navigate to [GitHub Issues](https://github
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://reddit.com/r/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-reddit.png" width="3%" alt="Ultralytics Reddit"></a>
+  <a href="https://reddit.com/r/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-reddit.png" width="3%" alt="Ultralytics Subreddit"></a>
 </div>

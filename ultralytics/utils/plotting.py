@@ -1083,7 +1083,9 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(
+    file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, multitask=False, on_plot=None
+):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -1117,6 +1119,9 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+    elif multitask:
+        fig, ax = plt.subplots(2, 10, figsize=(24, 6), tight_layout=True)
+        index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]
@@ -1267,7 +1272,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
         save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
     """
-    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
+    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "MultiTask"}:  # all model heads
         if m in module_type:
             return
     if isinstance(x, torch.Tensor):

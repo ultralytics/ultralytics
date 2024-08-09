@@ -59,3 +59,15 @@ def test_pose():
     assert len(similar) > 0
     similar = exp.plot_similar(idx=[1, 2], limit=10)
     assert isinstance(similar, PIL.Image.Image)
+
+
+def test_multitask():
+    """Test multitask estimation functionalities and check the embedding table for keypoints."""
+    exp = Explorer(data="coco8-multitask.yaml", model="yolov8n.pt")
+    exp.create_embeddings_table(force=True)
+    assert len(exp.table.head()["keypoints"]) > 0
+    assert len(exp.table.head()["masks"]) > 0
+    similar = exp.get_similar(idx=[1, 2], limit=10)
+    assert len(similar) > 0
+    similar = exp.plot_similar(idx=[1, 2], limit=10)
+    assert isinstance(similar, PIL.Image.Image)

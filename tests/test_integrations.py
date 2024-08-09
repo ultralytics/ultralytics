@@ -120,6 +120,7 @@ def test_triton():
 def test_pycocotools():
     """Validate YOLO model predictions on COCO dataset using pycocotools."""
     from ultralytics.models.yolo.detect import DetectionValidator
+    from ultralytics.models.yolo.multitask import MultiTaskValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
@@ -145,4 +146,9 @@ def test_pycocotools():
     validator()
     validator.is_coco = True
     download(f"{url}person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
+    _ = validator.eval_json(validator.stats)
+
+    args = {"model": "yolov8n-multitask.pt", "data": "coco8-multitask.yaml", "save_json": True, "imgsz": 64}
+    validator = MultiTaskValidator(args=args)
+    validator()
     _ = validator.eval_json(validator.stats)

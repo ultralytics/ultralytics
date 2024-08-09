@@ -68,6 +68,12 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
 - [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
+## [Multitask](multitask/index.md)
+
+Multitask combines the technique of instance segmentation and pose estimation.
+
+- [COCO8-multitask](multitask/coco8-multitask.md): A smaller dataset for multitask tasks, containing a subset of 8 COCO images with segmentation and human pose annotations.
+
 ## [Classification](classify/index.md)
 
 Image classification is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.

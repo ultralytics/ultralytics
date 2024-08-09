@@ -66,7 +66,7 @@ class Explorer:
     ) -> None:
         """Initializes the Explorer class with dataset path, model, and URI for database connection."""
         # Note duckdb==0.10.0 bug https://github.com/ultralytics/ultralytics/pull/8181
-        checks.check_requirements(["lancedb>=0.4.3", "duckdb<=0.9.2"])
+        checks.check_requirements(["lancedb>=0.4.3", "duckdb<=0.10.0"])
         import lancedb
 
         self.connection = lancedb.connect(uri)

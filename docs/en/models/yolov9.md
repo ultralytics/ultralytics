@@ -190,7 +190,7 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
         ```bibtex
         @article{wang2024yolov9,
-          title={{YOLOv9}: Learning What You Want to Learn Using Programmable Gradient Information},
+          title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
           author={Wang, Chien-Yao  and Liao, Hong-Yuan Mark},
           booktitle={arXiv preprint arXiv:2402.13616},
           year={2024}

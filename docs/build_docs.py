@@ -123,7 +123,7 @@ def update_markdown_files(md_filepath: Path):
         content = content.replace("‘", "'").replace("’", "'")
 
         # Add frontmatter if missing
-        if not content.strip().startswith("---\n"):
+        if not content.strip().startswith("---\n") and "macros" not in md_filepath.parts:  # skip macros directory
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
 

@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from .action_recognition import ActionRecognition
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
@@ -20,4 +21,6 @@ __all__ = (
     "QueueManager",
     "SpeedEstimator",
     "Analytics",
+    "inference",
+    "ActionRecognition",
 )

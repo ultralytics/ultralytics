@@ -97,7 +97,7 @@ If you use the LVIS dataset in your research or development work, please cite th
 
     === "BibTeX"
 
-        ```BibTeX
+        ```bibtex
         @inproceedings{gupta2019lvis,
           title={LVIS: A Dataset for Large Vocabulary Instance Segmentation},
           author={Gupta, Agrim and Dollar, Piotr and Girshick, Ross},

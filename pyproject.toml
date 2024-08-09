@@ -91,9 +91,10 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-jupyter", # for notebooks
-    "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.49", # for meta descriptions and images, dates and authors
+    "mkdocs-jupyter", # notebooks
+    "mkdocs-redirects", # 301 redirects
+    "mkdocs-ultralytics-plugin>=0.1.2", # for meta descriptions and images, dates and authors
+    "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [
     "onnx>=1.12.0", # ONNX export

@@ -178,6 +178,12 @@ def update_docs_html():
     if any(script):
         update_html_head(script)
 
+    # Delete the /macros directory from the built site
+    macros_dir = SITE / "macros"
+    if macros_dir.exists():
+        print(f"Removing /macros directory from site: {macros_dir}")
+        shutil.rmtree(macros_dir)
+
 
 def convert_plaintext_links_to_html(content):
     """Convert plaintext links to HTML hyperlinks in the main content area only."""

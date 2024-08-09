@@ -393,7 +393,7 @@ class BasePredictor:
         cv2.imshow(p, im)
         cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
         if self.dataset.mode == "image":
-            cv2.destroyWindow(p) # close the image window
+            cv2.destroyWindow(p)  # close the image window
 
 
 if self.dataset.mode == "image":

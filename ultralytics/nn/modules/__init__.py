@@ -60,7 +60,8 @@ from .block import (
     EffectiveSE,
     C2f_DCN,
     RepViTBlock,
-    BoT3
+    BoT3,
+    ShuffleAttention
 )
 from .conv import (
     CBAM,
@@ -167,5 +168,6 @@ __all__ = (
     "C2f_DCN",
     "CoordAtt",
     "RepViTBlock",
-    "BoT3"
+    "BoT3",
+    "ShuffleAttention"
 )

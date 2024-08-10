@@ -61,7 +61,8 @@ from .block import (
     C2f_DCN,
     RepViTBlock,
     BoT3,
-    ShuffleAttention
+    ShuffleAttention,
+    ECAAttention
 )
 from .conv import (
     CBAM,
@@ -169,5 +170,6 @@ __all__ = (
     "CoordAtt",
     "RepViTBlock",
     "BoT3",
-    "ShuffleAttention"
+    "ShuffleAttention",
+    "ECAAttention"
 )

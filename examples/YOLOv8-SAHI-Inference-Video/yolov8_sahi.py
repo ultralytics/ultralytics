@@ -14,9 +14,7 @@ from ultralytics.utils.plotting import Annotator, colors
 
 class SahiInference:
     def __init__(self):
-        self.tracker = None
         self.detection_model = None
-        self.tracking_data = None
 
     def load_model(self, weights):
         yolov8_model_path = f"models/{weights}"
@@ -61,12 +59,11 @@ class SahiInference:
                 frame, self.detection_model, slice_height=512, slice_width=512, overlap_height_ratio=0.2,
                 overlap_width_ratio=0.2
             )
-            dets = results.object_prediction_list
-            clss = [(det.category.name, det.category.id) for det in dets]
-            bboxes = [(det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy) for det in dets]
+            detection_data = [(det.category.name, det.category.id,
+                               (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy)) for det in results.object_prediction_list]
 
-            for box, cls in zip(bboxes, clss):
-                annotator.box_label(box, label=str(cls[0]), color=colors(int(cls[1]), True))
+            for det in detection_data:
+                annotator.box_label(det[2], label=str(det[0]), color=colors(int(det[1]), True))
 
             if view_img:
                 cv2.imshow(Path(source).stem, frame)
@@ -92,5 +89,4 @@ class SahiInference:
 
 if __name__ == "__main__":
     inference = SahiInference()
-    opt = inference.parse_opt()
-    inference.inference(**vars(opt))
+    inference.inference(**vars(inference.parse_opt()))

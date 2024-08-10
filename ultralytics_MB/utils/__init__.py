@@ -45,7 +45,9 @@ MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Wi
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
-TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+
+import torchvision
+TORCHVISION_VERSION =  torchvision.__version__ # faster than importing torchvision
 HELP_MSG = """
     Usage examples for running Ultralytics YOLO:
 

@@ -450,6 +450,7 @@ nav:
       - REST API:
           - hub/api/index.md
 
+
   - Reference:
       - cfg:
           - __init__: reference/cfg/__init__.md
@@ -614,6 +615,9 @@ nav:
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
+  - exclude:
+      glob: 
+        - macros/*
   - macros
   - search:
       lang: en

@@ -23,8 +23,9 @@ class SahiInference:
             model_type="yolov8", model_path=yolov8_model_path, confidence_threshold=0.3, device="cpu"
         )
 
-    def inference(self, weights="yolov8n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False,
-                  track=False):
+    def inference(
+        self, weights="yolov8n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False, track=False
+    ):
         """
         Run object detection on a video using YOLOv8 and SAHI.
 
@@ -45,8 +46,9 @@ class SahiInference:
         # Output setup
         save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
-        video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps,
-                                       (frame_width, frame_height))
+        video_writer = cv2.VideoWriter(
+            str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height)
+        )
 
         # Load model
         self.load_model(weights)
@@ -56,8 +58,12 @@ class SahiInference:
                 break
             annotator = Annotator(frame)  # Initialize annotator for plotting detection and tracking results
             results = get_sliced_prediction(
-                frame, self.detection_model, slice_height=512, slice_width=512, overlap_height_ratio=0.2,
-                overlap_width_ratio=0.2
+                frame,
+                self.detection_model,
+                slice_height=512,
+                slice_width=512,
+                overlap_height_ratio=0.2,
+                overlap_width_ratio=0.2,
             )
             detection_data = [(det.category.name, det.category.id,
                                (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy)) for det in results.object_prediction_list]

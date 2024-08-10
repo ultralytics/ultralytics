@@ -38,22 +38,20 @@ class SahiInference:
             track (bool): Enable object tracking with SAHI
         """
         # Video setup
-        videocapture = cv2.VideoCapture(source)
-        assert videocapture.isOpened(), "Error reading video file"
-        frame_width, frame_height = int(videocapture.get(3)), int(videocapture.get(4))
-        fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"mp4v")
+        cap = cv2.VideoCapture(source)
+        assert cap.isOpened(), "Error reading video file"
+        frame_width, frame_height = int(cap.get(3)), int(cap.get(4))
 
         # Output setup
         save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
         video_writer = cv2.VideoWriter(
-            str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height)
-        )
+            str(save_dir / f"{Path(source).stem}.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), int(cap.get(5)), (frame_width, frame_height))
 
         # Load model
         self.load_model(weights)
-        while videocapture.isOpened():
-            success, frame = videocapture.read()
+        while cap.isOpened():
+            success, frame = cap.read()
             if not success:
                 break
             annotator = Annotator(frame)  # Initialize annotator for plotting detection and tracking results
@@ -79,7 +77,7 @@ class SahiInference:
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         video_writer.release()
-        videocapture.release()
+        cap.release()
         cv2.destroyAllWindows()
 
     def parse_opt(self):

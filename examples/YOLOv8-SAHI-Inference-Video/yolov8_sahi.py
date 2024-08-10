@@ -65,8 +65,10 @@ class SahiInference:
                 overlap_height_ratio=0.2,
                 overlap_width_ratio=0.2,
             )
-            detection_data = [(det.category.name, det.category.id,
-                               (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy)) for det in results.object_prediction_list]
+            detection_data = [
+                (det.category.name, det.category.id, (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy))
+                for det in results.object_prediction_list
+            ]
 
             for det in detection_data:
                 annotator.box_label(det[2], label=str(det[0]), color=colors(int(det[1]), True))

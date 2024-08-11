@@ -128,7 +128,7 @@ Users and developers are encouraged to familiarize themselves with the terms of 
 
 ## Conclusion
 
-Thank you for your interest in contributing to [Ultralytics open-source](https://github.com/ultralytics) YOLO projects. Your participation is crucial in shaping the future of our software and fostering a community of innovation and collaboration. Whether you're improving code, reporting bugs, or suggesting features, your contributions make a significant impact.
+Thank you for your interest in contributing to [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your participation is crucial in shaping the future of our software and fostering a community of innovation and collaboration. Whether you're improving code, reporting bugs, or suggesting features, your contributions make a significant impact.
 
 We look forward to seeing your ideas in action and appreciate your commitment to advancing object detection technology. Let's continue to grow and innovate together in this exciting open-source journey. Happy coding! 🚀🌟
 

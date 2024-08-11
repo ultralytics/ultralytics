@@ -123,7 +123,7 @@ def update_markdown_files(md_filepath: Path):
         content = content.replace("‘", "'").replace("’", "'")
 
         # Add frontmatter if missing
-        if not content.strip().startswith("---\n"):
+        if not content.strip().startswith("---\n") and "macros" not in md_filepath.parts:  # skip macros directory
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
 
@@ -153,6 +153,8 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
+
+    # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
@@ -178,6 +180,12 @@ def update_docs_html():
     if any(script):
         update_html_head(script)
 
+    # Delete the /macros directory from the built site
+    macros_dir = SITE / "macros"
+    if macros_dir.exists():
+        print(f"Removing /macros directory from site: {macros_dir}")
+        shutil.rmtree(macros_dir)
+
 
 def convert_plaintext_links_to_html(content):
     """Convert plaintext links to HTML hyperlinks in the main content area only."""
@@ -192,13 +200,43 @@ def convert_plaintext_links_to_html(content):
     for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
-                new_text = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', str(text_node))  # note: reject http?
+                new_text = re.sub(
+                    r'(https?://[^\s()<>]+(?:\.[^\s()<>]+)+)(?<![.,:;\'"])',
+                    r'<a href="\1">\1</a>',
+                    str(text_node),
+                )
                 if "<a" in new_text:
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True
 
     return str(soup) if modified else content
+
+
+def remove_macros():
+    # Delete the /macros directory and sitemap.xml.gz from the built site
+    shutil.rmtree(SITE / "macros", ignore_errors=True)
+    (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
+
+    # Process sitemap.xml
+    sitemap = SITE / "sitemap.xml"
+    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
+
+    # Find indices of '/macros/' lines
+    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
+
+    # Create a set of indices to remove (including lines before and after)
+    indices_to_remove = set()
+    for i in macros_indices:
+        indices_to_remove.update(range(i - 1, i + 4))  # i-1, i, i+1, i+2, i+3
+
+    # Create new list of lines, excluding the ones to remove
+    new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
+
+    # Write the cleaned content back to the file
+    sitemap.write_text("".join(new_lines), encoding="utf-8")
+
+    print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
 def main():
@@ -208,6 +246,7 @@ def main():
     # Build the main documentation
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
+    remove_macros()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

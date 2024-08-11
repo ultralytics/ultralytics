@@ -59,7 +59,7 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -120,7 +120,7 @@ To use a pretrained Ultralytics YOLO model for image classification on the Image
     
         ```bash
         # Start training from a pretrained *.pt model
-        yolo train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
         ```
 
 For more in-depth training instruction, refer to our [Training page](../../modes/train.md).

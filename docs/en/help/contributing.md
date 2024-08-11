@@ -6,7 +6,10 @@ keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of co
 
 # Contributing to Ultralytics Open-Source Projects
 
-Welcome! We're thrilled that you're considering contributing to the [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire community. This guide provides clear guidelines and best practices to help you get started.
+Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire community. This guide provides clear guidelines and best practices to help you get started.
+
+<a href="https://github.com/ultralytics/yolov5/graphs/contributors">
+<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" alt="Ultralytics open-source contributors"></a>
 
 ## Table of Contents
 

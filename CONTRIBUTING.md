@@ -50,7 +50,7 @@ Before we can merge your pull request, you must sign our [Contributor License Ag
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
 ```
-I have read the CLA Document and I sign the CLA.
+I have read the CLA Document and I sign the CLA
 ```
 
 ### Google-Style Docstrings

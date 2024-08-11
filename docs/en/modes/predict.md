@@ -104,7 +104,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source          | Argument                                   | Type            | Notes                                                                                       |
+| Source          | Example                                    | Type            | Notes                                                                                       |
 | --------------- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
 | image           | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
 | URL             | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |

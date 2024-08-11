@@ -49,7 +49,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -107,7 +107,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
         
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 For a comprehensive list of available arguments, please refer to the model [Training](../../modes/train.md) page.

@@ -180,9 +180,9 @@ Integrating DVCLive with Ultralytics YOLOv8 is straightforward. Start by install
 
     === "CLI"
 
-    ```bash
-    pip install ultralytics dvclive
-    ```
+        ```bash
+        pip install ultralytics dvclive
+        ```
 
 Next, initialize a Git repository and configure DVCLive in your project:
 
@@ -190,13 +190,13 @@ Next, initialize a Git repository and configure DVCLive in your project:
 
     === "CLI"
 
-    ```bash
-    git init -q
-    git config --local user.email "you@example.com"
-    git config --local user.name "Your Name"
-    dvc init -q
-    git commit -m "DVC init"
-    ```
+        ```bash
+        git init -q
+        git config --local user.email "you@example.com"
+        git config --local user.name "Your Name"
+        dvc init -q
+        git commit -m "DVC init"
+        ```
 
 Follow our [YOLOv8 Installation guide](../quickstart.md) for detailed setup instructions.
 
@@ -262,9 +262,9 @@ DVCLive offers powerful tools to visualize the results of YOLOv8 experiments. He
 
     === "CLI"
 
-    ```bash
-    dvc plots diff $(dvc exp list --names-only)
-    ```
+        ```bash
+        dvc plots diff $(dvc exp list --names-only)
+        ```
 
 To display these plots in a Jupyter Notebook, use:
 

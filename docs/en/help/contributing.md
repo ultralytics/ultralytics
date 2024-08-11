@@ -158,7 +158,7 @@ Google-style docstrings provide clear, concise documentation for functions and c
 
 Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets
 
- the project’s quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
+the project’s quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 

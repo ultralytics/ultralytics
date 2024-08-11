@@ -1,30 +1,28 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
+import os
 import sys
+import time
+from datetime import datetime
 from pathlib import Path
-
-from PySide6.QtCore import QObject, Slot
-from PySide6.QtGui import QGuiApplication, QAction, QImage, QKeySequence, QPixmap
-from PySide6.QtQml import QQmlApplicationEngine, QmlElement, QQmlImageProviderBase
-from PySide6.QtQuickControls2 import QQuickStyle
-
-from PySide6.QtQuick import QQuickView, QQuickImageProvider
-from PySide6.QtCore import QUrl, QThread, Signal, QStandardPaths, Property, QSize
-from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QFileDialog, QInputDialog
+from queue import Queue
 
 import cv2
-from datetime import datetime
-from queue import Queue
-from ultralytics import YOLO
-import os
-import time
 import numpy as np
+from PySide6.QtCore import QSize, QStandardPaths, QThread, Signal, Slot
+from PySide6.QtGui import QGuiApplication, QImage, QPixmap
 from PySide6.QtMultimedia import QMediaFormat
+from PySide6.QtQml import QmlElement, QQmlApplicationEngine, QQmlImageProviderBase
+from PySide6.QtQuick import QQuickImageProvider
+from PySide6.QtQuickControls2 import QQuickStyle
+
+from ultralytics import YOLO
 
 # pyside6-uic camera_video.ui -o ui_camera_video.py
 AVI = "video/x-msvideo"  # AVI
-MP4 = 'video/mp4'
+MP4 = "video/mp4"
+
 
 def get_supported_mime_types():
     result = []
@@ -32,6 +30,7 @@ def get_supported_mime_types():
         mime_type = QMediaFormat(f).mimeType()
         result.append(mime_type.name())
     return result
+
 
 # To be used on the @QmlElement decorator
 # (QML_IMPORT_MINOR_VERSION is optional)
@@ -41,10 +40,11 @@ QML_IMPORT_MAJOR_VERSION = 1
 allimg = []
 # index = 0
 Result_in_queue_maxsize = 100
-result_que = Queue(maxsize = Result_in_queue_maxsize)
+result_que = Queue(maxsize=Result_in_queue_maxsize)
 
 # https://doc.qt.io/qt-6/qtquick-qmlmodule.html
 # https://doc.qt.io/qtforpython-6/PySide6/QtQuick/index.html
+
 
 class ThreadQ(QThread):
     updateFrame = Signal(QPixmap)
@@ -68,24 +68,26 @@ class ThreadQ(QThread):
 
     def set_input(self, fname):
         self.input = fname
-    
+
     def set_model(self):
-        if self.m!=None:
+        if self.m != None:
             del self.m
             import gc
+
             gc.collect()
         self.m = YOLO(self.model)
 
-    '''
+    """
     #########################
     method 1
     #########################
-    '''
+    """
+
     def run(self):
         self.set_model()
-        if self.input == 'camera':
+        if self.input == "camera":
             self.cap = cv2.VideoCapture(0)
-        elif self.input=='video':
+        elif self.input == "video":
             self.cap = cv2.VideoCapture(self.video)
 
         if self.checked:
@@ -99,13 +101,13 @@ class ThreadQ(QThread):
                 fps = 24
             # fps = 10
             movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
-            if '/' in movies_location:
+            if "/" in movies_location:
                 movies_location = movies_location.replace("/", os.sep)
-            if '\\' in movies_location:
+            if "\\" in movies_location:
                 movies_location = movies_location.replace("\\", os.sep)
             date = datetime.now().isoformat().__str__().replace(".", "_").replace(":", "_")
             outpath = movies_location + os.sep + date + ".avi"
-            self.videowriter = cv2.VideoWriter(outpath, cv2.VideoWriter_fourcc(*'XVID'), fps, sizes)
+            self.videowriter = cv2.VideoWriter(outpath, cv2.VideoWriter_fourcc(*"XVID"), fps, sizes)
         # cnt = 0
         if self.input in ["camera", "video"]:
             ret = True
@@ -118,7 +120,7 @@ class ThreadQ(QThread):
                 if not ret:
                     continue
 
-                result = self.m.predict(frame, batch = 1, stream=False)
+                result = self.m.predict(frame, batch=1, stream=False)
                 frame = result[0].plot()
                 # cv2.putText(frame, str(fps)+"_"+str(sizes), (100, 100), cvfont, 0.5, [255, 0, 0], 1)
                 # cv2.putText(frame, str(nu), (360, 360), cvfont, 2, [255, 0, 0], 1)
@@ -140,14 +142,14 @@ class ThreadQ(QThread):
             # outpath = r'C:\Users\10696\Desktop\CV\ZouJiu1\Pytorch_YOLOV3\log\output'
             # nu = 0
             for i in os.listdir(self.video):
-                if '.jpg' in i or '.jpeg' in i or '.png' in i or '.bmp' in i:
+                if ".jpg" in i or ".jpeg" in i or ".png" in i or ".bmp" in i:
                     allimg.append(i)
             for i in allimg:
                 if self.image_stop:
                     self.updateFrame.emit(self.zeros)
                     break
                 frame = cv2.imread(os.path.join(self.video, i))
-                result = self.m.predict(frame, batch = 1, stream=False)
+                result = self.m.predict(frame, batch=1, stream=False)
                 frame = result[0].plot()
                 # cv2.imwrite(os.path.join(outpath, str(nu)+".jpg"), frame)
                 # nu += 1
@@ -155,7 +157,7 @@ class ThreadQ(QThread):
                     img = cv2.resize(frame, sizes)
                     self.videowriter.write(img)
                 color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                
+
                 # Creating and scaling QImage
                 h, w, ch = color_frame.shape
                 img = QImage(color_frame.data, w, h, ch * w, QImage.Format_RGB888)
@@ -166,6 +168,7 @@ class ThreadQ(QThread):
             self.videowriter.release()
             self.videowriter = True
 
+
 # updateModel = Signal(str)
 # @Slot()
 # def open_model(path:QUrl):
@@ -173,10 +176,12 @@ class ThreadQ(QThread):
 #     model = path.toString()[2**3:]
 #     updateModel.emit(model)
 
+
 @QmlElement  # 装饰器，表示信号传递给这些槽，下面的函数都是槽，信号都在qml文件中
 # class Camera_video(QObject):
 class Camera_video(QQuickImageProvider):
     imageChange = Signal(bool)
+
     def __init__(self):
         # super().__init__(QQuickImageProvider)
         super().__init__(QQmlImageProviderBase.ImageType.Pixmap)
@@ -191,9 +196,8 @@ class Camera_video(QQuickImageProvider):
         # inpath = r"C:\Users\10696\Desktop\CV\ZouJiu1\Pytorch_YOLOV3\log\val"
         # self.imagelist = [os.path.join(inpath, i) for i in os.listdir(inpath)]
         self.pixmap = self.th.zeros
-    
-    def requestPixmap(self, id="image_elementll", size=QSize(0, 0), 
-                      requestedSize=QSize(0, 0)):
+
+    def requestPixmap(self, id="image_elementll", size=QSize(0, 0), requestedSize=QSize(0, 0)):
         # w, h = 640, 600
         # # image = np.zeros((w, h, 3)) * 255
         # image = cv2.imread(np.random.choice(self.imagelist, 1)[0])
@@ -202,7 +206,7 @@ class Camera_video(QQuickImageProvider):
         # image = QImage(image.data, w, h, ch * w, QImage.Format_RGB888)
         # pixmap = QPixmap.fromImage(image)
         return self.pixmap
-        
+
     @Slot(QPixmap)
     def updateImage(self, image):
         self.pixmap = image
@@ -211,15 +215,15 @@ class Camera_video(QQuickImageProvider):
     @Slot(str, result=None)
     def get_model(self, model):
         self.th.model = model.replace("file:///", "")
-        
+
     @Slot(str, result=None)
     def get_video(self, video):
         self.th.video = video.replace("file:///", "")
-        
+
     @Slot(str, result=None)
     def get_type(self, type):
         self.th.input = type
-        
+
     @Slot(bool)
     def get_checked(self, ischecked):
         self.th.checked = ischecked
@@ -252,14 +256,15 @@ class Camera_video(QQuickImageProvider):
         self.th.image_stop = True
         self.kill_thread()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # https://doc.qt.io/qt-6/qmlapplications.html
     app = QGuiApplication(sys.argv)
     QQuickStyle.setStyle("Material")
     # pyside6-rcc style.qrc -o style_rc.py
     # Get the path of the current directory, and then add the name
     # of the QML file, to load it.
-    qml_file = Path(__file__).parent / 'view.qml'
+    qml_file = Path(__file__).parent / "view.qml"
     my_image_provider = Camera_video()
     engine = QQmlApplicationEngine()  # 分析qml文件
     # https://stackoverflow.com/questions/72729052/how-to-show-opencv-camera-feed-in-a-qml-application#
@@ -273,7 +278,7 @@ if __name__ == '__main__':
 
     # root = engine.rootObjects()[0]
     # root.model_fileOpened.connect(open_model)
-    
+
     # view = QQuickView()
     # view.setResizeMode(QQuickView.SizeRootObjectToView) # 自适应窗口大小，拽动也能保持不变
     # view.setSource(QUrl.fromLocalFile(qml_file.resolve())) # 视图配置qml文件的加载路径

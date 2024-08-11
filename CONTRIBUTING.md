@@ -4,9 +4,9 @@ description: Learn how to contribute to Ultralytics YOLO open-source repositorie
 keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of conduct, bug reporting, GitHub, CLA, Google-style docstrings
 ---
 
-# Contributing to Ultralytics Open-Source YOLO Repositories
+# Contributing to Ultralytics Open-Source Repositories
 
-Thank you for your interest in contributing to Ultralytics open-source YOLO repositories! Your contributions will enhance the project and benefit the entire community. This document provides guidelines and best practices to help you get started.
+Thank you for your interest in contributing to [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) repositories! Your contributions will enhance the project and benefit the entire community. This document provides guidelines and best practices to help you get started.
 
 ## Table of Contents
 

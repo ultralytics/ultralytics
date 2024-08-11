@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of co
 
 # Contributing to Ultralytics Open-Source Projects
 
-Welcome! We’re thrilled that you’re considering contributing to the [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire community. This guide provides clear guidelines and best practices to help you get started.
+Welcome! We're thrilled that you're considering contributing to the [Ultralytics](https://ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire community. This guide provides clear guidelines and best practices to help you get started.
 
 ## Table of Contents
 
@@ -32,9 +32,9 @@ We greatly appreciate contributions in the form of pull requests. To make the re
 
 2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name that reflects your changes.
 
-3. **Make your changes:** Ensure your code adheres to the project’s style guidelines and does not introduce any new errors or warnings.
+3. **Make your changes:** Ensure your code adheres to the project's style guidelines and does not introduce any new errors or warnings.
 
-4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests):** Before submitting, test your changes locally to confirm they work as expected and don’t cause any new issues.
+4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests):** Before submitting, test your changes locally to confirm they work as expected and don't cause any new issues.
 
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with a concise and descriptive commit message. If your changes address a specific issue, include the issue number in your commit message.
 
@@ -116,7 +116,7 @@ When adding new functions or classes, please include [Google-style docstrings](h
 
 ### GitHub Actions CI Tests
 
-All pull requests must pass the GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project’s quality standards. Review the CI output and address any issues that arise.
+All pull requests must pass the GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
 
 ## Reporting Bugs
 
@@ -130,9 +130,9 @@ We encourage all contributors to familiarize themselves with the terms of the AG
 
 ## Conclusion
 
-Thank you for your interest in contributing to [Ultralytics open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you’re enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
+Thank you for your interest in contributing to [Ultralytics open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
 
-We’re excited to see your ideas come to life and appreciate your commitment to advancing object detection technology. Together, let’s continue to grow and innovate in this exciting open-source journey. Happy coding! 🚀🌟
+We're excited to see your ideas come to life and appreciate your commitment to advancing object detection technology. Together, let's continue to grow and innovate in this exciting open-source journey. Happy coding! 🚀🌟
 
 ## FAQ
 
@@ -152,13 +152,13 @@ For more information, see the [CLA Signing](#cla-signing) section.
 
 ### What are Google-style docstrings, and why are they required for Ultralytics YOLO contributions?
 
-Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function’s purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#google-style-docstrings) section.
+Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#google-style-docstrings) section.
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
 Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets
 
-the project’s quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
+the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 

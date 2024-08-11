@@ -2295,7 +2295,8 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             shear=hyp.shear,
             perspective=hyp.perspective,
             pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-        ))
+        )
+    )
 
     pre_transform = Compose(pre_transform)
 

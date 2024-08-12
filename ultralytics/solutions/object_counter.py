@@ -30,7 +30,6 @@ class ObjectCounter:
         DEFAULT_CFG_DICT.update(kwargs)
         self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.im0 = None
-        self.annotator = None
         self.in_counts = 0
         self.out_counts = 0
         self.count_ids = []
@@ -61,8 +60,8 @@ class ObjectCounter:
         """Extracts and processes tracking data for counting objects in a video stream."""
 
         # Initialize annotator and draw regions
-        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], self.model.names)
-        self.annotator.draw_region(
+        annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], self.model.names)
+        annotator.draw_region(
             reg_pts=DEFAULT_CFG_DICT["reg_pts"],
             color=DEFAULT_CFG_DICT["reg_color"],
             thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
@@ -79,7 +78,7 @@ class ObjectCounter:
         if track_ids is not None:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(
+                annotator.box_label(
                     box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True)
                 )
 
@@ -95,7 +94,7 @@ class ObjectCounter:
 
                 # Draw track trails
                 if DEFAULT_CFG_DICT["draw_tracks"]:
-                    self.annotator.draw_centroid_and_tracks(
+                    annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True),
                         track_thickness=DEFAULT_CFG_DICT["line_width"],
@@ -145,7 +144,7 @@ class ObjectCounter:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
-            self.annotator.display_analytics(
+            annotator.display_analytics(
                 self.im0, labels_dict, (DEFAULT_CFG_DICT["txt_color"]), (DEFAULT_CFG_DICT["bg_color"]), 10
             )
 

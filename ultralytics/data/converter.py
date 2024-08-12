@@ -344,13 +344,13 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
-        classes (int): Total classes in the dataset i.e for COCO classes=80
+        classes (int): Total classes in the dataset i.e. for COCO classes=80
 
     Example:
         ```python
         from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-        # for coco dataset, we have 80 classes
+        # The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
         convert_segment_masks_to_yolo_seg('path/to/masks_directory', 'path/to/output/directory', classes=80)
         ```
 
@@ -373,7 +373,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     """
     import os
 
-    pixel_to_class_mapping = {i + 1: i for i in range(80)}
+    pixel_to_class_mapping = {i + 1: i for i in range(classes)}
     for mask_filename in os.listdir(masks_dir):
         if mask_filename.endswith(".png"):
             mask_path = os.path.join(masks_dir, mask_filename)

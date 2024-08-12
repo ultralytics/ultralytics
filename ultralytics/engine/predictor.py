@@ -395,10 +395,6 @@ class BasePredictor:
         if self.dataset.mode == "image":
             cv2.destroyWindow(p)  # close the image window
 
-
-if self.dataset.mode == "image":
-    cv2.destroyWindow(p)
-
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""
         for callback in self.callbacks.get(event, []):

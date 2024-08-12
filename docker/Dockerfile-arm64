@@ -6,6 +6,12 @@
 # Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian (new)
 FROM arm64v8/debian:bookworm-slim
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -20,17 +26,14 @@ RUN apt update \
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and assign permissions
+# Copy contents and configure git
 COPY . .
-RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
-
-# Remove python3.11/EXTERNALLY-MANAGED to avoid 'externally-managed-environment' issue, Debian 12 Bookworm error
-RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache-dir -e ".[export]"
+RUN pip install -e ".[export]"
 
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python

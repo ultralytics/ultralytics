@@ -198,7 +198,9 @@ class Heatmap:
                 )
 
         # Normalize, apply colormap to heatmap and combine with original image
-        heatmap_colored = cv2.applyColorMap(cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), DEFAULT_CFG_DICT["colormap"])
+        heatmap_colored = cv2.applyColorMap(
+            cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), DEFAULT_CFG_DICT["colormap"]
+        )
         im0 = cv2.addWeighted(
             im0, 1 - DEFAULT_CFG_DICT["heatmap_alpha"], heatmap_colored, DEFAULT_CFG_DICT["heatmap_alpha"], 0
         )

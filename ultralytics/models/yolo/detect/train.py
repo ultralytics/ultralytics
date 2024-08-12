@@ -62,7 +62,7 @@ class DetectionTrainer(BaseTrainer):
             sz = (
                 random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
                 // self.stride
-                * self.stride)
+                * self.stride
             )  # size
             sf = sz / max(imgs.shape[2:])  # scale factor
             if sf != 1:

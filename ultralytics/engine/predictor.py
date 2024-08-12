@@ -393,7 +393,8 @@ class BasePredictor:
         cv2.imshow(p, im)
         cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
         if self.dataset.mode == "image":
-             cv2.destroyWindow(p)
+            cv2.destroyWindow(p)
+
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""
         for callback in self.callbacks.get(event, []):

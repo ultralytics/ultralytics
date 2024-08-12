@@ -87,7 +87,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient neural network inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
 
-- [RKNN](rknn.md): Developed by ...
+- [RKNN](rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN (Rockchip Neural Network) is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 
 ### Export Formats
 

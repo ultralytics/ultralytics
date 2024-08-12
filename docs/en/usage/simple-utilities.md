@@ -63,7 +63,7 @@ The converted masks will be saved in the specified output directory.
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-# For COCO dataset we have 80 classes
+# The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
 convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 

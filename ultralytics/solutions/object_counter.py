@@ -78,9 +78,7 @@ class ObjectCounter:
         if track_ids is not None:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                annotator.box_label(
-                    box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True)
-                )
+                annotator.box_label(box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
                 # Store class info
                 if self.model.names[cls] not in self.class_wise_count:

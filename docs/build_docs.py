@@ -153,6 +153,8 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
+
+    # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
     # Update edit links
@@ -211,6 +213,32 @@ def convert_plaintext_links_to_html(content):
     return str(soup) if modified else content
 
 
+def remove_macros():
+    # Delete the /macros directory and sitemap.xml.gz from the built site
+    shutil.rmtree(SITE / "macros", ignore_errors=True)
+    (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
+
+    # Process sitemap.xml
+    sitemap = SITE / "sitemap.xml"
+    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
+
+    # Find indices of '/macros/' lines
+    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
+
+    # Create a set of indices to remove (including lines before and after)
+    indices_to_remove = set()
+    for i in macros_indices:
+        indices_to_remove.update(range(i - 1, i + 4))  # i-1, i, i+1, i+2, i+3
+
+    # Create new list of lines, excluding the ones to remove
+    new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
+
+    # Write the cleaned content back to the file
+    sitemap.write_text("".join(new_lines), encoding="utf-8")
+
+    print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
+
+
 def main():
     """Builds docs, updates titles and edit links, and prints local server command."""
     prepare_docs_markdown()
@@ -218,6 +246,7 @@ def main():
     # Build the main documentation
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
+    remove_macros()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

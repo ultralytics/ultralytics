@@ -34,10 +34,7 @@ class Heatmap:
         self.initialized = False
         self.heatmap = None
 
-        # Predict/track information
-        self.boxes = []
-        self.track_ids = []
-        self.clss = []
+        # track information
         self.track_history = defaultdict(list)
 
         # Object Counting Information
@@ -97,11 +94,11 @@ class Heatmap:
             iou=DEFAULT_CFG_DICT["iou"],
             conf=DEFAULT_CFG_DICT["conf"],
         )
-        self.boxes, self.clss, self.track_ids = solutions.extract_tracks(tracks)
+        boxes, clss, track_ids = solutions.extract_tracks(tracks)
 
         self.annotator = Annotator(im0, DEFAULT_CFG_DICT["line_width"], None)
 
-        if self.track_ids is not None:
+        if track_ids is not None:
             # Draw counting region
             if DEFAULT_CFG_DICT["reg_pts"] is not None:
                 self.annotator.draw_region(
@@ -110,7 +107,7 @@ class Heatmap:
                     thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
                 )
 
-            for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
+            for box, cls, track_id in zip(boxes, clss, track_ids):
                 # Store class info
                 if self.model.names[cls] not in self.class_wise_count:
                     self.class_wise_count[self.model.names[cls]] = {"IN": 0, "OUT": 0}
@@ -168,7 +165,7 @@ class Heatmap:
                                     self.class_wise_count[self.model.names[cls]]["OUT"] += 1
 
         else:
-            for box, cls in zip(self.boxes, self.clss):
+            for box, cls in zip(boxes, clss):
                 if DEFAULT_CFG_DICT["shape"] == "circle":
                     x0, y0, x1, y1 = map(int, [box[0], box[1], box[2], box[3]])
                     center_x, center_y = (x0 + x1) // 2, (y0 + y1) // 2
@@ -201,8 +198,7 @@ class Heatmap:
                 )
 
         # Normalize, apply colormap to heatmap and combine with original image
-        heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
-        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), DEFAULT_CFG_DICT["colormap"])
+        heatmap_colored = cv2.applyColorMap(cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), DEFAULT_CFG_DICT["colormap"])
         im0 = cv2.addWeighted(
             im0, 1 - DEFAULT_CFG_DICT["heatmap_alpha"], heatmap_colored, DEFAULT_CFG_DICT["heatmap_alpha"], 0
         )

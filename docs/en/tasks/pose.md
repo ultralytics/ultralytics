@@ -216,6 +216,7 @@ Available YOLOv8-pose export formats are in the table below. You can export to a
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-pose_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+| [RKNN](../integrations/rknn.md)                   | `rknn`            | `yolov8n-{platform}.rknn/`     | ❌       | `imgsz`, `name`                                                      |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

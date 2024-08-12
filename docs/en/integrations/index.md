@@ -87,6 +87,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient neural network inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
 
+- [RKNN](rknn.md): Developed by ...
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
@@ -106,6 +108,7 @@ We also support a variety of model export formats for deployment in different en
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+| [RKNN](../integrations/rknn.md)                   | `rknn`            | `yolov8n-{platform}.rknn/`| ❌       | `imgsz`, `name`                                                      |
 
 Explore the links to learn more about each integration and how to get the most out of them with Ultralytics. See full `export` details in the [Export](../modes/export.md) page.
 

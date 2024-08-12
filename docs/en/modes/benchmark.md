@@ -82,6 +82,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.   |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.     |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.         |
+| `name`    | `None`        | Device name for RKNN export. Example: `"rk3588"`                                                                                                  |
 
 ## Export Formats
 
@@ -102,6 +103,7 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+| [RKNN](../integrations/rknn.md)                   | `rknn`            | `yolov8n-{platform}.rknn/`| ❌       | `imgsz`, `name`                                                      |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

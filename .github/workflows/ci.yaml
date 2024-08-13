@@ -336,6 +336,13 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
+      - name: Cleanup toolcache
+        run: |
+          echo "Free space before deletion:"
+          df -h /
+          rm -rf /opt/hostedtoolcache
+          echo "Free space after deletion:"
+          df -h /
       - name: Install Linux packages
         run: |
           # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
@@ -361,6 +368,7 @@ jobs:
           yolo val model=yolov8n.pt data=coco8.yaml imgsz=32
           yolo export model=yolov8n.pt format=torchscript imgsz=160
       - name: Test Python
+        # Note this step must use the updated default bash environment, not a python environment
         run: |
           python -c "
           from ultralytics import YOLO

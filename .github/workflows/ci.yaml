@@ -336,6 +336,13 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
+      - name: Cleanup toolcache
+        run: |
+          echo "Free space before deletion:"
+          df -h /
+          rm -rf /opt/hostedtoolcache
+          echo "Free space after deletion:"
+          df -h /
       - name: Install Linux packages
         run: |
           # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
@@ -361,15 +368,14 @@ jobs:
           yolo val model=yolov8n.pt data=coco8.yaml imgsz=32
           yolo export model=yolov8n.pt format=torchscript imgsz=160
       - name: Test Python
+        shell: python
         run: |
-          python -c "
           from ultralytics import YOLO
           model = YOLO('yolov8n.pt')
           results = model.train(data='coco8.yaml', epochs=3, imgsz=160)
           results = model.val(imgsz=160)
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
-          "
       - name: PyTest
         run: |
           git clone https://github.com/ultralytics/ultralytics

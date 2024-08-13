@@ -5,6 +5,12 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch
 FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -20,13 +26,13 @@ RUN apt update \
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and assign permissions
+# Copy contents and configure git
 COPY . .
-RUN git remote set-url origin https://github.com/ultralytics/ultralytics.git
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Remove opencv-python from Ultralytics dependencies as it conflicts with opencv-python installed in base image
-RUN grep -v "opencv-python" pyproject.toml > temp.toml && mv temp.toml pyproject.toml
+RUN sed -i '/opencv-python/d' pyproject.toml
 
 # Download onnxruntime-gpu 1.15.1 for Jetson Linux 35.2.1 (JetPack 5.1). Other versions can be seen in https://elinux.org/Jetson_Zoo#ONNX_Runtime
 ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
@@ -34,7 +40,7 @@ ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl on
 # Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
-RUN pip install --no-cache-dir -e ".[export]"
+RUN pip install -e ".[export]"
 RUN rm *.whl
 
 

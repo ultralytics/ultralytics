@@ -1037,3 +1037,7 @@ class C3PSA(C3):
         super().__init__(c1, c2, n=n, e=e)
         c_ = int(c2 * e)  # hidden channels
         self.m = nn.Sequential(*(PSABlock(c_, attn_ratio=0.5, num_heads=c_ // 64) for _ in range(n)))
+
+    def forward(self, x):
+        """Forward pass through the CSP bottleneck with 2 convolutions."""
+        return self.cv3(torch.cat((self.cv1(x), self.m(self.cv2(x))), 1))

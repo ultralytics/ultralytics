@@ -47,7 +47,7 @@ PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
-    Usage examples for running Ultralytics YOLO:
+    Examples for running Ultralytics:
 
     1. Install the ultralytics package:
 

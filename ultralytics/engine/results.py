@@ -460,7 +460,7 @@ class Results(SimpleClass):
         show=False,
         save=False,
         filename=None,
-        instance=False,
+        color_mode="class",
     ):
         """
         Plots detection results on an input RGB image.
@@ -482,7 +482,7 @@ class Results(SimpleClass):
             show (bool): Whether to display the annotated image.
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
-            instance (bool): Whether to determine the plot color by instance. Default to False.
+            color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -493,6 +493,7 @@ class Results(SimpleClass):
             ...     im = result.plot()
             ...     im.show()
         """
+        assert color_mode in ["instance", "color"], f"Expected `instance` or `class`, but got {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
@@ -521,7 +522,7 @@ class Results(SimpleClass):
                     .contiguous()
                     / 255
                 )
-            idx = pred_boxes.cls if pred_boxes and (not instance) else reversed(range(len(pred_masks)))
+            idx = pred_boxes.cls if pred_boxes and color_mode == "class" else reversed(range(len(pred_masks)))
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
@@ -531,7 +532,7 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(box, label, color=colors(i if instance else c, True), rotated=is_obb)
+                annotator.box_label(box, label, color=colors(i if color_mode == "instance" else c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -547,7 +548,7 @@ class Results(SimpleClass):
                     self.orig_shape,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
-                    kpt_color=colors(i, True) if instance else None,
+                    kpt_color=colors(i, True) if color_mode == "instance" else None,
                 )
 
         # Show results

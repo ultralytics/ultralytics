@@ -267,7 +267,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors">
+<a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" alt="Ultralytics open-source contributors"></a>
 
 ## <div align="center">许可证</div>

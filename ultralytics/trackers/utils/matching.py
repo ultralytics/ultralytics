@@ -19,18 +19,23 @@ except (ImportError, AssertionError, AttributeError):
 
 def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True) -> tuple:
     """
-    Perform linear assignment using scipy or lap.lapjv.
+    Perform linear assignment using either the scipy or lap.lapjv method.
 
     Args:
-        cost_matrix (np.ndarray): The matrix containing cost values for assignments.
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
         thresh (float): Threshold for considering an assignment valid.
-        use_lap (bool, optional): Whether to use lap.lapjv. Defaults to True.
+        use_lap (bool): Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used.
 
     Returns:
-        Tuple with:
-            - matched indices
-            - unmatched indices from 'a'
-            - unmatched indices from 'b'
+        (tuple): A tuple containing:
+            - matched_indices (np.ndarray): Array of matched indices of shape (K, 2), where K is the number of matches.
+            - unmatched_a (np.ndarray): Array of unmatched indices from the first set, with shape (L,).
+            - unmatched_b (np.ndarray): Array of unmatched indices from the second set, with shape (M,).
+
+    Examples:
+        >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        >>> thresh = 5.0
+        >>> matched_indices, unmatched_a, unmatched_b = linear_assignment(cost_matrix, thresh, use_lap=True)
     """
 
     if cost_matrix.size == 0:
@@ -68,6 +73,12 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
 
     Returns:
         (np.ndarray): Cost matrix computed based on IoU.
+
+    Examples:
+        Compute IoU distance between two sets of tracks
+        >>> atracks = [np.array([0, 0, 10, 10]), np.array([20, 20, 30, 30])]
+        >>> btracks = [np.array([5, 5, 15, 15]), np.array([25, 25, 35, 35])]
+        >>> cost_matrix = iou_distance(atracks, btracks)
     """
 
     if atracks and isinstance(atracks[0], np.ndarray) or btracks and isinstance(btracks[0], np.ndarray):
@@ -98,12 +109,19 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     Compute distance between tracks and detections based on embeddings.
 
     Args:
-        tracks (list[STrack]): List of tracks.
-        detections (list[BaseTrack]): List of detections.
-        metric (str, optional): Metric for distance computation. Defaults to 'cosine'.
+        tracks (list[STrack]): List of tracks, where each track contains embedding features.
+        detections (list[BaseTrack]): List of detections, where each detection contains embedding features.
+        metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
 
     Returns:
-        (np.ndarray): Cost matrix computed based on embeddings.
+        (np.ndarray): Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks
+            and M is the number of detections.
+
+    Examples:
+        Compute the embedding distance between tracks and detections using cosine metric
+        >>> tracks = [STrack(...), STrack(...)]  # List of track objects with embedding features
+        >>> detections = [BaseTrack(...), BaseTrack(...)]  # List of detection objects with embedding features
+        >>> cost_matrix = embedding_distance(tracks, detections, metric='cosine')
     """
 
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
@@ -122,11 +140,17 @@ def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
     Fuses cost matrix with detection scores to produce a single similarity matrix.
 
     Args:
-        cost_matrix (np.ndarray): The matrix containing cost values for assignments.
-        detections (list[BaseTrack]): List of detections with scores.
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
+        detections (list[BaseTrack]): List of detections, each containing a score attribute.
 
     Returns:
-        (np.ndarray): Fused similarity matrix.
+        (np.ndarray): Fused similarity matrix with shape (N, M).
+
+    Examples:
+        Fuse a cost matrix with detection scores
+        >>> cost_matrix = np.random.rand(5, 10)  # 5 tracks and 10 detections
+        >>> detections = [BaseTrack(score=np.random.rand()) for _ in range(10)]
+        >>> fused_matrix = fuse_score(cost_matrix, detections)
     """
 
     if cost_matrix.size == 0:

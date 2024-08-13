@@ -9,13 +9,13 @@ import numpy as np
 class TrackState:
     """
     Enumeration class representing the possible states of an object being tracked.
-    
+
     Attributes:
         New (int): State when the object is newly detected.
         Tracked (int): State when the object is successfully tracked in subsequent frames.
         Lost (int): State when the object is no longer tracked.
         Removed (int): State when the object is removed from tracking.
-    
+
     Examples:
         >>> state = TrackState.New
         >>> if state == TrackState.New:
@@ -31,7 +31,7 @@ class TrackState:
 class BaseTrack:
     """
     Base class for object tracking, providing foundational attributes and methods.
-    
+
     Attributes:
         _count (int): Class-level counter for unique track IDs.
         track_id (int): Unique identifier for the track.
@@ -45,7 +45,7 @@ class BaseTrack:
         frame_id (int): The most recent frame ID processed by the track.
         time_since_update (int): Frames passed since the last update.
         location (Tuple): The location of the object in the context of multi-camera tracking.
-    
+
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.
         next_id: Increments and returns the next global track ID.
@@ -55,7 +55,7 @@ class BaseTrack:
         mark_lost: Marks the track as lost.
         mark_removed: Marks the track as removed.
         reset_id: Resets the global track ID counter.
-    
+
     Examples:
         Initialize a new track and mark it as lost:
         >>> track = BaseTrack()
@@ -68,7 +68,7 @@ class BaseTrack:
     def __init__(self):
         """
         Initializes a new track with a unique ID and foundational tracking attributes.
-        
+
         Examples:
             Initialize a new track
             >>> track = BaseTrack()

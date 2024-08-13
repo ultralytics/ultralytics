@@ -14,10 +14,10 @@ from .utils.kalman_filter import KalmanFilterXYWH
 class BOTrack(STrack):
     """
     An extended version of the STrack class for YOLOv8, adding object tracking features.
-    
-    This class extends the STrack class to include additional functionalities for object tracking, such as feature 
+
+    This class extends the STrack class to include additional functionalities for object tracking, such as feature
     smoothing, Kalman filter prediction, and reactivation of tracks.
-    
+
     Attributes:
         shared_kalman (KalmanFilterXYWH): A shared Kalman filter for all instances of BOTrack.
         smooth_feat (np.ndarray): Smoothed feature vector.
@@ -26,7 +26,7 @@ class BOTrack(STrack):
         alpha (float): Smoothing factor for the exponential moving average of features.
         mean (np.ndarray): The mean state of the Kalman filter.
         covariance (np.ndarray): The covariance matrix of the Kalman filter.
-    
+
     Methods:
         update_features(feat): Update features vector and smooth it using exponential moving average.
         predict(): Predicts the mean and covariance using Kalman filter.
@@ -36,7 +36,7 @@ class BOTrack(STrack):
         multi_predict(stracks): Predicts the mean and covariance of multiple object tracks using shared Kalman filter.
         convert_coords(tlwh): Converts tlwh bounding box coordinates to xywh format.
         tlwh_to_xywh(tlwh): Convert bounding box to xywh format `(center x, center y, width, height)`.
-    
+
     Examples:
         Create a BOTrack instance and update its features
         >>> bo_track = BOTrack(tlwh=[100, 50, 80, 40], score=0.9, cls=1, feat=np.random.rand(128))
@@ -50,14 +50,14 @@ class BOTrack(STrack):
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
         """
         Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
-        
+
         Args:
             tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray | None): Feature vector associated with the detection.
             feat_history (int): Maximum length of the feature history deque.
-        
+
         Examples:
             Initialize a BOTrack object with bounding box, score, class ID, and feature vector
             >>> tlwh = np.array([100, 50, 80, 120])
@@ -147,26 +147,26 @@ class BOTrack(STrack):
 class BOTSORT(BYTETracker):
     """
     An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC algorithm.
-    
+
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
         appearance_thresh (float): Threshold for appearance similarity (ReID embeddings) between tracks and detections.
         encoder (Any): Object to handle ReID embeddings, set to None if ReID is not enabled.
         gmc (GMC): An instance of the GMC algorithm for data association.
         args (Any): Parsed command-line arguments containing tracking parameters.
-    
+
     Methods:
         get_kalmanfilter(): Returns an instance of KalmanFilterXYWH for object tracking.
         init_track(dets, scores, cls, img): Initialize track with detections, scores, and classes.
         get_dists(tracks, detections): Get distances between tracks and detections using IoU and (optionally) ReID.
         multi_predict(tracks): Predict and track multiple objects with YOLOv8 model.
-    
+
     Examples:
         Initialize BOTSORT and process detections
         >>> bot_sort = BOTSORT(args, frame_rate=30)
         >>> bot_sort.init_track(dets, scores, cls, img)
         >>> bot_sort.multi_predict(tracks)
-    
+
     Note:
         The class is designed to work with the YOLOv8 object detection model and supports ReID only if enabled via args.
     """
@@ -174,11 +174,11 @@ class BOTSORT(BYTETracker):
     def __init__(self, args, frame_rate=30):
         """
         Initialize YOLOv8 object with ReID module and GMC algorithm.
-        
+
         Args:
             args (object): Parsed command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video being processed.
-        
+
         Examples:
             Initialize BOTSORT with command-line arguments and a specified frame rate:
             >>> args = parse_args()

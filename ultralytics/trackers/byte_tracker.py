@@ -12,10 +12,10 @@ from .utils.kalman_filter import KalmanFilterXYAH
 class STrack(BaseTrack):
     """
     Single object tracking representation that uses Kalman filtering for state estimation.
-    
+
     This class is responsible for storing all the information regarding individual tracklets and performs state updates
     and predictions based on Kalman filter.
-    
+
     Attributes:
         shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
         _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
@@ -29,7 +29,7 @@ class STrack(BaseTrack):
         idx (int): Index or identifier for the object.
         frame_id (int): Current frame ID.
         start_frame (int): Frame where the object was first detected.
-    
+
     Methods:
         predict(): Predict the next state of the object using Kalman filter.
         multi_predict(stracks): Predict the next states for multiple tracks.
@@ -39,7 +39,7 @@ class STrack(BaseTrack):
         update(new_track, frame_id): Update the state of a matched track.
         convert_coords(tlwh): Convert bounding box to x-y-aspect-height format.
         tlwh_to_xyah(tlwh): Convert tlwh bounding box to xyah format.
-    
+
     Examples:
         Initialize and activate a new track
         >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls='person')
@@ -51,13 +51,13 @@ class STrack(BaseTrack):
     def __init__(self, xywh, score, cls):
         """
         Initialize a new STrack instance.
-        
+
         Args:
-            xywh (List[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where 
+            xywh (List[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
                 (x, y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
-        
+
         Examples:
             >>> xywh = [100.0, 150.0, 50.0, 75.0, 1]
             >>> score = 0.9
@@ -151,11 +151,11 @@ class STrack(BaseTrack):
     def update(self, new_track, frame_id):
         """
         Update the state of a matched track.
-        
+
         Args:
             new_track (STrack): The new track containing updated information.
             frame_id (int): The ID of the current frame.
-        
+
         Examples:
             Update the state of a track with new detection information
             >>> track = STrack([100, 200, 50, 80, 0.9, 1])
@@ -235,11 +235,11 @@ class STrack(BaseTrack):
 class BYTETracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
-    
+
     Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence.
     It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting
     the new object locations, and performs data association.
-    
+
     Attributes:
         tracked_stracks (List[STrack]): List of successfully activated tracks.
         lost_stracks (List[STrack]): List of lost tracks.
@@ -248,7 +248,7 @@ class BYTETracker:
         args (Namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
-    
+
     Methods:
         update(results, img=None): Updates object tracker with new detections.
         get_kalmanfilter(): Returns a Kalman filter object for tracking bounding boxes.
@@ -259,7 +259,7 @@ class BYTETracker:
         joint_stracks(tlista, tlistb): Combines two lists of stracks.
         sub_stracks(tlista, tlistb): Filters out the stracks present in the second list from the first list.
         remove_duplicate_stracks(stracksa, stracksb): Removes duplicate stracks based on IoU.
-    
+
     Examples:
         Initialize BYTETracker and update with detection results
         >>> tracker = BYTETracker(args, frame_rate=30)
@@ -270,11 +270,11 @@ class BYTETracker:
     def __init__(self, args, frame_rate=30):
         """
         Initialize a BYTETracker instance for object tracking.
-        
+
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
-        
+
         Examples:
             Initialize BYTETracker with command-line arguments and a frame rate of 30
             >>> args = Namespace(track_buffer=30)

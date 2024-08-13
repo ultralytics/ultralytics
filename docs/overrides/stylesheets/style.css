@@ -102,3 +102,100 @@ div.highlight {
   }
 }
 /* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+.git-info,
+.dates-container,
+.authors-container,
+.share-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.git-info {
+  font-size: 0.8em;
+  color: grey;
+  margin-bottom: 10px;
+}
+
+.dates-container,
+.authors-container {
+  margin-bottom: 10px;
+}
+
+.date-item,
+.author-link,
+.share-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.date-item {
+  margin-right: 10px;
+}
+
+.hover-item {
+  transition: all 0.2s ease;
+  filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+  font-size: 1.6em;
+  margin-right: 5px;
+}
+
+.author-link .hover-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 3px;
+}
+
+.hover-item:hover {
+  transform: scale(1.2);
+  filter: grayscale(0%);
+}
+
+.share-buttons {
+  margin-top: 10px;
+}
+
+.share-button {
+  background-color: #1da1f2;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  font-size: 0.95em;
+  margin: 5px;
+  transition: all 0.2s ease;
+}
+
+.share-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+  background-color: #0077b5;
+}
+
+.share-button i {
+  margin-right: 5px;
+  font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+  .git-info {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .dates-container,
+  .authors-container {
+    width: 100%;
+  }
+}
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */

@@ -14,6 +14,7 @@ from ultralytics.utils.plotting import Annotator, colors
 
 class SAHIInference:
     """Runs YOLOv8 and SAHI for object detection on video with options to view, save, and track results."""
+
     def __init__(self):
         """Initializes the SAHIInference class for performing sliced inference using SAHI with YOLOv8 models."""
         self.detection_model = None

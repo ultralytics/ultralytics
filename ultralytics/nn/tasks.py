@@ -66,13 +66,13 @@ from ultralytics.utils.loss import (
     v8PoseLoss,
     v8SegmentationLoss,
 )
+from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
     initialize_weights,
     intersect_dicts,
-    make_divisible,
     model_info,
     scale_img,
     time_sync,
@@ -379,7 +379,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2EDetectLoss(self) if self.end2end else v8DetectionLoss(self)
+        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):

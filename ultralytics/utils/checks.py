@@ -315,7 +315,7 @@ def check_font(font="Arial.ttf"):
         return matches[0]
 
     # Download to USER_CONFIG_DIR if missing
-    url = f"https://ultralytics.com/assets/{name}"
+    url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{name}"
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
@@ -484,7 +484,7 @@ def check_model_file_from_stem(model="yolov8n"):
         return model
 
 
-def check_file(file, suffix="", download=True, hard=True):
+def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
@@ -497,12 +497,12 @@ def check_file(file, suffix="", download=True, hard=True):
         return file
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
-        file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
-        if Path(file).exists():
+        file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
+        if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
-        return file
+        return str(file)
     else:  # search
         files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file
         if not files and hard:
@@ -641,6 +641,8 @@ def check_amp(model):
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
     """
+    from ultralytics.utils.torch_utils import autocast
+
     device = next(model.parameters()).device  # get model device
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
@@ -648,7 +650,7 @@ def check_amp(model):
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
         a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with torch.cuda.amp.autocast(True):
+        with autocast(enabled=True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance

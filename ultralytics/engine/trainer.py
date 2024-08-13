@@ -26,6 +26,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
+    LOCAL_RANK,
     LOGGER,
     RANK,
     TQDM,
@@ -43,6 +44,7 @@ from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     EarlyStopping,
     ModelEMA,
+    autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
@@ -128,7 +130,7 @@ class BaseTrainer:
 
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        with torch_distributed_zero_first(RANK):  # avoid auto-downloading dataset multiple times
+        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
             self.trainset, self.testset = self.get_dataset()
         self.ema = None
 
@@ -172,9 +174,11 @@ class BaseTrainer:
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
-        else:  # i.e. device='cpu' or 'mps'
+        else:  # i.e. device=None or device=''
             world_size = 0
 
         # Run subprocess if DDP training, else train normally
@@ -266,7 +270,7 @@ class BaseTrainer:
         self.amp = bool(self.amp)  # as boolean
         self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK])
+            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -284,7 +288,7 @@ class BaseTrainer:
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=LOCAL_RANK, mode="train")
         if RANK in {-1, 0}:
             # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
             self.test_loader = self.get_dataloader(
@@ -376,7 +380,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with torch.cuda.amp.autocast(self.amp):
+                with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
@@ -506,7 +510,7 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
+        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):

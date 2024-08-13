@@ -61,7 +61,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             colormap=cv2.COLORMAP_PARULA,
             view_img=True,
             shape="circle",
-            classes_names=model.names,
+            names=model.names,
         )
 
         while cap.isOpened():
@@ -102,7 +102,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             view_img=True,
             shape="circle",
             count_reg_pts=line_points,
-            classes_names=model.names,
+            names=model.names,
         )
 
         while cap.isOpened():
@@ -144,7 +144,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             view_img=True,
             shape="circle",
             count_reg_pts=region_points,
-            classes_names=model.names,
+            names=model.names,
         )
 
         while cap.isOpened():
@@ -186,7 +186,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             view_img=True,
             shape="circle",
             count_reg_pts=region_points,
-            classes_names=model.names,
+            names=model.names,
         )
 
         while cap.isOpened():
@@ -221,7 +221,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             colormap=cv2.COLORMAP_PARULA,
             view_img=True,
             shape="circle",
-            classes_names=model.names,
+            names=model.names,
         )
 
         results = model.track(im0, persist=True)
@@ -251,7 +251,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
             colormap=cv2.COLORMAP_PARULA,
             view_img=True,
             shape="circle",
-            classes_names=model.names,
+            names=model.names,
         )
 
         while cap.isOpened():
@@ -273,7 +273,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 | Name               | Type             | Default            | Description                                                       |
 | ------------------ | ---------------- | ------------------ | ----------------------------------------------------------------- |
-| `classes_names`    | `dict`           | `None`             | Dictionary of class names.                                        |
+| `names`            | `list`           | `None`             | Dictionary of class names.                                        |
 | `imw`              | `int`            | `0`                | Image width.                                                      |
 | `imh`              | `int`            | `0`                | Image height.                                                     |
 | `colormap`         | `int`            | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
@@ -348,7 +348,7 @@ from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", classes_names=model.names)
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", names=model.names)
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -381,7 +381,7 @@ from ultralytics import YOLO, solutions
 
 model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", classes_names=model.names)
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, view_img=True, shape="circle", names=model.names)
 
 classes_for_heatmap = [0, 2]  # Classes to visualize
 while cap.isOpened():

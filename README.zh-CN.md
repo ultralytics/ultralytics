@@ -22,7 +22,7 @@
 
 [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) 是一款前沿、最先进（SOTA）的模型，基于先前 YOLO 版本的成功，引入了新功能和改进，进一步提升性能和灵活性。YOLOv8 设计快速、准确且易于使用，使其成为各种物体检测与跟踪、实例分割、图像分类和姿态估计任务的绝佳选择。
 
-我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 <a href="https://docs.ultralytics.com/">文档</a> 报告代码问题 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 提交问题。如需支持、问题或讨论，请加入 上的 Ultralytics 社区 <a href="https://ultralytics.com/discord">Discord</a>、<a href="https://reddit.com/r/ultralytics">Reddit</a> 和<a href="https://community.ultralytics.com">论坛</a>！
+我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 的<a href="https://docs.ultralytics.com/">文档</a>了解详情，如需支持、提问或讨论，请在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提出问题，成为 Ultralytics <a href="https://ultralytics.com/discord">Discord</a>、<a href="https://reddit.com/r/ultralytics">Reddit</a> 和 <a href="https://community.ultralytics.com">论坛</a> 的一员！
 
 如需申请企业许可，请在 [Ultralytics Licensing](https://ultralytics.com/license) 处填写表格
 

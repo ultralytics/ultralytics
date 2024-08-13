@@ -265,7 +265,7 @@ We love your input! YOLOv5 and YOLOv8 would not be possible without help from ou
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors">
+<a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" alt="Ultralytics open-source contributors"></a>
 
 ## <div align="center">License</div>

@@ -21,6 +21,7 @@ import torch
 
 from ultralytics.utils import (
     ASSETS,
+    ARM64,
     AUTOINSTALL,
     IS_COLAB,
     IS_JUPYTER,
@@ -738,6 +739,33 @@ def cuda_is_available() -> bool:
     """
     return cuda_device_count() > 0
 
+
+def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible") -> str | None:
+    """
+    Check SOC type from device tree compatible node. Reference `devicetree-specification` https://github.com/devicetree-org/devicetree-specification/releases/tag/v0.4 section 2.3.1
+
+    Args:
+        family (str): Device family to check, default is "rknn".
+        node (str): Device tree compatible node, default is "/proc/device-tree/compatible".
+    """
+    # NOTE should research more on device tree compatible node and update logic accordingly
+    rknn_supported = {"rk3588": "RK3588", "rk3562": "RK3562", "rk3566": "RK3566_RK3568", "rk3568": "RK3566_RK3568"}
+    rpi_supported = {"raspberrypi,4-model-b": "Raspberry Pi 4 Model B", "bcm2837": "BCM2837"}
+
+    if LINUX and ARM64:
+        try:
+            with open(node, "r") as f:
+                dev_str = f.read()
+                make, model, soc = dev_str.split(",")  # usually device,
+        except IOError:
+            LOGGER.warning(f"Read device node {node} failed.")
+    
+    if family == "rknn":
+        return rknn_supported.get(soc.strip(), None)
+    elif family == "rpi":
+        return rpi_supported.get(soc.strip(), None)
+    else:
+        return None
 
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)

@@ -48,7 +48,7 @@ __all__ = (
     "C3k3",
     "C3m1",
     "SCDown",
-    "PSA",
+    "C2fPSA",
     "C2PSA",
     "C3PSA",
     "C4",

@@ -782,7 +782,7 @@ class C4(C2f):
         )
 
 
-class C3k3(C2f2):
+class C3k3(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -790,7 +790,7 @@ class C3k3(C2f2):
         self.m = nn.ModuleList(C3k(self.c, self.c, 3, shortcut, g) for _ in range(n))
 
 
-class C3K2(C2f2):
+class C3K2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -798,7 +798,7 @@ class C3K2(C2f2):
         self.m = nn.ModuleList(C3K(self.c, self.c, 2, shortcut, g) for _ in range(n))
 
 
-class C3m1(C2f2):
+class C3m1(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -806,7 +806,7 @@ class C3m1(C2f2):
         self.m = nn.ModuleList(C3m(self.c, self.c, 1, shortcut, g) for _ in range(n))
 
 
-class C3n2(C2f2):
+class C3n2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -814,7 +814,7 @@ class C3n2(C2f2):
         self.m = nn.ModuleList(C3n(self.c, self.c, shortcut, g) for _ in range(n))
 
 
-class C3s2(C2f2):
+class C3s2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -964,7 +964,7 @@ class PSABlock(nn.Module):
         return x
 
 
-class PSA(C2):
+class C2PSA(C2):
     """
     Position-wise Spatial Attention module.
 
@@ -992,7 +992,7 @@ class PSA(C2):
         return self.cv2(torch.cat((a, self.m(b)), 1))
 
 
-class C2PSA(C2f):
+class C2fPSA(C2f):
     """
     Position-wise Spatial Attention module.
 

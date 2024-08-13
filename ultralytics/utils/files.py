@@ -13,24 +13,24 @@ from pathlib import Path
 class WorkingDirectory(contextlib.ContextDecorator):
     """
     A context manager and decorator for temporarily changing the working directory.
-    
-    This class allows for the temporary change of the working directory using a context manager or decorator. 
+
+    This class allows for the temporary change of the working directory using a context manager or decorator.
     It ensures that the original working directory is restored after the context or decorated function completes.
-    
+
     Attributes:
         dir (Path): The new directory to switch to.
         cwd (Path): The original current working directory before the switch.
-    
+
     Methods:
         __enter__: Changes the current directory to the specified directory.
         __exit__: Restores the original working directory on context exit.
-    
+
     Examples:
         Using as a context manager:
         >>> with WorkingDirectory('/path/to/new/dir'):
         >>>     # Perform operations in the new directory
         >>>     pass
-    
+
         Using as a decorator:
         >>> @WorkingDirectory('/path/to/new/dir')
         >>> def some_function():
@@ -61,10 +61,10 @@ def spaces_in_path(path):
 
     Args:
         path (str | Path): The original path that may contain spaces.
-    
+
     Yields:
         (Path): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
-    
+
     Examples:
         Use the context manager to handle paths with spaces:
         >>> from ultralytics.utils.files import spaces_in_path
@@ -108,21 +108,21 @@ def spaces_in_path(path):
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
     Increments a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
-    
+
     If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to
-    the end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the 
-    number will be appended directly to the end of the path. If `mkdir` is set to True, the path will be created as a 
+    the end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the
+    number will be appended directly to the end of the path. If `mkdir` is set to True, the path will be created as a
     directory if it does not already exist.
-    
+
     Args:
         path (str | pathlib.Path): Path to increment.
         exist_ok (bool): If True, the path will not be incremented and returned as-is.
         sep (str): Separator to use between the path and the incrementation number.
         mkdir (bool): Create a directory if it does not exist.
-    
+
     Returns:
         (pathlib.Path): Incremented path.
-    
+
     Examples:
         Increment a directory path:
         >>> from pathlib import Path
@@ -130,7 +130,7 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
         >>> new_path = increment_path(path)
         >>> print(new_path)
         runs/exp2
-    
+
         Increment a file path:
         >>> path = Path("runs/exp/results.txt")
         >>> new_path = increment_path(path)
@@ -187,12 +187,12 @@ def get_latest_run(search_dir="."):
 def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_names=False):
     """
     Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
-    
+
     Args:
         model_names (Tuple[str, ...]): Model filenames to update.
         source_dir (Path): Directory containing models and target subdirectory.
         update_names (bool): Update model names from a data YAML.
-    
+
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:
         >>> from ultralytics.utils.files import update_models

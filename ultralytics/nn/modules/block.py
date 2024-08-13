@@ -702,44 +702,26 @@ class CBFuse(nn.Module):
 
 
 # -------------------Experimental-------------------
-class C2f2(nn.Module):
+class C2f2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
-        super().__init__()
-        self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(C2f(self.c, self.c, 2, shortcut, g) for _ in range(n))
 
-    def forward(self, x):
-        """Forward pass through C2f layer."""
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
 
-    def forward_split(self, x):
-        """Forward pass using split() instead of chunk()."""
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
-
-
-class C3f(nn.Module):
+class C3f(C3):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
-        super().__init__()
+        super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c1, c_, 1, 1)
-        self.cv3 = Conv((2 + n) * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.ModuleList(Bottleneck(c_, c_, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
 
     def forward(self, x):
@@ -749,28 +731,19 @@ class C3f(nn.Module):
         return self.cv3(torch.cat(y, 1))
 
 
-class C3f2(nn.Module):
+class C3f2(C3f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
         """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
         expansion.
         """
-        super().__init__()
+        super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c1, c_, 1, 1)
-        self.cv3 = Conv((2 + n) * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.ModuleList(C3k(c_, c_, nk, shortcut, g) for _ in range(n))
 
-    def forward(self, x):
-        """Forward pass through C2f layer."""
-        y = [self.cv2(x), self.cv1(x)]
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv3(torch.cat(y, 1))
 
-
-class C3F2(C3f2):
+class C3F2(C3f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -779,7 +752,7 @@ class C3F2(C3f2):
         self.m = nn.ModuleList(C3f(c_, c_, 2, shortcut, g) for _ in range(n))
 
 
-class C2k2(C2f2):
+class C2k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
@@ -787,7 +760,7 @@ class C2k2(C2f2):
         self.m = nn.ModuleList(C2(self.c, self.c, 2, shortcut, g) for _ in range(n))
 
 
-class C3k2(C2f2):
+class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
@@ -798,7 +771,7 @@ class C3k2(C2f2):
         )
 
 
-class C4(C2f2):
+class C4(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):

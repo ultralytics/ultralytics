@@ -493,7 +493,7 @@ class Results(SimpleClass):
             ...     im = result.plot()
             ...     im.show()
         """
-        assert color_mode in ["instance", "color"], f"Expected `instance` or `class`, but got {color_mode}."
+        assert color_mode in ["instance", "class"], f"Expected `instance` or `class`, but got {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
@@ -532,9 +532,7 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
-                annotator.box_label(
-                    box, label, color=colors(i if color_mode == "instance" else c, True), rotated=is_obb
-                )
+                annotator.box_label(box, label, color=colors(i if color_mode == "instance" else c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

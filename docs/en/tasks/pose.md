@@ -2,6 +2,7 @@
 comments: true
 description: Discover how to use YOLOv8 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
 keywords: pose estimation, YOLOv8, Ultralytics, keypoints, model training, image recognition, deep learning
+model_name: yolov8n-pose
 ---
 
 # Pose Estimation
@@ -201,21 +202,7 @@ Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
 Available YOLOv8-pose export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                            | `format` Argument | Model                          | Metadata | Arguments                                                            |
-| ------------------------------------------------- | ----------------- | ------------------------------ | -------- | -------------------------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-pose.pt`              | ✅       | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-pose.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-pose.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-pose_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`, `dynamic`                          |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-pose.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-pose.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-pose_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-pose.pb`              | ❌       | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-pose.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-pose_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-pose_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-pose_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+{% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
 

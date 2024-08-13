@@ -14,8 +14,8 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
+from ultralytics.utils.checks import check_requirements, check_soc, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -73,6 +73,7 @@ class AutoBackend(nn.Module):
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
             | NCNN                  | *_ncnn_model     |
+            | RKNN                  | *.rknn           |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -121,9 +122,10 @@ class AutoBackend(nn.Module):
             paddle,
             ncnn,
             triton,
+            rknn,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
+        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
         model, metadata = None, None
 
@@ -393,6 +395,19 @@ class AutoBackend(nn.Module):
 
             model = TritonRemoteModel(w)
 
+        # RKNN
+        elif rknn:
+            check_soc()  # TODO add logic for SOC type before install
+            check_requirements()  # TODO add logic for RKNN wheel install from system info
+            from rknnlite.api import RKNNLite
+
+            rknn_model = RKNNLite()
+            rknn_model.load_rknn(w)
+            ret = rknn_model.init_runtime()
+            if ret != 0:
+                ... # TODO add logging
+        
+        
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -556,7 +571,13 @@ class AutoBackend(nn.Module):
         elif self.triton:
             im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
-
+        
+        # RKNN
+        elif self.rknn:
+            im = (im[0].cpu().numpy() * 255).astype("uint8")
+            im = im if isinstance(im, (list, tuple)) else [im]
+            y = self.rknn_model.inference(inputs=im) # TODO change rknn_model to model
+        
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:
             im = im.cpu().numpy()

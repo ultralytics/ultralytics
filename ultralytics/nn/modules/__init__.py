@@ -62,7 +62,9 @@ from .block import (
     RepViTBlock,
     BoT3,
     ShuffleAttention,
-    ECAAttention
+    ECAAttention,
+    SE,
+    SimAM,
 )
 from .conv import (
     CBAM,
@@ -171,5 +173,7 @@ __all__ = (
     "RepViTBlock",
     "BoT3",
     "ShuffleAttention",
-    "ECAAttention"
+    "ECAAttention",
+    "SE",
+    "SimAM",
 )

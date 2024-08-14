@@ -55,7 +55,9 @@ __all__ = (
     "RepViTBlock",
     "BoT3",
     "ShuffleAttention",
-    "ECAAttention"
+    "ECAAttention",
+    "SE",
+    "SimAM",
 )
 
 
@@ -1640,3 +1642,49 @@ class ECAAttention(nn.Module):
         y = self.sigmoid(y)
 
         return x * y.expand_as(x)
+
+# 添加SE模块
+class SE(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SE, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+# 添加SimAM模块
+class SimAM(torch.nn.Module):
+    def __init__(self, e_lambda=1e-4):
+        super(SimAM, self).__init__()
+
+        self.activaton = nn.Sigmoid()
+        self.e_lambda = e_lambda
+
+    def __repr__(self):
+        s = self.__class__.__name__ + '('
+        s += ('lambda=%f)' % self.e_lambda)
+        return s
+
+    @staticmethod
+    def get_module_name():
+        return "simam"
+
+    def forward(self, x):
+        b, c, h, w = x.size()
+
+        n = w * h - 1
+
+        x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(2)
+        y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)) + 0.5
+
+        return x * self.activaton(y)

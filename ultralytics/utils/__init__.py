@@ -1057,7 +1057,7 @@ def vscode_msg() -> str:
     ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
     obs_file = ext_path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
     ext = "ultralytics.ultralytics-snippets"
-    installed = ext_path.glob(f"{ext}*") and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
+    installed = any(ext_path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "None")
     return (
         (
             colorstr("VS Code terminal detected.\n")

@@ -393,7 +393,7 @@ class BasePredictor:
         cv2.imshow(p, im)
         cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
         if self.dataset.mode == "image":
-            cv2.destroyAllWindows()  # Destroys All cv windows can work on all platforms now
+            cv2.destroyAllWindows() #Prevents opening multiple windows in image mode
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

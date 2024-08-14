@@ -397,8 +397,7 @@ class AutoBackend(nn.Module):
 
         # RKNN
         elif rknn:
-            check_soc()  # TODO add logic for SOC type before install
-            check_requirements()  # TODO add logic for RKNN wheel install from system info
+            # check_requirements()  # TODO add logic for RKNN wheel install from system info
             from rknnlite.api import RKNNLite
 
             rknn_model = RKNNLite()

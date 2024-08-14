@@ -756,7 +756,7 @@ def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible") -> st
         try:
             with open(node, "r") as f:
                 dev_str = f.read()
-                make, model, soc = dev_str.split(",")  # usually device,
+                *_, soc = dev_str.split(",")
         except IOError:
             LOGGER.warning(f"Read device node {node} failed.")
     

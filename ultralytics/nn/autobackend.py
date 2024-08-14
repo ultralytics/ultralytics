@@ -573,7 +573,7 @@ class AutoBackend(nn.Module):
         
         # RKNN
         elif self.rknn:
-            im = (im[0].cpu().numpy() * 255).astype("uint8")
+            im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im) # TODO change rknn_model to model
         

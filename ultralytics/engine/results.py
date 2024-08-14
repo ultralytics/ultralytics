@@ -460,7 +460,7 @@ class Results(SimpleClass):
         show=False,
         save=False,
         filename=None,
-        color_mode="class",
+        color_mode="instance",
     ):
         """
         Plots detection results on an input RGB image.

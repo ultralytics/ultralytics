@@ -7,13 +7,13 @@ name: Ultralytics Actions
 on:
   issues:
     types: [opened]
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [opened, closed, synchronize, review_requested]
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main

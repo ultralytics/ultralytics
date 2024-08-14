@@ -1889,7 +1889,9 @@ class Albumentations:
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        if self.transform is None or random.random() > self.p:
+        print("WARNING: these agumentations are disabled because they do not support images with more than 3 channels")
+        disable = True
+        if disable or self.transform is None or random.random() > self.p:
             return labels
 
         if self.contains_spatial:

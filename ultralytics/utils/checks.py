@@ -740,7 +740,7 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible") -> str | None:
+def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible"):
     """
     Check SOC type from device tree compatible node. Reference `devicetree-specification` https://github.com/devicetree-org/devicetree-specification/releases/tag/v0.4 section 2.3.1
 

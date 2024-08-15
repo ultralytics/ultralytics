@@ -381,6 +381,7 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
+            self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = attempt_load_one_weight(weights)
         self.model.load(weights)
         return self

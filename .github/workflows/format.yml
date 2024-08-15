@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 - AGPL-3.0 License https://ultralytics.com/license
 # Ultralytics Actions https://github.com/ultralytics/actions
 # This workflow automatically formats code and documentation in PRs to official Ultralytics standards
 
@@ -9,7 +9,7 @@ on:
     types: [opened, edited]
   pull_request_target:
     branches: [main]
-    types: [opened, closed, synchronize]
+    types: [opened, closed, synchronize, review_requested]
 
 jobs:
   format:
@@ -21,10 +21,9 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }} # note GITHUB_TOKEN automatically generated
           labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
-          markdown: true # format Markdown
-          prettier: true # format YAML
+          prettier: true # format YAML, JSON, Markdown and CSS
           spelling: true # check spelling
           links: false # check broken links
-          summary: true # print PR summary with GPT4 (requires 'openai_api_key' or 'openai_azure_api_key' and 'openai_azure_endpoint')
+          summary: true # print PR summary with GPT4o (requires 'openai_api_key')
           openai_azure_api_key: ${{ secrets.OPENAI_AZURE_API_KEY }}
           openai_azure_endpoint: ${{ secrets.OPENAI_AZURE_ENDPOINT }}

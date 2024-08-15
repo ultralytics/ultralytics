@@ -539,7 +539,6 @@ class Mosaic(BaseMixTransform):
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
         super().__init__(dataset=dataset, p=p)
-        self.dataset = dataset
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
@@ -1692,7 +1691,6 @@ class CopyPaste:
         instances.convert_bbox(format="xyxy")
         instances.denormalize(w, h)
         if self.p and len(instances.segments):
-            n = len(instances)
             _, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
 

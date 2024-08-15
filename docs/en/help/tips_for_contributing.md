@@ -8,7 +8,7 @@ keywords: Contributing to open source, How to contribute to open source, Open so
 
 We're excited that you're interested in [contributing to Ultralytics’ open-source projects](./contributing.md)! Along the way, you might run into [common issues](../guides/yolo-common-issues.md) and need a few pointers. We've got your back! In this guide, we'll go over some key tips that will help you ensure your contributions are high-quality, align with our standards, and are easy to integrate.
 
-Before we get started, we'd like to emphasize the importance of contributing to open-source projects. Contributing to open-source projects is all about being part of a global community working together to build better, more accessible software for everyone. Your contributions help make sure that technology remains open, collaborative, and continually improving, benefiting users and developers around the world. 
+Before we get started, we'd like to emphasize the importance of contributing to open-source projects. Contributing to open-source projects is all about being part of a global community working together to build better, more accessible software for everyone. Your contributions help make sure that technology remains open, collaborative, and continually improving, benefiting users and developers around the world.
 
 If you're still on the fence about contributing, here’s why you should take the plunge:
 
@@ -20,7 +20,7 @@ If you're still on the fence about contributing, here’s why you should take th
 
 ## Contributing Guide and Relevant Tools
 
-Refer to the [official contributing guide](./contributing.md) for Ultralytics to learn more about the best practices for making contributions. If you want to contribute to the development or experiment with the latest source code, start by cloning the Ultralytics repository. After cloning, navigate to the directory and install the package in editable mode. For more details, check out the [quickstart guide](../quickstart.md). 
+Refer to the [official contributing guide](./contributing.md) for Ultralytics to learn more about the best practices for making contributions. If you want to contribute to the development or experiment with the latest source code, start by cloning the Ultralytics repository. After cloning, navigate to the directory and install the package in editable mode. For more details, check out the [quickstart guide](../quickstart.md).
 
 ## Finding Things to Work On
 
@@ -59,13 +59,13 @@ Write all documentation in Markdown (.md) format, ensuring proper use of headers
 
 ### Step 3: Build the Docs Locally
 
-After making your changes, you can build the documentation locally to preview how it will look. First, clone the repository.  
+After making your changes, you can build the documentation locally to preview how it will look. First, clone the repository.
 
 ```bash
 git clone https://github.com/ultralytics/ultralytics
 ```
 
-Then, you can navigate to the project directory.  
+Then, you can navigate to the project directory.
 
 ```bash
 cd ultralytics
@@ -129,12 +129,12 @@ When contributing to the Ultralytics project, keep these coding best practices i
 
 ### Using Ruff Formatter
 
-By integrating Ruff into your workflow, you can ensure that your contributions are clean, efficient, and easy to maintain. Ruff is both a formatter and a linter that can provide comprehensive checks and corrections for your code. 
+By integrating Ruff into your workflow, you can ensure that your contributions are clean, efficient, and easy to maintain. Ruff is both a formatter and a linter that can provide comprehensive checks and corrections for your code.
 
 As a formatter, it quickly checks and re-formats your code to have stylistic consistency without changing how the code runs. As a linter, it goes further by detecting potential logical bugs and stylistic inconsistencies and often suggests fixes. For more detailed instructions and tutorials on using Ruff, visit the [Ruff GitHub repository](https://github.com/astral-sh/ruff).
 
 ## Key Takeaways
 
-Contributing to open-source projects like Ultralytics is a great way to improve your skills, work with experienced developers, and make a difference. By using tools like Ruff for code formatting and linting, following documentation best practices, and giving helpful feedback on PRs, you can make contributions that are valuable and easy to maintain. 
+Contributing to open-source projects like Ultralytics is a great way to improve your skills, work with experienced developers, and make a difference. By using tools like Ruff for code formatting and linting, following documentation best practices, and giving helpful feedback on PRs, you can make contributions that are valuable and easy to maintain.
 
 Visit the [Ultralytics Help Page](./index.md) for more detailed resources, guides, and FAQs on contributing to Ultralytics YOLO projects. Get involved, start contributing, and become part of the open-source community!

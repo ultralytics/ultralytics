@@ -604,6 +604,7 @@ nav:
       - Help: help/index.md
       - Frequently Asked Questions (FAQ): help/FAQ.md
       - Contributing Guide: help/contributing.md
+      - Tips to Start Contributing: help/tips_for_contributing.md
       - Continuous Integration (CI) Guide: help/CI.md
       - Contributor License Agreement (CLA): help/CLA.md
       - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md

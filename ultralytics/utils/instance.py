@@ -50,7 +50,7 @@ class Bboxes:
         """Initializes the Bboxes class with bounding box data in a specified format."""
         assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
         if bboxes.size == 0:
-            bboxes=np.empty((0,4))
+            bboxes = np.empty((0, 4))
         else:
             bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
             assert bboxes.ndim == 2

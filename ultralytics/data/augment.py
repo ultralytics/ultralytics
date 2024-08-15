@@ -1844,6 +1844,11 @@ class Albumentations:
                 if self.contains_spatial
                 else A.Compose(T)
             )
+            self.resize = lambda height,width :(
+                A.Compose(A.Resize(height=height,width=width), bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+                if self.contains_spatial
+                else A.Compose(A.Resize(height=height,width=width))
+            )
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -1893,10 +1898,11 @@ class Albumentations:
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"])
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
+                if labels['img'].shape != new['image'].shape: #Update transformed image if there is a change in the shape of the original image after augmentations
+                    new= self.resize(width=labels['img'].shape[0], height=labels['img'].shape[1])(image=im, bboxes=bboxes, class_labels=cls)
+                labels["img"] = new["image"]
+                labels["cls"] = np.array(new["class_labels"])
+                bboxes = np.array(new["bboxes"], dtype=np.float32)
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed

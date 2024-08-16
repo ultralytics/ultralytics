@@ -1196,19 +1196,21 @@ class RandomLoadText:
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
     mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    affine = RandomPerspective(
+        degrees=hyp.degrees,
+        translate=hyp.translate,
+        scale=hyp.scale,
+        shear=hyp.shear,
+        perspective=hyp.perspective,
+        pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+    )
     pre_transform = Compose(
         [
             mosaic,
-            CopyPaste(dataset, pre_transform=mosaic, p=hyp.copy_paste),
+            # CopyPaste(dataset, pre_transform=mosaic, p=hyp.copy_paste),
             # OldCopyPaste(p=hyp.copy_paste),
-            RandomPerspective(
-                degrees=hyp.degrees,
-                translate=hyp.translate,
-                scale=hyp.scale,
-                shear=hyp.shear,
-                perspective=hyp.perspective,
-                pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-            ),
+            affine,
+            CopyPaste(dataset, pre_transform=Compose([mosaic, affine]), p=hyp.copy_paste),
         ]
     )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation

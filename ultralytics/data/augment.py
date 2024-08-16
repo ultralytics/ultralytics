@@ -1195,10 +1195,11 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     pre_transform = Compose(
         [
-            Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
-            CopyPaste(dataset, pre_transform=Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), p=hyp.copy_paste),
+            mosaic,
+            CopyPaste(dataset, pre_transform=mosaic, p=hyp.copy_paste),
             # OldCopyPaste(p=hyp.copy_paste),
             RandomPerspective(
                 degrees=hyp.degrees,

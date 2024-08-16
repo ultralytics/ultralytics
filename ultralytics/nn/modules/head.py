@@ -52,8 +52,8 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if self.end2end:
             return self.forward_end2end(x)
-        # elif self.export and self.format == "rknn":
-            # return self.forward_rknn(x)
+        elif self.export and self.format == "rknn":
+            return self.forward_rknn(x)
 
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -113,18 +113,18 @@ class Detect(nn.Module):
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
 
-        # if self.export and self.format in {"tflite", "edgetpu"}:
-        #     # Precompute normalization factor to increase numerical stability
-        #     # See https://github.com/ultralytics/ultralytics/issues/7371
-        #     grid_h = shape[2]
-        #     grid_w = shape[3]
-        #     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
-        #     norm = self.strides / (self.stride[0] * grid_size)
-        #     dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        # else:
-        #     dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            # Precompute normalization factor to increase numerical stability
+            # See https://github.com/ultralytics/ultralytics/issues/7371
+            grid_h = shape[2]
+            grid_w = shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
-        return torch.cat((self.dfl(box), cls.sigmoid()), 1)
+        return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""

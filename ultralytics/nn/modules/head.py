@@ -52,8 +52,8 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if self.end2end:
             return self.forward_end2end(x)
-        elif self.export and self.format == "rknn":
-            return self.forward_rknn(x)
+        # elif self.export and self.format == "rknn":
+            # return self.forward_rknn(x)
 
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)

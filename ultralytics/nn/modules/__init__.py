@@ -96,6 +96,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .mobilenetv4 import MobileNetV4ConvSmall
 
 __all__ = (
     "Conv",
@@ -177,5 +178,6 @@ __all__ = (
     "ECAAttention",
     "SE",
     "SimAM",
-    "AKConv"
+    "AKConv",
+    "MobileNetV4ConvSmall"
 )

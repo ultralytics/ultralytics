@@ -68,7 +68,8 @@ from ultralytics.nn.modules import (
     ECAAttention,
     SE,
     SimAM,
-    AKConv
+    AKConv,
+    MobileNetV4ConvSmall,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -901,7 +902,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
-    if scales:
+    if scales: # 获取yolo的规模
         scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
@@ -1012,11 +1013,19 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = ch[f[-1]]
         elif m in {SE,}:
             args.insert(0, ch[f])
+        elif m in {MobileNetV4ConvSmall, }:
+            c2 = args[1]
+            c1 = args[2]
         else:
             c2 = ch[f]
 
-        m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-        t = str(m)[8:-2].replace("__main__.", "")  # module type
+        if m in {MobileNetV4ConvSmall, }:
+            m_ = m(args[2])  # module
+            t = "ultralytics.nn.modules.mobilenetv4"
+        else:
+            m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+            t = str(m)[8:-2].replace("__main__.", "")  # module type
+
         m.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:

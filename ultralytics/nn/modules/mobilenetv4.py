@@ -345,7 +345,7 @@ def build_blocks(layer_spec):
 
 
 class MobileNetV4(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, i):
         # MobileNetV4ConvSmall  MobileNetV4ConvMedium  MobileNetV4ConvLarge
         # MobileNetV4HybridMedium  MobileNetV4HybridLarge
         """Params to initiate MobilenNetV4
@@ -359,38 +359,35 @@ class MobileNetV4(nn.Module):
         self.spec = MODEL_SPECS[self.model]
        
         # conv0
-        self.conv0 = build_blocks(self.spec['conv0'])
-        # layer1
-        self.layer1 = build_blocks(self.spec['layer1'])
-        # layer2
-        self.layer2 = build_blocks(self.spec['layer2'])
-        # layer3
-        self.layer3 = build_blocks(self.spec['layer3'])
-        # layer4
-        self.layer4 = build_blocks(self.spec['layer4'])
-        # layer5   
-        self.layer5 = build_blocks(self.spec['layer5'])
-        self.features = nn.ModuleList([self.conv0, self.layer1, self.layer2, self.layer3, self.layer4, self.layer5])     
-        self.channel = [i.size(1) for i in self.forward(torch.randn(1, 1, 640, 640))]
-        
+        self.layers = nn.ModuleList([
+            build_blocks(self.spec['conv0']),
+            build_blocks(self.spec['layer1']),
+            build_blocks(self.spec['layer2']),
+            build_blocks(self.spec['layer3']),
+            build_blocks(self.spec['layer4']),
+            build_blocks(self.spec['layer5'])
+        ])
+
+        self.selected_layer = self.layers[i]
+
+        self.channel = self.get_output_channels(torch.randn(1, 1, 640, 640),i)
+
     def forward(self, x):
-        input_size = x.size(2)
-        d = x.size()
-        scale = [4, 8, 16, 32]
-        features = [None, None, None, None]
-        for f in self.features:
+        # Forward pass through the selected layer
+        for f in self.selected_layer:
             x = f(x)
+        return x
 
-            b = input_size // x.size(2)
-            c = x.size()
-            if input_size // x.size(2) in scale:
-                features[scale.index(input_size // x.size(2))] = x
+    def get_output_channels(self, x, i):
+        # Pass a dummy tensor through the network to determine output channels
+        for idx in range(i + 1):  # Need to include the selected layer
+            for f in self.layers[idx]:
+                x = f(x)
+        return x.size(1)
 
-        return features
-
-def MobileNetV4ConvSmall():
-    model = MobileNetV4('MobileNetV4ConvSmall')
-    return model
+def MobileNetV4ConvSmall(i):
+    model = MobileNetV4('MobileNetV4ConvSmall',i)
+    return model.layers[i]
 
 def MobileNetV4ConvMedium():
     model = MobileNetV4('MobileNetV4ConvMedium')
@@ -409,8 +406,27 @@ def MobileNetV4HybridLarge():
     return model
 
 if __name__ == '__main__':
-    model = MobileNetV4ConvSmall()
+    model0 = MobileNetV4ConvSmall(0)
+    model1 = MobileNetV4ConvSmall(1)
+    model2 = MobileNetV4ConvSmall(2)
+    model3 = MobileNetV4ConvSmall(3)
+    model4 = MobileNetV4ConvSmall(4)
+    model5 = MobileNetV4ConvSmall(5)
+
     inputs = torch.randn((1, 1, 608, 608))
-    res = model(inputs)
-    for i in res:
-        print(i.size())
+    res0 = model0(inputs)
+    res1 = model1(res0)
+    res2 = model2(res1)
+    res3 = model3(res2)
+    res4 = model4(res3)
+    res5 = model5(res4)
+
+    print(res0.size())
+    print(res1.size())
+    print(res2.size())
+    print(res3.size())
+    print(res4.size())
+    print(res5.size())
+
+
+

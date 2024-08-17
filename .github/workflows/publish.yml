@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install openai requests build twine
+          pip install openai requests build twine toml
       - name: Check PyPI version
         shell: python
         run: |

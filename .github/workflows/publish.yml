@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Publish pip package to PyPI https://pypi.org/project/ultralytics/ and Docs to https://docs.ultralytics.com
+# Publish pip package to PyPI https://pypi.org/project/ultralytics/
 
-name: Publish to PyPI and Deploy Docs
+name: Publish to PyPI
 
 on:
   push:
@@ -11,9 +11,6 @@ on:
       pypi:
         type: boolean
         description: Publish to PyPI
-      docs:
-        type: boolean
-        description: Deploy Docs
 
 jobs:
   publish:
@@ -161,26 +158,6 @@ jobs:
         run: |
           python -m build
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
-      - name: Deploy Docs
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
-        run: |
-          pip install black
-          export JUPYTER_PLATFORM_DIRS=1
-          python docs/build_docs.py
-          git clone https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
-          rm -rf *
-          cp -R ../site/* .
-          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
-          git add .
-          LATEST_HASH=$(git rev-parse --short=7 HEAD)
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

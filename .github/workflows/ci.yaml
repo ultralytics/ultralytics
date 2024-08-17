@@ -38,56 +38,6 @@ on:
         type: boolean
 
 jobs:
-  Docs:
-    # TODO: break this job out into it's own action with pull_request_target to allow changes to user forks
-    if: github.repository == 'ultralytics/ultralytics'
-    runs-on: macos-14
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref || github.ref }}
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-          cache: "pip" # caching pip dependencies
-      - name: Install Dependencies
-        run: pip install tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
-      - name: Update Docs Reference Section
-        run: python docs/build_reference.py
-      - name: Commit and Push Reference Section Changes
-        run: |
-          git pull origin ${{ github.head_ref || github.ref }}
-          git add .
-          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          git config --global user.name "UltralyticsAssistant"
-          git config --global user.email "web@ultralytics.com"
-          if ! git diff --staged --quiet; then
-            git commit -m "Auto-update Ultralytics Docs Reference Section by https://ultralytics.com/actions"
-            git push
-          else
-            echo "No changes to commit"
-          fi
-      - name: Build Docs and Check for Warnings
-        run: python docs/build_docs.py
-      - name: Commit and Push Docs changes
-        continue-on-error: true
-        if: always() && github.event_name == 'pull_request'
-        run: |
-          git pull origin ${{ github.head_ref || github.ref }}
-          git add --update  # only add updated files
-          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          if ! git diff --staged --quiet; then
-            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
-            git push
-          else
-            echo "No changes to commit"
-          fi
-
   HUB:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
     runs-on: ${{ matrix.os }}

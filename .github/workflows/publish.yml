@@ -21,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: "0" # pulls all commits (needed for correct last updated dates in Docs)
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}  # use your PAT here
       - name: Git config
         run: |
           git config --global user.name "UltralyticsAssistant"
@@ -94,7 +94,7 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
         shell: python

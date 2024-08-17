@@ -136,88 +136,151 @@ class Annotator:
             self.sf = self.lw / 3  # font scale
         # Pose
         self.skeleton = [
-            [16, 14], #[15, 13], # left leg
-            [14, 12], #[13, 11], # left leg
-            [17, 15], #[16, 14], # right leg
-            [15, 13], #[14, 12], # right leg
-
-            [12, 13], #[11, 12], # hip
-            [6, 12], #[5, 11], # left torso
-            [7, 13], #[6, 12], # right torso
-
-            [6, 7], #[5, 6], # shoulders
-            [6, 8], #[5, 7], # left upper arm
-            [7, 9], #[6, 8], # right upper arm
-            [8, 10], #[7, 9], # left lower arm
-            [9, 11], #[8, 10], # right lower arm
-
-            [2, 3], #[1, 2], # eyes
-            [1, 2], #[0, 1], # left eye
-            [1, 3], #[0, 2], # right eye
-            [2, 4], #[1, 3], # left ear
-            [3, 5], #[2, 4], # right ear
-            [4, 6], #[3, 5], # left neck
-            [5, 7], #[4, 6], # right neck
+            [16, 14],  # [15, 13], # left leg
+            [14, 12],  # [13, 11], # left leg
+            [17, 15],  # [16, 14], # right leg
+            [15, 13],  # [14, 12], # right leg
+            [12, 13],  # [11, 12], # hip
+            [6, 12],  # [5, 11], # left torso
+            [7, 13],  # [6, 12], # right torso
+            [6, 7],  # [5, 6], # shoulders
+            [6, 8],  # [5, 7], # left upper arm
+            [7, 9],  # [6, 8], # right upper arm
+            [8, 10],  # [7, 9], # left lower arm
+            [9, 11],  # [8, 10], # right lower arm
+            [2, 3],  # [1, 2], # eyes
+            [1, 2],  # [0, 1], # left eye
+            [1, 3],  # [0, 2], # right eye
+            [2, 4],  # [1, 3], # left ear
+            [3, 5],  # [2, 4], # right ear
+            [4, 6],  # [3, 5], # left neck
+            [5, 7],  # [4, 6], # right neck
         ]
 
         self.skeleton23 = [
-            [22, 20], # [21, 19], # left leg
-            [20, 18], # [19, 17], # left leg
-            [18, 14], # [17, 13], # left leg
-            [23, 21], # [22, 20], # right leg
-            [21, 19], # [20, 18], # right leg
-            [19, 15], # [18, 14], # right leg
-
-            [14, 15], # [13, 14], # hip
-            [8, 14], # [7, 13], # left torso
-            [9, 15], # [8, 14], # right torso
-
-            [8, 3], # [7, 2], # left shoulder
-            [9, 3], # [2, 8], # right shoulder
-            [8, 10], # [7, 9], # left upper arm
-            [9, 11], # [8, 10], # right upper arm
-            [10, 12], # [9, 11], # left middle arm
-            [11, 13], # [10, 12], # right middle arm
-            [12, 16], # [11, 15], # left lower arm
-            [13, 17], # [12, 16], # right lower arm
-
-            [1, 2], # [0, 1], # head-nose
-            [2, 4], # [1, 3], # left eye
-            [2, 5], # [1, 4], # right eye
-            [4, 5], # [3, 4], # eyes
-            [4, 6], # [3, 5], # left ear
-            [5, 7], # [4, 6], # right ear
-            [2, 3], # [1, 2], # neck
+            [22, 20],  # [21, 19], # left leg
+            [20, 18],  # [19, 17], # left leg
+            [18, 14],  # [17, 13], # left leg
+            [23, 21],  # [22, 20], # right leg
+            [21, 19],  # [20, 18], # right leg
+            [19, 15],  # [18, 14], # right leg
+            [14, 15],  # [13, 14], # hip
+            [8, 14],  # [7, 13], # left torso
+            [9, 15],  # [8, 14], # right torso
+            [8, 3],  # [7, 2], # left shoulder
+            [9, 3],  # [2, 8], # right shoulder
+            [8, 10],  # [7, 9], # left upper arm
+            [9, 11],  # [8, 10], # right upper arm
+            [10, 12],  # [9, 11], # left middle arm
+            [11, 13],  # [10, 12], # right middle arm
+            [12, 16],  # [11, 15], # left lower arm
+            [13, 17],  # [12, 16], # right lower arm
+            [1, 2],  # [0, 1], # head-nose
+            [2, 4],  # [1, 3], # left eye
+            [2, 5],  # [1, 4], # right eye
+            [4, 5],  # [3, 4], # eyes
+            [4, 6],  # [3, 5], # left ear
+            [5, 7],  # [4, 6], # right ear
+            [2, 3],  # [1, 2], # neck
         ]
 
         self.limb_color = colors.pose_palette[
             [
-                9, 9, 9, 9, # legs
-                7, 7, 7, # torso
-                0, 0, 0, 0, 0, # arms
-                16, 16, 16, 16, 16, 16, 16 # head
+                9,
+                9,
+                9,
+                9,  # legs
+                7,
+                7,
+                7,  # torso
+                0,
+                0,
+                0,
+                0,
+                0,  # arms
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,  # head
             ]
         ]
         self.limb_color23 = colors.pose_palette[
             [
-                9, 9, 9, 9, 9, 9, # legs
-                7, 7, 7, # torso
-                0, 0, 0, 0, 0, 0, 0, 0, # arms
-                16, 16, 16, 16, 16, 16, 16 # head
+                9,
+                9,
+                9,
+                9,
+                9,
+                9,  # legs
+                7,
+                7,
+                7,  # torso
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,  # arms
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,  # head
             ]
         ]
         self.kpt_color = colors.pose_palette[
             [
-                16, 16, 16, 16, 16, # head
-                0, 0, 0, 0, 0, 0, # arms and shoulders
-                9, 9, 9, 9, 9, 9 # hip and legs
+                16,
+                16,
+                16,
+                16,
+                16,  # head
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,  # arms and shoulders
+                9,
+                9,
+                9,
+                9,
+                9,
+                9,  # hip and legs
             ]
         ]
         self.kpt_color23 = colors.pose_palette[
             [
-                16, 16, 0, 16, 16, 16, 16, # 16 -> head
-                0, 0, 0, 0, 0, 0, 9, 9, # 0 -> arms and shoulders
-                0, 0, 9, 9, 9, 9, 9, 9, # 9 -> hip and legs
+                16,
+                16,
+                0,
+                16,
+                16,
+                16,
+                16,  # 16 -> head
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                9,
+                9,  # 0 -> arms and shoulders
+                0,
+                0,
+                9,
+                9,
+                9,
+                9,
+                9,
+                9,  # 9 -> hip and legs
             ]
         ]
         self.dark_colors = {
@@ -451,12 +514,12 @@ class Annotator:
         nkpt, ndim = kpts.shape
         is_pose = nkpt in {17, 23} and ndim in {2, 3}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
-        
+
         if nkpt == 23:
             self.skeleton = self.skeleton23
             self.limb_color = self.limb_color23
             self.kpt_color = self.kpt_color23
-        
+
         for i, k in enumerate(kpts):
             color_k = [int(x) for x in self.kpt_color[i]] if is_pose else colors(i)
             x_coord, y_coord = k[0], k[1]

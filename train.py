@@ -1,7 +1,8 @@
-from ultralytics import YOLO
 import argparse
 
-if __name__ == '__main__':
+from ultralytics import YOLO
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--pt", type=str, default="yolov10s.pt")
     parser.add_argument("--task", type=str, default="detect")
@@ -11,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--pretrained", action="store_true", default=True)
     parser.add_argument("--no-pretrained", action="store_false", dest="pretrained")
-    parser.add_argument("--device", type=list, default=['0'])
+    parser.add_argument("--device", type=list, default=["0"])
     parser.add_argument("--end2end", action="store_true", default=True)
     parser.add_argument("--no_en2end", action="store_false", dest="end2end", default=False)
     parser.add_argument("--project", type=str, default="ultralytics-runs")
@@ -25,9 +26,9 @@ if __name__ == '__main__':
 
     model.train(
         task=args.task,
-        data=args.dataset, 
+        data=args.dataset,
         fraction=args.fraction,
-        epochs=args.epochs, 
+        epochs=args.epochs,
         batch=args.batch,
         pretrained=args.pretrained,
         device=args.device,

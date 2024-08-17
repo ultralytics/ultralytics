@@ -17,31 +17,33 @@ OKS_SIGMA = (
 )
 
 OKS_23_SIGMA = (
-    np.array([
-        0.25, # head-top
-        0.25, # nose
-        0.25, # neck
-        0.35, # left-eye
-        0.35, # right-eye
-        0.79, # left-ear
-        0.79, # right-ear
-        0.72, # left-shoulder
-        0.72, # right-shoulder
-        0.62, # left-elbow
-        0.62, # right-elbow
-        0.36, # left-wrist
-        0.36, # right-wrist
-        0.87, # left-hip
-        0.87, # right-hip
-        0.36, # left-hand
-        0.36, # right-hand
-        0.79, # left-mid-thigh
-        0.79, # right-mid-thigh
-        0.72, # left-knee
-        0.72, # right-knee
-        0.62, # left-ankle
-        0.62, # right-ankle
-    ])
+    np.array(
+        [
+            0.25,  # head-top
+            0.25,  # nose
+            0.25,  # neck
+            0.35,  # left-eye
+            0.35,  # right-eye
+            0.79,  # left-ear
+            0.79,  # right-ear
+            0.72,  # left-shoulder
+            0.72,  # right-shoulder
+            0.62,  # left-elbow
+            0.62,  # right-elbow
+            0.36,  # left-wrist
+            0.36,  # right-wrist
+            0.87,  # left-hip
+            0.87,  # right-hip
+            0.36,  # left-hand
+            0.36,  # right-hand
+            0.79,  # left-mid-thigh
+            0.79,  # right-mid-thigh
+            0.72,  # left-knee
+            0.72,  # right-knee
+            0.62,  # left-ankle
+            0.62,  # right-ankle
+        ]
+    )
     / 10.0
 )
 

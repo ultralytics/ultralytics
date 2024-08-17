@@ -83,13 +83,9 @@ class Detect(nn.Module):
             return {"one2many": x, "one2one": one2one}
 
         y = self._inference(one2one)
-        if not self.kpt_shape: # is not Pose
+        if not self.kpt_shape:  # is not Pose
             y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else (
-            (y, {"one2many": x, "one2one": one2one})
-            if is_training
-            else (y, x)
-        )
+        return y if self.export else ((y, {"one2many": x, "one2one": one2one}) if is_training else (y, x))
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
@@ -245,7 +241,7 @@ class Pose(Detect):
 
         if self.end2end:
             return self.pose_forward_end2end(x, is_training=is_training)
-        
+
         bs = x[0].shape[0]  # batch size
         kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
         x = Detect.forward(self, x)
@@ -272,26 +268,25 @@ class Pose(Detect):
         kpt_one2one = torch.cat([self.one2one_cv4[i](x_detach[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)
         if is_training:
             kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
-            
+
         x = Detect.forward(self, x, is_training=is_training)
         if self.training:
             return x, {"one2many": kpt, "one2one": kpt_one2one}
-        
+
         pred_kpt = self.kpts_decode(bs, kpt_one2one)
-        preds = self.postprocess(
-            torch.cat([x[0], pred_kpt], 1).permute(0, 2, 1), 
-            self.max_det, 
-            self.nc,
-            self.nk
-        )
+        preds = self.postprocess(torch.cat([x[0], pred_kpt], 1).permute(0, 2, 1), self.max_det, self.nc, self.nk)
 
         # if not export return (inference(detect, kpt), predictions(detect, kpt))
-        return torch.cat([x, pred_kpt], 1) if self.export else (
-            (preds, (x[1], {"one2many": kpt, "one2one": kpt_one2one}))
-            if is_training
-            else (preds, (x[1], kpt_one2one))
+        return (
+            torch.cat([x, pred_kpt], 1)
+            if self.export
+            else (
+                (preds, (x[1], {"one2many": kpt, "one2one": kpt_one2one}))
+                if is_training
+                else (preds, (x[1], kpt_one2one))
+            )
         )
-    
+
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
@@ -324,7 +319,7 @@ class Pose(Detect):
             (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
                 including bounding boxes, scores and cls.
         """
-    
+
         assert 4 + nc + nk == preds.shape[-1]
         boxes, scores, keypoints = preds.split([4, nc, nk], dim=-1)
         max_scores = scores.amax(dim=-1)
@@ -690,7 +685,7 @@ class v10Detect(Detect):
 
 class v10Pose(Pose, v10Detect):
     """
-    v10 Pose head by merging Pose and v10Detect modules.
+    V10 Pose head by merging Pose and v10Detect modules.
 
     Args:
         nc (int): Number of classes.
@@ -704,11 +699,10 @@ class v10Pose(Pose, v10Detect):
         __init__(self, nc=80, ch=()): Initializes the v10Detect object.
         forward(self, x): Performs forward pass of the v10Detect module.
         bias_init(self): Initializes biases of the Detect module.
-
     """
 
     end2end = True
-    
+
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
         v10Detect.__init__(self, nc, ch)
         Pose.__init__(self, nc, kpt_shape, ch)

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.metrics import OKS_SIGMA, OKS_23_SIGMA
+from ultralytics.utils.metrics import OKS_23_SIGMA, OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 
@@ -451,7 +451,11 @@ class v8PoseLoss(v8DetectionLoss):
         is_pose = self.kpt_shape == [17, 3]
         is_pose_23 = self.kpt_shape == [23, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
-        sigmas = torch.from_numpy(OKS_SIGMA if is_pose else OKS_23_SIGMA).to(self.device) if (is_pose or is_pose_23) else torch.ones(nkpt, device=self.device) / nkpt
+        sigmas = (
+            torch.from_numpy(OKS_SIGMA if is_pose else OKS_23_SIGMA).to(self.device)
+            if (is_pose or is_pose_23)
+            else torch.ones(nkpt, device=self.device) / nkpt
+        )
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):
@@ -746,6 +750,7 @@ class E2EDetectLoss:
 
 class E2EPoseLoss:
     """Criterion class for computing training losses."""
+
     def __init__(self, model):
         """Initialize E2EPoseLoss with one-to-many and one-to-one pose losses using the provided model."""
         self.one2many = v8PoseLoss(model, tal_topk=10)

@@ -1,15 +1,17 @@
-from ultralytics import YOLO
 import argparse
-import yaml
 import os
 
-if __name__ == '__main__':
+import yaml
+
+from ultralytics import YOLO
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--pt", type=str, default="yolov10s.pt")
     parser.add_argument("--task", type=str, default="detect")
-    parser.add_argument("--dataset", type=str, default="coco_wb.yaml") # yaml or directory path with images
+    parser.add_argument("--dataset", type=str, default="coco_wb.yaml")  # yaml or directory path with images
     parser.add_argument("--batch", type=int, default=32)
-    parser.add_argument("--device", type=list, default=['0'])
+    parser.add_argument("--device", type=list, default=["0"])
     parser.add_argument("--end2end", action="store_true", default=False)
     parser.add_argument("--no_en2end", action="store_false", dest="end2end")
     parser.add_argument("--fraction", type=float, default=1.0)
@@ -28,7 +30,7 @@ if __name__ == '__main__':
     del model.model.model[-1].cv3
     del model.model.model[-1].cv4
 
-    if args.dataset.split('.')[-1] == "yaml": # yaml file
+    if args.dataset.split(".")[-1] == "yaml":  # yaml file
         with open(args.dataset, "r") as f:
             data = yaml.safe_load(f)
 
@@ -40,8 +42,12 @@ if __name__ == '__main__':
                 len_images = int(len(images) * args.fraction)
 
                 sources = [os.path.join(data["path"][1:], images[i][2:-1]) for i in range(len_images)]
-    else: # directory path
-        sources = [os.path.join(args.dataset, img) for img in os.listdir(args.dataset) if os.path.isfile(os.path.join(args.dataset, img))]
+    else:  # directory path
+        sources = [
+            os.path.join(args.dataset, img)
+            for img in os.listdir(args.dataset)
+            if os.path.isfile(os.path.join(args.dataset, img))
+        ]
 
     for source in sources:
         try:
@@ -54,7 +60,7 @@ if __name__ == '__main__':
                 project=args.project,
                 name=args.name,
                 conf=args.conf,
-                save=True
+                save=True,
             )
         except Exception as e:
             print(f"Skipping {source} because of error: {e}.")

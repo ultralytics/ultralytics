@@ -139,7 +139,15 @@ class BasePredictor:
             if self.args.visualize and (not self.source_type.tensor)
             else False
         )
-        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, is_training=False, *args, **kwargs)
+        return self.model(
+            im,
+            augment=self.args.augment,
+            visualize=visualize,
+            embed=self.args.embed,
+            is_training=False,
+            *args,
+            **kwargs,
+        )
 
     def pre_transform(self, im):
         """
@@ -231,7 +239,10 @@ class BasePredictor:
 
             # Warmup model
             if not self.done_warmup:
-                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz), is_training=False)
+                self.model.warmup(
+                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz),
+                    is_training=False,
+                )
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None

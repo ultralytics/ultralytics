@@ -142,7 +142,9 @@ class BaseModel(nn.Module):
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
-            x = m(x, is_training=is_training) if "v10" in str(m) else m(x) # run # TODO: check if model is end2end and if m is last layer
+            x = (
+                m(x, is_training=is_training) if "v10" in str(m) else m(x)
+            )  # run # TODO: check if model is end2end and if m is last layer
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)

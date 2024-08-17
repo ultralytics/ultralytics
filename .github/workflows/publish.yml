@@ -21,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
+          fetch-depth: "0" # pulls all commits (needed for correct last updated dates in Docs)
       - name: Git config
         run: |
           git config --global user.name "UltralyticsAssistant"
@@ -88,17 +88,11 @@ jobs:
 
           # Check for required environment variables
           if not all([OPENAI_AZURE_API_KEY, OPENAI_AZURE_ENDPOINT, OPENAI_AZURE_API_VERSION, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
-              print(OPENAI_AZURE_API_KEY)
-              print(OPENAI_AZURE_ENDPOINT)
-              print(OPENAI_AZURE_API_VERSION)
-              print(GITHUB_TOKEN)
-              print(CURRENT_TAG)
-              print(PREVIOUS_TAG)
               raise ValueError("One or more required environment variables are missing.")
 
           latest_tag = f"v{CURRENT_TAG}"
           previous_tag = f"v{PREVIOUS_TAG}"
-          repo = 'ultralytics/ultralytics'
+          repo = os.getenv('GITHUB_REPOSITORY')
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
 
           # Get the diff between the tags
@@ -116,11 +110,11 @@ jobs:
           messages = [
               {
                   "role": "system",
-                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
+                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
               },
               {
                   "role": "user",
-                  "content": f"Summarize the updates made in the [Ultralytics](https://ultralytics.com) '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+                  "content": f"Summarize the updates made in the '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
                              f"## 🌟 Summary (single-line synopsis)\n"
                              f"## 📊 Key Changes (bullet points highlighting any major changes)\n"
                              f"## 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"

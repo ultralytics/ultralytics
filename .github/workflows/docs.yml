@@ -6,7 +6,7 @@ name: Publish Docs
 on:
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request_target.head.repo.full_name || github.repository }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
@@ -34,7 +34,7 @@ jobs:
       - name: Install Dependencies
         run: pip install black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Update Docs Reference Section and Push Changes
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         run: |
           python docs/build_reference.py
           git pull origin ${{ github.head_ref || github.ref }}
@@ -52,7 +52,7 @@ jobs:
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
-        if: always() && github.event_name == 'pull_request_target'
+        if: always() && github.event_name == 'pull_request'
         run: |
           git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files

@@ -65,6 +65,7 @@ from .block import (
     ECAAttention,
     SE,
     SimAM,
+    Concat_BiFPN,
 )
 from .conv import (
     CBAM,
@@ -179,5 +180,6 @@ __all__ = (
     "SE",
     "SimAM",
     "AKConv",
-    "MobileNetV4ConvSmall"
+    "MobileNetV4ConvSmall",
+    "Concat_BiFPN"
 )

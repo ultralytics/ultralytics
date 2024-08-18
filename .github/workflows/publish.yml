@@ -141,7 +141,7 @@ jobs:
               }
           ]
           client = openai.OpenAI(api_key=OPENAI_API_KEY)
-          completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
+          completion = client.chat.completions.create(model="gpt-4o-2024-08-06", messages=messages)
           summary = completion.choices[0].message.content.strip()
 
           # Get the latest commit message

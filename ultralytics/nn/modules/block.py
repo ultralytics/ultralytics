@@ -59,7 +59,15 @@ __all__ = (
     "SE",
     "SimAM",
     "Concat_BiFPN",
-    "C2f_DBB"
+    "C2f_DBB",
+    # 把注意力添加至c2f里面
+    "C2f_SimAM",# simAM之前已添加。
+    "CoTAttention",# 暂时加入
+    "C2f_CoT",
+    "SKAttention",# 暂时加入
+    "C2f_SK",
+    "DoubleAttention",# 暂时加入
+    "C2f_Double",
 )
 
 
@@ -1664,32 +1672,32 @@ class SE(nn.Module):
         return x * y.expand_as(x)
 
 
-# 添加SimAM模块
-class SimAM(torch.nn.Module):
-    def __init__(self, e_lambda=1e-4):
-        super(SimAM, self).__init__()
-
-        self.activaton = nn.Sigmoid()
-        self.e_lambda = e_lambda
-
-    def __repr__(self):
-        s = self.__class__.__name__ + '('
-        s += ('lambda=%f)' % self.e_lambda)
-        return s
-
-    @staticmethod
-    def get_module_name():
-        return "simam"
-
-    def forward(self, x):
-        b, c, h, w = x.size()
-
-        n = w * h - 1
-
-        x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(2)
-        y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)) + 0.5
-
-        return x * self.activaton(y)
+# 添加SimAM模块 2024 0818已删
+# class SimAM(torch.nn.Module):
+#     def __init__(self, e_lambda=1e-4):
+#         super(SimAM, self).__init__()
+#
+#         self.activaton = nn.Sigmoid()
+#         self.e_lambda = e_lambda
+#
+#     def __repr__(self):
+#         s = self.__class__.__name__ + '('
+#         s += ('lambda=%f)' % self.e_lambda)
+#         return s
+#
+#     @staticmethod
+#     def get_module_name():
+#         return "simam"
+#
+#     def forward(self, x):
+#         b, c, h, w = x.size()
+#
+#         n = w * h - 1
+#
+#         x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(2)
+#         y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)) + 0.5
+#
+#         return x * self.activaton(y)
 
 # 改进concat模块
 class Concat_BiFPN(nn.Module):
@@ -1711,7 +1719,7 @@ class Concat_BiFPN(nn.Module):
 import torch.nn.functional as F
 import numpy as np
 
-__all__ = ['DiverseBranchBlock', 'C2f_DBB']
+# __all__ = ['DiverseBranchBlock', 'C2f_DBB']
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -2061,3 +2069,307 @@ class C2f_DBB(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+
+# 在c2f中添加代码
+class SimAM(torch.nn.Module):
+
+    def __init__(self, e_lambda=1e-4):
+        super(SimAM, self).__init__()
+        self.activaton = nn.Sigmoid()
+        self.e_lambda = e_lambda
+
+    def forward(self, x):
+        b, c, h, w = x.size()
+        n = w * h - 1
+        x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(2)
+        y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)) + 0.5
+
+        return x * self.activaton(y)
+
+class SimAM_Bottleneck(nn.Module):
+
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.simam = SimAM(e_lambda=1e-4)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.simam(self.cv2(self.cv1(x))) if self.add else self.simam(self.cv2(self.cv1(x)))
+
+
+class C2f_SimAM(nn.Module):
+    """CSP Bottleneck with 2 convolutions and 1 SimAM. by csdn迪菲赫尔曼"""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(
+            SimAM_Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass of a YOLOv5 CSPDarknet backbone layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Applies spatial attention to module's input."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+######################################################################
+
+
+# CoTAttention
+class CoTAttention(nn.Module):
+
+    def __init__(self, dim=512, kernel_size=3):
+        super().__init__()
+        self.dim = dim
+        self.kernel_size = kernel_size
+
+        self.key_embed = nn.Sequential(
+            nn.Conv2d(dim, dim, kernel_size=kernel_size, padding=kernel_size // 2, groups=4, bias=False),
+            nn.BatchNorm2d(dim),
+            nn.ReLU()
+        )
+        self.value_embed = nn.Sequential(
+            nn.Conv2d(dim, dim, 1, bias=False),
+            nn.BatchNorm2d(dim)
+        )
+
+        factor = 4
+        self.attention_embed = nn.Sequential(
+            nn.Conv2d(2 * dim, 2 * dim // factor, 1, bias=False),
+            nn.BatchNorm2d(2 * dim // factor),
+            nn.ReLU(),
+            nn.Conv2d(2 * dim // factor, kernel_size * kernel_size * dim, 1)
+        )
+
+    def forward(self, x):
+        bs, c, h, w = x.shape
+        k1 = self.key_embed(x)  # bs,c,h,w
+        v = self.value_embed(x).view(bs, c, -1)  # bs,c,h,w
+        y = torch.cat([k1, x], dim=1)  # bs,2c,h,w
+        att = self.attention_embed(y)  # bs,c*k*k,h,w
+        att = att.reshape(bs, c, self.kernel_size * self.kernel_size, h, w)
+        att = att.mean(2, keepdim=False).view(bs, c, -1)  # bs,c,h*w
+        k2 = F.softmax(att, dim=-1) * v
+        k2 = k2.view(bs, c, h, w)
+
+        return k1 + k2
+
+
+# ------------------------------------------以下是追加的部分代码------------------------------------------
+class CoT_Bottleneck(nn.Module):
+
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.cot = CoTAttention(c2, 3)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.cot(self.cv2(self.cv1(x))) if self.add else self.cot(self.cv2(self.cv1(x)))
+
+
+class C2f_CoT(nn.Module):
+    """CSP Bottleneck with 2 convolutions and 1 CoTAttention. by csdn迪菲赫尔曼"""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(CoT_Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+    def forward(self, x):
+        """Forward pass of a YOLOv5 CSPDarknet backbone layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Applies spatial attention to module's input."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+######################################################################
+
+from collections import OrderedDict
+# SK
+class SKAttention(nn.Module):
+    def __init__(self, channel=512, kernels=[1, 3, 5, 7], reduction=16, group=1, L=32):
+        super().__init__()
+        self.d = max(L, channel // reduction)
+        self.convs = nn.ModuleList([])
+        for k in kernels:
+            self.convs.append(
+                nn.Sequential(OrderedDict([
+                    ('conv', nn.Conv2d(channel, channel, kernel_size=k, padding=k // 2, groups=group)),
+                    ('bn', nn.BatchNorm2d(channel)),
+                    ('relu', nn.ReLU())
+                ]))
+            )
+        self.fc = nn.Linear(channel, self.d)
+        self.fcs = nn.ModuleList([
+            nn.Linear(self.d, channel) for _ in range(len(kernels))
+        ])
+        self.softmax = nn.Softmax(dim=0)
+
+    def forward(self, x):
+        bs, c, _, _ = x.size()
+        conv_outs = []
+        # split
+        for conv in self.convs:
+            conv_outs.append(conv(x))
+        feats = torch.stack(conv_outs, 0)  # k,bs,channel,h,w
+
+        # fuse
+        U = sum(conv_outs)  # bs,c,h,w
+
+        # reduction channel
+        S = U.mean(-1).mean(-1)  # bs,c
+        Z = self.fc(S)  # bs,d
+
+        # calculate attention weight
+        weights = []
+        for fc in self.fcs:
+            weight = fc(Z)
+            weights.append(weight.view(bs, c, 1, 1))  # bs,channel
+        attention_weights = torch.stack(weights, 0)  # k,bs,channel,1,1
+        attention_weights = self.softmax(attention_weights)  # k,bs,channel,1,1
+
+        # fuse
+        V = (attention_weights * feats).sum(0)
+        return V
+
+
+# ------------------------------------------以下是追加的部分代码------------------------------------------
+class SK_Bottleneck(nn.Module):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.sk = SKAttention(c2, reduction=16)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.sk(self.cv2(self.cv1(x))) if self.add else self.sk(self.cv2(self.cv1(x)))
+
+
+class C2f_SK(nn.Module):
+    """CSP Bottleneck with 2 convolutions and 1 SKAttention. by csdn迪菲赫尔曼"""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(
+            SK_Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n)
+        )
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Applies spatial attention to module's input."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+########################################
+
+# DoubleAttention
+class DoubleAttention(nn.Module):
+    def __init__(self, in_channels, reconstruct=True):
+        super().__init__()
+        self.in_channels = in_channels
+        c__ = int(in_channels * 0.5 * 0.5)  # hidden channels
+        self.reconstruct = reconstruct
+        self.c_m = c_m = c__
+        self.c_n = c_n = c__
+        self.convA = nn.Conv2d(in_channels, c_m, 1)
+        self.convB = nn.Conv2d(in_channels, c_n, 1)
+        self.convV = nn.Conv2d(in_channels, c_n, 1)
+        if self.reconstruct:
+            self.conv_reconstruct = nn.Conv2d(c_m, in_channels, kernel_size=1)
+        self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                torch.nn.init.kaiming_normal_(m.weight, mode='fan_out')
+                if m.bias is not None:
+                    torch.nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                torch.nn.init.constant_(m.weight, 1)
+                torch.nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                torch.nn.init.normal_(m.weight, std=0.001)
+                if m.bias is not None:
+                    torch.nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        b, c, h, w = x.shape
+        assert c == self.in_channels
+        A = self.convA(x)  # b,c_m,h,w
+        B = self.convB(x)  # b,c_n,h,w
+        V = self.convV(x)  # b,c_n,h,w
+        tmpA = A.view(b, self.c_m, -1)
+        attention_maps = F.softmax(B.view(b, self.c_n, -1), dim=1)
+        attention_vectors = F.softmax(V.view(b, self.c_n, -1), dim=1)
+        # step 1: feature gating
+        global_descriptors = torch.bmm(tmpA, attention_maps.permute(0, 2, 1))  # b.c_m,c_n
+        # step 2: feature distribution
+        tmpZ = global_descriptors.matmul(attention_vectors)  # b,c_m,h*w
+        tmpZ = tmpZ.view(b, self.c_m, h, w)  # b,c_m,h,w
+        if self.reconstruct:
+            tmpZ = self.conv_reconstruct(tmpZ)
+        return tmpZ
+
+# ------------------------------------------以下是追加的部分代码------------------------------------------
+class Double_Bottleneck(nn.Module):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.doubles = DoubleAttention(c2)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.doubles(self.cv2(self.cv1(x))) if self.add else self.doubles(self.cv2(self.cv1(x)))
+
+class C2f_Double(nn.Module):
+    """CSP Bottleneck with 2 convolutions and 1 DoubleAttention. by csdn迪菲赫尔曼"""
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(
+            Double_Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0)
+            for _ in range(n)
+        )
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+

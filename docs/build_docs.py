@@ -214,7 +214,7 @@ def convert_plaintext_links_to_html(content):
 
 
 def remove_macros():
-    # Delete the /macros directory and sitemap.xml.gz from the built site
+    """Removes the /macros directory and related entries in sitemap.xml from the built site."""
     shutil.rmtree(SITE / "macros", ignore_errors=True)
     (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
 

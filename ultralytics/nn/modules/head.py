@@ -157,7 +157,10 @@ class Detect(nn.Module):
 
         scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
         labels = index % nc
-        index = index // nc
+        if torch.backends.mps.is_available(): #explicitly set to "int64" to ensure Metal Performance Shaders (MPS) compability as well as CoreML format export completion, by circumventing CoreML/MPS 'gather' to 'gather_along_axis" ops error.
+            index = (index // nc).to(torch.int64)
+        else:
+            index = index // nc
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
 
         return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)], dim=-1)

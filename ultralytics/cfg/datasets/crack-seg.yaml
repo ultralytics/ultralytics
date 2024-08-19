@@ -18,4 +18,4 @@ names:
   0: crack
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/yolov5/releases/download/v1.0/crack-seg.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/crack-seg.zip

@@ -319,12 +319,12 @@ class Annotator:
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
         """
-        Draws a label with a background rectangle centered within a given bounding box.
+        Draws a label with a background circle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
@@ -366,7 +366,7 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
@@ -404,7 +404,7 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (R, G, B).
+            color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
         """
@@ -493,7 +493,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
         Plot keypoints on the image.
 
@@ -503,6 +503,7 @@ class Annotator:
             radius (int, optional): Radius of the drawn keypoints. Default is 5.
             kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
                                        for human pose. Default is True.
+            kpt_color (tuple, optional): The color of the keypoints (B, G, R).
 
         Note:
             `kpt_line=True` currently only supports human pose plotting.
@@ -521,7 +522,7 @@ class Annotator:
             self.kpt_color = self.kpt_color23
 
         for i, k in enumerate(kpts):
-            color_k = [int(x) for x in self.kpt_color[i]] if is_pose else colors(i)
+            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
             x_coord, y_coord = k[0], k[1]
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if len(k) == 3:
@@ -544,7 +545,14 @@ class Annotator:
                     continue
                 if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                     continue
-                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[i]], thickness=2, lineType=cv2.LINE_AA)
+                cv2.line(
+                    self.im,
+                    pos1,
+                    pos2,
+                    kpt_color or self.limb_color[i].tolist(),
+                    thickness=2,
+                    lineType=cv2.LINE_AA,
+                )
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
@@ -856,20 +864,18 @@ class Annotator:
         )
         cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
-    def seg_bbox(self, mask, mask_color=(255, 0, 255), det_label=None, track_label=None):
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
         """
         Function for drawing segmented object in bounding box shape.
 
         Args:
             mask (list): masks data list for instance segmentation area plotting
-            mask_color (tuple): mask foreground color
-            det_label (str): Detection label text
-            track_label (str): Tracking label text
+            mask_color (RGB): mask foreground color
+            label (str): Detection label text
+            txt_color (RGB): text color
         """
 
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-
-        label = f"Track ID: {track_label}" if track_label else det_label
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
         cv2.rectangle(
@@ -880,9 +886,10 @@ class Annotator:
             -1,
         )
 
-        cv2.putText(
-            self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, (255, 255, 255), self.tf
-        )
+        if label:
+            cv2.putText(
+                self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
+            )
 
     def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
         """

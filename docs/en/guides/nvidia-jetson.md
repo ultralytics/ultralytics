@@ -23,7 +23,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! Note
 
-    This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running the latest stable JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
+    This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running the latest stable JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60), JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
 ## What is NVIDIA Jetson?
 
@@ -61,32 +61,54 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
     For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
 
-## Run on JetPack 5.x
+## JetPack Support Based on Jetson Device
 
-If you own a Jetson Xavier NX, AGX Xavier, AGX Orin, Orin Nano or Orin NX which supports JetPack 5.x, you can continue to follow this guide. However, if you have a legacy device such as Jetson Nano, please skip to [Run on JetPack 4.x](#run-on-jetpack-4x).
+The below table highlights NVIDIA JetPack versions supported by different NVIDIA Jetson devices.
 
-### Set Up Ultralytics
+|                   | JetPack 4 | JetPack 5 | JetPack 6 |
+| ----------------- | --------- | --------- | --------- |
+| Jetson Nano       | ✅        | ❌        | ❌        |
+| Jetson TX2        | ✅        | ❌        | ❌        |
+| Jetson Xavier NX  | ✅        | ✅        | ❌        |
+| Jetson AGX Xavier | ✅        | ✅        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        |
 
-There are two ways of setting up Ultralytics package on NVIDIA Jetson to build your next Computer Vision project. You can use either of them.
+## Quick Start with Docker
 
-- [Start with Docker](#start-with-docker)
-- [Start without Docker](#start-without-docker)
+The fastest way to get started with Ultralytics YOLOv8 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
 
-#### Start with Docker
+=== "JetPack 4"
 
-The fastest way to get started with Ultralytics YOLOv8 on NVIDIA Jetson is to run with pre-built docker image for Jetson.
+    ```bash
+    t=ultralytics/ultralytics:latest-jetson-jetpack4
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+    ```
 
-Execute the below command to pull the Docker container and run on Jetson. This is based on [l4t-pytorch](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch) docker image which contains PyTorch and Torchvision in a Python3 environment.
+=== "JetPack 5"
 
-```bash
-t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
-```
+    ```bash
+    t=ultralytics/ultralytics:latest-jetson-jetpack5
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+    ```
+
+=== "JetPack 6"
+
+    ```bash
+    t=ultralytics/ultralytics:latest-jetson-jetpack6
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+    ```
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
-#### Start without Docker
+## Start with Native Installation
 
-##### Install Ultralytics Package
+For a native installation without Docker, please refer to the steps below.
+
+### Run on JetPack 6.x
+
+#### Install Ultralytics Package
 
 Here we will install Ultralytics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
 
@@ -110,7 +132,64 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
     sudo reboot
     ```
 
-##### Install PyTorch and Torchvision
+#### Install PyTorch and Torchvision
+
+The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
+
+Install `torch 2.3.0` and `torchvision 0.18` according to JP6.0
+
+```bash
+sudo apt-get install libopenmpi-dev libopenblas-base libomp-dev -y
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.3.0-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl
+```
+
+Visit the [PyTorch for Jetson page](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) to access all different versions of PyTorch for different JetPack versions. For a more detailed list on the PyTorch, Torchvision compatibility, visit the [PyTorch and Torchvision compatibility page](https://github.com/pytorch/vision).
+
+#### Install `onnxruntime-gpu`
+
+The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+
+All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.18.0` with `Python3.10` support.
+
+```bash
+wget https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl -O onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
+pip install onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
+```
+
+!!! Note
+
+    `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
+
+    `pip install numpy==1.23.5`
+
+### Run on JetPack 5.x
+
+#### Install Ultralytics Package
+
+Here we will install Ultralytics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+
+1. Update packages list, install pip and upgrade to latest
+
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
+
+2. Install `ultralytics` pip package with optional dependencies
+
+    ```bash
+    pip install ultralytics[export]
+    ```
+
+3. Reboot the device
+
+    ```bash
+    sudo reboot
+    ```
+
+#### Install PyTorch and Torchvision
 
 The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
 
@@ -140,11 +219,11 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 Visit the [PyTorch for Jetson page](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) to access all different versions of PyTorch for different JetPack versions. For a more detailed list on the PyTorch, Torchvision compatibility, visit the [PyTorch and Torchvision compatibility page](https://github.com/pytorch/vision).
 
-##### Install `onnxruntime-gpu`
+#### Install `onnxruntime-gpu`
 
 The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
 
-All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support for the JetPack we are using for this guide.
+All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
 
 ```bash
 wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -O onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
@@ -156,16 +235,6 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
     `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
 
     `pip install numpy==1.23.5`
-
-## Run on JetPack 4.x
-
-Here we support to run Ultralytics on legacy hardware such as the Jetson Nano. Currently we use Docker to achieve this.
-
-Execute the below command to pull the Docker container and run on Jetson. This is based on [l4t-cuda](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda) docker image which contains CUDA in a L4T environment.
-
-```bash
-t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
-```
 
 ## Use TensorRT on NVIDIA Jetson
 
@@ -372,7 +441,7 @@ Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For fur
 
 ### How do I deploy Ultralytics YOLOv8 on NVIDIA Jetson devices?
 
-Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Start with Docker](#start-with-docker) and [Start without Docker](#start-without-docker).
+Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
 
 ### What performance benchmarks can I expect from YOLOv8 models on NVIDIA Jetson devices?
 

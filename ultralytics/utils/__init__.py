@@ -44,9 +44,10 @@ LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
+TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
-    Usage examples for running YOLOv8:
+    Examples for running Ultralytics:
 
     1. Install the ultralytics package:
 
@@ -57,25 +58,25 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from scratch
+        model = YOLO("yolov8n.yaml")  # build a new model from scratch
         model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
         results = model.val()  # evaluate model performance on the validation set
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
-        success = model.export(format='onnx')  # export the model to ONNX format
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        success = model.export(format="onnx")  # export the model to ONNX format
 
     3. Use the command line interface (CLI):
 
-        YOLOv8 'yolo' CLI commands use the following syntax:
+        Ultralytics 'yolo' CLI commands use the following syntax:
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify]
-                    MODE (required) is one of [train, val, predict, export]
-                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                    MODE (required) is one of [train, val, predict, export, benchmark]
+                    ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
+                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01

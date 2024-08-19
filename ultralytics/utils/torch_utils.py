@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import contextlib
 import gc
 import math
 import os
@@ -48,11 +48,12 @@ TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 def torch_distributed_zero_first(local_rank: int):
     """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
+
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[0])
+        dist.barrier(device_ids=[local_rank])
 
 
 def smart_inference_mode():
@@ -101,12 +102,15 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    import cpuinfo  # pip install py-cpuinfo
+    with contextlib.suppress(Exception):
+        import cpuinfo  # pip install py-cpuinfo
 
-    k = "brand_raw", "hardware_raw", "arch_string_raw"  # info keys sorted by preference (not all keys always available)
-    info = cpuinfo.get_cpu_info()  # info dict
-    string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-    return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+        k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference (not all keys always available)
+        info = cpuinfo.get_cpu_info()  # info dict
+        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
+        return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+
+    return "unknown"
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):

@@ -97,19 +97,19 @@ Then, you can create a basic Streamlit application to run live inference:
 
     === "Python"
 
-    ```python
-    from ultralytics import solutions
+        ```python
+        from ultralytics import solutions
 
-    solutions.inference()
+        solutions.inference()
 
-    ### Make sure to run the file using command `streamlit run <file-name.py>`
-    ```
+        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        ```
 
-    === "CLI"
+        === "CLI"
 
-    ```bash
-    yolo streamlit-predict
-    ```
+        ```bash
+        yolo streamlit-predict
+        ```
 
 For more details on the practical setup, refer to the [Streamlit Application Code section](#streamlit-application-code) of the documentation.
 

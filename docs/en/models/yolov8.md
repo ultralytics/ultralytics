@@ -247,4 +247,4 @@ Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accu
         yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
-For additional information, check the [Performance Metrics](#performance-metrics) section.
+For additional information, check the [Performance Metrics](#performance-metrics-and-available-models) section.

@@ -777,7 +777,7 @@ class C4(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
-            Bottleneck(self.c, self.c, shortcut, g) if c2 <= 128 and n == 1 else C2(self.c, self.c, nk, shortcut, g)
+            C2(self.c, self.c, nk, shortcut, g)
             for _ in range(n)
         )
 

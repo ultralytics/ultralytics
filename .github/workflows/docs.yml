@@ -76,6 +76,10 @@ jobs:
           cp -R ../site/* .
           echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
           git add .
-          LATEST_HASH=$(git rev-parse --short=7 HEAD)
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            LATEST_HASH=$(git rev-parse --short=7 HEAD)
+            git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+            git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
+          fi

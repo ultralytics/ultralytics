@@ -172,16 +172,19 @@ jobs:
           python -m build
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Extract PR Details
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
+          # Check if the event is a pull request or pull_request_target
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
             PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
+            PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')
           else
+            # Use gh to find the PR associated with the commit
             COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
+            PR_JSON=$(gh pr list --search "${COMMIT_SHA}" --state merged --json number,title --jq '.[0]')
+            PR_NUMBER=$(echo $PR_JSON | jq -r '.number')
+            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV

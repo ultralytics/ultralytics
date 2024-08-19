@@ -32,11 +32,11 @@ The YOLOv3 series, including YOLOv3, YOLOv3-Ultralytics, and YOLOv3u, are design
 
 All three models support a comprehensive set of modes, ensuring versatility in various stages of model deployment and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
-| Model Type         | Pre-trained Weights   | Tasks Supported                             | Inference | Validation | Training | Export |
-| ------------------ | --------------------- | ------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv3             | [yolov3-sppu.pt][1]   |  [Detection](../tasks/detect.md)            | ✅        | ✅         | ✅       | ✅     |
-| YOLOv3-Ultralytics | [yolov3-tinyu.pt][2]  |  [Detection](../tasks/detect.md)            | ✅        | ✅         | ✅       | ✅     |
-| YOLOv3u            | [yolov3u.pt][3]       |  [Detection](../tasks/detect.md)            | ✅        | ✅         | ✅       | ✅     |
+| Model Type         | Pre-trained Weights  | Tasks Supported                 | Inference | Validation | Training | Export |
+| ------------------ | -------------------- | ------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv3             | [yolov3-sppu.pt][1]  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv3-Ultralytics | [yolov3-tinyu.pt][2] | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv3u            | [yolov3u.pt][3]      | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 [1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov3-sppu.pt
 [2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov3-tinyu.pt

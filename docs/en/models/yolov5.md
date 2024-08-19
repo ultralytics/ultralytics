@@ -62,7 +62,6 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 [9]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov5l6u.pt
 [10]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov5x6u.pt
 
-
 ## Usage Examples
 
 This example provides simple YOLOv5 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.

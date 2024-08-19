@@ -74,13 +74,13 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
 The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model Type     | Tasks Supported                        | Inference | Validation | Training | Export |
-| -------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv6-N       | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-S       | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-M       | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L       | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L6      | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type | Tasks Supported                 | Inference | Validation | Training | Export |
+| ---------- | ------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv6-N   | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-S   | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-M   | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L   | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L6  | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 

@@ -86,32 +86,32 @@ Compared to other state-of-the-art detectors:
 
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
-| Model              | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
-| ------------------ | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
-| YOLOv6-3.0-N       | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
-| Gold-YOLO-N        | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
-| YOLOv8-N           | 3.2                | 8.7               | 37.3                 | 6.16                 | 1.77                         |
+| Model                | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
+| -------------------- | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
+| YOLOv6-3.0-N         | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
+| Gold-YOLO-N          | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
+| YOLOv8-N             | 3.2                | 8.7               | 37.3                 | 6.16                 | 1.77                         |
 | **[yolov10n.pt][1]** | **2.3**            | **6.7**           | 39.5                 | **1.84**             | 1.79                         |
-|                    |                    |                   |                      |                      |                              |
-| YOLOv6-3.0-S       | 18.5               | 45.3              | 44.3                 | 3.42                 | 2.35                         |
-| Gold-YOLO-S        | 21.5               | 46.0              | 45.4                 | 3.82                 | 2.73                         |
-| YOLOv8-S           | 11.2               | 28.6              | 44.9                 | 7.07                 | **2.33**                     |
+|                      |                    |                   |                      |                      |                              |
+| YOLOv6-3.0-S         | 18.5               | 45.3              | 44.3                 | 3.42                 | 2.35                         |
+| Gold-YOLO-S          | 21.5               | 46.0              | 45.4                 | 3.82                 | 2.73                         |
+| YOLOv8-S             | 11.2               | 28.6              | 44.9                 | 7.07                 | **2.33**                     |
 | **[yolov10s.pt][2]** | **7.2**            | **21.6**          | **46.8**             | **2.49**             | 2.39                         |
-|                    |                    |                   |                      |                      |                              |
-| RT-DETR-R18        | 20.0               | 60.0              | 46.5                 | **4.58**             | **4.49**                     |
-| YOLOv6-3.0-M       | 34.9               | 85.8              | 49.1                 | 5.63                 | 4.56                         |
-| Gold-YOLO-M        | 41.3               | 87.5              | 49.8                 | 6.38                 | 5.45                         |
-| YOLOv8-M           | 25.9               | 78.9              | 50.6                 | 9.50                 | 5.09                         |
+|                      |                    |                   |                      |                      |                              |
+| RT-DETR-R18          | 20.0               | 60.0              | 46.5                 | **4.58**             | **4.49**                     |
+| YOLOv6-3.0-M         | 34.9               | 85.8              | 49.1                 | 5.63                 | 4.56                         |
+| Gold-YOLO-M          | 41.3               | 87.5              | 49.8                 | 6.38                 | 5.45                         |
+| YOLOv8-M             | 25.9               | 78.9              | 50.6                 | 9.50                 | 5.09                         |
 | **[yolov10m.pt][3]** | **15.4**           | **59.1**          | **51.3**             | 4.74                 | 4.63                         |
-|                    |                    |                   |                      |                      |                              |
-| YOLOv6-3.0-L       | 59.6               | 150.7             | 51.8                 | 9.02                 | 7.90                         |
-| Gold-YOLO-L        | 75.1               | 151.7             | 51.8                 | 10.65                | 9.78                         |
-| YOLOv8-L           | 43.7               | 165.2             | 52.9                 | 12.39                | 8.06                         |
-| RT-DETR-R50        | 42.0               | 136.0             | 53.1                 | 9.20                 | 9.07                         |
+|                      |                    |                   |                      |                      |                              |
+| YOLOv6-3.0-L         | 59.6               | 150.7             | 51.8                 | 9.02                 | 7.90                         |
+| Gold-YOLO-L          | 75.1               | 151.7             | 51.8                 | 10.65                | 9.78                         |
+| YOLOv8-L             | 43.7               | 165.2             | 52.9                 | 12.39                | 8.06                         |
+| RT-DETR-R50          | 42.0               | 136.0             | 53.1                 | 9.20                 | 9.07                         |
 | **[yolov10l.pt][5]** | **24.4**           | **120.3**         | **53.4**             | **7.28**             | **7.21**                     |
-|                    |                    |                   |                      |                      |                              |
-| YOLOv8-X           | 68.2               | 257.8             | 53.9                 | 16.86                | 12.83                        |
-| RT-DETR-R101       | 76.0               | 259.0             | 54.3                 | 13.71                | 13.58                        |
+|                      |                    |                   |                      |                      |                              |
+| YOLOv8-X             | 68.2               | 257.8             | 53.9                 | 16.86                | 12.83                        |
+| RT-DETR-R101         | 76.0               | 259.0             | 54.3                 | 13.71                | 13.58                        |
 | **[yolov10x.pt][6]** | **29.5**           | **160.4**         | **54.4**             | **10.70**            | **10.60**                    |
 
 [1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov10n.pt
@@ -125,8 +125,8 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 
 The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model   | Tasks                                  | Inference | Validation | Training | Export |
-| ------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| Model   | Tasks                           | Inference | Validation | Training | Export |
+| ------- | ------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv10 | [Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics and Available Models
@@ -143,7 +143,6 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
 | [yolov10x.pt][6] | 640        | **54.4**         | 160.4     | 10.70        |
 
 Latency measured with TensorRT FP16 on T4 GPU.
-
 
 ## Usage Examples
 

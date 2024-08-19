@@ -176,7 +176,7 @@ class BaseTrainer:
             world_size = len(self.args.device)
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
-        elif self.args.device == "multi_cpu":
+        elif self.args.device in ("multi_cpu", "multi_mps"):
             world_size = min(os.cpu_count(),self.args.batch)   # use all cpu 
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0

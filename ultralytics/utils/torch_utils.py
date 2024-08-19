@@ -151,7 +151,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device in {"cpu", "multi_cpu"}
-    mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+    mps = device in {"mps", "mps:0", "multi_mps"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested

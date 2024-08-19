@@ -391,7 +391,7 @@ class BasePredictor:
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
         cv2.imshow(p, im)
-        cv2.waitKey(300 if self.dataset.mode == "image" else self.dataset.fps)  # 1 millisecond
+        cv2.waitKey(300 if self.dataset.mode == "image" else (1000 // self.dataset.fps))  # 1 millisecond
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

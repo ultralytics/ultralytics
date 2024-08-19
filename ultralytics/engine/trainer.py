@@ -228,6 +228,10 @@ class BaseTrainer:
         else:
             backend="gloo"
             self.device = torch.device("cpu", RANK)
+            if RANK == 0:
+                # Enable multi-threading during validation since it runs on single CPU
+                self.add_callback("on_val_start", lambda x: torch.set_num_threads(NUM_THREADS))
+                self.add_callback("on_val_end", lambda x: torch.set_num_threads(1))
 
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
 
@@ -303,9 +307,13 @@ class BaseTrainer:
         batch_size = self.batch_size // max(world_size, 1)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=LOCAL_RANK, mode="train")
         if RANK in {-1, 0}:
-            # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+            if not torch.cuda.is_available():
+                batch_size = self.batch_size
+            elif not self.args.task == "obb":
+                # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+                batch_size *= 2
             self.test_loader = self.get_dataloader(
-                self.testset, batch_size=batch_size if self.args.task == "obb" else batch_size * 2, rank=-1, mode="val"
+                self.testset, batch_size=batch_size, rank=-1, mode="val"
             )
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")

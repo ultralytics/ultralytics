@@ -28,9 +28,9 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
     LOGGER,
+    NUM_THREADS,
     RANK,
     TQDM,
-    NUM_THREADS,
     __version__,
     callbacks,
     clean_url,
@@ -171,7 +171,9 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device) and "," in self.args.device:  # i.e. device='0' or device='0,1,2,3'
+        if (
+            isinstance(self.args.device, str) and len(self.args.device) and "," in self.args.device
+        ):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
@@ -188,7 +190,9 @@ class BaseTrainer:
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             # Argument checks
             if self.args.rect:
-                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU/Multi-CPU training, setting 'rect=False'")
+                LOGGER.warning(
+                    "WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU/Multi-CPU training, setting 'rect=False'"
+                )
                 self.args.rect = False
             if self.args.batch < 1.0:
                 LOGGER.warning(
@@ -223,10 +227,10 @@ class BaseTrainer:
         if torch.cuda.is_available():
             torch.cuda.set_device(RANK)
             self.device = torch.device("cuda", RANK)
-            backend="nccl" if dist.is_nccl_available() else "gloo"
+            backend = "nccl" if dist.is_nccl_available() else "gloo"
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         else:
-            backend="gloo"
+            backend = "gloo"
             self.device = torch.device("cpu", RANK)
             if RANK == 0:
                 # Enable multi-threading during validation since it runs on single CPU
@@ -285,7 +289,9 @@ class BaseTrainer:
         self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             if torch.cuda.is_available():
-                self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+                self.model = nn.parallel.DistributedDataParallel(
+                    self.model, device_ids=[RANK], find_unused_parameters=True
+                )
             else:
                 self.model = nn.parallel.DistributedDataParallel(self.model, find_unused_parameters=True)
 
@@ -312,9 +318,7 @@ class BaseTrainer:
             elif not self.args.task == "obb":
                 # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
                 batch_size *= 2
-            self.test_loader = self.get_dataloader(
-                self.testset, batch_size=batch_size, rank=-1, mode="val"
-            )
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size, rank=-1, mode="val")
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))

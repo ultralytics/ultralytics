@@ -177,20 +177,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"{install}"
             )
 
+    n = NUM_THREADS if device.startswith("multi") else 1 # device count
+
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
-        n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    "please specify a valid batch size, i.e. batch=16."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
+        n = len(devices)
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -204,7 +195,19 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
 
-    if arg in {"cpu", "mps"} and device != "multi_cpu":
+    if n > 1:  # multi-(GPU/CPU/MPS)
+        if batch < 1:
+            raise ValueError(
+                "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                "please specify a valid batch size, i.e. batch=16."
+            )
+        if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
+            raise ValueError(
+                f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
+            )
+
+    if arg in {"cpu", "mps"} and not device.startswith("multi"):
         torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
     if verbose:
         LOGGER.info(s if newline else s.rstrip())

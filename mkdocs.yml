@@ -644,6 +644,8 @@ plugins:
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
+        hi/index.md: index.md
+        nl/index.md: index.md
         callbacks.md: usage/callbacks.md
         cfg.md: usage/cfg.md
         cli.md: usage/cli.md

@@ -198,7 +198,7 @@ YOLOv8 supports a wide range of computer vision tasks, including object detectio
 
 ### What are the performance metrics for YOLOv8 models?
 
-YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
+YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics-and-available-models) section.
 
 ### How do I train a YOLOv8 model?
 

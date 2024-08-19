@@ -207,7 +207,7 @@ YOLOv9 introduces groundbreaking techniques such as Programmable Gradient Inform
 
 ### How does YOLOv9 perform on the MS COCO dataset compared to other models?
 
-YOLOv9 outperforms state-of-the-art real-time object detectors by achieving higher accuracy and efficiency. On the [COCO dataset](../datasets/detect/coco.md), YOLOv9 models exhibit superior mAP scores across various sizes while maintaining or reducing computational overhead. For instance, YOLOv9c achieves comparable accuracy with 42% fewer parameters and 21% less computational demand than YOLOv7 AF. Explore [performance comparisons](#performance-on-ms-coco-dataset) for detailed metrics.
+YOLOv9 outperforms state-of-the-art real-time object detectors by achieving higher accuracy and efficiency. On the [COCO dataset](../datasets/detect/coco.md), YOLOv9 models exhibit superior mAP scores across various sizes while maintaining or reducing computational overhead. For instance, YOLOv9c achieves comparable accuracy with 42% fewer parameters and 21% less computational demand than YOLOv7 AF. Explore [performance comparisons](#performance-metrics-and-available-models) for detailed metrics.
 
 ### How can I train a YOLOv9 model using Python and CLI?
 

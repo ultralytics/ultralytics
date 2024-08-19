@@ -140,7 +140,7 @@ Yes, you can use pre-trained YOLOv5u models for various tasks such as [Object De
 
 ### How do the performance metrics of YOLOv5u models compare on different platforms?
 
-The performance metrics of YOLOv5u models vary depending on the platform and hardware used. For example, the YOLOv5nu model achieves a 34.3 mAP on COCO dataset with a speed of 73.6 ms on CPU (ONNX) and 1.06 ms on A100 TensorRT. Detailed performance metrics for different YOLOv5u models can be found in the [Performance Metrics](#performance-metrics) section, which provides a comprehensive comparison across various devices.
+The performance metrics of YOLOv5u models vary depending on the platform and hardware used. For example, the YOLOv5nu model achieves a 34.3 mAP on COCO dataset with a speed of 73.6 ms on CPU (ONNX) and 1.06 ms on A100 TensorRT. Detailed performance metrics for different YOLOv5u models can be found in the [Performance Metrics](#performance-metrics-and-available-models) section, which provides a comprehensive comparison across various devices.
 
 ### How can I train a YOLOv5u model using the Ultralytics Python API?
 

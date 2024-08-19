@@ -181,7 +181,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"{install}"
             )
 
-    n = NUM_THREADS if device.startswith("multi") else 1 # device count
+    n = min(NUM_THREADS, batch) if device.startswith("multi") else 1 # device count
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7

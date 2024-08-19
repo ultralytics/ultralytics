@@ -36,18 +36,18 @@ The YOLOv8 series offers a diverse range of models, each specialized for specifi
 
 Each variant of the YOLOv8 series is optimized for its respective task, ensuring high performance and accuracy. Additionally, these models are compatible with various operational modes including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), facilitating their use in different stages of deployment and development.
 
-| Model       | Filenames                                                                                                      | Task                                         | Dataset                                                | Inference | Validation | Training | Export |
-| ----------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------ | --------- | ---------- | -------- | ------ |
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Detection](../tasks/detect.md)              | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Instance Segmentation](../tasks/segment.md) | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Keypoints](../tasks/pose.md)           | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-obb  | `yolov8n-obb.pt` `yolov8s-obb.pt` `yolov8m-obb.pt` `yolov8l-obb.pt` `yolov8x-obb.pt`                           | [Oriented Detection](../tasks/obb.md)        | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [Classification](../tasks/classify.md)       | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8-oiv7 | `yolov8n-oiv7.pt` `yolov8s-oiv7.pt` `yolov8m-oiv7.pt` `yolov8l-oiv7.pt` `yolov8x-oiv7.pt`                      | [Detection](../tasks/detect.md)              | [Open Images V7](../datasets/detect/open-images-v7.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type  | Task                                         | Dataset                                                | Inference | Validation | Training | Export |
+| ----------- | -------------------------------------------- | ------------------------------------------------------ | --------- | ---------- | -------- | ------ |
+| YOLOv8      | [Detection](../tasks/detect.md)              | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8-seg  | [Instance Segmentation](../tasks/segment.md) | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8-pose | [Pose/Keypoints](../tasks/pose.md)           | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8-obb  | [Oriented Detection](../tasks/obb.md)        | [DOTAv2](../datasets/obb/dota-v2.md)                   | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8-cls  | [Classification](../tasks/classify.md)       | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8-oiv7 | [Detection](../tasks/detect.md)              | [Open Images V7](../datasets/detect/open-images-v7.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides an overview of the YOLOv8 model variants, highlighting their applicability in specific tasks and their compatibility with various operational modes such as Inference, Validation, Training, and Export. It showcases the versatility and robustness of the YOLOv8 series, making them suitable for a variety of applications in computer vision.
 
-## Performance Metrics
+## Performance Metrics and Available Models
 
 !!! Performance
 
@@ -55,7 +55,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
-        | Model                                                                                   | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Pre-trained Weights                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | --------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [yolov8n.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
         | [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
@@ -67,7 +67,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Image V7](../datasets/detect/open-images-v7.md), which include 600 pre-trained classes.
 
-        | Model                                                                                             | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Pre-trained Weights                                                                               | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ------------------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [yolov8n-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
         | [yolov8s-oiv7.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
@@ -79,7 +79,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
 
-        | Model                                                                                           | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Pre-trained Weights                                                                             | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ----------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [yolov8n-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
         | [yolov8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
@@ -91,7 +91,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
-        | Model                                                                                           | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+        | Pre-trained Weights                                                                             | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
         | ----------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
         | [yolov8n-cls.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
         | [yolov8s-cls.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
@@ -103,7 +103,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, 'person'.
 
-        | Model                                                                                                   | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Pre-trained Weights                                                                                     | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | ------------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
         | [yolov8n-pose.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
         | [yolov8s-pose.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-pose.pt)       | 640                   | 60.0                  | 86.2               | 233.2                          | 1.42                                | 11.6               | 30.2              |
@@ -116,7 +116,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
-        | Model                                                                                           | size<br><sup>(pixels) | mAP<sup>test<br>50   | Speed<br><sup>CPU ONNX<br>(ms)   | Speed<br><sup>A100 TensorRT<br>(ms)   | params<br><sup>(M)   | FLOPs<br><sup>(B) |
+        | Pre-trained Weights                                                                             | size<br><sup>(pixels) | mAP<sup>test<br>50   | Speed<br><sup>CPU ONNX<br>(ms)   | Speed<br><sup>A100 TensorRT<br>(ms)   | params<br><sup>(M)   | FLOPs<br><sup>(B) |
         |------------------------------------------------------------------------------------------------ | --------------------- | -------------------- | -------------------------------- | ------------------------------------- | -------------------- | ----------------- |
         | [yolov8n-obb.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-obb.pt) | 1024                  | 78.0                 | 204.77                           | 3.57                                  | 3.1                  | 23.3              |
         | [yolov8s-obb.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-obb.pt) | 1024                  | 79.5                 | 424.88                           | 4.07                                  | 11.4                 | 76.3              |

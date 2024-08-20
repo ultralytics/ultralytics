@@ -96,7 +96,6 @@ class Detect(nn.Module):
                 for x in make_anchors(getattr(self, "feats_size", torch.Tensor([80, 40, 20])), self.stride, 0.5)
             )
             self.anchors, self.strides = self.anchors.to(x[0].device), self.strides.to(x[0].device)
-            self.strides /= 640  # NOTE: this part could be removed in the future.
         elif self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape

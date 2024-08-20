@@ -82,7 +82,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.   |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.     |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.         |
-| 'formats' | 'None'        | Specifies the export formats to benchmark. Accepts a list of formats, e.g., `['onnx', 'tensorrt']`. If not specified, benchmarks all formats.     |
+| `format`  | `None`        | Specifies the export format to benchmark. Accepts a string, e.g., `'onnx'`. If not specified, benchmarks all formats.                             |
 
 ## Export Formats
 
@@ -157,5 +157,5 @@ When running benchmarks, several arguments can be customized to suit specific ne
 - **int8:** Activate INT8 quantization for edge devices.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
 - **verbose:** Control the level of logging detail.
-- **formats:** Specify the export formats to benchmark.
+- **format:** Specify the export format to benchmark.
     For a full list of arguments, refer to the [Arguments](#arguments) section.

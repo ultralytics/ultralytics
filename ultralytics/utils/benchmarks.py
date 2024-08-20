@@ -54,7 +54,7 @@ def benchmark(
     int8=False,
     device="cpu",
     verbose=False,
-    formats=None,
+    format=None,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -69,7 +69,7 @@ def benchmark(
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
         verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
-        formats (list | optional): List of formats to benchmark. Default is None.
+        format (str | optional): The specific format to benchmark. Default is None.
 
     Returns:
         df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
@@ -91,21 +91,17 @@ def benchmark(
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
 
-    export_formats_df = export_formats()
-    if formats is not None:
-        export_arguments = export_formats_df["Argument"].tolist()[1:]
-        for f in formats:
-            if f not in export_arguments:
-                raise ValueError(f"Format {f} not supported. Supported formats are {export_arguments}")
-
+    formats = export_formats()
+    if format is not None:
+        assert isinstance(format, str), f"Expected a string type but got {type(format)}"
+        assert (
+            format in formats["Argument"].values
+        ), f"Expected format to be one of {formats["Argument"].values}, but got '{format}'"
+        formats = formats[formats["Argument"] == format]
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in export_formats_df.iterrows():  # index, (name, format, suffix, CPU, GPU)
+    for i, (name, format, suffix, cpu, gpu) in formats.iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = "❌", None  # export defaults
-
-        if formats is not None and format != "-":  # export all formats if formats=None
-            if format not in formats:
-                continue
         try:
             # Checks
             if i == 7:  # TF GraphDef

@@ -2723,6 +2723,16 @@ class RandomRotation90:
     Applies a 90 degree rotation to the image and labels (bboxes, segments, keypoints).
 
     Clockwise or counter-clockwise randomly.
+
+    Attributes:
+        p (float): Probability of applying the transformations.
+
+    Methods:
+        __call__: Applies the RandomRotation90 transformations to the input images and labels.
+
+    Examples:
+    >>> transform = RandomRotation90(p=0.5)
+    >>> rotated_labels = transform(labels)
     """
 
     def __init__(self, p: float = 0.0):

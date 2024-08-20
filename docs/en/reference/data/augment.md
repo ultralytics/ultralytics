@@ -77,7 +77,7 @@ keywords: Ultralytics, image augmentation, MixUp, Mosaic, Random Perspective, de
 
 ## ::: ultralytics.data.augment.RandomRotation90
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.v8_transforms
 

@@ -18,7 +18,6 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 <a href="https://docs.ultralytics.com/pt/hub/">Português</a> |
 <a href="https://docs.ultralytics.com/tr/hub/">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi/hub/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/hi/hub/">हिन्दी</a> |
 <a href="https://docs.ultralytics.com/ar/hub/">العربية</a>
 <br>
 <br>

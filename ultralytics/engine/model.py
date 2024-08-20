@@ -6,6 +6,7 @@ from typing import List, Union
 
 import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
@@ -143,7 +144,7 @@ class Model(nn.Module):
 
     def __call__(
         self,
-        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, Image.Image, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         **kwargs,
     ) -> list:
@@ -154,7 +155,7 @@ class Model(nn.Module):
         directly with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
+            source (str | Path | int | Image.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.

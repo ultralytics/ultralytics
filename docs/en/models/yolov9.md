@@ -90,7 +90,7 @@ The YOLOv9 series offers a range of models, each optimized for high-performance 
 
 | Model      | Tasks                                        | Inference | Validation | Training | Export |
 | ---------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv9     | [Detection](../tasks/detect.md)              | ✅        | ✅         | ✅       | ✅     |
+| YOLOv9     | [Object Detection](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
 | YOLOv9-seg | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.

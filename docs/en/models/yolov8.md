@@ -38,7 +38,7 @@ Each variant of the YOLOv8 series is optimized for its respective task, ensuring
 
 | Model Type  | Task                                         | Dataset                                                | Inference | Validation | Training | Export |
 | ----------- | -------------------------------------------- | ------------------------------------------------------ | --------- | ---------- | -------- | ------ |
-| YOLOv8      | [Detection](../tasks/detect.md)              | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
+| YOLOv8      | [Object Detection](../tasks/detect.md)       | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
 | YOLOv8-seg  | [Instance Segmentation](../tasks/segment.md) | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
 | YOLOv8-pose | [Pose/Keypoints](../tasks/pose.md)           | [COCO](../datasets/detect/coco.md)                     | ✅        | ✅         | ✅       | ✅     |
 | YOLOv8-obb  | [Oriented Detection](../tasks/obb.md)        | [DOTAv2](../datasets/obb/dota-v2.md)                   | ✅        | ✅         | ✅       | ✅     |

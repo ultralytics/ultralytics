@@ -2720,7 +2720,8 @@ class ToTensor:
 
 class RandomRotation90:
     """
-    Applies a 90 degree rotation to the image and labels (bboxes, segments, keypoints). Clockwise or counter-clockwise randomly.
+    Applies a 90 degree rotation to the image and labels (bboxes, segments, keypoints). Clockwise or counter-clockwise
+    randomly.
 
     Attributes:
         p (float): Probability of applying the transformations.

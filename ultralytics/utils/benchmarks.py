@@ -93,10 +93,10 @@ def benchmark(
 
     formats = export_formats()
     if format is not None:
-        assert isinstance(format, str), f"Expected a string type but got {type(format)}"
+        assert isinstance(format, str), f"Expected a string type but got {type(format)}."
         assert (
             format in formats["Argument"].values
-        ), f"Expected format to be one of {formats['Argument'].values}, but got '{format}'"
+        ), f"Expected format to be one of {formats['Argument'].values}, but got '{format}'."
         formats = formats[formats["Argument"] == format]
     y = []
     t0 = time.time()
